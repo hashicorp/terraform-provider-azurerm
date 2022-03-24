@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-01-01-preview/appplatform"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-03-01-preview/appplatform"
 
 // ActiveDeploymentCollection object that includes an array of Deployment resource name and set them as
 // active.
@@ -3712,7 +3712,7 @@ type CloudErrorBody struct {
 
 // ClusterResourceProperties service properties payload
 type ClusterResourceProperties struct {
-	// ProvisioningState - READ-ONLY; Provisioning state of the Service. Possible values include: 'ProvisioningStateCreating', 'ProvisioningStateUpdating', 'ProvisioningStateDeleting', 'ProvisioningStateDeleted', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving', 'ProvisioningStateMoved', 'ProvisioningStateMoveFailed'
+	// ProvisioningState - READ-ONLY; Provisioning state of the Service. Possible values include: 'ProvisioningStateCreating', 'ProvisioningStateUpdating', 'ProvisioningStateStarting', 'ProvisioningStateStopping', 'ProvisioningStateDeleting', 'ProvisioningStateDeleted', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving', 'ProvisioningStateMoved', 'ProvisioningStateMoveFailed'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// NetworkProfile - Network profile of the Service
 	NetworkProfile *NetworkProfile `json:"networkProfile,omitempty"`
@@ -4451,6 +4451,8 @@ type CustomContainer struct {
 	Args *[]string `json:"args,omitempty"`
 	// ImageRegistryCredential - Credential of the image registry
 	ImageRegistryCredential *ImageRegistryCredential `json:"imageRegistryCredential,omitempty"`
+	// LanguageFramework - Language framework of the container image uploaded
+	LanguageFramework *string `json:"languageFramework,omitempty"`
 }
 
 // CustomContainerUserSourceInfo custom container user source info
@@ -6901,10 +6903,30 @@ type LogSpecification struct {
 type ManagedIdentityProperties struct {
 	// Type - Type of the managed identity. Possible values include: 'ManagedIdentityTypeNone', 'ManagedIdentityTypeSystemAssigned', 'ManagedIdentityTypeUserAssigned', 'ManagedIdentityTypeSystemAssignedUserAssigned'
 	Type ManagedIdentityType `json:"type,omitempty"`
-	// PrincipalID - Principal Id
+	// PrincipalID - Principal Id of system-assigned managed identity.
 	PrincipalID *string `json:"principalId,omitempty"`
-	// TenantID - Tenant Id
+	// TenantID - Tenant Id of system-assigned managed identity.
 	TenantID *string `json:"tenantId,omitempty"`
+	// UserAssignedIdentities - Properties of user-assigned managed identities
+	UserAssignedIdentities map[string]*UserAssignedManagedIdentity `json:"userAssignedIdentities"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedIdentityProperties.
+func (mip ManagedIdentityProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mip.Type != "" {
+		objectMap["type"] = mip.Type
+	}
+	if mip.PrincipalID != nil {
+		objectMap["principalId"] = mip.PrincipalID
+	}
+	if mip.TenantID != nil {
+		objectMap["tenantId"] = mip.TenantID
+	}
+	if mip.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = mip.UserAssignedIdentities
+	}
+	return json.Marshal(objectMap)
 }
 
 // MetricDimension specifications of the Dimension of metrics
@@ -7251,10 +7273,33 @@ type OperationDetail struct {
 	IsDataAction *bool `json:"isDataAction,omitempty"`
 	// Display - Display of the operation
 	Display *OperationDisplay `json:"display,omitempty"`
+	// ActionType - READ-ONLY; Enum. Indicates the action type. "Internal" refers to actions that are for internal only APIs. Possible values include: 'ActionTypeInternal'
+	ActionType ActionType `json:"actionType,omitempty"`
 	// Origin - Origin of the operation
 	Origin *string `json:"origin,omitempty"`
 	// Properties - Properties of the operation
 	Properties *OperationProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationDetail.
+func (od OperationDetail) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if od.Name != nil {
+		objectMap["name"] = od.Name
+	}
+	if od.IsDataAction != nil {
+		objectMap["isDataAction"] = od.IsDataAction
+	}
+	if od.Display != nil {
+		objectMap["display"] = od.Display
+	}
+	if od.Origin != nil {
+		objectMap["origin"] = od.Origin
+	}
+	if od.Properties != nil {
+		objectMap["properties"] = od.Properties
+	}
+	return json.Marshal(objectMap)
 }
 
 // OperationDisplay operation display payload
@@ -9186,6 +9231,20 @@ func (uusi UploadedUserSourceInfo) AsUserSourceInfo() (*UserSourceInfo, bool) {
 // AsBasicUserSourceInfo is the BasicUserSourceInfo implementation for UploadedUserSourceInfo.
 func (uusi UploadedUserSourceInfo) AsBasicUserSourceInfo() (BasicUserSourceInfo, bool) {
 	return &uusi, true
+}
+
+// UserAssignedManagedIdentity the details of the user-assigned managed identity assigned to an App.
+type UserAssignedManagedIdentity struct {
+	// PrincipalID - READ-ONLY; Principal Id of user-assigned managed identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// ClientID - READ-ONLY; Client Id of user-assigned managed identity.
+	ClientID *string `json:"clientId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UserAssignedManagedIdentity.
+func (uami UserAssignedManagedIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
 }
 
 // BasicUserSourceInfo source information for a deployment

@@ -15,32 +15,32 @@ import (
 	"net/http"
 )
 
-// GatewaysClient is the REST API for Azure Spring Cloud
-type GatewaysClient struct {
+// APIPortalsClient is the REST API for Azure Spring Cloud
+type APIPortalsClient struct {
 	BaseClient
 }
 
-// NewGatewaysClient creates an instance of the GatewaysClient client.
-func NewGatewaysClient(subscriptionID string) GatewaysClient {
-	return NewGatewaysClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewAPIPortalsClient creates an instance of the APIPortalsClient client.
+func NewAPIPortalsClient(subscriptionID string) APIPortalsClient {
+	return NewAPIPortalsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewGatewaysClientWithBaseURI creates an instance of the GatewaysClient client using a custom endpoint.  Use this
+// NewAPIPortalsClientWithBaseURI creates an instance of the APIPortalsClient client using a custom endpoint.  Use this
 // when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewGatewaysClientWithBaseURI(baseURI string, subscriptionID string) GatewaysClient {
-	return GatewaysClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewAPIPortalsClientWithBaseURI(baseURI string, subscriptionID string) APIPortalsClient {
+	return APIPortalsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create the default Spring Cloud Gateway or update the existing Spring Cloud Gateway.
+// CreateOrUpdate create the default API portal or update the existing API portal.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
-// gatewayName - the name of Spring Cloud Gateway.
-// gatewayResource - the gateway for the create or update operation
-func (client GatewaysClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, gatewayResource GatewayResource) (result GatewaysCreateOrUpdateFuture, err error) {
+// APIPortalName - the name of API portal.
+// APIPortalResource - the API portal for the create or update operation
+func (client APIPortalsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, APIPortalName string, APIPortalResource APIPortalResource) (result APIPortalsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GatewaysClient.CreateOrUpdate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/APIPortalsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -49,15 +49,15 @@ func (client GatewaysClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serviceName, gatewayName, gatewayResource)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serviceName, APIPortalName, APIPortalResource)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -65,15 +65,15 @@ func (client GatewaysClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client GatewaysClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, gatewayResource GatewayResource) (*http.Request, error) {
+func (client APIPortalsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, APIPortalName string, APIPortalResource APIPortalResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"gatewayName":       autorest.Encode("path", gatewayName),
+		"apiPortalName":     autorest.Encode("path", APIPortalName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-01-preview"
+	const APIVersion = "2022-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -82,15 +82,15 @@ func (client GatewaysClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/gateways/{gatewayName}", pathParameters),
-		autorest.WithJSON(gatewayResource),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apiPortals/{apiPortalName}", pathParameters),
+		autorest.WithJSON(APIPortalResource),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client GatewaysClient) CreateOrUpdateSender(req *http.Request) (future GatewaysCreateOrUpdateFuture, err error) {
+func (client APIPortalsClient) CreateOrUpdateSender(req *http.Request) (future APIPortalsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -106,7 +106,7 @@ func (client GatewaysClient) CreateOrUpdateSender(req *http.Request) (future Gat
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client GatewaysClient) CreateOrUpdateResponder(resp *http.Response) (result GatewayResource, err error) {
+func (client APIPortalsClient) CreateOrUpdateResponder(resp *http.Response) (result APIPortalResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
@@ -116,15 +116,15 @@ func (client GatewaysClient) CreateOrUpdateResponder(resp *http.Response) (resul
 	return
 }
 
-// Delete disable the default Spring Cloud Gateway.
+// Delete delete the default API portal.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
-// gatewayName - the name of Spring Cloud Gateway.
-func (client GatewaysClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string) (result GatewaysDeleteFuture, err error) {
+// APIPortalName - the name of API portal.
+func (client APIPortalsClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, APIPortalName string) (result APIPortalsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GatewaysClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/APIPortalsClient.Delete")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -133,15 +133,15 @@ func (client GatewaysClient) Delete(ctx context.Context, resourceGroupName strin
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.DeletePreparer(ctx, resourceGroupName, serviceName, gatewayName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, serviceName, APIPortalName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -149,15 +149,15 @@ func (client GatewaysClient) Delete(ctx context.Context, resourceGroupName strin
 }
 
 // DeletePreparer prepares the Delete request.
-func (client GatewaysClient) DeletePreparer(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string) (*http.Request, error) {
+func (client APIPortalsClient) DeletePreparer(ctx context.Context, resourceGroupName string, serviceName string, APIPortalName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"gatewayName":       autorest.Encode("path", gatewayName),
+		"apiPortalName":     autorest.Encode("path", APIPortalName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-01-preview"
+	const APIVersion = "2022-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -165,14 +165,14 @@ func (client GatewaysClient) DeletePreparer(ctx context.Context, resourceGroupNa
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/gateways/{gatewayName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apiPortals/{apiPortalName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client GatewaysClient) DeleteSender(req *http.Request) (future GatewaysDeleteFuture, err error) {
+func (client APIPortalsClient) DeleteSender(req *http.Request) (future APIPortalsDeleteFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -188,7 +188,7 @@ func (client GatewaysClient) DeleteSender(req *http.Request) (future GatewaysDel
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client GatewaysClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client APIPortalsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
@@ -197,15 +197,15 @@ func (client GatewaysClient) DeleteResponder(resp *http.Response) (result autore
 	return
 }
 
-// Get get the Spring Cloud Gateway and its properties.
+// Get get the API portal and its properties.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
-// gatewayName - the name of Spring Cloud Gateway.
-func (client GatewaysClient) Get(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string) (result GatewayResource, err error) {
+// APIPortalName - the name of API portal.
+func (client APIPortalsClient) Get(ctx context.Context, resourceGroupName string, serviceName string, APIPortalName string) (result APIPortalResource, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GatewaysClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/APIPortalsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -214,22 +214,22 @@ func (client GatewaysClient) Get(ctx context.Context, resourceGroupName string, 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, resourceGroupName, serviceName, gatewayName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, serviceName, APIPortalName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -237,15 +237,15 @@ func (client GatewaysClient) Get(ctx context.Context, resourceGroupName string, 
 }
 
 // GetPreparer prepares the Get request.
-func (client GatewaysClient) GetPreparer(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string) (*http.Request, error) {
+func (client APIPortalsClient) GetPreparer(ctx context.Context, resourceGroupName string, serviceName string, APIPortalName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"gatewayName":       autorest.Encode("path", gatewayName),
+		"apiPortalName":     autorest.Encode("path", APIPortalName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-01-preview"
+	const APIVersion = "2022-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -253,20 +253,20 @@ func (client GatewaysClient) GetPreparer(ctx context.Context, resourceGroupName 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/gateways/{gatewayName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apiPortals/{apiPortalName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client GatewaysClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client APIPortalsClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client GatewaysClient) GetResponder(resp *http.Response) (result GatewayResource, err error) {
+func (client APIPortalsClient) GetResponder(resp *http.Response) (result APIPortalResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -281,13 +281,13 @@ func (client GatewaysClient) GetResponder(resp *http.Response) (result GatewayRe
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
-func (client GatewaysClient) List(ctx context.Context, resourceGroupName string, serviceName string) (result GatewayResourceCollectionPage, err error) {
+func (client APIPortalsClient) List(ctx context.Context, resourceGroupName string, serviceName string) (result APIPortalResourceCollectionPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GatewaysClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/APIPortalsClient.List")
 		defer func() {
 			sc := -1
-			if result.grc.Response.Response != nil {
-				sc = result.grc.Response.Response.StatusCode
+			if result.aprc.Response.Response != nil {
+				sc = result.aprc.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -295,23 +295,23 @@ func (client GatewaysClient) List(ctx context.Context, resourceGroupName string,
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, resourceGroupName, serviceName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.grc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "List", resp, "Failure sending request")
+		result.aprc.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.grc, err = client.ListResponder(resp)
+	result.aprc, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.grc.hasNextLink() && result.grc.IsEmpty() {
+	if result.aprc.hasNextLink() && result.aprc.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -320,14 +320,14 @@ func (client GatewaysClient) List(ctx context.Context, resourceGroupName string,
 }
 
 // ListPreparer prepares the List request.
-func (client GatewaysClient) ListPreparer(ctx context.Context, resourceGroupName string, serviceName string) (*http.Request, error) {
+func (client APIPortalsClient) ListPreparer(ctx context.Context, resourceGroupName string, serviceName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-01-preview"
+	const APIVersion = "2022-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -335,20 +335,20 @@ func (client GatewaysClient) ListPreparer(ctx context.Context, resourceGroupName
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/gateways", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apiPortals", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client GatewaysClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client APIPortalsClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client GatewaysClient) ListResponder(resp *http.Response) (result GatewayResourceCollection, err error) {
+func (client APIPortalsClient) ListResponder(resp *http.Response) (result APIPortalResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -359,10 +359,10 @@ func (client GatewaysClient) ListResponder(resp *http.Response) (result GatewayR
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client GatewaysClient) listNextResults(ctx context.Context, lastResults GatewayResourceCollection) (result GatewayResourceCollection, err error) {
-	req, err := lastResults.gatewayResourceCollectionPreparer(ctx)
+func (client APIPortalsClient) listNextResults(ctx context.Context, lastResults APIPortalResourceCollection) (result APIPortalResourceCollection, err error) {
+	req, err := lastResults.aPIPortalResourceCollectionPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -370,19 +370,19 @@ func (client GatewaysClient) listNextResults(ctx context.Context, lastResults Ga
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client GatewaysClient) ListComplete(ctx context.Context, resourceGroupName string, serviceName string) (result GatewayResourceCollectionIterator, err error) {
+func (client APIPortalsClient) ListComplete(ctx context.Context, resourceGroupName string, serviceName string) (result APIPortalResourceCollectionIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GatewaysClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/APIPortalsClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -400,11 +400,11 @@ func (client GatewaysClient) ListComplete(ctx context.Context, resourceGroupName
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
-// gatewayName - the name of Spring Cloud Gateway.
+// APIPortalName - the name of API portal.
 // validatePayload - custom domain payload to be validated
-func (client GatewaysClient) ValidateDomain(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, validatePayload CustomDomainValidatePayload) (result CustomDomainValidateResult, err error) {
+func (client APIPortalsClient) ValidateDomain(ctx context.Context, resourceGroupName string, serviceName string, APIPortalName string, validatePayload CustomDomainValidatePayload) (result CustomDomainValidateResult, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GatewaysClient.ValidateDomain")
+		ctx = tracing.StartSpan(ctx, fqdn+"/APIPortalsClient.ValidateDomain")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -416,25 +416,25 @@ func (client GatewaysClient) ValidateDomain(ctx context.Context, resourceGroupNa
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: validatePayload,
 			Constraints: []validation.Constraint{{Target: "validatePayload.Name", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("appplatform.GatewaysClient", "ValidateDomain", err.Error())
+		return result, validation.NewError("appplatform.APIPortalsClient", "ValidateDomain", err.Error())
 	}
 
-	req, err := client.ValidateDomainPreparer(ctx, resourceGroupName, serviceName, gatewayName, validatePayload)
+	req, err := client.ValidateDomainPreparer(ctx, resourceGroupName, serviceName, APIPortalName, validatePayload)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "ValidateDomain", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "ValidateDomain", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ValidateDomainSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "ValidateDomain", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "ValidateDomain", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ValidateDomainResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewaysClient", "ValidateDomain", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.APIPortalsClient", "ValidateDomain", resp, "Failure responding to request")
 		return
 	}
 
@@ -442,15 +442,15 @@ func (client GatewaysClient) ValidateDomain(ctx context.Context, resourceGroupNa
 }
 
 // ValidateDomainPreparer prepares the ValidateDomain request.
-func (client GatewaysClient) ValidateDomainPreparer(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, validatePayload CustomDomainValidatePayload) (*http.Request, error) {
+func (client APIPortalsClient) ValidateDomainPreparer(ctx context.Context, resourceGroupName string, serviceName string, APIPortalName string, validatePayload CustomDomainValidatePayload) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"gatewayName":       autorest.Encode("path", gatewayName),
+		"apiPortalName":     autorest.Encode("path", APIPortalName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-01-preview"
+	const APIVersion = "2022-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -459,7 +459,7 @@ func (client GatewaysClient) ValidateDomainPreparer(ctx context.Context, resourc
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/gateways/{gatewayName}/validateDomain", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apiPortals/{apiPortalName}/validateDomain", pathParameters),
 		autorest.WithJSON(validatePayload),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -467,13 +467,13 @@ func (client GatewaysClient) ValidateDomainPreparer(ctx context.Context, resourc
 
 // ValidateDomainSender sends the ValidateDomain request. The method will close the
 // http.Response Body if it receives an error.
-func (client GatewaysClient) ValidateDomainSender(req *http.Request) (*http.Response, error) {
+func (client APIPortalsClient) ValidateDomainSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ValidateDomainResponder handles the response to the ValidateDomain request. The method always
 // closes the http.Response Body.
-func (client GatewaysClient) ValidateDomainResponder(resp *http.Response) (result CustomDomainValidateResult, err error) {
+func (client APIPortalsClient) ValidateDomainResponder(resp *http.Response) (result CustomDomainValidateResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
