@@ -55,7 +55,7 @@ func TestExpandFeatures(t *testing.T) {
 					ScaleToZeroOnDelete:       true,
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
-					PreventDeletionIfContainsResources: false,
+					PreventDeletionIfContainsResources: true,
 				},
 			},
 		},
@@ -967,7 +967,7 @@ func TestExpandFeaturesResourceGroup(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				ResourceGroup: features.ResourceGroupFeatures{
-					PreventDeletionIfContainsResources: false,
+					PreventDeletionIfContainsResources: true,
 				},
 			},
 		},
