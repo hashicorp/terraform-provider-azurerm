@@ -277,7 +277,6 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 				frontEndConfig.Zones = &zones
 			}
 		} else {
-			// TODO - get zone list for each location by Resource API, instead of hardcode
 			zones := &[]string{"1", "2"}
 			zonesSet := false
 			if deprecatedZonesRaw, ok := d.GetOk(fmt.Sprintf("frontend_ip_configuration.%d.zones", index)); ok {

@@ -37,9 +37,6 @@ func TestExpandFeatures(t *testing.T) {
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: false,
 				},
-				Network: features.NetworkFeatures{
-					RelaxedLocking: false,
-				},
 				TemplateDeployment: features.TemplateDeploymentFeatures{
 					DeleteNestedItemsDuringDeletion: true,
 				},
@@ -140,9 +137,6 @@ func TestExpandFeatures(t *testing.T) {
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: true,
 				},
-				Network: features.NetworkFeatures{
-					RelaxedLocking: true,
-				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: true,
 				},
@@ -242,9 +236,6 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: false,
-				},
-				Network: features.NetworkFeatures{
-					RelaxedLocking: false,
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: false,
@@ -501,71 +492,6 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.KeyVault, testCase.Expected.KeyVault) {
 			t.Fatalf("Expected %+v but got %+v", result.KeyVault, testCase.Expected.KeyVault)
-		}
-	}
-}
-
-func TestExpandFeaturesNetwork(t *testing.T) {
-	testData := []struct {
-		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
-		Expected features.UserFeatures
-	}{
-		{
-			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"network": []interface{}{},
-				},
-			},
-			Expected: features.UserFeatures{
-				Network: features.NetworkFeatures{
-					RelaxedLocking: false,
-				},
-			},
-		},
-		{
-			Name: "Relaxed Locking Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"network": []interface{}{
-						map[string]interface{}{
-							"relaxed_locking": true,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				Network: features.NetworkFeatures{
-					RelaxedLocking: true,
-				},
-			},
-		},
-		{
-			Name: "Relaxed Locking Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"network": []interface{}{
-						map[string]interface{}{
-							"relaxed_locking": false,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				Network: features.NetworkFeatures{
-					RelaxedLocking: false,
-				},
-			},
-		},
-	}
-
-	for _, testCase := range testData {
-		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
-		result := expandFeatures(testCase.Input)
-		if !reflect.DeepEqual(result.Network, testCase.Expected.Network) {
-			t.Fatalf("Expected %+v but got %+v", result.Network, testCase.Expected.Network)
 		}
 	}
 }

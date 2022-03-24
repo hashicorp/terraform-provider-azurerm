@@ -2,7 +2,6 @@ package containers_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -10,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
-// TODO this can be removed post 3.0 as only `azure_active_directory_role_based_access_control.0.server_app_secret` needs to be ignored in the ImportStep
+// CLEANUP this can be removed post 3.0 as only `azure_active_directory_role_based_access_control.0.server_app_secret` needs to be ignored in the ImportStep
 func rbacServerAppSecret() []string {
 	serverAppSecret := []string{"azure_active_directory_role_based_access_control.0.server_app_secret"}
 	if !features.ThreePointOhBeta() {
@@ -191,32 +190,6 @@ func TestAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged(t *testin
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
 	auth := clientData.Default
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.roleBasedAccessControlAADConfig(data, auth.ClientID, auth.ClientSecret, ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(rbacServerAppSecret()...),
-		{
-			Config: r.roleBasedAccessControlAADManagedConfig(data, ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(rbacServerAppSecret()...),
-	})
-}
-
-func TestAccKubernetesCluster_roleBasedAccessControlAADUpdateToManagedSensitive(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-	clientData := data.Client()
-	auth := clientData.Default
-
-	os.Setenv("ARM_AKS_KUBE_CONFIGS_SENSITIVE", "true")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

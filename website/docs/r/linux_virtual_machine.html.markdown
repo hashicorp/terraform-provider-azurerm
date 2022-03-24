@@ -186,6 +186,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine.
 
+* `termination_notification` - (Optional) A `termination_notification` block as defined below.
+
 * `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine.
 
 * `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled on the virtual machine. Changing this forces a new resource to be created.
@@ -297,6 +299,16 @@ A `secret` block supports the following:
 * `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
 
 * `version` - (Optional) Specifies the version of the image used to create the virtual machines.
+
+---
+
+A `termination_notification` block supports the following:
+
+* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine? Defaults to `false`.
+
+* `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
+
+~> **NOTE:** For more information about the termination notification, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
 
 ## Attributes Reference
 

@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/validate"
@@ -77,17 +76,12 @@ func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta interfac
 		lighthouseAssignmentName = uuid
 	}
 
-	scope := d.Get("scope").(string)
-
-	existing, err := client.Get(ctx, scope, lighthouseAssignmentName, utils.Bool(false))
+	id := parse.NewLighthouseAssignmentID(d.Get("scope").(string), lighthouseAssignmentName)
+	existing, err := client.Get(ctx, id.Scope, id.Name, utils.Bool(false))
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
-	}
-
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_lighthouse_assignment", *existing.ID)
 	}
 
 	parameters := managedservices.RegistrationAssignment{
@@ -96,21 +90,11 @@ func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta interfac
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, scope, lighthouseAssignmentName, parameters); err != nil {
-		return fmt.Errorf("creating Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
+	if _, err := client.CreateOrUpdate(ctx, id.Scope, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, scope, lighthouseAssignmentName, utils.Bool(false))
-	if err != nil {
-		return fmt.Errorf("retrieving Lighthouse Assessment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
-	}
-
-	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("ID was nil or empty for Lighthouse Assignment %q ID (scope %q) ID", lighthouseAssignmentName, scope)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceLighthouseAssignmentRead(d, meta)
 }
 
@@ -127,15 +111,15 @@ func resourceLighthouseAssignmentRead(d *pluginsdk.ResourceData, meta interface{
 	resp, err := client.Get(ctx, id.Scope, id.Name, utils.Bool(false))
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Lighthouse Assignment %q was not found (Scope %q)", id.Name, id.Scope)
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Lighthouse Assignment %q (Scope %q): %+v", id.Name, id.Scope, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("scope", id.Scope)
 
 	if props := resp.Properties; props != nil {

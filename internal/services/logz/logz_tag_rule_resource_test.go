@@ -125,10 +125,10 @@ resource "azurerm_logz_monitor" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   plan {
-    billing_cycle  = "Monthly"
+    billing_cycle  = "MONTHLY"
     effective_date = "%s"
     plan_id        = "100gb14days"
-    usage_type     = "Committed"
+    usage_type     = "COMMITTED"
   }
 
   user {

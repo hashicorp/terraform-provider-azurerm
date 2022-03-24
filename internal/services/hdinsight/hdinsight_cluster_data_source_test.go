@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -97,6 +99,9 @@ func TestAccDataSourceHDInsightCluster_kafkaWithRestProxy(t *testing.T) {
 }
 
 func TestAccDataSourceHDInsightCluster_mlServices(t *testing.T) {
+	if features.ThreePointOhBeta() {
+		t.Skip("This resource is being deprecated in 3.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	r := HDInsightClusterDataSourceResource{}
 	data.DataSourceTest(t, []acceptance.TestStep{

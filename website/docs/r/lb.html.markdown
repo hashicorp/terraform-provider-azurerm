@@ -56,13 +56,14 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the frontend ip configuration.
 * `availability_zone` - (Optional) A list of Availability Zones which the Load Balancer's IP Addresses should be created in. Possible values are `Zone-Redundant`, `1`, `2`, `3`, and `No-Zone`. Availability Zone can only be updated whenever the name of the front end ip configuration changes. Defaults to `Zone-Redundant`. 
- `No-Zones` - A `non-zonal` resource will be created and the resource will not be replicated or distributed to any Availability Zones.
+
+ `No-Zone` - A `non-zonal` resource will be created and the resource will not be replicated or distributed to any Availability Zones.
 
  `1`, `2` or `3` (e.g. single Availability Zone) - A `zonal` resource will be created and will be replicate or distribute to a single specific Availability Zone. 
 
  `Zone-Redundant` - A `zone-redundant` resource will be created and will replicate or distribute the resource across all three Availability Zones automatically.
 
--> **NOTE:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-availability-zones) and [in select regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) at this time. Standard SKU Load Balancer that do not specify a zone are zone redundant by default.
+-> **NOTE:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-availability-zones) and [in select regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) at this time. Standard SKU Load Balancer that do not specify a zone are zone redundant by default. If the chosen region does not support zones, the value of `No-Zone` must be specified.
 
 * `subnet_id` - The ID of the Subnet which should be associated with the IP Configuration.
 * `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway Sku Load Balancer.

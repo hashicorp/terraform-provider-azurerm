@@ -58,8 +58,6 @@ The following arguments are supported:
 
 A `dns` block supports the following:
 
-* `network_rule_fqdn_enabled` - (Optional) Should the network rule fqdn be enabled?
-
 * `proxy_enabled` - (Optional) Whether to enable DNS proxy on Firewalls attached to this Firewall Policy? Defaults to `false`.
 
 * `servers` - (Optional) A list of custom DNS servers' IP addresses.

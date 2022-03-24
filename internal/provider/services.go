@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/advisor"
@@ -22,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos"
@@ -35,7 +35,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks"
@@ -93,7 +92,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmesh"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql"
@@ -155,6 +153,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			cognitive.Registration{},
 			communication.Registration{},
 			compute.Registration{},
+			connections.Registration{},
 			containers.Registration{},
 			consumption.Registration{},
 			cosmos.Registration{},
@@ -221,7 +220,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			sentinel.Registration{},
 			servicebus.Registration{},
 			servicefabric.Registration{},
-			servicefabricmesh.Registration{},
 			signalr.Registration{},
 			sql.Registration{},
 			storage.Registration{},
@@ -233,10 +231,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			videoanalyzer.Registration{},
 			vmware.Registration{},
 			web.Registration{},
-		}
-
-		if !features.ThreePointOhBeta() {
-			out = append(out, devspace.Registration{})
 		}
 		return out
 	}()

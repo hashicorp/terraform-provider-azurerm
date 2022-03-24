@@ -392,41 +392,61 @@ The deprecated field `secondary_readonly_master_key` will be removed in favour o
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_dataset_binary`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_dataset_cosmosdp_sqlapi`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_dataset_delimited_text`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_dataset_http`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_dataset_json`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_dataset_mysql`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_dataset_parquet`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_dataset_postgresql`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_dataset_snowflake`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 The block `structure_column` has been deprecated in favour of the `schema_column` property.
 
@@ -434,101 +454,165 @@ The block `structure_column` has been deprecated in favour of the `schema_column
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_integration_runtime_azure`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_integration_runtime_azure_ssis`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
-### Resource: `azurerm_data_factory_integration_runtime_managed_resource`
-
-The `azurerm_data_factory_integration_runtime_managed_resource` resource will be removed in favour of the `azurerm_data_factory_integration_runtime_azure_ssis` resource.
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_integration_runtime_self_hosted`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+The field `auth_key_1` will be removed in favour of the `primary_authorization_key` property
+
+The field `auth_key_2` will be removed in favour of the `secondary_authorization_key` property
+
 ### Resource: `azurerm_data_factory_linked_service_azure_blob_storage`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_linked_service_azure_databricks`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_linked_service_file_storage`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_linked_service_azure_function`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_linked_service_azure_sql_database`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_linked_service_azure_table_storage`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_linked_service_cosmosdb_mongoapi`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_linked_service_cosmosdb`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_linked_service_data_lake_storage_gen2`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_linked_service_key_vault`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_linked_service_mysql`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_linked_service_odata`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_linked_service_postgresql`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_linked_service_sftp`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_linked_service_snowflake`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_linked_service_sql_server`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_linked_service_synapse`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
 
 ### Resource: `azurerm_data_factory_linked_service_web`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_pipeline`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
 
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
 ### Resource: `azurerm_data_factory_trigger_schedule`
 
 The deprecated field `data_factory_name` will be removed in favour of the `data_factory_id` property.
+
+The field `resource_group_name` will be removed since it can be inferred from the `data_factory_id` property.
+
+### Resource `azurerm_data_lake_store_file`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+
+### Resource `azurerm_data_lake_store_firewall_rule`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+
+### Resource `azurerm_data_lake_store`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+
+### Resource `azurerm_data_lake_store_virtual_network_rule`
+
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
 
 ### Resource: `azurerm_devspace_controller`
 
@@ -541,6 +625,10 @@ The deprecated field `topic_name` will be removed since it is a read-only field 
 The deprecated block `eventhub_endpoint` will be removed in favour of the `eventhub_endpoint_id` property.
 
 The deprecated block `hybrid_connection_endpoint` will be removed in favour of the `hybrid_connection_endpoint_id` property.
+
+### Resource: `azurerm_eventhub_namespace`
+
+The behavior of `network_rulesets.x.virtual_network_rule` will be changed to Sets instead of Lists where required, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
 
 ### Resource: `azurerm_eventhub_namespace_customer_managed_key`
 
@@ -563,6 +651,12 @@ The default value for the field `threat_intel_mode` will change from "Alert" to 
 ### Resource: `azurerm_firewall_policy`
 
 The deprecated field `dns.network_rule_fqdn_enabled` will be removed since it is no longer supported by the Azure API.
+
+The field `user_assigned_identity_ids` within the `identity` block will be renamed to `identity_ids` to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+The computed field `principal_id` within the `identity` block will be removed as this isn't applicable for this resource.
+
+The computed field `tenant_id` within the `identity` block will be removed as this isn't applicable for this resource.
 
 ### Resource: `azurerm_frontdoor`
 
@@ -802,6 +896,26 @@ The field `zones` has been renamed `zone` (as this only accepts a single value) 
 
 The field `sku_name` no longer accepts the value `Enterprise` ([more information on this here](https://docs.microsoft.com/en-us/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition)).
 
+### Resource `azurerm_machine_learning_compute_cluster`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource `azurerm_machine_learning_compute_instance`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource `azurerm_machine_learning_inference_cluster`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource `azurerm_machine_learning_synapse_spark`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
+### Resource `azurerm_machine_learning_workspace`
+
+The `identity` block will be made consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187).
+
 ### Resource: `azurerm_management_group`
 
 The deprecated field `group_id` will be removed in favour of `name`.
@@ -889,6 +1003,11 @@ The `azurerm_policy_assignment` resource will be removed in favour of the `azure
 ### Resource: `azurerm_policy_definition`
 
 The deprecated field `management_group_name` will be removed in favour of the `management_group_id` property.
+
+### Resource: `azurerm_policy_remediation`
+
+The `azurerm_policy_remediation` resource will be removed in favour of the `azurerm_management_group_policy_remediation`, `azurerm_resource_policy_remediation`, `azurerm_resource_group_policy_remediation` and `azurerm_subscription_policy_remediation` resources.
+
 
 ### Resource: `azurerm_policy_set_definition`
 

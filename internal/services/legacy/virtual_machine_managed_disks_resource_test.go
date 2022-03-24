@@ -721,7 +721,7 @@ resource "azurerm_key_vault" "test" {
       "Import",
       "List",
       "ListIssuers",
-      "Managecontacts",
+      "ManageContacts",
       "ManageIssuers",
       "Purge",
       "SetIssuers",

@@ -6,7 +6,6 @@ type UserFeatures struct {
 	VirtualMachine         VirtualMachineFeatures
 	VirtualMachineScaleSet VirtualMachineScaleSetFeatures
 	KeyVault               KeyVaultFeatures
-	Network                NetworkFeatures
 	TemplateDeployment     TemplateDeploymentFeatures
 	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
 	ResourceGroup          ResourceGroupFeatures
@@ -37,10 +36,6 @@ type KeyVaultFeatures struct {
 	RecoverSoftDeletedKeys           bool
 	RecoverSoftDeletedCerts          bool
 	RecoverSoftDeletedSecrets        bool
-}
-
-type NetworkFeatures struct {
-	RelaxedLocking bool
 }
 
 type TemplateDeploymentFeatures struct {

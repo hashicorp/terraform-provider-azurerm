@@ -145,9 +145,10 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 						},
 						"user_assigned_identity_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: msiValidate.UserAssignedIdentityID,
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							ValidateFunc:     msiValidate.UserAssignedIdentityID,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
