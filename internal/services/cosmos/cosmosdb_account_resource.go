@@ -1162,7 +1162,7 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 			status := "Succeeded"
 			if props := resp.DatabaseAccountGetProperties; props != nil {
 
-				var locations  []documentdb.Location
+				var locations []documentdb.Location
 
 				if props.ReadLocations != nil {
 					locations = append(locations, *props.ReadLocations...)
