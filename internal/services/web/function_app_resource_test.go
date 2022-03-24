@@ -57,21 +57,6 @@ func TestAccFunctionApp_deprecatedConnectionString(t *testing.T) {
 	})
 }
 
-func TestAccFunctionApp_deprecatedConnectionStringMissingError(t *testing.T) {
-	if features.ThreePointOhBeta() {
-		t.Skipf("This test does not apply on v3.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
-	r := FunctionAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.deprecatedConnectionStringMissingError(data),
-			ExpectError: regexp.MustCompile("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` must be specified"),
-		},
-	})
-}
-
 func TestAccFunctionApp_deprecatedNeedBothSAAtrributesError(t *testing.T) {
 	if features.ThreePointOhBeta() {
 		t.Skipf("This test does not apply on v3.0")

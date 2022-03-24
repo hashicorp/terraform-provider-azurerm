@@ -735,6 +735,10 @@ The deprecated field `client_affinity_enabled` will be removed since it is no lo
 
 The deprecated field `storage_connection_string` will be removed in favour of the `storage_account_name` and `storage_account_access_key` properties.
 
+The field `storage_account_name` will become required.
+
+The field `storage_account_access_key` will become required.
+
 ### Resource: `azurerm_function_app_host_keys`
 
 The deprecated field `master_key` will be removed in favour of the `primary_key` property.
