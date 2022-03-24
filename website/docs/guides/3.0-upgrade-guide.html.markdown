@@ -1067,9 +1067,11 @@ The deprecated field `public_ip_prefix_ids` will be removed in favour of the `az
 
 ### Resource: `azurerm_network_connection_monitor`
 
-The deprecated fields `auto_start`, `interval_in_seconds`, `source`, `source.virtual_machine_id`, `source.port`, `destination`, `destination.virtual_machine_id`, `destination.address`, `destination.port` will be removed since they belong to the v1 network connection monitor API which is now deprecated and replaced by v2.
+The deprecated blocks `destination` and `source` will be removed since they belong to the v1 network connection monitor API which is now deprecated and replaced by v2.
 
-The deprecated field `virtual_machine_id` will be removed in favour of the `target_resource_id` property.
+The deprecated fields `auto_start`, `interval_in_seconds` will be removed since they belong to the v1 network connection monitor API which is now deprecated and replaced by v2.
+
+The deprecated field `virtual_machine_id` within the `endpoint` block will be removed in favour of the `target_resource_id` property (also within the `endpoint` block).
 
 ### Resource: `azurerm_network_watcher_flow_log`
 
