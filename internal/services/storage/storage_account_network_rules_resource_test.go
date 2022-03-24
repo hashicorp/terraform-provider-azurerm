@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -153,44 +153,64 @@ func TestAccStorageAccountNetworkRules_empty(t *testing.T) {
 
 func TestAccStorageAccountNetworkRules_redeploy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
+	parent := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountNetworkRulesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.deploy(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+				check.That(parent.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		parent.ImportStep(),
 		{
 			Config: r.remove(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+				check.That(parent.ResourceName).DoesNotExistInAzure(r),
 			),
 		},
+		parent.ImportStep(),
 		{
 			Config: r.deploy(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+				check.That(parent.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		parent.ImportStep(),
 	})
 }
 
 func (r StorageAccountNetworkRulesResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	storageAccountName := state.Attributes["storage_account_name"]
-	resourceGroup := state.Attributes["resource_group_name"]
+	id, err := parse.StorageAccountID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	resp, err := client.Storage.AccountsClient.GetProperties(ctx, resourceGroup, storageAccountName, "")
+	resp, err := client.Storage.AccountsClient.GetProperties(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Storage Account %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving Storage Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	return utils.Bool(true), nil
+
+	if resp.AccountProperties == nil {
+		return utils.Bool(false), nil
+	}
+
+	rule := resp.AccountProperties.NetworkRuleSet
+	if rule == nil {
+		return utils.Bool(false), nil
+	}
+
+	if (rule.IPRules != nil && len(*rule.IPRules) != 0) ||
+		(rule.VirtualNetworkRules != nil && len(*rule.VirtualNetworkRules) != 0) ||
+		rule.Bypass != "AzureServices" || rule.DefaultAction != "Allow" {
+		return utils.Bool(true), nil
+	}
+
+	return utils.Bool(false), nil
 }
 
 func (r StorageAccountNetworkRulesResource) basic(data acceptance.TestData) string {
