@@ -1109,7 +1109,7 @@ The deprecated field `policy_definitions` will be removed in favour of the `poli
 
 ### Resource: `azurerm_policy_virtual_machine_configuration_assignment`
 
-The deprecated field `name` will be removed since it is no longer used.
+The deprecated field `name` within the `configuration` block will be removed since it is no longer used.
 
 ### Resource: `azurerm_postgresql_flexible_server`
 
