@@ -19,7 +19,6 @@ func PossibleEventSubscriptionEndpointTypes() []string {
 	return []string{
 		string(AzureFunctionEndpoint),
 		string(EventHubEndpointID),
-		string(HybridConnectionEndpoint),
 		string(HybridConnectionEndpointID),
 		string(ServiceBusQueueEndpointID),
 		string(ServiceBusTopicEndpointID),
@@ -81,13 +80,6 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 				utils.RemoveFromStringArray(
 					PossibleEventSubscriptionEndpointTypes(),
 					string(HybridConnectionEndpointID),
-				),
-			),
-
-			"hybrid_connection_endpoint": eventSubscriptionSchemaHybridEndpoint(
-				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
-					string(HybridConnectionEndpoint),
 				),
 			),
 
@@ -301,10 +293,6 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 		if v, ok := destination.AsHybridConnectionEventSubscriptionDestination(); ok {
 			if err := d.Set("hybrid_connection_endpoint_id", v.ResourceID); err != nil {
 				return fmt.Errorf("setting `hybrid_connection_endpoint_id` for %s: %+v", *id, err)
-			}
-
-			if err := d.Set("hybrid_connection_endpoint", flattenEventGridEventSubscriptionHybridConnectionEndpoint(v)); err != nil {
-				return fmt.Errorf("setting `hybrid_connection_endpoint` for %s: %+v", *id, err)
 			}
 
 			if v.DeliveryAttributeMappings != nil {
