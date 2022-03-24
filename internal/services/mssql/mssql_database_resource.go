@@ -123,7 +123,6 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 
 func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
-	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	serversClient := meta.(*clients.Client).MSSQL.ServersClient
 	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
@@ -434,13 +433,6 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return nil
 	}); err != nil {
 		return nil
-	}
-
-	if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
-		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{}
-		if _, err = auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, auditingProps); err != nil {
-			return fmt.Errorf("setting Blob Auditing Policies for %s: %+v", id, err)
-		}
 	}
 
 	if d.HasChange("long_term_retention_policy") {
