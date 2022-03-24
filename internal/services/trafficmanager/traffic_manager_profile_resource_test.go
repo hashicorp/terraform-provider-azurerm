@@ -429,10 +429,10 @@ resource "azurerm_traffic_manager_profile" "test" {
 func (r TrafficManagerProfileResource) endpointResource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_traffic_manager_external_endpoint" "test" {
-  name                = "acctestend-external%d"
-  profile_id          = azurerm_traffic_manager_profile.test.id
-  target              = "pluginsdk.io"
-  weight              = 100
+  name       = "acctestend-external%d"
+  profile_id = azurerm_traffic_manager_profile.test.id
+  target     = "pluginsdk.io"
+  weight     = 100
 }
 `, data.RandomInteger)
 }
