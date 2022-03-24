@@ -32,8 +32,8 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_frontdoor" "example" {
-  name                                         = "example-FrontDoor"
-  resource_group_name                          = azurerm_resource_group.example.name
+  name                = "example-FrontDoor"
+  resource_group_name = azurerm_resource_group.example.name
 
   routing_rule {
     name               = "exampleRoutingRule1"
