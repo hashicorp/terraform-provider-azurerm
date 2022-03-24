@@ -194,7 +194,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Orchestrated Virtual Machine Scale Sets can be provisioned using [the `azurerm_orchestrated_virtual_machine_scale_set` resource](/docs/providers/azurerm/r/orchestrated_virtual_machine_scale_set.html).
 
-* `zone` - (Optional) The Zone in which this Virtual Machine should be created. Changing this forces a new resource to be created.
+* `zone` - (Optional) Specifies the Availability Zones in which this Linux Virtual Machine should be located. Changing this forces a new Linux Virtual Machine to be created.
 
 ---
 
@@ -236,13 +236,13 @@ A `diff_disk_settings` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Identity which should be assigned to the Linux Virtual Machine. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Linux Virtual Machine. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Linux Virtual Machine.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Linux Virtual Machine.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`.
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -330,9 +330,9 @@ In addition to all arguments above, the following attributes are exported:
 
 An `identity` block exports the following:
 
-* `principal_id` - The ID of the System Managed Service Principal.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Tenant the System Managed Service Principal is assigned in.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 

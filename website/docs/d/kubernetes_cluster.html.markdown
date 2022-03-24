@@ -96,7 +96,7 @@ The following attributes are exported:
 
 * `service_principal` - A `service_principal` block as documented below.
 
-* `identity` - A `identity` block as documented below.
+* `identity` - An `identity` block as documented below.
 
 * `kubelet_identity` - A `kubelet_identity` block as documented below.
 
@@ -144,7 +144,7 @@ A `agent_pool_profile` block exports the following:
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
-* `zones` - Specifies the Availability Zones where the Nodes within this Agent Pool exist.
+* `zones` - A list of Availability Zones in which this Kubernetes Cluster is located.
 
 ---
 
@@ -301,15 +301,15 @@ A `service_principal` block supports the following:
 
 ---
 
-The `identity` block exports the following:
+An `identity` block exports the following:
 
-* `type` - The type of identity used for the managed cluster.
+* `type` - The type of Managed Service Identity that is configured on this Kubernetes Cluster.
 
-* `principal_id` - The principal id of the system assigned identity assigned to this Kubernetes Cluster.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Kubernetes Cluster.
 
-* `tenant_id` - The tenant id of the system assigned identity assigned to this Kubernetes Cluster.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Kubernetes Cluster.
 
-* `identity_ids` - A list of User Assigned Identity IDs assigned to this Kubernetes Cluster.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Kubernetes Cluster.
 
 ---
 

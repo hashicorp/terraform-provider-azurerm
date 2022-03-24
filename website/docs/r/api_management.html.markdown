@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `min_api_version` - (Optional)  The version which the control plane API calls to API Management service are limited with version equal to or newer than.
 
-* `zones` - (Optional) A list of availability zones.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this API Management service should be located. Changing this forces a new API Management service to be created.
 
 ~> **NOTE:** Availability zones are only supported in the Premium tier.
 
@@ -142,11 +142,11 @@ A `hostname_configuration` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 

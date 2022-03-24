@@ -273,15 +273,15 @@ A `http_logs` block exports the following:
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `identity_ids` - A `identity_ids` block as defined below.
+* `type` - The type of Managed Service Identity that is configured on this Linux Web App.
 
-* `principal_id` - The Principal ID Managed Service Identity.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Linux Web App.
 
-* `tenant_id` - The Tenant ID of the Managed Service Identity.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Linux Web App.
 
-* `type` - The type of Managed Service Identity.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Linux Web App.
 
 ---
 

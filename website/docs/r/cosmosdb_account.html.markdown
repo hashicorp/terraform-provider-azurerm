@@ -222,7 +222,7 @@ A `cors_rule` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cosmos Account. Possible value is only `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cosmos Account. The only possible value is `SystemAssigned`.
 
 ---
 
