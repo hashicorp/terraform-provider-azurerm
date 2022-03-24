@@ -443,8 +443,8 @@ func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	if d.HasChange("parameter_values") {
-		parametersString := d.Get("parameter_values").(string)
+	if d.HasChange("parameters") {
+		parametersString := d.Get("parameters").(string)
 		if parametersString != "" {
 			parameters, err := expandParameterDefinitionsValueFromString(parametersString)
 			if err != nil {
