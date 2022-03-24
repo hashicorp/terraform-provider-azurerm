@@ -405,6 +405,8 @@ The `azurerm_cost_management_export_resource_group` resource will be removed in 
 
 The field `capabilities` will no longer accept the value `EnableAnalyticalStorage`.
 
+The field `ip_range_filter` has been moved from a comma seperated string to a List.
+
 The deprecated field `geolocation.prefix` will be removed since it is no longer supported by the Azure API.
 
 The deprecated field `primary_master_key` will be removed in favour of the `primary_key` property.

@@ -2844,7 +2844,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   is_virtual_network_filter_enabled = true
-  ip_range_filter                   = ["10.0.1.0/24"]
+  ip_range_filter                   = ["55.0.1.0/24"]
 
   virtual_network_rule {
     id                                   = azurerm_subnet.subnet1.id
@@ -2864,7 +2864,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, r.vNetFiltersPreReqs(data), data.RandomInteger)
 }
 
-func (r CosmosDBAccountResource) ipRangeFilters(data acceptance.TestData) string {
+func (r CosmosDBAccountResource) ipRangeFiltersUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -2885,7 +2885,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   is_virtual_network_filter_enabled = true
-  ip_range_filter                   = ["10.0.1.0/24", "10.0.2.0/24"]
+  ip_range_filter                   = ["55.0.1.0/24", "55.0.2.0/24"]
 
   virtual_network_rule {
     id                                   = azurerm_subnet.subnet1.id
