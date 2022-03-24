@@ -164,9 +164,6 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{
-					"structure_column",
-				},
 			},
 		},
 	}
