@@ -131,7 +131,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	if meta.(*clients.Client).Features.ResourceGroup.PreventDeletionIfContainsResources {
 		resourceClient := meta.(*clients.Client).Resource.ResourcesClient
 		// Resource groups sometimes hold on to resource information after the resources have been deleted. We'll retry this check to account for that eventual consistency.
-		err = pluginsdk.Retry(time.Minute*5, func() *pluginsdk.RetryError {
+		err = pluginsdk.Retry(2 * time.Minute, func() *pluginsdk.RetryError {
 			results, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
 			if err != nil {
 				return pluginsdk.NonRetryableError(fmt.Errorf("listing resources in %s: %v", *id, err))
@@ -149,7 +149,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 
 			if len(nestedResourceIds) > 0 {
-				time.Sleep(15 * time.Second)
+				time.Sleep(30 * time.Second)
 				return pluginsdk.RetryableError(resourceGroupContainsItemsError(id.ResourceGroup, nestedResourceIds))
 			}
 			return nil
