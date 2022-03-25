@@ -154,6 +154,9 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 			return nil
 		})
+		if err != nil {
+			return err
+		}
 	}
 
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, "")
