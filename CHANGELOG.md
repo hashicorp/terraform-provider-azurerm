@@ -6,6 +6,7 @@ BUG FIXES:
 * `azurerm_cosmosdb_account` - prevent a panic when the API returns an nil list of read or write locations [GH-16031]
 * `azurerm_cdn_endpoint` - prevent a panic when there is an empty `country_codes` property [GH-16066]
 * `azurerm_linux_function_app` - correctly update storage settings when using MSI [GH-16046]
+* `azurerm_managed_disk` - changing the `zone` property now correctly create a new resource [GH-16070]
 * `azurerm_windows_function_app` - correctly update storage settings when using MSI [GH-16046]
 
 ## 3.0.1 (March 24, 2022)
