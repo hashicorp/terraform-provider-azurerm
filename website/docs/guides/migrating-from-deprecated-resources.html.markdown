@@ -12,7 +12,7 @@ This guide shows how to migrate from a resource which has been deprecated or ren
 
 It's possible to migrate between the resources by updating your Terraform Configuration, removing the old state, and the importing the new resource in config.
 
-In this guide, we'll assume we're migrating from the `azurerm_app_service` resource to the new `azurerm_linux_web_app` resource, but this should also be applicable for resource that have simply been renamed where you can simply change the resource type name in your config.
+In this guide, we'll assume we're migrating from the `azurerm_app_service` resource to the new `azurerm_linux_web_app` resource, but this should also be applicable for resources that have only been renamed where you can simply change the resource type name in your config.
 
 Assuming we have the following Terraform Configuration:
 
