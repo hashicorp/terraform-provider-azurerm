@@ -1,3 +1,32 @@
+
+Skip to content
+Pull requests
+Issues
+Marketplace
+Explore
+@shenzuken
+hashicorp /
+terraform-provider-azurerm
+Public
+
+Code
+Issues 1.5k
+Pull requests 88
+Actions
+Security
+
+    Insights
+
+terraform-provider-azurerm/vendor/github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption/models.go /
+@ms-henglu
+ms-henglu update azure-sdk-for-go to v56.0.0
+Latest commit ed3e5ee on 30 Jul 2021
+History
+3 contributors
+@marc-sensenich
+@ms-henglu
+@yupwei68
+6081 lines (5612 sloc) 214 KB
 package consumption
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -1823,7 +1852,7 @@ type LegacyReservationTransactionProperties struct {
 	// PurchasingEnrollment - READ-ONLY; The purchasing enrollment.
 	PurchasingEnrollment *string `json:"purchasingEnrollment,omitempty"`
 	// PurchasingSubscriptionGUID - READ-ONLY; The subscription guid that makes the transaction.
-	PurchasingSubscriptionGUID *uuid.UUID `json:"purchasingSubscriptionGUID,omitempty"`
+	PurchasingSubscriptionGUID *uuid.UUID `json:"purchasingSubscriptionGuid,omitempty"`
 	// PurchasingSubscriptionName - READ-ONLY; The subscription name that makes the transaction.
 	PurchasingSubscriptionName *string `json:"purchasingSubscriptionName,omitempty"`
 	// ArmSkuName - READ-ONLY; This is the ARM Sku name. It can be used to join with the serviceType field in additional info in usage records.
@@ -1999,8 +2028,8 @@ type LegacyUsageDetailProperties struct {
 	AccountOwnerID *string `json:"accountOwnerId,omitempty"`
 	// AccountName - READ-ONLY; Account Name.
 	AccountName *string `json:"accountName,omitempty"`
-	// SubscriptionGUID - READ-ONLY; Subscription guid.
-	SubscriptionID *string `json:"subscriptionID,omitempty"`
+	// SubscriptionID - READ-ONLY; Subscription guid.
+	SubscriptionID *string `json:"subscriptionId,omitempty"`
 	// SubscriptionName - READ-ONLY; Subscription name.
 	SubscriptionName *string `json:"subscriptionName,omitempty"`
 	// Date - READ-ONLY; Date for the usage record.
@@ -2626,7 +2655,7 @@ type MarketplaceProperties struct {
 	// MeterID - READ-ONLY; The meter id (GUID).
 	MeterID *uuid.UUID `json:"meterId,omitempty"`
 	// SubscriptionGUID - READ-ONLY; Subscription guid.
-	SubscriptionID *uuid.UUID `json:"subscriptionID,omitempty"`
+	SubscriptionGUID *uuid.UUID `json:"subscriptionGuid,omitempty"`
 	// SubscriptionName - READ-ONLY; Subscription name.
 	SubscriptionName *string `json:"subscriptionName,omitempty"`
 	// AccountName - READ-ONLY; Account name.
@@ -3226,10 +3255,8 @@ type ModernReservationRecommendationProperties struct {
 	SkuName *string `json:"skuName,omitempty"`
 	// ResourceType - READ-ONLY; The Azure resource type.
 	ResourceType *string `json:"resourceType,omitempty"`
-	// SubscriptionGUID - READ-ONLY; The Azure subscription ID.
-	SubscriptionID *string `json:"subscriptionID,omitempty"`
-	// SubscriptionName - READ-ONLY; Name of the Azure Subscription.
-	SubscriptionName *string `json:"subscriptionName,omitempty"`
+	// SubscriptionID - READ-ONLY; The Azure subscription ID.
+	SubscriptionID *string `json:"subscriptionId,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ModernReservationRecommendationProperties.
@@ -3349,7 +3376,7 @@ type ModernReservationTransactionProperties struct {
 	// InvoiceSectionName - READ-ONLY; Invoice Section Name.
 	InvoiceSectionName *string `json:"invoiceSectionName,omitempty"`
 	// PurchasingSubscriptionGUID - READ-ONLY; The subscription guid that makes the transaction.
-	PurchasingSubscriptionGUID *uuid.UUID `json:"purchasingSubscriptionGUID,omitempty"`
+	PurchasingSubscriptionGUID *uuid.UUID `json:"purchasingSubscriptionGuid,omitempty"`
 	// PurchasingSubscriptionName - READ-ONLY; The subscription name that makes the transaction.
 	PurchasingSubscriptionName *string `json:"purchasingSubscriptionName,omitempty"`
 	// Quantity - READ-ONLY; The quantity of the transaction.
@@ -3680,7 +3707,7 @@ type ModernUsageDetailProperties struct {
 	// BillingProfileName - READ-ONLY; Name of the billing profile that groups costs across invoices in the a singular billing currency across across the customers who have onboarded the Microsoft customer agreement and the customers in CSP who have made entitlement purchases like SaaS, Marketplace, RI, etc.
 	BillingProfileName *string `json:"billingProfileName,omitempty"`
 	// SubscriptionGUID - READ-ONLY; Unique Microsoft generated identifier for the Azure Subscription.
-	SubscriptionID *string `json:"subscriptionID,omitempty"`
+	SubscriptionGUID *string `json:"subscriptionGuid,omitempty"`
 	// SubscriptionName - READ-ONLY; Name of the Azure Subscription.
 	SubscriptionName *string `json:"subscriptionName,omitempty"`
 	// Date - READ-ONLY; Date for the usage record.
@@ -6081,3 +6108,19 @@ func NewUsageDetailsListResultPage(cur UsageDetailsListResult, getNextPage func(
 		udlr: cur,
 	}
 }
+
+    © 2022 GitHub, Inc.
+
+    Terms
+    Privacy
+    Security
+    Status
+    Docs
+    Contact GitHub
+    Pricing
+    API
+    Training
+    Blog
+    About
+
+Loading complete
