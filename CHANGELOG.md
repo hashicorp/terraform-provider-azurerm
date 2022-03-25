@@ -4,6 +4,8 @@
 BUG FIXES:
 
 * `azurerm_cosmosdb_account` - prevent a panic when the API returns an nil list of read or write locations [GH-16031]
+* `azurerm_linux_function_app` - correctly update storage settings when using MSI [GH-16046]
+* `azurerm_windows_function_app` - correctly update storage settings when using MSI [GH-16046]
 
 ## 3.0.1 (March 24, 2022)
 
