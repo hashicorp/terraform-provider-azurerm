@@ -170,8 +170,6 @@ The following arguments are supported:
 
 **NOTE:**  Setting `MongoDBv3.4` also requires setting `EnableMongo`.
 
-**NOTE:** The `prefix` and `failover_priority` fields of a location cannot be changed for the location with a failover priority of `0`.
-
 ---
 
 `virtual_network_rule` Configures the virtual network subnets allowed to access this Cosmos DB account and supports the following:
