@@ -115,8 +115,12 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, cert); err != nil {
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, cert)
+	if err != nil {
 		return fmt.Errorf("creating Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q(Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
 	d.SetId(resourceId)
@@ -166,8 +170,12 @@ func resourceSpringCloudCertificateDelete(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.CertificateName); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.CertificateName)
+	if err != nil {
 		return fmt.Errorf("deleting Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", id.CertificateName, id.SpringName, id.ResourceGroup, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
 	return nil
