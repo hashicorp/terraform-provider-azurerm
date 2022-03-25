@@ -61,11 +61,9 @@ More information on [how to pin the version of a Terraform Provider being used c
 
 ---
 
-Documentation on how to pin to version 3.0 of the AzureRM Provider will be added when the final release is available.
-
 ## What's available in Version 3.0 of the AzureRM Provider?
 
--> **Note:** Version `2.97.0` of the Azure Provider allows you to opt-into the Beta of these features - [see the Beta guide for more information](https://registry.terraform.io/providers/hashicorp/azurerm/2.97.0/docs/guides/3.0-beta)
+-> **Note:** Version `2.97.0` of the Azure Provider and later allow you to opt-into the Beta of these features - [see the Beta guide for more information](https://registry.terraform.io/providers/hashicorp/azurerm/2.97.0/docs/guides/3.0-beta)
 
 At a high level, version 3.0 includes the following changes:
 * [New Data Sources and Resources for App Service and Function Apps](#new-resources-and-data-sources-for-app-service)
@@ -125,6 +123,12 @@ The following new **Resources** will be available:
     * Supersedes `azurerm_app_service` for Windows based Web Apps.
 * [azurerm_windows_web_app_slot](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_web_app_slot)
     * Supersedes `azurerm_app_service_slot` for Deployment Slots on Windows based Web Apps
+
+## Migrating to New & Renamed Resources
+
+When migrating to the new version of resources, and in many cases the renamed ones, the schema may be different then what currently exists in state. Therefore, it is recommended to first update your terraform configuration with the new resource and then use `terraform state rm` and then `terraform state import`. 
+
+for examplew
 
 ## Soft Delete for Key Vault
 
@@ -206,8 +210,6 @@ When the resource can be provisioned across multiple Zones, the following behavi
 Since version 3.0 is a major version - we intend to take this opportunity to remove deprecated Fields, Resources, and Data Sources.
 
 Below we'll cover each of the Data Sources and Resources which will be affected by the 3.0 upgrade.
-
--> **NOTE:** This guide is a Work In Progress and as such Fields, Resources and Data Sources may be added to this guide until version 3.0 of the AzureRM Provider is released.
 
 ### Data Source: `azurerm_app_service`
 
