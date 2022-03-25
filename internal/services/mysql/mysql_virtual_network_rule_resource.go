@@ -1,7 +1,6 @@
 package mysql
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -90,27 +89,12 @@ func resourceMySQLVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, parameters); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, parameters)
+	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
-
-	// Wait for the provisioning state to become ready
-	log.Printf("[DEBUG] Waiting for %s to become ready", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
-		Target:                    []string{"Ready"},
-		Refresh:                   mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, id),
-		MinTimeout:                1 * time.Minute,
-		ContinuousTargetOccurence: 5,
-	}
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be created or updated: %+v", id, err)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -168,27 +152,4 @@ func resourceMySQLVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta inter
 	}
 
 	return nil
-}
-
-func mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *mysql.VirtualNetworkRulesClient, id parse.VirtualNetworkRuleId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				log.Printf("[DEBUG] Retrieving %s returned 404.", id)
-				return nil, "ResponseNotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("polling for the state of the %s: %+v", id, err)
-		}
-
-		if props := resp.VirtualNetworkRuleProperties; props != nil {
-			log.Printf("[DEBUG] Retrieving %s returned Status %s", id, props.State)
-			return resp, string(props.State), nil
-		}
-
-		// Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.
-		log.Printf("[DEBUG] Retrieving %s returned empty VirtualNetworkRuleProperties", id)
-		return resp, "Unknown", nil
-	}
 }
