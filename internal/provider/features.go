@@ -229,7 +229,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"prevent_deletion_if_contains_resources": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  true,
+						Default:  false,
 					},
 				},
 			},
