@@ -131,10 +131,9 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
-  name                = "acctestlscosmosdb%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
+  name              = "acctestlscosmosdb%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -157,12 +156,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
-  name                = "acctestlscosmosdb%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  account_endpoint    = "foo"
-  account_key         = "bar"
-  database            = "fizz"
+  name             = "acctestlscosmosdb%d"
+  data_factory_id  = azurerm_data_factory.test.id
+  account_endpoint = "foo"
+  account_key      = "bar"
+  database         = "fizz"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -185,12 +183,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
-  name                = "acctestlscosmosdb%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  account_endpoint    = "foo"
-  account_key         = "bar"
-  database            = "buzz"
+  name             = "acctestlscosmosdb%d"
+  data_factory_id  = azurerm_data_factory.test.id
+  account_endpoint = "foo"
+  account_key      = "bar"
+  database         = "buzz"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -213,12 +210,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
-  name                = "acctestlscosmosdb%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
-  annotations         = ["test1", "test2", "test3"]
-  description         = "test description"
+  name              = "acctestlscosmosdb%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
+  annotations       = ["test1", "test2", "test3"]
+  description       = "test description"
 
   parameters = {
     foo = "test1"
@@ -251,12 +247,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
-  name                = "acctestlscosmosdb%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
-  annotations         = ["test1", "test2"]
-  description         = "test description 2"
+  name              = "acctestlscosmosdb%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
+  annotations       = ["test1", "test2"]
+  description       = "test description 2"
 
   parameters = {
     foo  = "test1"

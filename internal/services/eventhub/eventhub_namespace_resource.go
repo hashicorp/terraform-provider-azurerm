@@ -1,6 +1,7 @@
 package eventhub
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -11,13 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	legacyIdentity "github.com/hashicorp/terraform-provider-azurerm/internal/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/networkrulesets"
@@ -76,7 +77,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 					string(namespaces.SkuNameBasic),
 					string(namespaces.SkuNameStandard),
 					string(namespaces.SkuNamePremium),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"capacity": {
@@ -137,11 +138,14 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 						},
 
 						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
+						// Returned value of the `virtual_network_rule` array does not honor the input order,
+						// possibly a service design, thus changed to TypeSet
 						"virtual_network_rule": {
-							Type:       pluginsdk.TypeList,
+							Type:       pluginsdk.TypeSet,
 							Optional:   true,
 							MaxItems:   128,
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
+							Set:        resourceVnetRuleHash,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									// the API returns the subnet ID's resource group name in lowercase
@@ -502,10 +506,11 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 		ruleset.TrustedServiceAccessEnabled = utils.Bool(v.(bool))
 	}
 
-	if v, ok := block["virtual_network_rule"].([]interface{}); ok {
-		if len(v) > 0 {
+	if v, ok := block["virtual_network_rule"]; ok {
+		value := v.(*pluginsdk.Set).List()
+		if len(value) > 0 {
 			var rules []networkrulesets.NWRuleSetVirtualNetworkRules
-			for _, r := range v {
+			for _, r := range value {
 				rblock := r.(map[string]interface{})
 				rules = append(rules, networkrulesets.NWRuleSetVirtualNetworkRules{
 					Subnet: &networkrulesets.Subnet{
@@ -618,4 +623,20 @@ func flattenEventHubIdentity(input *legacyIdentity.SystemUserAssignedIdentityMap
 		PrincipalId: legacyConfig.PrincipalId,
 		TenantId:    legacyConfig.TenantId,
 	})
+}
+
+// The resource id of subnet_id that's being returned by API is always lower case &
+// the default caseDiff suppress func is not working in TypeSet
+func resourceVnetRuleHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		if v, ok := m["subnet_id"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
+		}
+		if v, ok := m["ignore_missing_virtual_network_service_endpoint"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+	}
+	return pluginsdk.HashString(buf.String())
 }

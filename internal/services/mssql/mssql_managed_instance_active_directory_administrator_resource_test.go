@@ -60,10 +60,12 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Exists(ctx con
 
 func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+%[1]s
+
 data "azuread_client_config" "test" {}
 
 resource "azuread_application" "test" {
-  display_name     = "acctest-ManagedInstance-%[1]d"
+  display_name     = "acctest-ManagedInstance-%[2]d"
   sign_in_audience = "AzureADMyOrg"
 }
 
@@ -77,16 +79,9 @@ resource "azuread_directory_role" "reader" {
 
 resource "azuread_directory_role_member" "test" {
   role_object_id   = azuread_directory_role.reader.object_id
-  member_object_id = data.azurerm_mssql_managed_instance.test.identity.0.principal_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
 }
-
-data "azurerm_mssql_managed_instance" "test" {
-  name                = "aaa-tbamford-testing"
-  resource_group_name = "aaa-tbamford-sqlmanagedinstance-testing"
-}
-
-%[2]s
-`, data.RandomInteger, MsSqlManagedInstanceResource{}.identity(data))
+`, MsSqlManagedInstanceResource{}.identity(data), data.RandomInteger)
 }
 
 func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) basic(data acceptance.TestData, aadOnly bool) string {

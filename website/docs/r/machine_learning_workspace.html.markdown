@@ -200,7 +200,7 @@ resource "azurerm_key_vault" "example" {
 }
 
 resource "azurerm_user_assigned_identity" "example" {
-  name                = "xz3-TF-identity"
+  name                = "example-identity"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 }
@@ -263,7 +263,7 @@ resource "azurerm_key_vault_access_policy" "example-cosmosdb" {
 }
 
 resource "azurerm_key_vault_key" "example" {
-  name         = "xz3workspaceexamplekeyvaultkey"
+  name         = "example-keyvaultkey"
   key_vault_id = azurerm_key_vault.example.id
   key_type     = "RSA"
   key_size     = 2048
@@ -380,9 +380,11 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be used for this Machine Learning Workspace. Possible values are `UserAssigned`, `SystemAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Machine Learning Workspace. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) The user assigned identity IDs associated with the resource.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Machine Learning Workspace.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -408,9 +410,9 @@ The following attributes are exported:
 
 An `identity` block exports the following:
 
-* `principal_id` - The (Client) ID of the Service Principal.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ### Timeouts
 

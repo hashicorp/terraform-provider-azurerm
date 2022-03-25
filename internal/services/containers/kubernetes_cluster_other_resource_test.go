@@ -2,7 +2,6 @@ package containers_test
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -21,47 +20,6 @@ func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 			Config: r.basicAvailabilitySetConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.host").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.username").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.password").Exists(),
-				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesCluster_basicAvailabilitySetSensitive(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	os.Setenv("ARM_AKS_KUBE_CONFIGS_SENSITIVE", "true")
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicAvailabilitySetConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.host").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.username").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.password").Exists(),
-				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
 			),
 		},
 		data.ImportStep(),
@@ -77,18 +35,6 @@ func TestAccKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
 			Config: r.sameSize(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.host").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.username").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.password").Exists(),
-				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
 			),
 		},
 		data.ImportStep(),
@@ -104,18 +50,6 @@ func TestAccKubernetesCluster_basicVMSS(t *testing.T) {
 			Config: r.basicVMSSConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.host").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.username").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.password").Exists(),
-				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
 			),
 		},
 		data.ImportStep(),
@@ -1553,7 +1487,8 @@ func (KubernetesClusterResource) diskEncryptionConfig(data acceptance.TestData) 
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -1572,7 +1507,6 @@ resource "azurerm_key_vault" "test" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   enabled_for_disk_encryption = true
-  soft_delete_enabled         = true
   purge_protection_enabled    = true
 }
 

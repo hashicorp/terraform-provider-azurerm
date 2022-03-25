@@ -63,7 +63,7 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be used for this EventHub Namespace. At this time the only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Event Hub Namespace. The only possible value is `SystemAssigned`.
 
 ~> **Note:** Due to the limitation of the current Azure API, once an EventHub Namespace has been assigned an identity, it cannot be removed.
 
@@ -126,9 +126,9 @@ The following attributes are exported only if there is an authorization rule nam
 
 An `identity` block exports the following:
 
-* `principal_id` - The Client ID of the Service Principal assigned to this EventHub Namespace.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 

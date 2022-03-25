@@ -51,9 +51,8 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 				"management": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					// TODO 3.0 - Remove 3.0 flag for this and all other properties in the schema
 					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
+						if !features.ThreePointOhBeta() {
 							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
 						}
 						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
@@ -66,7 +65,7 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
+						if !features.ThreePointOhBeta() {
 							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
 						}
 						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
@@ -79,7 +78,7 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
+						if !features.ThreePointOhBeta() {
 							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
 						}
 						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
@@ -92,7 +91,7 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
+						if !features.ThreePointOhBeta() {
 							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
 						}
 						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
@@ -102,31 +101,20 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 					},
 				},
 			}
-			// TODO 3.0 - Remove anonymous func for Schema and remove `proxy` block
-			if features.ThreePointOh() {
+			if features.ThreePointOhBeta() {
 				rSchema["gateway"] = &pluginsdk.Schema{
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
-							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
-						}
-						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
-					}(),
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: []string{"management", "portal", "developer_portal", "gateway", "scm"},
 					Elem: &pluginsdk.Resource{
 						Schema: apiManagementResourceHostnameProxySchema(),
 					},
 				}
 			} else {
 				rSchema["proxy"] = &pluginsdk.Schema{
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					AtLeastOneOf: func() []string {
-						if !features.ThreePointOh() {
-							return []string{"management", "portal", "developer_portal", "proxy", "scm"}
-						}
-						return []string{"management", "portal", "developer_portal", "gateway", "scm"}
-					}(),
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					AtLeastOneOf: []string{"management", "portal", "developer_portal", "proxy", "scm"},
 					Elem: &pluginsdk.Resource{
 						Schema: apiManagementResourceHostnameProxySchema(),
 					},
@@ -180,6 +168,17 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
+	}
+
+	// The API expects user assigned identities to be submitted with nil values
+	if existing.Identity != nil {
+		for k, v := range existing.Identity.UserAssignedIdentities {
+			if v == nil {
+				continue
+			}
+			existing.Identity.UserAssignedIdentities[k].ClientID = nil
+			existing.Identity.UserAssignedIdentities[k].PrincipalID = nil
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, existing); err != nil {
@@ -318,8 +317,7 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 			results = append(results, output)
 		}
 	}
-	// TODO 3.0 - Simplify and remove `proxy`
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		if gatewayRawVal, ok := input.GetOk("gateway"); ok {
 			vs := gatewayRawVal.([]interface{})
 			for _, rawVal := range vs {
@@ -395,8 +393,7 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 				output["default_ssl_binding"] = *config.DefaultSslBinding
 			}
 			gatewayResults = append(gatewayResults, output)
-			// TODO 3.0 - Remove `proxy`
-			if features.ThreePointOh() {
+			if features.ThreePointOhBeta() {
 				configType = "gateway"
 			} else {
 				configType = "proxy"
@@ -434,8 +431,7 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 		"scm":              scmResults,
 	}
 
-	// TODO 3.0 - Simplify and remove `proxy`
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		res["gateway"] = gatewayResults
 	} else {
 		res["proxy"] = gatewayResults

@@ -61,22 +61,31 @@ func EncodeFunctionAppLinuxFxVersion(input []ApplicationStackLinuxFunctionApp) *
 	var appType, appString string
 	switch {
 	case appStack.NodeVersion != "":
-		appType = "Node"
+		appType = "NODE"
 		appString = appStack.NodeVersion
+
 	case appStack.DotNetVersion != "":
-		appType = "DotNet"
+		if appStack.DotNetIsolated {
+			appType = "DOTNET-ISOLATED"
+		} else {
+			appType = "DOTNET"
+		}
 		appString = appStack.DotNetVersion
+
 	case appStack.PythonVersion != "":
-		appType = "Python"
+		appType = "PYTHON"
 		appString = appStack.PythonVersion
+
 	case appStack.JavaVersion != "":
-		appType = "Java"
+		appType = "JAVA"
 		appString = appStack.JavaVersion
+
 	case appStack.PowerShellCoreVersion != "":
-		appType = "PowerShell"
+		appType = "POWERSHELL"
 		appString = appStack.PowerShellCoreVersion
+
 	case len(appStack.Docker) > 0 && appStack.Docker[0].ImageName != "":
-		appType = "Docker"
+		appType = "DOCKER"
 		dockerCfg := appStack.Docker[0]
 		if dockerCfg.RegistryURL != "" {
 			appString = fmt.Sprintf("%s/%s:%s", strings.Trim(dockerCfg.RegistryURL, "/"), dockerCfg.ImageName, dockerCfg.ImageTag)
@@ -104,6 +113,10 @@ func DecodeFunctionAppLinuxFxVersion(input string) ([]ApplicationStackLinuxFunct
 	switch strings.ToLower(parts[0]) {
 	case "dotnet":
 		appStack := ApplicationStackLinuxFunctionApp{DotNetVersion: parts[1]}
+		result = append(result, appStack)
+
+	case "dotnet-isolated":
+		appStack := ApplicationStackLinuxFunctionApp{DotNetVersion: parts[1], DotNetIsolated: true}
 		result = append(result, appStack)
 
 	case "node":
@@ -166,12 +179,19 @@ func EncodeFunctionAppWindowsFxVersion(input []ApplicationStackWindowsFunctionAp
 	case appStack.NodeVersion != "":
 		appType = "Node"
 		appString = appStack.NodeVersion
+
 	case appStack.DotNetVersion != "":
-		appType = "DotNet"
+		if appStack.DotNetIsolated {
+			appType = "DotNet-Isolated"
+		} else {
+			appType = "DotNet"
+		}
 		appString = appStack.DotNetVersion
+
 	case appStack.JavaVersion != "":
 		appType = "Java"
 		appString = appStack.JavaVersion
+
 	case appStack.PowerShellCoreVersion != "":
 		appType = "PowerShell"
 		appString = appStack.PowerShellCoreVersion
@@ -196,6 +216,10 @@ func DecodeFunctionAppWindowsFxVersion(input string) ([]ApplicationStackWindowsF
 	switch strings.ToLower(parts[0]) {
 	case "dotnet":
 		appStack := ApplicationStackWindowsFunctionApp{DotNetVersion: parts[1]}
+		result = append(result, appStack)
+
+	case "dotnet-isolated":
+		appStack := ApplicationStackWindowsFunctionApp{DotNetVersion: parts[1], DotNetIsolated: true}
 		result = append(result, appStack)
 
 	case "node":

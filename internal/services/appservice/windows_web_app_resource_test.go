@@ -607,36 +607,7 @@ func TestAccWindowsWebApp_withPhp(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.php(data, "7.3"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebApp_withPhpUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
-	r := WindowsWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.php(data, "7.3"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.php(data, "7.4"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.php(data, "5.6"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -651,7 +622,7 @@ func TestAccWindowsWebApp_withPython34(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.python(data, "3.6"),
+			Config: r.python(data, "3.4.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -673,7 +644,7 @@ func TestAccWindowsWebApp_withPythonUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.python(data, "2.7"),
+			Config: r.python(data, "3.4.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2010,7 +1981,7 @@ resource "azurerm_windows_web_app" "test" {
     }
   }
 }
-`, r.baseTemplate(data), data.RandomInteger, "v4.0", "7.4", "2.7", "1.8", "TOMCAT", "9.0")
+`, r.baseTemplate(data), data.RandomInteger, "v4.0", "7.4", "3.4.0", "1.8", "TOMCAT", "9.0")
 }
 
 func (r WindowsWebAppResource) withLogsHttpBlob(data acceptance.TestData) string {
@@ -2416,6 +2387,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_storage_share" "test" {
   name                 = "test"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 }
 
 data "azurerm_storage_account_sas" "test" {
@@ -2447,6 +2419,8 @@ data "azurerm_storage_account_sas" "test" {
     create  = false
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomString)

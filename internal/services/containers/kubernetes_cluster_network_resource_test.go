@@ -391,7 +391,7 @@ func TestAccKubernetesCluster_standardLoadBalancer(t *testing.T) {
 			Config: r.standardLoadBalancerConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 			),
 		},
 		data.ImportStep(),
@@ -407,7 +407,7 @@ func TestAccKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
 			Config: r.standardLoadBalancerCompleteConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 			),
 		},
 		data.ImportStep(),
@@ -423,7 +423,7 @@ func TestAccKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 			Config: r.standardLoadBalancerProfileConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.managed_outbound_ip_count").HasValue("3"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("3"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.idle_timeout_in_minutes").HasValue("30"),
@@ -443,7 +443,7 @@ func TestAccKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) 
 			Config: r.standardLoadBalancerProfileCompleteConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
 			PreventPostDestroyRefresh: true,
@@ -492,7 +492,7 @@ func TestAccKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 			Config: r.prefixedLoadBalancerProfileConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
@@ -517,7 +517,7 @@ func TestAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 			Config: r.changingLoadBalancerProfileConfigIPPrefix(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
@@ -527,7 +527,7 @@ func TestAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 			Config: r.changingLoadBalancerProfileConfigManagedIPs(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.managed_outbound_ip_count").HasValue("1"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
@@ -537,7 +537,7 @@ func TestAccKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 			Config: r.changingLoadBalancerProfileConfigIPIds(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("standard"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.outbound_ip_address_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").HasValue("1"),
 			),
@@ -651,7 +651,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -708,7 +708,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -769,7 +769,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -841,7 +841,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
@@ -921,7 +921,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
@@ -1019,7 +1019,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.0.2.0/24"
+  address_prefixes     = ["172.0.2.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -1120,7 +1120,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin     = "kubenet"
-    load_balancer_sku  = "Standard"
+    load_balancer_sku  = "standard"
     pod_cidr           = "10.244.0.0/16"
     service_cidr       = "10.0.0.0/16"
     dns_service_ip     = "10.0.0.10"
@@ -1161,7 +1161,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin     = "kubenet"
-    load_balancer_sku  = "Standard"
+    load_balancer_sku  = "standard"
     pod_cidr           = "10.244.0.0/16"
     service_cidr       = "10.0.0.0/16"
     dns_service_ip     = "10.0.0.10"
@@ -1217,7 +1217,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.16.0.0/22"
+  address_prefixes     = ["172.16.0.0/22"]
 }
 
 resource "azurerm_subnet_nat_gateway_association" "test" {
@@ -1246,7 +1246,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin     = "kubenet"
-    load_balancer_sku  = "Standard"
+    load_balancer_sku  = "standard"
     pod_cidr           = "10.244.0.0/16"
     service_cidr       = "10.0.0.0/16"
     dns_service_ip     = "10.0.0.10"
@@ -1287,7 +1287,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin     = "kubenet"
-    load_balancer_sku  = "Basic"
+    load_balancer_sku  = "basic"
     pod_cidr           = "10.244.0.0/16"
     service_cidr       = "10.0.0.0/16"
     dns_service_ip     = "10.0.0.10"
@@ -1726,7 +1726,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -1757,7 +1757,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
@@ -1798,7 +1798,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
@@ -1836,7 +1836,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     dns_service_ip     = "10.10.0.10"
     docker_bridge_cidr = "172.18.0.1/16"
     service_cidr       = "10.10.0.0/16"
-    load_balancer_sku  = "Standard"
+    load_balancer_sku  = "standard"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -1864,7 +1864,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -1895,7 +1895,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
     load_balancer_profile {
       managed_outbound_ip_count = 3
     }
@@ -1926,7 +1926,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -1965,7 +1965,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
     load_balancer_profile {
       outbound_ip_address_ids = [azurerm_public_ip.test.id]
     }
@@ -2013,7 +2013,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "kubenet"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
     load_balancer_profile {
       managed_outbound_ip_count = 2
       outbound_ports_allocated  = 8000
@@ -2046,7 +2046,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -2108,7 +2108,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_public_ip_prefix" "test" {
@@ -2146,7 +2146,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
     load_balancer_profile {
       outbound_ip_prefix_ids = [azurerm_public_ip_prefix.test.id]
     }
@@ -2177,7 +2177,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_public_ip_prefix" "test" {
@@ -2215,7 +2215,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
     load_balancer_profile {
       outbound_ip_prefix_ids = []
     }
@@ -2242,7 +2242,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_public_ip_prefix" "test" {
@@ -2314,7 +2314,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_public_ip_prefix" "test" {
@@ -2386,7 +2386,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_public_ip_prefix" "test" {
@@ -2458,7 +2458,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -2561,7 +2561,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -2669,7 +2669,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {

@@ -55,7 +55,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"route": {
-				Type:       pluginsdk.TypeList,
+				Type:       pluginsdk.TypeSet,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				Computed:   true,
@@ -82,7 +82,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 								string(network.RouteNextHopTypeInternet),
 								string(network.RouteNextHopTypeVirtualAppliance),
 								string(network.RouteNextHopTypeNone),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
@@ -226,7 +226,7 @@ func resourceRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func expandRouteTableRoutes(d *pluginsdk.ResourceData) *[]network.Route {
-	configs := d.Get("route").([]interface{})
+	configs := d.Get("route").(*pluginsdk.Set).List()
 	routes := make([]network.Route, 0, len(configs))
 
 	for _, configRaw := range configs {

@@ -26,8 +26,10 @@ func resourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 		Read:   resourceCosmosDbMongoDatabaseRead,
 		Delete: resourceCosmosDbMongoDatabaseDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.MongodbDatabaseID(id)
+			return err
+		}),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

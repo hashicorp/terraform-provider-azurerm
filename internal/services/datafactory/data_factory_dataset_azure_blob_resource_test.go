@@ -109,15 +109,13 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlssql%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  name              = "acctestlssql%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
 
 resource "azurerm_data_factory_dataset_azure_blob" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
@@ -145,16 +143,14 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlssql%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  name              = "acctestlssql%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
 
 resource "azurerm_data_factory_dataset_azure_blob" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
   path     = "foo"
@@ -201,16 +197,14 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlssql%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  name              = "acctestlssql%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
 
 resource "azurerm_data_factory_dataset_azure_blob" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
   path     = "foo"
@@ -263,16 +257,14 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlssql%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  name              = "acctestlssql%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
 
 resource "azurerm_data_factory_dataset_azure_blob" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
   path                     = "@concat('run-', pipeline().RunId)"

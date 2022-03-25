@@ -59,17 +59,13 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as documented below.
 
-* `features` - (Optional) A `features` block as documented below.
+* `connectivity_logs_enabled`- (Optional) Specifies if Connectivity Logs are enabled or not. Defaults to `false`.
 
-~> **NOTE:** The `features` block is deprecated, use `connectivity_logs_enabled`, `messaging_logs_enabled`, `live_trace_enabled` and `service_mode` instead.
+* `messaging_logs_enabled`- (Optional) Specifies if Messaging Logs are enabled or not. Defaults to `false`.
 
-* `connectivity_logs_enabled`- (Optional) Specifies if Connectivity Logs are enabled or not.
+* `live_trace_enabled`- (Optional) Specifies if Live Trace is enabled or not. Defaults to `false`.
 
-* `messaging_logs_enabled`- (Optional) Specifies if Messaging Logs are enabled or not. 
-
-* `live_trace_enabled`- (Optional) Specifies if Live Trace is enabled or not.
-
-* `service_mode`- (Optional) Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`.
+* `service_mode`- (Optional) Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`. Defaults to `Default`.
 
 * `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
 
@@ -80,14 +76,6 @@ The following arguments are supported:
 A `cors` block supports the following:
 
 * `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
-
----
-
-A `features` block supports the following:
-
-* `flag` - (Required) The kind of Feature. Possible values are `EnableConnectivityLogs`, `EnableMessagingLogs`, `EnableLiveTrace` and `ServiceMode`.
-
-* `value` - (Required) A value of a feature flag. Possible values are `Classic`, `Default` and `Serverless`.
 
 ---
 

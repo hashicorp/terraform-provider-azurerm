@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -30,9 +31,9 @@ func dataSourcePrivateLinkService() *pluginsdk.Resource {
 				ValidateFunc: validate.PrivateLinkName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"auto_approval_subscription_ids": {
 				Type:     pluginsdk.TypeList,
@@ -115,7 +116,8 @@ func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", azure.NormalizeLocation(*resp.Location))
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
 		d.Set("alias", props.Alias)

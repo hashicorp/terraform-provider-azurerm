@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	mgmtGrpParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -107,7 +108,7 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		//lintignore: S013
-		"policy_definition_reference": { // TODO -- rename this back to `policy_definition` after the deprecation
+		"policy_definition_reference": {
 			Type:     pluginsdk.TypeList,
 			Required: features.ThreePointOhBeta(),
 			Optional: !features.ThreePointOhBeta(),
@@ -210,17 +211,6 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 			ExactlyOneOf:     []string{"policy_definitions", "policy_definition_reference"},
 			Deprecated:       "Deprecated in favour of `policy_definition_reference`",
 		}
-
-		s := out["policy_definition_reference"].Elem.(*pluginsdk.Resource)
-		s.Schema["parameters"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-			Deprecated: "Deprecated in favour of `parameter_values`",
-		}
 	}
 
 	return out
@@ -289,7 +279,11 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if v, ok := d.GetOk("management_group_id"); ok {
-		managementGroupName = v.(string)
+		id, err := mgmtGrpParse.ManagementGroupID(v.(string))
+		if err != nil {
+			return err
+		}
+		managementGroupName = id.Name
 	}
 
 	existing, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupName)
@@ -409,8 +403,10 @@ func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	managementGroupName := ""
+	var managementGroupId mgmtGrpParse.ManagementGroupId
 	if scopeId, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
-		managementGroupName = scopeId.ManagementGroupName
+		managementGroupId = mgmtGrpParse.NewManagementGroupId(scopeId.ManagementGroupName)
+		managementGroupName = managementGroupId.Name
 	}
 
 	// retrieve
@@ -518,8 +514,11 @@ func resourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	managementGroupName := ""
-	if scopeId, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
-		managementGroupName = scopeId.ManagementGroupName
+	var managementGroupId mgmtGrpParse.ManagementGroupId
+	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
+	case parse.ScopeAtManagementGroup:
+		managementGroupId = mgmtGrpParse.NewManagementGroupId(scopeId.ManagementGroupName)
+		managementGroupName = managementGroupId.Name
 	}
 
 	resp, err := getPolicySetDefinitionByName(ctx, client, id.Name, managementGroupName)
@@ -535,8 +534,8 @@ func resourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interfac
 
 	d.Set("name", resp.Name)
 	d.Set("management_group_id", managementGroupName)
-	if !features.ThreePointOhBeta() {
-		d.Set("management_group_name", managementGroupName)
+	if managementGroupName != "" {
+		d.Set("management_group_id", managementGroupId.ID())
 	}
 
 	if props := resp.SetDefinitionProperties; props != nil {
@@ -735,7 +734,6 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitions(input *[]policy.Definiti
 
 		result = append(result, map[string]interface{}{
 			"policy_definition_id": policyDefinitionID,
-			"parameters":           parametersMap,
 			"parameter_values":     parameterValues,
 			"reference_id":         policyDefinitionReference,
 			"policy_group_names":   utils.FlattenStringSlice(definition.GroupNames),

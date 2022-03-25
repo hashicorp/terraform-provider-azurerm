@@ -45,9 +45,7 @@ data "azurerm_active_directory_domain_service" "example" {
 
 * `notifications` - A `notifications` block as defined below.
 
-* `initial_replica_set` - A `replica_set` block as defined below.
-  
-* `additional_replica_sets` - Zero or more `replica_set` block as defined below.
+* `replica_sets` - One or more `replica_set` blocks as defined below.
 
 * `security` - A `security` block as defined below.
 

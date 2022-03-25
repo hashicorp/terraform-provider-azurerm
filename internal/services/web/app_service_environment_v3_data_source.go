@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -27,7 +27,7 @@ func (r AppServiceEnvironmentV3DataSource) Arguments() map[string]*pluginsdk.Sch
 			ValidateFunc: validate.AppServiceEnvironmentName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 

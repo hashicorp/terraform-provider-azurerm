@@ -65,11 +65,13 @@ A `github_configuration` block exports the following:
 
 An `identity` block exports the following:
 
-- `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
+* `type` - The type of Managed Service Identity that is configured on this Data Factory.
 
-- `tenant_id` - The ID of the Azure Active Directory Tenant.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Data Factory.
 
-- `type` - The identity type of the Data Factory.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Data Factory.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Data Factory.
 
 ---
 

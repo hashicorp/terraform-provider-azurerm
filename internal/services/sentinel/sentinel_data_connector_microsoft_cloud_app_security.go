@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
@@ -87,7 +87,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *plugi
 	id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -127,10 +127,10 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *plugi
 		MCASDataConnectorProperties: &securityinsight.MCASDataConnectorProperties{
 			TenantID: &tenantId,
 			DataTypes: &securityinsight.MCASDataConnectorDataTypes{
-				Alerts: &securityinsight.AlertsDataTypeOfDataConnectorAlerts{
+				Alerts: &securityinsight.DataConnectorDataTypeCommon{
 					State: alertState,
 				},
-				DiscoveryLogs: &securityinsight.MCASDataConnectorDataTypesDiscoveryLogs{
+				DiscoveryLogs: &securityinsight.DataConnectorDataTypeCommon{
 					State: discoveryLogsState,
 				},
 			},
@@ -142,7 +142,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *plugi
 	// TODO: following code can be removed once the issue below is fixed:
 	// https://github.com/Azure/azure-rest-api-specs/issues/13203
 	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
@@ -154,7 +154,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *plugi
 		param.Etag = dc.Etag
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -174,7 +174,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *pluginsdk.Res
 	}
 	workspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
@@ -223,7 +223,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityDelete(d *pluginsdk.R
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -27,18 +27,32 @@ func dataSourceServiceBusSubscription() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"topic_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.TopicID,
+				AtLeastOneOf: []string{"topic_id", "resource_group_name", "namespace_name", "topic_name"},
+			},
 
 			"namespace_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validate.NamespaceName,
+				AtLeastOneOf: []string{"topic_id", "resource_group_name", "namespace_name", "topic_name"},
+			},
+
+			"resource_group_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: resourcegroups.ValidateName,
+				AtLeastOneOf: []string{"topic_id", "resource_group_name", "namespace_name", "topic_name"},
 			},
 
 			"topic_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validate.TopicName(),
+				AtLeastOneOf: []string{"topic_id", "resource_group_name", "namespace_name", "topic_name"},
 			},
 
 			"auto_delete_on_idle": {
@@ -101,7 +115,24 @@ func dataSourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSubscriptionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("topic_name").(string), d.Get("name").(string))
+	var rgName string
+	var nsName string
+	var topicName string
+	if v, ok := d.Get("topic_id").(string); ok && v != "" {
+		topicId, err := parse.TopicID(v)
+		if err != nil {
+			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
+		}
+		rgName = topicId.ResourceGroup
+		nsName = topicId.NamespaceName
+		topicName = topicId.Name
+	} else {
+		rgName = d.Get("resource_group_name").(string)
+		nsName = d.Get("namespace_name").(string)
+		topicName = d.Get("topic_name").(string)
+	}
+
+	id := parse.NewSubscriptionID(subscriptionId, rgName, nsName, topicName, d.Get("name").(string))
 	existing, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {

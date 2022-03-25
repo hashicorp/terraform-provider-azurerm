@@ -45,7 +45,7 @@ resource "azurerm_subnet" "example" {
   name                 = "RouteServerSubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.5.1.0/24"
+  address_prefixes     = ["10.5.1.0/24"]
 }
 
 resource "azurerm_virtual_hub_ip" "example" {

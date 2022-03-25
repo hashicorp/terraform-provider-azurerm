@@ -6,7 +6,7 @@ description: |-
   Manages a MySQL Database within a MySQL Flexible Server.
 ---
 
-# azurerm_mysql_database
+# azurerm_mysql_flexible_database
 
 Manages a MySQL Database within a MySQL Flexible Server
 

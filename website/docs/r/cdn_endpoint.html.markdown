@@ -400,6 +400,8 @@ The following attributes are exported:
 
 * `id` - The ID of the CDN Endpoint.
 
+* `fqdn` - The Fully Qualified Domain Name of the CDN Endpoint.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

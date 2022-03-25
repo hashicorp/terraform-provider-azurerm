@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -56,9 +58,9 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"sku": {
 				Type:     pluginsdk.TypeList,
@@ -74,7 +76,7 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 								string(network.ExpressRouteCircuitSkuTierLocal),
 								string(network.ExpressRouteCircuitSkuTierStandard),
 								string(network.ExpressRouteCircuitSkuTierPremium),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
@@ -84,7 +86,7 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ExpressRouteCircuitSkuFamilyMeteredData),
 								string(network.ExpressRouteCircuitSkuFamilyUnlimitedData),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 					},
@@ -289,15 +291,12 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
 
-	if resp.Sku != nil {
-		sku := flattenExpressRouteCircuitSku(resp.Sku)
-		if err := d.Set("sku", sku); err != nil {
-			return fmt.Errorf("setting `sku`: %+v", err)
-		}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	sku := flattenExpressRouteCircuitSku(resp.Sku)
+	if err := d.Set("sku", sku); err != nil {
+		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
 	if resp.ExpressRoutePort != nil {
@@ -365,6 +364,10 @@ func expandExpressRouteCircuitSku(d *pluginsdk.ResourceData) *network.ExpressRou
 }
 
 func flattenExpressRouteCircuitSku(sku *network.ExpressRouteCircuitSku) []interface{} {
+	if sku == nil {
+		return []interface{}{}
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"tier":   string(sku.Tier),

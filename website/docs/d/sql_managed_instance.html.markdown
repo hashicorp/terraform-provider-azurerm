@@ -10,6 +10,8 @@ description: |-
 
 Use this data source to access information about an existing SQL Managed Instance.
 
+-> **Note:** The `azurerm_sql_managed_instance` data source is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_managed_instance`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/mssql_managed_instance) data source instead.
+
 ## Example Usage
 
 ```hcl

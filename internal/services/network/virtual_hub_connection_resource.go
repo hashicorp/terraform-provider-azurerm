@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -37,132 +38,136 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 			return err
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.VirtualHubConnectionName,
-			},
+		Schema: resourceVirtualHubConnectionSchema(),
+	}
+}
 
-			"virtual_hub_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.VirtualHubID,
-			},
+func resourceVirtualHubConnectionSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.VirtualHubConnectionName,
+		},
 
-			"remote_virtual_network_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.VirtualNetworkID,
-			},
+		"virtual_hub_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.VirtualHubID,
+		},
 
-			// TODO 3.0: remove this property
-			"hub_to_vitual_network_traffic_allowed": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
-			},
+		"remote_virtual_network_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.VirtualNetworkID,
+		},
 
-			// TODO 3.0: remove this property
-			"vitual_network_to_hub_gateways_traffic_allowed": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
-			},
+		"internet_security_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+			Default:  false,
+		},
 
-			"internet_security_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-				Default:  false,
-			},
+		"routing": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"associated_route_table_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validate.HubRouteTableID,
+						AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
+					},
 
-			"routing": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"associated_route_table_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validate.HubRouteTableID,
-							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
-						},
-
-						"propagated_route_table": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"labels": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Computed: true,
-										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.StringIsNotEmpty,
-										},
-										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
-									},
-
-									"route_table_ids": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										Computed: true,
-										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validate.HubRouteTableID,
-										},
-										AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
-									},
-								},
-							},
-							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
-						},
-
-						//lintignore:XS003
-						"static_vnet_route": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
+					"propagated_route_table": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Computed: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"labels": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Computed: true,
+									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
-										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
+									AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
+								},
 
-									"address_prefixes": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.IsCIDR,
-										},
-									},
-
-									"next_hop_ip_address": {
+								"route_table_ids": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Computed: true,
+									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.IsIPv4Address,
+										ValidateFunc: validate.HubRouteTableID,
 									},
+									AtLeastOneOf: []string{"routing.0.propagated_route_table.0.labels", "routing.0.propagated_route_table.0.route_table_ids"},
 								},
 							},
-							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 						},
+						AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
+					},
+
+					//lintignore:XS003
+					"static_vnet_route": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+
+								"address_prefixes": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.IsCIDR,
+									},
+								},
+
+								"next_hop_ip_address": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.IsIPv4Address,
+								},
+							},
+						},
+						AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 					},
 				},
 			},
 		},
 	}
+	if !features.ThreePointOhBeta() {
+		out["hub_to_vitual_network_traffic_allowed"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
+		}
+
+		out["vitual_network_to_hub_gateways_traffic_allowed"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
+		}
+	}
+	return out
 }
 
 func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -265,11 +270,13 @@ func resourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
 
 	if props := resp.HubVirtualNetworkConnectionProperties; props != nil {
-		// The following two attributes are deprecated by API (which will always return `true`).
-		// Hence, we explicitly set them to `false` (as false is the default value when users omit that property).
-		// TODO: 3.0: Remove below lines.
-		d.Set("hub_to_vitual_network_traffic_allowed", false)
-		d.Set("vitual_network_to_hub_gateways_traffic_allowed", false)
+
+		if !features.ThreePointOhBeta() {
+			// The following two attributes are deprecated by API (which will always return `true`).
+			// Hence, we explicitly set them to `false` (as false is the default value when users omit that property).
+			d.Set("hub_to_vitual_network_traffic_allowed", false)
+			d.Set("vitual_network_to_hub_gateways_traffic_allowed", false)
+		}
 
 		d.Set("internet_security_enabled", props.EnableInternetSecurity)
 		remoteVirtualNetworkId := ""

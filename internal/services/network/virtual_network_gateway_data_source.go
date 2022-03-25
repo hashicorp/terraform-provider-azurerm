@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -30,9 +31,9 @@ func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"type": {
 				Type:     pluginsdk.TypeString,
@@ -253,13 +254,10 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
 
-	if resp.VirtualNetworkGatewayPropertiesFormat != nil {
-		gw := *resp.VirtualNetworkGatewayPropertiesFormat
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
+	if gw := resp.VirtualNetworkGatewayPropertiesFormat; gw != nil {
 		d.Set("type", string(gw.GatewayType))
 		d.Set("enable_bgp", gw.EnableBgp)
 		d.Set("private_ip_address_enabled", gw.EnablePrivateIPAddress)

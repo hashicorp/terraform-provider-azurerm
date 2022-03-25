@@ -386,7 +386,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "update" {
 
   index_policy {
     automatic      = true
-    indexing_mode  = "Consistent"
+    indexing_mode  = "consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
   }
@@ -660,7 +660,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
 
   index_policy {
     automatic      = true
-    indexing_mode  = "Consistent"
+    indexing_mode  = "consistent"
     included_paths = ["/*"]
     excluded_paths = ["/\"_etag\"/?"]
   }

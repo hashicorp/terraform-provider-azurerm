@@ -63,6 +63,23 @@ func TestAccBatchAccountDataSource_userSubscription(t *testing.T) {
 	})
 }
 
+func TestAccBatchAccountDataSource_cmk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
+	r := BatchAccountDataSource{}
+
+	tenantID := os.Getenv("ARM_TENANT_ID")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.cmkData(data, tenantID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").IsSet(),
+			),
+		},
+	})
+}
+
 func (BatchAccountDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -193,4 +210,113 @@ data "azurerm_batch_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID, tenantID, subscriptionID, data.RandomString)
+}
+
+func (BatchAccountDataSource) cmkData(data acceptance.TestData, tenantID string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "testaccsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+  storage_account_id   = azurerm_storage_account.test.id
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  encryption {
+    key_vault_key_id = "${azurerm_key_vault.test.vault_uri}keys/${azurerm_key_vault_key.test.name}/${azurerm_key_vault_key.test.version}"
+  }
+}
+
+resource "azurerm_key_vault" "test" {
+  name                            = "batchkv%s"
+  location                        = "${azurerm_resource_group.test.location}"
+  resource_group_name             = "${azurerm_resource_group.test.name}"
+  enabled_for_disk_encryption     = true
+  enabled_for_deployment          = true
+  enabled_for_template_deployment = true
+  purge_protection_enabled        = true
+  tenant_id                       = "%s"
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = "%s"
+    object_id = "${data.azurerm_client_config.current.object_id}"
+
+    key_permissions = [
+      "Get",
+      "Create",
+      "Delete",
+      "WrapKey",
+      "UnwrapKey"
+    ]
+  }
+
+  access_policy {
+    tenant_id = "%s"
+    object_id = "${azurerm_user_assigned_identity.test.principal_id}"
+
+    key_permissions = [
+      "Get",
+      "WrapKey",
+      "UnwrapKey"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "enckey%d"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+data "azurerm_batch_account" "test" {
+  name                = "${azurerm_batch_account.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, tenantID, tenantID, tenantID, data.RandomInteger)
 }

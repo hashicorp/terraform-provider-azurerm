@@ -727,44 +727,53 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") && len(windowsSlotSiteConfig.ApplicationStack) > 0 {
 		if len(windowsSlotSiteConfig.ApplicationStack) > 0 {
-			linuxAppStack := windowsSlotSiteConfig.ApplicationStack[0]
-			if linuxAppStack.DotNetVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("dotnet"),
-				})
-				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion)
+			windowsAppStack := windowsSlotSiteConfig.ApplicationStack[0]
+			if windowsAppStack.DotNetVersion != "" {
+				if windowsAppStack.DotNetIsolated {
+					appSettings = append(appSettings, web.NameValuePair{
+						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+						Value: utils.String("dotnet-isolated"),
+					})
+					windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET-ISOLATED|%s", windowsAppStack.DotNetVersion)
+
+				} else {
+					appSettings = append(appSettings, web.NameValuePair{
+						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+						Value: utils.String("dotnet"),
+					})
+					windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET|%s", windowsAppStack.DotNetVersion)
+				}
 			}
 
-			if linuxAppStack.NodeVersion != "" {
+			if windowsAppStack.NodeVersion != "" {
 				appSettings = append(appSettings, web.NameValuePair{
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("node"),
 				})
 				appSettings = append(appSettings, web.NameValuePair{
 					Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
-					Value: utils.String(linuxAppStack.NodeVersion),
+					Value: utils.String(windowsAppStack.NodeVersion),
 				})
-				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("Node|%s", linuxAppStack.NodeVersion)
+				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("Node|%s", windowsAppStack.NodeVersion)
 			}
 
-			if linuxAppStack.JavaVersion != "" {
+			if windowsAppStack.JavaVersion != "" {
 				appSettings = append(appSettings, web.NameValuePair{
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("java"),
 				})
-				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion)
+				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("Java|%s", windowsAppStack.JavaVersion)
 			}
 
-			if linuxAppStack.PowerShellCoreVersion != "" {
+			if windowsAppStack.PowerShellCoreVersion != "" {
 				appSettings = append(appSettings, web.NameValuePair{
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("powershell"),
 				})
-				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion)
+				windowsSlotSiteConfig.WindowsFxVersion = fmt.Sprintf("PowerShell|%s", windowsAppStack.PowerShellCoreVersion)
 			}
 
-			if linuxAppStack.CustomHandler {
+			if windowsAppStack.CustomHandler {
 				appSettings = append(appSettings, web.NameValuePair{
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("custom"),
@@ -1024,11 +1033,19 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 		if len(linuxSlotSiteConfig.ApplicationStack) > 0 {
 			linuxAppStack := linuxSlotSiteConfig.ApplicationStack[0]
 			if linuxAppStack.DotNetVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("dotnet"),
-				})
-				linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion)
+				if linuxAppStack.DotNetIsolated {
+					appSettings = append(appSettings, web.NameValuePair{
+						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+						Value: utils.String("dotnet-isolated"),
+					})
+					linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion)
+				} else {
+					appSettings = append(appSettings, web.NameValuePair{
+						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+						Value: utils.String("dotnet"),
+					})
+					linuxSlotSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion)
+				}
 			}
 
 			if linuxAppStack.NodeVersion != "" {

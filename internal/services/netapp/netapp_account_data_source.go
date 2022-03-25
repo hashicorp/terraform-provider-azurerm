@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
@@ -28,11 +29,11 @@ func dataSourceNetAppAccount() *pluginsdk.Resource {
 				ValidateFunc: validate.AccountName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
-			// Handles tags being interface{} until https://github.com/Azure/azure-rest-api-specs/issues/7447 is fixed
+			// TODO: add Tags now that https://github.com/Azure/azure-rest-api-specs/issues/7447 has been fixed
 		},
 	}
 }
@@ -56,9 +57,8 @@ func dataSourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 	d.SetId(id.ID())
 	d.Set("name", id.NetAppAccountName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	return nil
 }

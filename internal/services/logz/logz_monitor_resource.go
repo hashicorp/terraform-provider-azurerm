@@ -8,11 +8,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -94,7 +94,7 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"MONTHLY",
 								"WEEKLY",
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
@@ -112,7 +112,7 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"100gb14days",
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
@@ -123,7 +123,7 @@ func resourceLogzMonitor() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"PAYG",
 								"COMMITTED",
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 					},

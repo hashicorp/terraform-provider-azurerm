@@ -174,7 +174,7 @@ resource "azurerm_subnet" "test" {
   name                 = "${azurerm_virtual_network.test.name}-default"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.17.0.0/24"
+  address_prefixes     = ["172.17.0.0/24"]
 
   service_endpoints = ["Microsoft.ServiceBus"]
 }

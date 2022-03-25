@@ -60,11 +60,11 @@ output "job_id" {
 
 An `identity` block exports the following:
 
-* `type` - The type of identity used for the Stream Analytics Job.
-  
-* `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Azure Active Directory Tenant.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+* `type` - The identity type of this Managed Service Identity.
 
 ## Timeouts
 

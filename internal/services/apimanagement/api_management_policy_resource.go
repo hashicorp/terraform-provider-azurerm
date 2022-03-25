@@ -22,8 +22,11 @@ func resourceApiManagementPolicy() *pluginsdk.Resource {
 		Read:   resourceApiManagementPolicyRead,
 		Update: resourceApiManagementPolicyCreateUpdate,
 		Delete: resourceApiManagementPolicyDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.PolicyID(id)
+			return err
+		}),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

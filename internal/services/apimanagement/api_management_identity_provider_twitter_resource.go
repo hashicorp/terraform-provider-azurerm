@@ -23,8 +23,8 @@ func resourceApiManagementIdentityProviderTwitter() *pluginsdk.Resource {
 		Read:   resourceApiManagementIdentityProviderTwitterRead,
 		Update: resourceApiManagementIdentityProviderTwitterCreateUpdate,
 		Delete: resourceApiManagementIdentityProviderTwitterDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: identityProviderImportFunc(apimanagement.IdentityProviderTypeTwitter),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -131,7 +131,7 @@ func schemaCertificatePermissions() *pluginsdk.Schema {
 		Optional: true,
 		Elem: &pluginsdk.Schema{
 			Type:             pluginsdk.TypeString,
-			ValidateFunc:     validation.StringInSlice(certificatePermissions(), !features.ThreePointOh()),
+			ValidateFunc:     validation.StringInSlice(certificatePermissions(), !features.ThreePointOhBeta()),
 			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 		},
 	}
@@ -143,7 +143,7 @@ func schemaKeyPermissions() *pluginsdk.Schema {
 		Optional: true,
 		Elem: &pluginsdk.Schema{
 			Type:             pluginsdk.TypeString,
-			ValidateFunc:     validation.StringInSlice(keyPermissions(), !features.ThreePointOh()),
+			ValidateFunc:     validation.StringInSlice(keyPermissions(), !features.ThreePointOhBeta()),
 			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 		},
 	}
@@ -155,7 +155,7 @@ func schemaSecretPermissions() *pluginsdk.Schema {
 		Optional: true,
 		Elem: &pluginsdk.Schema{
 			Type:             pluginsdk.TypeString,
-			ValidateFunc:     validation.StringInSlice(secretPermissions(), !features.ThreePointOh()),
+			ValidateFunc:     validation.StringInSlice(secretPermissions(), !features.ThreePointOhBeta()),
 			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 		},
 	}
@@ -167,7 +167,7 @@ func schemaStoragePermissions() *pluginsdk.Schema {
 		Optional: true,
 		Elem: &pluginsdk.Schema{
 			Type:             pluginsdk.TypeString,
-			ValidateFunc:     validation.StringInSlice(storagePermissions(), !features.ThreePointOh()),
+			ValidateFunc:     validation.StringInSlice(storagePermissions(), !features.ThreePointOhBeta()),
 			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 		},
 	}

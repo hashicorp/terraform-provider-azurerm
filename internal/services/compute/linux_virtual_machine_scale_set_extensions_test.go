@@ -999,7 +999,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   location             = azurerm_resource_group.test.location
   reliability_level    = "Silver"
   upgrade_mode         = "Manual"
-  cluster_code_version = "8.0.516.9590"
+  cluster_code_version = "8.1.316.9590"
   vm_image             = "Windows"
   management_endpoint  = "http://example:80"
 

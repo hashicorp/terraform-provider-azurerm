@@ -242,6 +242,8 @@ The following arguments are supported:
 
 * `target_availability_set_id` - (Optional)  Id of availability set that the new VM should belong to when a failover is done.
 
+* `target_zone` - (Optional) Specifies the Availability Zone where the Failover VM should exist.
+
 * `managed_disk` - (Required) One or more `managed_disk` block.
 
 * `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover). 

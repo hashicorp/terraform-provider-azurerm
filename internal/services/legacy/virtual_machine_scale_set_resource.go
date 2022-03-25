@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -41,6 +41,9 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.LegacyVMSSV0ToV1{},
 		}),
+
+		// NOTE: @tombuildsstuff - don't remove with 3.0
+		DeprecationMessage: `The 'azurerm_virtual_machine_scale_set' resource has been superseded by the 'azurerm_linux_virtual_machine_scale_set' and 'azurerm_windows_virtual_machine_scale_set' resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.`,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.VirtualMachineScaleSetID(id)
@@ -137,7 +140,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"Windows_Client",
 					"Windows_Server",
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"upgrade_policy_mode": {
@@ -147,7 +150,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 					string(compute.UpgradeModeAutomatic),
 					string(compute.UpgradeModeManual),
 					string(compute.UpgradeModeRolling),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -221,7 +224,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.VirtualMachinePriorityTypesLow),
 					string(compute.VirtualMachinePriorityTypesRegular),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -312,7 +315,6 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
-						// TODO 4.0: change this from enable_* to *_enabled
 						"enable_automatic_upgrades": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -589,7 +591,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 								string(compute.StorageAccountTypesPremiumLRS),
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
@@ -649,7 +651,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 								string(compute.StorageAccountTypesPremiumLRS),
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 					},
@@ -1038,7 +1040,6 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 			if diagnosticsProfile := profile.DiagnosticsProfile; diagnosticsProfile != nil {
 				if bootDiagnostics := diagnosticsProfile.BootDiagnostics; bootDiagnostics != nil {
 					flattenedDiagnostics := flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostics)
-					// TODO: rename this field to `diagnostics_profile`
 					if err := d.Set("boot_diagnostics", flattenedDiagnostics); err != nil {
 						return fmt.Errorf("[DEBUG] setting `boot_diagnostics`: %#v", err)
 					}

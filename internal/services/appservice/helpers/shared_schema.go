@@ -584,8 +584,7 @@ func AadAuthSettingsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					ExactlyOneOf: []string{
-						"auth_settings.0.active_directory.0.client_secret",
+					ConflictsWith: []string{
 						"auth_settings.0.active_directory.0.client_secret_setting_name",
 					},
 					Description: "The Client Secret for the Client ID. Cannot be used with `client_secret_setting_name`.",
@@ -595,9 +594,8 @@ func AadAuthSettingsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					ExactlyOneOf: []string{
+					ConflictsWith: []string{
 						"auth_settings.0.active_directory.0.client_secret",
-						"auth_settings.0.active_directory.0.client_secret_setting_name",
 					},
 					Description: "The App Setting name that contains the client secret of the Client. Cannot be used with `client_secret`.",
 				},

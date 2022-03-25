@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -1446,6 +1447,7 @@ resource "azurerm_public_ip" "test_standard" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   allocation_method   = "Static"
+  zones               = ["1", "2"]
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -1952,7 +1954,11 @@ resource "azurerm_application_gateway" "test" {
 
 // nolint unused - mistakenly marked as unused
 func (r ApplicationGatewayResource) trustedRootCertificate_keyvault(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	softDeleteSnippet := "soft_delete_enabled = true"
+	if features.ThreePointOhBeta() {
+		softDeleteSnippet = ""
+	}
+	out := fmt.Sprintf(`
 %[1]s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -1989,7 +1995,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.test.tenant_id}"
   sku_name            = "standard"
-  soft_delete_enabled = true
+  %[3]s
 
   access_policy {
     tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
@@ -2096,11 +2102,16 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = local.http_setting_name
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, softDeleteSnippet)
+	return out
 }
 
 func (r ApplicationGatewayResource) update_trustedRootCertificate_keyvault(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	softDeleteSnippet := "soft_delete_enabled = true"
+	if features.ThreePointOhBeta() {
+		softDeleteSnippet = ""
+	}
+	out := fmt.Sprintf(`
 %[1]s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -2136,7 +2147,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
   sku_name            = "standard"
-  soft_delete_enabled = true
+  %[3]s
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
@@ -2270,7 +2281,8 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = local.http_setting_name
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, softDeleteSnippet)
+	return out
 }
 
 func (r ApplicationGatewayResource) updateForceFirewallPolicyAssociation(data acceptance.TestData, forceFirewallPolicyAssociation bool) string {
@@ -3109,6 +3121,8 @@ resource "azurerm_application_gateway" "test" {
     frontend_ip_configuration_name = local.frontend_ip_configuration_name
     frontend_port_name             = local.frontend_port_name
     protocol                       = "Http"
+    host_name                      = "application.test.com"
+    require_sni                    = false
   }
 
   http_listener {
@@ -3431,6 +3445,7 @@ resource "azurerm_application_gateway" "test" {
     timeout             = 120
     interval            = 300
     unhealthy_threshold = 8
+    minimum_servers     = 0
   }
 
   probe {
@@ -3965,7 +3980,11 @@ resource "azurerm_application_gateway" "test" {
 }
 
 func (r ApplicationGatewayResource) sslCertificate_keyvault_versionless(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	softDeleteSnippet := "soft_delete_enabled = true"
+	if features.ThreePointOhBeta() {
+		softDeleteSnippet = ""
+	}
+	out := fmt.Sprintf(`
 %s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -4018,7 +4037,7 @@ resource "azurerm_key_vault" "test" {
     certificate_permissions = ["Get"]
   }
 
-  soft_delete_enabled = true
+  %[3]s
 }
 
 resource "azurerm_key_vault_certificate" "test" {
@@ -4112,11 +4131,16 @@ resource "azurerm_application_gateway" "test" {
     key_vault_secret_id = "${azurerm_key_vault.test.vault_uri}secrets/${azurerm_key_vault_certificate.test.name}"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, softDeleteSnippet)
+	return out
 }
 
 func (r ApplicationGatewayResource) sslCertificate_keyvault_versioned(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	softDeleteSnippet := "soft_delete_enabled = true"
+	if features.ThreePointOhBeta() {
+		softDeleteSnippet = ""
+	}
+	out := fmt.Sprintf(`
 %s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -4169,7 +4193,7 @@ resource "azurerm_key_vault" "test" {
     certificate_permissions = ["Get"]
   }
 
-  soft_delete_enabled = true
+  %[3]s
 }
 
 resource "azurerm_key_vault_certificate" "test" {
@@ -4263,7 +4287,8 @@ resource "azurerm_application_gateway" "test" {
     key_vault_secret_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, softDeleteSnippet)
+	return out
 }
 
 func (r ApplicationGatewayResource) sslCertificate(data acceptance.TestData) string {
@@ -5541,7 +5566,7 @@ resource "azurerm_subnet" "test" {
   name                                          = "subnet-%d"
   resource_group_name                           = azurerm_resource_group.test.name
   virtual_network_name                          = azurerm_virtual_network.test.name
-  address_prefix                                = "10.0.0.0/24"
+  address_prefixes                              = ["10.0.0.0/24"]
   enforce_private_link_service_network_policies = true
 }
 
@@ -5697,7 +5722,8 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_address_pool {
-    name = local.backend_address_pool_name
+    name  = local.backend_address_pool_name
+    fqdns = ["foo.com", "bar.com"]
   }
 
   backend_http_settings {
@@ -5968,13 +5994,20 @@ resource "azurerm_application_gateway" "test" {
       rule_sequence = 1
 
       condition {
-        variable = "var_uri_path"
-        pattern  = ".*article/(.*)/(.*)"
+        variable    = "var_uri_path"
+        pattern     = ".*article/(.*)/(.*)"
+        ignore_case = false
+        negate      = false
+      }
+      response_header_configuration {
+        header_name  = "X-custom"
+        header_value = "customvalue"
       }
 
       url {
         path         = "/article.aspx"
         query_string = "id={var_uri_path_1}&title={var_uri_path_2}"
+        reroute      = false
       }
     }
   }
@@ -6139,7 +6172,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "subnet1-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 # since these variables are re-used - a locals block makes this more maintainable

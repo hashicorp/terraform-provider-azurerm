@@ -24,8 +24,10 @@ func resourceMySqlFirewallRule() *pluginsdk.Resource {
 		Update: resourceMySqlFirewallRuleCreateUpdate,
 		Delete: resourceMySqlFirewallRuleDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.FirewallRuleID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -36,9 +38,10 @@ func resourceMySqlFirewallRule() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.FirewallRuleName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
