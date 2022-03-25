@@ -3228,6 +3228,8 @@ type ModernReservationRecommendationProperties struct {
 	ResourceType *string `json:"resourceType,omitempty"`
 	// SubscriptionID - READ-ONLY; The Azure subscription ID.
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
+	// SubscriptionName - READ-ONLY; Name of the Azure Subscription.
+	SubscriptionName *string `json:"subscriptionName,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ModernReservationRecommendationProperties.
