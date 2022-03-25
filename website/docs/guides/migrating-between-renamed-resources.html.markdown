@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Provider: Migrating to a renamed or replaced resource"
+page_title: "Azure Provider: Migrating from Deprecated Resources Guide"
 description: |-
-This page documents how to migrate between two resources in the Azure Provider which have been renamed or replaced.
+This page documents how to migrate from deprecated resources in the Azure Provider to their replacements.
 
 ---
 
-# Azure Provider: Migrating to a renamed resource
+# Azure Provider: Migrating from Deprecated Resources Guide
 
 This guide shows how to migrate from a resource which has been deprecated or renamed to its replacement.
 
