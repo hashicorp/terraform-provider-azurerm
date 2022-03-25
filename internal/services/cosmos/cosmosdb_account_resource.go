@@ -1161,7 +1161,16 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 			}
 			status := "Succeeded"
 			if props := resp.DatabaseAccountGetProperties; props != nil {
-				locations := append(*props.ReadLocations, *props.WriteLocations...)
+
+				var locations []documentdb.Location
+
+				if props.ReadLocations != nil {
+					locations = append(locations, *props.ReadLocations...)
+				}
+				if props.WriteLocations != nil {
+					locations = append(locations, *props.WriteLocations...)
+				}
+
 				for _, l := range locations {
 					if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting" {
 						break // return the first non successful status.
