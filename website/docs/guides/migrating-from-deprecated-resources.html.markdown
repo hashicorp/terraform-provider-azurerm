@@ -2,8 +2,7 @@
 layout: "azurerm"
 page_title: "Azure Provider: Migrating from Deprecated Resources Guide"
 description: |-
-This page documents how to migrate from deprecated resources in the Azure Provider to their replacements.
-
+  This page documents how to migrate from deprecated resources in the Azure Provider to their replacements.
 ---
 
 # Azure Provider: Migrating from Deprecated Resources Guide
