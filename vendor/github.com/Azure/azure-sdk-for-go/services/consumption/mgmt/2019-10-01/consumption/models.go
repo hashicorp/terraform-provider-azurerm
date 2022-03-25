@@ -1,32 +1,3 @@
-
-Skip to content
-Pull requests
-Issues
-Marketplace
-Explore
-@shenzuken
-hashicorp /
-terraform-provider-azurerm
-Public
-
-Code
-Issues 1.5k
-Pull requests 88
-Actions
-Security
-
-    Insights
-
-terraform-provider-azurerm/vendor/github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption/models.go /
-@ms-henglu
-ms-henglu update azure-sdk-for-go to v56.0.0
-Latest commit ed3e5ee on 30 Jul 2021
-History
-3 contributors
-@marc-sensenich
-@ms-henglu
-@yupwei68
-6081 lines (5612 sloc) 214 KB
 package consumption
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -6108,19 +6079,3 @@ func NewUsageDetailsListResultPage(cur UsageDetailsListResult, getNextPage func(
 		udlr: cur,
 	}
 }
-
-    © 2022 GitHub, Inc.
-
-    Terms
-    Privacy
-    Security
-    Status
-    Docs
-    Contact GitHub
-    Pricing
-    API
-    Training
-    Blog
-    About
-
-Loading complete
