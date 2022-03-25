@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	StorageStringFmt = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
+	StorageStringFmt   = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
+	StorageStringFmtKV = "@Microsoft.KeyVault(SecretUri=%s)"
 )
 
 type SiteConfigLinuxFunctionApp struct {
@@ -983,21 +984,23 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 
 type ApplicationStackLinuxFunctionApp struct {
 	// Note - Function Apps differ to Web Apps here. They do not use the named properties in the SiteConfig block and exclusively use the app_settings map
-	DotNetVersion         string                   `tfschema:"dotnet_version"`          // Supported values `3.1`. Version 6 is in preview on Windows Only
-	NodeVersion           string                   `tfschema:"node_version"`            // Supported values `12LTS`, `14LTS`
-	PythonVersion         string                   `tfschema:"python_version"`          // Supported values `3.9`, `3.8`, `3.7`
-	PowerShellCoreVersion string                   `tfschema:"powershell_core_version"` // Supported values are `7.0`
-	JavaVersion           string                   `tfschema:"java_version"`            // Supported values `8`, `11`
-	CustomHandler         bool                     `tfschema:"use_custom_runtime"`      // Supported values `true`
-	Docker                []ApplicationStackDocker `tfschema:"docker"`                  // Needs ElasticPremium or Basic (B1) Standard (S 1-3) or Premium(PxV2 or PxV3) LINUX Service Plan
+	DotNetVersion         string                   `tfschema:"dotnet_version"`              // Supported values `3.1`, `6`.
+	DotNetIsolated        bool                     `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
+	NodeVersion           string                   `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`
+	PythonVersion         string                   `tfschema:"python_version"`              // Supported values `3.9`, `3.8`, `3.7`
+	PowerShellCoreVersion string                   `tfschema:"powershell_core_version"`     // Supported values are `7.0`
+	JavaVersion           string                   `tfschema:"java_version"`                // Supported values `8`, `11`
+	CustomHandler         bool                     `tfschema:"use_custom_runtime"`          // Supported values `true`
+	Docker                []ApplicationStackDocker `tfschema:"docker"`                      // Needs ElasticPremium or Basic (B1) Standard (S 1-3) or Premium(PxV2 or PxV3) LINUX Service Plan
 }
 
 type ApplicationStackWindowsFunctionApp struct {
-	DotNetVersion         string `tfschema:"dotnet_version"`          // Supported values `3.1`. Version 6 is in preview on Windows Only
-	NodeVersion           string `tfschema:"node_version"`            // Supported values `12LTS`, `14LTS`
-	JavaVersion           string `tfschema:"java_version"`            // Supported values `8`, `11`
-	PowerShellCoreVersion string `tfschema:"powershell_core_version"` // Supported values are `7.0`
-	CustomHandler         bool   `tfschema:"use_custom_runtime"`      // Supported values `true`
+	DotNetVersion         string `tfschema:"dotnet_version"`              // Supported values `3.1`. Version 6 is in preview on Windows Only
+	DotNetIsolated        bool   `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
+	NodeVersion           string `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`
+	JavaVersion           string `tfschema:"java_version"`                // Supported values `8`, `11`
+	PowerShellCoreVersion string `tfschema:"powershell_core_version"`     // Supported values are `7.0`
+	CustomHandler         bool   `tfschema:"use_custom_runtime"`          // Supported values `true`
 }
 
 type ApplicationStackDocker struct {
@@ -1020,7 +1023,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"3.1",
-						"6",
+						"6.0",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1031,7 +1034,22 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of .Net. Possible values are `3.1` and `6`",
+					Description: "The version of .Net. Possible values are `3.1` and `6.0`",
+				},
+
+				"use_dotnet_isolated_runtime": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+					ConflictsWith: []string{
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.powershell_core_version",
+						"site_config.0.application_stack.0.docker",
+						"site_config.0.application_stack.0.use_custom_runtime",
+					},
+					Description: "Should the DotNet process use an isolated runtime. Defaults to `false`.",
 				},
 
 				"python_version": {
@@ -1060,6 +1078,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"12",
 						"14",
+						"16", // preview LTS Support
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1193,6 +1212,11 @@ func linuxFunctionAppStackSchemaComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"use_dotnet_isolated_runtime": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
 				"python_version": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -1279,12 +1303,26 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 					Description: "The version of .Net. Possible values are `3.1` and `6`",
 				},
 
+				"use_dotnet_isolated_runtime": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+					ConflictsWith: []string{
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.powershell_core_version",
+						"site_config.0.application_stack.0.use_custom_runtime",
+					},
+					Description: "Should the DotNet process use an isolated runtime. Defaults to `false`.",
+				},
+
 				"node_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"12",
-						"14",
+						"~12",
+						"~14",
+						"~16",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1354,6 +1392,11 @@ func windowsFunctionAppStackSchemaComputed() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"use_dotnet_isolated_runtime": {
+					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
 
@@ -1512,11 +1555,19 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		if len(linuxSiteConfig.ApplicationStack) > 0 {
 			linuxAppStack := linuxSiteConfig.ApplicationStack[0]
 			if linuxAppStack.DotNetVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("dotnet"),
-				})
-				linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion)
+				if linuxAppStack.DotNetIsolated {
+					appSettings = append(appSettings, web.NameValuePair{
+						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+						Value: utils.String("dotnet-isolated"),
+					})
+					linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion)
+				} else {
+					appSettings = append(appSettings, web.NameValuePair{
+						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+						Value: utils.String("dotnet"),
+					})
+					linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion)
+				}
 			}
 
 			if linuxAppStack.NodeVersion != "" {
@@ -1770,44 +1821,53 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") && len(windowsSiteConfig.ApplicationStack) > 0 {
 		if len(windowsSiteConfig.ApplicationStack) > 0 {
-			linuxAppStack := windowsSiteConfig.ApplicationStack[0]
-			if linuxAppStack.DotNetVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("dotnet"),
-				})
-				windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion)
+			windowsAppStack := windowsSiteConfig.ApplicationStack[0]
+			if windowsAppStack.DotNetVersion != "" {
+				if windowsAppStack.DotNetIsolated {
+					appSettings = append(appSettings, web.NameValuePair{
+						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+						Value: utils.String("dotnet-isolated"),
+					})
+					windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET-ISOLATED|%s", windowsAppStack.DotNetVersion)
+
+				} else {
+					appSettings = append(appSettings, web.NameValuePair{
+						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
+						Value: utils.String("dotnet"),
+					})
+					windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET|%s", windowsAppStack.DotNetVersion)
+				}
 			}
 
-			if linuxAppStack.NodeVersion != "" {
+			if windowsAppStack.NodeVersion != "" {
 				appSettings = append(appSettings, web.NameValuePair{
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("node"),
 				})
 				appSettings = append(appSettings, web.NameValuePair{
 					Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
-					Value: utils.String(linuxAppStack.NodeVersion),
+					Value: utils.String(windowsAppStack.NodeVersion),
 				})
-				windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("Node|%s", linuxAppStack.NodeVersion)
+				windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("Node|%s", windowsAppStack.NodeVersion)
 			}
 
-			if linuxAppStack.JavaVersion != "" {
+			if windowsAppStack.JavaVersion != "" {
 				appSettings = append(appSettings, web.NameValuePair{
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("java"),
 				})
-				windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion)
+				windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("Java|%s", windowsAppStack.JavaVersion)
 			}
 
-			if linuxAppStack.PowerShellCoreVersion != "" {
+			if windowsAppStack.PowerShellCoreVersion != "" {
 				appSettings = append(appSettings, web.NameValuePair{
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("powershell"),
 				})
-				windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion)
+				windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("PowerShell|%s", windowsAppStack.PowerShellCoreVersion)
 			}
 
-			if linuxAppStack.CustomHandler {
+			if windowsAppStack.CustomHandler {
 				appSettings = append(appSettings, web.NameValuePair{
 					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
 					Value: utils.String("custom"),
@@ -2149,4 +2209,23 @@ func FlattenFunctionAppAppServiceLogs(input web.SiteLogsConfig) []FunctionAppApp
 	}
 
 	return []FunctionAppAppServiceLogs{}
+}
+
+func ParseContentSettings(input web.StringDictionary, existing map[string]string) map[string]string {
+	if input.Properties == nil {
+		return nil
+	}
+
+	out := existing
+	for k, v := range input.Properties {
+		switch k {
+		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
+			out[k] = utils.NormalizeNilableString(v)
+
+		case "WEBSITE_CONTENTSHARE":
+			out[k] = utils.NormalizeNilableString(v)
+		}
+	}
+
+	return out
 }

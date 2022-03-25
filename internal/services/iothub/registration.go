@@ -38,6 +38,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
+		"azurerm_iothub_certificate":                resourceIotHubCertificate(),
 		"azurerm_iothub_dps":                        resourceIotHubDPS(),
 		"azurerm_iothub_dps_certificate":            resourceIotHubDPSCertificate(),
 		"azurerm_iothub_dps_shared_access_policy":   resourceIotHubDPSSharedAccessPolicy(),

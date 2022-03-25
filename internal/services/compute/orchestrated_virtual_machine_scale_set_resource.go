@@ -7,14 +7,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -44,7 +48,9 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		// TODO: remove support the the legacy Orchestrated Virtual Machine Scale Set in 3.0
+		// The plan was to remove support the the legacy Orchestrated Virtual Machine Scale Set in 3.0.
+		// Turns out it's still in use
+		// TODO: Revisit in 4.0
 		// TODO: exposing requireGuestProvisionSignal once it's available
 		// https://github.com/Azure/azure-rest-api-specs/pull/7246
 
@@ -77,7 +83,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateOrchestratedVirtualMachineScaleSetSku,
+				ValidateFunc: computeValidate.OrchestratedVirtualMachineScaleSetSku,
 			},
 
 			"os_profile": OrchestratedVirtualMachineScaleSetOSProfileSchema(),
@@ -188,7 +194,13 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"termination_notification": OrchestratedVirtualMachineScaleSetTerminateNotificationSchema(),
 
-			"zones": azure.SchemaZones(),
+			"zones": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaZones()
+				}
+
+				return commonschema.ZonesMultipleOptionalForceNew()
+			}(),
 
 			"tags": tags.Schema(),
 
@@ -226,7 +238,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	props := compute.VirtualMachineScaleSet{
 		Location: utils.String(location),
@@ -239,7 +250,15 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			// in both VMSS and Orchestrated VMSS...
 			OrchestrationMode: compute.OrchestrationModeFlexible,
 		},
-		Zones: zones,
+	}
+
+	if features.ThreePointOhBeta() {
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			props.Zones = &zones
+		}
+	} else {
+		props.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
 	}
 
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
@@ -264,7 +283,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	instances := d.Get("instances").(int)
 	if v, ok := d.GetOk("sku_name"); ok {
 		isLegacy = false
-		sku, err := azure.ExpandOrchestratedVirtualMachineScaleSetSku(v.(string), instances)
+		sku, err := expandOrchestratedVirtualMachineScaleSetSku(v.(string), instances)
 		if err != nil {
 			return fmt.Errorf("expanding 'sku_name': %+v", err)
 		}
@@ -296,11 +315,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
-	sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-	if err != nil {
-		return err
-	}
-
+	sourceImageReference := expandOrchestratedSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 	virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 
 	osType := compute.OperatingSystemTypesWindows
@@ -493,7 +508,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		if v, ok := d.GetOk("zone_balance"); ok && v.(bool) {
-			if len(*zones) == 0 {
+			if props.Zones == nil || len(*props.Zones) == 0 {
 				return fmt.Errorf("`zone_balance` can only be set to `true` when zones are specified")
 			}
 
@@ -776,10 +791,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
 				sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 				sourceImageId := d.Get("source_image_id").(string)
-				sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-				if err != nil {
-					return err
-				}
+				sourceImageReference := expandOrchestratedSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
 				// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
 				updateProps.VirtualMachineProfile.StorageProfile.DataDisks = existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.DataDisks
@@ -871,7 +883,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			if d.HasChange("sku_name") {
 				updateInstances = true
 
-				sku, err = azure.ExpandOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string), instances)
+				sku, err = expandOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string), instances)
 				if err != nil {
 					return err
 				}
@@ -966,11 +978,12 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("zones", zones.Flatten(resp.Zones))
 
 	var skuName *string
 	var instances int
 	if resp.Sku != nil {
-		skuName, err = azure.FlattenOrchestratedVirtualMachineScaleSetSku(resp.Sku)
+		skuName, err = flattenOrchestratedVirtualMachineScaleSetSku(resp.Sku)
 		if err != nil || skuName == nil {
 			return fmt.Errorf("setting `sku_name`: %+v", err)
 		}
@@ -1094,10 +1107,6 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 	}
 
-	if err := d.Set("zones", resp.Zones); err != nil {
-		return fmt.Errorf("setting `zones`: %+v", err)
-	}
-
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -1166,4 +1175,35 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	log.Printf("[DEBUG] Deleted Orchestrated Virtual Machine Scale Set %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	return nil
+}
+
+func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*compute.Sku, error) {
+	skuParts := strings.Split(input, "_")
+
+	if len(skuParts) < 2 || strings.Contains(input, "__") || strings.Contains(input, " ") {
+		return nil, fmt.Errorf("'sku_name'(%q) is not formatted properly.", input)
+	}
+
+	sku := &compute.Sku{
+		Name:     utils.String(input),
+		Capacity: utils.Int64(int64(capacity)),
+		Tier:     utils.String("Standard"),
+	}
+
+	return sku, nil
+}
+
+func flattenOrchestratedVirtualMachineScaleSetSku(input *compute.Sku) (*string, error) {
+	var skuName string
+	if input != nil && input.Name != nil {
+		if strings.HasPrefix(strings.ToLower(*input.Name), "standard") {
+			skuName = *input.Name
+		} else {
+			skuName = fmt.Sprintf("Standard_%s", *input.Name)
+		}
+
+		return &skuName, nil
+	}
+
+	return nil, fmt.Errorf("Sku struct 'name' is nil")
 }

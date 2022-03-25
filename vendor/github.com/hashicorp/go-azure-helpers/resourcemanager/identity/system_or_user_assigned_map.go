@@ -11,9 +11,9 @@ import (
 var _ json.Marshaler = &SystemOrUserAssignedMap{}
 
 type SystemOrUserAssignedMap struct {
-	Type        Type                                   `json:"type"`
-	PrincipalId string                                 `json:"principalId"`
-	TenantId    string                                 `json:"tenantId"`
+	Type        Type                                   `json:"type" tfschema:"type"`
+	PrincipalId string                                 `json:"principalId" tfschema:"principal_id"`
+	TenantId    string                                 `json:"tenantId" tfschema:"tenant_id"`
 	IdentityIds map[string]UserAssignedIdentityDetails `json:"userAssignedIdentities"`
 }
 

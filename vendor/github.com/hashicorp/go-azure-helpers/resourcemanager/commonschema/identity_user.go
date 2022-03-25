@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+// NOTE: we intentionally don't have an Optional & Computed here for behavioural consistency.
+
 // UserAssignedIdentityRequired returns the User Assigned Identity schema where this is Required
 func UserAssignedIdentityRequired() *schema.Schema {
 	return &schema.Schema{

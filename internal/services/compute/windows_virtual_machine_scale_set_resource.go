@@ -5,7 +5,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -121,6 +128,9 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_automatic_updates": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -304,7 +314,13 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"terminate_notification": VirtualMachineScaleSetTerminateNotificationSchema(),
 
-			"zones": azure.SchemaZones(),
+			"zones": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaZones()
+				}
+
+				return commonschema.ZonesMultipleOptionalForceNew()
+			}(),
 
 			// Computed
 			"unique_id": {
@@ -401,9 +417,6 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandWindowsSecrets(secretsRaw)
-
-	zonesRaw := d.Get("zones").([]interface{})
-	zones := azure.ExpandZones(zonesRaw)
 
 	var computerNamePrefix string
 	if v, ok := d.GetOk("computer_name_prefix"); ok && len(v.(string)) > 0 {
@@ -563,7 +576,8 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
 	props := compute.VirtualMachineScaleSet{
-		Location: utils.String(location),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         utils.String(location),
 		Sku: &compute.Sku{
 			Name:     utils.String(d.Get("sku").(string)),
 			Capacity: utils.Int64(int64(d.Get("instances").(int))),
@@ -590,7 +604,16 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 				Rules: &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
 			},
 		},
-		Zones: zones,
+	}
+
+	if features.ThreePointOhBeta() {
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			props.Zones = &zones
+		}
+	} else {
+		zonesRaw := d.Get("zones").([]interface{})
+		props.Zones = azure.ExpandZones(zonesRaw)
 	}
 
 	if v, ok := d.GetOk("platform_fault_domain_count"); ok {
@@ -604,7 +627,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	if v, ok := d.GetOk("zone_balance"); ok && v.(bool) {
-		if len(zonesRaw) == 0 {
+		if props.Zones == nil || len(*props.Zones) == 0 {
 			return fmt.Errorf("`zone_balance` can only be set to `true` when zones are specified")
 		}
 
@@ -974,9 +997,9 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
+	d.Set("zones", zones.Flatten(resp.Zones))
 
 	var skuName *string
 	var instances int
@@ -1181,10 +1204,6 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		d.Set("vtpm_enabled", vtpmEnabled)
 		d.Set("secure_boot_enabled", secureBootEnabled)
 		d.Set("user_data", profile.UserData)
-	}
-
-	if err := d.Set("zones", resp.Zones); err != nil {
-		return fmt.Errorf("setting `zones`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

@@ -149,18 +149,15 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctest-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
+  name         = "acctest-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "test" {
-  name                = "acctest-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  queue_name          = azurerm_servicebus_queue.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name     = "acctest-%[1]d"
+  queue_id = azurerm_servicebus_queue.test.id
 
   listen = false
   send   = true
@@ -184,7 +181,7 @@ resource "azurerm_iothub" "test" {
 
 resource "azurerm_iothub_endpoint_servicebus_queue" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   connection_string = azurerm_servicebus_queue_authorization_rule.test.primary_connection_string
@@ -198,7 +195,7 @@ func (r IotHubEndpointServiceBusQueueResource) requiresImport(data acceptance.Te
 
 resource "azurerm_iothub_endpoint_servicebus_queue" "import" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   connection_string = azurerm_servicebus_queue_authorization_rule.test.primary_connection_string
@@ -230,18 +227,15 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctest-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
+  name         = "acctest-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "test" {
-  name                = "acctest-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  queue_name          = azurerm_servicebus_queue.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name     = "acctest-%[1]d"
+  queue_id = azurerm_servicebus_queue.test.id
 
   listen = false
   send   = true
@@ -303,7 +297,7 @@ func (r IotHubEndpointServiceBusQueueResource) authenticationTypeDefault(data ac
 
 resource "azurerm_iothub_endpoint_servicebus_queue" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   connection_string = azurerm_servicebus_queue_authorization_rule.test.primary_connection_string
@@ -317,7 +311,7 @@ func (r IotHubEndpointServiceBusQueueResource) authenticationTypeSystemAssignedI
 
 resource "azurerm_iothub_endpoint_servicebus_queue" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   authentication_type = "identityBased"
@@ -337,7 +331,7 @@ func (r IotHubEndpointServiceBusQueueResource) authenticationTypeUserAssignedIde
 
 resource "azurerm_iothub_endpoint_servicebus_queue" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  iothub_name         = azurerm_iothub.test.name
+  iothub_id           = azurerm_iothub.test.id
   name                = "acctest"
 
   authentication_type = "identityBased"
@@ -367,18 +361,15 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctest-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
+  name         = "acctest-%[1]d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "test" {
-  name                = "acctest-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  queue_name          = azurerm_servicebus_queue.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name     = "acctest-%[1]d"
+  queue_id = azurerm_servicebus_queue.test.id
 
   listen = false
   send   = true

@@ -10,12 +10,14 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -32,23 +34,25 @@ type LinuxFunctionAppModel struct {
 	ServicePlanId      string `tfschema:"service_plan_id"`
 	StorageAccountName string `tfschema:"storage_account_name"`
 
-	StorageAccountKey string `tfschema:"storage_account_access_key"`
-	StorageUsesMSI    bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
+	StorageAccountKey       string `tfschema:"storage_account_access_key"`
+	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
+	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
-	AppSettings               map[string]string                    `tfschema:"app_settings"`
-	AuthSettings              []helpers.AuthSettings               `tfschema:"auth_settings"`
-	Backup                    []helpers.Backup                     `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	BuiltinLogging            bool                                 `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled         bool                                 `tfschema:"client_certificate_enabled"`
-	ClientCertMode            string                               `tfschema:"client_certificate_mode"`
-	ConnectionStrings         []helpers.ConnectionString           `tfschema:"connection_string"`
-	DailyMemoryTimeQuota      int                                  `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
-	Enabled                   bool                                 `tfschema:"enabled"`
-	FunctionExtensionsVersion string                               `tfschema:"functions_extension_version"`
-	ForceDisableContentShare  bool                                 `tfschema:"content_share_force_disabled"`
-	HttpsOnly                 bool                                 `tfschema:"https_only"`
-	SiteConfig                []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
-	Tags                      map[string]string                    `tfschema:"tags"`
+	AppSettings                 map[string]string                    `tfschema:"app_settings"`
+	AuthSettings                []helpers.AuthSettings               `tfschema:"auth_settings"`
+	Backup                      []helpers.Backup                     `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	BuiltinLogging              bool                                 `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled           bool                                 `tfschema:"client_certificate_enabled"`
+	ClientCertMode              string                               `tfschema:"client_certificate_mode"`
+	ConnectionStrings           []helpers.ConnectionString           `tfschema:"connection_string"`
+	DailyMemoryTimeQuota        int                                  `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
+	Enabled                     bool                                 `tfschema:"enabled"`
+	FunctionExtensionsVersion   string                               `tfschema:"functions_extension_version"`
+	ForceDisableContentShare    bool                                 `tfschema:"content_share_force_disabled"`
+	HttpsOnly                   bool                                 `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID string                               `tfschema:"key_vault_reference_identity_id"`
+	SiteConfig                  []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
+	Tags                        map[string]string                    `tfschema:"tags"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -92,7 +96,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
-		"location": location.Schema(),
+		"location": commonschema.Location(),
 
 		"service_plan_id": {
 			Type:         pluginsdk.TypeString,
@@ -103,19 +107,23 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ValidateFunc: storageValidate.StorageAccountName,
 			Description:  "The backend storage account name which will be used by this Function App.",
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_key_vault_secret_id",
+			},
 		},
 
 		"storage_account_access_key": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Sensitive:    true, // TODO - Uncomment this
+			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
-			ExactlyOneOf: []string{
+			ConflictsWith: []string{
 				"storage_uses_managed_identity",
-				"storage_account_access_key",
+				"storage_key_vault_secret_id",
 			},
 			Description: "The access key which will be used to access the storage account for the Function App.",
 		},
@@ -124,11 +132,22 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
-			ExactlyOneOf: []string{
-				"storage_uses_managed_identity",
+			ConflictsWith: []string{
 				"storage_account_access_key",
+				"storage_key_vault_secret_id",
 			},
-			Description: "Should the Function App use its Managed Identity to access storage",
+			Description: "Should the Function App use its Managed Identity to access storage?",
+		},
+
+		"storage_key_vault_secret_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_key_vault_secret_id",
+			},
+			Description: "The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.",
 		},
 
 		"app_settings": {
@@ -209,6 +228,14 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: msivalidate.UserAssignedIdentityID,
+			Description:  "The User Assigned Identity to use for Key Vault access.",
+		},
 
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionApp(),
 
@@ -356,7 +383,11 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 
 			storageString := functionApp.StorageAccountName
 			if !functionApp.StorageUsesMSI {
-				storageString = fmt.Sprintf(helpers.StorageStringFmt, functionApp.StorageAccountName, functionApp.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+				if functionApp.StorageKeyVaultSecretID != "" {
+					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, functionApp.StorageKeyVaultSecretID)
+				} else {
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionApp.StorageAccountName, functionApp.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+				}
 			}
 			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionApp(functionApp.SiteConfig, nil, metadata, functionApp.FunctionExtensionsVersion, storageString, functionApp.StorageUsesMSI)
 			if err != nil {
@@ -373,13 +404,18 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					functionApp.AppSettings["AzureWebJobsDashboard__accountName"] = functionApp.StorageAccountName
 				}
 			}
+
 			if sendContentSettings {
 				if functionApp.AppSettings == nil {
 					functionApp.AppSettings = make(map[string]string)
 				}
 				suffix := uuid.New().String()[0:4]
-				functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
-				functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				if _, present := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]; !present {
+					functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
+				}
+				if _, present := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !present {
+					functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
+				}
 			}
 
 			siteConfig.LinuxFxVersion = helpers.EncodeFunctionAppLinuxFxVersion(functionApp.SiteConfig[0].ApplicationStack)
@@ -404,6 +440,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					ClientCertMode:       web.ClientCertMode(functionApp.ClientCertMode),
 					DailyMemoryTimeQuota: utils.Int32(int32(functionApp.DailyMemoryTimeQuota)), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
 				},
+			}
+
+			if functionApp.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionApp.KeyVaultReferenceIdentityID)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
@@ -459,7 +499,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 
 func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 25 * time.Minute,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 			id, err := parse.FunctionAppID(metadata.ResourceData.Id())
@@ -520,15 +560,16 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 			}
 
 			state := LinuxFunctionAppModel{
-				Name:                 id.SiteName,
-				ResourceGroup:        id.ResourceGroup,
-				ServicePlanId:        utils.NormalizeNilableString(props.ServerFarmID),
-				Location:             location.NormalizeNilable(functionApp.Location),
-				Enabled:              utils.NormaliseNilableBool(functionApp.Enabled),
-				ClientCertMode:       string(functionApp.ClientCertMode),
-				DailyMemoryTimeQuota: int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
-				Tags:                 tags.ToTypedObject(functionApp.Tags),
-				Kind:                 utils.NormalizeNilableString(functionApp.Kind),
+				Name:                        id.SiteName,
+				ResourceGroup:               id.ResourceGroup,
+				ServicePlanId:               utils.NormalizeNilableString(props.ServerFarmID),
+				Location:                    location.NormalizeNilable(functionApp.Location),
+				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
+				ClientCertMode:              string(functionApp.ClientCertMode),
+				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
+				Tags:                        tags.ToTypedObject(functionApp.Tags),
+				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
+				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 			}
 
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
@@ -617,6 +658,14 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %v", id, err)
 			}
 
+			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
+			if err != nil {
+				return err
+			}
+
+			// Only send for ElasticPremium
+			sendContentSettings := helpers.PlanIsElastic(planSKU)
+
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("service_plan_id") {
 				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
@@ -646,13 +695,32 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				existing.Identity = expandedIdentity
 			}
 
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				existing.KeyVaultReferenceIdentity = utils.String(state.KeyVaultReferenceIdentityID)
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
 			storageString := ""
 			if !state.StorageUsesMSI {
-				storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+				if state.StorageKeyVaultSecretID != "" {
+					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
+				} else {
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
+				}
+			}
+
+			if sendContentSettings {
+				appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+				if err != nil {
+					return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
+				}
+				if state.AppSettings == nil {
+					state.AppSettings = make(map[string]string)
+				}
+				state.AppSettings = helpers.ParseContentSettings(appSettingsResp, state.AppSettings)
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
@@ -661,7 +729,11 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				if state.AppSettings == nil && !state.StorageUsesMSI {
 					state.AppSettings = make(map[string]string)
 				}
-				state.AppSettings["AzureWebJobsDashboard"] = storageString
+				if !state.StorageUsesMSI {
+					state.AppSettings["AzureWebJobsDashboard"] = storageString
+				} else {
+					state.AppSettings["AzureWebJobsDashboard__accountName"] = state.StorageAccountName
+				}
 			}
 
 			if metadata.ResourceData.HasChange("site_config") {
@@ -861,6 +933,10 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringD
 				m.SiteConfig[0].ApplicationStack[0].CustomHandler = strings.EqualFold(*v, "custom")
 			}
 
+			if _, ok := metadata.ResourceData.GetOk("app_settings.FUNCTIONS_WORKER_RUNTIME"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
+			}
+
 		case "DOCKER_REGISTRY_SERVER_URL":
 			dockerSettings.RegistryURL = utils.NormalizeNilableString(v)
 
@@ -879,7 +955,12 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringD
 			m.SiteConfig[0].AppInsightsConnectionString = utils.NormalizeNilableString(v)
 
 		case "AzureWebJobsStorage":
-			m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
+			if v != nil && strings.HasPrefix(*v, "@Microsoft.KeyVault") {
+				trimmed := strings.TrimPrefix(strings.TrimSuffix(*v, ")"), "@Microsoft.KeyVault(SecretUri=")
+				m.StorageKeyVaultSecretID = trimmed
+			} else {
+				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
+			}
 
 		case "AzureWebJobsDashboard":
 			m.BuiltinLogging = true
@@ -887,6 +968,13 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringD
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
 			i, _ := strconv.Atoi(utils.NormalizeNilableString(v))
 			m.SiteConfig[0].HealthCheckEvictionTime = utils.NormaliseNilableInt(&i)
+
+		case "AzureWebJobsStorage__accountName":
+			m.StorageUsesMSI = true
+			m.StorageAccountName = utils.NormalizeNilableString(v)
+
+		case "AzureWebJobsDashboard__accountName":
+			m.BuiltinLogging = true
 
 		default:
 			appSettings[k] = utils.NormalizeNilableString(v)

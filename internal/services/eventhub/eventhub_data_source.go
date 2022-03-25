@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,7 +31,7 @@ func dataSourceEventHub() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"partition_count": {
 				Type:     pluginsdk.TypeInt,

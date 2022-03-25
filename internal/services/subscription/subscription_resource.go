@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions"
 	subscriptionAlias "github.com/Azure/azure-sdk-for-go/services/subscription/mgmt/2020-09-01/subscription"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -186,7 +186,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("could not read existing Subscription %q", subscriptionId)
 		}
 		// Disabled and Warned are both "effectively" cancelled states,
-		if existingSub.State == subscriptions.Disabled || existingSub.State == subscriptions.Warned {
+		if existingSub.State == subscriptions.StateDisabled || existingSub.State == subscriptions.StateWarned {
 			log.Printf("[DEBUG] Existing subscription in Disabled/Cancelled state Terraform will attempt to re-activate it")
 			if _, err := subscriptionClient.Enable(ctx, subscriptionId); err != nil {
 				return fmt.Errorf("enabling Subscription %q: %+v", subscriptionId, err)
@@ -440,20 +440,20 @@ func waitForSubscriptionStateToSettle(ctx context.Context, clients *clients.Clie
 	switch targetState {
 	case "Cancelled":
 		stateConf.Target = []string{
-			string(subscriptions.Disabled),
-			string(subscriptions.Warned),
+			string(subscriptions.StateDisabled),
+			string(subscriptions.StateWarned),
 		}
 		stateConf.Pending = []string{
-			string(subscriptions.Enabled),
+			string(subscriptions.StateEnabled),
 		}
 
 	case "Active":
 		stateConf.Target = []string{
-			string(subscriptions.Enabled),
+			string(subscriptions.StateEnabled),
 		}
 		stateConf.Pending = []string{
-			string(subscriptions.Disabled),
-			string(subscriptions.Warned),
+			string(subscriptions.StateDisabled),
+			string(subscriptions.StateWarned),
 		}
 	default:
 		return fmt.Errorf("unsupported target state %q for Subscription %q", targetState, subscriptionId)

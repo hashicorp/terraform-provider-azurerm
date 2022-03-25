@@ -7,13 +7,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -26,8 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-// TODO: confirm locking as appropriate
 
 func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -160,6 +161,9 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_automatic_updates": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -284,6 +288,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 
+			"termination_notification": virtualMachineTerminationNotificationSchema(),
+
 			"timezone": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -323,18 +329,24 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"winrm_listener": winRmListenerSchema(),
 
-			"zone": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				// this has to be computed because when you are trying to assign this VM to a VMSS in VMO mode with zones,
-				// the VMO mode VMSS will assign a zone for each of its instance.
-				// and if the VMSS in not zonal, this value should be left empty
-				Computed: true,
-				ConflictsWith: []string{
-					"availability_set_id",
-				},
-			},
+			"zone": func() *pluginsdk.Schema {
+				if !features.ThreePointOhBeta() {
+					return &pluginsdk.Schema{
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						// this has to be computed because when you are trying to assign this VM to a VMSS in VMO mode with zones,
+						// the VMO mode VMSS will assign a zone for each of its instance.
+						// and if the VMSS in not zonal, this value should be left empty
+						Computed: true,
+						ConflictsWith: []string{
+							"availability_set_id",
+						},
+					}
+				}
+
+				return commonschema.ZoneSingleOptionalForceNew()
+			}(),
 
 			// Computed
 			"private_ip_address": {
@@ -375,8 +387,8 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 
 	id := parse.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.Name, virtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
+	locks.ByName(id.Name, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, VirtualMachineResourceName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
 	if err != nil {
@@ -450,10 +462,11 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
 	params := compute.VirtualMachine{
-		Name:     utils.String(id.Name),
-		Location: utils.String(location),
-		Identity: identity,
-		Plan:     plan,
+		Name:             utils.String(id.Name),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         utils.String(location),
+		Identity:         identity,
+		Plan:             plan,
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
@@ -639,6 +652,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		params.PlatformFaultDomain = utils.Int32(int32(platformFaultDomain))
 	}
 
+	if v, ok := d.GetOk("termination_notification"); ok {
+		params.VirtualMachineProperties.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("timezone"); ok {
 		params.VirtualMachineProperties.OsProfile.WindowsConfiguration.TimeZone = utils.String(v.(string))
 	}
@@ -692,9 +709,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
 	identity, err := flattenVirtualMachineIdentity(resp.Identity)
 	if err != nil {
@@ -839,6 +855,12 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	if scheduleProfile := props.ScheduledEventsProfile; scheduleProfile != nil {
+		if err := d.Set("termination_notification", flattenVirtualMachineScheduledEventsProfile(scheduleProfile)); err != nil {
+			return fmt.Errorf("setting `termination_notification`: %+v", err)
+		}
+	}
+
 	encryptionAtHostEnabled := false
 	vtpmEnabled := false
 	secureBootEnabled := false
@@ -894,8 +916,8 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	locks.ByName(id.Name, virtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
+	locks.ByName(id.Name, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, VirtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.InstanceViewTypesUserData)
@@ -1162,6 +1184,13 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
+	if d.HasChange("termination_notification") {
+		shouldUpdate = true
+
+		notificationRaw := d.Get("termination_notification").([]interface{})
+		update.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(notificationRaw)
+	}
+
 	if d.HasChange("additional_capabilities") {
 		shouldUpdate = true
 
@@ -1372,8 +1401,8 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	locks.ByName(id.Name, virtualMachineResourceName)
-	defer locks.UnlockByName(id.Name, virtualMachineResourceName)
+	locks.ByName(id.Name, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.Name, VirtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")

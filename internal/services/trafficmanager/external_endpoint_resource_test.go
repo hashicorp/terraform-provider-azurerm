@@ -90,6 +90,21 @@ func TestAccExternalEndpoint_subnets(t *testing.T) {
 	})
 }
 
+func TestAccExternalEndpoint_performancePolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
+	r := ExternalEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.performancePolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ExternalEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := endpoints.ParseEndpointTypeID(state.ID)
 	if err != nil {
@@ -185,7 +200,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -209,6 +224,44 @@ resource "azurerm_traffic_manager_external_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+func (r ExternalEndpointResource) performancePolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-traffic-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "acctest-TMP-%[1]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  traffic_routing_method = "Performance"
+
+  dns_config {
+    relative_name = "acctest-tmp-%[1]d"
+    ttl           = 30
+  }
+
+  monitor_config {
+    protocol = "HTTPS"
+    port     = 443
+    path     = "/"
+  }
+}
+
+resource "azurerm_traffic_manager_external_endpoint" "test" {
+  name              = "acctestend-azure%[1]d"
+  target            = "www.example.com"
+  weight            = 3
+  profile_id        = azurerm_traffic_manager_profile.test.id
+  endpoint_location = azurerm_resource_group.test.location
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 func (r ExternalEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -228,7 +281,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }

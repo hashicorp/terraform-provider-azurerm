@@ -8,13 +8,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2021-08-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
@@ -67,7 +72,13 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 				ValidateFunc: validate.RedisEnterpriseClusterSkuName,
 			},
 
-			"zones": azure.SchemaMultipleZones(),
+			"zones": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaMultipleZones()
+				}
+
+				return commonschema.ZonesMultipleOptionalForceNew()
+			}(),
 
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
@@ -84,14 +95,6 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 			"hostname": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
-			},
-
-			// RP currently does not return this value, but will in the near future
-			// https://github.com/Azure/azure-sdk-for-go/issues/14420
-			"version": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Deprecated: "This field currently is not yet being returned from the service API, please see https://github.com/Azure/azure-sdk-for-go/issues/14420 for more information",
 			},
 
 			"tags": commonschema.Tags(),
@@ -145,7 +148,17 @@ func resourceRedisEnterpriseClusterCreate(d *pluginsdk.ResourceData, meta interf
 		if err := validate.RedisEnterpriseClusterLocationZoneSupport(location); err != nil {
 			return fmt.Errorf("%s: %s", id, err)
 		}
-		parameters.Zones = azure.ExpandZones(v.([]interface{}))
+		if features.ThreePointOhBeta() {
+			zones := zones.Expand(v.(*schema.Set).List())
+			if len(zones) > 0 {
+				parameters.Zones = &zones
+			}
+		} else {
+			zones := zones.Expand(v.([]interface{}))
+			if len(zones) > 0 {
+				parameters.Zones = &zones
+			}
+		}
 	}
 
 	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
@@ -202,10 +215,9 @@ func resourceRedisEnterpriseClusterRead(d *pluginsdk.ResourceData, meta interfac
 			return fmt.Errorf("setting `sku_name`: %+v", err)
 		}
 
-		d.Set("zones", model.Zones)
+		d.Set("zones", zones.Flatten(model.Zones))
 		if props := model.Properties; props != nil {
 			d.Set("hostname", props.HostName)
-			d.Set("version", props.RedisVersion)
 
 			tlsVersion := ""
 			if props.MinimumTlsVersion != nil {

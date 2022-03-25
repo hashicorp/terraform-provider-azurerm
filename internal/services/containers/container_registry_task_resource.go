@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -551,7 +551,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"identity": {
-									// TODO - 3.0: should this be `user_assigned_identity_id`?
+									// TODO - 4.0: this should be `user_assigned_identity_id`?
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringIsNotEmpty,

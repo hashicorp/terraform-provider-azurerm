@@ -82,6 +82,8 @@ The following arguments are supported:
 
 * `trusted_launch_enabled` - (Optional) Specifies if Trusted Launch has to be enabled for the Virtual Machine created from the Shared Image. Defaults to `false`. Changing this forces a new resource to be created.
 
+* `accelerated_network_support_enabled` - (Optional) Specifies if the Shared Image supports Accelerated Network. Defaults to `false`. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the Shared Image.
 
 ---

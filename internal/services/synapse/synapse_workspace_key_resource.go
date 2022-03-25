@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -43,27 +44,9 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 				ValidateFunc: validate.WorkspaceID,
 			},
 
-			"cusomter_managed_key_name": {
-				Type:       pluginsdk.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "As this property name contained a typo originally, please switch to using 'customer_managed_key_name' instead.",
-				AtLeastOneOf: []string{
-					"cusomter_managed_key_name",
-					"customer_managed_key_name",
-				},
-				ConflictsWith: []string{"customer_managed_key_name"},
-			},
-
 			"customer_managed_key_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"cusomter_managed_key_name"},
-				AtLeastOneOf: []string{
-					"cusomter_managed_key_name",
-					"customer_managed_key_name",
-				},
+				Type:     pluginsdk.TypeString,
+				Required: true,
 			},
 
 			"customer_managed_key_versionless_id": {
@@ -94,7 +77,6 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	key := d.Get("customer_managed_key_versionless_id")
 	keyName := d.Get("customer_managed_key_name").(string)
-	keyNameTypoed := d.Get("cusomter_managed_key_name").(string)
 	isActiveCMK := d.Get("active").(bool)
 
 	log.Printf("[INFO] Is active CMK: %t", isActiveCMK)
@@ -111,10 +93,10 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 	actualKeyName := ""
 	if keyName != "" {
 		actualKeyName = keyName
-	} else {
-		actualKeyName = keyNameTypoed
 	}
 
+	locks.ByName(workspaceId.Name, "azurerm_synapse_workspace")
+	defer locks.UnlockByName(workspaceId.Name, "azurerm_synapse_workspace")
 	keyresult, err := client.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, actualKeyName, synapseKey)
 	if err != nil {
 		return fmt.Errorf("creating Synapse Workspace Key %q (Workspace %q): %+v", workspaceId.Name, workspaceId.Name, err)
@@ -161,7 +143,6 @@ func resourceSynapseWorkspaceKeyRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("synapse_workspace_id", workspaceID.ID())
 	d.Set("active", resp.KeyProperties.IsActiveCMK)
 	d.Set("customer_managed_key_name", id.KeyName)
-	d.Set("cusomter_managed_key_name", id.KeyName)
 	d.Set("customer_managed_key_versionless_id", resp.KeyProperties.KeyVaultURL)
 
 	return nil
@@ -185,13 +166,9 @@ func resourceSynapseWorkspaceKeysDelete(d *pluginsdk.ResourceData, meta interfac
 
 	// Azure only lets you delete keys that are not active
 	if !*keyresult.KeyProperties.IsActiveCMK {
-		keyresult, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName)
+		_, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName)
 		if err != nil {
-			return fmt.Errorf("Unable to delete key %s in workspace %s: %v", id.KeyName, id.WorkspaceName, err)
-		}
-
-		if keyresult.ID == nil || *keyresult.ID == "" {
-			return fmt.Errorf("empty or nil ID returned for Synapse Key %q during delete", id.KeyName)
+			return fmt.Errorf("unable to delete key %s in workspace %s: %v", id.KeyName, id.WorkspaceName, err)
 		}
 	}
 

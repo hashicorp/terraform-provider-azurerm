@@ -344,19 +344,20 @@ resource "azurerm_subnet" "ase" {
   name                 = "asesubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_subnet" "gateway" {
   name                 = "gatewaysubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_app_service_environment" "test" {
-  name      = "acctest-ase-%[1]d"
-  subnet_id = azurerm_subnet.ase.id
+  name                = "acctest-ase-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.ase.id
 }
 
 resource "azurerm_service_plan" "test" {
@@ -404,7 +405,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-subnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   delegation {
     name = "asedelegation"
     service_delegation {

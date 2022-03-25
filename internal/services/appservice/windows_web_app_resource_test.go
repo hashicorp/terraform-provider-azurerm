@@ -476,6 +476,22 @@ func TestAccWindowsWebApp_identity(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_identityKeyVault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identityUserAssignedKeyVaultIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+
+}
+
 // Windows Specific
 func TestAccWindowsWebApp_virtualDirectories(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
@@ -591,36 +607,7 @@ func TestAccWindowsWebApp_withPhp(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.php(data, "7.3"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebApp_withPhpUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
-	r := WindowsWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.php(data, "7.3"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.php(data, "7.4"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.php(data, "5.6"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -635,7 +622,7 @@ func TestAccWindowsWebApp_withPython34(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.python(data, "3.6"),
+			Config: r.python(data, "3.4.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -657,7 +644,7 @@ func TestAccWindowsWebApp_withPythonUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.python(data, "2.7"),
+			Config: r.python(data, "3.4.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1994,7 +1981,7 @@ resource "azurerm_windows_web_app" "test" {
     }
   }
 }
-`, r.baseTemplate(data), data.RandomInteger, "v4.0", "7.4", "2.7", "1.8", "TOMCAT", "9.0")
+`, r.baseTemplate(data), data.RandomInteger, "v4.0", "7.4", "3.4.0", "1.8", "TOMCAT", "9.0")
 }
 
 func (r WindowsWebAppResource) withLogsHttpBlob(data acceptance.TestData) string {
@@ -2245,6 +2232,43 @@ resource "azurerm_windows_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
+func (r WindowsWebAppResource) identityUserAssignedKeyVaultIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_user_assigned_identity" "kv" {
+  name                = "acctestUAI-kv-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  site_config {}
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id, azurerm_user_assigned_identity.kv.id]
+  }
+
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.kv.id
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
 // Misc Properties
 
 func (r WindowsWebAppResource) acrCredentials(data acceptance.TestData) string {
@@ -2363,6 +2387,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_storage_share" "test" {
   name                 = "test"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 }
 
 data "azurerm_storage_account_sas" "test" {
@@ -2394,6 +2419,8 @@ data "azurerm_storage_account_sas" "test" {
     create  = false
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomString)

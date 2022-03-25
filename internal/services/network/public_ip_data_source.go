@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -29,9 +31,9 @@ func dataSourcePublicIP() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
@@ -81,9 +83,9 @@ func dataSourcePublicIP() *pluginsdk.Resource {
 				},
 			},
 
-			"zones": azure.SchemaZonesComputed(),
+			"zones": commonschema.ZonesMultipleComputed(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -106,45 +108,45 @@ func dataSourcePublicIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.SetId(id.ID())
 
-	d.Set("zones", resp.Zones)
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("zones", zones.Flatten(resp.Zones))
 
-	// ensure values are at least set to "", d.Set() is a noop on a nil
-	// there must be a better way...
-	d.Set("location", "")
-	d.Set("sku", "")
-	d.Set("fqdn", "")
-	d.Set("reverse_fqdn", "")
-	d.Set("domain_name_label", "")
-	d.Set("allocation_method", "")
-	d.Set("ip_address", "")
-	d.Set("ip_version", "")
-	d.Set("idle_timeout_in_minutes", 0)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if resp.PublicIPAddressPropertiesFormat == nil {
+		return fmt.Errorf("retreving %s: `properties` was nil", id)
 	}
 
+	skuName := ""
 	if sku := resp.Sku; sku != nil {
-		d.Set("sku", string(sku.Name))
+		skuName = string(sku.Name)
 	}
+	d.Set("sku", skuName)
 
-	if props := resp.PublicIPAddressPropertiesFormat; props != nil {
-		if dnsSettings := props.DNSSettings; dnsSettings != nil {
-			d.Set("fqdn", dnsSettings.Fqdn)
-			d.Set("reverse_fqdn", dnsSettings.ReverseFqdn)
-			d.Set("domain_name_label", dnsSettings.DomainNameLabel)
+	props := *resp.PublicIPAddressPropertiesFormat
+
+	domainNameLabel := ""
+	fqdn := ""
+	reverseFqdn := ""
+	if dnsSettings := props.DNSSettings; dnsSettings != nil {
+		if dnsSettings.DomainNameLabel != nil {
+			domainNameLabel = *dnsSettings.DomainNameLabel
 		}
-
-		d.Set("allocation_method", string(props.PublicIPAllocationMethod))
-		d.Set("ip_address", props.IPAddress)
-		d.Set("ip_version", string(props.PublicIPAddressVersion))
-		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
-
-		iptags := flattenPublicIpPropsIpTags(*props.IPTags)
-		if iptags != nil {
-			d.Set("ip_tags", iptags)
+		if dnsSettings.Fqdn != nil {
+			fqdn = *dnsSettings.Fqdn
+		}
+		if dnsSettings.ReverseFqdn != nil {
+			reverseFqdn = *dnsSettings.ReverseFqdn
 		}
 	}
+	d.Set("domain_name_label", domainNameLabel)
+	d.Set("fqdn", fqdn)
+	d.Set("reverse_fqdn", reverseFqdn)
+
+	d.Set("allocation_method", string(props.PublicIPAllocationMethod))
+	d.Set("ip_address", props.IPAddress)
+	d.Set("ip_version", string(props.PublicIPAddressVersion))
+	d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
+
+	d.Set("ip_tags", flattenPublicIpPropsIpTags(props.IPTags))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

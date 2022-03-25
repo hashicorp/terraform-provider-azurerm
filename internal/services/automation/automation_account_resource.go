@@ -75,6 +75,11 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
@@ -106,6 +111,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 			Sku: &automation.Sku{
 				Name: automation.SkuNameEnum(d.Get("sku_name").(string)),
 			},
+			PublicNetworkAccess: utils.Bool(d.Get("public_network_access_enabled").(bool)),
 		},
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Identity: identity,
@@ -138,6 +144,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 			Sku: &automation.Sku{
 				Name: automation.SkuNameEnum(d.Get("sku_name").(string)),
 			},
+			PublicNetworkAccess: utils.Bool(d.Get("public_network_access_enabled").(bool)),
 		},
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Identity: identity,
@@ -187,7 +194,11 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-
+	publicNetworkAccessEnabled := true
+	if resp.PublicNetworkAccess != nil {
+		publicNetworkAccessEnabled = *resp.PublicNetworkAccess
+	}
+	d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 	skuName := ""
 	if sku := resp.Sku; sku != nil {
 		skuName = string(resp.Sku.Name)

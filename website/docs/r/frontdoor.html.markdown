@@ -21,7 +21,7 @@ Below are some of the key scenarios that Azure Front Door Service addresses:
 
 !> **BREAKING CHANGE:** The `custom_https_provisioning_enabled` field and the `custom_https_configuration` block have been removed from the `azurerm_frontdoor` resource in the `v2.58.0` provider due to changes made by the service team. If you wish to enable the custom https configuration functionality within your `azurerm_frontdoor` resource moving forward you will need to define a separate `azurerm_frontdoor_custom_https_configuration` block in your configuration file.
 
-!> **BREAKING CHANGE:** With the release of the `v2.58.0` provider, if you run the `apply` command against an existing Front Door resource it **will not** apply the detected changes. Instead it will persist the `explicit_resource_order` mapping structure to the state file. Once this operation has completed the resource will resume functioning normally.This change in behavior in Terraform is due to an issue where the underlying service teams API is now returning the response JSON out of order from the way it was sent to the resource via Terraform causing unexpected discrepancies in the `plan` after the resource has been provisioned. If your pre-existing Front Door instance contains `custom_https_configuration` blocks there are additional steps that will need to be completed to successfully migrate your Front Door onto the `v2.58.0` provider which [can be found in this guide](../guides/2.58.0-frontdoor-upgrade-guide.html).
+!> **BREAKING CHANGE:** With the release of the `v2.58.0` provider, if you run the `apply` command against an existing Front Door resource it **will not** apply the detected changes. Instead it will persist the `explicit_resource_order` mapping structure to the state file. Once this operation has completed the resource will resume functioning normally.This change in behavior in Terraform is due to an issue where the underlying service teams API is now returning the response JSON out of order from the way it was sent to the resource via Terraform causing unexpected discrepancies in the `plan` after the resource has been provisioned. If your pre-existing Front Door instance contains `custom_https_configuration` blocks there are additional steps that will need to be completed to successfully migrate your Front Door onto the `v2.58.0` provider which [can be found in this guide](https://registry.terraform.io/providers/hashicorp/azurerm/2.59.0/docs/guides/2.58.0-frontdoor-upgrade-guide).
 
 ## Example Usage
 
@@ -32,9 +32,8 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_frontdoor" "example" {
-  name                                         = "example-FrontDoor"
-  resource_group_name                          = azurerm_resource_group.example.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "example-FrontDoor"
+  resource_group_name = azurerm_resource_group.example.name
 
   routing_rule {
     name               = "exampleRoutingRule1"
@@ -81,8 +80,6 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Front Door service. Must be globally unique. Changing this forces a new resource to be created.
 
-* `location` -  (Deprecated) The `location` argument is deprecated and is now always set to `global`.
-
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
 * `backend_pool` - (Required) A `backend_pool` block as defined below.
@@ -93,12 +90,6 @@ The following arguments are supported:
 
 * `backend_pool_load_balancing` - (Required) A `backend_pool_load_balancing` block as defined below.
 
-* `backend_pools_send_receive_timeout_seconds` - (Optional) Specifies the send and receive timeout on forwarding request to the backend. When the timeout is reached, the request fails and returns. Possible values are between `0` - `240`. Defaults to `60`.
-
-* `enforce_backend_pools_certificate_name_check` - (Required) Enforce certificate name check on `HTTPS` requests to all backend pools, this setting will have no effect on `HTTP` requests. Permitted values are `true` or `false`.
-
--> **NOTE:** `backend_pools_send_receive_timeout_seconds` and `enforce_backend_pools_certificate_name_check` apply to all backend pools.
-
 * `load_balancer_enabled` - (Optional) Should the Front Door Load Balancer be Enabled? Defaults to `true`.
 
 * `friendly_name` - (Optional) A friendly name for the Front Door service.
@@ -108,18 +99,6 @@ The following arguments are supported:
 * `routing_rule` - (Required) A `routing_rule` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
----
-
-The `backend_pool` block supports the following:
-
-* `name` - (Required) Specifies the name of the Backend Pool.
-
-* `backend` - (Required) A `backend` block as defined below.
-
-* `load_balancing_name` - (Required) Specifies the name of the `backend_pool_load_balancing` block within this resource to use for this `Backend Pool`.
-
-* `health_probe_name` - (Required) Specifies the name of the `backend_pool_health_probe` block within this resource to use for this `Backend Pool`.
 
 ---
 
@@ -138,6 +117,28 @@ The `backend` block supports the following:
 * `priority` - (Optional) Priority to use for load balancing. Higher priorities will not be used for load balancing if any lower priority backend is healthy. Defaults to `1`.
 
 * `weight` - (Optional) Weight of this endpoint for load balancing purposes. Defaults to `50`.
+
+---
+
+The `backend_pool` block supports the following:
+
+* `name` - (Required) Specifies the name of the Backend Pool.
+
+* `backend` - (Required) A `backend` block as defined below.
+
+* `load_balancing_name` - (Required) Specifies the name of the `backend_pool_load_balancing` block within this resource to use for this `Backend Pool`.
+
+* `health_probe_name` - (Required) Specifies the name of the `backend_pool_health_probe` block within this resource to use for this `Backend Pool`.
+
+---
+
+The `backend_pool_settings` block supports the following:
+
+* `backend_pools_send_receive_timeout_seconds` - (Optional) Specifies the send and receive timeout on forwarding request to the backend. When the timeout is reached, the request fails and returns. Possible values are between `0` - `240`. Defaults to `60`.
+
+* `enforce_backend_pools_certificate_name_check` - (Required) Enforce certificate name check on `HTTPS` requests to all backend pools, this setting will have no effect on `HTTP` requests. Permitted values are `true` or `false`.
+
+-> **NOTE:** `backend_pools_send_receive_timeout_seconds` and `enforce_backend_pools_certificate_name_check` apply to all backend pools.
 
 ---
 

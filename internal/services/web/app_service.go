@@ -6,11 +6,9 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -229,50 +227,6 @@ func schemaAppServiceAuthSettings() *pluginsdk.Schema {
 	}
 }
 
-func schemaAppServiceIdentity() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"identity_ids": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MinItems: 1,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validate.UserAssignedIdentityID,
-					},
-				},
-
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(web.ManagedServiceIdentityTypeNone),
-						string(web.ManagedServiceIdentityTypeSystemAssigned),
-						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
-						string(web.ManagedServiceIdentityTypeUserAssigned),
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
-				},
-
-				"principal_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"tenant_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
 func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -307,8 +261,8 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 						"v4.0",
 						"v5.0",
 						"v6.0",
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, !features.ThreePointOhBeta()),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
 				"http2_enabled": {
@@ -340,8 +294,8 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 						"JAVA",
 						"JETTY",
 						"TOMCAT",
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, !features.ThreePointOhBeta()),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
 				"java_container_version": {
@@ -362,8 +316,8 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.ManagedPipelineModeClassic),
 						string(web.ManagedPipelineModeIntegrated),
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, !features.ThreePointOhBeta()),
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
 				"php_version": {
@@ -396,17 +350,24 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 				},
 
 				"remote_debugging_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"VS2012", // TODO for 3.0 - remove VS2012, VS2013, VS2015
-						"VS2013",
-						"VS2015",
-						"VS2017",
-						"VS2019",
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					Type:             pluginsdk.TypeString,
+					Optional:         true,
+					Computed:         true,
+					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+						out := []string{
+							"VS2017",
+							"VS2019",
+						}
+						if !features.ThreePointOhBeta() {
+							out = append(out, []string{
+								"VS2012",
+								"VS2013",
+								"VS2015",
+							}...)
+						}
+						return validation.StringInSlice(out, !features.ThreePointOhBeta())
+					}(),
 				},
 
 				"scm_type": {
@@ -1607,29 +1568,6 @@ func expandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 }
 
 func expandAppServiceIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
-	if !features.ThreePointOhBeta() {
-		if len(input) == 0 {
-			return nil, nil
-		}
-		identity := input[0].(map[string]interface{})
-		identityType := web.ManagedServiceIdentityType(identity["type"].(string))
-
-		identityIds := make(map[string]*web.UserAssignedIdentity)
-		for _, id := range identity["identity_ids"].([]interface{}) {
-			identityIds[id.(string)] = &web.UserAssignedIdentity{}
-		}
-
-		managedServiceIdentity := web.ManagedServiceIdentity{
-			Type: identityType,
-		}
-
-		if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned || managedServiceIdentity.Type == web.ManagedServiceIdentityTypeSystemAssignedUserAssigned {
-			managedServiceIdentity.UserAssignedIdentities = identityIds
-		}
-
-		return &managedServiceIdentity, nil
-	}
-
 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -1650,42 +1588,6 @@ func expandAppServiceIdentity(input []interface{}) (*web.ManagedServiceIdentity,
 }
 
 func flattenAppServiceIdentity(input *web.ManagedServiceIdentity) (*[]interface{}, error) {
-	if !features.ThreePointOhBeta() {
-		if input == nil {
-			return &[]interface{}{}, nil
-		}
-
-		principalId := ""
-		if input.PrincipalID != nil {
-			principalId = *input.PrincipalID
-		}
-
-		tenantId := ""
-		if input.TenantID != nil {
-			tenantId = *input.TenantID
-		}
-
-		identityIds := make([]string, 0)
-		if input.UserAssignedIdentities != nil {
-			for key := range input.UserAssignedIdentities {
-				parsedId, err := parse.UserAssignedIdentityIDInsensitively(key)
-				if err != nil {
-					return nil, err
-				}
-				identityIds = append(identityIds, parsedId.ID())
-			}
-		}
-
-		return &[]interface{}{
-			map[string]interface{}{
-				"identity_ids": identityIds,
-				"principal_id": principalId,
-				"tenant_id":    tenantId,
-				"type":         string(input.Type),
-			},
-		}, nil
-	}
-
 	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {

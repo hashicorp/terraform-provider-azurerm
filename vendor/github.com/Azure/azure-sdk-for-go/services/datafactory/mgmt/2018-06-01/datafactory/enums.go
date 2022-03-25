@@ -1326,6 +1326,88 @@ func PossibleSapTablePartitionOptionValues() []SapTablePartitionOption {
 	return []SapTablePartitionOption{SapTablePartitionOptionNone, SapTablePartitionOptionPartitionOnCalendarDate, SapTablePartitionOptionPartitionOnCalendarMonth, SapTablePartitionOptionPartitionOnCalendarYear, SapTablePartitionOptionPartitionOnInt, SapTablePartitionOptionPartitionOnTime}
 }
 
+// ScriptActivityLogDestination enumerates the values for script activity log destination.
+type ScriptActivityLogDestination string
+
+const (
+	// ScriptActivityLogDestinationActivityOutput ...
+	ScriptActivityLogDestinationActivityOutput ScriptActivityLogDestination = "ActivityOutput"
+	// ScriptActivityLogDestinationExternalStore ...
+	ScriptActivityLogDestinationExternalStore ScriptActivityLogDestination = "ExternalStore"
+)
+
+// PossibleScriptActivityLogDestinationValues returns an array of possible values for the ScriptActivityLogDestination const type.
+func PossibleScriptActivityLogDestinationValues() []ScriptActivityLogDestination {
+	return []ScriptActivityLogDestination{ScriptActivityLogDestinationActivityOutput, ScriptActivityLogDestinationExternalStore}
+}
+
+// ScriptActivityParameterDirection enumerates the values for script activity parameter direction.
+type ScriptActivityParameterDirection string
+
+const (
+	// ScriptActivityParameterDirectionInput ...
+	ScriptActivityParameterDirectionInput ScriptActivityParameterDirection = "Input"
+	// ScriptActivityParameterDirectionInputOutput ...
+	ScriptActivityParameterDirectionInputOutput ScriptActivityParameterDirection = "InputOutput"
+	// ScriptActivityParameterDirectionOutput ...
+	ScriptActivityParameterDirectionOutput ScriptActivityParameterDirection = "Output"
+)
+
+// PossibleScriptActivityParameterDirectionValues returns an array of possible values for the ScriptActivityParameterDirection const type.
+func PossibleScriptActivityParameterDirectionValues() []ScriptActivityParameterDirection {
+	return []ScriptActivityParameterDirection{ScriptActivityParameterDirectionInput, ScriptActivityParameterDirectionInputOutput, ScriptActivityParameterDirectionOutput}
+}
+
+// ScriptActivityParameterType enumerates the values for script activity parameter type.
+type ScriptActivityParameterType string
+
+const (
+	// ScriptActivityParameterTypeBoolean ...
+	ScriptActivityParameterTypeBoolean ScriptActivityParameterType = "Boolean"
+	// ScriptActivityParameterTypeDateTime ...
+	ScriptActivityParameterTypeDateTime ScriptActivityParameterType = "DateTime"
+	// ScriptActivityParameterTypeDateTimeOffset ...
+	ScriptActivityParameterTypeDateTimeOffset ScriptActivityParameterType = "DateTimeOffset"
+	// ScriptActivityParameterTypeDecimal ...
+	ScriptActivityParameterTypeDecimal ScriptActivityParameterType = "Decimal"
+	// ScriptActivityParameterTypeDouble ...
+	ScriptActivityParameterTypeDouble ScriptActivityParameterType = "Double"
+	// ScriptActivityParameterTypeGUID ...
+	ScriptActivityParameterTypeGUID ScriptActivityParameterType = "Guid"
+	// ScriptActivityParameterTypeInt16 ...
+	ScriptActivityParameterTypeInt16 ScriptActivityParameterType = "Int16"
+	// ScriptActivityParameterTypeInt32 ...
+	ScriptActivityParameterTypeInt32 ScriptActivityParameterType = "Int32"
+	// ScriptActivityParameterTypeInt64 ...
+	ScriptActivityParameterTypeInt64 ScriptActivityParameterType = "Int64"
+	// ScriptActivityParameterTypeSingle ...
+	ScriptActivityParameterTypeSingle ScriptActivityParameterType = "Single"
+	// ScriptActivityParameterTypeString ...
+	ScriptActivityParameterTypeString ScriptActivityParameterType = "String"
+	// ScriptActivityParameterTypeTimespan ...
+	ScriptActivityParameterTypeTimespan ScriptActivityParameterType = "Timespan"
+)
+
+// PossibleScriptActivityParameterTypeValues returns an array of possible values for the ScriptActivityParameterType const type.
+func PossibleScriptActivityParameterTypeValues() []ScriptActivityParameterType {
+	return []ScriptActivityParameterType{ScriptActivityParameterTypeBoolean, ScriptActivityParameterTypeDateTime, ScriptActivityParameterTypeDateTimeOffset, ScriptActivityParameterTypeDecimal, ScriptActivityParameterTypeDouble, ScriptActivityParameterTypeGUID, ScriptActivityParameterTypeInt16, ScriptActivityParameterTypeInt32, ScriptActivityParameterTypeInt64, ScriptActivityParameterTypeSingle, ScriptActivityParameterTypeString, ScriptActivityParameterTypeTimespan}
+}
+
+// ScriptType enumerates the values for script type.
+type ScriptType string
+
+const (
+	// ScriptTypeNonQuery ...
+	ScriptTypeNonQuery ScriptType = "NonQuery"
+	// ScriptTypeQuery ...
+	ScriptTypeQuery ScriptType = "Query"
+)
+
+// PossibleScriptTypeValues returns an array of possible values for the ScriptType const type.
+func PossibleScriptTypeValues() []ScriptType {
+	return []ScriptType{ScriptTypeNonQuery, ScriptTypeQuery}
+}
+
 // SelfHostedIntegrationRuntimeNodeStatus enumerates the values for self hosted integration runtime node
 // status.
 type SelfHostedIntegrationRuntimeNodeStatus string
@@ -1596,6 +1678,21 @@ func PossibleSybaseAuthenticationTypeValues() []SybaseAuthenticationType {
 	return []SybaseAuthenticationType{SybaseAuthenticationTypeBasic, SybaseAuthenticationTypeWindows}
 }
 
+// TeamDeskAuthenticationType enumerates the values for team desk authentication type.
+type TeamDeskAuthenticationType string
+
+const (
+	// TeamDeskAuthenticationTypeBasic ...
+	TeamDeskAuthenticationTypeBasic TeamDeskAuthenticationType = "Basic"
+	// TeamDeskAuthenticationTypeToken ...
+	TeamDeskAuthenticationTypeToken TeamDeskAuthenticationType = "Token"
+)
+
+// PossibleTeamDeskAuthenticationTypeValues returns an array of possible values for the TeamDeskAuthenticationType const type.
+func PossibleTeamDeskAuthenticationTypeValues() []TeamDeskAuthenticationType {
+	return []TeamDeskAuthenticationType{TeamDeskAuthenticationTypeBasic, TeamDeskAuthenticationTypeToken}
+}
+
 // TeradataAuthenticationType enumerates the values for teradata authentication type.
 type TeradataAuthenticationType string
 
@@ -1762,6 +1859,8 @@ const (
 	TypeBasicActivityTypeIfCondition TypeBasicActivity = "IfCondition"
 	// TypeBasicActivityTypeLookup ...
 	TypeBasicActivityTypeLookup TypeBasicActivity = "Lookup"
+	// TypeBasicActivityTypeScript ...
+	TypeBasicActivityTypeScript TypeBasicActivity = "Script"
 	// TypeBasicActivityTypeSetVariable ...
 	TypeBasicActivityTypeSetVariable TypeBasicActivity = "SetVariable"
 	// TypeBasicActivityTypeSQLServerStoredProcedure ...
@@ -1782,7 +1881,7 @@ const (
 
 // PossibleTypeBasicActivityValues returns an array of possible values for the TypeBasicActivity const type.
 func PossibleTypeBasicActivityValues() []TypeBasicActivity {
-	return []TypeBasicActivity{TypeBasicActivityTypeActivity, TypeBasicActivityTypeAppendVariable, TypeBasicActivityTypeAzureDataExplorerCommand, TypeBasicActivityTypeAzureFunctionActivity, TypeBasicActivityTypeAzureMLBatchExecution, TypeBasicActivityTypeAzureMLExecutePipeline, TypeBasicActivityTypeAzureMLUpdateResource, TypeBasicActivityTypeContainer, TypeBasicActivityTypeCopy, TypeBasicActivityTypeCustom, TypeBasicActivityTypeDatabricksNotebook, TypeBasicActivityTypeDatabricksSparkJar, TypeBasicActivityTypeDatabricksSparkPython, TypeBasicActivityTypeDataLakeAnalyticsUSQL, TypeBasicActivityTypeDelete, TypeBasicActivityTypeExecuteDataFlow, TypeBasicActivityTypeExecutePipeline, TypeBasicActivityTypeExecuteSSISPackage, TypeBasicActivityTypeExecuteWranglingDataflow, TypeBasicActivityTypeExecution, TypeBasicActivityTypeFail, TypeBasicActivityTypeFilter, TypeBasicActivityTypeForEach, TypeBasicActivityTypeGetMetadata, TypeBasicActivityTypeHDInsightHive, TypeBasicActivityTypeHDInsightMapReduce, TypeBasicActivityTypeHDInsightPig, TypeBasicActivityTypeHDInsightSpark, TypeBasicActivityTypeHDInsightStreaming, TypeBasicActivityTypeIfCondition, TypeBasicActivityTypeLookup, TypeBasicActivityTypeSetVariable, TypeBasicActivityTypeSQLServerStoredProcedure, TypeBasicActivityTypeSwitch, TypeBasicActivityTypeUntil, TypeBasicActivityTypeValidation, TypeBasicActivityTypeWait, TypeBasicActivityTypeWebActivity, TypeBasicActivityTypeWebHook}
+	return []TypeBasicActivity{TypeBasicActivityTypeActivity, TypeBasicActivityTypeAppendVariable, TypeBasicActivityTypeAzureDataExplorerCommand, TypeBasicActivityTypeAzureFunctionActivity, TypeBasicActivityTypeAzureMLBatchExecution, TypeBasicActivityTypeAzureMLExecutePipeline, TypeBasicActivityTypeAzureMLUpdateResource, TypeBasicActivityTypeContainer, TypeBasicActivityTypeCopy, TypeBasicActivityTypeCustom, TypeBasicActivityTypeDatabricksNotebook, TypeBasicActivityTypeDatabricksSparkJar, TypeBasicActivityTypeDatabricksSparkPython, TypeBasicActivityTypeDataLakeAnalyticsUSQL, TypeBasicActivityTypeDelete, TypeBasicActivityTypeExecuteDataFlow, TypeBasicActivityTypeExecutePipeline, TypeBasicActivityTypeExecuteSSISPackage, TypeBasicActivityTypeExecuteWranglingDataflow, TypeBasicActivityTypeExecution, TypeBasicActivityTypeFail, TypeBasicActivityTypeFilter, TypeBasicActivityTypeForEach, TypeBasicActivityTypeGetMetadata, TypeBasicActivityTypeHDInsightHive, TypeBasicActivityTypeHDInsightMapReduce, TypeBasicActivityTypeHDInsightPig, TypeBasicActivityTypeHDInsightSpark, TypeBasicActivityTypeHDInsightStreaming, TypeBasicActivityTypeIfCondition, TypeBasicActivityTypeLookup, TypeBasicActivityTypeScript, TypeBasicActivityTypeSetVariable, TypeBasicActivityTypeSQLServerStoredProcedure, TypeBasicActivityTypeSwitch, TypeBasicActivityTypeUntil, TypeBasicActivityTypeValidation, TypeBasicActivityTypeWait, TypeBasicActivityTypeWebActivity, TypeBasicActivityTypeWebHook}
 }
 
 // TypeBasicCompressionReadSettings enumerates the values for type basic compression read settings.
@@ -2741,6 +2840,8 @@ const (
 	TypeBasicLinkedServiceTypePostgreSQL TypeBasicLinkedService = "PostgreSql"
 	// TypeBasicLinkedServiceTypePresto ...
 	TypeBasicLinkedServiceTypePresto TypeBasicLinkedService = "Presto"
+	// TypeBasicLinkedServiceTypeQuickbase ...
+	TypeBasicLinkedServiceTypeQuickbase TypeBasicLinkedService = "Quickbase"
 	// TypeBasicLinkedServiceTypeQuickBooks ...
 	TypeBasicLinkedServiceTypeQuickBooks TypeBasicLinkedService = "QuickBooks"
 	// TypeBasicLinkedServiceTypeResponsys ...
@@ -2773,6 +2874,8 @@ const (
 	TypeBasicLinkedServiceTypeSharePointOnlineList TypeBasicLinkedService = "SharePointOnlineList"
 	// TypeBasicLinkedServiceTypeShopify ...
 	TypeBasicLinkedServiceTypeShopify TypeBasicLinkedService = "Shopify"
+	// TypeBasicLinkedServiceTypeSmartsheet ...
+	TypeBasicLinkedServiceTypeSmartsheet TypeBasicLinkedService = "Smartsheet"
 	// TypeBasicLinkedServiceTypeSnowflake ...
 	TypeBasicLinkedServiceTypeSnowflake TypeBasicLinkedService = "Snowflake"
 	// TypeBasicLinkedServiceTypeSpark ...
@@ -2783,6 +2886,8 @@ const (
 	TypeBasicLinkedServiceTypeSquare TypeBasicLinkedService = "Square"
 	// TypeBasicLinkedServiceTypeSybase ...
 	TypeBasicLinkedServiceTypeSybase TypeBasicLinkedService = "Sybase"
+	// TypeBasicLinkedServiceTypeTeamDesk ...
+	TypeBasicLinkedServiceTypeTeamDesk TypeBasicLinkedService = "TeamDesk"
 	// TypeBasicLinkedServiceTypeTeradata ...
 	TypeBasicLinkedServiceTypeTeradata TypeBasicLinkedService = "Teradata"
 	// TypeBasicLinkedServiceTypeVertica ...
@@ -2791,13 +2896,15 @@ const (
 	TypeBasicLinkedServiceTypeWeb TypeBasicLinkedService = "Web"
 	// TypeBasicLinkedServiceTypeXero ...
 	TypeBasicLinkedServiceTypeXero TypeBasicLinkedService = "Xero"
+	// TypeBasicLinkedServiceTypeZendesk ...
+	TypeBasicLinkedServiceTypeZendesk TypeBasicLinkedService = "Zendesk"
 	// TypeBasicLinkedServiceTypeZoho ...
 	TypeBasicLinkedServiceTypeZoho TypeBasicLinkedService = "Zoho"
 )
 
 // PossibleTypeBasicLinkedServiceValues returns an array of possible values for the TypeBasicLinkedService const type.
 func PossibleTypeBasicLinkedServiceValues() []TypeBasicLinkedService {
-	return []TypeBasicLinkedService{TypeBasicLinkedServiceTypeAmazonMWS, TypeBasicLinkedServiceTypeAmazonRdsForOracle, TypeBasicLinkedServiceTypeAmazonRdsForSQLServer, TypeBasicLinkedServiceTypeAmazonRedshift, TypeBasicLinkedServiceTypeAmazonS3, TypeBasicLinkedServiceTypeAmazonS3Compatible, TypeBasicLinkedServiceTypeAzureBatch, TypeBasicLinkedServiceTypeAzureBlobFS, TypeBasicLinkedServiceTypeAzureBlobStorage, TypeBasicLinkedServiceTypeAzureDatabricks, TypeBasicLinkedServiceTypeAzureDatabricksDeltaLake, TypeBasicLinkedServiceTypeAzureDataExplorer, TypeBasicLinkedServiceTypeAzureDataLakeAnalytics, TypeBasicLinkedServiceTypeAzureDataLakeStore, TypeBasicLinkedServiceTypeAzureFileStorage, TypeBasicLinkedServiceTypeAzureFunction, TypeBasicLinkedServiceTypeAzureKeyVault, TypeBasicLinkedServiceTypeAzureMariaDB, TypeBasicLinkedServiceTypeAzureML, TypeBasicLinkedServiceTypeAzureMLService, TypeBasicLinkedServiceTypeAzureMySQL, TypeBasicLinkedServiceTypeAzurePostgreSQL, TypeBasicLinkedServiceTypeAzureSearch, TypeBasicLinkedServiceTypeAzureSQLDatabase, TypeBasicLinkedServiceTypeAzureSQLDW, TypeBasicLinkedServiceTypeAzureSQLMI, TypeBasicLinkedServiceTypeAzureStorage, TypeBasicLinkedServiceTypeAzureTableStorage, TypeBasicLinkedServiceTypeCassandra, TypeBasicLinkedServiceTypeCommonDataServiceForApps, TypeBasicLinkedServiceTypeConcur, TypeBasicLinkedServiceTypeCosmosDb, TypeBasicLinkedServiceTypeCosmosDbMongoDbAPI, TypeBasicLinkedServiceTypeCouchbase, TypeBasicLinkedServiceTypeCustomDataSource, TypeBasicLinkedServiceTypeDb2, TypeBasicLinkedServiceTypeDrill, TypeBasicLinkedServiceTypeDynamics, TypeBasicLinkedServiceTypeDynamicsAX, TypeBasicLinkedServiceTypeDynamicsCrm, TypeBasicLinkedServiceTypeEloqua, TypeBasicLinkedServiceTypeFileServer, TypeBasicLinkedServiceTypeFtpServer, TypeBasicLinkedServiceTypeGoogleAdWords, TypeBasicLinkedServiceTypeGoogleBigQuery, TypeBasicLinkedServiceTypeGoogleCloudStorage, TypeBasicLinkedServiceTypeGreenplum, TypeBasicLinkedServiceTypeHBase, TypeBasicLinkedServiceTypeHdfs, TypeBasicLinkedServiceTypeHDInsight, TypeBasicLinkedServiceTypeHDInsightOnDemand, TypeBasicLinkedServiceTypeHive, TypeBasicLinkedServiceTypeHTTPServer, TypeBasicLinkedServiceTypeHubspot, TypeBasicLinkedServiceTypeImpala, TypeBasicLinkedServiceTypeInformix, TypeBasicLinkedServiceTypeJira, TypeBasicLinkedServiceTypeLinkedService, TypeBasicLinkedServiceTypeMagento, TypeBasicLinkedServiceTypeMariaDB, TypeBasicLinkedServiceTypeMarketo, TypeBasicLinkedServiceTypeMicrosoftAccess, TypeBasicLinkedServiceTypeMongoDb, TypeBasicLinkedServiceTypeMongoDbAtlas, TypeBasicLinkedServiceTypeMongoDbV2, TypeBasicLinkedServiceTypeMySQL, TypeBasicLinkedServiceTypeNetezza, TypeBasicLinkedServiceTypeOData, TypeBasicLinkedServiceTypeOdbc, TypeBasicLinkedServiceTypeOffice365, TypeBasicLinkedServiceTypeOracle, TypeBasicLinkedServiceTypeOracleCloudStorage, TypeBasicLinkedServiceTypeOracleServiceCloud, TypeBasicLinkedServiceTypePaypal, TypeBasicLinkedServiceTypePhoenix, TypeBasicLinkedServiceTypePostgreSQL, TypeBasicLinkedServiceTypePresto, TypeBasicLinkedServiceTypeQuickBooks, TypeBasicLinkedServiceTypeResponsys, TypeBasicLinkedServiceTypeRestService, TypeBasicLinkedServiceTypeSalesforce, TypeBasicLinkedServiceTypeSalesforceMarketingCloud, TypeBasicLinkedServiceTypeSalesforceServiceCloud, TypeBasicLinkedServiceTypeSapBW, TypeBasicLinkedServiceTypeSapCloudForCustomer, TypeBasicLinkedServiceTypeSapEcc, TypeBasicLinkedServiceTypeSapHana, TypeBasicLinkedServiceTypeSapOpenHub, TypeBasicLinkedServiceTypeSapTable, TypeBasicLinkedServiceTypeServiceNow, TypeBasicLinkedServiceTypeSftp, TypeBasicLinkedServiceTypeSharePointOnlineList, TypeBasicLinkedServiceTypeShopify, TypeBasicLinkedServiceTypeSnowflake, TypeBasicLinkedServiceTypeSpark, TypeBasicLinkedServiceTypeSQLServer, TypeBasicLinkedServiceTypeSquare, TypeBasicLinkedServiceTypeSybase, TypeBasicLinkedServiceTypeTeradata, TypeBasicLinkedServiceTypeVertica, TypeBasicLinkedServiceTypeWeb, TypeBasicLinkedServiceTypeXero, TypeBasicLinkedServiceTypeZoho}
+	return []TypeBasicLinkedService{TypeBasicLinkedServiceTypeAmazonMWS, TypeBasicLinkedServiceTypeAmazonRdsForOracle, TypeBasicLinkedServiceTypeAmazonRdsForSQLServer, TypeBasicLinkedServiceTypeAmazonRedshift, TypeBasicLinkedServiceTypeAmazonS3, TypeBasicLinkedServiceTypeAmazonS3Compatible, TypeBasicLinkedServiceTypeAzureBatch, TypeBasicLinkedServiceTypeAzureBlobFS, TypeBasicLinkedServiceTypeAzureBlobStorage, TypeBasicLinkedServiceTypeAzureDatabricks, TypeBasicLinkedServiceTypeAzureDatabricksDeltaLake, TypeBasicLinkedServiceTypeAzureDataExplorer, TypeBasicLinkedServiceTypeAzureDataLakeAnalytics, TypeBasicLinkedServiceTypeAzureDataLakeStore, TypeBasicLinkedServiceTypeAzureFileStorage, TypeBasicLinkedServiceTypeAzureFunction, TypeBasicLinkedServiceTypeAzureKeyVault, TypeBasicLinkedServiceTypeAzureMariaDB, TypeBasicLinkedServiceTypeAzureML, TypeBasicLinkedServiceTypeAzureMLService, TypeBasicLinkedServiceTypeAzureMySQL, TypeBasicLinkedServiceTypeAzurePostgreSQL, TypeBasicLinkedServiceTypeAzureSearch, TypeBasicLinkedServiceTypeAzureSQLDatabase, TypeBasicLinkedServiceTypeAzureSQLDW, TypeBasicLinkedServiceTypeAzureSQLMI, TypeBasicLinkedServiceTypeAzureStorage, TypeBasicLinkedServiceTypeAzureTableStorage, TypeBasicLinkedServiceTypeCassandra, TypeBasicLinkedServiceTypeCommonDataServiceForApps, TypeBasicLinkedServiceTypeConcur, TypeBasicLinkedServiceTypeCosmosDb, TypeBasicLinkedServiceTypeCosmosDbMongoDbAPI, TypeBasicLinkedServiceTypeCouchbase, TypeBasicLinkedServiceTypeCustomDataSource, TypeBasicLinkedServiceTypeDb2, TypeBasicLinkedServiceTypeDrill, TypeBasicLinkedServiceTypeDynamics, TypeBasicLinkedServiceTypeDynamicsAX, TypeBasicLinkedServiceTypeDynamicsCrm, TypeBasicLinkedServiceTypeEloqua, TypeBasicLinkedServiceTypeFileServer, TypeBasicLinkedServiceTypeFtpServer, TypeBasicLinkedServiceTypeGoogleAdWords, TypeBasicLinkedServiceTypeGoogleBigQuery, TypeBasicLinkedServiceTypeGoogleCloudStorage, TypeBasicLinkedServiceTypeGreenplum, TypeBasicLinkedServiceTypeHBase, TypeBasicLinkedServiceTypeHdfs, TypeBasicLinkedServiceTypeHDInsight, TypeBasicLinkedServiceTypeHDInsightOnDemand, TypeBasicLinkedServiceTypeHive, TypeBasicLinkedServiceTypeHTTPServer, TypeBasicLinkedServiceTypeHubspot, TypeBasicLinkedServiceTypeImpala, TypeBasicLinkedServiceTypeInformix, TypeBasicLinkedServiceTypeJira, TypeBasicLinkedServiceTypeLinkedService, TypeBasicLinkedServiceTypeMagento, TypeBasicLinkedServiceTypeMariaDB, TypeBasicLinkedServiceTypeMarketo, TypeBasicLinkedServiceTypeMicrosoftAccess, TypeBasicLinkedServiceTypeMongoDb, TypeBasicLinkedServiceTypeMongoDbAtlas, TypeBasicLinkedServiceTypeMongoDbV2, TypeBasicLinkedServiceTypeMySQL, TypeBasicLinkedServiceTypeNetezza, TypeBasicLinkedServiceTypeOData, TypeBasicLinkedServiceTypeOdbc, TypeBasicLinkedServiceTypeOffice365, TypeBasicLinkedServiceTypeOracle, TypeBasicLinkedServiceTypeOracleCloudStorage, TypeBasicLinkedServiceTypeOracleServiceCloud, TypeBasicLinkedServiceTypePaypal, TypeBasicLinkedServiceTypePhoenix, TypeBasicLinkedServiceTypePostgreSQL, TypeBasicLinkedServiceTypePresto, TypeBasicLinkedServiceTypeQuickbase, TypeBasicLinkedServiceTypeQuickBooks, TypeBasicLinkedServiceTypeResponsys, TypeBasicLinkedServiceTypeRestService, TypeBasicLinkedServiceTypeSalesforce, TypeBasicLinkedServiceTypeSalesforceMarketingCloud, TypeBasicLinkedServiceTypeSalesforceServiceCloud, TypeBasicLinkedServiceTypeSapBW, TypeBasicLinkedServiceTypeSapCloudForCustomer, TypeBasicLinkedServiceTypeSapEcc, TypeBasicLinkedServiceTypeSapHana, TypeBasicLinkedServiceTypeSapOpenHub, TypeBasicLinkedServiceTypeSapTable, TypeBasicLinkedServiceTypeServiceNow, TypeBasicLinkedServiceTypeSftp, TypeBasicLinkedServiceTypeSharePointOnlineList, TypeBasicLinkedServiceTypeShopify, TypeBasicLinkedServiceTypeSmartsheet, TypeBasicLinkedServiceTypeSnowflake, TypeBasicLinkedServiceTypeSpark, TypeBasicLinkedServiceTypeSQLServer, TypeBasicLinkedServiceTypeSquare, TypeBasicLinkedServiceTypeSybase, TypeBasicLinkedServiceTypeTeamDesk, TypeBasicLinkedServiceTypeTeradata, TypeBasicLinkedServiceTypeVertica, TypeBasicLinkedServiceTypeWeb, TypeBasicLinkedServiceTypeXero, TypeBasicLinkedServiceTypeZendesk, TypeBasicLinkedServiceTypeZoho}
 }
 
 // TypeBasicSsisObjectMetadata enumerates the values for type basic ssis object metadata.
@@ -2961,4 +3068,19 @@ const (
 // PossibleWebHookActivityMethodValues returns an array of possible values for the WebHookActivityMethod const type.
 func PossibleWebHookActivityMethodValues() []WebHookActivityMethod {
 	return []WebHookActivityMethod{WebHookActivityMethodPOST}
+}
+
+// ZendeskAuthenticationType enumerates the values for zendesk authentication type.
+type ZendeskAuthenticationType string
+
+const (
+	// ZendeskAuthenticationTypeBasic ...
+	ZendeskAuthenticationTypeBasic ZendeskAuthenticationType = "Basic"
+	// ZendeskAuthenticationTypeToken ...
+	ZendeskAuthenticationTypeToken ZendeskAuthenticationType = "Token"
+)
+
+// PossibleZendeskAuthenticationTypeValues returns an array of possible values for the ZendeskAuthenticationType const type.
+func PossibleZendeskAuthenticationTypeValues() []ZendeskAuthenticationType {
+	return []ZendeskAuthenticationType{ZendeskAuthenticationTypeBasic, ZendeskAuthenticationTypeToken}
 }

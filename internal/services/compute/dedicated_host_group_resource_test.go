@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -69,8 +71,6 @@ func TestAccDedicatedHostGroup_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
-				check.That(data.ResourceName).Key("zones.0").HasValue("1"),
 				check.That(data.ResourceName).Key("platform_fault_domain_count").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("prod"),
 			),
@@ -126,7 +126,8 @@ resource "azurerm_dedicated_host_group" "import" {
 }
 
 func (DedicatedHostGroupResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.ThreePointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -142,6 +143,29 @@ resource "azurerm_dedicated_host_group" "test" {
   location                    = azurerm_resource_group.test.location
   platform_fault_domain_count = 2
   zones                       = ["1"]
+  tags = {
+    ENV = "prod"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-compute-%d"
+  location = "%s"
+}
+
+resource "azurerm_dedicated_host_group" "test" {
+  name                        = "acctestDHG-compute-%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  platform_fault_domain_count = 2
+  zone                        = "1"
   tags = {
     ENV = "prod"
   }

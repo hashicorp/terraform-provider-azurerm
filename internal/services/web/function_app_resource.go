@@ -9,7 +9,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -38,6 +37,8 @@ func resourceFunctionApp() *pluginsdk.Resource {
 			_, err := parse.FunctionAppID(id)
 			return err
 		}),
+
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_function_app` resource has been superseded by the `azurerm_linux_function_app` and `azurerm_windows_function_app` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider."),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -113,14 +114,6 @@ func resourceFunctionApp() *pluginsdk.Resource {
 				},
 			},
 
-			// todo remove for 3.0 as it doesn't do anything
-			"client_affinity_enabled": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This property is no longer configurable in the service and has been deprecated. It will be removed in 3.0 of the provider.",
-			},
-
 			"client_cert_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -153,13 +146,7 @@ func resourceFunctionApp() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"identity": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return schemaAppServiceIdentity()
-				}
-
-				return commonschema.SystemAssignedUserAssignedIdentityOptional()
-			}(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"os_type": {
 				Type:     pluginsdk.TypeString,
@@ -184,34 +171,17 @@ func resourceFunctionApp() *pluginsdk.Resource {
 			"source_control": schemaAppServiceSiteSourceControl(),
 
 			"storage_account_name": {
-				Type: pluginsdk.TypeString,
-				// Required: true, // Uncomment this in 3.0
-				Optional:      true,
-				Computed:      true, // Remove this in 3.0
-				ForceNew:      true,
-				ValidateFunc:  storageValidate.StorageAccountName,
-				ConflictsWith: []string{"storage_connection_string"},
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: storageValidate.StorageAccountName,
 			},
 
 			"storage_account_access_key": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true, // Remove this in 3.0
-				// Required: true, // Uncomment this in 3.0
-				Sensitive:     true,
-				ValidateFunc:  validation.NoZeroValues,
-				ConflictsWith: []string{"storage_connection_string"},
-			},
-
-			// TODO remove this in 3.0
-			"storage_connection_string": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				Sensitive:     true,
-				Deprecated:    "Deprecated in favour of `storage_account_name` and `storage_account_access_key`",
-				ConflictsWith: []string{"storage_account_name", "storage_account_access_key"},
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"version": {
@@ -316,7 +286,6 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
-	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	clientCertMode := d.Get("client_cert_mode").(string)
 	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
@@ -346,13 +315,12 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanID),
-			Enabled:               utils.Bool(enabled),
-			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
-			ClientCertEnabled:     utils.Bool(clientCertEnabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
-			SiteConfig:            &siteConfig,
+			ServerFarmID:         utils.String(appServicePlanID),
+			Enabled:              utils.Bool(enabled),
+			ClientCertEnabled:    utils.Bool(clientCertEnabled),
+			HTTPSOnly:            utils.Bool(httpsOnly),
+			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			SiteConfig:           &siteConfig,
 		},
 	}
 
@@ -434,7 +402,6 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
-	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	clientCertMode := d.Get("client_cert_mode").(string)
 	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
@@ -481,13 +448,12 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanID),
-			Enabled:               utils.Bool(enabled),
-			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
-			ClientCertEnabled:     utils.Bool(clientCertEnabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
-			SiteConfig:            &siteConfig,
+			ServerFarmID:         utils.String(appServicePlanID),
+			Enabled:              utils.Bool(enabled),
+			ClientCertEnabled:    utils.Bool(clientCertEnabled),
+			HTTPSOnly:            utils.Bool(httpsOnly),
+			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			SiteConfig:           &siteConfig,
 		},
 	}
 
@@ -676,7 +642,6 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("daily_memory_time_quota", props.DailyMemoryTimeQuota)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
-		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
 
 		clientCertMode := ""
@@ -698,7 +663,6 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
 
 	connectionString := appSettings["AzureWebJobsStorage"]
-	d.Set("storage_connection_string", connectionString)
 
 	// This teases out the necessary attributes from the storage connection string
 	connectionStringParts := strings.Split(connectionString, ";")

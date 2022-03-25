@@ -104,10 +104,15 @@ func resourceLogicAppIntegrationAccountMapCreateUpdate(d *pluginsdk.ResourceData
 
 	parameters := logic.IntegrationAccountMap{
 		IntegrationAccountMapProperties: &logic.IntegrationAccountMapProperties{
-			MapType:     logic.MapType(d.Get("map_type").(string)),
-			Content:     utils.String(d.Get("content").(string)),
-			ContentType: utils.String("application/xml"),
+			MapType: logic.MapType(d.Get("map_type").(string)),
+			Content: utils.String(d.Get("content").(string)),
 		},
+	}
+
+	if parameters.IntegrationAccountMapProperties.MapType == logic.MapTypeLiquid {
+		parameters.IntegrationAccountMapProperties.ContentType = utils.String("text/plain")
+	} else {
+		parameters.IntegrationAccountMapProperties.ContentType = utils.String("application/xml")
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {

@@ -47,7 +47,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `identity` block exports the following:
 
-* `identity_ids` - A list of Managed Identity ID's assigned to this Application Gateway.
+* `identity_ids` - A list of Managed Identity IDs assigned to this Application Gateway.
 
 * `type` - The type of Managed Identity assigned to this Application Gateway.
 

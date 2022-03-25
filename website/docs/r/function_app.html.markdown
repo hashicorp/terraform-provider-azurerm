@@ -11,6 +11,8 @@ description: |-
 
 Manages a Function App.
 
+!> **NOTE:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_linux_function_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app) and [`azurerm_windows_function_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_function_app) resources instead.
+
 ~> **Note:** To connect an Azure Function App and a subnet within the same region `azurerm_app_service_virtual_network_swift_connection` can be used.
 For an example, check the `azurerm_app_service_virtual_network_swift_connection` documentation.
 
@@ -129,6 +131,62 @@ resource "azurerm_function_app" "example" {
 ```
 ~> **Note:** Version `~3` is required for Linux Function Apps.
 
+## Example Usage (Python in a Consumption Plan)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "azure-functions-example-rg"
+  location = "West Europe"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "functionsappexamlpesa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "example" {
+  name                = "azure-functions-example-sp"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Dynamic"
+    size = "Y1"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      kind
+    ]
+  }
+}
+
+resource "azurerm_function_app" "example" {
+  name                       = "example-azure-function"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  app_service_plan_id        = azurerm_app_service_plan.example.id
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
+  os_type                    = "linux"
+  version                    = "~4"
+
+  app_settings {
+    FUNCTIONS_WORKER_RUNTIME = "python"
+  }
+
+  site_config {
+    linux_fx_version = "python|3.9"
+  }
+}
+```
+~> **Note:** The Python runtime is only supported on a Linux based hosting plan.  See [the documentation for additional information](https://docs.microsoft.com/en-us/azure/azure-functions/functions-reference-python).
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -148,8 +206,6 @@ The following arguments are supported:
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
-
-* `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
 
 * `client_cert_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required` and `Optional`.
 

@@ -86,6 +86,21 @@ func TestAcclogAnalyticsLinkedStorageAccount_update(t *testing.T) {
 	})
 }
 
+func TestAcclogAnalyticsLinkedStorageAccount_ingestion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_storage_account", "test")
+	r := LogAnalyticsLinkedStorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ingestion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t LogAnalyticsLinkedStorageAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LogAnalyticsLinkedStorageAccountID(state.ID)
 	if err != nil {
@@ -174,4 +189,17 @@ resource "azurerm_log_analytics_linked_storage_account" "test" {
   storage_account_ids   = [azurerm_storage_account.test.id, azurerm_storage_account.test2.id]
 }
 `, r.template(data), data.RandomString)
+}
+
+func (r LogAnalyticsLinkedStorageAccountResource) ingestion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_linked_storage_account" "test" {
+  data_source_type      = "ingestion"
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  storage_account_ids   = [azurerm_storage_account.test.id]
+}
+`, r.template(data))
 }

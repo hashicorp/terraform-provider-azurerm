@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -1210,7 +1211,7 @@ resource "azurerm_subnet" "subnet1" {
   name                 = "acctest-SN1-%[1]d-1"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
   service_endpoints    = ["Microsoft.AzureCosmosDB"]
 }
 
@@ -1218,7 +1219,7 @@ resource "azurerm_subnet" "subnet2" {
   name                 = "acctest-SN2-%[1]d-2"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.AzureCosmosDB"]
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -2016,11 +2017,17 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (CosmosDBAccountResource) key_vault_uri(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	var softDelete string
+	if !features.ThreePointOhBeta() {
+		softDelete = "soft_delete_enabled        = true"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -2045,8 +2052,8 @@ resource "azurerm_key_vault" "test" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 
-  purge_protection_enabled   = true
-  soft_delete_enabled        = true
+  purge_protection_enabled = true
+  %s
   soft_delete_retention_days = 7
 
   access_policy {
@@ -2054,18 +2061,18 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "update",
+      "List",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Update",
     ]
 
     secret_permissions = [
-      "get",
-      "delete",
-      "set",
+      "Get",
+      "Delete",
+      "Set",
     ]
   }
 
@@ -2074,19 +2081,19 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azuread_service_principal.cosmosdb.id
 
     key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "update",
-      "unwrapKey",
-      "wrapKey",
+      "List",
+      "Create",
+      "Delete",
+      "Get",
+      "Update",
+      "UnwrapKey",
+      "WrapKey",
     ]
 
     secret_permissions = [
-      "get",
-      "delete",
-      "set",
+      "Get",
+      "Delete",
+      "Set",
     ]
   }
 }
@@ -2128,7 +2135,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, softDelete, data.RandomString, data.RandomInteger, string(kind), string(consistency))
 }
 
 func (CosmosDBAccountResource) systemAssignedIdentity(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {

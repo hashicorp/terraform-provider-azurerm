@@ -14,6 +14,8 @@ Manages an API Management Service.
 
 -> When creating a new API Management resource in version 3.0 of the AzureRM Provider and later, please be aware that the AzureRM Provider will now clean up any sample APIs and Products created by the Azure API during the creation of the API Management resource.
 
+-> **Note:** Version 2.77 and later of the Azure Provider include a Feature Toggle which will purge an API Management resource on destroy, rather than the default soft-delete. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features) for more information on Feature Toggles within Terraform.
+
 ~> **Note:** It's possible to define Custom Domains both within [the `azurerm_api_management` resource](api_management.html) via the `hostname_configurations` block and by using [the `azurerm_api_management_custom_domain` resource](api_management_custom_domain.html). However it's not possible to use both methods to manage Custom Domains within an API Management Service, since there'll be conflicts.
 
 ## Example Usage
@@ -63,7 +65,7 @@ The following arguments are supported:
 
 * `min_api_version` - (Optional)  The version which the control plane API calls to API Management service are limited with version equal to or newer than.
 
-* `zones` - (Optional) A list of availability zones.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this API Management service should be located. Changing this forces a new API Management service to be created.
 
 ~> **NOTE:** Availability zones are only supported in the Premium tier.
 
@@ -140,11 +142,11 @@ A `hostname_configuration` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
@@ -197,6 +199,8 @@ A `proxy` block supports the following:
 -> **NOTE:** Either `key_vault_id` or `certificate` and `certificate_password` must be specified.
 
 * `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
+
+* `ssl_keyvault_identity_client_id` - (Optional) The Managed Identity Client ID to use to access the Key Vault. This Identity must be specified in the `identity` block to be used.
 
 ---
 
@@ -267,10 +271,6 @@ A `security` block supports the following:
 * `tls_rsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA` field
-
-* `enable_triple_des_ciphers` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be enabled for alL TLS versions (1.0, 1.1 and 1.2)? Defaults to `false`.
-
- -> **Note:** This property has been deprecated in favour of the `triple_des_ciphers_enabled` property and will be removed in version 3.0 of the provider.
 
 * `triple_des_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be enabled for alL TLS versions (1.0, 1.1 and 1.2)? Defaults to `false`.
 

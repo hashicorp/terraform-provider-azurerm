@@ -110,8 +110,12 @@ func resourceAutomationDscNodeConfigurationCreateUpdate(d *pluginsdk.ResourceDat
 		Name: utils.String(id.Name),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters); err != nil {
-		return err
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, parameters)
+	if err != nil {
+		return fmt.Errorf("creating/updating %q: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update for %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

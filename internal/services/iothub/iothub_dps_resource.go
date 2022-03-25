@@ -6,17 +6,19 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices"
 	"github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2021-10-15/iothub"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -49,7 +51,7 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.IoTHubName,
+				ValidateFunc: iothubValidate.IoTHubName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(), // azure.SchemaResourceGroupNameDiffSuppress(),
@@ -108,21 +110,51 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							Optional: true,
 							Default:  features.ThreePointOhBeta(),
 						},
-						// TODO update docs with new default for 3.0
 						"allocation_weight": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							Default: func() interface{} {
-								if features.ThreePointOhBeta() {
-									return 1
-								}
-								return 0
-							}(),
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      1,
 							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 						"hostname": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
+						},
+					},
+				},
+			},
+
+			"ip_filter_rule": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"ip_mask": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.CIDR,
+						},
+						"action": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.IPFilterActionTypeAccept),
+								string(devices.IPFilterActionTypeReject),
+							}, false),
+						},
+						"target": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								strings.Title(string(iothub.IPFilterTargetTypeAll)),
+								strings.Title(string(iothub.IPFilterTargetTypeServiceAPI)),
+								strings.Title(string(iothub.IPFilterTargetTypeDeviceAPI)),
+							}, false),
 						},
 					},
 				},
@@ -137,6 +169,12 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 					string(iothub.AllocationPolicyGeoLatency),
 					string(iothub.AllocationPolicyStatic),
 				}, false),
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"device_provisioning_host_name": {
@@ -180,13 +218,20 @@ func resourceIotHubDPSCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
+	publicNetworkAccess := iothub.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = iothub.PublicNetworkAccessDisabled
+	}
+
 	iotdps := iothub.ProvisioningServiceDescription{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Name:     utils.String(id.ProvisioningServiceName),
 		Sku:      expandIoTHubDPSSku(d),
 		Properties: &iothub.IotDpsPropertiesDescription{
-			IotHubs:          expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
-			AllocationPolicy: iothub.AllocationPolicy(d.Get("allocation_policy").(string)),
+			IotHubs:             expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
+			AllocationPolicy:    iothub.AllocationPolicy(d.Get("allocation_policy").(string)),
+			IPFilterRules:       expandDpsIPFilterRules(d),
+			PublicNetworkAccess: publicNetworkAccess,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -240,10 +285,20 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `linked_hub`: %+v", err)
 		}
 
+		ipFilterRules := flattenDpsIPFilterRules(props.IPFilterRules)
+		if err := d.Set("ip_filter_rule", ipFilterRules); err != nil {
+			return fmt.Errorf("setting `ip_filter_rule` in IoTHub DPS %q: %+v", id.ProvisioningServiceName, err)
+		}
+
 		d.Set("service_operations_host_name", props.ServiceOperationsHostName)
 		d.Set("device_provisioning_host_name", props.DeviceProvisioningHostName)
 		d.Set("id_scope", props.IDScope)
 		d.Set("allocation_policy", string(props.AllocationPolicy))
+		publicNetworkAccess := true
+		if props.PublicNetworkAccess != "" {
+			publicNetworkAccess = strings.EqualFold("Enabled", string(props.PublicNetworkAccess))
+		}
+		d.Set("public_network_access_enabled", publicNetworkAccess)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -371,4 +426,54 @@ func flattenIoTHubDPSLinkedHub(input *[]iothub.DefinitionDescription) []interfac
 	}
 
 	return linkedHubs
+}
+
+func expandDpsIPFilterRules(d *pluginsdk.ResourceData) *[]iothub.IPFilterRule {
+	ipFilterRuleList := d.Get("ip_filter_rule").([]interface{})
+	if len(ipFilterRuleList) == 0 {
+		return nil
+	}
+
+	rules := make([]iothub.IPFilterRule, 0)
+
+	for _, r := range ipFilterRuleList {
+		rawRule := r.(map[string]interface{})
+		rule := &iothub.IPFilterRule{
+			FilterName: utils.String(rawRule["name"].(string)),
+			Action:     iothub.IPFilterActionType(rawRule["action"].(string)),
+			IPMask:     utils.String(rawRule["ip_mask"].(string)),
+			Target:     iothub.IPFilterTargetType(strings.Title(rawRule["target"].(string))),
+		}
+
+		rules = append(rules, *rule)
+	}
+	return &rules
+}
+
+func flattenDpsIPFilterRules(in *[]iothub.IPFilterRule) []interface{} {
+	rules := make([]interface{}, 0)
+	if in == nil {
+		return rules
+	}
+
+	for _, r := range *in {
+		rawRule := make(map[string]interface{})
+
+		if r.FilterName != nil {
+			rawRule["name"] = *r.FilterName
+		}
+
+		rawRule["action"] = string(r.Action)
+
+		if r.IPMask != nil {
+			rawRule["ip_mask"] = *r.IPMask
+		}
+
+		if r.Target != "" {
+			rawRule["target"] = r.Target
+		}
+
+		rules = append(rules, rawRule)
+	}
+	return rules
 }

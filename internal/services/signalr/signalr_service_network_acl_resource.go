@@ -35,7 +35,10 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 		}),
 		SchemaVersion: 1,
 
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := signalr.ParseSignalRID(id)
+			return err
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"signalr_service_id": {

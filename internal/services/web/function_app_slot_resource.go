@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -38,6 +37,8 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 			return err
 		}),
 
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_function_app_slot` resource has been superseded by the `azurerm_linux_function_app_slot` and `azurerm_windows_function_app_slot` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider."),
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -56,13 +57,7 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"identity": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return schemaAppServiceIdentity()
-				}
-
-				return commonschema.SystemAssignedUserAssignedIdentityOptional()
-			}(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"function_app_name": {
 				Type:         pluginsdk.TypeString,
@@ -137,14 +132,6 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"linux",
 				}, false),
-			},
-
-			// todo remove this for 3.0 as it doesn't do anything
-			"client_affinity_enabled": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This property is no longer configurable in the service and has been deprecated. It will be removed in 3.0 of the provider.",
 			},
 
 			"connection_string": {
@@ -266,7 +253,6 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
-	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
@@ -289,12 +275,11 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanID),
-			Enabled:               utils.Bool(enabled),
-			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
-			SiteConfig:            &siteConfig,
+			ServerFarmID:         utils.String(appServicePlanID),
+			Enabled:              utils.Bool(enabled),
+			HTTPSOnly:            utils.Bool(httpsOnly),
+			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			SiteConfig:           &siteConfig,
 		},
 	}
 
@@ -354,7 +339,6 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
-	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
@@ -387,12 +371,11 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanID),
-			Enabled:               utils.Bool(enabled),
-			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
-			SiteConfig:            &siteConfig,
+			ServerFarmID:         utils.String(appServicePlanID),
+			Enabled:              utils.Bool(enabled),
+			HTTPSOnly:            utils.Bool(httpsOnly),
+			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			SiteConfig:           &siteConfig,
 		},
 	}
 
@@ -538,7 +521,6 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("daily_memory_time_quota", props.DailyMemoryTimeQuota)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
-		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)

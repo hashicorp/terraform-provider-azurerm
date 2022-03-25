@@ -96,7 +96,16 @@ A `criteria` block supports the following:
 * `recommendation_type` - (Optional) The recommendation type of the event. It is only allowed when `category` is `Recommendation`.
 * `recommendation_category` - (Optional) The recommendation category of the event. Possible values are `Cost`, `Reliability`, `OperationalExcellence` and `Performance`. It is only allowed when `category` is `Recommendation`.
 * `recommendation_impact` - (Optional) The recommendation impact of the event. Possible values are `High`, `Medium` and `Low`. It is only allowed when `category` is `Recommendation`.
+* `resource_health` - (Optional) A block to define fine grain resource health settings.
 * `service_health` - (Optional) A block to define fine grain service health settings.
+
+---
+
+A `resource_health` block supports the following:
+
+* `current` (Optional) The current resource health statuses that will log an alert. Possible values are `Available`, `Degraded`, `Unavailable` and `Unknown`.
+* `previous` (Optional) The previous resource health statuses that will log an alert. Possible values are `Available`, `Degraded`, `Unavailable` and `Unknown`.
+* `reason` (Optional)  The reason that will log an alert. Possible values are `PlatformInitiated` (such as a problem with the resource in an affected region of an Azure incident), `UserInitiated` (such as a shutdown request of a VM) and `Unknown`.
 
 ---
 

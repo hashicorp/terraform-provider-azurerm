@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
@@ -29,8 +30,10 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 		Update: resourceCosmosDbGremlinGraphUpdate,
 		Delete: resourceCosmosDbGremlinGraphDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.GremlinGraphID(id)
+			return err
+		}),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -111,16 +114,25 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 						},
 
 						// case change in 2021-01-15, issue https://github.com/Azure/azure-rest-api-specs/issues/14051
-						// todo: change to SDK constants and remove translation code in 3.0
 						"indexing_mode": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
-							ValidateFunc: validation.StringInSlice([]string{
-								"Consistent",
-								"Lazy",
-								"None",
-							}, false),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
+							ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+								keys := []string{
+									string(documentdb.IndexingModeConsistent),
+									string(documentdb.IndexingModeNone),
+									string(documentdb.IndexingModeLazy),
+								}
+								if !features.ThreePointOhBeta() {
+									keys = []string{
+										"Consistent",
+										"Lazy",
+										"None",
+									}
+								}
+								return validation.StringInSlice(keys, features.ThreePointOhBeta())
+							}(),
 						},
 
 						"included_paths": {
@@ -521,7 +533,7 @@ func flattenAzureRmCosmosDBGremlinGraphIndexingPolicy(input *documentdb.Indexing
 	indexPolicy := make(map[string]interface{})
 
 	indexPolicy["automatic"] = input.Automatic
-	indexPolicy["indexing_mode"] = strings.Title(string(input.IndexingMode))
+	indexPolicy["indexing_mode"] = string(input.IndexingMode)
 	indexPolicy["included_paths"] = pluginsdk.NewSet(pluginsdk.HashString, flattenAzureRmCosmosDBGremlinGraphIncludedPaths(input.IncludedPaths))
 	indexPolicy["excluded_paths"] = pluginsdk.NewSet(pluginsdk.HashString, flattenAzureRmCosmosDBGremlinGraphExcludedPaths(input.ExcludedPaths))
 	indexPolicy["composite_index"] = common.FlattenCosmosDBIndexingPolicyCompositeIndexes(input.CompositeIndexes)

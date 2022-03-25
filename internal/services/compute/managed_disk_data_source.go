@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -27,7 +28,7 @@ func dataSourceManagedDisk() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"create_option": {
 				Type:     pluginsdk.TypeString,
@@ -84,9 +85,9 @@ func dataSourceManagedDisk() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.TagsDataSource(),
 
-			"zones": azure.SchemaZonesComputed(),
+			"zones": commonschema.ZonesMultipleComputed(),
 		},
 	}
 }
@@ -98,7 +99,6 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	defer cancel()
 
 	id := parse.NewManagedDiskID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
 	resp, err := client.Get(ctx, id.ResourceGroup, id.DiskName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -112,9 +112,13 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("name", id.DiskName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
+	d.Set("zones", zones.Flatten(resp.Zones))
+
+	storageAccountType := ""
 	if sku := resp.Sku; sku != nil {
-		d.Set("storage_account_type", string(sku.Name))
+		storageAccountType = string(sku.Name)
 	}
+	d.Set("storage_account_type", storageAccountType)
 
 	if props := resp.DiskProperties; props != nil {
 		if creationData := props.CreationData; creationData != nil {
@@ -142,8 +146,6 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 		d.Set("disk_encryption_set_id", diskEncryptionSetId)
 	}
-
-	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

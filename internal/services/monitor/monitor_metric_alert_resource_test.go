@@ -271,6 +271,9 @@ resource "azurerm_monitor_metric_alert" "test" {
 
   action {
     action_group_id = azurerm_monitor_action_group.test1.id
+    webhook_properties = {
+      from = "terraform"
+    }
   }
 
   action {
@@ -313,7 +316,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal-${count.index}"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.${count.index}.0/24"
+  address_prefixes     = ["10.0.${count.index}.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {

@@ -107,10 +107,9 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "test" {
-  name                = "acctestlscosmosdb%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = "mongodb://testinstance:testkey@testinstance.documents.azure.com:10255/?ssl=true"
+  name              = "acctestlscosmosdb%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "mongodb://testinstance:testkey@testinstance.documents.azure.com:10255/?ssl=true"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -134,7 +133,6 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "test" {
   name                           = "acctestlscosmosdb%d"
-  resource_group_name            = azurerm_resource_group.test.name
   data_factory_id                = azurerm_data_factory.test.id
   connection_string              = "mongodb://testinstance:testkey@testinstance.documents.azure.com:10255/?ssl=true"
   server_version_is_32_or_higher = true
@@ -160,12 +158,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "test" {
-  name                = "acctestlscosmosdb%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = "mongodb://testinstance:testkey@testinstance.documents.azure.com:10255/?ssl=true"
-  annotations         = ["test1", "test2", "test3"]
-  description         = "test description"
+  name              = "acctestlscosmosdb%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "mongodb://testinstance:testkey@testinstance.documents.azure.com:10255/?ssl=true"
+  annotations       = ["test1", "test2", "test3"]
+  description       = "test description"
 
   parameters = {
     foo = "test1"
@@ -198,12 +195,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "test" {
-  name                = "acctestlscosmosdb%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "mongodb://testinstance:testkey@testinstance.documents.azure.com:10255/?ssl=true"
-  annotations         = ["test1", "test2"]
-  description         = "test description 2"
+  name              = "acctestlscosmosdb%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "mongodb://testinstance:testkey@testinstance.documents.azure.com:10255/?ssl=true"
+  annotations       = ["test1", "test2"]
+  description       = "test description 2"
 
   parameters = {
     foo  = "test1"

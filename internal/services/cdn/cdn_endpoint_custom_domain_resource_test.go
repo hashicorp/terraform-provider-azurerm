@@ -263,30 +263,30 @@ resource "azurerm_key_vault" "test" {
     tenant_id = data.azurerm_client_config.test.tenant_id
     object_id = data.azurerm_client_config.test.object_id
     certificate_permissions = [
-      "get",
-      "delete",
-      "import",
-      "purge",
+      "Get",
+      "Delete",
+      "Import",
+      "Purge",
     ]
     key_permissions = [
-      "get",
-      "create",
+      "Get",
+      "Create",
     ]
     secret_permissions = [
-      "get",
-      "set",
+      "Get",
+      "Set",
     ]
   }
   access_policy {
     tenant_id = data.azurerm_client_config.test.tenant_id
     object_id = data.azuread_service_principal.test.object_id
     certificate_permissions = [
-      "list",
-      "get",
+      "List",
+      "Get",
     ]
     secret_permissions = [
-      "list",
-      "get",
+      "List",
+      "Get",
     ]
   }
 }

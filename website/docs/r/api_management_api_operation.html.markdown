@@ -151,10 +151,6 @@ A `representation` block supports the following:
 
 * `example` - (Optional) One or more `example` blocks as defined above.
 
-* `sample` - (Optional) An example of this representation.
-
-~> **NOTE:** `sample` is deprecated, use `examples` instead.
-
 * `schema_id` - (Optional) The ID of an API Management Schema which represents this Response.
 
 -> **NOTE:** This can only be specified when `content_type` is not set to `application/x-www-form-urlencoded` or `multipart/form-data`.

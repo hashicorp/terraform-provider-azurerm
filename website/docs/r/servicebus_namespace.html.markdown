@@ -48,17 +48,41 @@ The following arguments are supported:
 
 * `sku` - (Required) Defines which tier to use. Options are basic, standard or premium. Changing this forces a new resource to be created.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `capacity` - (Optional) Specifies the capacity. When `sku` is `Premium`, capacity can be `1`, `2`, `4`, `8` or `16`. When `sku` is `Basic` or `Standard`, capacity can be `0` only.
 
 * `zone_redundant` - (Optional) Whether or not this resource is zone redundant. `sku` needs to be `Premium`. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this ServiceBus Namespace. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ServiceBus Namespace ID.
+
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this ServiceBus Namespace.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this ServiceBus Namespace.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this ServiceBus Namespace.
+
 
 The following attributes are exported only if there is an authorization rule named
 `RootManageSharedAccessKey` which is created automatically by Azure.
