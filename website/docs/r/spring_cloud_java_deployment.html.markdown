@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `quota` - (Optional) A `quota` block as defined below.
 
-* `runtime_version` - (Optional) Specifies the runtime version of the Spring Cloud Deployment. Possible Values are `Java_8` and `Java_11`. Defaults to `Java_8`.
+* `runtime_version` - (Optional) Specifies the runtime version of the Spring Cloud Deployment. Possible Values are `Java_8`, `Java_11` and `Java_17`. Defaults to `Java_8`.
 
 ---
 

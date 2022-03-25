@@ -43,7 +43,7 @@ func TestAccMsSqlServer_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -80,14 +80,14 @@ func TestAccMsSqlServer_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.basicWithMinimumTLSVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -109,7 +109,7 @@ func TestAccMsSqlServer_systemAssignedIdentity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -124,7 +124,7 @@ func TestAccMsSqlServer_userAssignedIdentity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -194,28 +194,6 @@ func TestAccMsSqlServer_azureadAdminWithAADAuthOnly(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlServer_blobAuditingPolicies_withFirewall(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
-		{
-			Config: r.blobAuditingPoliciesWithFirewall(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
-	})
-}
-
 func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
@@ -251,7 +229,6 @@ resource "azurerm_mssql_server" "test" {
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
-  extended_auditing_policy     = []
 
   outbound_network_restriction_enabled = true
 }
@@ -277,7 +254,6 @@ resource "azurerm_mssql_server" "test" {
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
   minimum_tls_version          = "1.1"
-  extended_auditing_policy     = []
 
   identity {
     type = "SystemAssigned"
@@ -363,13 +339,6 @@ resource "azurerm_mssql_server" "test" {
 
   public_network_access_enabled     = true
   primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
-
-  extended_auditing_policy {
-    storage_account_access_key              = azurerm_storage_account.test.primary_access_key
-    storage_endpoint                        = azurerm_storage_account.test.primary_blob_endpoint
-    storage_account_access_key_is_secondary = true
-    retention_in_days                       = 6
-  }
 
   identity {
     type                       = "UserAssigned"
@@ -463,13 +432,6 @@ resource "azurerm_mssql_server" "test" {
 
   public_network_access_enabled     = true
   primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
-
-  extended_auditing_policy {
-    storage_account_access_key              = azurerm_storage_account.test.primary_access_key
-    storage_endpoint                        = azurerm_storage_account.test.primary_blob_endpoint
-    storage_account_access_key_is_secondary = true
-    retention_in_days                       = 6
-  }
 
   identity {
     type         = "UserAssigned"
@@ -566,13 +528,6 @@ resource "azurerm_mssql_server" "test" {
   public_network_access_enabled     = false
   primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
 
-  extended_auditing_policy {
-    storage_account_access_key              = azurerm_storage_account.testb.primary_access_key
-    storage_endpoint                        = azurerm_storage_account.testb.primary_blob_endpoint
-    storage_account_access_key_is_secondary = false
-    retention_in_days                       = 11
-  }
-
   identity {
     type                       = "UserAssigned"
     user_assigned_identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -663,13 +618,6 @@ resource "azurerm_mssql_server" "test" {
 
   public_network_access_enabled     = false
   primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
-
-  extended_auditing_policy {
-    storage_account_access_key              = azurerm_storage_account.testb.primary_access_key
-    storage_endpoint                        = azurerm_storage_account.testb.primary_blob_endpoint
-    storage_account_access_key_is_secondary = false
-    retention_in_days                       = 11
-  }
 
   identity {
     type         = "UserAssigned"
@@ -867,71 +815,4 @@ resource "azurerm_mssql_server" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
-}
-
-func (MsSqlServerResource) blobAuditingPoliciesWithFirewall(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-provider "azuread" {}
-
-data "azurerm_client_config" "test" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-  service_endpoints    = ["Microsoft.Storage"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "unlikely23exst2acct%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  network_rules {
-    default_action             = "Allow"
-    ip_rules                   = ["127.0.0.1"]
-    virtual_network_subnet_ids = [azurerm_subnet.test.id]
-  }
-}
-
-resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[1]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  version                      = "12.0"
-  administrator_login          = "missadministrator"
-  administrator_login_password = "thisIsKat11"
-
-  azuread_administrator {
-    login_username = "AzureAD Admin2"
-    object_id      = data.azurerm_client_config.test.object_id
-  }
-
-  extended_auditing_policy {
-    storage_account_access_key              = azurerm_storage_account.test.primary_access_key
-    storage_endpoint                        = azurerm_storage_account.test.primary_blob_endpoint
-    storage_account_access_key_is_secondary = true
-    retention_in_days                       = 6
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

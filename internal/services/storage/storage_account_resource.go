@@ -8,15 +8,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-getter/helper/url"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -259,6 +260,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_https_traffic_only": {
 				Type:     pluginsdk.TypeBool,
@@ -385,54 +388,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": func() *schema.Schema {
-				// TODO: 3.0 - document this in the upgrade guide
-				if features.ThreePointOhBeta() {
-					return commonschema.SystemAssignedUserAssignedIdentityOptional()
-				}
-
-				return &schema.Schema{
-					Type:     schema.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"type": {
-								Type:     schema.TypeString,
-								Required: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(identity.TypeUserAssigned),
-									string(identity.TypeSystemAssigned),
-									string(identity.TypeSystemAssignedUserAssigned),
-									"SystemAssigned,UserAssigned", // defined in the Swagger but should be normalized as above
-								}, false),
-								DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-									// handle `SystemAssigned, UserAssigned` with and without the spaces being the same
-									oldWithoutSpaces := strings.ReplaceAll(old, " ", "")
-									newWithoutSpaces := strings.ReplaceAll(new, " ", "")
-									return oldWithoutSpaces == newWithoutSpaces
-								},
-							},
-							"identity_ids": {
-								Type:     schema.TypeSet,
-								Optional: true,
-								Elem: &schema.Schema{
-									Type:         schema.TypeString,
-									ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-								},
-							},
-							"principal_id": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-							"tenant_id": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-						},
-					},
-				}
-			}(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"blob_properties": {
 				Type:     pluginsdk.TypeList,
@@ -1031,7 +987,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
 
 	parameters := storage.AccountCreateParameters{
-		Location: &location,
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         &location,
 		Sku: &storage.Sku{
 			Name: storage.SkuName(storageType),
 		},
@@ -1186,8 +1143,9 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	infrastructureEncryption := d.Get("infrastructure_encryption_enabled").(bool)
 
 	if infrastructureEncryption {
-		if accountKind != string(storage.KindStorageV2) {
-			return fmt.Errorf("`infrastructure_encryption_enabled` can only be used with account kind `StorageV2`")
+		if !((accountTier == string(storage.SkuTierPremium) && accountKind == string(storage.KindBlockBlobStorage)) ||
+			(accountKind == string(storage.KindStorageV2))) {
+			return fmt.Errorf("`infrastructure_encryption_enabled` can only be used with account kind `StorageV2`, or account tier `Premium` and account kind `BlockBlobStorage`")
 		}
 		encryption.RequireInfrastructureEncryption = &infrastructureEncryption
 	}
@@ -1333,7 +1291,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
 	accountKind := d.Get("account_kind").(string)
 
-	if accountKind == string(storage.KindBlobStorage) {
+	if accountKind == string(storage.KindBlobStorage) || accountKind == string(storage.KindStorage) {
 		if storageType == string(storage.SkuNameStandardZRS) {
 			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
 		}
@@ -1750,9 +1708,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 	d.Set("account_kind", resp.Kind)
 
 	if sku := resp.Sku; sku != nil {
@@ -3114,17 +3071,6 @@ func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
 }
 
 func expandAzureRmStorageAccountIdentity(input []interface{}) (*storage.Identity, error) {
-	if !features.ThreePointOhBeta() {
-		// work around the Swagger defining `SystemAssigned,UserAssigned` rather than `SystemAssigned, UserAssigned`
-		if len(input) > 0 {
-			raw := input[0].(map[string]interface{})
-			if identityType := raw["type"].(string); strings.EqualFold("SystemAssigned,UserAssigned", identityType) {
-				raw["type"] = "SystemAssigned, UserAssigned"
-			}
-			input[0] = raw
-		}
-	}
-
 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -3301,4 +3247,23 @@ func getDefaultAllowBlobPublicAccessName() string {
 		return "allow_nested_items_to_be_public"
 	}
 	return "allow_blob_public_access"
+}
+
+func expandEdgeZone(input string) *storage.ExtendedLocation {
+	normalized := edgezones.Normalize(input)
+	if normalized == "" {
+		return nil
+	}
+
+	return &storage.ExtendedLocation{
+		Name: utils.String(normalized),
+		Type: storage.ExtendedLocationTypesEdgeZone,
+	}
+}
+
+func flattenEdgeZone(input *storage.ExtendedLocation) string {
+	if input == nil || input.Type != storage.ExtendedLocationTypesEdgeZone || input.Name == nil {
+		return ""
+	}
+	return edgezones.NormalizeNilable(input.Name)
 }

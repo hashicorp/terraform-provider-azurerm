@@ -107,6 +107,28 @@ func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicySet(t *testing.T)
 	})
 }
 
+func TestAccSubscriptionPolicyAssignment_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
+	r := SubscriptionAssignmentTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSubscriptionPolicyAssignment_basicWithBuiltInPolicySetNonComplianceMessage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_assignment", "test")
 	r := SubscriptionAssignmentTestResource{}
@@ -577,4 +599,68 @@ POLICY_RULE
 
 func (r SubscriptionAssignmentTestResource) template() string {
 	return `data "azurerm_subscription" "test" {}`
+}
+
+func (r SubscriptionAssignmentTestResource) systemAssignedIdentity(data acceptance.TestData) string {
+	template := r.template()
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
+resource "azurerm_subscription_policy_assignment" "test" {
+  name                 = "acctestpa-%[2]d"
+  subscription_id      = data.azurerm_subscription.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+  location             = %[3]q
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r SubscriptionAssignmentTestResource) userAssignedIdentity(data acceptance.TestData) string {
+	template := r.template()
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit machines with insecure password security settings"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-pa-%[2]d"
+  location = %[3]q
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestua%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_subscription_policy_assignment" "test" {
+  name                 = "acctestpa-%[2]d"
+  subscription_id      = data.azurerm_subscription.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+  location             = %[3]q
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, template, data.RandomInteger, data.Locations.Primary)
 }

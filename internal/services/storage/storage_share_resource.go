@@ -57,8 +57,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 
 			"quota": {
 				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      5120,
+				Required:     true,
 				ValidateFunc: validation.IntBetween(1, 102400),
 			},
 

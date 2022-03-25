@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,22 +24,7 @@ func dataSourceBackupPolicyFileShare() *pluginsdk.Resource {
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"recovery_vault_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validate.RecoveryServicesVaultName,
-			},
-
-			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
-
-			"tags": tags.SchemaDataSource(),
-		},
+		Schema: dataSourceBackupPolicyFileShareSchema(),
 	}
 }
 
@@ -65,5 +51,28 @@ func dataSourceBackupPolicyFileShareRead(d *pluginsdk.ResourceData, meta interfa
 	id := strings.Replace(*protectionPolicy.ID, "Subscriptions", "subscriptions", 1)
 	d.SetId(id)
 
-	return tags.FlattenAndSet(d, protectionPolicy.Tags)
+	return nil
+}
+
+func dataSourceBackupPolicyFileShareSchema() map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+		},
+
+		"recovery_vault_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.RecoveryServicesVaultName,
+		},
+
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+	}
+
+	if !features.ThreePointOhBeta() {
+		schema["tags"] = tags.SchemaDataSourceDeprecatedUnsupported()
+	}
+
+	return schema
 }

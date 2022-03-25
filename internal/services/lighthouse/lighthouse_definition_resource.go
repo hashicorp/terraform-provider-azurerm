@@ -159,23 +159,17 @@ func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta in
 		lighthouseDefinitionID = uuid
 	}
 
-	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
-	if subscriptionID == "" {
-		return fmt.Errorf("reading Subscription for Lighthouse Definition %q", lighthouseDefinitionID)
-	}
-
-	scope := d.Get("scope").(string)
-
+	id := parse.NewLighthouseDefinitionID(d.Get("scope").(string), lighthouseDefinitionID)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, scope, lighthouseDefinitionID)
+		existing, err := client.Get(ctx, id.Scope, id.LighthouseDefinitionID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Lighthouse Definition %q (Scope %q): %+v", lighthouseDefinitionID, scope, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_lighthouse_definition", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_lighthouse_definition", id.ID())
 		}
 	}
 	authorizations, err := expandLighthouseDefinitionAuthorization(d.Get("authorization").(*pluginsdk.Set).List())
@@ -192,21 +186,12 @@ func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, lighthouseDefinitionID, scope, parameters); err != nil {
-		return fmt.Errorf("Creating/Updating Lighthouse Definition %q (Scope %q): %+v", lighthouseDefinitionID, scope, err)
+	// NOTE: this API call uses DefinitionId then Scope - check in the future
+	if _, err := client.CreateOrUpdate(ctx, id.LighthouseDefinitionID, id.Scope, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, scope, lighthouseDefinitionID)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Lighthouse Definition %q ID (scope %q) ID", lighthouseDefinitionID, scope)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceLighthouseDefinitionRead(d, meta)
 }
 
@@ -223,15 +208,15 @@ func resourceLighthouseDefinitionRead(d *pluginsdk.ResourceData, meta interface{
 	resp, err := client.Get(ctx, id.Scope, id.LighthouseDefinitionID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Lighthouse Definition %q was not found (Scope %q)", id.LighthouseDefinitionID, id.Scope)
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Lighthouse Definition %q (Scope %q): %+v", id.LighthouseDefinitionID, id.Scope, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("lighthouse_definition_id", resp.Name)
+	d.Set("lighthouse_definition_id", id.LighthouseDefinitionID)
 	d.Set("scope", id.Scope)
 
 	if err := d.Set("plan", flattenLighthouseDefinitionPlan(resp.Plan)); err != nil {
@@ -261,7 +246,7 @@ func resourceLighthouseDefinitionDelete(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if _, err = client.Delete(ctx, id.LighthouseDefinitionID, id.Scope); err != nil {
-		return fmt.Errorf("deleting Lighthouse Definition %q at Scope %q: %+v", id.LighthouseDefinitionID, id.Scope, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

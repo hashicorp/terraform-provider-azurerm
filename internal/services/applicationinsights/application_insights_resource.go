@@ -7,14 +7,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
+	monitorParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -40,7 +41,7 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -169,6 +170,8 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 
 func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
+	ruleClient := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
+	actionGroupClient := meta.(*clients.Client).Monitor.ActionGroupsClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -179,7 +182,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	resourceId := parse.NewComponentID(subscriptionId, resGroup, name).ID()
+	resourceId := parse.NewComponentID(subscriptionId, resGroup, name)
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
@@ -189,7 +192,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_application_insights", resourceId)
+			return tf.ImportAsExistsError("azurerm_application_insights", resourceId.ID())
 		}
 	}
 
@@ -274,7 +277,69 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("update Application Insights Billing Feature %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	d.SetId(resourceId)
+	// https://github.com/hashicorp/terraform-provider-azurerm/issues/10563
+	// Azure creates a rule and action group when creating this resource that are very noisy
+	// We would like to delete them but deleting them just causes them to be recreated after a few minutes.
+	// Instead, we'll opt to disable them here
+	if d.IsNewResource() && meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
+		// TODO: replace this with a StateWait func
+		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+			time.Sleep(30 * time.Second)
+			actionGroupId := monitorParse.NewActionGroupID(resourceId.SubscriptionId, resourceId.ResourceGroup, "Application Insights Smart Detection")
+
+			groupResult, err := actionGroupClient.Get(ctx, actionGroupId.ResourceGroup, actionGroupId.Name)
+			if err != nil {
+				if utils.ResponseWasNotFound(groupResult.Response) {
+					return pluginsdk.RetryableError(fmt.Errorf("expected %s to be created but was not found, retrying", actionGroupId))
+				}
+				return pluginsdk.NonRetryableError(fmt.Errorf("making Read request for %s: %+v", actionGroupId, err))
+			}
+
+			if groupResult.ActionGroup != nil {
+				groupResult.ActionGroup.Enabled = utils.Bool(false)
+				updateActionGroupResult, err := actionGroupClient.CreateOrUpdate(ctx, actionGroupId.ResourceGroup, actionGroupId.Name, groupResult)
+				if err != nil {
+					if !utils.ResponseWasNotFound(updateActionGroupResult.Response) {
+						return pluginsdk.NonRetryableError(fmt.Errorf("issuing disable request for %s: %+v", actionGroupId, err))
+					}
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
+		// TODO: replace this with a StateWait func
+		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+			time.Sleep(30 * time.Second)
+			ruleName := fmt.Sprintf("Failure Anomalies - %s", resourceId.Name)
+			ruleId := monitorParse.NewSmartDetectorAlertRuleID(resourceId.SubscriptionId, resourceId.ResourceGroup, ruleName)
+			result, err := ruleClient.Get(ctx, ruleId.ResourceGroup, ruleId.Name, utils.Bool(true))
+			if err != nil {
+				if utils.ResponseWasNotFound(result.Response) {
+					return pluginsdk.RetryableError(fmt.Errorf("expected %s to be created but was not found, retrying", ruleId))
+				}
+				return pluginsdk.NonRetryableError(fmt.Errorf("making Read request for %s: %+v", ruleId, err))
+			}
+
+			if result.AlertRuleProperties != nil {
+				result.AlertRuleProperties.State = alertsmanagement.AlertRuleStateDisabled
+				updateRuleResult, err := ruleClient.CreateOrUpdate(ctx, ruleId.ResourceGroup, ruleId.Name, result)
+				if err != nil {
+					if !utils.ResponseWasNotFound(updateRuleResult.Response) {
+						return pluginsdk.NonRetryableError(fmt.Errorf("issuing disable request for %s: %+v", ruleId, err))
+					}
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	d.SetId(resourceId.ID())
 
 	return resourceApplicationInsightsRead(d, meta)
 }

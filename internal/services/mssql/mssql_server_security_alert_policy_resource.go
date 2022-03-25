@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// TODO 3.0 - this may want to be put into the mssql_server resource now that it exists.
+// TODO 4.0 - consider/investigate inlining this within the mssql_server resource now that it exists.
 
 func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
