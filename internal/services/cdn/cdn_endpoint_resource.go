@@ -514,8 +514,10 @@ func expandCdnEndpointGeoFilters(d *pluginsdk.ResourceData) *[]cdn.GeoFilter {
 		countryCodes := make([]string, 0)
 
 		for _, v := range inputCountryCodes {
-			countryCode := v.(string)
-			countryCodes = append(countryCodes, countryCode)
+			if v != nil {
+				countryCode := v.(string)
+				countryCodes = append(countryCodes, countryCode)
+			}
 		}
 
 		filter := cdn.GeoFilter{
