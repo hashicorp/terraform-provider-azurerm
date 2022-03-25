@@ -54,44 +54,6 @@ func (d DatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"extended_auditing_policy": {
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			MaxItems:   1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"storage_account_access_key": {
-						Type:      pluginsdk.TypeString,
-						Optional:  true,
-						Sensitive: true,
-					},
-
-					"storage_endpoint": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-
-					"storage_account_access_key_is_secondary": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-
-					"retention_in_days": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-					},
-
-					"log_monitoring_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
-					},
-				},
-			},
-		},
-
 		"license_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
