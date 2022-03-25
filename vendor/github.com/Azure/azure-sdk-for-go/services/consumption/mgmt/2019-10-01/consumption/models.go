@@ -2000,7 +2000,7 @@ type LegacyUsageDetailProperties struct {
 	// AccountName - READ-ONLY; Account Name.
 	AccountName *string `json:"accountName,omitempty"`
 	// SubscriptionGUID - READ-ONLY; Subscription guid.
-	SubscriptionGUID *string `json:"SubscriptionGUID,omitempty"`
+	SubscriptionID *string `json:"subscriptionID,omitempty"`
 	// SubscriptionName - READ-ONLY; Subscription name.
 	SubscriptionName *string `json:"subscriptionName,omitempty"`
 	// Date - READ-ONLY; Date for the usage record.
@@ -2626,7 +2626,7 @@ type MarketplaceProperties struct {
 	// MeterID - READ-ONLY; The meter id (GUID).
 	MeterID *uuid.UUID `json:"meterId,omitempty"`
 	// SubscriptionGUID - READ-ONLY; Subscription guid.
-	SubscriptionGUID *uuid.UUID `json:"SubscriptionGUID,omitempty"`
+	SubscriptionID *uuid.UUID `json:"subscriptionID,omitempty"`
 	// SubscriptionName - READ-ONLY; Subscription name.
 	SubscriptionName *string `json:"subscriptionName,omitempty"`
 	// AccountName - READ-ONLY; Account name.
@@ -3227,7 +3227,7 @@ type ModernReservationRecommendationProperties struct {
 	// ResourceType - READ-ONLY; The Azure resource type.
 	ResourceType *string `json:"resourceType,omitempty"`
 	// SubscriptionGUID - READ-ONLY; The Azure subscription ID.
-	SubscriptionGUID *string `json:"SubscriptionGUID,omitempty"`
+	SubscriptionID *string `json:"subscriptionID,omitempty"`
 	// SubscriptionName - READ-ONLY; Name of the Azure Subscription.
 	SubscriptionName *string `json:"subscriptionName,omitempty"`
 }
@@ -3680,7 +3680,7 @@ type ModernUsageDetailProperties struct {
 	// BillingProfileName - READ-ONLY; Name of the billing profile that groups costs across invoices in the a singular billing currency across across the customers who have onboarded the Microsoft customer agreement and the customers in CSP who have made entitlement purchases like SaaS, Marketplace, RI, etc.
 	BillingProfileName *string `json:"billingProfileName,omitempty"`
 	// SubscriptionGUID - READ-ONLY; Unique Microsoft generated identifier for the Azure Subscription.
-	SubscriptionGUID *string `json:"SubscriptionGUID,omitempty"`
+	SubscriptionID *string `json:"subscriptionID,omitempty"`
 	// SubscriptionName - READ-ONLY; Name of the Azure Subscription.
 	SubscriptionName *string `json:"subscriptionName,omitempty"`
 	// Date - READ-ONLY; Date for the usage record.
