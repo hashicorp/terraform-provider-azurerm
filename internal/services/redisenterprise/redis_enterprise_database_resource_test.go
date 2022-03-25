@@ -224,7 +224,7 @@ func (r RedisenterpriseDatabaseResource) geoDatabase(data acceptance.TestData) s
 	return fmt.Sprintf(`
 %s
 resource "azurerm_redis_enterprise_database" "test" {
-  cluster_id = azurerm_redis_enterprise_cluster.test.id
+  cluster_id          = azurerm_redis_enterprise_cluster.test.id
   resource_group_name = azurerm_resource_group.test.name
 
   client_protocol   = "Encrypted"
@@ -247,7 +247,7 @@ func (r RedisenterpriseDatabaseResource) unlinkDatabase(data acceptance.TestData
 %s
 resource "azurerm_redis_enterprise_database" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  cluster_id = azurerm_redis_enterprise_cluster.test.id
+  cluster_id          = azurerm_redis_enterprise_cluster.test.id
 
   client_protocol   = "Encrypted"
   clustering_policy = "EnterpriseCluster"
@@ -267,13 +267,13 @@ func (r RedisenterpriseDatabaseResource) geoDatabasewithModuleEnabled(data accep
 	return fmt.Sprintf(`
 %s
 resource "azurerm_redis_enterprise_database" "test" {
-  cluster_id = azurerm_redis_enterprise_cluster.test.id
+  cluster_id          = azurerm_redis_enterprise_cluster.test.id
   resource_group_name = azurerm_resource_group.test.name
 
   client_protocol   = "Encrypted"
   clustering_policy = "EnterpriseCluster"
   eviction_policy   = "NoEviction"
-module {
+  module {
     name = "RediSearch"
     args = ""
   }

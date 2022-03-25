@@ -38,11 +38,11 @@ resource "azurerm_redis_enterprise_database" "example" {
   name                = "default"
   resource_group_name = azurerm_resource_group.example.name
 
-  cluster_id = azurerm_redis_enterprise_cluster.example.id
-  client_protocol            = "Encrypted"
-  clustering_policy          = "EnterpriseCluster"
-  eviction_policy            = "NoEviction"
-  port                       = 10000
+  cluster_id        = azurerm_redis_enterprise_cluster.example.id
+  client_protocol   = "Encrypted"
+  clustering_policy = "EnterpriseCluster"
+  eviction_policy   = "NoEviction"
+  port              = 10000
 
   linked_database_id = [
     "${azurerm_redis_enterprise_cluster.example.id}/databases/default",
