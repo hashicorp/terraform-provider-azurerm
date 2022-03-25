@@ -128,7 +128,7 @@ The following new **Resources** will be available:
 
 When migrating to the new version of resources, and in many cases the renamed ones, the schema may be different than what currently exists in state. Therefore, it is recommended to first update your terraform configuration with the new resource and then use `terraform state rm` and then `terraform state import`. 
 
-An example on how to do this can be found in the [Migrating from Deprecated Resources Guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/windows_function_app)
+An example on how to do this can be found in the [Migrating from Deprecated Resources Guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/migrating-from-deprecated-resources)
 
 ## Soft Delete for Key Vault
 
