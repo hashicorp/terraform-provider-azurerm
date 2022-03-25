@@ -1,7 +1,6 @@
 package mariadb
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -93,27 +92,12 @@ func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, me
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.VirtualNetworkRuleName, parameters); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.VirtualNetworkRuleName, parameters)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
-	// Wait for the provisioning state to become ready
-	log.Printf("[DEBUG] Waiting for %s to become ready", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
-		Target:                    []string{"Ready"},
-		Refresh:                   mariaDbVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, id.ResourceGroup, id.ServerName, id.VirtualNetworkRuleName),
-		MinTimeout:                1 * time.Minute,
-		ContinuousTargetOccurence: 5,
-	}
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be created or updated: %+v", id, err)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -175,27 +159,4 @@ func resourceMariaDbVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	return nil
-}
-
-func mariaDbVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *mariadb.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				log.Printf("[DEBUG] Retrieving MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) returned 404.", resourceGroup, serverName, name)
-				return nil, "ResponseNotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("polling for the state of the MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
-		}
-
-		if props := resp.VirtualNetworkRuleProperties; props != nil {
-			log.Printf("[DEBUG] Retrieving MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) returned Status %s", resourceGroup, serverName, name, props.State)
-			return resp, string(props.State), nil
-		}
-
-		// Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.
-		log.Printf("[DEBUG] Retrieving MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) returned empty VirtualNetworkRuleProperties", resourceGroup, serverName, name)
-		return resp, "Unknown", nil
-	}
 }
