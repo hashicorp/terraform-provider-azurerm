@@ -85,7 +85,7 @@ func (client Client) CheckNameAvailabilityPreparer(ctx context.Context, location
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-31"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -138,7 +138,7 @@ func (client Client) CreateOrUpdate(ctx context.Context, resourceGroupName strin
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
@@ -169,7 +169,7 @@ func (client Client) CreateOrUpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-31"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -229,7 +229,7 @@ func (client Client) Delete(ctx context.Context, resourceGroupName string, resou
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
@@ -260,7 +260,7 @@ func (client Client) DeletePreparer(ctx context.Context, resourceGroupName strin
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-31"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -318,7 +318,7 @@ func (client Client) Get(ctx context.Context, resourceGroupName string, resource
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
@@ -356,7 +356,7 @@ func (client Client) GetPreparer(ctx context.Context, resourceGroupName string, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-31"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -432,7 +432,7 @@ func (client Client) ListPreparer(ctx context.Context) (*http.Request, error) {
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-31"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -516,7 +516,7 @@ func (client Client) ListByResourceGroup(ctx context.Context, resourceGroupName 
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("digitaltwins.Client", "ListByResourceGroup", err.Error())
 	}
@@ -555,7 +555,7 @@ func (client Client) ListByResourceGroupPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-31"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -628,20 +628,20 @@ func (client Client) ListByResourceGroupComplete(ctx context.Context, resourceGr
 // resourceGroupName - the name of the resource group that contains the DigitalTwinsInstance.
 // resourceName - the name of the DigitalTwinsInstance.
 // digitalTwinsPatchDescription - the DigitalTwinsInstance and security metadata.
-func (client Client) Update(ctx context.Context, resourceGroupName string, resourceName string, digitalTwinsPatchDescription PatchDescription) (result Description, err error) {
+func (client Client) Update(ctx context.Context, resourceGroupName string, resourceName string, digitalTwinsPatchDescription PatchDescription) (result UpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.Update")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
@@ -655,16 +655,9 @@ func (client Client) Update(ctx context.Context, resourceGroupName string, resou
 		return
 	}
 
-	resp, err := client.UpdateSender(req)
+	result, err = client.UpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "digitaltwins.Client", "Update", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.UpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "digitaltwins.Client", "Update", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "digitaltwins.Client", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -679,7 +672,7 @@ func (client Client) UpdatePreparer(ctx context.Context, resourceGroupName strin
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-10-31"
+	const APIVersion = "2020-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -696,8 +689,18 @@ func (client Client) UpdatePreparer(ctx context.Context, resourceGroupName strin
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client Client) UpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client Client) UpdateSender(req *http.Request) (future UpdateFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -705,7 +708,7 @@ func (client Client) UpdateSender(req *http.Request) (*http.Response, error) {
 func (client Client) UpdateResponder(resp *http.Response) (result Description, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}

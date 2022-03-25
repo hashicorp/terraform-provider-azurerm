@@ -1,4 +1,4 @@
-// Package digitaltwins implements the Azure ARM Digitaltwins service API version 2020-10-31.
+// Package digitaltwins implements the Azure ARM Digitaltwins service API version 2020-12-01.
 //
 // Azure Digital Twins Client for managing DigitalTwinsInstance
 package digitaltwins
