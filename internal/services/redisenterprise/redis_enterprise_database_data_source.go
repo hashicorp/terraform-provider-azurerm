@@ -2,6 +2,7 @@ package redisenterprise
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -25,27 +26,22 @@ func dataSourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 			Required:     true,
 			ValidateFunc: redisenterprise.ValidateRedisEnterpriseID,
 		},
-			// TODO: deprecate me
-			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+		// TODO: deprecate me
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"cluster_id": {
+		"linked_database_id": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: redisenterprise.ValidateRedisEnterpriseID,
+				ValidateFunc: databases.ValidateDatabaseID,
 			},
-			"linked_database_id": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: databases.ValidateDatabaseID,
-				},
-			},
+		},
 
-			"linked_database_group_nickname": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
+		"linked_database_group_nickname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 
 		"primary_access_key": {
 			Type:      pluginsdk.TypeString,

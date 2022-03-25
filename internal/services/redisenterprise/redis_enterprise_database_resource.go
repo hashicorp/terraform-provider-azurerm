@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2022-01-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2022-01-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
@@ -23,7 +24,7 @@ func resourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceRedisEnterpriseDatabaseCreate,
 		Read:   resourceRedisEnterpriseDatabaseRead,
-		// Update currently is not implemented, will be for GA
+		Update: resourceRedisEnterpriseDatabaseUpdate,
 		Delete: resourceRedisEnterpriseDatabaseDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -132,35 +133,35 @@ func redisEnterpriseDatabaseSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-			"linked_database_id": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				MaxItems: 5,
-				Set:      pluginsdk.HashString,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: databases.ValidateDatabaseID,
-				},
-			},
-
-			"linked_database_group_nickname": {
+		"linked_database_id": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			MaxItems: 5,
+			Set:      pluginsdk.HashString,
+			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				RequiredWith: []string{"linked_database_id"},
+				ValidateFunc: databases.ValidateDatabaseID,
 			},
+		},
 
-			// This attribute is currently in preview and is not returned by the RP
-			// "persistence": {
-			// 	Type:     pluginsdk.TypeList,
-			// 	Optional: true,
-			// 	MaxItems: 1,
-			// 	Elem: &pluginsdk.Resource{
-			// 		Schema: map[string]*pluginsdk.Schema{
-			// 			"aof_enabled": {
-			// 				Type:     pluginsdk.TypeBool,
-			// 				Optional: true,
-			// 			},
+		"linked_database_group_nickname": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"linked_database_id"},
+		},
+
+		// This attribute is currently in preview and is not returned by the RP
+		// "persistence": {
+		// 	Type:     pluginsdk.TypeList,
+		// 	Optional: true,
+		// 	MaxItems: 1,
+		// 	Elem: &pluginsdk.Resource{
+		// 		Schema: map[string]*pluginsdk.Schema{
+		// 			"aof_enabled": {
+		// 				Type:     pluginsdk.TypeBool,
+		// 				Optional: true,
+		// 			},
 
 		// 			"aof_frequency": {
 		// 				Type:     pluginsdk.TypeString,
@@ -394,7 +395,7 @@ func resourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta interfa
 func resourceRedisEnterpriseDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	clusterId, err := redisenterprise.ParseRedisEnterpriseID(d.Get("cluster_id").(string))
@@ -434,7 +435,7 @@ func resourceRedisEnterpriseDatabaseUpdate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("evictionPolicy must be set to NoEviction when using RediSearch module")
 	}
 
-	parameters := databases.DatabaseUpdate{
+	parameters := databases.Database{
 		Properties: &databases.DatabaseProperties{
 			ClientProtocol:   &protocol,
 			ClusteringPolicy: &clusteringPolicy,
@@ -446,7 +447,7 @@ func resourceRedisEnterpriseDatabaseUpdate(d *pluginsdk.ResourceData, meta inter
 		},
 	}
 
-	future, err := client.Update(ctx, id, parameters)
+	future, err := client.Create(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("updatig %s: %+v", id, err)
 	}
