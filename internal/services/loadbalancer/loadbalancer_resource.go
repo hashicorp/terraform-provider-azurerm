@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
@@ -119,6 +122,7 @@ func resourceArmLoadBalancerCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	loadBalancer := network.LoadBalancer{
 		Name:                         utils.String(id.Name),
+		ExtendedLocation:             expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:                     utils.String(location),
 		Tags:                         expandedTags,
 		Sku:                          &sku,
@@ -160,9 +164,8 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
@@ -446,6 +449,9 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 		"location": azure.SchemaLocation(),
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 		"sku": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -627,4 +633,23 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 	}
 
 	return out
+}
+
+func expandEdgeZone(input string) *network.ExtendedLocation {
+	normalized := edgezones.Normalize(input)
+	if normalized == "" {
+		return nil
+	}
+
+	return &network.ExtendedLocation{
+		Name: utils.String(normalized),
+		Type: network.ExtendedLocationTypesEdgeZone,
+	}
+}
+
+func flattenEdgeZone(input *network.ExtendedLocation) string {
+	if input == nil || input.Type != network.ExtendedLocationTypesEdgeZone || input.Name == nil {
+		return ""
+	}
+	return edgezones.NormalizeNilable(input.Name)
 }

@@ -14,7 +14,7 @@ const val defaultDaysOfWeek = "2,3,4,5,6"
 const val defaultDaysOfMonth = "*"
 
 var locations = mapOf(
-        "public" to LocationConfiguration("westeurope", "eastus2", "francecentral", false)
+        "public" to LocationConfiguration("westeurope", "eastus2", "westus", false)
 )
 
 // specifies the list of Azure Environments where tests should be run nightly
@@ -72,5 +72,5 @@ var serviceTestConfigurationOverrides = mapOf(
         "vmware" to testConfiguration(parallelism = 3),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
-        "web" to testConfiguration(startHour = 3, daysOfWeek = "2, 4, 6")
+        "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6")
 )

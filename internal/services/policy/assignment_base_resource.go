@@ -158,7 +158,8 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 			//lintignore:R001
 			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
-			if err := metadata.ResourceData.Set("identity", br.flattenIdentity(resp.Identity)); err != nil {
+			identity, _ := br.flattenIdentity(resp.Identity)
+			if err := metadata.ResourceData.Set("identity", identity); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
@@ -317,7 +318,7 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 
 		"location": commonschema.LocationOptional(),
 
-		"identity": commonschema.SystemAssignedIdentityOptional(),
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"enforce": {
 			Type:     pluginsdk.TypeBool,
@@ -375,34 +376,47 @@ func (br assignmentBaseResource) attributes() map[string]*pluginsdk.Schema {
 }
 
 func (br assignmentBaseResource) expandIdentity(input []interface{}) (*policy.Identity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
+	expanded, err := identity.ExpandSystemOrUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	return &policy.Identity{
-		Type: policy.ResourceIdentityType(expanded.Type),
-	}, nil
-}
-
-func (br assignmentBaseResource) flattenIdentity(input *policy.Identity) []interface{} {
-	var config *identity.SystemAssigned
-	if input != nil {
-		principalId := ""
-		if input.PrincipalID != nil {
-			principalId = *input.PrincipalID
-		}
-		tenantId := ""
-		if input.TenantID != nil {
-			tenantId = *input.TenantID
-		}
-		config = &identity.SystemAssigned{
-			Type:        identity.Type(string(input.Type)),
-			PrincipalId: principalId,
-			TenantId:    tenantId,
+	out := policy.Identity{
+		Type: policy.ResourceIdentityType(string(expanded.Type)),
+	}
+	if expanded.Type == identity.TypeUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*policy.IdentityUserAssignedIdentitiesValue)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &policy.IdentityUserAssignedIdentitiesValue{
+				// intentionally empty
+			}
 		}
 	}
-	return identity.FlattenSystemAssigned(config)
+	return &out, nil
+}
+
+func (br assignmentBaseResource) flattenIdentity(input *policy.Identity) (*[]interface{}, error) {
+	var config *identity.SystemOrUserAssignedMap
+	if input != nil {
+		config = &identity.SystemOrUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+
+		if input.PrincipalID != nil {
+			config.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			config.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			config.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
+	}
+	return identity.FlattenSystemOrUserAssignedMap(config)
 }
 
 func (br assignmentBaseResource) flattenNonComplianceMessages(input *[]policy.NonComplianceMessage) []interface{} {
@@ -448,4 +462,16 @@ func (br assignmentBaseResource) expandNonComplianceMessages(input []interface{}
 	}
 
 	return &output
+}
+func expandAzureRmPolicyNotScopes(input []interface{}) *[]string {
+	notScopesRes := make([]string, 0)
+
+	for _, notScope := range input {
+		s, ok := notScope.(string)
+		if ok {
+			notScopesRes = append(notScopesRes, s)
+		}
+	}
+
+	return &notScopesRes
 }

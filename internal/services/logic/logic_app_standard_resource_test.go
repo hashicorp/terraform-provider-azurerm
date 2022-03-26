@@ -1001,6 +1001,7 @@ provider "azurerm" {
 resource "azurerm_storage_share" "custom" {
   name                 = "customshare"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 }
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1380,7 +1381,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_logic_app_standard" "test" {

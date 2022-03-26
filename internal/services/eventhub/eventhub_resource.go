@@ -305,6 +305,9 @@ func resourceEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.CaptureDescription {
 	inputs := d.Get("capture_description").([]interface{})
+	if len(inputs) == 0 || inputs[0] == nil {
+		return nil
+	}
 	input := inputs[0].(map[string]interface{})
 
 	enabled := input["enabled"].(bool)

@@ -28,7 +28,12 @@ Each of the blocks defined below can be optionally specified to configure the be
 provider "azurerm" {
   features {
     api_management {
-      purge_soft_delete_on_destroy = true
+      purge_soft_delete_on_destroy         = true
+      recover_soft_deleted_api_managements = true
+    }
+
+    application_insights {
+      disable_generated_rule = false
     }
 
     cognitive_account {
@@ -36,8 +41,8 @@ provider "azurerm" {
     }
 
     key_vault {
-      recover_soft_deleted_key_vaults = true
       purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
     }
 
     log_analytics_workspace {
@@ -73,6 +78,8 @@ The `features` block supports the following:
 
 * `api_management` - (Optional) An `api_management` block as defined below.
 
+* `application_insights` - (Optional) An `application_insights` block as defined below.
+
 * `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
@@ -91,7 +98,15 @@ The `features` block supports the following:
 
 The `api_management` block supports the following:
 
-* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_api_management` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_api_management` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+* `recover_soft_deleted_api_managements` - (Optional) Should the `azurerm_api_management` resources recover a Soft-Deleted API Management service? Defaults to `true`
+
+---
+
+The `application_insights` block supports the following:
+
+* `disable_generated_rule` - (Optional) Should the `azurerm_application_insights` resources disable the Azure generated Alert Rule and Action Group during the create step? Defaults to `false`.
 
 ---
 
@@ -103,19 +118,31 @@ The `cognitive_account` block supports the following:
 
 The `key_vault` block supports the following:
 
-* `recover_soft_deleted_key_vaults` - (Optional) Should the `azurerm_key_vault`, `azurerm_key_vault_certificate`, `azurerm_key_vault_key` and `azurerm_key_vault_secret` resources recover a Soft-Deleted Key Vault/Item? Defaults to `true`.
-
-~> **Note:** When recovering soft-deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
-
-* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault`, `azurerm_key_vault_certificate`, `azurerm_key_vault_key` and `azurerm_key_vault_secret` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 ~> **Note:** When purge protection is enabled, a key vault or an object in the deleted state cannot be purged until the retention period (7-90 days) has passed.
+
+* `purge_soft_deleted_certificates_on_destroy` - (Optional) Should the `azurerm_key_vault_certificate` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+* `purge_soft_deleted_keys_on_destroy` - (Optional) Should the `azurerm_key_vault_key` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+* `purge_soft_deleted_secrets_on_destroy` - (Optional) Should the `azurerm_key_vault_secret` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+* `recover_soft_deleted_certificates` - (Optional) Should the `azurerm_key_vault_certificate` resource recover a Soft-Deleted Certificate? Defaults to `true`.
+
+* `recover_soft_deleted_key_vaults` - (Optional) Should the `azurerm_key_vault` resource recover a Soft-Deleted Key Vault? Defaults to `true`.
+
+* `recover_soft_deleted_keys` - (Optional) Should the `azurerm_key_vault_key` resource recover a Soft-Deleted Key? Defaults to `true`.
+
+* `recover_soft_deleted_secrets` - (Optional) Should the `azurerm_key_vault_secret` resource recover a Soft-Deleted Secret? Defaults to `true`.
+
+~> **Note:** When recovering soft-deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
 
 ---
 
 The `log_analytics_workspace` block supports the following:
 
-* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
+* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 ---
 

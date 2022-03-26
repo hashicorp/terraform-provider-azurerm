@@ -49,6 +49,21 @@ func TestAccCosmosDbMongoCollection_complete(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbMongoCollection_neverExpires(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
+	r := CosmosMongoCollectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.neverExpires(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDbMongoCollection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 	r := CosmosMongoCollectionResource{}
@@ -460,6 +475,26 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   autoscale_settings {
     max_throughput = "4000"
   }
+}
+`, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
+}
+
+func (CosmosMongoCollectionResource) neverExpires(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_mongo_collection" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
+
+  default_ttl_seconds = -1
 }
 `, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
 }

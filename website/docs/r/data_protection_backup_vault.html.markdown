@@ -49,11 +49,9 @@ The following arguments are supported:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Backup Vault. Possible value is `SystemAssigned`.
-
-~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Backup Vault has been created. More details are available below.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Backup Vault. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 

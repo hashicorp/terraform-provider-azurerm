@@ -4,148 +4,149 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func TestPlanIsConsumption(t *testing.T) {
 	input := []struct {
-		name          string
+		name          *string
 		isConsumption bool
 	}{
 		{
-			name:          "",
+			name:          utils.String(""),
 			isConsumption: false,
 		},
 		{
-			name:          "Y1",
+			name:          utils.String("Y1"),
 			isConsumption: true,
 		},
 		{
-			name:          "EP1",
+			name:          utils.String("EP1"),
 			isConsumption: false,
 		},
 		{
-			name:          "S1",
+			name:          utils.String("S1"),
 			isConsumption: false,
 		},
 	}
 
 	for _, v := range input {
 		if actual := helpers.PlanIsConsumption(v.name); actual != v.isConsumption {
-			t.Fatalf("expected %s to be %t, got %t", v.name, v.isConsumption, actual)
+			t.Fatalf("expected %s to be %t, got %t", *v.name, v.isConsumption, actual)
 		}
 	}
 }
 
 func TestPlanIsElastic(t *testing.T) {
 	input := []struct {
-		name      string
+		name      *string
 		isElastic bool
 	}{
 		{
-			name:      "",
+			name:      utils.String(""),
 			isElastic: false,
 		},
 		{
-			name:      "Y1",
+			name:      utils.String("Y1"),
 			isElastic: false,
 		},
 		{
-			name:      "EP1",
+			name:      utils.String("EP1"),
 			isElastic: true,
 		},
 		{
-			name:      "S1",
+			name:      utils.String("S1"),
 			isElastic: false,
 		},
 	}
 
 	for _, v := range input {
 		if actual := helpers.PlanIsElastic(v.name); actual != v.isElastic {
-			t.Fatalf("expected %s to be %t, got %t", v.name, v.isElastic, actual)
+			t.Fatalf("expected %s to be %t, got %t", *v.name, v.isElastic, actual)
 		}
 	}
 }
 
 func TestPlanIsIsolated(t *testing.T) {
 	input := []struct {
-		name       string
+		name       *string
 		isIsolated bool
 	}{
 		{
-			name:       "",
+			name:       utils.String(""),
 			isIsolated: false,
 		},
 		{
-			name:       "Y1",
+			name:       utils.String("Y1"),
 			isIsolated: false,
 		},
 		{
-			name:       "EP1",
+			name:       utils.String("EP1"),
 			isIsolated: false,
 		},
 		{
-			name:       "S1",
+			name:       utils.String("S1"),
 			isIsolated: false,
 		},
 		{
-			name:       "I1",
+			name:       utils.String("I1"),
 			isIsolated: true,
 		},
 		{
-			name:       "I1v2",
+			name:       utils.String("I1v2"),
 			isIsolated: true,
 		},
 	}
 
 	for _, v := range input {
 		if actual := helpers.PlanIsIsolated(v.name); actual != v.isIsolated {
-			t.Fatalf("expected %s to be %t, got %t", v.name, v.isIsolated, actual)
+			t.Fatalf("expected %s to be %t, got %t", *v.name, v.isIsolated, actual)
 		}
 	}
 }
 
 func TestPlanIsAppPlan(t *testing.T) {
 	input := []struct {
-		name      string
+		name      *string
 		isAppPlan bool
 	}{
 		{
-			name:      "",
+			name:      utils.String(""),
 			isAppPlan: false,
 		},
 		{
-			name:      "Y1",
+			name:      utils.String("Y1"),
 			isAppPlan: false,
 		},
 		{
-			name:      "EP1",
+			name:      utils.String("EP1"),
 			isAppPlan: false,
 		},
 		{
-			name:      "B1",
+			name:      utils.String("B1"),
 			isAppPlan: true,
 		},
 		{
-			name:      "S1",
+			name:      utils.String("S1"),
 			isAppPlan: true,
 		},
 		{
-			name:      "P1v3",
+			name:      utils.String("P1v3"),
 			isAppPlan: true,
 		},
 		{
-			name:      "I1",
+			name:      utils.String("I1"),
 			isAppPlan: false,
 		},
 		{
-			name:      "I1v2",
+			name:      utils.String("I1v2"),
 			isAppPlan: false,
 		},
 	}
 
 	for _, v := range input {
 		if actual := helpers.PlanIsAppPlan(v.name); actual != v.isAppPlan {
-			t.Fatalf("expected %s to be %t, got %t", v.name, v.isAppPlan, actual)
+			t.Fatalf("expected %s to be %t, got %t", *v.name, v.isAppPlan, actual)
 		}
 	}
 }

@@ -60,7 +60,7 @@ The following arguments are supported:
 
 ~>**NOTE:** The `Premium` sku of the `azurerm_storage_account` is required for the `NFS` protocol.
 
-* `quota` - (Optional) The maximum size of the share, in gigabytes. For Standard storage accounts, this must be greater than 0 and less than 5120 GB (5 TB). For Premium FileStorage storage accounts, this must be greater than 100 GB and less than 102400 GB (100 TB). Default is 5120.
+* `quota` - (Required) The maximum size of the share, in gigabytes. For Standard storage accounts, this must be `1`GB (or higher) and less than `5120` GB (`5` TB). For Premium FileStorage storage accounts, this must be greater than 100 GB and less than `102400` GB (`100` TB).
 
 * `metadata` - (Optional) A mapping of MetaData for this File Share.
 

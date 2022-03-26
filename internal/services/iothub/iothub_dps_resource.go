@@ -110,16 +110,10 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							Optional: true,
 							Default:  features.ThreePointOhBeta(),
 						},
-						// TODO update docs with new default for 3.0
 						"allocation_weight": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							Default: func() interface{} {
-								if features.ThreePointOhBeta() {
-									return 1
-								}
-								return 0
-							}(),
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      1,
 							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 						"hostname": {

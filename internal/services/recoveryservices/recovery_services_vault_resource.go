@@ -194,10 +194,13 @@ func resourceRecoveryServicesVaultCreateUpdate(d *pluginsdk.ResourceData, meta i
 		Properties: &recoveryservices.VaultProperties{},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vault); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vault)
+	if err != nil {
 		return fmt.Errorf("creating/updating Recovery Service %s: %+v", id.String(), err)
 	}
-
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+	}
 	cfg := backup.ResourceVaultConfigResource{
 		Properties: &backup.ResourceVaultConfig{
 			EnhancedSecurityState: backup.EnhancedSecurityStateEnabled, // always enabled
