@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	// "github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -189,6 +187,7 @@ func resourceCdnFrontdoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}

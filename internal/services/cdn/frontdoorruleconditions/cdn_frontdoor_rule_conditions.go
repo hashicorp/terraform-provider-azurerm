@@ -401,8 +401,10 @@ func ExpandCdnFrontdoorRemoteAddressCondition(input []interface{}) (*[]track1.Ba
 
 		if condition.Parameters.Operator == track1.RemoteAddressOperatorGeoMatch {
 			for _, matchValue := range item["match_values"].([]interface{}) {
-				if ok, _ := validate.RegExHelper(matchValue, "match_values", `^[A-Z]{2}$`); !ok {
-					return nil, fmt.Errorf("%q is invalid: when the %q is set to %q the value must be a valid country code consisting of 2 uppercase characters, got %q", conditionMapping.ConfigName, "operator", track1.RemoteAddressOperatorGeoMatch, matchValue)
+				if matchValue != nil {
+					if ok, _ := validate.RegExHelper(matchValue, "match_values", `^[A-Z]{2}$`); !ok {
+						return nil, fmt.Errorf("%q is invalid: when the %q is set to %q the value must be a valid country code consisting of 2 uppercase characters, got %q", conditionMapping.ConfigName, "operator", track1.RemoteAddressOperatorGeoMatch, matchValue)
+					}
 				}
 			}
 		}

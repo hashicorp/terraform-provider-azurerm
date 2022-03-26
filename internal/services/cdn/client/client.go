@@ -3,25 +3,25 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	legacyfrontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/legacysdk/2020-11-01"
 	sdk "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-04-01/webapplicationfirewallpolicies"
 )
 
 type Client struct {
-	FrontDoorEndpointsClient             *sdk.AFDEndpointsClient
-	FrontDoorOriginGroupsClient          *sdk.AFDOriginGroupsClient
-	FrontDoorOriginsClient               *sdk.AFDOriginsClient
-	FrontDoorCustomDomainsClient         *sdk.AFDCustomDomainsClient
-	FrontdoorSecurityPoliciesClient      *sdk.SecurityPoliciesClient
-	FrontdoorRoutesClient                *sdk.RoutesClient
-	FrontdoorRulesClient                 *sdk.RulesClient
-	FrontdoorProfileClient               *sdk.ProfilesClient
-	FrontdoorSecretsClient               *sdk.SecretsClient
-	FrontdoorRuleSetsClient              *sdk.RuleSetsClient
-	WebApplicationFirewallPoliciesClient *webapplicationfirewallpolicies.WebApplicationFirewallPoliciesClient
-	CustomDomainsClient                  *cdn.CustomDomainsClient
-	EndpointsClient                      *cdn.EndpointsClient
-	ProfilesClient                       *cdn.ProfilesClient
+	FrontDoorEndpointsClient        *sdk.AFDEndpointsClient
+	FrontDoorOriginGroupsClient     *sdk.AFDOriginGroupsClient
+	FrontDoorOriginsClient          *sdk.AFDOriginsClient
+	FrontDoorCustomDomainsClient    *sdk.AFDCustomDomainsClient
+	FrontdoorSecurityPoliciesClient *sdk.SecurityPoliciesClient
+	FrontdoorRoutesClient           *sdk.RoutesClient
+	FrontdoorRulesClient            *sdk.RulesClient
+	FrontdoorProfileClient          *sdk.ProfilesClient
+	FrontdoorSecretsClient          *sdk.SecretsClient
+	FrontdoorRuleSetsClient         *sdk.RuleSetsClient
+	FrontdoorLegacyPoliciesClient   *legacyfrontdoor.PoliciesClient
+	CustomDomainsClient             *cdn.CustomDomainsClient
+	EndpointsClient                 *cdn.EndpointsClient
+	ProfilesClient                  *cdn.ProfilesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -40,8 +40,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	frontdoorPolicySecurityPoliciesClient := sdk.NewSecurityPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontdoorPolicySecurityPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	webApplicationFirewallPoliciesClient := webapplicationfirewallpolicies.NewWebApplicationFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&webApplicationFirewallPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	frontdoorLegacyPoliciesClient := legacyfrontdoor.NewPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&frontdoorLegacyPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	frontdoorRoutesClient := sdk.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontdoorRoutesClient.Client, o.ResourceManagerAuthorizer)
@@ -68,19 +68,19 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&profilesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		FrontDoorEndpointsClient:             &frontDoorEndpointsClient,
-		FrontDoorOriginGroupsClient:          &frontDoorOriginGroupsClient,
-		FrontDoorOriginsClient:               &frontDoorOriginsClient,
-		FrontDoorCustomDomainsClient:         &frontDoorCustomDomainsClient,
-		FrontdoorSecurityPoliciesClient:      &frontdoorPolicySecurityPoliciesClient,
-		FrontdoorRoutesClient:                &frontdoorRoutesClient,
-		FrontdoorRulesClient:                 &frontdoorRulesClient,
-		FrontdoorProfileClient:               &frontdoorProfilesClient,
-		FrontdoorSecretsClient:               &frontdoorPolicySecretsClient,
-		FrontdoorRuleSetsClient:              &frontdoorRuleSetsClient,
-		WebApplicationFirewallPoliciesClient: &webApplicationFirewallPoliciesClient,
-		CustomDomainsClient:                  &customDomainsClient,
-		EndpointsClient:                      &endpointsClient,
-		ProfilesClient:                       &profilesClient,
+		FrontDoorEndpointsClient:        &frontDoorEndpointsClient,
+		FrontDoorOriginGroupsClient:     &frontDoorOriginGroupsClient,
+		FrontDoorOriginsClient:          &frontDoorOriginsClient,
+		FrontDoorCustomDomainsClient:    &frontDoorCustomDomainsClient,
+		FrontdoorSecurityPoliciesClient: &frontdoorPolicySecurityPoliciesClient,
+		FrontdoorRoutesClient:           &frontdoorRoutesClient,
+		FrontdoorRulesClient:            &frontdoorRulesClient,
+		FrontdoorProfileClient:          &frontdoorProfilesClient,
+		FrontdoorSecretsClient:          &frontdoorPolicySecretsClient,
+		FrontdoorRuleSetsClient:         &frontdoorRuleSetsClient,
+		FrontdoorLegacyPoliciesClient:   &frontdoorLegacyPoliciesClient,
+		CustomDomainsClient:             &customDomainsClient,
+		EndpointsClient:                 &endpointsClient,
+		ProfilesClient:                  &profilesClient,
 	}
 }

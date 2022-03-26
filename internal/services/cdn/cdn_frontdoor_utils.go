@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	legacyfrontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/legacysdk/2020-11-01"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,6 +24,18 @@ func ConvertCdnFrontdoorTags(tagMap *map[string]string) map[string]*string {
 	}
 
 	return t
+}
+
+func ConvertCdnFrontdoorTagsToTagsFlatten(tagMap map[string]*string) *map[string]string {
+	t := make(map[string]string)
+
+	for k, v := range tagMap {
+		tagKey := k
+		tagValue := v
+		t[tagKey] = *tagValue
+	}
+
+	return &t
 }
 
 func ConvertBoolToEnabledState(isEnabled bool) track1.EnabledState {
@@ -91,6 +104,32 @@ func flattenResourceReference(input *track1.ResourceReference) string {
 		result = *input.ID
 	}
 
+	return result
+}
+
+func flattenTransformSlice(input *[]legacyfrontdoor.TransformType) []interface{} {
+	result := make([]interface{}, 0)
+
+	if input != nil {
+		for _, item := range *input {
+			result = append(result, string(item))
+		}
+	}
+	return result
+}
+
+func flattenFrontendEndpointLinkSlice(input *[]legacyfrontdoor.FrontendEndpointLink) []interface{} {
+	result := make([]interface{}, 0)
+
+	if input != nil {
+		for _, item := range *input {
+			if item.ID == nil {
+				continue
+			}
+
+			result = append(result, *item.ID)
+		}
+	}
 	return result
 }
 
@@ -318,6 +357,22 @@ func validateActionsBlock(actions []track1.BasicDeliveryRuleAction) error {
 	}
 
 	return nil
+}
+
+func ValidatedLegacyFrontdoorWAFName(i interface{}, k string) (_ []string, errors []error) {
+	if m, regexErrs := validate.RegExHelper(i, k, `(^[a-zA-Z])([\da-zA-Z]{0,127})$`); !m {
+		return nil, append(regexErrs, fmt.Errorf(`%q must be between 1 and 128 characters in length, must begin with a letter and may only contain letters and numbers.`, k))
+	}
+
+	return nil, nil
+}
+
+func ValidateLegacyCustomBlockResponseBody(i interface{}, k string) (_ []string, errors []error) {
+	if m, regexErrs := validate.RegExHelper(i, k, `^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$`); !m {
+		return nil, append(regexErrs, fmt.Errorf(`%q contains invalid characters, %q must contain only alphanumeric and equals sign characters.`, k, k))
+	}
+
+	return nil, nil
 }
 
 func SchemaCdnFrontdoorOperator() *pluginsdk.Schema {
