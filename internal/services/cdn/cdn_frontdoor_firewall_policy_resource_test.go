@@ -149,7 +149,7 @@ func (r CdnFrontdoorFirewallPolicyResource) basic(data acceptance.TestData) stri
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   name                     = "testAccCdnFrontDoorWAF%d"
   resource_group_name      = azurerm_resource_group.test.name
-	cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 `, tmp, data.RandomInteger)
 }
@@ -161,7 +161,7 @@ func (r CdnFrontdoorFirewallPolicyResource) requiresImport(data acceptance.TestD
 resource "azurerm_cdn_frontdoor_firewall_policy" "import" {
   name                     = azurerm_cdn_frontdoor_firewall_policy.test.name
   resource_group_name      = azurerm_cdn_frontdoor_firewall_policy.test.resource_group_name
-	cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 `, r.basic(data))
 }
@@ -177,8 +177,8 @@ func (r CdnFrontdoorFirewallPolicyResource) update(data acceptance.TestData, upd
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   name                              = "testAccFrontDoorWAF%d"
   resource_group_name               = azurerm_resource_group.test.name
-	cdn_frontdoor_profile_id          = azurerm_cdn_frontdoor_profile.test.id
-	sku_name                          = "Premium_AzureFrontDoor"
+  cdn_frontdoor_profile_id          = azurerm_cdn_frontdoor_profile.test.id
+  sku_name                          = "Premium_AzureFrontDoor"
   enabled                           = true
   mode                              = "Prevention"
   redirect_url                      = "https://www.contoso.com"
@@ -233,8 +233,8 @@ func (r CdnFrontdoorFirewallPolicyResource) updated(data acceptance.TestData) st
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   name                              = "testAccFrontDoorWAF%d"
   resource_group_name               = azurerm_resource_group.test.name
-	cdn_frontdoor_profile_id          = azurerm_cdn_frontdoor_profile.test.id
-	sku_name                          = "Premium_AzureFrontDoor"
+  cdn_frontdoor_profile_id          = azurerm_cdn_frontdoor_profile.test.id
+  sku_name                          = "Premium_AzureFrontDoor"
   enabled                           = true
   mode                              = "Prevention"
   redirect_url                      = "https://www.contoso.com"
