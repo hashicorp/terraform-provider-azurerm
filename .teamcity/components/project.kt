@@ -30,7 +30,7 @@ fun buildConfigurationsForServices(services: Map<String, String>, providerName :
         var service = serviceDetails(serviceName, displayName, environment)
         var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.daysOfWeek, testConfig.daysOfMonth)
 
-        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsForEnv)
+        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsForEnv,  testConfig.useAltSubscription)
 
         list.add(buildConfig)
     }
@@ -46,9 +46,10 @@ fun pullRequestBuildConfiguration(environment: String, configuration: ClientConf
     return buildConfiguration
 }
 
-class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, daysOfMonth: String = defaultDaysOfMonth) {
+class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, daysOfMonth: String = defaultDaysOfMonth, useAltSubscription: Boolean = false) {
     var parallelism = parallelism
     var startHour = startHour
     var daysOfWeek = daysOfWeek
     var daysOfMonth = daysOfMonth
+    var useAltSubscription = useAltSubscription
 }

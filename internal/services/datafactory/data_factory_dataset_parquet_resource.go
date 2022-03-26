@@ -277,7 +277,6 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	description := d.Get("description").(string)
-	// TODO
 	parquetTableset := datafactory.ParquetDataset{
 		ParquetDatasetTypeProperties: &parquetDatasetProperties,
 		LinkedServiceName:            linkedService,

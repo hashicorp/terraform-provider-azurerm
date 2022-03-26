@@ -45,7 +45,6 @@ resource "azurerm_lb_backend_address_pool" "example" {
 }
 
 resource "azurerm_lb_outbound_rule" "example" {
-  resource_group_name     = azurerm_resource_group.example.name
   loadbalancer_id         = azurerm_lb.example.id
   name                    = "OutboundRule"
   protocol                = "Tcp"
@@ -62,7 +61,6 @@ resource "azurerm_lb_outbound_rule" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Outbound Rule. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the resource. Changing this forces a new resource to be created.
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Outbound Rule. Changing this forces a new resource to be created.
 * `frontend_ip_configuration` - (Required) One or more `frontend_ip_configuration` blocks as defined below.
 * `backend_address_pool_id` - (Required) The ID of the Backend Address Pool. Outbound traffic is randomly load balanced across IPs in the backend IPs.

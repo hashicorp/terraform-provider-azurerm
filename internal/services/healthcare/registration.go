@@ -28,13 +28,15 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_healthcare_service": dataSourceHealthcareService(),
+		"azurerm_healthcare_service":   dataSourceHealthcareService(),
+		"azurerm_healthcare_workspace": dataSourceHealthcareWorkspace(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_healthcare_service": resourceHealthcareService(),
+		"azurerm_healthcare_service":   resourceHealthcareService(),
+		"azurerm_healthcare_workspace": resourceHealthcareApisWorkspace(),
 	}
 }

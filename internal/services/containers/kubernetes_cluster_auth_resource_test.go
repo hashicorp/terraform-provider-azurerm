@@ -2,7 +2,6 @@ package containers_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -191,32 +190,6 @@ func TestAccKubernetesCluster_roleBasedAccessControlAADUpdateToManaged(t *testin
 	r := KubernetesClusterResource{}
 	clientData := data.Client()
 	auth := clientData.Default
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.roleBasedAccessControlAADConfig(data, auth.ClientID, auth.ClientSecret, ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(rbacServerAppSecret()...),
-		{
-			Config: r.roleBasedAccessControlAADManagedConfig(data, ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(rbacServerAppSecret()...),
-	})
-}
-
-func TestAccKubernetesCluster_roleBasedAccessControlAADUpdateToManagedSensitive(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-	clientData := data.Client()
-	auth := clientData.Default
-
-	os.Setenv("ARM_AKS_KUBE_CONFIGS_SENSITIVE", "true")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -464,7 +437,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {

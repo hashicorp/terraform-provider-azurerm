@@ -73,6 +73,13 @@ func dataSourceVirtualNetwork() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+			"vnet_peerings_addresses": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -119,6 +126,11 @@ func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err := d.Set("vnet_peerings", flattenVnetPeerings(props.VirtualNetworkPeerings)); err != nil {
 			return fmt.Errorf("setting `vnet_peerings`: %v", err)
 		}
+
+		if err := d.Set("vnet_peerings_addresses", flattenVnetPeeringsdAddressList(props.VirtualNetworkPeerings)); err != nil {
+			return fmt.Errorf("setting `vnet_peerings_addresses`: %v", err)
+		}
+
 		return tags.FlattenAndSet(d, resp.Tags)
 	}
 
@@ -154,5 +166,19 @@ func flattenVnetPeerings(input *[]network.VirtualNetworkPeering) map[string]inte
 		}
 	}
 
+	return output
+}
+
+func flattenVnetPeeringsdAddressList(input *[]network.VirtualNetworkPeering) []string {
+	var output []string
+	if peerings := input; peerings != nil {
+		for _, vnetpeering := range *peerings {
+			for _, addresses := range *vnetpeering.RemoteVirtualNetworkAddressSpace.AddressPrefixes {
+				if addresses != "" {
+					output = append(output, addresses)
+				}
+			}
+		}
+	}
 	return output
 }

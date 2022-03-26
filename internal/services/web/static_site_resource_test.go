@@ -71,19 +71,20 @@ func TestAccAzureStaticSite_identity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withSystemAssignedUserAssignedIdentity(data),
+			Config: r.withUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
+		// TODO: re-enable this once the API issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/18253
+		// {
+		// 	Config: r.basic(data),
+		// 	Check: acceptance.ComposeTestCheckFunc(
+		// 		check.That(data.ResourceName).ExistsInAzure(r),
+		// 	),
+		// },
+		// data.ImportStep(),
 	})
 }
 

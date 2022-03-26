@@ -69,7 +69,6 @@ The following attributes are exported:
 * `max_interval_in_seconds` - The amount of staleness (in seconds) tolerated when the consistency level is Bounded Staleness.
 * `max_staleness_prefix` - The number of stale requests tolerated when the consistency level is Bounded Staleness.
 
-
 `geo_location` The geographic locations data is replicated to with the following properties:
 
 * `id` - The ID of the location.
