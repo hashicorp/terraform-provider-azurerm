@@ -101,7 +101,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				"container_registry_managed_identity_client_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: msiValidate.UserAssignedIdentityID,
+					ValidateFunc: validation.IsUUID,
 				},
 
 				"default_documents": {
