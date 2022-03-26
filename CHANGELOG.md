@@ -1,5 +1,9 @@
 ## 3.1.0 (Unreleased)
 
+BUG FIXES:
+
+* `azurerm_api_management_api_operation_tag` - now retrieves tags from the correct API [GFH-16006]
+
 ## 3.0.2 (March 26, 2022)
 
 BUG FIXES:
