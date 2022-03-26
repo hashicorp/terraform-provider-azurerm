@@ -318,19 +318,6 @@ func expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input []interf
 	}
 }
 
-func expandOriginGroupHttpErrorRangeParametersArray(input []interface{}) *[]track1.HTTPErrorRangeParameters {
-	results := make([]track1.HTTPErrorRangeParameters, 0)
-	for _, item := range input {
-		v := item.(map[string]interface{})
-
-		results = append(results, track1.HTTPErrorRangeParameters{
-			Begin: utils.Int32(int32(v["begin"].(int))),
-			End:   utils.Int32(int32(v["end"].(int))),
-		})
-	}
-	return &results
-}
-
 func flattenCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input *track1.LoadBalancingSettingsParameters) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
@@ -351,28 +338,6 @@ func flattenCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input *track1
 		result["successful_samples_required"] = *input.SuccessfulSamplesRequired
 	}
 	return append(results, result)
-}
-
-func flattenOriginGroupHttpErrorRangeParametersArray(inputs *[]track1.HTTPErrorRangeParameters) []interface{} {
-	results := make([]interface{}, 0)
-	if inputs == nil {
-		return results
-	}
-
-	for _, input := range *inputs {
-		result := make(map[string]interface{})
-
-		if input.Begin != nil {
-			result["begin"] = *input.Begin
-		}
-
-		if input.End != nil {
-			result["end"] = *input.End
-		}
-		results = append(results, result)
-	}
-
-	return results
 }
 
 func flattenCdnFrontdoorOriginGroupHealthProbeParameters(input *track1.HealthProbeParameters) []interface{} {

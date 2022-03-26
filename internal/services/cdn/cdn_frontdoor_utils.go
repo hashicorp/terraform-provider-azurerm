@@ -361,7 +361,7 @@ func validateActionsBlock(actions []track1.BasicDeliveryRuleAction) error {
 
 func ValidatedLegacyFrontdoorWAFName(i interface{}, k string) (_ []string, errors []error) {
 	if m, regexErrs := validate.RegExHelper(i, k, `(^[a-zA-Z])([\da-zA-Z]{0,127})$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be between 1 and 128 characters in length, must begin with a letter and may only contain letters and numbers.`, k))
+		return nil, append(regexErrs, fmt.Errorf(`%q must be between 1 and 128 characters in length, must begin with a letter and may only contain letters and numbers`, k))
 	}
 
 	return nil, nil
@@ -369,7 +369,7 @@ func ValidatedLegacyFrontdoorWAFName(i interface{}, k string) (_ []string, error
 
 func ValidateLegacyCustomBlockResponseBody(i interface{}, k string) (_ []string, errors []error) {
 	if m, regexErrs := validate.RegExHelper(i, k, `^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q contains invalid characters, %q must contain only alphanumeric and equals sign characters.`, k, k))
+		return nil, append(regexErrs, fmt.Errorf(`%q contains invalid characters, %q must contain only alphanumeric and equals sign characters`, k, k))
 	}
 
 	return nil, nil
