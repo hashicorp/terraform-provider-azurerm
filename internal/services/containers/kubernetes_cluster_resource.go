@@ -609,6 +609,24 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"oidc_issuer_profile": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"issuer_url": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"private_fqdn": { // privateFqdn
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -1222,6 +1240,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
+	oidcIssuerProfileRaw := d.Get("oidc_issuer_profile").([]interface{})
+	oidcIssuerProfile := expandKubernetesClusterOidcIssuerProfile(oidcIssuerProfileRaw)
+
 	publicNetworkAccess := containerservice.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = containerservice.PublicNetworkAccessDisabled
@@ -1250,6 +1271,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			PublicNetworkAccess:    publicNetworkAccess,
 			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
 			HTTPProxyConfig:        httpProxyConfig,
+			OidcIssuerProfile:      oidcIssuerProfile,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1734,6 +1756,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.HTTPProxyConfig = httpProxyConfig
 	}
 
+	if d.HasChange("oidc_issuer_profile") {
+		updateCluster = true
+		oidcIssuerProfileRaw := d.Get("oidc_issuer_profile").([]interface{})
+		oidcIssuerProfile := expandKubernetesClusterOidcIssuerProfile(oidcIssuerProfileRaw)
+		existing.ManagedClusterProperties.OidcIssuerProfile = oidcIssuerProfile
+	}
+
 	if updateCluster {
 		log.Printf("[DEBUG] Updating %s..", *id)
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
@@ -1983,6 +2012,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props)
 		if err := d.Set("http_proxy_config", httpProxyConfig); err != nil {
 			return fmt.Errorf("setting `http_proxy_config`: %+v", err)
+		}
+
+		oidcIssuerProfile := flattenKubernetesClusterOidcIssuerProfile(props)
+		if err := d.Set("oidc_issuer_profile", oidcIssuerProfile); err != nil {
+			return fmt.Errorf("setting `oidc_issuer_profile`: %+v", err)
 		}
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
@@ -3154,6 +3188,19 @@ func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservi
 	return &httpProxyConfig
 }
 
+func expandKubernetesClusterOidcIssuerProfile(input []interface{}) *containerservice.ManagedClusterOIDCIssuerProfile {
+	oidcIssuerProfile := containerservice.ManagedClusterOIDCIssuerProfile{}
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	profile := input[0].(map[string]interface{})
+
+	oidcIssuerProfile.Enabled = utils.Bool(profile["enabled"].(bool))
+
+	return &oidcIssuerProfile
+}
+
 func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClusterProperties) []interface{} {
 	if props == nil || props.HTTPProxyConfig == nil {
 		return []interface{}{}
@@ -3187,5 +3234,29 @@ func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClus
 		"https_proxy": httpsProxy,
 		"no_proxy":    noProxyList,
 		"trusted_ca":  trustedCa,
+	})
+}
+
+func flattenKubernetesClusterOidcIssuerProfile(props *containerservice.ManagedClusterProperties) []interface{} {
+	if props == nil || props.OidcIssuerProfile == nil {
+		return []interface{}{}
+	}
+
+	oidcIssuerProfile := props.OidcIssuerProfile
+
+	enabled := false
+	if oidcIssuerProfile.Enabled != nil {
+		enabled = *oidcIssuerProfile.Enabled
+	}
+
+	issuerUrl := ""
+	if oidcIssuerProfile.IssuerURL != nil {
+		issuerUrl = *oidcIssuerProfile.IssuerURL
+	}
+
+	results := []interface{}{}
+	return append(results, map[string]interface{}{
+		"enabled":    enabled,
+		"issuer_url": issuerUrl,
 	})
 }

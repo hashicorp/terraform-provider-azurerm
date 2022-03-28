@@ -677,6 +677,36 @@ func TestAccDataSourceKubernetesCluster_nodePublicIP(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_oidcIssuerProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.oidcIssuerProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("oidc_issuer_profile.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("oidc_issuer_profile.0.issuer_url").IsSet(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_oidcIssuerProfileDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.oidcIssuerProfileDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("oidc_issuer_profile.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("oidc_issuer_profile.0.issuer_url").HasValue(""),
+			),
+		},
+	})
+}
+
 func (KubernetesClusterDataSource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -961,4 +991,26 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.nodePublicIPPrefixConfig(data))
+}
+
+func (KubernetesClusterDataSource) oidcIssuerProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.oidcIssuerProfile(data))
+}
+
+func (KubernetesClusterDataSource) oidcIssuerProfileDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.oidcIssuerProfileDisabled(data))
 }

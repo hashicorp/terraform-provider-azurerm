@@ -138,6 +138,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
 
+* `oidc_issuer_profile` - (Optional) A `oidc_issuer_profile` block as defined below
+
 * `oms_agent` - (Optional) A `oms_agent` block as defined below.
 
 * `open_service_mesh_enabled` - (Optional) Is Open Service Mesh enabled? For more details, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-about).
@@ -543,6 +545,12 @@ A `nat_gateway_profile` block supports the following:
 
 ---
 
+An `oidc_issuer_profile` block supports the following:
+
+* `enabled` - (Required) Enable or Disable the [oidc issuer url](https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#oidc-issuer-preview)
+
+---
+
 An `oms_agent` block supports the following:
 
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace which the OMS Agent should send data to.
@@ -695,6 +703,8 @@ The following attributes are exported:
 
 * `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
 
+* `oidc_issuer_profile` - The `oidc_issuer_profile` block as defined below.
+
 * `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
 
 ---
@@ -763,6 +773,14 @@ The `ingress_application_gateway_identity` block exports the following:
 * `object_id` - The Object ID of the user-defined Managed Identity used by the Application Gateway.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Application Gateway.
+
+---
+
+The `oidc_issuer_profile` block exports the following:
+
+* `enabled` - Whether or not the feature is enabled or disabled.
+
+* `oidc_issuer_url` - The oidc issuer url that is associated with the cluster.
 
 ---
 

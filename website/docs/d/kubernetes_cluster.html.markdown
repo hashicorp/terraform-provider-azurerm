@@ -78,6 +78,8 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 
+* `oidc_issuer_profile` - An `oidc_issuer_profile` block as documented below.
+
 * `oms_agent` - An `oms_agent` block as documented below.
 
 * `open_service_mesh_enabled` - Is Open Service Mesh enabled for this managed Kubernetes Cluster?

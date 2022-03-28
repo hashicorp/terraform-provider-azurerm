@@ -588,6 +588,23 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"oidc_issuer_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"issuer_url": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"role_based_access_control_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -954,6 +971,11 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		networkProfile := flattenKubernetesClusterDataSourceNetworkProfile(props.NetworkProfile)
 		if err := d.Set("network_profile", networkProfile); err != nil {
 			return fmt.Errorf("setting `network_profile`: %+v", err)
+		}
+
+		oidcIssuerProfile := flattenKubernetesClusterDataSourceOidcIssuerProfile(props.OidcIssuerProfile)
+		if err := d.Set("oidc_issuer_profile", oidcIssuerProfile); err != nil {
+			return fmt.Errorf("setting `oidc_issuer_profile`: %+v", err)
 		}
 
 		rbacEnabled := true
@@ -1770,4 +1792,26 @@ func flattenClusterDataSourceIdentity(input *containerservice.ManagedClusterIden
 	}
 
 	return identity.FlattenSystemOrUserAssignedMap(transform)
+}
+
+func flattenKubernetesClusterDataSourceOidcIssuerProfile(input *containerservice.ManagedClusterOIDCIssuerProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	enabled := false
+	if input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+
+	issuerUrl := ""
+	if input.IssuerURL != nil {
+		issuerUrl = *input.IssuerURL
+	}
+
+	results := []interface{}{}
+	return append(results, map[string]interface{}{
+		"enabled":    enabled,
+		"issuer_url": issuerUrl,
+	})
 }
