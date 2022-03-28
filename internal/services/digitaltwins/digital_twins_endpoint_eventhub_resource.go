@@ -103,6 +103,7 @@ func resourceDigitalTwinsEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData,
 	properties := digitaltwins.EndpointResource{
 		Properties: &digitaltwins.EventHub{
 			EndpointType:                 digitaltwins.EndpointTypeEventHub,
+			AuthenticationType:           digitaltwins.KeyBased,
 			ConnectionStringPrimaryKey:   utils.String(d.Get("eventhub_primary_connection_string").(string)),
 			ConnectionStringSecondaryKey: utils.String(d.Get("eventhub_secondary_connection_string").(string)),
 			DeadLetterSecret:             utils.String(d.Get("dead_letter_storage_secret").(string)),

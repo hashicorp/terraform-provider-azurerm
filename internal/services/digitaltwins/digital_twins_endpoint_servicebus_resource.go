@@ -103,6 +103,7 @@ func resourceDigitalTwinsEndpointServiceBusCreateUpdate(d *pluginsdk.ResourceDat
 	properties := digitaltwins.EndpointResource{
 		Properties: &digitaltwins.ServiceBus{
 			EndpointType:              digitaltwins.EndpointTypeServiceBus,
+			AuthenticationType:        digitaltwins.KeyBased,
 			PrimaryConnectionString:   utils.String(d.Get("servicebus_primary_connection_string").(string)),
 			SecondaryConnectionString: utils.String(d.Get("servicebus_secondary_connection_string").(string)),
 			DeadLetterSecret:          utils.String(d.Get("dead_letter_storage_secret").(string)),

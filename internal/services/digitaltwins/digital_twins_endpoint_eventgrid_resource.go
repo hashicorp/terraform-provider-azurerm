@@ -105,11 +105,12 @@ func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *pluginsdk.ResourceData
 
 	properties := digitaltwins.EndpointResource{
 		Properties: &digitaltwins.EventGrid{
-			EndpointType:     digitaltwins.EndpointTypeEventGrid,
-			TopicEndpoint:    utils.String(d.Get("eventgrid_topic_endpoint").(string)),
-			AccessKey1:       utils.String(d.Get("eventgrid_topic_primary_access_key").(string)),
-			AccessKey2:       utils.String(d.Get("eventgrid_topic_secondary_access_key").(string)),
-			DeadLetterSecret: utils.String(d.Get("dead_letter_storage_secret").(string)),
+			EndpointType:       digitaltwins.EndpointTypeEventGrid,
+			AuthenticationType: digitaltwins.KeyBased,
+			TopicEndpoint:      utils.String(d.Get("eventgrid_topic_endpoint").(string)),
+			AccessKey1:         utils.String(d.Get("eventgrid_topic_primary_access_key").(string)),
+			AccessKey2:         utils.String(d.Get("eventgrid_topic_secondary_access_key").(string)),
+			DeadLetterSecret:   utils.String(d.Get("dead_letter_storage_secret").(string)),
 		},
 	}
 
