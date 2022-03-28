@@ -26,8 +26,6 @@ func dataSourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 			Required:     true,
 			ValidateFunc: redisenterprise.ValidateRedisEnterpriseID,
 		},
-		// TODO: deprecate me
-		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"linked_database_id": {
 			Type:     pluginsdk.TypeList,
