@@ -80,6 +80,8 @@ The following attributes are exported:
 
 * `oidc_issuer_profile` - An `oidc_issuer_profile` block as documented below.
 
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableOIDCIssuerPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#oidc-issuer-preview) for more information.
+
 * `oms_agent` - An `oms_agent` block as documented below.
 
 * `open_service_mesh_enabled` - Is Open Service Mesh enabled for this managed Kubernetes Cluster?
@@ -242,6 +244,14 @@ A `network_profile` block exports the following:
 * `pod_cidr` - The CIDR used for pod IP addresses.
 
 * `service_cidr` - Network range used by the Kubernetes service.
+
+---
+
+The `oidc_issuer_profile` block exports the following:
+
+* `enabled` - Whether or not the feature is enabled or disabled.
+
+* `oidc_issuer_url` - The oidc issuer url that is associated with the cluster.
 
 ---
 

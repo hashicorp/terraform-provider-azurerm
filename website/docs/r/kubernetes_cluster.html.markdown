@@ -140,6 +140,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `oidc_issuer_profile` - (Optional) A `oidc_issuer_profile` block as defined below
 
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableOIDCIssuerPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#oidc-issuer-preview) for more information.
+
 * `oms_agent` - (Optional) A `oms_agent` block as defined below.
 
 * `open_service_mesh_enabled` - (Optional) Is Open Service Mesh enabled? For more details, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-about).
