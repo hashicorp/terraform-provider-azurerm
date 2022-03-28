@@ -219,6 +219,8 @@ A `backup` block supports the following:
 
 A `connection_string` block supports the following:
 
+* `name` - (Required) The name of the Connection String.
+
 * `type` - (Required) Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.
 
 * `value` - (Required) The connection string value.
@@ -451,7 +453,7 @@ A `site_config` block supports the following:
 
 * `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker. Defaults to `true`.
 
-* `websockets` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
+* `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Linux App Service.
 

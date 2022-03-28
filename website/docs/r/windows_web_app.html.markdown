@@ -217,6 +217,8 @@ A `backup` block supports the following:
 
 A `connection_string` block supports the following:
 
+* `name` - (Required) The name of the Connection String.
+
 * `type` - (Required) Type of database. Possible values include: `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 
 * `value` - (Required) The connection string value.
@@ -459,7 +461,7 @@ A `site_config` block supports the following:
 
 * `virtual_application` - (Optional) One or more `virtual_application` blocks as defined below.
 
-* `websockets` - (Optional) Should Web Sockets be enabled. Defaults to `false`. 
+* `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`. 
 
 * `worker_count` - (Optional) The number of Workers for this Windows App Service.
 
