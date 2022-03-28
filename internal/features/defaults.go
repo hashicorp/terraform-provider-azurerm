@@ -7,6 +7,9 @@ func Default() UserFeatures {
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,
 		},
+		ApplicationInsights: ApplicationInsightFeatures{
+			DisableGeneratedRule: false,
+		},
 		CognitiveAccount: CognitiveAccountFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 		},
@@ -21,10 +24,10 @@ func Default() UserFeatures {
 			RecoverSoftDeletedSecrets:        true,
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
-			PermanentlyDeleteOnDestroy: false,
+			PermanentlyDeleteOnDestroy: true,
 		},
 		ResourceGroup: ResourceGroupFeatures{
-			PreventDeletionIfContainsResources: false,
+			PreventDeletionIfContainsResources: true,
 		},
 		TemplateDeployment: TemplateDeploymentFeatures{
 			DeleteNestedItemsDuringDeletion: true,

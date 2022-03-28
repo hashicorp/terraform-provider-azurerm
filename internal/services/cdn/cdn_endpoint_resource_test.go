@@ -169,7 +169,7 @@ func TestAccCdnEndpoint_fullFields(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
 			),
 		},
-		// TODO -- add import step. Import step now gives us an error complaining that `is_compression_enabled` is not imported
+		data.ImportStep(),
 	})
 }
 

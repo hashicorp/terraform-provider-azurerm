@@ -130,6 +130,8 @@ A `application_stack` block supports the following:
 
 * `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1` and `6`.
 
+* `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
+
 * `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, and `11`.
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `~12`, `~14`, and `~16`.
@@ -269,11 +271,13 @@ A `headers` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Windows Function App. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Identity IDs.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Windows Function App.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -429,6 +433,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Windows Function App.
 
+* `identity` - An `identity` block as defined below.
+
 * `kind` - The Kind value for this Windows Function App.
 
 * `outbound_ip_address_list` - A list of outbound IP addresses. For example `["52.23.25.3", "52.143.43.12"]`
@@ -440,6 +446,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `possible_outbound_ip_addresses` - A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`. For example `["52.23.25.3", "52.143.43.12","52.143.43.17"]`.
 
 * `site_credential` - A `site_credential` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 

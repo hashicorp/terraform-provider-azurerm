@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-01-01-preview/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-03-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -460,6 +460,7 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(appplatform.SupportedRuntimeValueJava8),
 				string(appplatform.SupportedRuntimeValueJava11),
+				string(appplatform.SupportedRuntimeValueJava17),
 			}, false),
 			Default: appplatform.SupportedRuntimeValueJava8,
 		},

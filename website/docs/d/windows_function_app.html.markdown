@@ -231,15 +231,15 @@ A `google` block exports the following:
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `identity_ids` - A list of User Assigned Identity IDs.
+* `type` - The type of Managed Service Identity that is configured on this Windows Function App.
 
-* `principal_id` - The ID of the Service Principal.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Windows Function App.
 
-* `tenant_id` - The ID of the tenant.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Windows Function App.
 
-* `type` - The type of managed service identity.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Windows Function App.
 
 ---
 

@@ -41,7 +41,7 @@ func resourcePostgreSQLVirtualNetworkRule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
-				// TODO: this should be using a local validator
+				// TODO: this should be using a validation func within the Postgres package
 				ValidateFunc: networkValidate.VirtualNetworkRuleName,
 			},
 

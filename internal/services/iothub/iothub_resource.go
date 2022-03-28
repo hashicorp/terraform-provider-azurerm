@@ -714,8 +714,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if _, ok := d.GetOk("fallback_route"); ok {
 		routingProperties.FallbackRoute = expandIoTHubFallbackRoute(d)
-	} else if features.ThreePointOhBeta() {
-		// TODO update docs for 3.0
+	} else {
 		routingProperties.FallbackRoute = &devices.FallbackRouteProperties{
 			Source:        utils.String(string(devices.RoutingSourceDeviceMessages)),
 			Condition:     utils.String("true"),

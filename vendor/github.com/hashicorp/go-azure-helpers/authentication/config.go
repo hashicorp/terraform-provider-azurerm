@@ -134,6 +134,13 @@ func (c Config) MSALBearerAuthorizerCallback(ctx context.Context, api environmen
 		})
 	}
 
+	// For compatibility with Azure CLI which still uses ADAL, first check if we got an autorest.BearerAuthorizer
+	if cast, ok := authorizer.(*autorest.BearerAuthorizer); ok {
+		return autorest.NewBearerAuthorizerCallback(sender, func(_, _ string) (*autorest.BearerAuthorizer, error) {
+			return cast, nil
+		})
+	}
+
 	cast, ok := authorizer.(*auth.CachedAuthorizer)
 	if !ok {
 		return autorest.NewBearerAuthorizerCallback(nil, func(_, _ string) (*autorest.BearerAuthorizer, error) {

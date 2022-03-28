@@ -96,8 +96,6 @@ The following arguments are supported:
 
 ~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default). 
 
-* `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
-
 * `enabled` - (Optional) Is the Function App enabled?
 
 * `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.

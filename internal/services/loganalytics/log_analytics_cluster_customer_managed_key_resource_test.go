@@ -48,10 +48,17 @@ func (t LogAnalyticsClusterCustomerManagedKeyResource) Exists(ctx context.Contex
 
 	resp, err := clients.LogAnalytics.ClusterClient.Get(ctx, id.ResourceGroup, id.ClusterName)
 	if err != nil {
-		return nil, fmt.Errorf("readingLog Analytics Cluster Customer Managed Key (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	enabled := false
+	if props := resp.ClusterProperties; props != nil {
+		if kv := props.KeyVaultProperties; kv != nil {
+			enabled = kv.KeyVaultURI != nil && kv.KeyVersion != nil && kv.KeyName != nil
+		}
+	}
+
+	return utils.Bool(enabled), nil
 }
 
 func (LogAnalyticsClusterCustomerManagedKeyResource) template(data acceptance.TestData) string {

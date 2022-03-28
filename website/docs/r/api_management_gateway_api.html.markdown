@@ -26,9 +26,8 @@ data "azurerm_api_management_api" "example" {
 }
 
 data "azurerm_api_management_gateway" "example" {
-  gateway_id          = "my-gateway"
-  api_management_name = data.azurerm_api_management.example.name
-  resource_group_name = data.azurerm_api_management.example.resource_group_name
+  name              = "example-gateway"
+  api_management_id = azurerm_api_management.example.id
 }
 
 resource "azurerm_api_management_gateway_api" "example" {

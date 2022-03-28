@@ -46,7 +46,7 @@ The following arguments are supported:
 
 ---
 
-* `availability_zone` - (Optional) The availability zone to allocate the Public IP in. Possible values are `Zone-Redundant`, `1`, `2`, `3`, and `No-Zone`. Defaults to `Zone-Redundant`.
+* `zones` - (Optional) A collection containing the availability zone to allocate the Public IP in.
 
 -> **Note:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-ip-addresses-overview-arm#standard) and [in select regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) at this time. Standard SKU Public IP Addresses that do not specify a zone are zone redundant by default.
 

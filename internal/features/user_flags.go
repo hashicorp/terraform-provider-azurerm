@@ -2,6 +2,7 @@ package features
 
 type UserFeatures struct {
 	ApiManagement          ApiManagementFeatures
+	ApplicationInsights    ApplicationInsightFeatures
 	CognitiveAccount       CognitiveAccountFeatures
 	VirtualMachine         VirtualMachineFeatures
 	VirtualMachineScaleSet VirtualMachineScaleSetFeatures
@@ -53,4 +54,8 @@ type ResourceGroupFeatures struct {
 type ApiManagementFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
 	RecoverSoftDeleted       bool
+}
+
+type ApplicationInsightFeatures struct {
+	DisableGeneratedRule bool
 }

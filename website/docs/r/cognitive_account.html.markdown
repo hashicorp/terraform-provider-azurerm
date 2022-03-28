@@ -84,7 +84,7 @@ The following arguments are supported:
 
 A `network_acls` block supports the following:
 
-* `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_subnet_ids`. Possible values are `Allow` and `Deny`.
+* `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_rules`. Possible values are `Allow` and `Deny`.
 
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Cognitive Account.
 
@@ -100,9 +100,9 @@ A `virtual_network_rules` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on the Cognitive Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cognitive Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Cognitive Account.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
@@ -122,9 +122,19 @@ The following attributes are exported:
 
 * `endpoint` - The endpoint used to connect to the Cognitive Service Account.
 
+* `identity` - An `identity` block as defined below.
+
 * `primary_access_key` - A primary access key which can be used to connect to the Cognitive Service Account.
 
 * `secondary_access_key` - The secondary access key which can be used to connect to the Cognitive Service Account.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 

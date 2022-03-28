@@ -913,11 +913,9 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 
 		"sku": {
 			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			Default:          string(containerregistry.SkuNameClassic),
+			Required:         true,
 			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(containerregistry.SkuNameClassic),
 				string(containerregistry.SkuNameBasic),
 				string(containerregistry.SkuNameStandard),
 				string(containerregistry.SkuNamePremium),

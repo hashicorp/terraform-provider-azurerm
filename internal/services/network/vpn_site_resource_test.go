@@ -150,6 +150,9 @@ resource "azurerm_vpn_site" "test" {
     name = "link2"
     fqdn = "foo.com"
   }
+  tags = {
+    ENV = "Test"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

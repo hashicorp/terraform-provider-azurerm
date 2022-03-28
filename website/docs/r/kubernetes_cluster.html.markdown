@@ -301,10 +301,6 @@ A `default_node_pool` block supports the following:
 
 * `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`.
 
-* `availability_zones` - (Optional) A list of Availability Zones across which the Node Pool should be spread. Changing this forces a new resource to be created.
-
--> **Note:** This requires that the `type` is set to `VirtualMachineScaleSets` and that `load_balancer_sku` is set to `Standard`.
-
 * `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler) be enabled for this Node Pool? Defaults to `false`.
 
 -> **Note:** This requires that the `type` is set to `VirtualMachineScaleSets`.
@@ -345,7 +341,7 @@ A `default_node_pool` block supports the following:
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist. Changing this forces a new resource to be created.
 
-  -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/PodSubnetPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni#register-the-podsubnetpreview-preview-feature) for more information.
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/PodSubnetPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni#register-the-podsubnetpreview-preview-feature) for more information.
 
 * `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`.
 
@@ -377,13 +373,19 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 
 -> **Note:** If `enable_auto_scaling` is set to `false` both `min_count` and `max_count` fields need to be set to `null` or omitted from the configuration.
 
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster should be located. Changing this forces a new Kubernetes Cluster to be created.
+
+-> **Note:** This requires that the `type` is set to `VirtualMachineScaleSets` and that `load_balancer_sku` is set to `Standard`.
+
 ---
 
 An `identity` block supports the following:
 
-* `type` - The type of identity used for the managed cluster. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Kubernetes Cluster. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Kubernetes Cluster.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -426,14 +428,6 @@ The `kubelet_identity` block supports the following:
 * `object_id` - (Required) The Object ID of the user-defined Managed Identity assigned to the Kubelets.If not specified a Managed Identity is created automatically.
 
 * `user_assigned_identity_id` - (Required) The ID of the User Assigned Identity assigned to the Kubelets. If not specified a Managed Identity is created automatically. 
-
----
-
-A `kube_dashboard` block supports the following:
-
-* `enabled` - (Required) Is the Kubernetes Dashboard enabled?
-
-~> **Note:** This block is deprecated and will be removed in version 3.0 of the AzureRM Provider since Kube Dashboard is no longer supported on Kubernetes versions > 1.19.
 
 ---
 
@@ -717,11 +711,11 @@ A `nat_gateway_profile` block exports the following:
 
 ---
 
-The `identity` block exports the following:
+An `identity` block exports the following:
 
-* `principal_id` - The principal id of the system assigned identity which is used by main components.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The tenant id of the system assigned identity which is used by main components.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 

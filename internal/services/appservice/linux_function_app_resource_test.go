@@ -641,10 +641,27 @@ func TestAccLinuxFunctionApp_appStackDotNet6(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNet(data, SkuBasicPlan, "6"),
+			Config: r.appStackDotNet(data, SkuBasicPlan, "6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionApp_appStackDotNet6Isolated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackDotNetIsolated(data, SkuBasicPlan, "6.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOTNET-ISOLATED|6.0"),
 			),
 		},
 		data.ImportStep(),
@@ -935,6 +952,30 @@ func TestAccLinuxFunctionApp_msiStorageAccount(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msiStorageAccount(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionApp_msiStorageAccountUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msiStorageAccount(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.msiStorageAccountUpdate(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -1430,6 +1471,35 @@ resource "azurerm_linux_function_app" "test" {
   site_config {
     application_stack {
       dotnet_version = "%s"
+    }
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, version)
+}
+
+func (r LinuxFunctionAppResource) appStackDotNetIsolated(data acceptance.TestData, planSku string, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    always_on = true
+
+    application_stack {
+      dotnet_version              = "%s"
+      use_dotnet_isolated_runtime = true
     }
   }
 }
@@ -2291,6 +2361,41 @@ resource "azurerm_linux_function_app" "test" {
   }
 
   site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) msiStorageAccountUpdate(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+
+resource "azurerm_role_assignment" "func_app_access_to_storage" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_linux_function_app.test.identity[0].principal_id
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name          = azurerm_storage_account.test.name
+  storage_uses_managed_identity = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  site_config {
+    always_on = true
+  }
 }
 `, r.template(data, planSku), data.RandomInteger)
 }

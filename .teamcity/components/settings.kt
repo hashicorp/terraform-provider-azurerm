@@ -14,7 +14,7 @@ const val defaultDaysOfWeek = "2,3,4,5,6"
 const val defaultDaysOfMonth = "*"
 
 var locations = mapOf(
-        "public" to LocationConfiguration("westeurope", "eastus2", "westus", true)
+        "public" to LocationConfiguration("westeurope", "eastus2", "westus", false)
 )
 
 // specifies the list of Azure Environments where tests should be run nightly

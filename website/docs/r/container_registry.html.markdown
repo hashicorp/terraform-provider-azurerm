@@ -140,21 +140,11 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `sku` - (Required) The SKU name of the container registry. Possible values are  `Basic`, `Standard` and `Premium`.
+
 * `admin_enabled` - (Optional) Specifies whether the admin user is enabled. Defaults to `false`.
 
-* `sku` - (Optional) The SKU name of the container registry. Possible values are  `Basic`, `Standard` and `Premium`. `Classic` (which was previously `Basic`) is supported only for existing resources.
-
-~> **NOTE:** The `Classic` SKU is Deprecated and will no longer be available for new resources from the end of March 2019.
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
-* `georeplication_locations` - (Optional / **Deprecated in favor of `georeplications`**) A list of Azure locations where the container registry should be geo-replicated.
-
-~> **NOTE:** The `georeplication_locations` is only supported on new resources with the `Premium` SKU.
-
-~> **NOTE:** The `georeplication_locations` list cannot contain the location where the Container Registry exists.
-
-~> **NOTE:** The `georeplication_locations` is deprecated, use `georeplications` instead.
 
 * `georeplications` - (Optional) A `georeplications` block as documented below.
 
@@ -246,11 +236,13 @@ The following arguments are supported:
 
 ---
 
-`identity` supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Identity which should be assigned to the Container Registry. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Container Registry. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Container Registry.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Container Registry.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -277,15 +269,15 @@ The following attributes are exported:
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
 
-* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Container Registry.
+* `identity` - An `identity` block as defined below.
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Container Registry.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Container Registry.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 -> You can access the Principal ID via `azurerm_container_registry.example.identity.0.principal_id` and the Tenant ID via `azurerm_container_registry.example.identity.0.tenant_id`
 
