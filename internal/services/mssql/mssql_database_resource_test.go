@@ -740,6 +740,8 @@ resource "azurerm_mssql_database" "test" {
   sample_name  = "AdventureWorksLT"
   sku_name     = "GP_Gen5_2"
 
+  storage_account_type = "Local"
+
   tags = {
     ENV = "Test"
   }
@@ -758,6 +760,8 @@ resource "azurerm_mssql_database" "test" {
   license_type = "LicenseIncluded"
   max_size_gb  = 2
   sku_name     = "GP_Gen5_2"
+
+  storage_account_type = "Zone"
 
   tags = {
     ENV = "Staging"

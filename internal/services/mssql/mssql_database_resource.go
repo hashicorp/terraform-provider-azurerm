@@ -902,7 +902,6 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"storage_account_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Default: func() string {
 				if !features.ThreePointOhBeta() {
 					return "GRS"
