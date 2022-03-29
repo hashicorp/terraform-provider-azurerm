@@ -21,6 +21,7 @@ github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/cont
 github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb
 github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2020-06-01/costmanagement
 github.com/Azure/azure-sdk-for-go/services/databoxedge/mgmt/2020-12-01/databoxedge
+github.com/Azure/azure-sdk-for-go/services/datadog/mgmt/2021-03-01/datadog
 github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory
 github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamigration
 github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare
