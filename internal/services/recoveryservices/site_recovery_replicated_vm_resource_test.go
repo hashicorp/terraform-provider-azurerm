@@ -195,6 +195,8 @@ resource "azurerm_virtual_machine" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
+  delete_os_disk_on_termination = true
+
   vm_size = "Standard_B1s"
 
   storage_image_reference {
@@ -434,6 +436,9 @@ resource "azurerm_virtual_machine" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -802,6 +807,8 @@ resource "azurerm_virtual_machine" "test" {
   name                = "vm-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  delete_os_disk_on_termination = true
 
   vm_size = "Standard_B1s"
 
