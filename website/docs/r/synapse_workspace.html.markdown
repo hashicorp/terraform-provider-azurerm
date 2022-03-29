@@ -47,6 +47,10 @@ resource "azurerm_synapse_workspace" "example" {
     tenant_id = "00000000-0000-0000-0000-000000000000"
   }
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   tags = {
     Env = "production"
   }
@@ -118,9 +122,14 @@ resource "azurerm_synapse_workspace" "example" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.example.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+  
   customer_managed_key {
     key_versionless_id = azurerm_key_vault_key.example.versionless_id
     key_name           = "enckey"
+  }
+  
+  identity {
+    type = "SystemAssigned"
   }
 
   tags = {
@@ -166,17 +175,31 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the synapse Workspace should exist. Changing this forces a new resource to be created.
 
+* `identity` - (Required) An `identity` block as defined below.
+
 * `storage_data_lake_gen2_filesystem_id` - (Required) Specifies the ID of storage data lake gen2 filesystem resource. Changing this forces a new resource to be created.
 
 * `sql_administrator_login` - (Required) Specifies The Login Name of the SQL administrator. Changing this forces a new resource to be created.
 
 * `sql_administrator_login_password` - (Required) The Password associated with the `sql_administrator_login` for the SQL administrator.
 
-* `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed Aad Tenant Ids For Linking. 
+---
+
+* `aad_admin` - (Optional) An `aad_admin` block as defined below. Conflicts with `customer_managed_key`.
 
 * `compute_subnet_id` - (Optional) Subnet ID used for computes in workspace
 
+* `azure_devops_repo` - (Optional) An `azure_devops_repo` block as defined below.
+
 * `data_exfiltration_protection_enabled` - (Optional) Is data exfiltration protection enabled in this workspace? If set to `true`, `managed_virtual_network_enabled` must also be set to `true`. Changing this forces a new resource to be created.
+
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Conflicts with `aad_admin`.
+
+* `github_repo` - (Optional) A `github_repo` block as defined below.
+
+* `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed Aad Tenant Ids For Linking. 
+
+* `managed_resource_group_name` - (Optional) Workspace managed resource group.
 
 * `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace? Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -184,19 +207,9 @@ The following arguments are supported:
 
 * `purview_id` - (Optional) The ID of purview account.
 
-* `sql_identity_control_enabled` - (Optional) Are pipelines (running as workspace's system assigned identity) allowed to access SQL pools?
-
-* `managed_resource_group_name` - (Optional) Workspace managed resource group.
-
-* `aad_admin` - (Optional) An `aad_admin` block as defined below. Conflicts with `customer_managed_key`.
-
-* `azure_devops_repo` - (Optional) An `azure_devops_repo` block as defined below.
-
-* `github_repo` - (Optional) A `github_repo` block as defined below.
-
-* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Conflicts with `aad_admin`.
-
 * `sql_aad_admin` - (Optional) An `sql_aad_admin` block as defined below.
+
+* `sql_identity_control_enabled` - (Optional) Are pipelines (running as workspace's system assigned identity) allowed to access SQL pools?
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
 
@@ -209,16 +222,6 @@ An `aad_admin` block supports the following:
 * `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace.
 
 * `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace.
-
----
-
-An `sql_aad_admin` block supports the following:
-
-* `login` - (Required) The login name of the Azure AD Administrator of this Synapse Workspace SQL.
-
-* `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace SQL.
-
-* `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace SQL.
 
 ---
 
@@ -240,6 +243,20 @@ An `azure_devops_repo` block supports the following:
 
 ---
 
+A `customer_managed_key` block supports the following:
+
+* `key_versionless_id` - (Required) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption (e.g. `https://example-keyvault.vault.azure.net/type/cmk/`).
+
+* `key_name` - (Optional) An identifier for the key. Name needs to match the name of the key used with the `azurerm_synapse_workspace_key` resource. Defaults to "cmk" if not specified.
+
+---
+
+The `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Synapse Workspace. The only possible value is `SystemAssigned`.
+
+---
+
 A `github_repo` block supports the following:
 
 * `account_name` - (Required) Specifies the GitHub account name.
@@ -258,11 +275,13 @@ A `github_repo` block supports the following:
 
 ---
 
-A `customer_managed_key` block supports the following:
+An `sql_aad_admin` block supports the following:
 
-* `key_versionless_id` - (Required) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption (e.g. `https://example-keyvault.vault.azure.net/type/cmk/`).
+* `login` - (Required) The login name of the Azure AD Administrator of this Synapse Workspace SQL.
 
-* `key_name` - (Optional) An identifier for the key. Name needs to match the name of the key used with the `azurerm_synapse_workspace_key` resource. Defaults to "cmk" if not specified.
+* `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace SQL.
+
+* `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace SQL.
 
 ## Attributes Reference
 
@@ -272,13 +291,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `connectivity_endpoints` - A list of Connectivity endpoints for this Synapse Workspace.
 
-* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Synapse Workspace.
-
 ---
 
 The `identity` block exports the following:
-
-* `type` - The Identity Type for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
 

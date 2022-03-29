@@ -13,10 +13,15 @@ Manages a Firewall Policy.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
 resource "azurerm_firewall_policy" "example" {
-  name                = "example"
-  resource_group_name = "example"
-  location            = "West Europe"
+  name                = "example-policy"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 ```
 
@@ -36,7 +41,7 @@ The following arguments are supported:
 
 * `dns` - (Optional) A `dns` block as defined below.
 
-* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Firewall Policy to be created.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `insights` - (Optional) An `insights` block as defined below.
 
@@ -58,8 +63,6 @@ The following arguments are supported:
 
 A `dns` block supports the following:
 
-* `network_rule_fqdn_enabled` - (Optional) Should the network rule fqdn be enabled?
-
 * `proxy_enabled` - (Optional) Whether to enable DNS proxy on Firewalls attached to this Firewall Policy? Defaults to `false`.
 
 * `servers` - (Optional) A list of custom DNS servers' IP addresses.
@@ -68,9 +71,9 @@ A `dns` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Type of the identity. At the moment only "UserAssigned" is supported. Changing this forces a new Firewall Policy to be created.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Firewall Policy. Only possible value is `UserAssigned`.
 
-* `user_assigned_identity_ids` - (Optional) Specifies a list of user assigned managed identities.
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Firewall Policy.
 
 ---
 
@@ -96,7 +99,7 @@ A `intrusion_detection` block supports the following:
 
 ---
 
-A `log_analytisc_workspace` block supports the following:
+A `log_analytics_workspace` block supports the following:
 
 * `id` - (Required) The ID of the Log Analytics Workspace that the Firewalls associated with this Firewall Policy will send their logs to when their locations match the `firewall_location`.
 

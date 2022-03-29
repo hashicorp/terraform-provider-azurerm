@@ -57,21 +57,6 @@ func TestAccFunctionApp_deprecatedConnectionString(t *testing.T) {
 	})
 }
 
-func TestAccFunctionApp_deprecatedConnectionStringMissingError(t *testing.T) {
-	if features.ThreePointOhBeta() {
-		t.Skipf("This test does not apply on v3.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
-	r := FunctionAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.deprecatedConnectionStringMissingError(data),
-			ExpectError: regexp.MustCompile("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` must be specified"),
-		},
-	})
-}
-
 func TestAccFunctionApp_deprecatedNeedBothSAAtrributesError(t *testing.T) {
 	if features.ThreePointOhBeta() {
 		t.Skipf("This test does not apply on v3.0")
@@ -1776,7 +1761,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_function_app" "test" {
@@ -3161,7 +3146,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -3436,45 +3421,6 @@ resource "azurerm_function_app" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   app_service_plan_id       = azurerm_app_service_plan.test.id
   storage_connection_string = azurerm_storage_account.test.primary_connection_string
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func (r FunctionAppResource) deprecatedConnectionStringMissingError(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_function_app" "test" {
-  name                = "acctest-%[1]d-func"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

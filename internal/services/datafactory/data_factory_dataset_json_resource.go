@@ -262,7 +262,6 @@ func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	description := d.Get("description").(string)
-	// TODO
 	jsonTableset := datafactory.JSONDataset{
 		JSONDatasetTypeProperties: &jsonDatasetProperties,
 		LinkedServiceName:         linkedService,

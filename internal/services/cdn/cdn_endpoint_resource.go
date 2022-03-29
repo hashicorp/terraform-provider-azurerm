@@ -195,7 +195,7 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
-			"host_name": {
+			"fqdn": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -432,7 +432,7 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.EndpointProperties; props != nil {
-		d.Set("host_name", props.HostName)
+		d.Set("fqdn", props.HostName)
 		d.Set("is_http_allowed", props.IsHTTPAllowed)
 		d.Set("is_https_allowed", props.IsHTTPSAllowed)
 		d.Set("querystring_caching_behaviour", props.QueryStringCachingBehavior)
@@ -514,8 +514,10 @@ func expandCdnEndpointGeoFilters(d *pluginsdk.ResourceData) *[]cdn.GeoFilter {
 		countryCodes := make([]string, 0)
 
 		for _, v := range inputCountryCodes {
-			countryCode := v.(string)
-			countryCodes = append(countryCodes, countryCode)
+			if v != nil {
+				countryCode := v.(string)
+				countryCodes = append(countryCodes, countryCode)
+			}
 		}
 
 		filter := cdn.GeoFilter{

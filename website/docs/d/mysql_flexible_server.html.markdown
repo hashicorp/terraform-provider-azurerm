@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `version` - The version of the MySQL Flexible Server.
 
-* `zone` - The availability zones of the MySQL Flexible Server.
+* `zone` - The Availability Zones where this MySQL Flexible Server is located.
 
 * `tags` - A mapping of tags which are assigned to the MySQL Flexible Server.
 

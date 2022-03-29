@@ -13,14 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -134,52 +131,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"foo": commonschema.SystemOrUserAssignedIdentityOptional(),
-
-			"identity": func() *schema.Schema {
-				// TODO: document this change is coming in 3.0 (user_assigned_identity_ids -> identity_ids)
-				if !features.ThreePointOhBeta() {
-					return &schema.Schema{
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(sql.IdentityTypeSystemAssigned),
-										string(sql.IdentityTypeUserAssigned),
-									}, false),
-								},
-								"user_assigned_identity_ids": {
-									Type:     pluginsdk.TypeSet,
-									Optional: true,
-									MinItems: 1,
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: msivalidate.UserAssignedIdentityID,
-									},
-									RequiredWith: []string{
-										"primary_user_assigned_identity_id",
-									},
-								},
-								"principal_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"tenant_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					}
-				}
-
-				return commonschema.SystemOrUserAssignedIdentityOptional()
-			}(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"primary_user_assigned_identity_id": {
 				Type:         pluginsdk.TypeString,
@@ -187,13 +139,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Computed:     true,
 				ValidateFunc: msivalidate.UserAssignedIdentityID,
 				RequiredWith: []string{
-					func() string {
-						if !features.ThreePointOhBeta() {
-							return "identity.0.user_assigned_identity_ids"
-						}
-
-						return "identity.0.identity_ids"
-					}(),
+					"identity.0.identity_ids",
 				},
 			},
 
@@ -225,8 +171,6 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
-
 			"fully_qualified_domain_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -254,7 +198,6 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -300,8 +243,8 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.ServerProperties.Administrators = expandMsSqlServerAdministrators(azureADAdministrator.([]interface{}))
 	}
 
-	if _, ok := d.GetOk("identity"); ok {
-		expandedIdentity, err := expandSqlServerIdentity(d.Get("identity").([]interface{}))
+	if v, ok := d.GetOk("identity"); ok {
+		expandedIdentity, err := expandSqlServerIdentity(v.([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -348,30 +291,12 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("issuing create request for Connection Policy %s: %+v", id.String(), err)
 	}
 
-	auditingPolicy, err := helper.ExpandSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("while expanding blog auditing policy of resource %q: %s", id.String(), err)
-	}
-	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: auditingPolicy,
-	}
-
-	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
-	if err != nil {
-		return fmt.Errorf("issuing create request for Blob Auditing Policies %s: %+v", id.String(), err)
-	}
-
-	if err = auditingFuture.WaitForCompletionRef(ctx, auditingClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Blob Auditing Policies %s: %+v", id.String(), err)
-	}
-
 	return resourceMsSqlServerRead(d, meta)
 }
 
 func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
 	aadOnlyAuthentictionsClient := meta.(*clients.Client).MSSQL.ServerAzureADOnlyAuthenticationsClient
@@ -396,8 +321,8 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if ok := d.HasChange("identity"); ok {
-		expandedIdentity, err := expandSqlServerIdentity(d.Get("identity").([]interface{}))
+	if v, ok := d.GetOk("identity"); ok {
+		expandedIdentity, err := expandSqlServerIdentity(v.([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -497,29 +422,11 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("issuing update request for Connection Policy %s: %+v", id.String(), err)
 	}
 
-	auditingPolicy, err := helper.ExpandSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("while expanding blog auditing policy of resource %q: %s", id.String(), err)
-	}
-	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: auditingPolicy,
-	}
-
-	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
-	if err != nil {
-		return fmt.Errorf("issuing update request for Blob Auditing Policies %s: %+v", id.String(), err)
-	}
-
-	if err = auditingFuture.WaitForCompletionRef(ctx, auditingClient.Client); err != nil {
-		return fmt.Errorf("waiting for update of Blob Auditing Policies %s: %+v", id.String(), err)
-	}
-
 	return resourceMsSqlServerRead(d, meta)
 }
 
 func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
-	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -585,15 +492,6 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("connection_policy", string(props.ConnectionType))
 	}
 
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("reading SQL Server %s Blob Auditing Policies: %v ", id.Name, err)
-	}
-
-	if err := d.Set("extended_auditing_policy", helper.FlattenSqlServerBlobAuditingPolicies(&auditingResp, d)); err != nil {
-		return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
-	}
-
 	restorableListPage, err := restorableDroppedDatabasesClient.ListByServer(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", id.Name, err)
@@ -624,30 +522,6 @@ func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func expandSqlServerIdentity(input []interface{}) (*sql.ResourceIdentity, error) {
-	if !features.ThreePointOhBeta() {
-		if len(input) == 0 {
-			return &sql.ResourceIdentity{}, nil
-		}
-		identity := input[0].(map[string]interface{})
-		identityType := sql.IdentityType(identity["type"].(string))
-
-		userAssignedIdentityIds := make(map[string]*sql.UserIdentity)
-		for _, id := range identity["user_assigned_identity_ids"].(*pluginsdk.Set).List() {
-			userAssignedIdentityIds[id.(string)] = &sql.UserIdentity{}
-		}
-
-		managedServiceIdentity := sql.ResourceIdentity{
-			Type: identityType,
-		}
-
-		if identityType == sql.IdentityTypeUserAssigned {
-			managedServiceIdentity.UserAssignedIdentities = userAssignedIdentityIds
-		}
-
-		return &managedServiceIdentity, nil
-
-	}
-
 	expanded, err := identity.ExpandSystemOrUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -669,34 +543,6 @@ func expandSqlServerIdentity(input []interface{}) (*sql.ResourceIdentity, error)
 }
 
 func flattenSqlServerIdentity(input *sql.ResourceIdentity) (*[]interface{}, error) {
-	if !features.ThreePointOhBeta() {
-		if input == nil {
-			return &[]interface{}{}, nil
-		}
-		result := make(map[string]interface{})
-		result["type"] = input.Type
-		if input.PrincipalID != nil {
-			result["principal_id"] = input.PrincipalID.String()
-		}
-		if input.TenantID != nil {
-			result["tenant_id"] = input.TenantID.String()
-		}
-
-		identityIds := make([]string, 0)
-		if input.UserAssignedIdentities != nil {
-			for key := range input.UserAssignedIdentities {
-				parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
-				if err != nil {
-					return nil, err
-				}
-				identityIds = append(identityIds, parsedId.ID())
-			}
-		}
-		result["user_assigned_identity_ids"] = identityIds
-
-		return &[]interface{}{result}, nil
-	}
-
 	var transform *identity.SystemOrUserAssignedMap
 
 	if input != nil {

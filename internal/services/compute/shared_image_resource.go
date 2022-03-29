@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
@@ -160,6 +161,12 @@ func resourceSharedImage() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"accelerated_network_support_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -192,6 +199,12 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		features = append(features, compute.GalleryImageFeature{
 			Name:  utils.String("SecurityType"),
 			Value: utils.String("TrustedLaunch"),
+		})
+	}
+	if d.Get("accelerated_network_support_enabled").(bool) {
+		features = append(features, compute.GalleryImageFeature{
+			Name:  utils.String("IsAcceleratedNetworkSupported"),
+			Value: utils.String("true"),
 		})
 	}
 
@@ -276,15 +289,25 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("setting `purchase_plan`: %+v", err)
 		}
 
-		trusted_launch_enabled := false
-		if props.Features != nil {
-			for _, feature := range *props.Features {
-				if feature.Name != nil && feature.Value != nil && *feature.Name == "SecurityType" && *feature.Value == "TrustedLaunch" {
-					trusted_launch_enabled = true
+		trustedLaunchEnabled := false
+		acceleratedNetworkSupportEnabled := false
+		if features := props.Features; features != nil {
+			for _, feature := range *features {
+				if feature.Name == nil || feature.Value == nil {
+					continue
+				}
+
+				if strings.EqualFold(*feature.Name, "SecurityType") {
+					trustedLaunchEnabled = strings.EqualFold(*feature.Value, "TrustedLaunch")
+				}
+
+				if strings.EqualFold(*feature.Name, "IsAcceleratedNetworkSupported") {
+					acceleratedNetworkSupportEnabled = strings.EqualFold(*feature.Value, "true")
 				}
 			}
 		}
-		d.Set("trusted_launch_enabled", trusted_launch_enabled)
+		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+		d.Set("accelerated_network_support_enabled", acceleratedNetworkSupportEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

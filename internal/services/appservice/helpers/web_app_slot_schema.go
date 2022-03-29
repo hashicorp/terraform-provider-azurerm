@@ -588,6 +588,10 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
 		}
 
+		if linuxAppStack.RubyVersion != "" {
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
+		}
+
 		if linuxAppStack.JavaServer != "" {
 			// (@jackofallops) - Java has some special cases for Java SE when using specific versions of the runtime, resulting in this string
 			// being formatted in the form: `JAVA|u242` instead of the standard pattern of `JAVA|u242-java8` for example. This applies to jre8 and java11.

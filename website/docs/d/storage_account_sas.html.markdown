@@ -66,6 +66,8 @@ data "azurerm_storage_account_sas" "example" {
     create  = true
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 
@@ -122,6 +124,8 @@ A `permissions` block contains:
 * `create` - Should Create permissions be enabled for this SAS?
 * `update` - Should Update permissions be enabled for this SAS?
 * `process` - Should Process permissions be enabled for this SAS?
+* `tag` - Should Get / Set Index Tags permissions be enabled for this SAS?
+* `filter` - Should Filter by Index Tags permissions be enabled for this SAS?
 
 Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/en-us/rest/api/storageservices/constructing-an-account-sas)
 for additional details on the fields above.
