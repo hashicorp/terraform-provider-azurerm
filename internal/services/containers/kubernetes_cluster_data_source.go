@@ -418,17 +418,20 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"kube_admin_config": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Type:      pluginsdk.TypeList,
+				Computed:  true,
+				Sensitive: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"host": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"username": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"password": {
 							Type:      pluginsdk.TypeString,
@@ -436,8 +439,9 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Sensitive: true,
 						},
 						"client_certificate": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"client_key": {
 							Type:      pluginsdk.TypeString,
@@ -445,8 +449,9 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Sensitive: true,
 						},
 						"cluster_ca_certificate": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -459,17 +464,20 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"kube_config": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Type:      pluginsdk.TypeList,
+				Computed:  true,
+				Sensitive: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"host": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"username": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"password": {
 							Type:      pluginsdk.TypeString,
@@ -477,8 +485,9 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Sensitive: true,
 						},
 						"client_certificate": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"client_key": {
 							Type:      pluginsdk.TypeString,
@@ -486,8 +495,9 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Sensitive: true,
 						},
 						"cluster_ca_certificate": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 					},
 				},

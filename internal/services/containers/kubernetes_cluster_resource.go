@@ -886,17 +886,20 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"kube_admin_config": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Type:      pluginsdk.TypeList,
+				Computed:  true,
+				Sensitive: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"host": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"username": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"password": {
 							Type:      pluginsdk.TypeString,
@@ -929,17 +932,20 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"kube_config": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Type:      pluginsdk.TypeList,
+				Computed:  true,
+				Sensitive: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"host": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"username": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"password": {
 							Type:      pluginsdk.TypeString,
@@ -1009,88 +1015,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 	// CLEANUP: post-3.0 we should inline these?
 	for k, v := range schemaKubernetesAddOns() {
 		resource.Schema[k] = v
-	}
-
-	if features.KubeConfigsAreSensitive() {
-		resource.Schema["kube_config"] = &pluginsdk.Schema{
-			Type:      pluginsdk.TypeList,
-			Computed:  true,
-			Sensitive: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"host": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"username": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"password": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"client_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"client_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"cluster_ca_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-				},
-			},
-		}
-
-		resource.Schema["kube_admin_config"] = &pluginsdk.Schema{
-			Type:      pluginsdk.TypeList,
-			Computed:  true,
-			Sensitive: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"host": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"username": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"password": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"client_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"client_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"cluster_ca_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-				},
-			},
-		}
 	}
 
 	if !features.ThreePointOhBeta() {

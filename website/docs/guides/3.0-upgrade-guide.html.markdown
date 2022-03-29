@@ -1000,6 +1000,11 @@ The `azurerm_policy_assignment` resource will be removed in favour of the `azure
 
 The deprecated field `management_group_name` will be removed in favour of the `management_group_id` property.
 
+### Resource: `azurerm_policy_remediation`
+
+The `azurerm_policy_remediation` resource will be removed in favour of the `azurerm_management_group_policy_remediation`, `azurerm_resource_policy_remediation`, `azurerm_resource_group_policy_remediation` and `azurerm_subscription_policy_remediation` resources.
+
+
 ### Resource: `azurerm_policy_set_definition`
 
 The deprecated field `management_group_name` will be removed in favour of the `management_group_id` property.

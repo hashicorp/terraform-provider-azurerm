@@ -75,6 +75,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `storage_account_access_key` -  The access key used to access the backend storage account for the Function App. 
 
+* `storage_key_vault_secret_id` - The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.
+
 * `storage_uses_managed_identity` - Does the Function App use Managed Identity to access the storage account?
 
 * `tags` - A mapping of tags which are assigned to the Linux Function App.
