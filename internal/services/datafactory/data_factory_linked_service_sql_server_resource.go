@@ -257,7 +257,6 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, me
 
 	d.Set("additional_properties", sqlServer.AdditionalProperties)
 	d.Set("description", sqlServer.Description)
-	d.Set("user_name", sqlServer.SQLServerLinkedServiceTypeProperties.UserName)
 
 	annotations := flattenDataFactoryAnnotations(sqlServer.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
@@ -276,6 +275,7 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, me
 	}
 
 	if properties := sqlServer.SQLServerLinkedServiceTypeProperties; properties != nil {
+		d.Set("user_name", properties.UserName)
 		if properties.ConnectionString != nil {
 			if val, ok := properties.ConnectionString.(map[string]interface{}); ok {
 				if err := d.Set("key_vault_connection_string", flattenAzureKeyVaultConnectionString(val)); err != nil {
