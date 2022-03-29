@@ -45,14 +45,13 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_lb_backend_address_pool":           resourceArmLoadBalancerBackendAddressPool(),
-		"azurerm_lb_nat_pool":                       resourceArmLoadBalancerNatPool(),
-		"azurerm_lb_nat_rule":                       resourceArmLoadBalancerNatRule(),
-		"azurerm_lb_probe":                          resourceArmLoadBalancerProbe(),
-		"azurerm_lb_outbound_rule":                  resourceArmLoadBalancerOutboundRule(),
-		"azurerm_lb_rule":                           resourceArmLoadBalancerRule(),
-		"azurerm_lb":                                resourceArmLoadBalancer(),
-		"azurerm_crlb_backend_address_pool_address": resourceArmCrossRegionLoadBalancerBackendAddressPoolAddress(),
+		"azurerm_lb_backend_address_pool": resourceArmLoadBalancerBackendAddressPool(),
+		"azurerm_lb_nat_pool":             resourceArmLoadBalancerNatPool(),
+		"azurerm_lb_nat_rule":             resourceArmLoadBalancerNatRule(),
+		"azurerm_lb_probe":                resourceArmLoadBalancerProbe(),
+		"azurerm_lb_outbound_rule":        resourceArmLoadBalancerOutboundRule(),
+		"azurerm_lb_rule":                 resourceArmLoadBalancerRule(),
+		"azurerm_lb":                      resourceArmLoadBalancer(),
 	}
 }
 
