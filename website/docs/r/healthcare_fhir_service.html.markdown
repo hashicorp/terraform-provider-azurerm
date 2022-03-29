@@ -28,7 +28,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
   access_policy_object_ids = [
     data.azurerm_client_config.current.object_id,
   ]
-
+  
   identity {
     type = "SystemAssigned"
   }
