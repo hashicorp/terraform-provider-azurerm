@@ -976,6 +976,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"dotnet",
+						"dotnetcore",
 						"node",
 						"python",
 						"php",
