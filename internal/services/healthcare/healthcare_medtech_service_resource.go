@@ -25,12 +25,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceHealthcareApisIotConnector() *pluginsdk.Resource {
+func resourceHealthcareApisMedTechService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceHealthcareApisIotConnectorCreate,
-		Read:   resourceHealthcareApisIotConnectorRead,
-		Update: resourceHealthcareApisIotConnectorUpdate,
-		Delete: resourceHealthcareApisIotConnectorDelete,
+		Create: resourceHealthcareApisMedTechServiceCreate,
+		Read:   resourceHealthcareApisMedTechServiceRead,
+		Update: resourceHealthcareApisMedTechServiceUpdate,
+		Delete: resourceHealthcareApisMedTechServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -40,7 +40,7 @@ func resourceHealthcareApisIotConnector() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.IotConnectorID(id)
+			_, err := parse.MedTechServiceID(id)
 			return err
 		}),
 
@@ -49,7 +49,7 @@ func resourceHealthcareApisIotConnector() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.IotConnectorName(),
+				ValidateFunc: validate.MedTechServiceName(),
 			},
 
 			"workspace_id": {
@@ -93,32 +93,32 @@ func resourceHealthcareApisIotConnector() *pluginsdk.Resource {
 	}
 }
 
-func resourceHealthcareApisIotConnectorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorClient
+func resourceHealthcareApisMedTechServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceMedTechServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Healthcare Iot connector creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Healthcare MedTech Service creation.")
 
 	workspace, err := parse.WorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing healthcare api workspace error: %+v", err)
 	}
-	iotConnectorId := parse.NewIotConnectorID(workspace.SubscriptionId, workspace.ResourceGroup, workspace.Name, d.Get("name").(string))
+	medTechServiceId := parse.NewMedTechServiceID(workspace.SubscriptionId, workspace.ResourceGroup, workspace.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, iotConnectorId.ResourceGroup, iotConnectorId.WorkspaceName, iotConnectorId.Name)
+		existing, err := client.Get(ctx, medTechServiceId.ResourceGroup, medTechServiceId.WorkspaceName, medTechServiceId.IotconnectorName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", iotConnectorId, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", medTechServiceId, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_healthcare_iot_connector", iotConnectorId.ID())
+			return tf.ImportAsExistsError("azurerm_healthcare_medtech_service", medTechServiceId.ID())
 		}
 	}
 
 	namespaceName := d.Get("eventhub_namespace_name").(string) + ".servicebus.windows.net"
-	identity, err := expandIotConnectorIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandMedTechServiceIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -143,13 +143,13 @@ func resourceHealthcareApisIotConnectorCreate(d *pluginsdk.ResourceData, meta in
 	}
 	parameters.IotConnectorProperties.DeviceMapping = &deviceContentMap
 
-	future, err := client.CreateOrUpdate(ctx, iotConnectorId.ResourceGroup, iotConnectorId.WorkspaceName, iotConnectorId.Name, parameters)
+	future, err := client.CreateOrUpdate(ctx, medTechServiceId.ResourceGroup, medTechServiceId.WorkspaceName, medTechServiceId.IotconnectorName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating %s: %+v", iotConnectorId, err)
+		return fmt.Errorf("creating %s: %+v", medTechServiceId, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", iotConnectorId, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", medTechServiceId, err)
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{
@@ -158,39 +158,39 @@ func resourceHealthcareApisIotConnectorCreate(d *pluginsdk.ResourceData, meta in
 		MinTimeout:                10 * time.Second,
 		Pending:                   []string{"Creating", "Updating"},
 		Target:                    []string{"Succeeded"},
-		Refresh:                   iotConnectorCreateStateRefreshFunc(ctx, client, iotConnectorId),
+		Refresh:                   medTechServiceCreateStateRefreshFunc(ctx, client, medTechServiceId),
 		Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Iot Connetcor %s to settle down: %+v", iotConnectorId, err)
+		return fmt.Errorf("waiting for MedTech Service %s to settle down: %+v", medTechServiceId, err)
 	}
 
-	d.SetId(iotConnectorId.ID())
+	d.SetId(medTechServiceId.ID())
 
-	return resourceHealthcareApisIotConnectorRead(d, meta)
+	return resourceHealthcareApisMedTechServiceRead(d, meta)
 }
 
-func resourceHealthcareApisIotConnectorRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorClient
+func resourceHealthcareApisMedTechServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceMedTechServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IotConnectorID(d.Id())
+	id, err := parse.MedTechServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Healthcare Apis Iot Connector %s was not found", id)
+			log.Printf("[WARN] Healthcare Apis MedTech Service %s was not found", id)
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.IotconnectorName)
 	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 	d.Set("workspace_id", workspaceId.ID())
 
@@ -199,7 +199,7 @@ func resourceHealthcareApisIotConnectorRead(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if resp.Identity != nil {
-		d.Set("identity", flattenIotConnectorIdentity(resp.Identity))
+		d.Set("identity", flattenMedTechServiceIdentity(resp.Identity))
 	}
 
 	if props := resp.IotConnectorProperties; props != nil {
@@ -243,8 +243,8 @@ func resourceHealthcareApisIotConnectorRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceHealthcareApisIotConnectorUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorClient
+func resourceHealthcareApisMedTechServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceMedTechServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -252,10 +252,10 @@ func resourceHealthcareApisIotConnectorUpdate(d *pluginsdk.ResourceData, meta in
 	if err != nil {
 		return fmt.Errorf("parsing healthcare api workspace error: %+v", err)
 	}
-	iotConnectorId := parse.NewIotConnectorID(workspace.SubscriptionId, workspace.ResourceGroup, workspace.Name, d.Get("name").(string))
+	medTechServiceId := parse.NewMedTechServiceID(workspace.SubscriptionId, workspace.ResourceGroup, workspace.Name, d.Get("name").(string))
 
 	namespaceName := d.Get("eventhub_namespace_name").(string) + ".servicebus.windows.net"
-	identity, err := expandIotConnectorIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandMedTechServiceIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -280,13 +280,13 @@ func resourceHealthcareApisIotConnectorUpdate(d *pluginsdk.ResourceData, meta in
 	}
 	parameters.IotConnectorProperties.DeviceMapping = &deviceContentMap
 
-	future, err := client.CreateOrUpdate(ctx, iotConnectorId.ResourceGroup, iotConnectorId.WorkspaceName, iotConnectorId.Name, parameters)
+	future, err := client.CreateOrUpdate(ctx, medTechServiceId.ResourceGroup, medTechServiceId.WorkspaceName, medTechServiceId.IotconnectorName, parameters)
 	if err != nil {
-		return fmt.Errorf("updating %s: %+v", iotConnectorId, err)
+		return fmt.Errorf("updating %s: %+v", medTechServiceId, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", iotConnectorId, err)
+		return fmt.Errorf("waiting for update of %s: %+v", medTechServiceId, err)
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{
@@ -295,29 +295,29 @@ func resourceHealthcareApisIotConnectorUpdate(d *pluginsdk.ResourceData, meta in
 		MinTimeout:                10 * time.Second,
 		Pending:                   []string{"Creating", "Updating"},
 		Target:                    []string{"Succeeded"},
-		Refresh:                   iotConnectorCreateStateRefreshFunc(ctx, client, iotConnectorId),
+		Refresh:                   medTechServiceCreateStateRefreshFunc(ctx, client, medTechServiceId),
 		Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Iot Connetcor %s to settle down: %+v", iotConnectorId, err)
+		return fmt.Errorf("waiting for MedTech Service %s to settle down: %+v", medTechServiceId, err)
 	}
 
-	d.SetId(iotConnectorId.ID())
+	d.SetId(medTechServiceId.ID())
 
-	return resourceHealthcareApisIotConnectorRead(d, meta)
+	return resourceHealthcareApisMedTechServiceRead(d, meta)
 }
 
-func resourceHealthcareApisIotConnectorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorClient
+func resourceHealthcareApisMedTechServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceMedTechServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IotConnectorID(d.Id())
+	id, err := parse.MedTechServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, id.WorkspaceName)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.IotconnectorName, id.WorkspaceName)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
@@ -328,7 +328,7 @@ func resourceHealthcareApisIotConnectorDelete(d *pluginsdk.ResourceData, meta in
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Pending"},
 		Target:                    []string{"Deleted"},
-		Refresh:                   iotConnectorStateStatusCodeRefreshFunc(ctx, client, *id),
+		Refresh:                   medTechServiceStateStatusCodeRefreshFunc(ctx, client, *id),
 		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
 		ContinuousTargetOccurence: 3,
 		PollInterval:              10 * time.Second,
@@ -340,9 +340,9 @@ func resourceHealthcareApisIotConnectorDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func iotConnectorStateStatusCodeRefreshFunc(ctx context.Context, client *healthcareapis.IotConnectorsClient, id parse.IotConnectorId) pluginsdk.StateRefreshFunc {
+func medTechServiceStateStatusCodeRefreshFunc(ctx context.Context, client *healthcareapis.IotConnectorsClient, id parse.MedTechServiceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+		res, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(res.Response) {
@@ -355,7 +355,7 @@ func iotConnectorStateStatusCodeRefreshFunc(ctx context.Context, client *healthc
 	}
 }
 
-func expandIotConnectorIdentity(input []interface{}) (*healthcareapis.ServiceManagedIdentityIdentity, error) {
+func expandMedTechServiceIdentity(input []interface{}) (*healthcareapis.ServiceManagedIdentityIdentity, error) {
 	expanded, err := identity.ExpandSystemAssigned(input)
 	if err != nil {
 		return nil, err
@@ -366,7 +366,7 @@ func expandIotConnectorIdentity(input []interface{}) (*healthcareapis.ServiceMan
 	}, nil
 }
 
-func flattenIotConnectorIdentity(input *healthcareapis.ServiceManagedIdentityIdentity) []interface{} {
+func flattenMedTechServiceIdentity(input *healthcareapis.ServiceManagedIdentityIdentity) []interface{} {
 	var transition *identity.SystemAssigned
 
 	if input != nil {
@@ -390,14 +390,14 @@ func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceDat
 	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
 }
 
-func iotConnectorCreateStateRefreshFunc(ctx context.Context, client *healthcareapis.IotConnectorsClient, iotConnectorId parse.IotConnectorId) pluginsdk.StateRefreshFunc {
+func medTechServiceCreateStateRefreshFunc(ctx context.Context, client *healthcareapis.IotConnectorsClient, medTechServiceId parse.MedTechServiceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, iotConnectorId.ResourceGroup, iotConnectorId.WorkspaceName, iotConnectorId.Name)
+		resp, err := client.Get(ctx, medTechServiceId.ResourceGroup, medTechServiceId.WorkspaceName, medTechServiceId.IotconnectorName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return nil, "", fmt.Errorf("unable to retrieve iot connector %q: %+v", iotConnectorId, err)
+				return nil, "", fmt.Errorf("unable to retrieve MedTech Service %q: %+v", medTechServiceId, err)
 			}
-			return nil, "Error", fmt.Errorf("polling for the status of %s: %+v", iotConnectorId, err)
+			return nil, "Error", fmt.Errorf("polling for the status of %s: %+v", medTechServiceId, err)
 		}
 
 		return resp, string(resp.ProvisioningState), nil

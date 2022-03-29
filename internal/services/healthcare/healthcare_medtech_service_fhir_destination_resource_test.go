@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HealthCareIotConnectorFhirDestinationResource struct{}
+type HealthCareMedTechServiceFhirDestinationResource struct{}
 
-func TestAccHealthCareIotConnectorFhirDestination_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcare_iot_fhir_destination", "test")
-	r := HealthCareIotConnectorFhirDestinationResource{}
+func TestAccHealthCareMedTechServiceFhirDestination_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service_fhir_destination", "test")
+	r := HealthCareMedTechServiceFhirDestinationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -29,9 +29,9 @@ func TestAccHealthCareIotConnectorFhirDestination_basic(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareIotConnectorFhirDestination_updateTemplate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcare_iot_fhir_destination", "test")
-	r := HealthCareIotConnectorFhirDestinationResource{}
+func TestAccHealthCareMedTechServiceFhirDestination_updateTemplate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service_fhir_destination", "test")
+	r := HealthCareMedTechServiceFhirDestinationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,9 +49,9 @@ func TestAccHealthCareIotConnectorFhirDestination_updateTemplate(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareIotConnectorFhirDestination_updateFhir(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcare_iot_fhir_destination", "test")
-	r := HealthCareIotConnectorFhirDestinationResource{}
+func TestAccHealthCareMedTechServiceFhirDestination_updateFhir(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service_fhir_destination", "test")
+	r := HealthCareMedTechServiceFhirDestinationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -69,9 +69,9 @@ func TestAccHealthCareIotConnectorFhirDestination_updateFhir(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareIotConnectorFhirDestination_updateResolutionType(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcare_iot_fhir_destination", "test")
-	r := HealthCareIotConnectorFhirDestinationResource{}
+func TestAccHealthCareMedTechServiceFhirDestination_updateResolutionType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service_fhir_destination", "test")
+	r := HealthCareMedTechServiceFhirDestinationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -89,26 +89,26 @@ func TestAccHealthCareIotConnectorFhirDestination_updateResolutionType(t *testin
 	})
 }
 
-func (r HealthCareIotConnectorFhirDestinationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IotFhirDestinationID(state.ID)
+func (r HealthCareMedTechServiceFhirDestinationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.MedTechServiceFhirDestinationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.HealthCare.HealthcareWorkspaceIotConnectorFhirDestinationClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName, id.FhirdestinationName)
+	resp, err := client.HealthCare.HealthcareWorkspaceMedTechServiceFhirDestinationClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName, id.FhirdestinationName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s, %+v", *id, err)
 	}
 	return utils.Bool(resp.IotFhirDestinationProperties != nil), nil
 }
 
-func (r HealthCareIotConnectorFhirDestinationResource) basic(data acceptance.TestData) string {
+func (r HealthCareMedTechServiceFhirDestinationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_healthcare_iot_fhir_destination" "test" {
+resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   name                                 = "des%d"
   location                             = azurerm_resource_group.test.location
-  iot_connector_id                     = azurerm_healthcare_iot_connector.test.id
+  medtech_service_id                   = azurerm_healthcare_medtech_service.test.id
   destination_fhir_service_id          = azurerm_healthcare_fhir_service.test.id
   destination_identity_resolution_type = "Create"
   destination_fhir_mapping             = <<JSON
@@ -122,13 +122,13 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HealthCareIotConnectorFhirDestinationResource) updateTemplate(data acceptance.TestData) string {
+func (r HealthCareMedTechServiceFhirDestinationResource) updateTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_healthcare_iot_fhir_destination" "test" {
+resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   name                                 = "des%d"
   location                             = azurerm_resource_group.test.location
-  iot_connector_id                     = azurerm_healthcare_iot_connector.test.id
+  medtech_service_id                   = azurerm_healthcare_medtech_service.test.id
   destination_fhir_service_id          = azurerm_healthcare_fhir_service.test.id
   destination_identity_resolution_type = "Create"
   destination_fhir_mapping             = <<JSON
@@ -162,13 +162,13 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HealthCareIotConnectorFhirDestinationResource) updateFhirId(data acceptance.TestData) string {
+func (r HealthCareMedTechServiceFhirDestinationResource) updateFhirId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_healthcare_iot_fhir_destination" "test" {
+resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   name                                 = "des%d"
   location                             = azurerm_resource_group.test.location
-  iot_connector_id                     = azurerm_healthcare_iot_connector.test.id
+  medtech_service_id                   = azurerm_healthcare_medtech_service.test.id
   destination_fhir_service_id          = azurerm_healthcare_fhir_service.test1.id
   destination_identity_resolution_type = "Create"
   destination_fhir_mapping             = <<JSON
@@ -180,13 +180,13 @@ JSON
 }`, r.template(data), data.RandomInteger)
 }
 
-func (r HealthCareIotConnectorFhirDestinationResource) updateResolutionType(data acceptance.TestData) string {
+func (r HealthCareMedTechServiceFhirDestinationResource) updateResolutionType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_healthcare_iot_fhir_destination" "test" {
+resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   name                                 = "des%d"
   location                             = azurerm_resource_group.test.location
-  iot_connector_id                     = azurerm_healthcare_iot_connector.test.id
+  medtech_service_id                   = azurerm_healthcare_medtech_service.test.id
   destination_fhir_service_id          = azurerm_healthcare_fhir_service.test.id
   destination_identity_resolution_type = "Lookup"
   destination_fhir_mapping             = <<JSON
@@ -198,7 +198,7 @@ JSON
 }`, r.template(data), data.RandomInteger)
 }
 
-func (r HealthCareIotConnectorFhirDestinationResource) template(data acceptance.TestData) string {
+func (r HealthCareMedTechServiceFhirDestinationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_healthcare_fhir_service" "test" {
@@ -227,5 +227,5 @@ resource "azurerm_healthcare_fhir_service" "test1" {
   depends_on = [azurerm_healthcare_workspace.test]
 }
 
-`, HealthCareWorkspaceIotConnectorResource{}.basic(data), data.RandomInteger, data.RandomInteger)
+`, HealthCareWorkspaceMedTechServiceResource{}.basic(data), data.RandomInteger, data.RandomInteger)
 }

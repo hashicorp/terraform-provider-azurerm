@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HealthCareWorkspaceIotConnectorResource struct{}
+type HealthCareWorkspaceMedTechServiceResource struct{}
 
-func TestAccHealthCareIotConnector_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcare_iot_connector", "test")
-	r := HealthCareWorkspaceIotConnectorResource{}
+func TestAccHealthCareMedTechService_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service", "test")
+	r := HealthCareWorkspaceMedTechServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -29,9 +29,9 @@ func TestAccHealthCareIotConnector_basic(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareIotConnector_updateIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcare_iot_connector", "test")
-	r := HealthCareWorkspaceIotConnectorResource{}
+func TestAccHealthCareMedTechService_updateIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service", "test")
+	r := HealthCareWorkspaceMedTechServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,9 +49,9 @@ func TestAccHealthCareIotConnector_updateIdentity(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareIotConnector_updateTemplate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcare_iot_connector", "test")
-	r := HealthCareWorkspaceIotConnectorResource{}
+func TestAccHealthCareMedTechService_updateTemplate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service", "test")
+	r := HealthCareWorkspaceMedTechServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -69,9 +69,9 @@ func TestAccHealthCareIotConnector_updateTemplate(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareIotConnector_updateEventhubs(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcare_iot_connector", "test")
-	r := HealthCareWorkspaceIotConnectorResource{}
+func TestAccHealthCareMedTechService_updateEventhubs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service", "test")
+	r := HealthCareWorkspaceMedTechServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -89,9 +89,9 @@ func TestAccHealthCareIotConnector_updateEventhubs(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareIotConnector_updateConsumerGroups(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_healthcare_iot_connector", "test")
-	r := HealthCareWorkspaceIotConnectorResource{}
+func TestAccHealthCareMedTechService_updateConsumerGroups(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service", "test")
+	r := HealthCareWorkspaceMedTechServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -109,24 +109,24 @@ func TestAccHealthCareIotConnector_updateConsumerGroups(t *testing.T) {
 	})
 }
 
-func (r HealthCareWorkspaceIotConnectorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IotConnectorID(state.ID)
+func (r HealthCareWorkspaceMedTechServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.MedTechServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.HealthCare.HealthcareWorkspaceIotConnectorClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.HealthCare.HealthcareWorkspaceMedTechServiceClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s, %+v", *id, err)
 	}
 	return utils.Bool(resp.IotConnectorProperties != nil), nil
 }
 
-func (r HealthCareWorkspaceIotConnectorResource) basic(data acceptance.TestData) string {
+func (r HealthCareWorkspaceMedTechServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_healthcare_iot_connector" "test" {
-  name         = "iot%d"
+resource "azurerm_healthcare_medtech_service" "test" {
+  name         = "mt%d"
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = azurerm_resource_group.test.location
 
@@ -143,11 +143,11 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HealthCareWorkspaceIotConnectorResource) identity(data acceptance.TestData) string {
+func (r HealthCareWorkspaceMedTechServiceResource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_healthcare_iot_connector" "test" {
-  name         = "iot%d"
+resource "azurerm_healthcare_medtech_service" "test" {
+  name         = "mt%d"
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = azurerm_resource_group.test.location
 
@@ -183,12 +183,12 @@ JSON
 }`, r.template(data), data.RandomInteger)
 }
 
-func (r HealthCareWorkspaceIotConnectorResource) updateEventhubs(data acceptance.TestData) string {
+func (r HealthCareWorkspaceMedTechServiceResource) updateEventhubs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_healthcare_iot_connector" "test" {
-  name         = "iot%d"
+resource "azurerm_healthcare_medtech_service" "test" {
+  name         = "mt%d"
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = azurerm_resource_group.test.location
 
@@ -205,12 +205,12 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HealthCareWorkspaceIotConnectorResource) updateConsumerGroup(data acceptance.TestData) string {
+func (r HealthCareWorkspaceMedTechServiceResource) updateConsumerGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_healthcare_iot_connector" "test" {
-  name         = "iot%d"
+resource "azurerm_healthcare_medtech_service" "test" {
+  name         = "mt%d"
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = azurerm_resource_group.test.location
 
@@ -227,12 +227,12 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HealthCareWorkspaceIotConnectorResource) updateTemplate(data acceptance.TestData) string {
+func (r HealthCareWorkspaceMedTechServiceResource) updateTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_healthcare_iot_connector" "test" {
-  name         = "iot%d"
+resource "azurerm_healthcare_medtech_service" "test" {
+  name         = "mt%d"
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = azurerm_resource_group.test.location
 
@@ -266,14 +266,14 @@ JSON
 `, r.template(data), data.RandomInteger)
 }
 
-func (HealthCareWorkspaceIotConnectorResource) template(data acceptance.TestData) string {
+func (HealthCareWorkspaceMedTechServiceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-iot-%d"
+  name     = "acctestRG-medTech-%d"
   location = "%s"
 }
 

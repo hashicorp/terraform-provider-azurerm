@@ -11,7 +11,7 @@ import (
 type HealthCareWorkspaceIotConnectorDataSource struct{}
 
 func TestAccHealthCareWorkspaceIotConnectorDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_healthcare_iot_connector", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_healthcare_medtech_service", "test")
 	r := HealthCareWorkspaceIotConnectorDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -27,9 +27,9 @@ func (HealthCareWorkspaceIotConnectorDataSource) basic(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_healthcare_iot_connector" "test" {
-  name                = azurerm_healthcare_iot_connector.test.name
-  resource_group_name = azurerm_healthcare_iot_connector.test.resource_group_name
+data "azurerm_healthcare_medtech_service" "test" {
+  name                = azurerm_healthcare_medtech_service.test.name
+  resource_group_name = azurerm_healthcare_medtech_service.test.resource_group_name
 }
-`, HealthCareWorkspaceIotConnectorResource{}.basic(data))
+`, HealthCareWorkspaceMedTechServiceResource{}.basic(data))
 }

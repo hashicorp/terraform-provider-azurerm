@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type IotFhirDestinationId struct {
+type MedTechServiceFhirDestinationId struct {
 	SubscriptionId      string
 	ResourceGroup       string
 	WorkspaceName       string
@@ -17,8 +17,8 @@ type IotFhirDestinationId struct {
 	FhirdestinationName string
 }
 
-func NewIotFhirDestinationID(subscriptionId, resourceGroup, workspaceName, iotconnectorName, fhirdestinationName string) IotFhirDestinationId {
-	return IotFhirDestinationId{
+func NewMedTechServiceFhirDestinationID(subscriptionId, resourceGroup, workspaceName, iotconnectorName, fhirdestinationName string) MedTechServiceFhirDestinationId {
+	return MedTechServiceFhirDestinationId{
 		SubscriptionId:      subscriptionId,
 		ResourceGroup:       resourceGroup,
 		WorkspaceName:       workspaceName,
@@ -27,7 +27,7 @@ func NewIotFhirDestinationID(subscriptionId, resourceGroup, workspaceName, iotco
 	}
 }
 
-func (id IotFhirDestinationId) String() string {
+func (id MedTechServiceFhirDestinationId) String() string {
 	segments := []string{
 		fmt.Sprintf("Fhirdestination Name %q", id.FhirdestinationName),
 		fmt.Sprintf("Iotconnector Name %q", id.IotconnectorName),
@@ -35,22 +35,22 @@ func (id IotFhirDestinationId) String() string {
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Iot Fhir Destination", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Med Tech Service Fhir Destination", segmentsStr)
 }
 
-func (id IotFhirDestinationId) ID() string {
+func (id MedTechServiceFhirDestinationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.HealthcareApis/workspaces/%s/iotconnectors/%s/fhirdestinations/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName, id.FhirdestinationName)
 }
 
-// IotFhirDestinationID parses a IotFhirDestination ID into an IotFhirDestinationId struct
-func IotFhirDestinationID(input string) (*IotFhirDestinationId, error) {
+// MedTechServiceFhirDestinationID parses a MedTechServiceFhirDestination ID into an MedTechServiceFhirDestinationId struct
+func MedTechServiceFhirDestinationID(input string) (*MedTechServiceFhirDestinationId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := IotFhirDestinationId{
+	resourceId := MedTechServiceFhirDestinationId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}

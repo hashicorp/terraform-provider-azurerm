@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestIotFhirDestinationID(t *testing.T) {
+func TestMedTechServiceFhirDestinationID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -90,7 +90,7 @@ func TestIotFhirDestinationID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := IotFhirDestinationID(tc.Input, "test")
+		_, errors := MedTechServiceFhirDestinationID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

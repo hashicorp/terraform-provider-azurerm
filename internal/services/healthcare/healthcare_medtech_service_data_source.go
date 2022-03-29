@@ -28,7 +28,7 @@ func dataSourceHealthcareIotConnector() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.IotConnectorName(),
+				ValidateFunc: validate.MedTechServiceName(),
 			},
 
 			"workspace_id": {
@@ -64,7 +64,7 @@ func dataSourceHealthcareIotConnector() *pluginsdk.Resource {
 }
 
 func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorClient
+	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceMedTechServiceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -74,9 +74,9 @@ func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("parsing workspace id error: %+v", err)
 	}
 
-	id := parse.NewIotConnectorID(subscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
+	id := parse.NewMedTechServiceID(subscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -86,13 +86,13 @@ func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.Name)
+	d.Set("name", id.IotconnectorName)
 
 	d.Set("workspace_id", workspaceId.ID())
 	if resp.Location != nil {
 		d.Set("location", location.NormalizeNilable(resp.Location))
 	}
-	if err := d.Set("identity", flattenIotConnectorIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenMedTechServiceIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	if props := resp.IotConnectorProperties; props != nil {

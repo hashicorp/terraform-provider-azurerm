@@ -6,11 +6,11 @@ import (
 )
 
 type Client struct {
-	HealthcareServiceClient                              *healthcareapis.ServicesClient
-	HealthcareWorkspaceClient                            *healthcareapis.WorkspacesClient
-	HealthcareWorkspaceFhirServiceClient                 *healthcareapis.FhirServicesClient
-	HealthcareWorkspaceIotConnectorClient                *healthcareapis.IotConnectorsClient
-	HealthcareWorkspaceIotConnectorFhirDestinationClient *healthcareapis.IotConnectorFhirDestinationClient
+	HealthcareServiceClient                                *healthcareapis.ServicesClient
+	HealthcareWorkspaceClient                              *healthcareapis.WorkspacesClient
+	HealthcareWorkspaceFhirServiceClient                   *healthcareapis.FhirServicesClient
+	HealthcareWorkspaceMedTechServiceClient                *healthcareapis.IotConnectorsClient
+	HealthcareWorkspaceMedTechServiceFhirDestinationClient *healthcareapis.IotConnectorFhirDestinationClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -23,17 +23,17 @@ func NewClient(o *common.ClientOptions) *Client {
 	HealthcareWorkspaceFhirServiceClient := healthcareapis.NewFhirServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&HealthcareWorkspaceFhirServiceClient.Client, o.ResourceManagerAuthorizer)
 
-	HealthcareWorkspaceIotConnectorClient := healthcareapis.NewIotConnectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&HealthcareWorkspaceIotConnectorClient.Client, o.ResourceManagerAuthorizer)
+	HealthcareWorkspaceMedTechServiceClient := healthcareapis.NewIotConnectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&HealthcareWorkspaceMedTechServiceClient.Client, o.ResourceManagerAuthorizer)
 
-	HealthcareWorkspaceIotConnectorFhirDestinationClient := healthcareapis.NewIotConnectorFhirDestinationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&HealthcareWorkspaceIotConnectorFhirDestinationClient.Client, o.ResourceManagerAuthorizer)
+	HealthcareWorkspaceMedTechServiceFhirDestinationClient := healthcareapis.NewIotConnectorFhirDestinationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&HealthcareWorkspaceMedTechServiceFhirDestinationClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		HealthcareServiceClient:                              &HealthcareServiceClient,
-		HealthcareWorkspaceClient:                            &HealthcareWorkspaceClient,
-		HealthcareWorkspaceFhirServiceClient:                 &HealthcareWorkspaceFhirServiceClient,
-		HealthcareWorkspaceIotConnectorClient:                &HealthcareWorkspaceIotConnectorClient,
-		HealthcareWorkspaceIotConnectorFhirDestinationClient: &HealthcareWorkspaceIotConnectorFhirDestinationClient,
+		HealthcareServiceClient:                                &HealthcareServiceClient,
+		HealthcareWorkspaceClient:                              &HealthcareWorkspaceClient,
+		HealthcareWorkspaceFhirServiceClient:                   &HealthcareWorkspaceFhirServiceClient,
+		HealthcareWorkspaceMedTechServiceClient:                &HealthcareWorkspaceMedTechServiceClient,
+		HealthcareWorkspaceMedTechServiceFhirDestinationClient: &HealthcareWorkspaceMedTechServiceFhirDestinationClient,
 	}
 }

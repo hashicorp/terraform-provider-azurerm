@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestIotConnectorID(t *testing.T) {
+func TestMedTechServiceID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -53,13 +53,13 @@ func TestIotConnectorID(t *testing.T) {
 		},
 
 		{
-			// missing Name
+			// missing IotconnectorName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/",
 			Valid: false,
 		},
 
 		{
-			// missing value for Name
+			// missing value for IotconnectorName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/iotconnectors/",
 			Valid: false,
 		},
@@ -78,7 +78,7 @@ func TestIotConnectorID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := IotConnectorID(tc.Input, "test")
+		_, errors := MedTechServiceID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

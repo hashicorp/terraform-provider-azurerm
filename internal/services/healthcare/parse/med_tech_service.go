@@ -9,45 +9,45 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type IotConnectorId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	WorkspaceName  string
-	Name           string
+type MedTechServiceId struct {
+	SubscriptionId   string
+	ResourceGroup    string
+	WorkspaceName    string
+	IotconnectorName string
 }
 
-func NewIotConnectorID(subscriptionId, resourceGroup, workspaceName, name string) IotConnectorId {
-	return IotConnectorId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		WorkspaceName:  workspaceName,
-		Name:           name,
+func NewMedTechServiceID(subscriptionId, resourceGroup, workspaceName, iotconnectorName string) MedTechServiceId {
+	return MedTechServiceId{
+		SubscriptionId:   subscriptionId,
+		ResourceGroup:    resourceGroup,
+		WorkspaceName:    workspaceName,
+		IotconnectorName: iotconnectorName,
 	}
 }
 
-func (id IotConnectorId) String() string {
+func (id MedTechServiceId) String() string {
 	segments := []string{
-		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Iotconnector Name %q", id.IotconnectorName),
 		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Iot Connector", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Med Tech Service", segmentsStr)
 }
 
-func (id IotConnectorId) ID() string {
+func (id MedTechServiceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.HealthcareApis/workspaces/%s/iotconnectors/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.IotconnectorName)
 }
 
-// IotConnectorID parses a IotConnector ID into an IotConnectorId struct
-func IotConnectorID(input string) (*IotConnectorId, error) {
+// MedTechServiceID parses a MedTechService ID into an MedTechServiceId struct
+func MedTechServiceID(input string) (*MedTechServiceId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := IotConnectorId{
+	resourceId := MedTechServiceId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -63,7 +63,7 @@ func IotConnectorID(input string) (*IotConnectorId, error) {
 	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
-	if resourceId.Name, err = id.PopSegment("iotconnectors"); err != nil {
+	if resourceId.IotconnectorName, err = id.PopSegment("iotconnectors"); err != nil {
 		return nil, err
 	}
 

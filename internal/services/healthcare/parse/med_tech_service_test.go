@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = IotFhirDestinationId{}
+var _ resourceids.Id = MedTechServiceId{}
 
-func TestIotFhirDestinationIDFormatter(t *testing.T) {
-	actual := NewIotFhirDestinationID("12345678-1234-9876-4563-123456789012", "group1", "workspace1", "iotconnector1", "destination1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/iotconnectors/iotconnector1/fhirdestinations/destination1"
+func TestMedTechServiceIDFormatter(t *testing.T) {
+	actual := NewMedTechServiceID("12345678-1234-9876-4563-123456789012", "group1", "workspace1", "iotconnector1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/iotconnectors/iotconnector1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestIotFhirDestinationID(t *testing.T) {
+func TestMedTechServiceID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *IotFhirDestinationId
+		Expected *MedTechServiceId
 	}{
 
 		{
@@ -80,32 +80,19 @@ func TestIotFhirDestinationID(t *testing.T) {
 		},
 
 		{
-			// missing FhirdestinationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/iotconnectors/iotconnector1/",
-			Error: true,
-		},
-
-		{
-			// missing value for FhirdestinationName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/iotconnectors/iotconnector1/fhirdestinations/",
-			Error: true,
-		},
-
-		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/iotconnectors/iotconnector1/fhirdestinations/destination1",
-			Expected: &IotFhirDestinationId{
-				SubscriptionId:      "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:       "group1",
-				WorkspaceName:       "workspace1",
-				IotconnectorName:    "iotconnector1",
-				FhirdestinationName: "destination1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/iotconnectors/iotconnector1",
+			Expected: &MedTechServiceId{
+				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:    "group1",
+				WorkspaceName:    "workspace1",
+				IotconnectorName: "iotconnector1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.HEALTHCAREAPIS/WORKSPACES/WORKSPACE1/IOTCONNECTORS/IOTCONNECTOR1/FHIRDESTINATIONS/DESTINATION1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.HEALTHCAREAPIS/WORKSPACES/WORKSPACE1/IOTCONNECTORS/IOTCONNECTOR1",
 			Error: true,
 		},
 	}
@@ -113,7 +100,7 @@ func TestIotFhirDestinationID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := IotFhirDestinationID(v.Input)
+		actual, err := MedTechServiceID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -136,9 +123,6 @@ func TestIotFhirDestinationID(t *testing.T) {
 		}
 		if actual.IotconnectorName != v.Expected.IotconnectorName {
 			t.Fatalf("Expected %q but got %q for IotconnectorName", v.Expected.IotconnectorName, actual.IotconnectorName)
-		}
-		if actual.FhirdestinationName != v.Expected.FhirdestinationName {
-			t.Fatalf("Expected %q but got %q for FhirdestinationName", v.Expected.FhirdestinationName, actual.FhirdestinationName)
 		}
 	}
 }
