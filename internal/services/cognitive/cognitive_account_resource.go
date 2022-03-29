@@ -433,18 +433,17 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 			networkRules = append(networkRules, rule)
 		}
 	}
-	if d.HasChange("network_acls.0.virtual_network_rules") {
-		networkRulesRaw := v["virtual_network_rules"]
-		for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
-			value := v.(map[string]interface{})
-			subnetId := value["subnet_id"].(string)
-			subnetIds = append(subnetIds, subnetId)
-			rule := cognitiveservicesaccounts.VirtualNetworkRule{
-				Id:                               subnetId,
-				IgnoreMissingVnetServiceEndpoint: utils.Bool(value["ignore_missing_vnet_service_endpoint"].(bool)),
-			}
-			networkRules = append(networkRules, rule)
+
+	networkRulesRaw := v["virtual_network_rules"]
+	for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
+		value := v.(map[string]interface{})
+		subnetId := value["subnet_id"].(string)
+		subnetIds = append(subnetIds, subnetId)
+		rule := cognitiveservicesaccounts.VirtualNetworkRule{
+			Id:                               subnetId,
+			IgnoreMissingVnetServiceEndpoint: utils.Bool(value["ignore_missing_vnet_service_endpoint"].(bool)),
 		}
+		networkRules = append(networkRules, rule)
 	}
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{

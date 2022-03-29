@@ -373,7 +373,6 @@ resource "azurerm_lb_backend_address_pool" "test" {
 
 resource "azurerm_lb_probe" "test" {
   name                = "probe-%d"
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
   protocol            = "Tcp"
   port                = 443

@@ -2131,7 +2131,6 @@ resource "azurerm_lb_nat_pool" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
   name                = "acctest-lb-probe"
   port                = 22
@@ -2239,7 +2238,6 @@ resource "azurerm_lb_nat_pool" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
   name                = "acctest-lb-probe"
   port                = 22
@@ -2430,7 +2428,6 @@ resource "azurerm_lb_nat_pool" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
   name                = "acctest-lb-probe"
   port                = 22
@@ -2790,7 +2787,6 @@ resource "azurerm_lb_backend_address_pool" "test" {
 
 resource "azurerm_lb_probe" "test" {
   name                = "running-probe"
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
   port                = 3389
   protocol            = "Tcp"
@@ -2890,7 +2886,6 @@ resource "azurerm_lb_backend_address_pool" "test" {
 
 resource "azurerm_lb_probe" "test" {
   name                = "ssh-running-probe"
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
   port                = 3389
   protocol            = "Tcp"
@@ -2898,7 +2893,6 @@ resource "azurerm_lb_probe" "test" {
 
 resource "azurerm_lb_probe" "test2" {
   name                = "ssh-running-probe2"
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
   port                = 3389
   protocol            = "Tcp"
@@ -2990,7 +2984,6 @@ resource "azurerm_lb_backend_address_pool" "test" {
 
 resource "azurerm_lb_probe" "test" {
   name                = "ssh-running-probe"
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
   port                = 3389
   protocol            = "Tcp"
@@ -2998,7 +2991,6 @@ resource "azurerm_lb_probe" "test" {
 
 resource "azurerm_lb_probe" "test2" {
   name                = "ssh-running-probe2"
-  resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
   port                = 3389
   protocol            = "Tcp"
