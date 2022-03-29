@@ -54,9 +54,9 @@ The following arguments are supported:
 
 ~> **NOTE:** Function apps are not supported at this time. 
 
-* `branch` - (Required) The branch name to use for deployments. Changing this forces a new resource to be created.
+* `branch` - (Optional) The branch name to use for deployments. Changing this forces a new resource to be created.
 
-* `repo_url` - (Required) The URL for the repository. Changing this forces a new resource to be created.
+* `repo_url` - (Optional) The URL for the repository. Changing this forces a new resource to be created.
 
 ---
 

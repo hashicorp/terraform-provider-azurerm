@@ -1,9 +1,20 @@
-
-## 3.0.2 (Unreleased)
+## 3.1.0 (Unreleased)
 
 BUG FIXES:
 
-* `azurerm_cosmosdb_account` - prevent a panic when the API returns an nil list of read or write locations [GH-16031]
+* `azurerm_api_management_api_operation_tag` - now retrieves tags from the correct API [GFH-16006]
+
+## 3.0.2 (March 26, 2022)
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_account` - prevent a panic when the API returns an empty list of read or write locations ([#16031](https://github.com/hashicorp/terraform-provider-azurerm/issues/16031))
+* `azurerm_cdn_endpoint` - prevent a panic when there is an empty `country_codes` property ([#16066](https://github.com/hashicorp/terraform-provider-azurerm/issues/16066))
+* `azurerm_key_vault` - fix the `authorizer was not an auth.CachedAuthorizer ` error ([#16078](https://github.com/hashicorp/terraform-provider-azurerm/issues/16078))
+* `azurerm_linux_function_app` - correctly update storage settings when using MSI ([#16046](https://github.com/hashicorp/terraform-provider-azurerm/issues/16046))
+* `azurerm_managed_disk` - changing the `zone` property now correctly creates a new resource ([#16070](https://github.com/hashicorp/terraform-provider-azurerm/issues/16070))
+* `azurerm_resource_group` - will now during deletion if there are still resources found in the group it will wait a little bit and check again to handle eventually consistancy bugs ([#16073](https://github.com/hashicorp/terraform-provider-azurerm/issues/16073))
+* `azurerm_windows_function_app` - correctly update the storage settings when using MSI authentication ([#16046](https://github.com/hashicorp/terraform-provider-azurerm/issues/16046))
 
 ## 3.0.1 (March 24, 2022)
 
