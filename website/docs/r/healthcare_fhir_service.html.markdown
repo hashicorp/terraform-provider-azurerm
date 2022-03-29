@@ -15,6 +15,7 @@ Manages a Healthcare FHIR (Fast Healthcare Interoperability Resources) Service
 ```hcl
 data "azurerm_client_config" "current" {
 }
+
 resource "azurerm_healthcare_fhir_service" "test" {
   name                = "tfexfhir"
   location            = "east us"
