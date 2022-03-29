@@ -1,6 +1,7 @@
 package servicebus
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -114,6 +115,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 						"infrastructure_encryption_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							ForceNew: true,
 						},
 					},
 				},
@@ -151,6 +153,14 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			oldCustomerManagedKey, newCustomerManagedKey := diff.GetChange("customer_managed_key")
+			if len(oldCustomerManagedKey.([]interface{})) != 0 && len(newCustomerManagedKey.([]interface{})) == 0 {
+				diff.ForceNew("customer_managed_key")
+			}
+			return nil
+		}),
 	}
 }
 
