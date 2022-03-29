@@ -2,7 +2,11 @@
 
 BUG FIXES:
 
-* `azurerm_api_management_api_operation_tag` - now retrieves tags from the correct API [GFH-16006]
+* `azurerm_api_management_api_operation_tag` - now retrieves tags from the correct API [GH-16006]
+
+ENHANCEMENTS:
+
+* `azurerm_cognitive_account` - support for the `custom_question_answering_search_service_id` property [GH-15804]
 
 ## 3.0.2 (March 26, 2022)
 
