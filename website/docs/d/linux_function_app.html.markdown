@@ -10,8 +10,6 @@ description: |-
 
 Use this data source to access information about an existing Linux Function App.
 
-!> **Note:** This Data Source is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -263,11 +261,15 @@ A `headers` block exports the following:
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `type` - The type of managed service identity. 
+* `type` - The type of Managed Service Identity that is configured on this Linux Function App.
 
-* `identity_ids` - A list of User Assigned Identity IDs.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Linux Function App.
+
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Linux Function App.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Linux Function App.
 
 ---
 

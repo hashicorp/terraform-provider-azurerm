@@ -574,36 +574,6 @@ func TestAccWindowsWebAppSlot_withDotNet6(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebAppSlot_withPhp56(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.php(data, "5.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebAppSlot_withPhp73(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.php(data, "7.3"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccWindowsWebAppSlot_withPhp74(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -626,21 +596,6 @@ func TestAccWindowsWebAppSlot_withPython(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.python(data, "3.4.0"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebAppSlot_withNode10LTS(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
-	r := WindowsWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.node(data, "10-LTS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1789,6 +1744,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_storage_share" "test" {
   name                 = "test"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 }
 
 data "azurerm_storage_account_sas" "test" {
@@ -1820,6 +1776,8 @@ data "azurerm_storage_account_sas" "test" {
     create  = false
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomString)

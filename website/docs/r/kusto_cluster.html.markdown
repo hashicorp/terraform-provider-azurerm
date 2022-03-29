@@ -70,7 +70,7 @@ The following arguments are supported:
 
 ~> **NOTE:** In v3.0 of `azurerm` a new or updated Kusto Cluster will only allow your own tenant by default. Explicit configuration of this setting will change from `trusted_external_tenants = ["MyTentantOnly"]` to `trusted_external_tenants = []`.
 
-* `zones` - (Optional) A list of Availability Zones in which the cluster instances should be created in. Changing this forces a new resource to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Kusto Cluster should be located. Changing this forces a new Kusto Cluster to be created.
 
 * `engine` - (Optional). The engine type that should be used. Possible values are `V2` and `V3`. Defaults to `V2`.
 
@@ -101,7 +101,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that is configured on this Kusto Cluster. Possible values are: `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
-* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Kusto Cluster.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 

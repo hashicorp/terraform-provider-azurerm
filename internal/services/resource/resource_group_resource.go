@@ -130,24 +130,32 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	// conditionally check for nested resources and error if they exist
 	if meta.(*clients.Client).Features.ResourceGroup.PreventDeletionIfContainsResources {
 		resourceClient := meta.(*clients.Client).Resource.ResourcesClient
-		results, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "", utils.Int32(500))
+		// Resource groups sometimes hold on to resource information after the resources have been deleted. We'll retry this check to account for that eventual consistency.
+		err = pluginsdk.Retry(2*time.Minute, func() *pluginsdk.RetryError {
+			results, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
+			if err != nil {
+				return pluginsdk.NonRetryableError(fmt.Errorf("listing resources in %s: %v", *id, err))
+			}
+			nestedResourceIds := make([]string, 0)
+			for results.NotDone() {
+				val := results.Value()
+				if val.ID != nil {
+					nestedResourceIds = append(nestedResourceIds, *val.ID)
+				}
+
+				if err := results.NextWithContext(ctx); err != nil {
+					return pluginsdk.NonRetryableError(fmt.Errorf("retrieving next page of nested items for %s: %+v", id, err))
+				}
+			}
+
+			if len(nestedResourceIds) > 0 {
+				time.Sleep(30 * time.Second)
+				return pluginsdk.RetryableError(resourceGroupContainsItemsError(id.ResourceGroup, nestedResourceIds))
+			}
+			return nil
+		})
 		if err != nil {
-			return fmt.Errorf("listing resources in %s: %v", *id, err)
-		}
-		nestedResourceIds := make([]string, 0)
-		for results.NotDone() {
-			val := results.Value()
-			if val.ID != nil {
-				nestedResourceIds = append(nestedResourceIds, *val.ID)
-			}
-
-			if err := results.NextWithContext(ctx); err != nil {
-				return fmt.Errorf("retrieving next page of nested items for %s: %+v", id, err)
-			}
-		}
-
-		if len(nestedResourceIds) > 0 {
-			return resourceGroupContainsItemsError(id.ResourceGroup, nestedResourceIds)
+			return err
 		}
 	}
 

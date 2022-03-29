@@ -122,7 +122,7 @@ The following arguments are supported:
 
 * `stamp_id` - (Optional) The ID of the stamp. Possible values are `stamp1` or `stamp2`. Changing this forces a new Dedicated Hardware Security Module to be created.
 
-* `zones` - (Optional) The Dedicated Hardware Security Module zones. Changing this forces a new Dedicated Hardware Security Module to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Dedicated Hardware Security Module should be located. Changing this forces a new Dedicated Hardware Security Module to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dedicated Hardware Security Module.
 

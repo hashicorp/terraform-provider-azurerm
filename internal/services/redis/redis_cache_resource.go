@@ -299,7 +299,8 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			// todo 3.0 rename this to replicas_per_main? or something else to confirm to inclusive language guidelines
+			// todo: investigate the difference between `replicas_per_master` and `replicas_per_primary` - are these
+			// the same field that's been renamed ala Redis? https://github.com/Azure/azure-rest-api-specs/pull/13005
 			"replicas_per_master": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,

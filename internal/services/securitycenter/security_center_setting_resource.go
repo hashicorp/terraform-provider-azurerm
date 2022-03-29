@@ -2,16 +2,17 @@ package securitycenter
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // TODO: this resource should be split into data_export_setting and alert_sync_setting
@@ -39,6 +40,7 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 			"setting_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"MCAS",
 					"WDATP",
@@ -58,9 +60,21 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// TODO: requires import if it's enabled
-
 	id := parse.NewSettingID(subscriptionId, d.Get("setting_name").(string))
+
+	if d.IsNewResource() {
+		// TODO: switch back when Swagger/API bug has been fixed:
+		// https://github.com/Azure/azure-sdk-for-go/issues/12724 (`Enabled` field missing)
+		existing, err := azuresdkhacks.GetSecurityCenterSetting(ctx, client, id.Name)
+		if err != nil {
+			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+		}
+
+		if existing.DataExportSettingProperties != nil && existing.DataExportSettingProperties.Enabled != nil && *existing.DataExportSettingProperties.Enabled {
+			return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+		}
+	}
+
 	enabled := d.Get("enabled").(bool)
 	setting := security.DataExportSettings{
 		DataExportSettingProperties: &security.DataExportSettingProperties{
@@ -102,9 +116,26 @@ func resourceSecurityCenterSettingRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceSecurityCenterSettingDelete(_ *pluginsdk.ResourceData, _ interface{}) error {
-	// TODO: disable this
+func resourceSecurityCenterSettingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).SecurityCenter.SettingClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
-	log.Printf("[DEBUG] Security Center deletion invocation")
-	return nil // cannot be deleted.
+	id, err := parse.SettingID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	setting := security.DataExportSettings{
+		DataExportSettingProperties: &security.DataExportSettingProperties{
+			Enabled: utils.Bool(false),
+		},
+		Kind: security.KindDataExportSettings,
+	}
+
+	if _, err := client.Update(ctx, id.Name, setting); err != nil {
+		return fmt.Errorf("disabling %s: %+v", id, err)
+	}
+
+	return nil
 }

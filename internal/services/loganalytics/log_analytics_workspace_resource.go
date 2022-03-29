@@ -90,21 +90,11 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				DiffSuppressFunc: logAnalyticsLinkedServiceSkuChangeCaseDifference,
 			},
 
-			"reservation_capcity_in_gb_per_day": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ValidateFunc:  validation.All(validation.IntBetween(100, 5000), validation.IntDivisibleBy(100)),
-				Deprecated:    "As this property name contained a typo originally, please switch to using 'reservation_capacity_in_gb_per_day' instead.",
-				ConflictsWith: []string{"reservation_capacity_in_gb_per_day"},
-			},
-
 			"reservation_capacity_in_gb_per_day": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ValidateFunc:  validation.All(validation.IntBetween(100, 5000), validation.IntDivisibleBy(100)),
-				ConflictsWith: []string{"reservation_capcity_in_gb_per_day"},
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.All(validation.IntBetween(100, 5000), validation.IntDivisibleBy(100)),
 			},
 
 			"retention_in_days": {
@@ -125,12 +115,6 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"workspace_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
-			},
-
-			"portal_url": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
 			},
 
 			"primary_shared_key": {
@@ -228,14 +212,8 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	// Handle typoed property name
 	propName := "reservation_capacity_in_gb_per_day"
 	capacityReservationLevel, ok := d.GetOk(propName)
-	if !ok {
-		propName := "reservation_capcity_in_gb_per_day"
-		capacityReservationLevel, ok = d.GetOk(propName)
-	}
-
 	if ok {
 		if strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation)) {
 			parameters.WorkspaceProperties.Sku.CapacityReservationLevel = utils.Int32((int32(capacityReservationLevel.(int))))
@@ -291,7 +269,6 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("internet_query_enabled", resp.PublicNetworkAccessForQuery == operationalinsights.Enabled)
 
 	d.Set("workspace_id", resp.CustomerID)
-	d.Set("portal_url", "")
 	skuName := ""
 	if sku := resp.Sku; sku != nil {
 		for _, v := range operationalinsights.PossibleSkuNameEnumValues() {
@@ -302,8 +279,6 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 
 		if capacityReservationLevel := sku.CapacityReservationLevel; capacityReservationLevel != nil {
 			d.Set("reservation_capacity_in_gb_per_day", capacityReservationLevel)
-			// Handle typoed property name
-			d.Set("reservation_capcity_in_gb_per_day", capacityReservationLevel)
 		}
 	}
 	d.Set("sku", skuName)

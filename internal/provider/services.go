@@ -31,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datalake"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization"
@@ -120,6 +119,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		costmanagement.Registration{},
 		disks.Registration{},
 		eventhub.Registration{},
+		keyvault.Registration{},
 		loadbalancer.Registration{},
 		loadtest.Registration{},
 		mssql.Registration{},
@@ -157,11 +157,9 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			containers.Registration{},
 			consumption.Registration{},
 			cosmos.Registration{},
-			costmanagement.Registration{},
 			customproviders.Registration{},
 			databricks.Registration{},
 			datafactory.Registration{},
-			datalake.Registration{},
 			databasemigration.Registration{},
 			databoxedge.Registration{},
 			dataprotection.Registration{},

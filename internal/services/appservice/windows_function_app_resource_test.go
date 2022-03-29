@@ -202,6 +202,32 @@ func TestAccWindowsFunctionApp_withAppSettingsStandardPlan(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionApp_withAppSettingsUserSettingUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appSettingsUserSettings(data, SkuConsumptionPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("app_settings.%").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.appSettingsUserSettingsUpdate(data, SkuConsumptionPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("app_settings.%").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // backup by plan type
 
 func TestAccWindowsFunctionApp_withBackupElasticPremiumPlan(t *testing.T) {
@@ -666,6 +692,22 @@ func TestAccWindowsFunctionApp_appStackDotNet6(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+func TestAccWindowsFunctionApp_appStackDotNet6Isolated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackDotNetIsolated(data, SkuBasicPlan, "6"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DotNet-Isolated|6"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 func TestAccWindowsFunctionApp_appStackNode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
@@ -673,7 +715,7 @@ func TestAccWindowsFunctionApp_appStackNode(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackNode(data, SkuBasicPlan, "14"),
+			Config: r.appStackNode(data, SkuConsumptionPlan, "~14"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -689,7 +731,7 @@ func TestAccWindowsFunctionApp_appStackNodeUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackNode(data, SkuBasicPlan, "12"),
+			Config: r.appStackNode(data, SkuBasicPlan, "~12"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -697,7 +739,15 @@ func TestAccWindowsFunctionApp_appStackNodeUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.appStackNode(data, SkuBasicPlan, "14"),
+			Config: r.appStackNode(data, SkuBasicPlan, "~16"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.appStackNode(data, SkuBasicPlan, "~14"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -829,6 +879,30 @@ func TestAccWindowsFunctionApp_msiStorageAccount(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionApp_msiStorageAccountUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msiStorageAccount(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.msiStorageAccountUpdate(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsFunctionApp_storageAccountKeyVaultSecret(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
@@ -906,6 +980,57 @@ resource "azurerm_windows_function_app" "test" {
 }
 
 func (r WindowsFunctionAppResource) appSettings(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+  }
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r WindowsFunctionAppResource) appSettingsUserSettings(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {}
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r WindowsFunctionAppResource) appSettingsUserSettingsUpdate(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1725,6 +1850,33 @@ resource "azurerm_windows_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, version)
 }
 
+func (r WindowsFunctionAppResource) appStackDotNetIsolated(data acceptance.TestData, planSku string, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    application_stack {
+      dotnet_version              = "%s"
+      use_dotnet_isolated_runtime = true
+    }
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, version)
+}
+
 func (r WindowsFunctionAppResource) appStackNode(data acceptance.TestData, planSku string, nodeVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1997,6 +2149,41 @@ resource "azurerm_windows_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
+func (r WindowsFunctionAppResource) msiStorageAccountUpdate(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+
+resource "azurerm_role_assignment" "func_app_access_to_storage" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_windows_function_app.test.identity[0].principal_id
+}
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name          = azurerm_storage_account.test.name
+  storage_uses_managed_identity = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  site_config {
+    always_on = true
+  }
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
 func (r WindowsFunctionAppResource) storageAccountKVSecret(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2230,6 +2417,8 @@ data "azurerm_storage_account_sas" "test" {
     create  = false
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 

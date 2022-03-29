@@ -88,15 +88,13 @@ func resourceMySqlServer() *pluginsdk.Resource {
 					}
 					return nil
 				}(),
-				ConflictsWith: []string{"storage_profile.0.auto_grow"},
 			},
 
 			"backup_retention_days": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"storage_profile.0.backup_retention_days"},
-				ValidateFunc:  validation.IntBetween(7, 35),
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
 			"create_mode": {
@@ -123,10 +121,9 @@ func resourceMySqlServer() *pluginsdk.Resource {
 			},
 
 			"geo_redundant_backup_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"storage_profile.0.geo_redundant_backup"},
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 
 			"infrastructure_encryption_enabled": {
@@ -180,23 +177,9 @@ func resourceMySqlServer() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
-			"ssl_enforcement": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				Deprecated:   "this has been moved to the boolean attribute `ssl_enforcement_enabled` and will be removed in version 3.0 of the provider.",
-				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
-				ValidateFunc: validation.StringInSlice([]string{
-					string(mysql.SslEnforcementEnumDisabled),
-					string(mysql.SslEnforcementEnumEnabled),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-			},
-
 			"ssl_enforcement_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true, // required in 3.0
-				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
+				Type:     pluginsdk.TypeBool,
+				Required: true,
 			},
 
 			"ssl_minimal_tls_version_enforced": {
@@ -217,72 +200,13 @@ func resourceMySqlServer() *pluginsdk.Resource {
 			},
 
 			"storage_mb": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ExactlyOneOf: []string{"storage_profile.0.storage_mb"},
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.All(
 					validation.IntBetween(5120, 16777216),
 					validation.IntDivisibleBy(1024),
 				),
-			},
-
-			"storage_profile": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				Deprecated: "all storage_profile properties have been moved to the top level. This block will be removed in version 3.0 of the provider.",
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"auto_grow": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							Computed:         true,
-							ConflictsWith:    []string{"auto_grow_enabled"},
-							Deprecated:       "this has been moved to the top level boolean attribute `auto_grow_enabled` and will be removed in version 3.0 of the provider.",
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(mysql.StorageAutogrowEnabled),
-								string(mysql.StorageAutogrowDisabled),
-							}, !features.ThreePointOhBeta()),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
-						},
-						"backup_retention_days": {
-							Type:          pluginsdk.TypeInt,
-							Optional:      true,
-							Computed:      true,
-							ConflictsWith: []string{"backup_retention_days"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc:  validation.IntBetween(7, 35),
-							AtLeastOneOf:  []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
-						},
-						"geo_redundant_backup": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							Computed:         true,
-							ConflictsWith:    []string{"geo_redundant_backup_enabled"},
-							Deprecated:       "this has been moved to the top level boolean attribute `geo_redundant_backup_enabled` and will be removed in version 3.0 of the provider.",
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Enabled",
-								"Disabled",
-							}, !features.ThreePointOhBeta()),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
-						},
-						"storage_mb": {
-							Type:          pluginsdk.TypeInt,
-							Optional:      true,
-							ConflictsWith: []string{"storage_mb"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc: validation.All(
-								validation.IntBetween(5120, 16777216),
-								validation.IntDivisibleBy(1024),
-							),
-							AtLeastOneOf: []string{"storage_profile.0.auto_grow", "storage_profile.0.backup_retention_days", "storage_profile.0.geo_redundant_backup", "storage_profile.0.storage_mb"},
-						},
-					},
-				},
 			},
 
 			"threat_detection_policy": {
@@ -390,7 +314,6 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(mysql.FiveFullStopSix), // todo remove in 3.0? We can't create it but maybe we can still manage it
 					string(mysql.FiveFullStopSeven),
 					string(mysql.EightFullStopZero),
 				}, !features.ThreePointOhBeta()),
@@ -701,14 +624,9 @@ func resourceMySqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("infrastructure_encryption_enabled", props.InfrastructureEncryption == mysql.InfrastructureEncryptionEnabled)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == mysql.PublicNetworkAccessEnumEnabled)
-		d.Set("ssl_enforcement", string(props.SslEnforcement))
 		d.Set("ssl_enforcement_enabled", props.SslEnforcement == mysql.SslEnforcementEnumEnabled)
 		d.Set("ssl_minimal_tls_version_enforced", props.MinimalTLSVersion)
 		d.Set("version", string(props.Version))
-
-		if err := d.Set("storage_profile", flattenMySQLStorageProfile(resp.StorageProfile)); err != nil {
-			return fmt.Errorf("setting `storage_profile`: %+v", err)
-		}
 
 		if storage := props.StorageProfile; storage != nil {
 			d.Set("auto_grow_enabled", storage.StorageAutogrow == mysql.StorageAutogrowEnabled)
@@ -794,14 +712,6 @@ func expandServerSkuName(skuName string) (*mysql.Sku, error) {
 
 func expandMySQLStorageProfile(d *pluginsdk.ResourceData) *mysql.StorageProfile {
 	storage := mysql.StorageProfile{}
-	if v, ok := d.GetOk("storage_profile"); ok {
-		storageprofile := v.([]interface{})[0].(map[string]interface{})
-
-		storage.BackupRetentionDays = utils.Int32(int32(storageprofile["backup_retention_days"].(int)))
-		storage.GeoRedundantBackup = mysql.GeoRedundantBackup(storageprofile["geo_redundant_backup"].(string))
-		storage.StorageAutogrow = mysql.StorageAutogrow(storageprofile["auto_grow"].(string))
-		storage.StorageMB = utils.Int32(int32(storageprofile["storage_mb"].(int)))
-	}
 
 	// now override whatever we may have from the block with the top level properties
 	if v, ok := d.GetOk("auto_grow_enabled"); ok {
@@ -827,26 +737,6 @@ func expandMySQLStorageProfile(d *pluginsdk.ResourceData) *mysql.StorageProfile 
 	}
 
 	return &storage
-}
-
-func flattenMySQLStorageProfile(resp *mysql.StorageProfile) []interface{} {
-	values := map[string]interface{}{}
-
-	values["auto_grow"] = string(resp.StorageAutogrow)
-
-	values["backup_retention_days"] = nil
-	if backupRetentionDays := resp.BackupRetentionDays; backupRetentionDays != nil {
-		values["backup_retention_days"] = *backupRetentionDays
-	}
-
-	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
-
-	values["storage_mb"] = nil
-	if storageMB := resp.StorageMB; storageMB != nil {
-		values["storage_mb"] = *storageMB
-	}
-
-	return []interface{}{values}
 }
 
 func expandSecurityAlertPolicy(i interface{}) *mysql.ServerSecurityAlertPolicy {

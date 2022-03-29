@@ -90,11 +90,7 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) The connection string for the endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `keyBased`.
 
-* `iothub_name` - (Optional) The IoTHub name for the endpoint.
-
-~> **NOTE:** The `iothub_name` property is deprecated, use `iothub_id` instead.
-
-* `iothub_id` - (Optional) The IoTHub ID for the endpoint.
+* `iothub_id` - (Required) The IoTHub ID for the endpoint.
 
 ## Attributes Reference
 

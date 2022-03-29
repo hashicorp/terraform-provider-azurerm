@@ -311,6 +311,21 @@ func TestAccAzureRMLoadBalancer_PointToGatewayLB(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancer_edgeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	r := LoadBalancer{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.edgeZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LoadBalancer) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	loadBalancerName := state.Attributes["name"]
 	resourceGroup := state.Attributes["resource_group_name"]
@@ -584,7 +599,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_lb" "test" {
@@ -625,7 +640,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_lb" "test" {
@@ -667,7 +682,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_lb" "test" {
@@ -710,7 +725,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_lb" "test" {
@@ -753,7 +768,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_lb" "test" {
@@ -796,7 +811,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_lb" "test" {
@@ -839,7 +854,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_lb" "test" {
@@ -938,4 +953,36 @@ resource "azurerm_lb" "consumer" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LoadBalancer) edgeZone(data acceptance.TestData) string {
+	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-lb-%d"
+  location = "%s"
+}
+
+data "azurerm_extended_locations" "test" {
+  location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctest-loadbalancer-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+
+  tags = {
+    Environment = "production"
+    Purpose     = "AcceptanceTests"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

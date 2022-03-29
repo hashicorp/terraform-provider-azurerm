@@ -10,8 +10,6 @@ description: |-
 
 Manages a Windows Web App Slot.
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -138,7 +136,7 @@ A `application_stack` block supports the following:
 
 * `docker_container_tag` - (Optional) The Image Tag of the specified Docker Container to use. For example `latest`
 
-* `dotnet_version` - (Optional) The version of .Net to use when `current_stack` is set to `dotnet`. Possible values include `v2.0`, `v3.0`, `v4.0`, and `v5.0`.
+* `dotnet_version` - (Optional) The version of .Net to use when `current_stack` is set to `dotnet`. Possible values include `v3.0`, `v4.0`, `v5.0`, and `v6.0`.
 
 * `java_container` - (Optional) The Java container type to use when `current_stack` is set to `java`. Possible values include `JAVA`, `JETTY`, and `TOMCAT`. Required with `java_version` and `java_container_version`.
 
@@ -148,11 +146,11 @@ A `application_stack` block supports the following:
 
 ~> **NOTE:** For compatible combinations of `java_version`, `java_container` and `java_container_version` users can use `az webapp list-runtimes` from command line.
 
-* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`.
+* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values include `12-LTS`, `14-LTS`, and `16-LTS`.
 
 ~> **NOTE:** This property conflicts with `java_version`.
 
-* `php_version` - (Optional) The version of PHP to use when `current_stack` is set to `php`. Possible values include `v5.6`, `v7.3`, and `v7.4`.
+* `php_version` - (Optional) The version of PHP to use when `current_stack` is set to `php`. Possible values include `v7.4`.
 
 * `python_version` - (Optional) The version of Python to use when `current_stack` is set to `python`. Possible values include `2.7` and `3.4.0`.
 
@@ -314,15 +312,13 @@ A `http_logs` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Windows Web App Slot. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of Identity IDs.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Windows Web App Slot.
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
-
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -578,6 +574,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Windows Web App Slot.
 
+* `identity` - An `identity` block as defined below.
+
 * `kind` - The Kind value for this Windows Web App Slot.
 
 * `outbound_ip_address_list` - A list of outbound IP addresses - such as `["52.23.25.3", "52.143.43.12"]`
@@ -589,6 +587,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
 * `site_credential` - A `site_credential` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 

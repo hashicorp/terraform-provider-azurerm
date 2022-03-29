@@ -10,8 +10,6 @@ description: |-
 
 Manages a Linux Function App.
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -132,11 +130,13 @@ A `application_stack` block supports the following:
 
 * `docker` - (Optional) One or more `docker` blocks as defined below.
 
-* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1` and `6`.
+* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1` and `6.0`.
+
+* `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
 * `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, and `11`.
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `12`, and `14`.
+* `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, and `16`.
 
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.6`, `3.7`, `3.8`, and `3.9`.
 
@@ -293,11 +293,13 @@ A `headers` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Linux Function App. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Identity IDs.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Linux Function App.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -459,6 +461,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Linux Function App.
 
+* `identity` - An `identity` block as defined below.
+
 * `kind` - The Kind value for this Linux Function App.
 
 * `outbound_ip_address_list` - A list of outbound IP addresses. For example `["52.23.25.3", "52.143.43.12"]`
@@ -470,6 +474,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `possible_outbound_ip_addresses` - A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`. For example `["52.23.25.3", "52.143.43.12","52.143.43.17"]`.
 
 * `site_credential` - A `site_credential` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 
