@@ -3,12 +3,12 @@ subcategory: "Healthcare"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_healthcare_fhir_service"
 description: |-
-  Manages a Healthcare Fhir Service.
+  Manages a Healthcare FHIR (Fast Healthcare Interoperability Resources) Service.
 ---
 
 # azurerm_healthcare_fhir_service
 
-Manages a Healthcare Fhir Service
+Manages a Healthcare FHIR (Fast Healthcare Interoperability Resources) Service
 
 ## Example Usage
 
@@ -50,13 +50,13 @@ resource "azurerm_healthcare_fhir_service" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Healthcare Fhir Service. Changing this forces a new Healthcare Fhir Service to be created.
+* `name` - (Required) Specifies the name of the Healthcare FHIR Service. Changing this forces a new Healthcare FHIR Service to be created.
 
-* `workspace_id`  - (Required) Specifies the name of the Healthcare Workspace where the Healthcare Fhir Service should exist. Changing this forces a new Healthcare Fhir Service to be created.
+* `workspace_id`  - (Required) Specifies the name of the Healthcare Workspace where the Healthcare FHIR Service should exist. Changing this forces a new Healthcare FHIR Service to be created.
 
-* `location` - (Required) Specifies the Azure Region where the Healthcare Fhir Service should be created. Changing this forces a new Healthcare Fhir Service to be created.
+* `location` - (Required) Specifies the Azure Region where the Healthcare FHIR Service should be created. Changing this forces a new Healthcare FHIR Service to be created.
 
-* `kind` - (Required) Specifies the kind of the Healthcare Fhir Service. Possible values are: `fhir-Stu3` and `fhir-R4`. Defaults to `fhir-R4`. Changing this forces a new Healthcare Fhir Service to be created.
+* `kind` - (Required) Specifies the kind of the Healthcare FHIR Service. Possible values are: `fhir-Stu3` and `fhir-R4`. Defaults to `fhir-R4`. Changing this forces a new Healthcare FHIR Service to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 ---
 An `identity` block supports the following:
 
-* `type` - (Required) The type of identity used for the Healthcare Fhir service. Possible values are `SystemAssigned`.
+* `type` - (Required) The type of identity used for the Healthcare FHIR service. Possible values are `SystemAssigned`.
 
 ---
 A `cors_configuration` block supports the following:  
@@ -97,19 +97,19 @@ An `authentication` supports the following:
 
 The following attributes are exported:
 
-* `id` - The ID of the Healthcare Fhir Service.
+* `id` - The ID of the Healthcare FHIR Service.
 
 ## Timeouts
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Healthcare Fhir Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Healthcare Fhir Service.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Fhir Service.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare Fhir Service.
+* `create` - (Defaults to 30 minutes) Used when creating the Healthcare FHIR Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Healthcare FHIR Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare FHIR Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare FHIR Service.
 
 ## Import
 
-Healthcare Fhir Service can be imported using the resource`id`, e.g.
+Healthcare FHIR Service can be imported using the resource`id`, e.g.
 
 ```shell
 terraform import azurerm_healthcare_fhir_service.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/fhirservices/service1

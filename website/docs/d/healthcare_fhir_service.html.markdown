@@ -3,12 +3,12 @@ subcategory: "Healthcare"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_healthcare_fhir_service"
 description: |-
-  Get information about an existing Healthcare Fhir Service
+  Get information about an existing Healthcare FHIR (Fast Healthcare Interoperability Resources) Service.
 ---
 
 # Data Source: azurerm_healthcare_fhir_service
 
-Use this data source to access information about an existing Healthcare Fhir Service
+Use this data source to access information about an existing Healthcare FHIR Service(Fast Healthcare Interoperability Resources).
 
 ## Example Usage
 
@@ -25,19 +25,19 @@ output "healthcare_fhir_service_id" {
 
 ## Argument Reference
 
-* `name` - The name of the Healthcare Fhir Service.
+* `name` - The name of the Healthcare FHIR Service.
 
-* `workspace_id` - The name of the Healthcare Workspace in which the Healthcare Fhir Service exists.
+* `workspace_id` - The name of the Healthcare Workspace in which the Healthcare FHIR Service exists.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Healthcare Fhir Service.
+* `id` - The ID of the Healthcare FHIR Service.
 
-* `location` - The Azure Region where the Healthcare Fhir Service is located.
+* `location` - The Azure Region where the Healthcare FHIR Service is located.
 
-* `kind` - The kind of the Healthcare Fhir Service. 
+* `kind` - The kind of the Healthcare FHIR Service. 
 
 * `identity` - The `identity` block as defined below.
 
@@ -53,12 +53,12 @@ The following attributes are exported:
 
 * `public_network_access_enabled` The public networks when data plane traffic coming from public networks while private endpoint is enabled.
 
-* `tags` - The map of tags assigned to the Healthcare Fhir Service.
+* `tags` - The map of tags assigned to the Healthcare FHIR Service.
 
 ---
 An `identity` block exports the following:
 
-* `type` The type of identity used for the Healthcare Fhir service.
+* `type` The type of identity used for the Healthcare FHIR service.
 
 * `principal_id` - The Principal ID associated with this System Assigned Managed Service Identity.
 
@@ -85,5 +85,5 @@ An `authentication` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Fhir Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare FHIR Service.
 
