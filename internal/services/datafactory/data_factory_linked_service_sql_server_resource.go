@@ -138,7 +138,7 @@ func resourceDataFactoryLinkedServiceSQLServer() *pluginsdk.Resource {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
-			"userName": {
+			"user_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 			},
@@ -186,7 +186,7 @@ func resourceDataFactoryLinkedServiceSQLServerCreateUpdate(d *pluginsdk.Resource
 		sqlServerLinkedService.SQLServerLinkedServiceTypeProperties.ConnectionString = v.(string)
 	}
 
-	if v, ok := d.GetOk("userName"); ok {
+	if v, ok := d.GetOk("user_name"); ok {
 		sqlServerLinkedService.SQLServerLinkedServiceTypeProperties.UserName = v.(string)
 	}
 
@@ -296,9 +296,9 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, me
 
 		if userName := properties.UserName; userName != nil {
 			if val, ok := userName.(string); ok {
-				d.Set("userName", val)
+				d.Set("user_name", val)
 			} else {
-				return fmt.Errorf("setting `userName`: %+v", err)
+				return fmt.Errorf("setting `user_name`: %+v", err)
 			}
 		}
 	}

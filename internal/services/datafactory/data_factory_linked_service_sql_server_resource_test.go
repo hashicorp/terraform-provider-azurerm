@@ -209,7 +209,7 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
   data_factory_id = azurerm_data_factory.test.id
 
   connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;"
-  userName          = "testuserName_%[1]d"
+  user_name          = "testuserName_%[1]d"
   key_vault_password {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
