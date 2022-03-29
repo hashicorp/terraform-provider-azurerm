@@ -51,7 +51,7 @@ The following attributes are exported:
 
 * `ip_range_filter` - The current IP Filter for this CosmosDB account
 
-* `enable_free_tier` - If Free Tier pricing option is enabled for this CosmosDB Account.
+* `enable_free_tier` - If Free Tier pricing option is enabled for this CosmosDB Account. You can have up to one free tier Azure Cosmos DB account per Azure subscription.
 
 * `enable_automatic_failover` - If automatic failover is enabled for this CosmosDB Account.
 
