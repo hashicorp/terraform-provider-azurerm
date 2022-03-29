@@ -7532,13 +7532,13 @@ func (r ApplicationGatewayResource) updateFeipConfig(data acceptance.TestData) s
 
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  backend_address_pool_name          = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name                 = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name     = "${azurerm_virtual_network.test.name}-feip"
   frontend_ip_configuration_name_new = "${azurerm_virtual_network.test.name}-feip-new"
-  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  http_setting_name                  = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                      = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name          = "${azurerm_virtual_network.test.name}-rqrt"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -7563,10 +7563,10 @@ resource "azurerm_application_gateway" "test" {
   }
 
   frontend_ip_configuration {
-    name                            = local.frontend_ip_configuration_name_new
-    subnet_id                       = azurerm_subnet.test.id
-    private_ip_address_allocation   = "Static"
-    private_ip_address              = "10.0.0.10"
+    name                          = local.frontend_ip_configuration_name_new
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "10.0.0.10"
   }
 
   frontend_ip_configuration {
@@ -7610,13 +7610,13 @@ func (r ApplicationGatewayResource) deletePublicFeip(data acceptance.TestData) s
 
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  backend_address_pool_name          = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name                 = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name     = "${azurerm_virtual_network.test.name}-feip"
   frontend_ip_configuration_name_new = "${azurerm_virtual_network.test.name}-feip-new"
-  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  http_setting_name                  = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                      = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name          = "${azurerm_virtual_network.test.name}-rqrt"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -7641,10 +7641,10 @@ resource "azurerm_application_gateway" "test" {
   }
 
   frontend_ip_configuration {
-    name                            = local.frontend_ip_configuration_name_new
-    subnet_id                       = azurerm_subnet.test.id
-    private_ip_address_allocation   = "Static"
-    private_ip_address              = "10.0.0.10"
+    name                          = local.frontend_ip_configuration_name_new
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "10.0.0.10"
   }
 
   backend_address_pool {
