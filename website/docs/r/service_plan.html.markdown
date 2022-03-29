@@ -28,7 +28,6 @@ resource "azurerm_service_plan" "example" {
   location            = "West Europe"
   os_type             = "Linux"
   sku_name            = "P1V2"
-  os_type             = "Windows"
 }
 ```
 
