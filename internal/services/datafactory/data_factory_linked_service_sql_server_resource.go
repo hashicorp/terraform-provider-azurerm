@@ -139,8 +139,9 @@ func resourceDataFactoryLinkedServiceSQLServer() *pluginsdk.Resource {
 				},
 			},
 			"user_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
@@ -256,6 +257,7 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, me
 
 	d.Set("additional_properties", sqlServer.AdditionalProperties)
 	d.Set("description", sqlServer.Description)
+	d.Set("user_name", sqlServer.SQLServerLinkedServiceTypeProperties.UserName)
 
 	annotations := flattenDataFactoryAnnotations(sqlServer.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
@@ -291,14 +293,6 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, me
 				if err := d.Set("key_vault_password", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
 					return fmt.Errorf("setting `key_vault_password`: %+v", err)
 				}
-			}
-		}
-
-		if userName := properties.UserName; userName != nil {
-			if val, ok := userName.(string); ok {
-				d.Set("user_name", val)
-			} else {
-				return fmt.Errorf("setting `user_name`: %+v", err)
 			}
 		}
 	}
