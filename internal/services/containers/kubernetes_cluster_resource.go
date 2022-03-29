@@ -3189,13 +3189,13 @@ func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservi
 }
 
 func expandKubernetesClusterOidcIssuerProfile(input []interface{}) *containerservice.ManagedClusterOIDCIssuerProfile {
-	oidcIssuerProfile := containerservice.ManagedClusterOIDCIssuerProfile{}
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	profile := input[0].(map[string]interface{})
 
+	oidcIssuerProfile := containerservice.ManagedClusterOIDCIssuerProfile{}
 	oidcIssuerProfile.Enabled = utils.Bool(profile["enabled"].(bool))
 
 	return &oidcIssuerProfile
