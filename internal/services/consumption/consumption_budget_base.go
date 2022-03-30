@@ -45,6 +45,8 @@ func getDimensionNames() []string {
 		"ResourceType",
 		"ServiceFamily",
 		"ServiceName",
+		"SubscriptionID",
+		"SubscriptionName",
 		"UnitOfMeasure",
 	}
 }
