@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
@@ -60,7 +61,7 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"enable_health_probes": {
+			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -112,6 +113,34 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"private_link": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+
+						"approval_message": { //   A custom message to be included in the approval request to connect to the Private Link.
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"location": { // The location of the Private Link resource. Required only if 'privateLinkResourceId' is populated
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"resource_id": { // The Resource Id of the Private Link resource. Populating this optional field indicates that this backend is 'Private'
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -141,18 +170,25 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
+	originProps := &track1.AFDOriginProperties{
+		AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
+		EnabledState:                ConvertBoolToEnabledState(d.Get("enabled").(bool)),
+		EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
+		HostName:                    utils.String(d.Get("host_name").(string)),
+		HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
+		HTTPSPort:                   utils.Int32(int32(d.Get("https_port").(int))),
+		OriginHostHeader:            utils.String(d.Get("cdn_frontdoor_origin_host_header").(string)),
+		Priority:                    utils.Int32(int32(d.Get("priority").(int))),
+		Weight:                      utils.Int32(int32(d.Get("weight").(int))),
+	}
+
+	privateLinkSettings := d.Get("private_link").([]interface{})
+	if privateLinkSettings != nil {
+		originProps.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLinkSettings)
+	}
+
 	props := track1.AFDOrigin{
-		AFDOriginProperties: &track1.AFDOriginProperties{
-			AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
-			EnabledState:                ConvertBoolToEnabledState(d.Get("enable_health_probes").(bool)),
-			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
-			HostName:                    utils.String(d.Get("host_name").(string)),
-			HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
-			HTTPSPort:                   utils.Int32(int32(d.Get("https_port").(int))),
-			OriginHostHeader:            utils.String(d.Get("cdn_frontdoor_origin_host_header").(string)),
-			Priority:                    utils.Int32(int32(d.Get("priority").(int))),
-			Weight:                      utils.Int32(int32(d.Get("weight").(int))),
-		},
+		AFDOriginProperties: originProps,
 	}
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, props)
@@ -197,7 +233,7 @@ func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `cdn_frontdoor_origin_id`: %+v", err)
 		}
 
-		d.Set("enable_health_probes", ConvertEnabledStateToBool(&props.EnabledState))
+		d.Set("enabled", ConvertEnabledStateToBool(&props.EnabledState))
 		d.Set("enforce_certificate_name_check", props.EnforceCertificateNameCheck)
 		d.Set("host_name", props.HostName)
 		d.Set("http_port", props.HTTPPort)
@@ -221,18 +257,25 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
+	originProps := &track1.AFDOriginUpdatePropertiesParameters{
+		AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
+		EnabledState:                ConvertBoolToEnabledState(d.Get("enabled").(bool)),
+		EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
+		HostName:                    utils.String(d.Get("host_name").(string)),
+		HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
+		HTTPSPort:                   utils.Int32(int32(d.Get("https_port").(int))),
+		OriginHostHeader:            utils.String(d.Get("cdn_frontdoor_origin_host_header").(string)),
+		Priority:                    utils.Int32(int32(d.Get("priority").(int))),
+		Weight:                      utils.Int32(int32(d.Get("weight").(int))),
+	}
+
+	if d.HasChange("private_link") {
+		privateLink := d.Get("private_link").([]interface{})
+		originProps.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLink)
+	}
+
 	props := track1.AFDOriginUpdateParameters{
-		AFDOriginUpdatePropertiesParameters: &track1.AFDOriginUpdatePropertiesParameters{
-			AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
-			EnabledState:                ConvertBoolToEnabledState(d.Get("enable_health_probes").(bool)),
-			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
-			HostName:                    utils.String(d.Get("host_name").(string)),
-			HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
-			HTTPSPort:                   utils.Int32(int32(d.Get("https_port").(int))),
-			OriginHostHeader:            utils.String(d.Get("cdn_frontdoor_origin_host_header").(string)),
-			Priority:                    utils.Int32(int32(d.Get("priority").(int))),
-			Weight:                      utils.Int32(int32(d.Get("weight").(int))),
-		},
+		AFDOriginUpdatePropertiesParameters: originProps,
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, props)
@@ -266,4 +309,26 @@ func resourceCdnFrontdoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	return nil
+}
+
+func expandPrivateLinkSettings(input []interface{}) *track1.SharedPrivateLinkResourceProperties {
+	if len(input) == 0 {
+		return &track1.SharedPrivateLinkResourceProperties{}
+	}
+
+	config := input[0].(map[string]interface{})
+
+	resourceId := config["resource_id"].(string)
+	location := config["location"].(string)
+	approvalMessage := config["approval_message"].(string)
+
+	privateLinkResource := track1.SharedPrivateLinkResourceProperties{
+		PrivateLink: &track1.ResourceReference{
+			ID: &resourceId,
+		},
+		PrivateLinkLocation: &location,
+		RequestMessage:      &approvalMessage,
+	}
+
+	return &privateLinkResource
 }

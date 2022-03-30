@@ -120,20 +120,9 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 			"custom_domains": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-
-						"active": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-					},
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validate.FrontdoorCustomDomainID,
 				},
 			},
 
@@ -315,7 +304,7 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `cdn_frontdoor_origin_group_id`: %+v", err)
 		}
 
-		if err := d.Set("cdn_frontdoor_rule_set_ids", flattenRouteResourceReferenceArry(props.RuleSets)); err != nil {
+		if err := d.Set("cdn_frontdoor_rule_set_ids", flattenRouteResourceReferenceArray(props.RuleSets)); err != nil {
 			return fmt.Errorf("setting `cdn_frontdoor_rule_set_ids`: %+v", err)
 		}
 
@@ -445,13 +434,13 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *track1.AfdRoute
 func expandRouteActivatedResourceReferenceArray(input []interface{}) *[]track1.ActivatedResourceReference {
 	results := make([]track1.ActivatedResourceReference, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
 
 		results = append(results, track1.ActivatedResourceReference{
-			ID: utils.String(v["id"].(string)),
+			ID: utils.String(item.(string)),
 		})
 	}
 	return &results
+
 }
 
 func flattenRouteActivatedResourceReferenceArray(inputs *[]track1.ActivatedResourceReference) []interface{} {
@@ -461,22 +450,14 @@ func flattenRouteActivatedResourceReferenceArray(inputs *[]track1.ActivatedResou
 	}
 
 	for _, input := range *inputs {
-		result := make(map[string]interface{})
-
-		if input.ID != nil {
-			result["id"] = *input.ID
-		}
-
-		if input.IsActive != nil {
-			result["active"] = *input.IsActive
-		}
-		results = append(results, result)
+		results = append(results, *input.ID)
 	}
 
 	return results
+
 }
 
-func flattenRouteResourceReferenceArry(input *[]track1.ResourceReference) []interface{} {
+func flattenRouteResourceReferenceArray(input *[]track1.ResourceReference) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
