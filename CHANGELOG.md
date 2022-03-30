@@ -3,6 +3,9 @@
 BUG FIXES:
 
 * `azurerm_api_management_api_operation_tag` - now retrieves tags from the correct API [GH-16006]
+* `azurerm_linux_function_app` - only one of `application_insights_key` or `application_insights_connection_string` now needs to be optionally specified [GH-16134]
+* `azurerm_linux_function_app_slot` - only one of `application_insights_key` or `application_insights_connection_string` now needs to be optionally specified [GH-16134]
+
 
 ENHANCEMENTS:
 
