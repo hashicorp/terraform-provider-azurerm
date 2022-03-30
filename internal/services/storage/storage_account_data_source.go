@@ -334,7 +334,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("min_tls_version", string(props.MinimumTLSVersion))
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
-		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
+		d.Set("allow_nested_items_to_be_public", props.AllowBlobPublicAccess)
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
