@@ -10,6 +10,7 @@ BUG FIXES:
 
 ENHANCEMENTS:
 
+* dependencies: updating `digitaltwins` to `2020-12-01` [GH-16044]
 * `azurerm_cognitive_account` - support for the `custom_question_answering_search_service_id` property [GH-15804]
 * `azurerm_consumption_budget_management_group` - support for `SubscriptionID` and `SubscriptionName` options in `dimension` block [GH-16074]
 
