@@ -210,13 +210,11 @@ func TestAccRoleAssignment_ServicePrincipalGroup(t *testing.T) {
 // TODO - "real" management group with appropriate required for testing
 func TestAccRoleAssignment_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
-	groupId := uuid.New().String()
-
 	r := RoleAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.managementGroupConfig(groupId),
+			Config: r.managementGroupConfig(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -594,7 +592,7 @@ resource "azurerm_role_assignment" "test" {
 `, rInt, roleAssignmentID)
 }
 
-func (RoleAssignmentResource) managementGroupConfig(groupId string) string {
+func (RoleAssignmentResource) managementGroupConfig() string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
