@@ -82,7 +82,7 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"allow_blob_public_access": {
+			"allow_nested_items_to_be_public": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},

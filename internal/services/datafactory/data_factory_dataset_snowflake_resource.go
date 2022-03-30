@@ -234,10 +234,6 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 		snowflakeTableset.AdditionalProperties = v.(map[string]interface{})
 	}
 
-	if v, ok := d.GetOk("structure_column"); ok {
-		snowflakeTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
-	}
-
 	if v, ok := d.GetOk("schema_column"); ok {
 		snowflakeTableset.Schema = expandDataFactoryDatasetSnowflakeSchema(v.([]interface{}))
 	}
@@ -328,11 +324,6 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 		if folder.Name != nil {
 			d.Set("folder", folder.Name)
 		}
-	}
-
-	structureColumns := flattenDataFactoryStructureColumns(snowflakeTable.Structure)
-	if err := d.Set("structure_column", structureColumns); err != nil {
-		return fmt.Errorf("setting `structure_column`: %+v", err)
 	}
 
 	schemaColumns := flattenDataFactorySnowflakeSchemaColumns(snowflakeTable.Schema)
