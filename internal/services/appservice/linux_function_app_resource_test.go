@@ -1795,7 +1795,6 @@ resource "azurerm_linux_function_app" "test" {
     api_definition_url = "https://example.com/azure_function_app_def.json"
     app_scale_limit    = 3
     // api_management_api_id = ""  // TODO
-    application_insights_key               = azurerm_application_insights.test.instrumentation_key
     application_insights_connection_string = azurerm_application_insights.test.connection_string
 
     container_registry_use_managed_identity       = true
@@ -1964,7 +1963,6 @@ resource "azurerm_linux_function_app" "test" {
     app_command_line   = "whoami"
     api_definition_url = "https://example.com/azure_function_app_def.json"
     // api_management_api_id = ""  // TODO
-    application_insights_key               = azurerm_application_insights.test.instrumentation_key
     application_insights_connection_string = azurerm_application_insights.test.connection_string
 
     application_stack {
@@ -2097,7 +2095,6 @@ resource "azurerm_linux_function_app" "test" {
     app_command_line   = "whoami"
     api_definition_url = "https://example.com/azure_function_app_def.json"
     // api_management_api_id = ""  // TODO
-    application_insights_key               = azurerm_application_insights.test.instrumentation_key
     application_insights_connection_string = azurerm_application_insights.test.connection_string
 
     application_stack {
