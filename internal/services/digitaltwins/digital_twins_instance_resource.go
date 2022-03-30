@@ -151,11 +151,11 @@ func resourceDigitalTwinsInstanceUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, props)
 	if err != nil {
-		return fmt.Errorf("updating Digital Twins Instance %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of the Digital Twins Instance %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	return resourceDigitalTwinsInstanceRead(d, meta)
