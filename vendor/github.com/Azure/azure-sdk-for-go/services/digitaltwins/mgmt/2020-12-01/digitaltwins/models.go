@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-10-31/digitaltwins"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-12-01/digitaltwins"
 
 // CheckNameRequest the result returned from a database check name availability request.
 type CheckNameRequest struct {
@@ -37,6 +37,63 @@ type CheckNameResult struct {
 	Message *string `json:"message,omitempty"`
 	// Reason - Message providing the reason why the given name is invalid. Possible values include: 'Invalid', 'AlreadyExists'
 	Reason Reason `json:"reason,omitempty"`
+}
+
+// ConnectionProperties the properties of a private endpoint connection.
+type ConnectionProperties struct {
+	// ProvisioningState - READ-ONLY; The provisioning state. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected'
+	ProvisioningState ConnectionPropertiesProvisioningState `json:"provisioningState,omitempty"`
+	PrivateEndpoint   *ConnectionPropertiesPrivateEndpoint  `json:"privateEndpoint,omitempty"`
+	// GroupIds - The list of group ids for the private endpoint connection.
+	GroupIds                          *[]string                                              `json:"groupIds,omitempty"`
+	PrivateLinkServiceConnectionState *ConnectionPropertiesPrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ConnectionProperties.
+func (cp ConnectionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cp.PrivateEndpoint != nil {
+		objectMap["privateEndpoint"] = cp.PrivateEndpoint
+	}
+	if cp.GroupIds != nil {
+		objectMap["groupIds"] = cp.GroupIds
+	}
+	if cp.PrivateLinkServiceConnectionState != nil {
+		objectMap["privateLinkServiceConnectionState"] = cp.PrivateLinkServiceConnectionState
+	}
+	return json.Marshal(objectMap)
+}
+
+// ConnectionPropertiesPrivateEndpoint ...
+type ConnectionPropertiesPrivateEndpoint struct {
+	// ID - READ-ONLY; The resource identifier.
+	ID *string `json:"id,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ConnectionPropertiesPrivateEndpoint.
+func (cpE ConnectionPropertiesPrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// ConnectionPropertiesPrivateLinkServiceConnectionState ...
+type ConnectionPropertiesPrivateLinkServiceConnectionState struct {
+	// Status - The status of a private endpoint connection. Possible values include: 'PrivateLinkServiceConnectionStatusPending', 'PrivateLinkServiceConnectionStatusApproved', 'PrivateLinkServiceConnectionStatusRejected', 'PrivateLinkServiceConnectionStatusDisconnected'
+	Status PrivateLinkServiceConnectionStatus `json:"status,omitempty"`
+	// Description - The description for the current state of a private endpoint connection.
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - Actions required for a private endpoint connection.
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
+}
+
+// ConnectionState the current state of a private endpoint connection.
+type ConnectionState struct {
+	// Status - The status of a private endpoint connection. Possible values include: 'PrivateLinkServiceConnectionStatusPending', 'PrivateLinkServiceConnectionStatusApproved', 'PrivateLinkServiceConnectionStatusRejected', 'PrivateLinkServiceConnectionStatusDisconnected'
+	Status PrivateLinkServiceConnectionStatus `json:"status,omitempty"`
+	// Description - The description for the current state of a private endpoint connection.
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - Actions required for a private endpoint connection.
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
 }
 
 // CreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -139,6 +196,8 @@ type Description struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - The resource tags.
 	Tags map[string]*string `json:"tags"`
+	// Identity - The managed identity for the DigitalTwinsInstance.
+	Identity *Identity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Description.
@@ -152,6 +211,9 @@ func (d Description) MarshalJSON() ([]byte, error) {
 	}
 	if d.Tags != nil {
 		objectMap["tags"] = d.Tags
+	}
+	if d.Identity != nil {
+		objectMap["identity"] = d.Identity
 	}
 	return json.Marshal(objectMap)
 }
@@ -218,6 +280,15 @@ func (d *Description) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				d.Tags = tags
+			}
+		case "identity":
+			if v != nil {
+				var identity Identity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				d.Identity = &identity
 			}
 		}
 	}
@@ -713,8 +784,12 @@ type EndpointResourceProperties struct {
 	ProvisioningState EndpointProvisioningState `json:"provisioningState,omitempty"`
 	// CreatedTime - READ-ONLY; Time when the Endpoint was added to DigitalTwinsInstance.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// DeadLetterSecret - Dead letter storage secret. Will be obfuscated during read.
+	// AuthenticationType - Specifies the authentication type being used for connecting to the endpoint. Possible values include: 'KeyBased', 'IdentityBased'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+	// DeadLetterSecret - Dead letter storage secret for key-based authentication. Will be obfuscated during read.
 	DeadLetterSecret *string `json:"deadLetterSecret,omitempty"`
+	// DeadLetterURI - Dead letter storage URL for identity-based authentication.
+	DeadLetterURI *string `json:"deadLetterUri,omitempty"`
 	// EndpointType - Possible values include: 'EndpointTypeDigitalTwinsEndpointResourceProperties', 'EndpointTypeServiceBus', 'EndpointTypeEventHub', 'EndpointTypeEventGrid'
 	EndpointType EndpointType `json:"endpointType,omitempty"`
 }
@@ -768,8 +843,14 @@ func unmarshalBasicEndpointResourcePropertiesArray(body []byte) ([]BasicEndpoint
 func (erp EndpointResourceProperties) MarshalJSON() ([]byte, error) {
 	erp.EndpointType = EndpointTypeDigitalTwinsEndpointResourceProperties
 	objectMap := make(map[string]interface{})
+	if erp.AuthenticationType != "" {
+		objectMap["authenticationType"] = erp.AuthenticationType
+	}
 	if erp.DeadLetterSecret != nil {
 		objectMap["deadLetterSecret"] = erp.DeadLetterSecret
+	}
+	if erp.DeadLetterURI != nil {
+		objectMap["deadLetterUri"] = erp.DeadLetterURI
 	}
 	if erp.EndpointType != "" {
 		objectMap["endpointType"] = erp.EndpointType
@@ -836,8 +917,12 @@ type EventGrid struct {
 	ProvisioningState EndpointProvisioningState `json:"provisioningState,omitempty"`
 	// CreatedTime - READ-ONLY; Time when the Endpoint was added to DigitalTwinsInstance.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// DeadLetterSecret - Dead letter storage secret. Will be obfuscated during read.
+	// AuthenticationType - Specifies the authentication type being used for connecting to the endpoint. Possible values include: 'KeyBased', 'IdentityBased'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+	// DeadLetterSecret - Dead letter storage secret for key-based authentication. Will be obfuscated during read.
 	DeadLetterSecret *string `json:"deadLetterSecret,omitempty"`
+	// DeadLetterURI - Dead letter storage URL for identity-based authentication.
+	DeadLetterURI *string `json:"deadLetterUri,omitempty"`
 	// EndpointType - Possible values include: 'EndpointTypeDigitalTwinsEndpointResourceProperties', 'EndpointTypeServiceBus', 'EndpointTypeEventHub', 'EndpointTypeEventGrid'
 	EndpointType EndpointType `json:"endpointType,omitempty"`
 }
@@ -855,8 +940,14 @@ func (eg EventGrid) MarshalJSON() ([]byte, error) {
 	if eg.AccessKey2 != nil {
 		objectMap["accessKey2"] = eg.AccessKey2
 	}
+	if eg.AuthenticationType != "" {
+		objectMap["authenticationType"] = eg.AuthenticationType
+	}
 	if eg.DeadLetterSecret != nil {
 		objectMap["deadLetterSecret"] = eg.DeadLetterSecret
+	}
+	if eg.DeadLetterURI != nil {
+		objectMap["deadLetterUri"] = eg.DeadLetterURI
 	}
 	if eg.EndpointType != "" {
 		objectMap["endpointType"] = eg.EndpointType
@@ -891,16 +982,24 @@ func (eg EventGrid) AsBasicEndpointResourceProperties() (BasicEndpointResourcePr
 
 // EventHub properties related to EventHub.
 type EventHub struct {
-	// ConnectionStringPrimaryKey - PrimaryConnectionString of the endpoint. Will be obfuscated during read.
+	// ConnectionStringPrimaryKey - PrimaryConnectionString of the endpoint for key-based authentication. Will be obfuscated during read.
 	ConnectionStringPrimaryKey *string `json:"connectionStringPrimaryKey,omitempty"`
-	// ConnectionStringSecondaryKey - SecondaryConnectionString of the endpoint. Will be obfuscated during read.
+	// ConnectionStringSecondaryKey - SecondaryConnectionString of the endpoint for key-based authentication. Will be obfuscated during read.
 	ConnectionStringSecondaryKey *string `json:"connectionStringSecondaryKey,omitempty"`
+	// EndpointURI - The URL of the EventHub namespace for identity-based authentication. It must include the protocol sb://
+	EndpointURI *string `json:"endpointUri,omitempty"`
+	// EntityPath - The EventHub name in the EventHub namespace for identity-based authentication.
+	EntityPath *string `json:"entityPath,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state. Possible values include: 'Provisioning', 'Deleting', 'Succeeded', 'Failed', 'Canceled', 'Deleted', 'Warning', 'Suspending', 'Restoring', 'Moving', 'Disabled'
 	ProvisioningState EndpointProvisioningState `json:"provisioningState,omitempty"`
 	// CreatedTime - READ-ONLY; Time when the Endpoint was added to DigitalTwinsInstance.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// DeadLetterSecret - Dead letter storage secret. Will be obfuscated during read.
+	// AuthenticationType - Specifies the authentication type being used for connecting to the endpoint. Possible values include: 'KeyBased', 'IdentityBased'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+	// DeadLetterSecret - Dead letter storage secret for key-based authentication. Will be obfuscated during read.
 	DeadLetterSecret *string `json:"deadLetterSecret,omitempty"`
+	// DeadLetterURI - Dead letter storage URL for identity-based authentication.
+	DeadLetterURI *string `json:"deadLetterUri,omitempty"`
 	// EndpointType - Possible values include: 'EndpointTypeDigitalTwinsEndpointResourceProperties', 'EndpointTypeServiceBus', 'EndpointTypeEventHub', 'EndpointTypeEventGrid'
 	EndpointType EndpointType `json:"endpointType,omitempty"`
 }
@@ -915,8 +1014,20 @@ func (eh EventHub) MarshalJSON() ([]byte, error) {
 	if eh.ConnectionStringSecondaryKey != nil {
 		objectMap["connectionStringSecondaryKey"] = eh.ConnectionStringSecondaryKey
 	}
+	if eh.EndpointURI != nil {
+		objectMap["endpointUri"] = eh.EndpointURI
+	}
+	if eh.EntityPath != nil {
+		objectMap["entityPath"] = eh.EntityPath
+	}
+	if eh.AuthenticationType != "" {
+		objectMap["authenticationType"] = eh.AuthenticationType
+	}
 	if eh.DeadLetterSecret != nil {
 		objectMap["deadLetterSecret"] = eh.DeadLetterSecret
+	}
+	if eh.DeadLetterURI != nil {
+		objectMap["deadLetterUri"] = eh.DeadLetterURI
 	}
 	if eh.EndpointType != "" {
 		objectMap["endpointType"] = eh.EndpointType
@@ -962,6 +1073,76 @@ type ExternalResource struct {
 // MarshalJSON is the custom marshaler for ExternalResource.
 func (er ExternalResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// GroupIDInformation the group information for creating a private endpoint on Digital Twin.
+type GroupIDInformation struct {
+	autorest.Response `json:"-"`
+	Properties        *GroupIDInformationPropertiesModel `json:"properties,omitempty"`
+	// ID - The resource identifier.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GroupIDInformation.
+func (gii GroupIDInformation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gii.Properties != nil {
+		objectMap["properties"] = gii.Properties
+	}
+	if gii.ID != nil {
+		objectMap["id"] = gii.ID
+	}
+	return json.Marshal(objectMap)
+}
+
+// GroupIDInformationProperties the properties for a group information object.
+type GroupIDInformationProperties struct {
+	// GroupID - The group id
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - The required members for a specific group id.
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - The required DNS zones for a specific group id.
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// GroupIDInformationPropertiesModel ...
+type GroupIDInformationPropertiesModel struct {
+	// GroupID - The group id
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - The required members for a specific group id.
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - The required DNS zones for a specific group id.
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// GroupIDInformationResponse the available private link resources for a Digital Twin.
+type GroupIDInformationResponse struct {
+	autorest.Response `json:"-"`
+	// Value - The list of available private link resources for a Digital Twin.
+	Value *[]GroupIDInformation `json:"value,omitempty"`
+}
+
+// Identity the managed identity for the DigitalTwinsInstance.
+type Identity struct {
+	// Type - The type of Managed Identity used by the DigitalTwinsInstance. Only SystemAssigned is supported. Possible values include: 'None', 'SystemAssigned'
+	Type IdentityType `json:"type,omitempty"`
+	// PrincipalID - READ-ONLY; The object id of the Managed Identity Resource. This will be sent to the RP from ARM via the x-ms-identity-principal-id header in the PUT request if the resource has a systemAssigned(implicit) identity
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant id of the Managed Identity Resource. This will be sent to the RP from ARM via the x-ms-client-tenant-id header in the PUT request if the resource has a systemAssigned(implicit) identity
+	TenantID *string `json:"tenantId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Identity.
+func (i Identity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if i.Type != "" {
+		objectMap["type"] = i.Type
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -1175,8 +1356,12 @@ func NewOperationListResultPage(cur OperationListResult, getNextPage func(contex
 
 // PatchDescription the description of the DigitalTwins service.
 type PatchDescription struct {
-	// Tags - Instance tags
+	// Tags - Instance patch properties
 	Tags map[string]*string `json:"tags"`
+	// Identity - The managed identity for the DigitalTwinsInstance.
+	Identity *Identity `json:"identity,omitempty"`
+	// Properties - Properties for the DigitalTwinsInstance.
+	Properties *PatchProperties `json:"properties,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PatchDescription.
@@ -1185,7 +1370,164 @@ func (pd PatchDescription) MarshalJSON() ([]byte, error) {
 	if pd.Tags != nil {
 		objectMap["tags"] = pd.Tags
 	}
+	if pd.Identity != nil {
+		objectMap["identity"] = pd.Identity
+	}
+	if pd.Properties != nil {
+		objectMap["properties"] = pd.Properties
+	}
 	return json.Marshal(objectMap)
+}
+
+// PatchProperties the properties of a DigitalTwinsInstance.
+type PatchProperties struct {
+	// PublicNetworkAccess - Public network access for the DigitalTwinsInstance. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+}
+
+// PrivateEndpoint the private endpoint property of a private endpoint connection.
+type PrivateEndpoint struct {
+	// ID - READ-ONLY; The resource identifier.
+	ID *string `json:"id,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpoint.
+func (peVar PrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnection the private endpoint connection of a Digital Twin.
+type PrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; The resource identifier.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The resource type.
+	Type       *string                              `json:"type,omitempty"`
+	Properties *PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.Properties != nil {
+		objectMap["properties"] = pec.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnectionProperties ...
+type PrivateEndpointConnectionProperties struct {
+	// ProvisioningState - READ-ONLY; The provisioning state. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected'
+	ProvisioningState ConnectionPropertiesProvisioningState `json:"provisioningState,omitempty"`
+	PrivateEndpoint   *ConnectionPropertiesPrivateEndpoint  `json:"privateEndpoint,omitempty"`
+	// GroupIds - The list of group ids for the private endpoint connection.
+	GroupIds                          *[]string                                              `json:"groupIds,omitempty"`
+	PrivateLinkServiceConnectionState *ConnectionPropertiesPrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionProperties.
+func (pec PrivateEndpointConnectionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.PrivateEndpoint != nil {
+		objectMap["privateEndpoint"] = pec.PrivateEndpoint
+	}
+	if pec.GroupIds != nil {
+		objectMap["groupIds"] = pec.GroupIds
+	}
+	if pec.PrivateLinkServiceConnectionState != nil {
+		objectMap["privateLinkServiceConnectionState"] = pec.PrivateLinkServiceConnectionState
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnectionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type PrivateEndpointConnectionsCreateOrUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateEndpointConnectionsClient) (PrivateEndpointConnection, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *PrivateEndpointConnectionsCreateOrUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for PrivateEndpointConnectionsCreateOrUpdateFuture.Result.
+func (future *PrivateEndpointConnectionsCreateOrUpdateFuture) result(client PrivateEndpointConnectionsClient) (pec PrivateEndpointConnection, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "digitaltwins.PrivateEndpointConnectionsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		pec.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("digitaltwins.PrivateEndpointConnectionsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if pec.Response.Response, err = future.GetResult(sender); err == nil && pec.Response.Response.StatusCode != http.StatusNoContent {
+		pec, err = client.CreateOrUpdateResponder(pec.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "digitaltwins.PrivateEndpointConnectionsCreateOrUpdateFuture", "Result", pec.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// PrivateEndpointConnectionsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type PrivateEndpointConnectionsDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(PrivateEndpointConnectionsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *PrivateEndpointConnectionsDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for PrivateEndpointConnectionsDeleteFuture.Result.
+func (future *PrivateEndpointConnectionsDeleteFuture) result(client PrivateEndpointConnectionsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "digitaltwins.PrivateEndpointConnectionsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("digitaltwins.PrivateEndpointConnectionsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// PrivateEndpointConnectionsResponse the available private link connections for a Digital Twin.
+type PrivateEndpointConnectionsResponse struct {
+	autorest.Response `json:"-"`
+	// Value - The list of available private link connections for a Digital Twin.
+	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
 }
 
 // Properties the properties of a DigitalTwinsInstance.
@@ -1194,15 +1536,24 @@ type Properties struct {
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
 	// LastUpdatedTime - READ-ONLY; Time when DigitalTwinsInstance was updated.
 	LastUpdatedTime *date.Time `json:"lastUpdatedTime,omitempty"`
-	// ProvisioningState - READ-ONLY; The provisioning state. Possible values include: 'ProvisioningStateProvisioning', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled', 'ProvisioningStateDeleted', 'ProvisioningStateWarning', 'ProvisioningStateSuspending', 'ProvisioningStateRestoring', 'ProvisioningStateMoving'
+	// ProvisioningState - READ-ONLY; The provisioning state. Possible values include: 'ProvisioningStateProvisioning', 'ProvisioningStateDeleting', 'ProvisioningStateUpdating', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled', 'ProvisioningStateDeleted', 'ProvisioningStateWarning', 'ProvisioningStateSuspending', 'ProvisioningStateRestoring', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// HostName - READ-ONLY; Api endpoint to work with DigitalTwinsInstance.
-	HostName *string `json:"hostName,omitempty"`
+	HostName                   *string                      `json:"hostName,omitempty"`
+	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
+	// PublicNetworkAccess - Public network access for the DigitalTwinsInstance. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Properties.
 func (p Properties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if p.PrivateEndpointConnections != nil {
+		objectMap["privateEndpointConnections"] = p.PrivateEndpointConnections
+	}
+	if p.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = p.PublicNetworkAccess
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -1218,6 +1569,8 @@ type Resource struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - The resource tags.
 	Tags map[string]*string `json:"tags"`
+	// Identity - The managed identity for the DigitalTwinsInstance.
+	Identity *Identity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.
@@ -1229,21 +1582,32 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 	if r.Tags != nil {
 		objectMap["tags"] = r.Tags
 	}
+	if r.Identity != nil {
+		objectMap["identity"] = r.Identity
+	}
 	return json.Marshal(objectMap)
 }
 
 // ServiceBus properties related to ServiceBus.
 type ServiceBus struct {
-	// PrimaryConnectionString - PrimaryConnectionString of the endpoint. Will be obfuscated during read.
+	// PrimaryConnectionString - PrimaryConnectionString of the endpoint for key-based authentication. Will be obfuscated during read.
 	PrimaryConnectionString *string `json:"primaryConnectionString,omitempty"`
-	// SecondaryConnectionString - SecondaryConnectionString of the endpoint. Will be obfuscated during read.
+	// SecondaryConnectionString - SecondaryConnectionString of the endpoint for key-based authentication. Will be obfuscated during read.
 	SecondaryConnectionString *string `json:"secondaryConnectionString,omitempty"`
+	// EndpointURI - The URL of the ServiceBus namespace for identity-based authentication. It must include the protocol sb://
+	EndpointURI *string `json:"endpointUri,omitempty"`
+	// EntityPath - The ServiceBus Topic name for identity-based authentication
+	EntityPath *string `json:"entityPath,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state. Possible values include: 'Provisioning', 'Deleting', 'Succeeded', 'Failed', 'Canceled', 'Deleted', 'Warning', 'Suspending', 'Restoring', 'Moving', 'Disabled'
 	ProvisioningState EndpointProvisioningState `json:"provisioningState,omitempty"`
 	// CreatedTime - READ-ONLY; Time when the Endpoint was added to DigitalTwinsInstance.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// DeadLetterSecret - Dead letter storage secret. Will be obfuscated during read.
+	// AuthenticationType - Specifies the authentication type being used for connecting to the endpoint. Possible values include: 'KeyBased', 'IdentityBased'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+	// DeadLetterSecret - Dead letter storage secret for key-based authentication. Will be obfuscated during read.
 	DeadLetterSecret *string `json:"deadLetterSecret,omitempty"`
+	// DeadLetterURI - Dead letter storage URL for identity-based authentication.
+	DeadLetterURI *string `json:"deadLetterUri,omitempty"`
 	// EndpointType - Possible values include: 'EndpointTypeDigitalTwinsEndpointResourceProperties', 'EndpointTypeServiceBus', 'EndpointTypeEventHub', 'EndpointTypeEventGrid'
 	EndpointType EndpointType `json:"endpointType,omitempty"`
 }
@@ -1258,8 +1622,20 @@ func (sb ServiceBus) MarshalJSON() ([]byte, error) {
 	if sb.SecondaryConnectionString != nil {
 		objectMap["secondaryConnectionString"] = sb.SecondaryConnectionString
 	}
+	if sb.EndpointURI != nil {
+		objectMap["endpointUri"] = sb.EndpointURI
+	}
+	if sb.EntityPath != nil {
+		objectMap["entityPath"] = sb.EntityPath
+	}
+	if sb.AuthenticationType != "" {
+		objectMap["authenticationType"] = sb.AuthenticationType
+	}
 	if sb.DeadLetterSecret != nil {
 		objectMap["deadLetterSecret"] = sb.DeadLetterSecret
+	}
+	if sb.DeadLetterURI != nil {
+		objectMap["deadLetterUri"] = sb.DeadLetterURI
 	}
 	if sb.EndpointType != "" {
 		objectMap["endpointType"] = sb.EndpointType
@@ -1290,4 +1666,46 @@ func (sb ServiceBus) AsEndpointResourceProperties() (*EndpointResourceProperties
 // AsBasicEndpointResourceProperties is the BasicEndpointResourceProperties implementation for ServiceBus.
 func (sb ServiceBus) AsBasicEndpointResourceProperties() (BasicEndpointResourceProperties, bool) {
 	return &sb, true
+}
+
+// UpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type UpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(Client) (Description, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *UpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for UpdateFuture.Result.
+func (future *UpdateFuture) result(client Client) (d Description, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "digitaltwins.UpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		d.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("digitaltwins.UpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if d.Response.Response, err = future.GetResult(sender); err == nil && d.Response.Response.StatusCode != http.StatusNoContent {
+		d, err = client.UpdateResponder(d.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "digitaltwins.UpdateFuture", "Result", d.Response.Response, "Failure responding to request")
+		}
+	}
+	return
 }
