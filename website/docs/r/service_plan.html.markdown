@@ -60,6 +60,10 @@ The following arguments are supported:
 * `worker_count` - (Optional) The number of Workers (instances) to be allocated. 
 
 * `per_site_scaling_enabled` - (Optional) Should Per Site Scaling be enabled. Defaults to `false`.
+ 
+* `availability_zone_balancing_enabled` - (Optional) Should the Service Plan balance across Availability Zones in the region. Defaults to `false`.
+
+~> **NOTE:** If this setting is set to `true` and the `worker_count` value is specified, it should be set to a multiple of the number of availability zones in the region. Please see the Azure documentation for the number of Availability Zones in your region. 
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the AppService.
 

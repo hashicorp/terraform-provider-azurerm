@@ -240,10 +240,12 @@ resource "azurerm_service_plan" "test" {
   name                     = "acctest-SP-%[1]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  sku_name                 = "S1"
+  sku_name                 = "P1v3"
   os_type                  = "Linux"
   per_site_scaling_enabled = true
-  worker_count             = 2
+  worker_count             = 3
+
+  availability_zone_balancing_enabled = true
 
   tags = {
     environment = "AccTest"
@@ -272,6 +274,8 @@ resource "azurerm_service_plan" "test" {
   os_type                  = "Linux"
   per_site_scaling_enabled = true
   worker_count             = 3
+
+  availability_zone_balancing_enabled = true
 
   tags = {
     Foo = "bar"
