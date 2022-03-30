@@ -105,7 +105,7 @@ The following arguments are supported:
 
 -> **NOTE:** At this time `min_tls_version` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
-* `allow_nested_items_to_be_public` - Allow or disallow public access to all nested items in the storage account. Defaults to `true`.
+* `allow_nested_items_to_be_public` - Allow or disallow nested items within this Account to opt into being public. Defaults to `true`.
 
 -> **NOTE:** At this time `allow_nested_items_to_be_public` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
