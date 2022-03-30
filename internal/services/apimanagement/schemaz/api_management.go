@@ -204,7 +204,7 @@ func FlattenApiManagementOperationRepresentation(input *[]apimanagement.Represen
 			output["example"] = example
 
 			if !features.ThreePointOhBeta() && v.Examples["default"] != nil && v.Examples["default"].Value != nil {
-				value, err := convert2String(v.Examples["default"].Value)
+				value, err := convert2Json(v.Examples["default"].Value)
 				if err != nil {
 					return nil, err
 				}
@@ -438,7 +438,7 @@ func FlattenApiManagementOperationParameterExampleContract(input map[string]*api
 		// value can be any type, may be a primitive value or an object
 		// https://github.com/Azure/azure-sdk-for-go/blob/main/services/apimanagement/mgmt/2021-08-01/apimanagement/models.go#L10236
 		if v.Value != nil {
-			value, err := convert2String(v.Value)
+			value, err := convert2Json(v.Value)
 			if err != nil {
 				return nil, err
 			}
@@ -472,7 +472,7 @@ func CopyCertificateAndPassword(vals []interface{}, hostName string, output map[
 	}
 }
 
-func convert2String(rawVal interface{}) (string, error) {
+func convert2Json(rawVal interface{}) (string, error) {
 	value := ""
 	if val, ok := rawVal.(string); ok {
 		value = val
