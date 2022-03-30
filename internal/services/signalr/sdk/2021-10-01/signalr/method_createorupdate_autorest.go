@@ -3,10 +3,11 @@ package signalr
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
-	"net/http"
 )
 
 type CreateOrUpdateOperationResponse struct {

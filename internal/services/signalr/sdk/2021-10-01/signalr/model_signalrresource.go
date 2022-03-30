@@ -1,14 +1,6 @@
 package signalr
 
-import (
-	"encoding/json"
-	"fmt"
-	"strings"
-	"time"
-
-	"github.com/hashicorp/go-azure-helpers/lang/dates"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-)
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 
 type SignalRResource struct {
 	Id         *string                           `json:"id,omitempty"`
