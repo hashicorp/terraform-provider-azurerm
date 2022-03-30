@@ -73,7 +73,7 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"frontdoor_cdn_profile_name": {
+			"cdn_frontdoor_profile_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -165,7 +165,8 @@ func resourceCdnFrontdoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 
 	props := track1.AFDDomain{
 		AFDDomainProperties: &track1.AFDDomainProperties{
-			AzureDNSZone:                       expandResourceReference(d.Get("azure_dns_zone").(string)),
+			HostName:                           utils.String(d.Get("host_name").(string)),
+			AzureDNSZone:                       expandResourceReference(d.Get("azure_dns_zone_id").(string)),
 			PreValidatedCustomDomainResourceID: expandResourceReference(d.Get("pre_validated_custom_domain_resource_id").(string)),
 			TLSSettings:                        expandCustomDomainAFDDomainHttpsParameters(d.Get("tls_settings").([]interface{})),
 		},
@@ -219,10 +220,10 @@ func resourceCdnFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 	if props := resp.AFDDomainProperties; props != nil {
 		d.Set("domain_validation_state", props.DomainValidationState)
 		d.Set("host_name", props.HostName)
-		d.Set("frontdoor_cdn_profile_name", props.ProfileName)
+		d.Set("cdn_frontdoor_profile_id", props.ProfileName)
 
-		if err := d.Set("azure_dns_zone", flattenResourceReference(props.AzureDNSZone)); err != nil {
-			return fmt.Errorf("setting `azure_dns_zone`: %+v", err)
+		if err := d.Set("azure_dns_zone_id", flattenResourceReference(props.AzureDNSZone)); err != nil {
+			return fmt.Errorf("setting `azure_dns_zone_id`: %+v", err)
 		}
 
 		if err := d.Set("pre_validated_custom_domain_resource_id", flattenResourceReference(props.PreValidatedCustomDomainResourceID)); err != nil {
@@ -253,7 +254,7 @@ func resourceCdnFrontdoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 
 	props := track1.AFDDomainUpdateParameters{
 		AFDDomainUpdatePropertiesParameters: &track1.AFDDomainUpdatePropertiesParameters{
-			AzureDNSZone:                       expandResourceReference(d.Get("azure_dns_zone").(string)),
+			AzureDNSZone:                       expandResourceReference(d.Get("azure_dns_zone_id").(string)),
 			PreValidatedCustomDomainResourceID: expandResourceReference(d.Get("pre_validated_custom_domain_resource_id").(string)),
 			TLSSettings:                        expandCustomDomainAFDDomainHttpsParameters(d.Get("tls_settings").([]interface{})),
 		},
