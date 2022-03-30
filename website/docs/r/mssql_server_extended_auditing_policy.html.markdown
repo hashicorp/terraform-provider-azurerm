@@ -126,7 +126,7 @@ resource "azurerm_storage_account" "example" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
-  
+
   allow_nested_items_to_be_public = false
 
   network_rules {
