@@ -593,7 +593,7 @@ resource "azurerm_role_assignment" "test" {
 }
 
 func (RoleAssignmentResource) managementGroupConfig() string {
-	return fmt.Sprint(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -615,7 +615,7 @@ resource "azurerm_role_assignment" "test" {
   role_definition_id = data.azurerm_role_definition.test.id
   principal_id       = data.azurerm_client_config.test.object_id
 }
-`)
+`
 }
 
 func (RoleAssignmentResource) condition(groupId string) string {
