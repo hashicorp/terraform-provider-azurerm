@@ -284,7 +284,7 @@ func flattenCdnFrontdoorHeaderAction(input *track1.HeaderActionParameters) map[s
 	if params := input; params != nil {
 		action = string(params.HeaderAction)
 		name = *params.HeaderName
-		value = string(*params.Value)
+		value = *params.Value
 	}
 
 	return map[string]interface{}{
@@ -308,12 +308,12 @@ func FlattenCdnFrontdoorUrlRedirectAction(input track1.BasicDeliveryRuleAction) 
 	fragment := ""
 
 	if params := action.Parameters; params != nil {
-		destinationHost = string(*params.CustomHostname)
+		destinationHost = *params.CustomHostname
 		destinationPath = *params.CustomPath
 		queryString = *params.CustomQueryString
 		destinationProtocol = string(params.DestinationProtocol)
 		redirectType = string(params.RedirectType)
-		fragment = string(*params.CustomFragment)
+		fragment = *params.CustomFragment
 	}
 
 	return map[string]interface{}{
@@ -338,7 +338,7 @@ func FlattenCdnFrontdoorUrlRewriteAction(input track1.BasicDeliveryRuleAction) (
 
 	if params := action.Parameters; params != nil {
 		destination = *params.Destination
-		preservePath = bool(*params.PreserveUnmatchedPath)
+		preservePath = *params.PreserveUnmatchedPath
 		sourcePattern = *params.SourcePattern
 	}
 
@@ -367,10 +367,10 @@ func FlattenCdnFrontdoorRouteConfigurationOverrideAction(input track1.BasicDeliv
 		queryStringCachingBehavior = string(params.CacheConfiguration.QueryStringCachingBehavior)
 		cacheBehavior = string(params.CacheConfiguration.CacheBehavior)
 		compressionEnabled = (params.CacheConfiguration.IsCompressionEnabled == track1.RuleIsCompressionEnabledEnabled)
-		cacheDuration = string(*params.CacheConfiguration.CacheDuration)
+		cacheDuration = *params.CacheConfiguration.CacheDuration
 		queryParameters = flattenCsvToStringSlice(params.CacheConfiguration.QueryParameters)
 		forwardingProtocol = string(params.OriginGroupOverride.ForwardingProtocol)
-		originGroupId = string(*params.OriginGroupOverride.OriginGroup.ID)
+		originGroupId = *params.OriginGroupOverride.OriginGroup.ID
 	}
 
 	return map[string]interface{}{

@@ -61,21 +61,11 @@ func resourceCdnFrontdoorProfile() *pluginsdk.Resource {
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				ForceNew: true,
-				Required: true,
+				Optional: true,
+				Default:  string(track1.SkuNameStandardAzureFrontDoor),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(track1.SkuNameCustomVerizon),
 					string(track1.SkuNamePremiumAzureFrontDoor),
-					string(track1.SkuNamePremiumVerizon),
-					string(track1.SkuNameStandardAkamai),
-					string(track1.SkuNameStandardAvgBandWidthChinaCdn),
 					string(track1.SkuNameStandardAzureFrontDoor),
-					string(track1.SkuNameStandardChinaCdn),
-					string(track1.SkuNameStandardMicrosoft),
-					string(track1.SkuNameStandard955BandWidthChinaCdn),
-					string(track1.SkuNameStandardPlusAvgBandWidthChinaCdn),
-					string(track1.SkuNameStandardPlusChinaCdn),
-					string(track1.SkuNameStandardPlus955BandWidthChinaCdn),
-					string(track1.SkuNameStandardVerizon),
 				}, false),
 			},
 

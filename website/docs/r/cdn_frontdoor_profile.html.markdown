@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Frontdoor Profile.
 
-* `sku_name` - (Required) The pricing related information of current Frontdoor profile. Accepted values are `Custom_Verizon`, `Premium_AzureFrontDoor`, `Premium_Verizon`, `Standard_Akamai`, `Standard_AvgBandWidth_ChinaCdn`, `Standard_AzureFrontDoor`, `Standard_ChinaCdn`, `Standard_Microsoft`, `Standard_955BandWidth_ChinaCdn`, `StandardPlus_AvgBandWidth_ChinaCdn`, `StandardPlus_ChinaCdn`, `StandardPlus_955BandWidth_ChinaCdn` or `Standard_Verizon`.
+* `sku_name` - (Optional) The pricing related information of current Frontdoor profile. Possible values include `Premium_AzureFrontDoor` and `Standard_AzureFrontDoor`. Defaults to `Standard_AzureFrontDoor`.
 
 * `response_timeout_seconds` - Possible values are between `16` and `240` seconds(inclusive). Defaults to `120` seconds.
 

@@ -60,12 +60,12 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				ForceNew: true,
+				Default:  string(legacyfrontdoor.SkuNameStandardAzureFrontDoor),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(legacyfrontdoor.SkuNameClassicAzureFrontDoor),
 					string(legacyfrontdoor.SkuNameStandardAzureFrontDoor),
 					string(legacyfrontdoor.SkuNamePremiumAzureFrontDoor),
 				}, false),
-				Default: string(legacyfrontdoor.SkuNameClassicAzureFrontDoor),
 			},
 
 			"enabled": {
@@ -478,7 +478,11 @@ func resourceCdnFrontdoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 	customBlockResponseStatusCode := d.Get("custom_block_response_status_code").(int)
 	customBlockResponseBody := d.Get("custom_block_response_body").(string)
 	customRules := d.Get("custom_rule").([]interface{})
-	managedRules := d.Get("managed_rule").([]interface{})
+	managedRules := expandFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
+
+	if sku == string(legacyfrontdoor.SkuNameStandardAzureFrontDoor) && managedRules != nil {
+		return fmt.Errorf("the %q field is only supported with the %q sku, got %q", "managed_rule", legacyfrontdoor.SkuNamePremiumAzureFrontDoor, sku)
+	}
 
 	t := d.Get("tags").(map[string]interface{})
 
@@ -493,18 +497,23 @@ func resourceCdnFrontdoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 				EnabledState: enabled,
 				Mode:         mode,
 			},
-			CustomRules:  expandFrontDoorFirewallCustomRules(customRules),
-			ManagedRules: expandFrontDoorFirewallManagedRules(managedRules),
+			CustomRules: expandFrontDoorFirewallCustomRules(customRules),
 		},
 		Tags: ConvertCdnFrontdoorTags(tags.Expand(t)),
+	}
+
+	if managedRules != nil {
+		frontdoorWebApplicationFirewallPolicy.WebApplicationFirewallPolicyProperties.ManagedRules = managedRules
 	}
 
 	if redirectUrl != "" {
 		frontdoorWebApplicationFirewallPolicy.WebApplicationFirewallPolicyProperties.PolicySettings.RedirectURL = utils.String(redirectUrl)
 	}
+
 	if customBlockResponseBody != "" {
 		frontdoorWebApplicationFirewallPolicy.WebApplicationFirewallPolicyProperties.PolicySettings.CustomBlockResponseBody = utils.String(customBlockResponseBody)
 	}
+
 	if customBlockResponseStatusCode > 0 {
 		frontdoorWebApplicationFirewallPolicy.WebApplicationFirewallPolicyProperties.PolicySettings.CustomBlockResponseStatusCode = utils.Int32(int32(customBlockResponseStatusCode))
 	}
@@ -592,21 +601,16 @@ func resourceCdnFrontdoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceCdnFrontdoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorSecurityPoliciesClient
+	client := meta.(*clients.Client).Cdn.FrontdoorLegacyPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	pId, err := parse.FrontdoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
-	if err != nil {
-		return err
-	}
 
 	id, err := parse.FrontdoorPolicyIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, pId.ProfileName, id.FrontDoorWebApplicationFirewallPolicyName)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

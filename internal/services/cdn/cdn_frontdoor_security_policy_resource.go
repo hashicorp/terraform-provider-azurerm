@@ -2,10 +2,12 @@ package cdn
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	cdnfrontdoorsecurityparams "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorsecurityparams"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -47,7 +49,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 				ValidateFunc: validate.FrontdoorProfileID,
 			},
 
-			"web_application_firewall": {
+			"security_policies": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				ForceNew: true,
@@ -55,50 +57,67 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"waf_policy_id": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
 
-						"association": {
+						"firewall": {
 							Type:     pluginsdk.TypeList,
-							Required: true,
-							MaxItems: 100,
+							Optional: true,
+							MaxItems: 1,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 
-									"domain": {
-										Type:     pluginsdk.TypeList,
+									"cdn_frontdoor_firewall_policy_id": {
+										Type:     pluginsdk.TypeString,
 										Required: true,
-										MaxItems: 25,
+										ForceNew: true,
+									},
+
+									"association": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
 
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 
-												"id": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringIsNotEmpty,
+												// NOTE: The max number of domains vary depending on sku: 100 Standard, 500 Premium
+												"domain": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 500,
+
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+
+															"cdn_frontdoor_custom_domain_id": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validate.FrontdoorCustomDomainID,
+															},
+
+															"is_active": {
+																Type:     pluginsdk.TypeBool,
+																Computed: true,
+															},
+														},
+													},
 												},
 
-												"enabled": {
-													Type:     pluginsdk.TypeBool,
+												// NOTE: Per the service team the only acceptable value as of GA is "/*"
+												"patterns_to_match": {
+													Type:     pluginsdk.TypeList,
 													Optional: true,
-													Default:  true,
+													MaxItems: 25,
+
+													Elem: &pluginsdk.Schema{
+														Type:    pluginsdk.TypeString,
+														Default: "/*",
+														ValidateFunc: validation.StringInSlice([]string{
+															"/*",
+														}, false),
+													},
 												},
 											},
-										},
-									},
-
-									"patterns_to_match": {
-										Type:     pluginsdk.TypeList,
-										Required: true,
-										MaxItems: 25,
-
-										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 								},
@@ -142,12 +161,25 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
+	standardSku := true
+	profileClient := meta.(*clients.Client).Cdn.FrontdoorProfileClient
+	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
+	if err != nil {
+		return fmt.Errorf("unable to retrieve the %q from the linked %q: %+v", "sku_name", "azurerm_cdn_frontdoor_profile", err)
+	}
+
+	skuName := flattenProfileSku(profile.Sku)
+	if strings.HasPrefix(skuName, "Premium") {
+		standardSku = false
+	}
+
 	params := track1.BasicSecurityPolicyPropertiesParameters(nil)
-	if waf, ok := d.GetOk("web_application_firewall"); ok {
-		params = expandCdnFrontdoorSecurityPoliciesParameters(waf.([]interface{}), waf)
-	} else {
-		// Will look for DDoS policy here once it is GA
-		return fmt.Errorf("unable to locate %q policy parameters", "web_application_firewall")
+
+	if secPol, ok := d.GetOk("security_policies"); ok {
+		params, err = expandCdnFrontdoorSecurityPoliciesParameters(secPol.([]interface{}), standardSku)
+		if err != nil {
+			return fmt.Errorf("expanding %q: %+v", "security_policies", err)
+		}
 	}
 
 	props := track1.SecurityPolicy{
@@ -231,97 +263,21 @@ func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func expandCdnFrontdoorSecurityPoliciesParameters(input []interface{}, policyType interface{}) track1.SecurityPolicyPropertiesParameters {
-	if len(input) == 0 || input[0] == nil {
-		return track1.SecurityPolicyPropertiesParameters{}
+func expandCdnFrontdoorSecurityPoliciesParameters(input []interface{}, isStandardSku bool) (track1.BasicSecurityPolicyPropertiesParameters, error) {
+	results, err := cdnfrontdoorsecurityparams.ExpandCdnFrontdoorFirewallPolicyParameters(input, isStandardSku)
+	if err != nil {
+		return results, err
 	}
 
-	results := track1.SecurityPolicyPropertiesParameters{}
-
-	// TODO: Add DDoS when it GA's
-	switch policyType.(type) {
-	case track1.SecurityPolicyWebApplicationFirewallParameters:
-		// results = expandFrontdoorSecurityPoliciesWebApplicationFirewall(input)
-		results = track1.SecurityPolicyPropertiesParameters{
-			Type: track1.TypeWebApplicationFirewall,
-		}
-	default:
-		// Unknown Security Policy Type
-		return results
+	if basic, ok := results.AsBasicSecurityPolicyPropertiesParameters(); ok {
+		return basic, nil
 	}
 
-	return results
+	return nil, nil
 }
 
-// func expandFrontdoorSecurityPoliciesWebApplicationFirewall(input []interface{}) track1.SecurityPolicyWebApplicationFirewallParameters {
-// 	results := track1.SecurityPolicyWebApplicationFirewallParameters{}
-// 	associations := make([]track1.SecurityPolicyWebApplicationFirewallAssociation, 0)
-// 	v := input[0].(map[string]interface{})
-
-// 	if id := v["waf_policy_id"].(string); id != "" {
-// 		results.WafPolicy = &track1.ResourceReference{
-// 			ID: utils.String(id),
-// 		}
-// 	}
-
-// 	configAssociations := v["association"].([]interface{})
-
-// 	for _, item := range configAssociations {
-// 		v := item.(map[string]interface{})
-
-// 		association := track1.SecurityPolicyWebApplicationFirewallAssociation{
-// 			Domains:         expandSecurityPoliciesActivatedResourceReference(v["domain"].([]interface{})),
-// 			PatternsToMatch: utils.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
-// 		}
-
-// 		associations = append(associations, association)
-// 	}
-
-// 	results.Associations = &associations
-
-// 	return results
-// }
-
-// func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]track1.ActivatedResourceReference {
-// 	results := make([]track1.ActivatedResourceReference, 0)
-// 	if len(input) == 0 {
-// 		return &results
-// 	}
-
-// 	for _, item := range input {
-// 		v := item.(map[string]interface{})
-// 		activatedResourceReference := track1.ActivatedResourceReference{}
-
-// 		if id := v["id"].(string); id != "" {
-// 			activatedResourceReference.ID = utils.String(id)
-
-// 			enabled := v["enabled"].(bool)
-
-// 			if !enabled {
-// 				activatedResourceReference.IsActive = utils.Bool(enabled)
-// 			}
-
-// 			results = append(results, activatedResourceReference)
-// 		}
-// 	}
-
-// 	return &results
-// }
-
-// func expandCdnFrontdoorSecurityPoliciesUpdateWebApplicationFirewallParameters(input []interface{}) track1.SecurityPolicyUpdateProperties {
-// 	if len(input) == 0 || input[0] == nil {
-// 		return track1.SecurityPolicyUpdateProperties{}
-// 	}
-
-// 	// TODO: This isn't quite right...
-// 	waf := expandCdnFrontdoorSecurityPoliciesParameters(input, track1.BasicSecurityPolicyPropertiesParameters(track1.SecurityPolicyWebApplicationFirewallParameters{}))
-
-// 	return track1.SecurityPolicyUpdateProperties{
-// 		Parameters: track1.BasicSecurityPolicyPropertiesParameters(waf),
-// 	}
-// }
-
 func flattenCdnFrontdoorSecurityPoliciesWebApplicationFirewallParameters(input *track1.SecurityPolicyWebApplicationFirewallParameters) []interface{} {
+	// TODO: Get this working once I have Custom Domains working
 	params := make([]interface{}, 0)
 	associations := make([]interface{}, 0)
 	if input == nil {

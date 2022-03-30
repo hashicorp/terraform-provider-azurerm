@@ -319,7 +319,7 @@ func expandCdnFrontdoorBasicSecretParameters(input []interface{}) (track1.BasicS
 		}
 	}
 
-	return nil, fmt.Errorf("unkown secret parameter type encountered")
+	return nil, fmt.Errorf("unknown secret parameter type encountered")
 }
 
 func flattenSecretSecretParameters(input *track1.BasicSecretParameters) []interface{} {
