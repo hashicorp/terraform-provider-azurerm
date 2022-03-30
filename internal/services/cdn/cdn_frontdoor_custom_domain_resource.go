@@ -61,6 +61,11 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"domain_validation_token": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"host_name": {
 				Type:     pluginsdk.TypeString,
 				ForceNew: true,
@@ -219,6 +224,7 @@ func resourceCdnFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 
 	if props := resp.AFDDomainProperties; props != nil {
 		d.Set("domain_validation_state", props.DomainValidationState)
+		d.Set("domain_validation_token", props.ValidationProperties.ValidationToken)
 		d.Set("host_name", props.HostName)
 		d.Set("cdn_frontdoor_profile_id", props.ProfileName)
 
