@@ -593,7 +593,7 @@ resource "azurerm_role_assignment" "test" {
 }
 
 func (RoleAssignmentResource) managementGroupConfig() string {
-	return fmt.Sprintf(`
+	return fmt.Sprint(`
 provider "azurerm" {
   features {}
 }
