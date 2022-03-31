@@ -78,9 +78,9 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 
-* `oidc_issuer_profile` - An `oidc_issuer_profile` block as documented below.
+* `oidc_issuer_enabled` - Whether or not the OIDC feature is enabled or disabled.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableOIDCIssuerPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#oidc-issuer-preview) for more information.
+* `oidc_issuer_url` - The OIDC issuer URL that is associated with the cluster.
 
 * `oms_agent` - An `oms_agent` block as documented below.
 
@@ -244,14 +244,6 @@ A `network_profile` block exports the following:
 * `pod_cidr` - The CIDR used for pod IP addresses.
 
 * `service_cidr` - Network range used by the Kubernetes service.
-
----
-
-The `oidc_issuer_profile` block exports the following:
-
-* `enabled` - Whether or not the feature is enabled or disabled.
-
-* `oidc_issuer_url` - The oidc issuer url that is associated with the cluster.
 
 ---
 

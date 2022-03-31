@@ -609,22 +609,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"oidc_issuer_profile": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
+			"oidc_issuer_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-						"issuer_url": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
+			},
+
+			"oidc_issuer_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"private_fqdn": { // privateFqdn
@@ -1240,8 +1232,12 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
-	oidcIssuerProfileRaw := d.Get("oidc_issuer_profile").([]interface{})
-	oidcIssuerProfile := expandKubernetesClusterOidcIssuerProfile(oidcIssuerProfileRaw)
+	enableOidcIssuer := false
+	var oidcIssuerProfile *containerservice.ManagedClusterOIDCIssuerProfile
+	if v, ok := d.GetOk("oidc_issuer_enabled"); ok {
+		enableOidcIssuer = v.(bool)
+		oidcIssuerProfile = expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
+	}
 
 	publicNetworkAccess := containerservice.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
@@ -1756,10 +1752,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.HTTPProxyConfig = httpProxyConfig
 	}
 
-	if d.HasChange("oidc_issuer_profile") {
+	if d.HasChange("oidc_issuer_enabled") {
 		updateCluster = true
-		oidcIssuerProfileRaw := d.Get("oidc_issuer_profile").([]interface{})
-		oidcIssuerProfile := expandKubernetesClusterOidcIssuerProfile(oidcIssuerProfileRaw)
+		oidcIssuerEnabled := d.Get("oidc_issuer_enabled").(bool)
+		oidcIssuerProfile := expandKubernetesClusterOidcIssuerProfile(oidcIssuerEnabled)
 		existing.ManagedClusterProperties.OidcIssuerProfile = oidcIssuerProfile
 	}
 
@@ -2014,9 +2010,22 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `http_proxy_config`: %+v", err)
 		}
 
-		oidcIssuerProfile := flattenKubernetesClusterOidcIssuerProfile(props)
-		if err := d.Set("oidc_issuer_profile", oidcIssuerProfile); err != nil {
-			return fmt.Errorf("setting `oidc_issuer_profile`: %+v", err)
+		oidcIssuerEnabled := false
+		oidcIssuerUrl := ""
+		if props.OidcIssuerProfile != nil {
+			if props.OidcIssuerProfile.Enabled != nil {
+				oidcIssuerEnabled = *props.OidcIssuerProfile.Enabled
+			}
+			if props.OidcIssuerProfile.IssuerURL != nil {
+				oidcIssuerUrl = *props.OidcIssuerProfile.IssuerURL
+			}
+		}
+
+		if err := d.Set("oidc_issuer_enabled", oidcIssuerEnabled); err != nil {
+			return fmt.Errorf("setting `oidc_issuer_enabled`: %+v", err)
+		}
+		if err := d.Set("oidc_issuer_url", oidcIssuerUrl); err != nil {
+			return fmt.Errorf("setting `oidc_issuer_url`: %+v", err)
 		}
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
@@ -3188,15 +3197,9 @@ func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservi
 	return &httpProxyConfig
 }
 
-func expandKubernetesClusterOidcIssuerProfile(input []interface{}) *containerservice.ManagedClusterOIDCIssuerProfile {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	profile := input[0].(map[string]interface{})
-
+func expandKubernetesClusterOidcIssuerProfile(input bool) *containerservice.ManagedClusterOIDCIssuerProfile {
 	oidcIssuerProfile := containerservice.ManagedClusterOIDCIssuerProfile{}
-	oidcIssuerProfile.Enabled = utils.Bool(profile["enabled"].(bool))
+	oidcIssuerProfile.Enabled = &input
 
 	return &oidcIssuerProfile
 }
@@ -3237,9 +3240,9 @@ func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClus
 	})
 }
 
-func flattenKubernetesClusterOidcIssuerProfile(props *containerservice.ManagedClusterProperties) []interface{} {
+func flattenKubernetesClusterOidcIssuerProfile(props *containerservice.ManagedClusterProperties) interface{} {
 	if props == nil || props.OidcIssuerProfile == nil {
-		return []interface{}{}
+		return map[string]interface{}{}
 	}
 
 	oidcIssuerProfile := props.OidcIssuerProfile
@@ -3254,9 +3257,8 @@ func flattenKubernetesClusterOidcIssuerProfile(props *containerservice.ManagedCl
 		issuerUrl = *oidcIssuerProfile.IssuerURL
 	}
 
-	results := []interface{}{}
-	return append(results, map[string]interface{}{
+	return map[string]interface{}{
 		"enabled":    enabled,
 		"issuer_url": issuerUrl,
-	})
+	}
 }

@@ -576,34 +576,34 @@ func TestAccKubernetesCluster_osSku(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_oidcIssuerProfile(t *testing.T) {
+func TestAccKubernetesCluster_oidcIssuerEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.oidcIssuerProfile(data),
+			Config: r.oidcIssuer(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("oidc_issuer_profile.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("oidc_issuer_profile.0.issuer_url").IsSet(),
+				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("oidc_issuer_url").IsSet(),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccKubernetesCluster_oidcIssuerProfileDisabled(t *testing.T) {
+func TestAccKubernetesCluster_oidcIssuerDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.oidcIssuerProfileDisabled(data),
+			Config: r.oidcIssuer(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("oidc_issuer_profile.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("oidc_issuer_profile.0.issuer_url").HasValue(""),
+				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("oidc_issuer_url").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -1882,7 +1882,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) oidcIssuerProfile(data acceptance.TestData) string {
+func (KubernetesClusterResource) oidcIssuer(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1905,39 +1905,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
-  oidc_issuer_profile {
-    enabled = true
-  }
+  oidc_issuer_enabled = %t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (KubernetesClusterResource) oidcIssuerProfileDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_D2s_v3"
-    os_sku     = "Ubuntu"
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-  oidc_issuer_profile {
-    enabled = false
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
 }
