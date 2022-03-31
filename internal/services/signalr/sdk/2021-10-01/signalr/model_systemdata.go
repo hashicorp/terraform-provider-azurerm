@@ -1,7 +1,6 @@
 package signalr
 
 import (
-
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/dates"

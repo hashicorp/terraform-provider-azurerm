@@ -30,6 +30,20 @@ func TestAccSignalrSharedPrivateLinkResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccSignalrSharedPrivateLinkResource_basicSites(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_shared_private_link_resource", "test")
+	r := SignalrSharedPrivateLinkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicSites(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSignalrSharedPrivateLinkResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_shared_private_link_resource", "test")
 	r := SignalrSharedPrivateLinkResource{}
@@ -75,13 +89,13 @@ resource "azurerm_key_vault" "test" {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
     certificate_permissions = [
-      "managecontacts",
+      "ManageContacts",
     ]
     key_permissions = [
-      "create",
+      "Create",
     ]
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 }
@@ -98,17 +112,46 @@ resource "azurerm_signalr_shared_private_link_resource" "test" {
 
 func (r SignalrSharedPrivateLinkResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
-	return fmt.Sprintf(
-		`
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_signalr_shared_private_link_resource" "import" {
-name = azurerm_signalr_shared_private_link_resource.test.name
-signalr_service_id = azurerm_signalr_shared_private_link_resource.test.signalr_service_id
-subresource_name = azurerm_signalr_shared_private_link_resource.test.subresource_name
-target_resource_id = azurerm_signalr_shared_private_link_resource.test.target_resource_id
+  name               = azurerm_signalr_shared_private_link_resource.test.name
+  signalr_service_id = azurerm_signalr_shared_private_link_resource.test.signalr_service_id
+  subresource_name   = azurerm_signalr_shared_private_link_resource.test.subresource_name
+  target_resource_id = azurerm_signalr_shared_private_link_resource.test.target_resource_id
 }
 `, config)
+}
+
+func (r SignalrSharedPrivateLinkResource) basicSites(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "S1"
+
+}
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+
+resource "azurerm_signalr_shared_private_link_resource" "test" {
+  name               = "acctest-%d"
+  signalr_service_id = azurerm_signalr_service.test.id
+  subresource_name   = "sites"
+  target_resource_id = azurerm_windows_web_app.test.id
+  request_message    = "please approve"
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 func (SignalrSharedPrivateLinkResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
