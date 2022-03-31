@@ -231,7 +231,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"prevent_deletion_if_contains_resources": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  true,
+						Default:  os.Getenv("TF_ACC") == "",
 					},
 				},
 			},
@@ -246,25 +246,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: featuresMap,
-			},
-		}
-	}
-
-	// default to deleting non-empty resource groups in acceptance tests
-	// This isn't the best, but it'll do for now.
-	if os.Getenv("TF_ACC") != "" {
-		featuresMap["resource_group"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*schema.Schema{
-					"prevent_deletion_if_contains_resources": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-				},
 			},
 		}
 	}
