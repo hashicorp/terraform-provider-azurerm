@@ -204,7 +204,7 @@ func resourceStaticSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 		// In case the expanded identity is nil, it means the users have removed the identity block from the config. We need to explicitly set the identity type to "None" here
 		// (as ignoring the identity field in the API request will ends up not changing it at all).
-		// Untill issue https://github.com/Azure/azure-rest-api-specs/issues/17525 is addressed, we can put this logic back to the expand function instead.
+		// Until issue https://github.com/Azure/azure-rest-api-specs/issues/17525 is addressed, we can put this logic back to the expand function instead.
 		if identity == nil && skuName != string(web.SkuNameFree) {
 			identity = &web.ManagedServiceIdentity{Type: web.ManagedServiceIdentityTypeNone}
 		}
