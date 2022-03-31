@@ -1,5 +1,7 @@
 package web
 
+// This file is a workaround for issue https://github.com/Azure/azure-rest-api-specs/issues/18501. This can be removed once it is resolved.
+
 import (
 	"fmt"
 	"log"
@@ -13,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -24,6 +27,64 @@ import (
 )
 
 func resourceStaticSite() *pluginsdk.Resource {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StaticSiteName,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"location": azure.SchemaLocation(),
+
+		"default_host_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"api_key": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"tags": tags.Schema(),
+	}
+
+	if features.FourPointOhBeta() {
+		schema["sku_name"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(web.SkuNameFree),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(web.SkuNameStandard),
+				string(web.SkuNameFree),
+			}, false),
+		}
+	} else {
+		schema["sku_size"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(web.SkuNameFree),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(web.SkuNameStandard),
+				string(web.SkuNameFree),
+			}, false),
+		}
+		schema["sku_tier"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(web.SkuNameFree),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(web.SkuNameStandard),
+				string(web.SkuNameFree),
+			}, false),
+		}
+	}
+
 	return &pluginsdk.Resource{
 		Create: resourceStaticSiteCreate,
 		Read:   resourceStaticSiteRead,
@@ -41,53 +102,7 @@ func resourceStaticSite() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StaticSiteName,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(web.SkuNameFree),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(web.SkuNameStandard),
-					string(web.SkuNameFree),
-				}, false),
-			},
-
-			// TODO 4.0 - Rename this to be `sku_name`
-			"sku_size": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(web.SkuNameFree),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(web.SkuNameStandard),
-					string(web.SkuNameFree),
-				}, false),
-			},
-
-			"default_host_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
-
-			"api_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: schema,
 	}
 }
 
@@ -114,7 +129,12 @@ func resourceStaticSiteCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	loc := location.Normalize(d.Get("location").(string))
 
-	skuName := d.Get("sku_size").(string)
+	var skuName string
+	if features.FourPointOhBeta() {
+		skuName = d.Get("sku_name").(string)
+	} else {
+		skuName = d.Get("sku_size").(string)
+	}
 
 	identity, err := expandStaticSiteIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -129,12 +149,17 @@ func resourceStaticSiteCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	siteEnvelope := web.StaticSiteARMResource{
 		Sku: &web.SkuDescription{
 			Name: &skuName,
-			Tier: utils.String(d.Get("sku_tier").(string)),
 		},
 		StaticSite: &web.StaticSite{},
 		Location:   &loc,
 		Identity:   identity,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if features.FourPointOhBeta() {
+		siteEnvelope.Sku.Tier = utils.String(skuName)
+	} else {
+		siteEnvelope.Sku.Tier = utils.String(d.Get("sku_tier").(string))
 	}
 
 	future, err := client.CreateOrUpdateStaticSite(ctx, id.ResourceGroup, id.Name, siteEnvelope)
@@ -165,7 +190,12 @@ func resourceStaticSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving existing %q: %+v", id, err)
 	}
 
-	skuName := d.Get("sku_size").(string)
+	var skuName string
+	if features.FourPointOhBeta() {
+		skuName = d.Get("sku_name").(string)
+	} else {
+		skuName = d.Get("sku_size").(string)
+	}
 
 	if d.HasChange("identity") {
 		identity, err := expandStaticSiteIdentity(d.Get("identity").([]interface{}))
@@ -182,11 +212,18 @@ func resourceStaticSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if existing.Sku != nil {
-		if d.HasChange("sku_tier") {
-			existing.Sku.Tier = utils.String(d.Get("sku_tier").(string))
-		}
-		if d.HasChange("sku_size") {
-			existing.Sku.Name = &skuName
+		if features.FourPointOhBeta() {
+			if d.HasChange("sku_name") {
+				existing.Sku.Name = utils.String(skuName)
+				existing.Sku.Tier = utils.String(skuName)
+			}
+		} else {
+			if d.HasChange("sku_tier") {
+				existing.Sku.Tier = utils.String(d.Get("sku_tier").(string))
+			}
+			if d.HasChange("sku_size") {
+				existing.Sku.Name = &skuName
+			}
 		}
 	}
 
@@ -243,19 +280,29 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("default_host_name", defaultHostname)
 	}
 
-	skuName := ""
-	skuTier := ""
-	if sku := resp.Sku; sku != nil {
-		if v := sku.Name; v != nil {
-			skuName = *v
-		}
+	if features.FourPointOhBeta() {
+		skuName := ""
+		skuTier := ""
+		if sku := resp.Sku; sku != nil {
+			if v := sku.Name; v != nil {
+				skuName = *v
+			}
 
-		if v := sku.Tier; v != nil {
-			skuTier = *v
+			if v := sku.Tier; v != nil {
+				skuTier = *v
+			}
 		}
+		d.Set("sku_size", skuName)
+		d.Set("sku_tier", skuTier)
+	} else {
+		skuName := ""
+		if sku := resp.Sku; sku != nil {
+			if v := sku.Name; v != nil {
+				skuName = *v
+			}
+		}
+		d.Set("sku_name", skuName)
 	}
-	d.Set("sku_size", skuName)
-	d.Set("sku_tier", skuTier)
 
 	secretResp, err := client.ListStaticSiteSecrets(ctx, id.ResourceGroup, id.Name)
 	if err != nil {

@@ -11,7 +11,7 @@ import (
 
 // Copied from github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web/models.go, except the "StaticSite" is using the local type defined in this package.
 // - the "StaticSite" is using the local type defined in this package.
-// - remove some read only properties
+// - remove some read only properties (including: ID, Name, Type)
 type StaticSiteARMResource struct {
 	autorest.Response `json:"-"`
 	*StaticSite       `json:"properties,omitempty"`
@@ -20,9 +20,6 @@ type StaticSiteARMResource struct {
 	Location          *string                     `json:"location,omitempty"`
 	Tags              map[string]*string          `json:"tags"`
 	Kind              *string                     `json:"kind,omitempty"`
-	// ID                *string                     `json:"id,omitempty"`
-	// Name              *string                     `json:"name,omitempty"`
-	//Type              *string                     `json:"type,omitempty"`
 }
 
 // Copied from github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web/models.go
