@@ -252,7 +252,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 
 	// default to deleting non-empty resource groups in acceptance tests
 	// This isn't the best, but it'll do for now.
-	if os.Getenv("TF_ACC") == "1" {
+	if os.Getenv("TF_ACC") != "" {
 		featuresMap["resource_group"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
