@@ -57,6 +57,13 @@ func TestAccAzureStaticSite_identity(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.withNoIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.withSystemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -77,14 +84,13 @@ func TestAccAzureStaticSite_identity(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		// TODO: re-enable this once the API issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/18253
-		// {
-		// 	Config: r.basic(data),
-		// 	Check: acceptance.ComposeTestCheckFunc(
-		// 		check.That(data.ResourceName).ExistsInAzure(r),
-		// 	),
-		// },
-		// data.ImportStep(),
+		{
+			Config: r.withNoIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -227,6 +233,34 @@ resource "azurerm_static_site" "test" {
   identity {
     type = "SystemAssigned"
   }
+}
+`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+}
+
+func (r StaticSiteResource) withNoIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "acctest-%[1]d"
+}
+
+resource "azurerm_static_site" "test" {
+  name                = "acctestSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_size            = "Standard"
+  sku_tier            = "Standard"
 }
 `, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
 }

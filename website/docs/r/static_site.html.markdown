@@ -36,6 +36,8 @@ The following arguments are supported:
 
 * `sku_size` - (Optional) Specifies the sku size of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
 
+~>**NOTE:**  It is only possible to upgrade `sku_tier` and `sku_size` from `Free` to `Standard`, but not the other way around.
+
 * `identitiy` - (Optional) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

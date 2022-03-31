@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -24,9 +25,9 @@ import (
 
 func resourceStaticSite() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceStaticSiteCreateOrUpdate,
+		Create: resourceStaticSiteCreate,
 		Read:   resourceStaticSiteRead,
-		Update: resourceStaticSiteCreateOrUpdate,
+		Update: resourceStaticSiteUpdate,
 		Delete: resourceStaticSiteDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.StaticSiteID(id)
@@ -62,6 +63,7 @@ func resourceStaticSite() *pluginsdk.Resource {
 				}, false),
 			},
 
+			// TODO 4.0 - Rename this to be `sku_name`
 			"sku_size": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -89,7 +91,7 @@ func resourceStaticSite() *pluginsdk.Resource {
 	}
 }
 
-func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStaticSiteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.StaticSitesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -99,17 +101,15 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	id := parse.NewStaticSiteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.GetStaticSite(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failed checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.GetStaticSite(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_static_site", id.ID())
+			return fmt.Errorf("failed checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_static_site", id.ID())
 	}
 
 	loc := location.Normalize(d.Get("location").(string))
@@ -137,11 +137,70 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateOrUpdateStaticSite(ctx, id.ResourceGroup, id.Name, siteEnvelope); err != nil {
+	future, err := client.CreateOrUpdateStaticSite(ctx, id.ResourceGroup, id.Name, siteEnvelope)
+	if err != nil {
 		return fmt.Errorf("failed creating %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("failed waiting for creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceStaticSiteRead(d, meta)
+}
+
+func resourceStaticSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Web.StaticSitesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.StaticSiteID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.GetStaticSite(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving existing %q: %+v", id, err)
+	}
+
+	skuName := d.Get("sku_size").(string)
+
+	if d.HasChange("identity") {
+		identity, err := expandStaticSiteIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		// In case the expanded identity is nil, it means the users have removed the identity block from the config. We need to explicitly set the identity type to "None" here
+		// (as ignoring the identity field in the API request will ends up not changing it at all).
+		// Untill issue https://github.com/Azure/azure-rest-api-specs/issues/17525 is addressed, we can put this logic back to the expand function instead.
+		if identity == nil && skuName != string(web.SkuNameFree) {
+			identity = &web.ManagedServiceIdentity{Type: web.ManagedServiceIdentityTypeNone}
+		}
+		existing.Identity = identity
+	}
+
+	if existing.Sku != nil {
+		if d.HasChange("sku_tier") {
+			existing.Sku.Tier = utils.String(d.Get("sku_tier").(string))
+		}
+		if d.HasChange("sku_size") {
+			existing.Sku.Name = &skuName
+		}
+	}
+
+	if d.HasChange("tags") {
+		existing.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	future, err := azuresdkhacks.CreateOrUpdateStaticSite(ctx, client, id.ResourceGroup, id.Name, existing)
+	if err != nil {
+		return fmt.Errorf("failed updating %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+	}
 
 	return resourceStaticSiteRead(d, meta)
 }
@@ -226,9 +285,13 @@ func resourceStaticSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error
 
 	future, err := client.DeleteStaticSite(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return err
+		if response.WasNotFound(future.Response()) {
+			return nil
 		}
+		return fmt.Errorf("failed deleting %q: %v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("failed waiting for deleting %q: %v", id, err)
 	}
 
 	return nil
