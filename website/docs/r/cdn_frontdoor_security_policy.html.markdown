@@ -26,8 +26,8 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   name                              = "exampleWAF"
   resource_group_name               = azurerm_resource_group.test.name
-	cdn_frontdoor_profile_id          = azurerm_cdn_frontdoor_profile.test.id
-	sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  cdn_frontdoor_profile_id          = azurerm_cdn_frontdoor_profile.test.id
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
   enabled                           = true
   mode                              = "Prevention"
   redirect_url                      = "https://www.contoso.com"

@@ -103,15 +103,15 @@ func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]tr
 	return &results
 }
 
-func flattenCdnFrontdoorFirewallPolicyParameters(input track1.BasicSecurityPolicyPropertiesParameters) (map[string]interface{}, error) {
-	securityPolicy, ok := input.AsSecurityPolicyWebApplicationFirewallParameters()
-	if !ok {
-		return nil, fmt.Errorf("expected a security policy web application firewall parameters")
-	}
+// func flattenCdnFrontdoorFirewallPolicyParameters(input track1.BasicSecurityPolicyPropertiesParameters) (map[string]interface{}, error) {
+// 	securityPolicy, ok := input.AsSecurityPolicyWebApplicationFirewallParameters()
+// 	if !ok {
+// 		return nil, fmt.Errorf("expected a security policy web application firewall parameters")
+// 	}
 
-	if wafId := securityPolicy.WafPolicy.ID; wafId != nil {
-		// TODO
-	}
+// 	if wafId := securityPolicy.WafPolicy.ID; wafId != nil {
+// 		// TODO
+// 	}
 
-	return nil, nil
-}
+// 	return nil, nil
+// }

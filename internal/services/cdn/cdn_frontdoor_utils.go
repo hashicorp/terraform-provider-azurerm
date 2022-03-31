@@ -39,10 +39,10 @@ func ConvertCdnFrontdoorTagsToTagsFlatten(tagMap map[string]*string) *map[string
 }
 
 func ConvertBoolToEnabledState(isEnabled bool) track1.EnabledState {
-	out := track1.EnabledState(track1.EnabledStateDisabled)
+	out := track1.EnabledStateDisabled
 
 	if isEnabled {
-		out = track1.EnabledState(track1.EnabledStateEnabled)
+		out = track1.EnabledStateEnabled
 	}
 
 	return out
@@ -53,7 +53,7 @@ func ConvertEnabledStateToBool(enabledState *track1.EnabledState) bool {
 		return false
 	}
 
-	return (*enabledState == track1.EnabledState(track1.EnabledStateEnabled))
+	return (*enabledState == track1.EnabledStateEnabled)
 }
 
 func expandResourceReference(input string) *track1.ResourceReference {
@@ -134,10 +134,10 @@ func flattenFrontendEndpointLinkSlice(input *[]legacyfrontdoor.FrontendEndpointL
 }
 
 func ConvertBoolToRouteHttpsRedirect(isEnabled bool) track1.HTTPSRedirect {
-	out := track1.HTTPSRedirect(track1.HTTPSRedirectDisabled)
+	out := track1.HTTPSRedirectDisabled
 
 	if isEnabled {
-		out = track1.HTTPSRedirect(track1.HTTPSRedirectEnabled)
+		out = track1.HTTPSRedirectEnabled
 	}
 
 	return out
@@ -152,10 +152,10 @@ func ConvertRouteHttpsRedirectToBool(httpsRedirect *track1.HTTPSRedirect) bool {
 }
 
 func ConvertBoolToRouteLinkToDefaultDomain(isLinked bool) track1.LinkToDefaultDomain {
-	out := track1.LinkToDefaultDomain(track1.LinkToDefaultDomainDisabled)
+	out := track1.LinkToDefaultDomainDisabled
 
 	if isLinked {
-		out = track1.LinkToDefaultDomain(track1.LinkToDefaultDomainEnabled)
+		out = track1.LinkToDefaultDomainEnabled
 	}
 
 	return out
@@ -166,7 +166,7 @@ func ConvertRouteLinkToDefaultDomainToBool(linkToDefaultDomain *track1.LinkToDef
 		return false
 	}
 
-	return (*linkToDefaultDomain == track1.LinkToDefaultDomain(track1.LinkToDefaultDomainEnabled))
+	return (*linkToDefaultDomain == track1.LinkToDefaultDomainEnabled)
 }
 
 func IsValidDomain(i interface{}, k string) (warnings []string, errors []error) {

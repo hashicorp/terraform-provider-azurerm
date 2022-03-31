@@ -25,10 +25,10 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 		Delete: resourceCdnFrontdoorCustomDomainDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(12 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(24 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(12 * time.Hour),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -43,7 +43,7 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"frontdoor_cdn_profile_id": {
+			"cdn_frontdoor_profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -73,7 +73,7 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"frontdoor_cdn_profile_name": {
+			"cdn_frontdoor_profile_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -106,7 +106,7 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"secret_id": {
+						"cdn_frontdoor_secret_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: azure.ValidateResourceID,
@@ -143,7 +143,7 @@ func resourceCdnFrontdoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontdoorProfileID(d.Get("frontdoor_cdn_profile_id").(string))
+	profileId, err := parse.FrontdoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
@@ -205,7 +205,7 @@ func resourceCdnFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 
 	d.Set("name", id.CustomDomainName)
 
-	d.Set("frontdoor_cdn_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	resp, err = client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
 	if err != nil {
@@ -219,7 +219,7 @@ func resourceCdnFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 	if props := resp.AFDDomainProperties; props != nil {
 		d.Set("domain_validation_state", props.DomainValidationState)
 		d.Set("host_name", props.HostName)
-		d.Set("frontdoor_cdn_profile_name", props.ProfileName)
+		d.Set("cdn_frontdoor_profile_name", props.ProfileName)
 
 		if err := d.Set("azure_dns_zone", flattenResourceReference(props.AzureDNSZone)); err != nil {
 			return fmt.Errorf("setting `azure_dns_zone`: %+v", err)
@@ -305,7 +305,7 @@ func expandCustomDomainAFDDomainHttpsParameters(input []interface{}) *track1.AFD
 	return &track1.AFDDomainHTTPSParameters{
 		CertificateType:   certificateTypeValue,
 		MinimumTLSVersion: minimumTlsVersionValue,
-		Secret:            expandResourceReference(v["secret_id"].(string)),
+		Secret:            expandResourceReference(v["cdn_frontdoor_secret_id"].(string)),
 	}
 }
 
@@ -319,7 +319,7 @@ func flattenCustomDomainAFDDomainHttpsParameters(input *track1.AFDDomainHTTPSPar
 	result["certificate_type"] = input.CertificateType
 	result["minimum_tls_version"] = input.MinimumTLSVersion
 
-	result["secret_id"] = flattenResourceReference(input.Secret)
+	result["cdn_frontdoor_secret_id"] = flattenResourceReference(input.Secret)
 	return append(results, result)
 }
 

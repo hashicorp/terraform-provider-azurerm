@@ -89,10 +89,10 @@ func FlattenCdnFrontdoorManagedCertificateParameters(input track1.BasicSecretPar
 	return nil, nil
 }
 
-func flattenCdnFrontdoorCustomerCertificateParameters(input *track1.BasicSecretParameters) (map[string]interface{}, error) {
-	// TODO: Get this working once I can successfully create a secret
-	return nil, nil
-}
+// func flattenCdnFrontdoorCustomerCertificateParameters(input *track1.BasicSecretParameters) (map[string]interface{}, error) {
+// 	// TODO: Get this working once I can successfully create a secret
+// 	return nil, nil
+// }
 
 func FlattenCdnFrontdoorAzureFirstPartyManagedCertificateyParameters(input track1.BasicSecretParameters) (map[string]interface{}, error) {
 	// Placeholder

@@ -23,15 +23,13 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_cdn_frontdoor_profile_custom_domain" "test" {
+resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   name                     = "acctest-c-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
   dns_zone_id              = ""
   host_name                = ""
 
-  pre_validated_custom_domain_resource_id {
-    id = ""
-  }
+  pre_validated_custom_domain_resource_id = ""
 
   tls_settings {
     certificate_type    = ""
@@ -53,15 +51,9 @@ The following arguments are supported:
 
 * `dns_zone_id` - (Optional) Resource ID.
 
-* `pre_validated_custom_domain_resource_id` - (Optional) A `pre_validated_custom_domain_resource_id` block as defined below.
+* `pre_validated_custom_domain_resource_id` - (Optional) Resource ID.
 
 * `tls_settings` - (Optional) A `tls_settings` block as defined below.
-
----
-
-A `pre_validated_custom_domain_resource_id` block supports the following:
-
-* `id` - (Optional) Resource ID.
 
 ---
 
@@ -71,7 +63,7 @@ A `tls_settings` block supports the following:
 
 * `minimum_tls_version` - (Optional) TLS protocol version that will be used for Https
 
-* `secret_id` - (Optional) Resource ID.
+* `cdn_frontdoor_secret_id` - (Optional) Resource ID.
 
 ---
 
@@ -103,15 +95,15 @@ A `validation_properties` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Frontdoor Custom Domain.
+* `create` - (Defaults to 12 hours) Used when creating the Frontdoor Custom Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Frontdoor Custom Domain.
-* `update` - (Defaults to 30 minutes) Used when updating the Frontdoor Custom Domain.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Frontdoor Custom Domain.
+* `update` - (Defaults to 24 hours) Used when updating the Frontdoor Custom Domain.
+* `delete` - (Defaults to 12 hours) Used when deleting the Frontdoor Custom Domain.
 
 ## Import
 
 Frontdoor Custom Domains can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cdn_frontdoor_profile_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1
+terraform import azurerm_cdn_frontdoor_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1
 ```
