@@ -576,24 +576,7 @@ func TestAccKubernetesCluster_osSku(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_oidcIssuerEnabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.oidcIssuer(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("oidc_issuer_url").IsSet(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesCluster_oidcIssuerDisabled(t *testing.T) {
+func TestAccKubernetesCluster_oidcIssuer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -604,6 +587,15 @@ func TestAccKubernetesCluster_oidcIssuerDisabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("oidc_issuer_url").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.oidcIssuer(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("oidc_issuer_url").IsSet(),
 			),
 		},
 		data.ImportStep(),
