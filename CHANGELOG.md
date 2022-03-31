@@ -3,6 +3,7 @@
 BUG FIXES:
 
 * `azurerm_api_management_api_operation_tag` - now retrieves tags from the correct API [GH-16006]
+* `azurerm_application_insights` - Remove disable logic for the Azure created Action Group [GH-16170]
 * `azurerm_linux_function_app` - only one of `application_insights_key` or `application_insights_connection_string` now needs to be optionally specified [GH-16134]
 * `azurerm_windows_function_app` - fix import check for Service Plan OS type [GH-16164]
 * `azurerm_linux_function_app_slot` - only one of `application_insights_key` or `application_insights_connection_string` now needs to be optionally specified [GH-16134]
