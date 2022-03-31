@@ -14,7 +14,7 @@ const val defaultDaysOfWeek = "2,3,4,5,6"
 const val defaultDaysOfMonth = "*"
 
 var locations = mapOf(
-        "public" to LocationConfiguration("westeurope", "northeurope", "eastus2", true)
+        "public" to LocationConfiguration("westeurope", "northeurope", "francecentral", true)
 )
 
 // specifies the list of Azure Environments where tests should be run nightly
@@ -53,6 +53,8 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // netapp has a max of 20 accounts per subscription so lets limit it to 10 to account for broken ones, run Monday, Wednesday, Friday
         "netapp" to testConfiguration(parallelism = 10, daysOfWeek = "2,4,6"),
+
+        "policy" to testConfiguration(useAltSubscription = true),
 
         // redisenterprise is costly - Monday, Wednesday, Friday
         "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),
