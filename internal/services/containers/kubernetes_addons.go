@@ -21,7 +21,6 @@ const (
 	// note: the casing on these keys is important
 	aciConnectorKey                 = "aciConnectorLinux"
 	azurePolicyKey                  = "azurepolicy"
-	kubernetesDashboardKey          = "kubeDashboard"
 	httpApplicationRoutingKey       = "httpApplicationRouting"
 	omsAgentKey                     = "omsagent"
 	ingressApplicationGatewayKey    = "ingressApplicationGateway"

@@ -221,7 +221,7 @@ func TestAccKubernetesCluster_addonProfileAzureKeyVaultSecretsProvider(t *testin
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// Enable AzureKeyvaultSecretsProvider
-			Config: r.addonProfileAzureKeyVaultSecretsProviderConfig(data,  true, "2m"),
+			Config: r.addonProfileAzureKeyVaultSecretsProviderConfig(data, true, "2m"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
