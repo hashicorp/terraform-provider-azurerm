@@ -5,8 +5,10 @@ BUG FIXES:
 * `azurerm_api_management_api_operation_tag` - now retrieves tags from the correct API [GH-16006]
 * `azurerm_linux_function_app` - only one of `application_insights_key` or `application_insights_connection_string` now needs to be optionally specified [GH-16134]
 * `azurerm_linux_function_app_slot` - only one of `application_insights_key` or `application_insights_connection_string` now needs to be optionally specified [GH-16134]
+* `azurerm_linux_web_app_slot ` - fix `container_registry_managed_identity_client_id` validation [GH-16149]
 * `azurerm_windows_web_app` - add support for `dotnetcore` in site metadata property `current_stack` [GH-16129]
 * `azurerm_windows_web_app_slot` - add support for `dotnetcore` in site metadata property `current_stack` [GH-16129]
+
 
 ENHANCEMENTS:
 
