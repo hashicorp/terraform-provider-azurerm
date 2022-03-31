@@ -1,5 +1,5 @@
 ---
-subcategory: "Signalr"
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_signalr_shared_private_link_resource"
 description: |-
