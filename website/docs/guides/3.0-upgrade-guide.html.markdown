@@ -883,7 +883,7 @@ The deprecated field `process_not_allowed` will be removed in favour of the `pro
 
 ### Resource: `azurerm_key_vault_access_policy`
 
-The fields `certificate_permissions`, `key_permissions`, `secret_permissions` and `storage_permissions` will become case-sensitive.
+The values for `certificate_permissions`, `key_permissions`, `secret_permissions`, and `storage_permissions` will become case-sensitive.
 
 ### Resource: `azurerm_key_vault_certificate`
 
