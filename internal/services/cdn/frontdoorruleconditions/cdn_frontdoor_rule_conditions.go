@@ -1400,7 +1400,7 @@ func FlattenFrontdoorSslProtocolCondition(input track1.BasicDeliveryRuleConditio
 
 		condition := normalizedCondition{
 			selector:        nil,
-			operator:        string(*params.Operator),
+			operator:        *params.Operator,
 			negateCondition: params.NegateCondition,
 			matchValues:     &matchValues,
 			transforms:      nil,

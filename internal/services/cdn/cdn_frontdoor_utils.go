@@ -148,7 +148,7 @@ func ConvertRouteHttpsRedirectToBool(httpsRedirect *track1.HTTPSRedirect) bool {
 		return false
 	}
 
-	return (*httpsRedirect == track1.HTTPSRedirect(track1.HTTPSRedirectEnabled))
+	return (*httpsRedirect == track1.HTTPSRedirectEnabled)
 }
 
 func ConvertBoolToRouteLinkToDefaultDomain(isLinked bool) track1.LinkToDefaultDomain {
