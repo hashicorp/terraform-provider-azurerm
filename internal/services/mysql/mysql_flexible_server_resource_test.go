@@ -890,6 +890,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   sku_name                     = "GP_Standard_D4ds_v4"
   geo_redundant_backup_enabled = true
   version                      = "8.0.21"
+  zone                         = "1"
 
   storage {
     size_gb           = %d
