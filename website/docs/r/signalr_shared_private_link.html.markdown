@@ -14,10 +14,12 @@ Manages the Shared Private Link Resource for a Signalr service.
 
 ```hcl
 data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "example" {
   name     = "terraform-signalr"
   location = "east us"
 }
+
 resource "azurerm_key_vault" "example" {
   name                       = "examplekeyvault"
   location                   = azurerm_resource_group.example.location
@@ -39,16 +41,21 @@ resource "azurerm_key_vault" "example" {
     ]
   }
 }
-resource "azurerm_web_pubsub" "example" {
+
+resource "azurerm_signalr_service" "test" {
   name                = "tfex-signalr"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  sku                 = "Standard_S1"
-  capacity            = 1
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Standard_S1"
+    capacity = 1
+  }
 }
+
 resource "azurerm_signalr_shared_private_link_resource" "example" {
   name               = "tfex-signalr-splr"
-  web_pubsub_id      = azurerm_web_pubsub.example.id
+  signalr_service_id = azurerm_signalr_service.example.id
   subresource_name   = "vault"
   target_resource_id = azurerm_key_vault.example.id
 }
