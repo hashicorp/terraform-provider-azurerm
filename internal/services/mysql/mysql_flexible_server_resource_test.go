@@ -889,6 +889,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_password       = "QAZwsx123"
   sku_name                     = "GP_Standard_D4ds_v4"
   geo_redundant_backup_enabled = true
+  version                      = "8.0.21"
 
   storage {
     size_gb           = %d
