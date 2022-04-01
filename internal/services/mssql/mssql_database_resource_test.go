@@ -1500,8 +1500,8 @@ func (r MsSqlDatabaseResource) ledgerEnabled(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-  name      = "acctest-db-%[2]d"
-  server_id = azurerm_mssql_server.test.id
+  name           = "acctest-db-%[2]d"
+  server_id      = azurerm_mssql_server.test.id
   ledger_enabled = true
 }
 `, r.template(data), data.RandomInteger)
