@@ -1559,6 +1559,12 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if updateCluster {
+		// If Defender was explicitly disabled in a prior update then we should strip security profile from the request
+		// body to prevent errors in cases where Defender is disabled for the entire subscription
+		if !d.HasChanges("microsoft_defender") && len(d.Get("microsoft_defender").([]interface{})) == 0 {
+			existing.ManagedClusterProperties.SecurityProfile = nil
+		}
+
 		log.Printf("[DEBUG] Updating %s..", *id)
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
 		if err != nil {
@@ -2918,14 +2924,14 @@ func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClus
 }
 
 func expandKubernetesClusterMicrosoftDefender(d *pluginsdk.ResourceData, input []interface{}) *containerservice.ManagedClusterSecurityProfile {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	} else if (len(input) == 0 || input[0] == nil) && d.HasChange("microsoft_defender") {
+	if (len(input) == 0 || input[0] == nil) && d.HasChange("microsoft_defender") {
 		return &containerservice.ManagedClusterSecurityProfile{
 			AzureDefender: &containerservice.ManagedClusterSecurityProfileAzureDefender{
 				Enabled: utils.Bool(false),
 			},
 		}
+	} else if len(input) == 0 || input[0] == nil {
+		return nil
 	}
 
 	config := input[0].(map[string]interface{})
