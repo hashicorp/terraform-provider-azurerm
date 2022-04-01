@@ -50,7 +50,7 @@ func resourceSignalRSharedPrivateLinkResource() *pluginsdk.Resource {
 				ValidateFunc: signalr.ValidateSignalRID,
 			},
 
-			"subresource_name": {
+			"sub_resource_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -104,7 +104,7 @@ func resourceSignalRSharedPrivateLinkCreateUpdate(d *pluginsdk.ResourceData, met
 
 	parameters := signalr.SharedPrivateLinkResource{
 		Properties: &signalr.SharedPrivateLinkResourceProperties{
-			GroupId:               d.Get("subresource_name").(string),
+			GroupId:               d.Get("sub_resource_name").(string),
 			PrivateLinkResourceId: d.Get("target_resource_id").(string),
 		},
 	}
@@ -146,7 +146,7 @@ func resourceSignalRSharedPrivateLinkRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("signalr_service_id", signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.ResourceName).ID())
 
 		if props := model.Properties; props != nil {
-			d.Set("subresource_name", props.GroupId)
+			d.Set("sub_resource_name", props.GroupId)
 			d.Set("target_resource_id", props.PrivateLinkResourceId)
 
 			if props.RequestMessage != nil {

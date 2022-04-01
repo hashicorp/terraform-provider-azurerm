@@ -103,7 +103,7 @@ resource "azurerm_key_vault" "test" {
 resource "azurerm_signalr_shared_private_link_resource" "test" {
   name               = "acctest-%d"
   signalr_service_id = azurerm_signalr_service.test.id
-  subresource_name   = "vault"
+  sub_resource_name   = "vault"
   target_resource_id = azurerm_key_vault.test.id
   request_message    = "please approve"
 }
@@ -118,7 +118,7 @@ func (r SignalrSharedPrivateLinkResource) requiresImport(data acceptance.TestDat
 resource "azurerm_signalr_shared_private_link_resource" "import" {
   name               = azurerm_signalr_shared_private_link_resource.test.name
   signalr_service_id = azurerm_signalr_shared_private_link_resource.test.signalr_service_id
-  subresource_name   = azurerm_signalr_shared_private_link_resource.test.subresource_name
+  sub_resource_name   = azurerm_signalr_shared_private_link_resource.test.sub_resource_name
   target_resource_id = azurerm_signalr_shared_private_link_resource.test.target_resource_id
 }
 `, config)
@@ -147,7 +147,7 @@ resource "azurerm_windows_web_app" "test" {
 resource "azurerm_signalr_shared_private_link_resource" "test" {
   name               = "acctest-%d"
   signalr_service_id = azurerm_signalr_service.test.id
-  subresource_name   = "sites"
+  sub_resource_name   = "sites"
   target_resource_id = azurerm_windows_web_app.test.id
   request_message    = "please approve"
 }

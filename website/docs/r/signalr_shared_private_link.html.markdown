@@ -56,7 +56,7 @@ resource "azurerm_signalr_service" "test" {
 resource "azurerm_signalr_shared_private_link_resource" "example" {
   name               = "tfex-signalr-splr"
   signalr_service_id = azurerm_signalr_service.example.id
-  subresource_name   = "vault"
+  sub_resource_name   = "vault"
   target_resource_id = azurerm_key_vault.example.id
 }
 ```
@@ -65,17 +65,17 @@ resource "azurerm_signalr_shared_private_link_resource" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specify the name of the Signalr Shared Private Link Resource. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Signalr Shared Private Link Resource. Changing this forces a new resource to be created.
 
-* `signalr_service_id` - (Required) Specify the id of the Signalr Service. Changing this forces a new resource to be created.
+* `signalr_service_id` - (Required) The id of the Signalr Service. Changing this forces a new resource to be created.
 
-* `subresource_name` - (Required) Specify the sub resource name which the Signalr Private Endpoint is able to connect to. Possible values are `sites`, `vault`. Changing this forces a new resource to be created.
+* `sub_resource_name` - (Required) The sub resource name which the Signalr Private Endpoint can connect to. Possible values are `sites`, `vault`. Changing this forces a new resource to be created.
 
-* `target_resource_id` - (Required) Specify the ID of the Shared Private Link Enabled Remote Resource which this Signalr Private Endpoint should be connected to. Changing this forces a new resource to be created.
+* `target_resource_id` - (Required) The ID of the Shared Private Link Enabled Remote Resource which this Signalr Private Endpoint should be connected to. Changing this forces a new resource to be created.
 
--> **NOTE:** The sub resource name should match with the type of the target resource id that's being specified.
+-> **NOTE:** The `sub_resource_name` should match with the type of the `target_resource_id` that's being specified.
 
-* `request_message` - (Optional) Specify the request message for requesting approval of the Shared Private Link Enabled Remote Resource.
+* `request_message` - (Optional) The request message for requesting approval of the Shared Private Link Enabled Remote Resource.
 
 ## Attributes Reference:
 
@@ -83,7 +83,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Signalr Shared Private Link resource.
 
-* `status` - The status of a private endpoint connection. Possible values are Pending, Approved, Rejected or Disconnected.
+* `status` - The status of a private endpoint connection. Possible values are `Pending`, `Approved`, `Rejected` or `Disconnected`.
 
 ## Timeouts
 
