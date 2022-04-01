@@ -3239,26 +3239,3 @@ func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClus
 		"trusted_ca":  trustedCa,
 	})
 }
-
-func flattenKubernetesClusterOidcIssuerProfile(props *containerservice.ManagedClusterProperties) interface{} {
-	if props == nil || props.OidcIssuerProfile == nil {
-		return map[string]interface{}{}
-	}
-
-	oidcIssuerProfile := props.OidcIssuerProfile
-
-	enabled := false
-	if oidcIssuerProfile.Enabled != nil {
-		enabled = *oidcIssuerProfile.Enabled
-	}
-
-	issuerUrl := ""
-	if oidcIssuerProfile.IssuerURL != nil {
-		issuerUrl = *oidcIssuerProfile.IssuerURL
-	}
-
-	return map[string]interface{}{
-		"enabled":    enabled,
-		"issuer_url": issuerUrl,
-	}
-}

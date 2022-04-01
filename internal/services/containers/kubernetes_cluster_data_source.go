@@ -1799,25 +1799,3 @@ func flattenClusterDataSourceIdentity(input *containerservice.ManagedClusterIden
 
 	return identity.FlattenSystemOrUserAssignedMap(transform)
 }
-
-func flattenKubernetesClusterDataSourceOidcIssuerProfile(input *containerservice.ManagedClusterOIDCIssuerProfile) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	enabled := false
-	if input.Enabled != nil {
-		enabled = *input.Enabled
-	}
-
-	issuerUrl := ""
-	if input.IssuerURL != nil {
-		issuerUrl = *input.IssuerURL
-	}
-
-	results := []interface{}{}
-	return append(results, map[string]interface{}{
-		"enabled":    enabled,
-		"issuer_url": issuerUrl,
-	})
-}
