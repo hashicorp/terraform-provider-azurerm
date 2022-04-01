@@ -739,7 +739,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("container", containerConfigs); err != nil {
 			return fmt.Errorf("setting `container`: %+v", err)
 		}
-		initContainerConfigs := flattenInitContainerGroupInitContainers(d, resp.InitContainers, props.Volumes)
+		initContainerConfigs := flattenContainerGroupInitContainers(d, resp.InitContainers, props.Volumes)
 		if err := d.Set("init_container", initContainerConfigs); err != nil {
 			return fmt.Errorf("setting `init_container`: %+v", err)
 		}
@@ -1450,7 +1450,7 @@ func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *
 	return output
 }
 
-func flattenInitContainerGroupInitContainers(d *pluginsdk.ResourceData, initContainers *[]containerinstance.InitContainerDefinition, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
+func flattenContainerGroupInitContainers(d *pluginsdk.ResourceData, initContainers *[]containerinstance.InitContainerDefinition, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
 	if initContainers == nil {
 		return nil
 	}
