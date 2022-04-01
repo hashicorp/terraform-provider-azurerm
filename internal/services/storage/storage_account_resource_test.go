@@ -2221,6 +2221,10 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_storage_account" "test" {
@@ -3801,6 +3805,10 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
+}
+
+data "azurerm_extended_locations" "test" {
+  location = azurerm_resource_group.test.location
 }
 
 resource "azurerm_storage_account" "test" {

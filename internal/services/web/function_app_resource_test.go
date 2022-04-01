@@ -2976,11 +2976,12 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctest-%d-func"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
     pre_warmed_instance_count = 1
@@ -3021,11 +3022,12 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctest-%d-func"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
@@ -3416,11 +3418,12 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctest-%[1]d-func"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -3627,11 +3630,12 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctest-%[1]d-func"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
     elastic_instance_minimum = 1
@@ -3672,11 +3676,12 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctest-%[1]d-func"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
     app_scale_limit = 1
@@ -3717,12 +3722,13 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctest-%[1]d-func"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
-  version                   = "~3"
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  version                    = "~3"
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
     pre_warmed_instance_count        = 1
