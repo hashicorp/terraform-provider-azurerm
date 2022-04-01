@@ -10,6 +10,7 @@ BUG FIXES:
 * `azurerm_linux_web_app_slot ` - fix `container_registry_managed_identity_client_id` validation [GH-16149]
 * `azurerm_windows_web_app` - add support for `dotnetcore` in site metadata property `current_stack` [GH-16129]
 * `azurerm_windows_web_app_slot` - add support for `dotnetcore` in site metadata property `current_stack` [GH-16129]
+* `azurerm_storage_data_lake_gen2_filesystem` - add support for `$superuser` in `group` and `owner` properties [GH-16215]
 
 ENHANCEMENTS:
 
