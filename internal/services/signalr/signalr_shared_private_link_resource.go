@@ -153,7 +153,8 @@ func resourceSignalRSharedPrivateLinkRead(d *pluginsdk.ResourceData, meta interf
 				d.Set("request_message", props.RequestMessage)
 			}
 
-			d.Set("status", props.Status)
+			status := string(*props.Status)
+			d.Set("status", status)
 		}
 	}
 	return nil
