@@ -1485,7 +1485,7 @@ resource "azurerm_public_ip" "test_standard" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   allocation_method   = "Static"
-  zones               = ["1", "2"]
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_application_gateway" "test" {
