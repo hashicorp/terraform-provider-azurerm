@@ -1092,7 +1092,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
-	microsoftDefender := expandKubernetesClusterMicrosoftDefender(microsoftDefenderRaw)
+	microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
 
 	parameters := containerservice.ManagedCluster{
 		Name:     utils.String(id.ManagedClusterName),
@@ -1554,7 +1554,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChanges("microsoft_defender") {
 		updateCluster = true
 		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
-		microsoftDefender := expandKubernetesClusterMicrosoftDefender(microsoftDefenderRaw)
+		microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
 		existing.ManagedClusterProperties.SecurityProfile = microsoftDefender
 	}
 
@@ -2917,8 +2917,10 @@ func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClus
 	})
 }
 
-func expandKubernetesClusterMicrosoftDefender(input []interface{}) *containerservice.ManagedClusterSecurityProfile {
-	if len(input) == 0 {
+func expandKubernetesClusterMicrosoftDefender(d *pluginsdk.ResourceData, input []interface{}) *containerservice.ManagedClusterSecurityProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	} else if (len(input) == 0 || input[0] == nil) && d.HasChange("microsoft_defender") {
 		return &containerservice.ManagedClusterSecurityProfile{
 			AzureDefender: &containerservice.ManagedClusterSecurityProfileAzureDefender{
 				Enabled: utils.Bool(false),
