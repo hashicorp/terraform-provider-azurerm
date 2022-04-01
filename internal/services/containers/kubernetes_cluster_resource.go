@@ -51,21 +51,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("service_principal.0.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old == "msi" || old == ""
 			}),
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-				networkProfileRaw := d.Get("network_profile").([]interface{})
-				if len(networkProfileRaw) == 0 {
-					return nil
-				}
-				config := networkProfileRaw[0].(map[string]interface{})
-				if ipVersionRaw, ok := config["ip_versions"]; ok {
-					ipVersions := ipVersionRaw.([]interface{})
-					if len(ipVersions) == 1 && ipVersions[0] == string(containerservice.IPFamilyIPv6) {
-						return fmt.Errorf("ip_versions possible values are IPv4 and/or IPv6. IPv4 must always be specified")
-					}
-				}
-
-				return nil
-			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -2293,7 +2278,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	loadBalancerSku := config["load_balancer_sku"].(string)
 	natGatewayProfileRaw := config["nat_gateway_profile"].([]interface{})
 	outboundType := config["outbound_type"].(string)
-	ipVersions := config["ip_versions"].([]interface{})
+	ipVersions, err := expandIPVersions(config["ip_versions"].([]interface{}))
+	if err != nil {
+		return nil, err
+	}
 
 	networkProfile := containerservice.NetworkProfile{
 		NetworkPlugin:   containerservice.NetworkPlugin(networkPlugin),
@@ -2301,7 +2289,7 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 		NetworkPolicy:   containerservice.NetworkPolicy(networkPolicy),
 		LoadBalancerSku: containerservice.LoadBalancerSku(loadBalancerSku),
 		OutboundType:    containerservice.OutboundType(outboundType),
-		IPFamilies:      expandIPVersions(ipVersions),
+		IPFamilies:      ipVersions,
 	}
 
 	if len(loadBalancerProfileRaw) > 0 {
@@ -2377,16 +2365,21 @@ func expandLoadBalancerProfile(d []interface{}) *containerservice.ManagedCluster
 	return profile
 }
 
-func expandIPVersions(input []interface{}) *[]containerservice.IPFamily {
+func expandIPVersions(input []interface{}) (*[]containerservice.IPFamily, error) {
 	if len(input) == 0 {
-		return nil
-	}
-	ipf := make([]containerservice.IPFamily, 0)
-	for _, data := range input {
-		ipf = append(ipf, containerservice.IPFamily(data.(string)))
+		return nil, nil
 	}
 
-	return &ipf
+	ipv := make([]containerservice.IPFamily, 0)
+	for _, data := range input {
+		ipv = append(ipv, containerservice.IPFamily(data.(string)))
+	}
+
+	if len(ipv) == 1 && ipv[0] == containerservice.IPFamilyIPv6 {
+		return nil, fmt.Errorf("`ip_versions` must be `IPv4` or `IPv4` and `IPv6`. `IPv6` alone is not supported")
+	}
+
+	return &ipv, nil
 }
 
 func expandNatGatewayProfile(d []interface{}) *containerservice.ManagedClusterNATGatewayProfile {
