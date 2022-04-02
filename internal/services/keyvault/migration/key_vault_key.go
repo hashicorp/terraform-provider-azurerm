@@ -142,7 +142,8 @@ func (KeyVaultKeyV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		}
 
 		name := rawState["name"].(string)
-		newId := parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, name).ID()
+		version := rawState["version"].(string)
+		newId := parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, name, version).ID()
 
 		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 		rawState["id"] = newId

@@ -160,6 +160,16 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"data_plane_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"versionless_data_plane_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"n": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -208,12 +218,12 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
+	id := parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, name)
+
 	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", name, *keyVaultId, err)
+		return fmt.Errorf("looking up vault url which contains %q the from id: %+v", id, err)
 	}
-
-	id := parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, name)
 
 	existing, err := client.GetKey(ctx, *keyVaultBaseUri, name, "")
 	if err != nil {
@@ -295,7 +305,22 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	d.SetId(id.ID())
+	resp, err := client.GetKey(ctx, *keyVaultBaseUri, id.KeyName, "")
+	if err != nil {
+		return err
+	}
+	if resp.Key == nil || resp.Key.Kid == nil {
+		return fmt.Errorf("Cannot read %s", id)
+	}
+
+	kid, err := parse.ParseNestedItemID(*resp.Key.Kid)
+	if err != nil {
+		return fmt.Errorf("parsing the data plane ID of %q: %v", id, err)
+	}
+
+	versionedId := parse.NewKeyID(id.SubscriptionId, id.ResourceGroup, id.VaultName, id.KeyName, kid.Version)
+
+	d.SetId(versionedId.ID())
 
 	return resourceKeyVaultKeyRead(d, meta)
 }
@@ -313,7 +338,7 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	keyVaultId := parse.NewVaultID(id.SubscriptionId, id.ResourceGroup, id.VaultName)
 	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, keyVaultId)
 	if err != nil {
-		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", id, keyVaultId, err)
+		return fmt.Errorf("looking up vault url which contains %q the from id: %+v", id, err)
 	}
 
 	ok, err := keyVaultsClient.Exists(ctx, keyVaultId)
@@ -443,7 +468,12 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				return fmt.Errorf("parsing the data plane ID of %q: %v", id, err)
 			}
 			d.Set("version", kid.Version)
-			d.Set("versionless_id", kid.VersionlessID())
+
+			versionlessId := parse.NewKeyVersionlessID(id.SubscriptionId, id.ResourceGroup, id.VaultName, id.Name)
+			d.Set("versionless_id", versionlessId.ID())
+
+			d.Set("data_plane_id", kid.ID())
+			d.Set("versionless_data_plane_id", kid.VersionlessID())
 		}
 		if key.Kty == keyvault.RSA || key.Kty == keyvault.RSAHSM {
 			nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)

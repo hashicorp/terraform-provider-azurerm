@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = KeyId{}
+var _ resourceids.Id = KeyVersionlessId{}
 
-func TestKeyIDFormatter(t *testing.T) {
-	actual := NewKeyID("12345678-1234-9876-4563-123456789012", "resGroup1", "vault1", "key1", "version1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/keys/key1/versions/version1"
+func TestKeyVersionlessIDFormatter(t *testing.T) {
+	actual := NewKeyVersionlessID("12345678-1234-9876-4563-123456789012", "resGroup1", "vault1", "key1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/keys/key1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestKeyID(t *testing.T) {
+func TestKeyVersionlessID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *KeyId
+		Expected *KeyVersionlessId
 	}{
 
 		{
@@ -68,44 +68,31 @@ func TestKeyID(t *testing.T) {
 		},
 
 		{
-			// missing Name
+			// missing KeyName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/",
 			Error: true,
 		},
 
 		{
-			// missing value for Name
+			// missing value for KeyName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/keys/",
 			Error: true,
 		},
 
 		{
-			// missing VersionName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/keys/key1/",
-			Error: true,
-		},
-
-		{
-			// missing value for VersionName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/keys/key1/versions/",
-			Error: true,
-		},
-
-		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/keys/key1/versions/version1",
-			Expected: &KeyId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/keys/key1",
+			Expected: &KeyVersionlessId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				VaultName:      "vault1",
-				Name:           "key1",
-				VersionName:    "version1",
+				KeyName:        "key1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.KEYVAULT/VAULTS/VAULT1/KEYS/KEY1/VERSIONS/VERSION1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.KEYVAULT/VAULTS/VAULT1/KEYS/KEY1",
 			Error: true,
 		},
 	}
@@ -113,7 +100,7 @@ func TestKeyID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := KeyID(v.Input)
+		actual, err := KeyVersionlessID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -134,11 +121,8 @@ func TestKeyID(t *testing.T) {
 		if actual.VaultName != v.Expected.VaultName {
 			t.Fatalf("Expected %q but got %q for VaultName", v.Expected.VaultName, actual.VaultName)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
-		}
-		if actual.VersionName != v.Expected.VersionName {
-			t.Fatalf("Expected %q but got %q for VersionName", v.Expected.VersionName, actual.VersionName)
+		if actual.KeyName != v.Expected.KeyName {
+			t.Fatalf("Expected %q but got %q for KeyName", v.Expected.KeyName, actual.KeyName)
 		}
 	}
 }

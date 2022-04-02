@@ -9,48 +9,45 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type KeyId struct {
+type KeyVersionlessId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	VaultName      string
-	Name           string
-	VersionName    string
+	KeyName        string
 }
 
-func NewKeyID(subscriptionId, resourceGroup, vaultName, name, versionName string) KeyId {
-	return KeyId{
+func NewKeyVersionlessID(subscriptionId, resourceGroup, vaultName, keyName string) KeyVersionlessId {
+	return KeyVersionlessId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		VaultName:      vaultName,
-		Name:           name,
-		VersionName:    versionName,
+		KeyName:        keyName,
 	}
 }
 
-func (id KeyId) String() string {
+func (id KeyVersionlessId) String() string {
 	segments := []string{
-		fmt.Sprintf("Version Name %q", id.VersionName),
-		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Key Name %q", id.KeyName),
 		fmt.Sprintf("Vault Name %q", id.VaultName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Key", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Key Versionless", segmentsStr)
 }
 
-func (id KeyId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/keys/%s/versions/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VaultName, id.Name, id.VersionName)
+func (id KeyVersionlessId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/keys/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VaultName, id.KeyName)
 }
 
-// KeyID parses a Key ID into an KeyId struct
-func KeyID(input string) (*KeyId, error) {
+// KeyVersionlessID parses a KeyVersionless ID into an KeyVersionlessId struct
+func KeyVersionlessID(input string) (*KeyVersionlessId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := KeyId{
+	resourceId := KeyVersionlessId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -66,10 +63,7 @@ func KeyID(input string) (*KeyId, error) {
 	if resourceId.VaultName, err = id.PopSegment("vaults"); err != nil {
 		return nil, err
 	}
-	if resourceId.Name, err = id.PopSegment("keys"); err != nil {
-		return nil, err
-	}
-	if resourceId.VersionName, err = id.PopSegment("versions"); err != nil {
+	if resourceId.KeyName, err = id.PopSegment("keys"); err != nil {
 		return nil, err
 	}
 

@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestKeyID(t *testing.T) {
+func TestKeyVersionlessID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -53,44 +53,32 @@ func TestKeyID(t *testing.T) {
 		},
 
 		{
-			// missing Name
+			// missing KeyName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/",
 			Valid: false,
 		},
 
 		{
-			// missing value for Name
+			// missing value for KeyName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/keys/",
 			Valid: false,
 		},
 
 		{
-			// missing VersionName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/keys/key1/",
-			Valid: false,
-		},
-
-		{
-			// missing value for VersionName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/keys/key1/versions/",
-			Valid: false,
-		},
-
-		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/keys/key1/versions/version1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/keys/key1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.KEYVAULT/VAULTS/VAULT1/KEYS/KEY1/VERSIONS/VERSION1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.KEYVAULT/VAULTS/VAULT1/KEYS/KEY1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := KeyID(tc.Input, "test")
+		_, errors := KeyVersionlessID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
