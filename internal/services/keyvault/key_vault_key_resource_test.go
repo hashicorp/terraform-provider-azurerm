@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -282,29 +283,35 @@ func TestAccKeyVaultKey_purge(t *testing.T) {
 }
 
 func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.KeyVault.ManagementClient
+	keyVaultsMgmtClient := clients.KeyVault.ManagementClient
 	keyVaultsClient := clients.KeyVault
 
-	id, err := parse.ParseNestedItemID(state.ID)
+	id, err := parse.KeyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, clients.Resource, id.KeyVaultBaseUrl)
+	keyVaultId := parse.NewVaultID(id.SubscriptionId, id.ResourceGroup, id.VaultName)
+
+	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, keyVaultId)
+	if err != nil {
+		if err == client.ErrNotFound {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("looking up vault url which contains %q the from id: %+v", id, err)
+	}
+
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, clients.Resource, *keyVaultBaseUri)
 	if err != nil || keyVaultIdRaw == nil {
-		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
-	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("retrieving the Resource ID of the Key Vault containing %q: %s", id, err)
 	}
 
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	ok, err := keyVaultsClient.Exists(ctx, keyVaultId)
 	if err != nil || !ok {
-		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return nil, fmt.Errorf("checking if key vault for key %q exists: %v", id, err)
 	}
 
-	resp, err := client.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	resp, err := keyVaultsMgmtClient.GetKey(ctx, *keyVaultBaseUri, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Key Vault Key %q: %+v", state.ID, err)
 	}

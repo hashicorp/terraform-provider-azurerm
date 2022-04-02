@@ -19,6 +19,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -36,10 +38,10 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 		Update: resourceKeyVaultKeyUpdate,
 		Delete: resourceKeyVaultKeyDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.ParseNestedItemID(id)
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.KeyID(id)
 			return err
-		}, nestedItemResourceImporter),
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -47,6 +49,11 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.KeyVaultKeyV0ToV1{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -206,6 +213,8 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", name, *keyVaultId, err)
 	}
 
+	id := parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, name)
+
 	existing, err := client.GetKey(ctx, *keyVaultBaseUri, name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -214,7 +223,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if existing.Key != nil && existing.Key.Kid != nil && *existing.Key.Kid != "" {
-		return tf.ImportAsExistsError("azurerm_key_vault_key", *existing.Key.Kid)
+		return tf.ImportAsExistsError("azurerm_key_vault_key", id.ID())
 	}
 
 	keyType := d.Get("key_type").(string)
@@ -286,13 +295,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	// "" indicates the latest version
-	read, err := client.GetKey(ctx, *keyVaultBaseUri, name, "")
-	if err != nil {
-		return err
-	}
-
-	d.SetId(*read.Key.Kid)
+	d.SetId(id.ID())
 
 	return resourceKeyVaultKeyRead(d, meta)
 }
@@ -300,34 +303,25 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseNestedItemID(d.Id())
+	id, err := parse.KeyID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+	keyVaultId := parse.NewVaultID(id.SubscriptionId, id.ResourceGroup, id.VaultName)
+	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, keyVaultId)
 	if err != nil {
-		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
-	}
-	if keyVaultIdRaw == nil {
-		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
+		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", id, keyVaultId, err)
 	}
 
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
+	ok, err := keyVaultsClient.Exists(ctx, keyVaultId)
 	if err != nil {
-		return err
-	}
-
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
-	if err != nil {
-		return fmt.Errorf("checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking if key vault %q for Key %q in Vault exists: %v", keyVaultId, id.Name, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault - removing from state", id.Name, keyVaultId)
 		d.SetId("")
 		return nil
 	}
@@ -355,7 +349,7 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		parameters.KeyAttributes.Expires = &expirationUnixTime
 	}
 
-	if _, err = client.UpdateKey(ctx, id.KeyVaultBaseUrl, id.Name, "", parameters); err != nil {
+	if _, err = client.UpdateKey(ctx, *keyVaultBaseUri, id.Name, "", parameters); err != nil {
 		return err
 	}
 
@@ -364,44 +358,41 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
+	keyVaultsMgmtClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseNestedItemID(d.Id())
+	id, err := parse.KeyID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+	keyVaultId := parse.NewVaultID(id.SubscriptionId, id.ResourceGroup, id.VaultName)
+	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, keyVaultId)
 	if err != nil {
-		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
-	}
-	if keyVaultIdRaw == nil {
-		log.Printf("[DEBUG] Unable to determine the Resource ID for the Key Vault at URL %q - removing from state!", id.KeyVaultBaseUrl)
-		d.SetId("")
-		return nil
-	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
-	if err != nil {
-		return err
+		if err == client.ErrNotFound {
+			log.Printf("[DEBUG] Key Vault containing %q was not found - removing from state", id)
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("looking up vault url which contains %q the from id: %+v", id, err)
 	}
 
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	// This might appear to be a redundent check here at the first glance, as we have already checked above.
+	// While the `keyVaultsClient.BaseUriForKeyVault` has cache internally, that it might retrieves the uri from the cache rather than via API.
+	ok, err := keyVaultsClient.Exists(ctx, keyVaultId)
 	if err != nil {
-		return fmt.Errorf("checking if key vault %q for Key %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking if key vault for Key %q exists: %v", id, err)
 	}
 	if !ok {
-		log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		log.Printf("[DEBUG] Key Vault containing %q was not found - removing from state", id)
 		d.SetId("")
 		return nil
 	}
 
-	resp, err := client.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	resp, err := keyVaultsMgmtClient.GetKey(ctx, *keyVaultBaseUri, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Key %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
+			log.Printf("[DEBUG] Key %q was not found - removing from state", id)
 			d.SetId("")
 			return nil
 		}
@@ -445,9 +436,15 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	// Computed
-	d.Set("version", id.Version)
-	d.Set("versionless_id", id.VersionlessID())
 	if key := resp.Key; key != nil {
+		if key.Kid != nil {
+			kid, err := parse.ParseNestedItemID(*key.Kid)
+			if err != nil {
+				return fmt.Errorf("parsing the data plane ID of %q: %v", id, err)
+			}
+			d.Set("version", kid.Version)
+			d.Set("versionless_id", kid.VersionlessID())
+		}
 		if key.Kty == keyvault.RSA || key.Kty == keyvault.RSAHSM {
 			nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 			if err != nil {
@@ -501,50 +498,43 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
+	keyVaultsMgmtClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseNestedItemID(d.Id())
+	id, err := parse.KeyID(d.Id())
 	if err != nil {
 		return err
 	}
+	keyVaultId := parse.NewVaultID(id.SubscriptionId, id.ResourceGroup, id.VaultName)
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, keyVaultId)
 	if err != nil {
-		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
-	}
-	if keyVaultIdRaw == nil {
-		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
-	}
-	keyVaultId, err := parse.VaultID(*keyVaultIdRaw)
-	if err != nil {
-		return err
+		if err == client.ErrNotFound {
+			return nil
+		}
+		return fmt.Errorf("looking up vault url which contains %q the from id: %+v", id, err)
 	}
 
 	kv, err := keyVaultsClient.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(kv.Response) {
-			log.Printf("[DEBUG] Key %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
-			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving key vault %q properties: %+v", *keyVaultId, err)
+		return fmt.Errorf("retrieving key vault containing %q properties: %+v", id, err)
 	}
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedKeysOnDestroy
 	if shouldPurge && kv.Properties != nil && utils.NormaliseNilableBool(kv.Properties.EnablePurgeProtection) {
-		return fmt.Errorf("cannot purge key %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
+		return fmt.Errorf("cannot purge key %q because vault containing %q has purge protection enabled", id.Name, id)
 	}
 
-	description := fmt.Sprintf("Key %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
 	deleter := deleteAndPurgeKey{
-		client:      client,
-		keyVaultUri: id.KeyVaultBaseUrl,
+		client:      keyVaultsMgmtClient,
+		keyVaultUri: *keyVaultBaseUri,
 		name:        id.Name,
 	}
-	if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
+	if err := deleteAndOptionallyPurge(ctx, id.ID(), shouldPurge, deleter); err != nil {
 		return err
 	}
 

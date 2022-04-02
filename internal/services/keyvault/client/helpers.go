@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -10,6 +11,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+var (
+	ErrNotFound error = errors.New("resource not found")
 )
 
 var (
@@ -52,7 +57,7 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId parse.VaultI
 	resp, err := c.VaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return nil, fmt.Errorf("%s was not found", keyVaultId)
+			return nil, ErrNotFound
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", keyVaultId, err)
 	}
