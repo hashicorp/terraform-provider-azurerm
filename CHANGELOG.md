@@ -23,6 +23,7 @@ BUG FIXES:
 * `azurerm_windows_web_app` - add support for `dotnetcore` in site metadata property `current_stack` [GH-16129]
 * `azurerm_windows_web_app_slot` - add support for `dotnetcore` in site metadata property `current_stack` [GH-16129]
 * `azurerm_storage_data_lake_gen2_filesystem` - add support for `$superuser` in `group` and `owner` properties [GH-16215]
+* `azurerm_application_gateway` - frontend_ip_configuration blocks can now be changed [GH-16132]
 
 ## 3.0.2 (March 26, 2022)
 
