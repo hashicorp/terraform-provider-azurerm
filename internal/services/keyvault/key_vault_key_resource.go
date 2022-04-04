@@ -402,7 +402,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("looking up vault url which contains %q the from id: %+v", id, err)
 	}
 
-	// This might appear to be a redundent check here at the first glance, as we have already checked above.
+	// This might appear to be a redundant check here at the first glance, as we have already checked above.
 	// While the `keyVaultsClient.BaseUriForKeyVault` has cache internally, that it might retrieves the uri from the cache rather than via API.
 	ok, err := keyVaultsClient.Exists(ctx, keyVaultId)
 	if err != nil {
