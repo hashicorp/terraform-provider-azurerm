@@ -131,7 +131,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 										"None",
 									}
 								}
-								return validation.StringInSlice(keys, features.ThreePointOhBeta())
+								return validation.StringInSlice(keys, false)
 							}(),
 						},
 
