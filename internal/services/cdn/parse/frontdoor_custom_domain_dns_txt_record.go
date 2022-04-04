@@ -9,45 +9,48 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type FrontdoorCustomDomainId struct {
+type FrontdoorCustomDomainDnsTxtRecordId struct {
 	SubscriptionId   string
 	ResourceGroup    string
 	ProfileName      string
 	CustomDomainName string
+	DnsTxtName       string
 }
 
-func NewFrontdoorCustomDomainID(subscriptionId, resourceGroup, profileName, customDomainName string) FrontdoorCustomDomainId {
-	return FrontdoorCustomDomainId{
+func NewFrontdoorCustomDomainDnsTxtRecordID(subscriptionId, resourceGroup, profileName, customDomainName, dnsTxtName string) FrontdoorCustomDomainDnsTxtRecordId {
+	return FrontdoorCustomDomainDnsTxtRecordId{
 		SubscriptionId:   subscriptionId,
 		ResourceGroup:    resourceGroup,
 		ProfileName:      profileName,
 		CustomDomainName: customDomainName,
+		DnsTxtName:       dnsTxtName,
 	}
 }
 
-func (id FrontdoorCustomDomainId) String() string {
+func (id FrontdoorCustomDomainDnsTxtRecordId) String() string {
 	segments := []string{
+		fmt.Sprintf("Dns Txt Name %q", id.DnsTxtName),
 		fmt.Sprintf("Custom Domain Name %q", id.CustomDomainName),
 		fmt.Sprintf("Profile Name %q", id.ProfileName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Frontdoor Custom Domain", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Frontdoor Custom Domain Dns Txt Record", segmentsStr)
 }
 
-func (id FrontdoorCustomDomainId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/customDomains/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
+func (id FrontdoorCustomDomainDnsTxtRecordId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/customDomains/%s/dnsTxt/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.CustomDomainName, id.DnsTxtName)
 }
 
-// FrontdoorCustomDomainID parses a FrontdoorCustomDomain ID into an FrontdoorCustomDomainId struct
-func FrontdoorCustomDomainID(input string) (*FrontdoorCustomDomainId, error) {
+// FrontdoorCustomDomainDnsTxtRecordID parses a FrontdoorCustomDomainDnsTxtRecord ID into an FrontdoorCustomDomainDnsTxtRecordId struct
+func FrontdoorCustomDomainDnsTxtRecordID(input string) (*FrontdoorCustomDomainDnsTxtRecordId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := FrontdoorCustomDomainId{
+	resourceId := FrontdoorCustomDomainDnsTxtRecordId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -66,6 +69,9 @@ func FrontdoorCustomDomainID(input string) (*FrontdoorCustomDomainId, error) {
 	if resourceId.CustomDomainName, err = id.PopSegment("customDomains"); err != nil {
 		return nil, err
 	}
+	if resourceId.DnsTxtName, err = id.PopSegment("dnsTxt"); err != nil {
+		return nil, err
+	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
@@ -74,19 +80,19 @@ func FrontdoorCustomDomainID(input string) (*FrontdoorCustomDomainId, error) {
 	return &resourceId, nil
 }
 
-// FrontdoorCustomDomainIDInsensitively parses an FrontdoorCustomDomain ID into an FrontdoorCustomDomainId struct, insensitively
-// This should only be used to parse an ID for rewriting, the FrontdoorCustomDomainID
+// FrontdoorCustomDomainDnsTxtRecordIDInsensitively parses an FrontdoorCustomDomainDnsTxtRecord ID into an FrontdoorCustomDomainDnsTxtRecordId struct, insensitively
+// This should only be used to parse an ID for rewriting, the FrontdoorCustomDomainDnsTxtRecordID
 // method should be used instead for validation etc.
 //
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
-func FrontdoorCustomDomainIDInsensitively(input string) (*FrontdoorCustomDomainId, error) {
+func FrontdoorCustomDomainDnsTxtRecordIDInsensitively(input string) (*FrontdoorCustomDomainDnsTxtRecordId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := FrontdoorCustomDomainId{
+	resourceId := FrontdoorCustomDomainDnsTxtRecordId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -120,6 +126,18 @@ func FrontdoorCustomDomainIDInsensitively(input string) (*FrontdoorCustomDomainI
 		}
 	}
 	if resourceId.CustomDomainName, err = id.PopSegment(customDomainsKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'dnsTxt' segment
+	dnsTxtKey := "dnsTxt"
+	for key := range id.Path {
+		if strings.EqualFold(key, dnsTxtKey) {
+			dnsTxtKey = key
+			break
+		}
+	}
+	if resourceId.DnsTxtName, err = id.PopSegment(dnsTxtKey); err != nil {
 		return nil, err
 	}
 

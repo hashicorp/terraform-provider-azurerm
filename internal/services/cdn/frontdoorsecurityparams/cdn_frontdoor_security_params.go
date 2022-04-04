@@ -90,7 +90,7 @@ func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]tr
 		if id := v["cdn_frontdoor_custom_domain_id"].(string); id != "" {
 			activatedResourceReference.ID = utils.String(id)
 
-			enabled := v["is_active"].(bool)
+			enabled := v["active"].(bool)
 
 			if !enabled {
 				activatedResourceReference.IsActive = utils.Bool(enabled)
@@ -103,15 +103,83 @@ func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]tr
 	return &results
 }
 
-// func flattenCdnFrontdoorFirewallPolicyParameters(input track1.BasicSecurityPolicyPropertiesParameters) (map[string]interface{}, error) {
-// 	securityPolicy, ok := input.AsSecurityPolicyWebApplicationFirewallParameters()
-// 	if !ok {
-// 		return nil, fmt.Errorf("expected a security policy web application firewall parameters")
-// 	}
+func FlattenCdnFrontdoorFirewallPolicyParameters(input track1.BasicSecurityPolicyPropertiesParameters) ([]interface{}, error) {
+	// securityPolicy, ok := input.AsSecurityPolicyWebApplicationFirewallParameters()
+	// if !ok {
+	// 	return nil, fmt.Errorf("expected a security policy web application firewall parameters")
+	// }
+	// associations := make([]interface{}, 0)
+	// domains := make(map[string]interface{})
+	// ///////
 
-// 	if wafId := securityPolicy.WafPolicy.ID; wafId != nil {
-// 		// TODO
-// 	}
+	// for _, item := range *securityPolicy.Associations {
+	// 	foo := make(map[string]interface{})
 
-// 	return nil, nil
-// }
+	// 	item.Domains
+
+	// v := item.(map[string]interface{})
+	// 	domains := expandSecurityPoliciesActivatedResourceReference(v["domain"].([]interface{}))
+
+	// 	}
+
+	// 	association := track1.SecurityPolicyWebApplicationFirewallAssociation{
+	// 		Domains:         domains,
+	// 		PatternsToMatch: utils.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
+	// 	}
+
+	// 	associations = append(associations, association)
+	// }
+
+	// ////
+
+	// // put this inside of association
+	// // patterns_to_match
+	// // ptm := utils.FlattenStringSlice(securityPolicy.Associations)
+	// for _, v := range *securityPolicy.Associations {
+	// 	association := make([]interface{}, 0)
+	// 	associations = append(associations, domains)
+	// 	domains["domain"] = append()
+
+	// 	association = append(association, flattenSecurityPoliciesActivatedResourceReference(v.Domains))
+	// 	association = append(association, flattenSecurityPolicyPatternsToMatch(v.PatternsToMatch))
+	// }
+
+	// //
+	// if wafId := securityPolicy.WafPolicy.ID; wafId != nil {
+	// 	// TODO
+	// }
+
+	return nil, nil
+}
+
+func flattenSecurityPoliciesActivatedResourceReference(input *[]track1.ActivatedResourceReference) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	// missing the domain outter level map...
+
+	for _, item := range *input {
+		domain := make(map[string]interface{})
+		domain["id"] = *item.ID
+		domain["active"] = *item.IsActive
+
+		results = append(results, domain)
+	}
+
+	return results
+}
+
+func flattenSecurityPolicyPatternsToMatch(input *[]string) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	patternsToMatch := make(map[string]interface{})
+	patternsToMatch["patterns_to_match"] = utils.FlattenStringSlice(input)
+	results = append(results, patternsToMatch)
+
+	return results
+}

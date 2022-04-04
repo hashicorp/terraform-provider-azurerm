@@ -64,8 +64,6 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
         domain {
           cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.domain1.id
         }
-
-        patterns_to_match = ["/*"]
       }
     }
   }
@@ -112,7 +110,7 @@ A `domain` block supports the following:
 
 * `cdn_frontdoor_custom_domain_id` - (Required) The Resource Id of the Frontdoor Custom Domain that should be bound to this Frontdoor Security Policy. Changing this forces a new Frontdoor Security Policy to be created.
 
-* `is_active` - (Computed) Is the Frontdoor Custom Domain activated?
+* `active` - (Computed) Is the Frontdoor Custom Domain activated?
 
 ---
 

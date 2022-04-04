@@ -47,10 +47,10 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ProfileID,
+				ValidateFunc: validate.FrontdoorProfileID,
 			},
 
-			"azure_dns_zone_id": {
+			"dns_zone_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -67,10 +67,10 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"pre_validated_custom_domain_resource_id": {
+			"pre_validated_cdn_frontdoor_custom_domain_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.FrontdoorCustomDomainID,
 			},
 
 			"cdn_frontdoor_profile_name": {
@@ -89,7 +89,7 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 						"certificate_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(cdn.AfdCertificateTypeCustomerCertificate),
+							Default:  string(cdn.AfdCertificateTypeManagedCertificate),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cdn.AfdCertificateTypeCustomerCertificate),
 								string(cdn.AfdCertificateTypeManagedCertificate),
@@ -109,7 +109,8 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 						"cdn_frontdoor_secret_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							Computed:     true,
+							ValidateFunc: validate.FrontdoorSecretID,
 						},
 					},
 				},
@@ -165,8 +166,9 @@ func resourceCdnFrontdoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 
 	props := track1.AFDDomain{
 		AFDDomainProperties: &track1.AFDDomainProperties{
-			AzureDNSZone:                       expandResourceReference(d.Get("azure_dns_zone").(string)),
-			PreValidatedCustomDomainResourceID: expandResourceReference(d.Get("pre_validated_custom_domain_resource_id").(string)),
+			HostName:                           utils.String(d.Get("host_name").(string)),
+			AzureDNSZone:                       expandResourceReference(d.Get("dns_zone_id").(string)),
+			PreValidatedCustomDomainResourceID: expandResourceReference(d.Get("pre_validated_cdn_frontdoor_custom_domain_id").(string)),
 			TLSSettings:                        expandCustomDomainAFDDomainHttpsParameters(d.Get("tls_settings").([]interface{})),
 		},
 	}
@@ -202,10 +204,10 @@ func resourceCdnFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+	profileId := parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
 
 	d.Set("name", id.CustomDomainName)
-
-	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("cdn_frontdoor_profile_id", profileId.ID())
 
 	resp, err = client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
 	if err != nil {
@@ -219,14 +221,14 @@ func resourceCdnFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 	if props := resp.AFDDomainProperties; props != nil {
 		d.Set("domain_validation_state", props.DomainValidationState)
 		d.Set("host_name", props.HostName)
-		d.Set("cdn_frontdoor_profile_name", props.ProfileName)
+		d.Set("cdn_frontdoor_profile_name", profileId.ProfileName)
 
-		if err := d.Set("azure_dns_zone", flattenResourceReference(props.AzureDNSZone)); err != nil {
-			return fmt.Errorf("setting `azure_dns_zone`: %+v", err)
+		if err := d.Set("dns_zone_id", flattenResourceReference(props.AzureDNSZone)); err != nil {
+			return fmt.Errorf("setting `dns_zone_id`: %+v", err)
 		}
 
-		if err := d.Set("pre_validated_custom_domain_resource_id", flattenResourceReference(props.PreValidatedCustomDomainResourceID)); err != nil {
-			return fmt.Errorf("setting `pre_validated_custom_domain_resource_id`: %+v", err)
+		if err := d.Set("pre_validated_cdn_frontdoor_custom_domain_id", flattenResourceReference(props.PreValidatedCustomDomainResourceID)); err != nil {
+			return fmt.Errorf("setting `pre_validated_cdn_frontdoor_custom_domain_id`: %+v", err)
 		}
 
 		if err := d.Set("tls_settings", flattenCustomDomainAFDDomainHttpsParameters(props.TLSSettings)); err != nil {
@@ -253,8 +255,8 @@ func resourceCdnFrontdoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 
 	props := track1.AFDDomainUpdateParameters{
 		AFDDomainUpdatePropertiesParameters: &track1.AFDDomainUpdatePropertiesParameters{
-			AzureDNSZone:                       expandResourceReference(d.Get("azure_dns_zone").(string)),
-			PreValidatedCustomDomainResourceID: expandResourceReference(d.Get("pre_validated_custom_domain_resource_id").(string)),
+			AzureDNSZone:                       expandResourceReference(d.Get("dns_zone_id").(string)),
+			PreValidatedCustomDomainResourceID: expandResourceReference(d.Get("pre_validated_cdn_frontdoor_custom_domain_id").(string)),
 			TLSSettings:                        expandCustomDomainAFDDomainHttpsParameters(d.Get("tls_settings").([]interface{})),
 		},
 	}

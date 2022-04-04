@@ -95,7 +95,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 																ValidateFunc: validate.FrontdoorCustomDomainID,
 															},
 
-															"is_active": {
+															"active": {
 																Type:     pluginsdk.TypeBool,
 																Computed: true,
 															},
@@ -217,25 +217,21 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure Frontdoor Security Policy %q (Resource Group %q): %+v", id.SecurityPolicyName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Frontdoor Security Policy %q (Resource Group %q): %+v", id.SecurityPolicyName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.SecurityPolicyName)
 	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.SecurityPolicyProperties; props != nil {
-		// If it is not Type WebApplicationFirewall ignore this for now
-		switch params := props.Parameters.(type) {
-		case track1.SecurityPolicyWebApplicationFirewallParameters:
-			if err := d.Set("web_application_firewall", flattenCdnFrontdoorSecurityPoliciesWebApplicationFirewallParameters(&params)); err != nil {
-				return fmt.Errorf("setting `web_application_firewall`: %+v", err)
-			}
-		default:
-			// Unknown Security Policy Type
-			return fmt.Errorf("unknown security policy type defined in the %q field: %+v", "parameters", err)
+		secPols, err := flattenCdnFrontdoorSecurityPoliciesParameters(props.Parameters)
+		if err != nil {
+			// TODO: Fix this error msg
+			return fmt.Errorf("flattening Frontdoor Security Policy %q (Resource Group %q): %+v", id.SecurityPolicyName, id.ResourceGroup, err)
 		}
 
-		d.Set("profile_name", props.ProfileName)
+		d.Set("security_policies", secPols)
+		d.Set("cdn_frontdoor_profile_name", id.ProfileName)
 	}
 
 	return nil
@@ -276,43 +272,50 @@ func expandCdnFrontdoorSecurityPoliciesParameters(input []interface{}, isStandar
 	return nil, nil
 }
 
-func flattenCdnFrontdoorSecurityPoliciesWebApplicationFirewallParameters(input *track1.SecurityPolicyWebApplicationFirewallParameters) []interface{} {
-	// TODO: Get this working once I have Custom Domains working
-	params := make([]interface{}, 0)
-	associations := make([]interface{}, 0)
-	if input == nil {
-		return params
+func flattenCdnFrontdoorSecurityPoliciesParameters(input track1.BasicSecurityPolicyPropertiesParameters) ([]interface{}, error) {
+	results, err := cdnfrontdoorsecurityparams.FlattenCdnFrontdoorFirewallPolicyParameters(input)
+	if err != nil {
+		return results, err
 	}
 
-	// if we are here we know that the input is a SecurityPolicyWebApplicationFirewallParameters type
-	values := make(map[string]interface{})
-	values["waf_policy_id"] = *input.WafPolicy.ID
+	return nil, nil
 
-	for _, v := range *input.Associations {
-		temp := make(map[string]interface{})
-		domains := make([]interface{}, 0)
+	// // TODO: Get this working once I have Custom Domains working
+	// params := make([]interface{}, 0)
+	// associations := make([]interface{}, 0)
+	// if input == nil {
+	// 	return params
+	// }
 
-		for _, x := range *v.Domains {
-			domain := make(map[string]interface{})
-			if x.ID != nil {
-				domain["id"] = *x.ID
+	// // if we are here we know that the input is a SecurityPolicyWebApplicationFirewallParameters type
+	// values := make(map[string]interface{})
+	// values["waf_policy_id"] = *input.WafPolicy.ID
 
-				if x.IsActive != nil {
-					domain["enabled"] = *x.IsActive
-				}
-				domains = append(domains, domain)
-			}
-		}
+	// for _, v := range *input.Associations {
+	// 	temp := make(map[string]interface{})
+	// 	domains := make([]interface{}, 0)
 
-		association := make([]interface{}, 0)
-		temp["domain"] = domains
-		temp["patterns_to_match"] = *v.PatternsToMatch
+	// 	for _, x := range *v.Domains {
+	// 		domain := make(map[string]interface{})
+	// 		if x.ID != nil {
+	// 			domain["id"] = *x.ID
 
-		association = append(association, temp)
-		associations = append(associations, association)
-	}
+	// 			if x.IsActive != nil {
+	// 				domain["enabled"] = *x.IsActive
+	// 			}
+	// 			domains = append(domains, domain)
+	// 		}
+	// 	}
 
-	values["association"] = associations
-	params = append(params, values)
-	return params
+	// 	association := make([]interface{}, 0)
+	// 	temp["domain"] = domains
+	// 	temp["patterns_to_match"] = *v.PatternsToMatch
+
+	// 	association = append(association, temp)
+	// 	associations = append(associations, association)
+	// }
+
+	// values["association"] = associations
+	// params = append(params, values)
+	// return params
 }

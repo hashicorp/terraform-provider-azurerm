@@ -79,3 +79,71 @@ func FrontdoorRuleID(input string) (*FrontdoorRuleId, error) {
 
 	return &resourceId, nil
 }
+
+// FrontdoorRuleIDInsensitively parses an FrontdoorRule ID into an FrontdoorRuleId struct, insensitively
+// This should only be used to parse an ID for rewriting, the FrontdoorRuleID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func FrontdoorRuleIDInsensitively(input string) (*FrontdoorRuleId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := FrontdoorRuleId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'profiles' segment
+	profilesKey := "profiles"
+	for key := range id.Path {
+		if strings.EqualFold(key, profilesKey) {
+			profilesKey = key
+			break
+		}
+	}
+	if resourceId.ProfileName, err = id.PopSegment(profilesKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'ruleSets' segment
+	ruleSetsKey := "ruleSets"
+	for key := range id.Path {
+		if strings.EqualFold(key, ruleSetsKey) {
+			ruleSetsKey = key
+			break
+		}
+	}
+	if resourceId.RuleSetName, err = id.PopSegment(ruleSetsKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'rules' segment
+	rulesKey := "rules"
+	for key := range id.Path {
+		if strings.EqualFold(key, rulesKey) {
+			rulesKey = key
+			break
+		}
+	}
+	if resourceId.RuleName, err = id.PopSegment(rulesKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}

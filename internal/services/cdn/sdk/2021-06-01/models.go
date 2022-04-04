@@ -11044,9 +11044,9 @@ type RouteProperties struct {
 // MarshalJSON is the custom marshaler for RouteProperties.
 func (rp RouteProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if rp.CustomDomains != nil {
-		objectMap["customDomains"] = rp.CustomDomains
-	}
+
+	objectMap["customDomains"] = rp.CustomDomains
+
 	if rp.OriginGroup != nil {
 		objectMap["originGroup"] = rp.OriginGroup
 	}
@@ -11269,9 +11269,9 @@ type RouteUpdatePropertiesParameters struct {
 // MarshalJSON is the custom marshaler for RouteUpdatePropertiesParameters.
 func (rupp RouteUpdatePropertiesParameters) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if rupp.CustomDomains != nil {
-		objectMap["customDomains"] = rupp.CustomDomains
-	}
+
+	objectMap["customDomains"] = rupp.CustomDomains
+
 	if rupp.OriginGroup != nil {
 		objectMap["originGroup"] = rupp.OriginGroup
 	}

@@ -9,48 +9,51 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type FrontdoorRouteId struct {
-	SubscriptionId  string
-	ResourceGroup   string
-	ProfileName     string
-	AfdEndpointName string
-	RouteName       string
+type FrontdoorRouteCustomDomainId struct {
+	SubscriptionId   string
+	ResourceGroup    string
+	ProfileName      string
+	AfdEndpointName  string
+	RouteName        string
+	CustomDomainName string
 }
 
-func NewFrontdoorRouteID(subscriptionId, resourceGroup, profileName, afdEndpointName, routeName string) FrontdoorRouteId {
-	return FrontdoorRouteId{
-		SubscriptionId:  subscriptionId,
-		ResourceGroup:   resourceGroup,
-		ProfileName:     profileName,
-		AfdEndpointName: afdEndpointName,
-		RouteName:       routeName,
+func NewFrontdoorRouteCustomDomainID(subscriptionId, resourceGroup, profileName, afdEndpointName, routeName, customDomainName string) FrontdoorRouteCustomDomainId {
+	return FrontdoorRouteCustomDomainId{
+		SubscriptionId:   subscriptionId,
+		ResourceGroup:    resourceGroup,
+		ProfileName:      profileName,
+		AfdEndpointName:  afdEndpointName,
+		RouteName:        routeName,
+		CustomDomainName: customDomainName,
 	}
 }
 
-func (id FrontdoorRouteId) String() string {
+func (id FrontdoorRouteCustomDomainId) String() string {
 	segments := []string{
+		fmt.Sprintf("Custom Domain Name %q", id.CustomDomainName),
 		fmt.Sprintf("Route Name %q", id.RouteName),
 		fmt.Sprintf("Afd Endpoint Name %q", id.AfdEndpointName),
 		fmt.Sprintf("Profile Name %q", id.ProfileName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Frontdoor Route", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Frontdoor Route Custom Domain", segmentsStr)
 }
 
-func (id FrontdoorRouteId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/afdEndpoints/%s/routes/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
+func (id FrontdoorRouteCustomDomainId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/afdEndpoints/%s/routes/%s/customDomains/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, id.CustomDomainName)
 }
 
-// FrontdoorRouteID parses a FrontdoorRoute ID into an FrontdoorRouteId struct
-func FrontdoorRouteID(input string) (*FrontdoorRouteId, error) {
+// FrontdoorRouteCustomDomainID parses a FrontdoorRouteCustomDomain ID into an FrontdoorRouteCustomDomainId struct
+func FrontdoorRouteCustomDomainID(input string) (*FrontdoorRouteCustomDomainId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := FrontdoorRouteId{
+	resourceId := FrontdoorRouteCustomDomainId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -72,6 +75,9 @@ func FrontdoorRouteID(input string) (*FrontdoorRouteId, error) {
 	if resourceId.RouteName, err = id.PopSegment("routes"); err != nil {
 		return nil, err
 	}
+	if resourceId.CustomDomainName, err = id.PopSegment("customDomains"); err != nil {
+		return nil, err
+	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
@@ -80,19 +86,19 @@ func FrontdoorRouteID(input string) (*FrontdoorRouteId, error) {
 	return &resourceId, nil
 }
 
-// FrontdoorRouteIDInsensitively parses an FrontdoorRoute ID into an FrontdoorRouteId struct, insensitively
-// This should only be used to parse an ID for rewriting, the FrontdoorRouteID
+// FrontdoorRouteCustomDomainIDInsensitively parses an FrontdoorRouteCustomDomain ID into an FrontdoorRouteCustomDomainId struct, insensitively
+// This should only be used to parse an ID for rewriting, the FrontdoorRouteCustomDomainID
 // method should be used instead for validation etc.
 //
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
-func FrontdoorRouteIDInsensitively(input string) (*FrontdoorRouteId, error) {
+func FrontdoorRouteCustomDomainIDInsensitively(input string) (*FrontdoorRouteCustomDomainId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := FrontdoorRouteId{
+	resourceId := FrontdoorRouteCustomDomainId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -138,6 +144,18 @@ func FrontdoorRouteIDInsensitively(input string) (*FrontdoorRouteId, error) {
 		}
 	}
 	if resourceId.RouteName, err = id.PopSegment(routesKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'customDomains' segment
+	customDomainsKey := "customDomains"
+	for key := range id.Path {
+		if strings.EqualFold(key, customDomainsKey) {
+			customDomainsKey = key
+			break
+		}
+	}
+	if resourceId.CustomDomainName, err = id.PopSegment(customDomainsKey); err != nil {
 		return nil, err
 	}
 

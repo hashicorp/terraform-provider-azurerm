@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	legacyfrontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/legacysdk/2020-11-01"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -184,6 +185,20 @@ func IsValidDomain(i interface{}, k string) (warnings []string, errors []error) 
 	}
 
 	return warnings, errors
+}
+
+func ValidateFrontdoorCustomDomainIDInsensitively(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := parse.FrontdoorCustomDomainIDInsensitively(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
 }
 
 func ValidateCdnFrontdoorUrlRedirectActionDestinationPath(i interface{}, k string) (_ []string, errors []error) {

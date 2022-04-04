@@ -117,26 +117,6 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				},
 			},
 
-			"custom_domains": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-
-						"active": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -238,7 +218,6 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	props := track1.Route{
 		RouteProperties: &track1.RouteProperties{
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
-			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("custom_domains").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
@@ -307,10 +286,6 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `cache_configuration`: %+v", err)
 		}
 
-		if err := d.Set("custom_domains", flattenRouteActivatedResourceReferenceArray(props.CustomDomains)); err != nil {
-			return fmt.Errorf("setting `custom_domains`: %+v", err)
-		}
-
 		if err := d.Set("cdn_frontdoor_origin_group_id", flattenResourceReference(props.OriginGroup)); err != nil {
 			return fmt.Errorf("setting `cdn_frontdoor_origin_group_id`: %+v", err)
 		}
@@ -340,7 +315,6 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	props := track1.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
-			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("custom_domains").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
@@ -389,22 +363,6 @@ func resourceCdnFrontdoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandRouteResourceReferenceArray(input []interface{}) *[]track1.ResourceReference {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	results := make([]track1.ResourceReference, 0)
-
-	for _, item := range input {
-		results = append(results, track1.ResourceReference{
-			ID: utils.String(item.(string)),
-		})
-	}
-
-	return &results
-}
-
 func expandRouteAFDEndpointProtocolsArray(input []interface{}) *[]track1.AFDEndpointProtocols {
 	results := make([]track1.AFDEndpointProtocols, 0)
 
@@ -440,40 +398,6 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *track1.AfdRoute
 	cacheConfiguration.CompressionSettings = compressionSettings
 
 	return cacheConfiguration
-}
-
-func expandRouteActivatedResourceReferenceArray(input []interface{}) *[]track1.ActivatedResourceReference {
-	results := make([]track1.ActivatedResourceReference, 0)
-	for _, item := range input {
-		v := item.(map[string]interface{})
-
-		results = append(results, track1.ActivatedResourceReference{
-			ID: utils.String(v["id"].(string)),
-		})
-	}
-	return &results
-}
-
-func flattenRouteActivatedResourceReferenceArray(inputs *[]track1.ActivatedResourceReference) []interface{} {
-	results := make([]interface{}, 0)
-	if inputs == nil {
-		return results
-	}
-
-	for _, input := range *inputs {
-		result := make(map[string]interface{})
-
-		if input.ID != nil {
-			result["id"] = *input.ID
-		}
-
-		if input.IsActive != nil {
-			result["active"] = *input.IsActive
-		}
-		results = append(results, result)
-	}
-
-	return results
 }
 
 func flattenRouteResourceReferenceArry(input *[]track1.ResourceReference) []interface{} {

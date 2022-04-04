@@ -39,6 +39,7 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
   enabled                       = true
 
+  cdn_frontdoor_origin_ids   = [azurerm_cdn_frontdoor_origin.test.id]
   forwarding_protocol        = "HttpsOnly"
   https_redirect             = true
   link_to_default_domain     = true

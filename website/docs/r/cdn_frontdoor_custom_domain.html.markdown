@@ -13,28 +13,30 @@ Manages a Frontdoor Custom Domain.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "example-cdn"
+resource "azurerm_resource_group" "example" {
+  name     = "example-cdn-frontdoor"
   location = "West Europe"
 }
 
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-c-%d"
+resource "azurerm_dns_zone" "example" {
+  name                = "afdx-terraform.azfdtest.xyz "
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_cdn_frontdoor_custom_domain" "test" {
-  name                     = "acctest-c-%d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  dns_zone_id              = ""
-  host_name                = ""
+resource "azurerm_cdn_frontdoor_profile" "example" {
+  name                = "example-profile"
+  resource_group_name = azurerm_resource_group.example.name
+}
 
-  pre_validated_custom_domain_resource_id = ""
+resource "azurerm_cdn_frontdoor_custom_domain" "example" {
+  name                     = "example-custom-domain"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+  dns_zone_id              = azurerm_dns_zone.example.id
+  host_name                = "contoso.com"
 
   tls_settings {
-    certificate_type    = ""
-    minimum_tls_version = ""
-    secret_id           = ""
+    certificate_type    = "ManagedCertificate"
+    minimum_tls_version = "TLS12"
   }
 }
 ```
@@ -47,11 +49,11 @@ The following arguments are supported:
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Profile to be created.
 
-* `host_name` - (Required) The host name of the domain. Must be a domain name. Changing this forces a new Frontdoor Custom Domain to be created.
+* `host_name` - (Required) The host name of the domain. Changing this forces a new Frontdoor Custom Domain to be created.
 
-* `dns_zone_id` - (Optional) Resource ID.
+* `dns_zone_id` - (Optional) The Resource ID of the DNS Zone that is to be used for the Frontdoor Custom Domain.
 
-* `pre_validated_custom_domain_resource_id` - (Optional) Resource ID.
+* `pre_validated_cdn_frontdoor_custom_domain_id` - (Optional) Resource ID.
 
 * `tls_settings` - (Optional) A `tls_settings` block as defined below.
 
@@ -59,11 +61,11 @@ The following arguments are supported:
 
 A `tls_settings` block supports the following:
 
-* `certificate_type` - (Required) Defines the source of the SSL certificate.
+* `certificate_type` - (Optional) Defines the source of the SSL certificate. Possible values include `CustomerCertificate` and `ManagedCertificate`. Defaults to `ManagedCertificate`.
 
-* `minimum_tls_version` - (Optional) TLS protocol version that will be used for Https
+* `minimum_tls_version` - (Optional) TLS protocol version that will be used for Https. Possible values include `TLS10` and `TLS12`. Defaults to `TLS12`.
 
-* `cdn_frontdoor_secret_id` - (Optional) Resource ID.
+* `cdn_frontdoor_secret_id` - (Optional) Resource ID of the Frontdoor Secrect.
 
 ---
 
@@ -75,9 +77,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `deployment_status` - 
 
-* `domain_validation_state` - Provisioning substate shows the progress of custom HTTPS enabling/disabling process step by step. DCV stands for DomainControlValidation.
+* `domain_validation_state` - Provisioning substate shows the progress of custom HTTPS enabling/disabling process.
 
-* `profile_name` - The name of the profile which holds the domain.
+* `cdn_frontdoor_profile_name` - The name of the Frontdoor Profile which holds the domain.
 
 * `provisioning_state` - Provisioning status
 

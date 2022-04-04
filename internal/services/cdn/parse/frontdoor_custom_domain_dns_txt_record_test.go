@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = FrontdoorCustomDomainId{}
+var _ resourceids.Id = FrontdoorCustomDomainDnsTxtRecordId{}
 
-func TestFrontdoorCustomDomainIDFormatter(t *testing.T) {
-	actual := NewFrontdoorCustomDomainID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "profile1", "customDomain1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1"
+func TestFrontdoorCustomDomainDnsTxtRecordIDFormatter(t *testing.T) {
+	actual := NewFrontdoorCustomDomainDnsTxtRecordID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "profile1", "customDomain1", "txt1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/dnsTxt/txt1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestFrontdoorCustomDomainID(t *testing.T) {
+func TestFrontdoorCustomDomainDnsTxtRecordID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *FrontdoorCustomDomainId
+		Expected *FrontdoorCustomDomainDnsTxtRecordId
 	}{
 
 		{
@@ -80,19 +80,32 @@ func TestFrontdoorCustomDomainID(t *testing.T) {
 		},
 
 		{
+			// missing DnsTxtName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/",
+			Error: true,
+		},
+
+		{
+			// missing value for DnsTxtName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/dnsTxt/",
+			Error: true,
+		},
+
+		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1",
-			Expected: &FrontdoorCustomDomainId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/dnsTxt/txt1",
+			Expected: &FrontdoorCustomDomainDnsTxtRecordId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:    "resourceGroup1",
 				ProfileName:      "profile1",
 				CustomDomainName: "customDomain1",
+				DnsTxtName:       "txt1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESOURCEGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/CUSTOMDOMAINS/CUSTOMDOMAIN1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESOURCEGROUP1/PROVIDERS/MICROSOFT.CDN/PROFILES/PROFILE1/CUSTOMDOMAINS/CUSTOMDOMAIN1/DNSTXT/TXT1",
 			Error: true,
 		},
 	}
@@ -100,7 +113,7 @@ func TestFrontdoorCustomDomainID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := FrontdoorCustomDomainID(v.Input)
+		actual, err := FrontdoorCustomDomainDnsTxtRecordID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -124,14 +137,17 @@ func TestFrontdoorCustomDomainID(t *testing.T) {
 		if actual.CustomDomainName != v.Expected.CustomDomainName {
 			t.Fatalf("Expected %q but got %q for CustomDomainName", v.Expected.CustomDomainName, actual.CustomDomainName)
 		}
+		if actual.DnsTxtName != v.Expected.DnsTxtName {
+			t.Fatalf("Expected %q but got %q for DnsTxtName", v.Expected.DnsTxtName, actual.DnsTxtName)
+		}
 	}
 }
 
-func TestFrontdoorCustomDomainIDInsensitively(t *testing.T) {
+func TestFrontdoorCustomDomainDnsTxtRecordIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *FrontdoorCustomDomainId
+		Expected *FrontdoorCustomDomainDnsTxtRecordId
 	}{
 
 		{
@@ -189,46 +205,62 @@ func TestFrontdoorCustomDomainIDInsensitively(t *testing.T) {
 		},
 
 		{
+			// missing DnsTxtName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/",
+			Error: true,
+		},
+
+		{
+			// missing value for DnsTxtName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/dnsTxt/",
+			Error: true,
+		},
+
+		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1",
-			Expected: &FrontdoorCustomDomainId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1/dnsTxt/txt1",
+			Expected: &FrontdoorCustomDomainDnsTxtRecordId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:    "resourceGroup1",
 				ProfileName:      "profile1",
 				CustomDomainName: "customDomain1",
+				DnsTxtName:       "txt1",
 			},
 		},
 
 		{
 			// lower-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customdomains/customDomain1",
-			Expected: &FrontdoorCustomDomainId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customdomains/customDomain1/dnstxt/txt1",
+			Expected: &FrontdoorCustomDomainDnsTxtRecordId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:    "resourceGroup1",
 				ProfileName:      "profile1",
 				CustomDomainName: "customDomain1",
+				DnsTxtName:       "txt1",
 			},
 		},
 
 		{
 			// upper-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/PROFILES/profile1/CUSTOMDOMAINS/customDomain1",
-			Expected: &FrontdoorCustomDomainId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/PROFILES/profile1/CUSTOMDOMAINS/customDomain1/DNSTXT/txt1",
+			Expected: &FrontdoorCustomDomainDnsTxtRecordId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:    "resourceGroup1",
 				ProfileName:      "profile1",
 				CustomDomainName: "customDomain1",
+				DnsTxtName:       "txt1",
 			},
 		},
 
 		{
 			// mixed-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/CuStOmDoMaInS/customDomain1",
-			Expected: &FrontdoorCustomDomainId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/CuStOmDoMaInS/customDomain1/DnStXt/txt1",
+			Expected: &FrontdoorCustomDomainDnsTxtRecordId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:    "resourceGroup1",
 				ProfileName:      "profile1",
 				CustomDomainName: "customDomain1",
+				DnsTxtName:       "txt1",
 			},
 		},
 	}
@@ -236,7 +268,7 @@ func TestFrontdoorCustomDomainIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := FrontdoorCustomDomainIDInsensitively(v.Input)
+		actual, err := FrontdoorCustomDomainDnsTxtRecordIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -259,6 +291,9 @@ func TestFrontdoorCustomDomainIDInsensitively(t *testing.T) {
 		}
 		if actual.CustomDomainName != v.Expected.CustomDomainName {
 			t.Fatalf("Expected %q but got %q for CustomDomainName", v.Expected.CustomDomainName, actual.CustomDomainName)
+		}
+		if actual.DnsTxtName != v.Expected.DnsTxtName {
+			t.Fatalf("Expected %q but got %q for DnsTxtName", v.Expected.DnsTxtName, actual.DnsTxtName)
 		}
 	}
 }
