@@ -19,6 +19,8 @@ ENHANCEMENTS:
 * `azurerm_automation_account` - `dsc_primary_access_key` and `dsc_secondary_access_key` are now marked as sensitive [GH-16161]
 * `azurerm_cognitive_account` - support for the `custom_question_answering_search_service_id` property [GH-15804]
 * `azurerm_consumption_budget_management_group` - support for `SubscriptionID` and `SubscriptionName` options in `dimension` block [GH-16074]
+* `azurerm_cosmosdb_gremlin_graph` - the property `indexing_mode` is now case-sensitive [GH-16152]
+* `azurerm_cosmosdb_sql_container` - the property `indexing_mode` is now case-sensitive [GH-16152]
 * `azurerm_web_application_firewall_policy` - add `KNOWN-CVES` to accepted values for `rule_group_name` [GH-16080]
 
 ## 3.0.2 (March 26, 2022)
