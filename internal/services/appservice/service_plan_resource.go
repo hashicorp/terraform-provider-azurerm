@@ -45,7 +45,7 @@ type ServicePlanModel struct {
 	Reserved                  bool              `tfschema:"reserved"`
 	WorkerCount               int               `tfschema:"worker_count"`
 	MaximumElasticWorkerCount int               `tfschema:"maximum_elastic_worker_count"`
-	AvailabilityZoneBalancing bool              `tfschema:"availability_zone_balancing_enabled"`
+	ZoneBalancing             bool              `tfschema:"zone_balancing_enabled"`
 	Tags                      map[string]string `tfschema:"tags"`
 }
 
@@ -107,7 +107,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 
-		"availability_zone_balancing_enabled": {
+		"zone_balancing_enabled": {
 			Type:     pluginsdk.TypeBool,
 			ForceNew: true,
 			Optional: true,
@@ -166,7 +166,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 					PerSiteScaling: utils.Bool(servicePlan.PerSiteScaling),
 					Reserved:       utils.Bool(servicePlan.OSType == OSTypeLinux),
 					HyperV:         utils.Bool(servicePlan.OSType == OSTypeWindowsContainer),
-					ZoneRedundant:  utils.Bool(servicePlan.AvailabilityZoneBalancing),
+					ZoneRedundant:  utils.Bool(servicePlan.ZoneBalancing),
 				},
 				Sku: &web.SkuDescription{
 					Name: utils.String(servicePlan.Sku),
@@ -264,7 +264,7 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 
 				state.Reserved = utils.NormaliseNilableBool(props.Reserved)
 
-				state.AvailabilityZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
+				state.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
 
 				state.MaximumElasticWorkerCount = int(utils.NormaliseNilableInt32(props.MaximumElasticWorkerCount))
 			}

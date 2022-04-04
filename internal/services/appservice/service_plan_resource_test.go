@@ -245,7 +245,7 @@ resource "azurerm_service_plan" "test" {
   per_site_scaling_enabled = true
   worker_count             = 3
 
-  availability_zone_balancing_enabled = true
+  zone_balancing_enabled = true
 
   tags = {
     environment = "AccTest"
@@ -275,7 +275,7 @@ resource "azurerm_service_plan" "test" {
   per_site_scaling_enabled = true
   worker_count             = 3
 
-  availability_zone_balancing_enabled = true
+  zone_balancing_enabled = true
 
   tags = {
     Foo = "bar"
