@@ -2021,12 +2021,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 
-		if err := d.Set("oidc_issuer_enabled", oidcIssuerEnabled); err != nil {
-			return fmt.Errorf("setting `oidc_issuer_enabled`: %+v", err)
-		}
-		if err := d.Set("oidc_issuer_url", oidcIssuerUrl); err != nil {
-			return fmt.Errorf("setting `oidc_issuer_url`: %+v", err)
-		}
+		d.Set("oidc_issuer_enabled", oidcIssuerEnabled)
+		d.Set("oidc_issuer_url", oidcIssuerUrl)
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
