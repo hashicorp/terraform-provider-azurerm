@@ -136,7 +136,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-workspace-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "pergb2018"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "sentinel" {
