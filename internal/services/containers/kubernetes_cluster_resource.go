@@ -418,6 +418,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.NetworkPluginAzure),
 								string(containerservice.NetworkPluginKubenet),
+								string(containerservice.NetworkPluginNone),
 							}, false),
 						},
 
