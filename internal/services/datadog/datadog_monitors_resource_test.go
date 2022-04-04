@@ -177,7 +177,7 @@ func (r DatadogMonitorResource) basic(data acceptance.TestData) string {
 	%s
 	
 	resource "azurerm_datadog_monitor" "test" {
-		name = "test-terraform-%d"
+		name = "acctest-datadog-%d"
 		resource_group_name = azurerm_resource_group.test.name
 		location = "EAST US 2 EUAP"
 		datadog_organization_properties {
@@ -188,9 +188,7 @@ func (r DatadogMonitorResource) basic(data acceptance.TestData) string {
 			name          = "Vidhi Kothari"
 			email_address = "vidhi.kothari@microsoft.com"
 		}
-		sku {
-			name = "Linked"
-		}
+		sku_name = "Linked"
 		identity {
 			type = "SystemAssigned"
 		}
@@ -209,7 +207,7 @@ func (r DatadogMonitorResource) update(data acceptance.TestData) string {
 		location = "%s"
 	  }
 	resource "azurerm_datadog_monitor" "test" {
-		name = "test-terraform-%d"
+		name = "acctest-datadog-%d"
 		resource_group_name = azurerm_resource_group.test.name
 		location = "EAST US 2 EUAP"
 		datadog_organization_properties {
@@ -220,13 +218,11 @@ func (r DatadogMonitorResource) update(data acceptance.TestData) string {
 			name          = "Vidhi Kothari"
 			email_address = "vidhi.kothari@microsoft.com"
 		}
-		sku {
-			name = "Linked"
-		}
+		sku_name = "Linked"
 		identity {
 			type = "SystemAssigned"
 		}
-		monitoring_status = false
+		monitoring_enabled = false
 		tags = {
 			ENV = "Test"
 		}
@@ -249,9 +245,7 @@ func (r DatadogMonitorResource) requiresImport(data acceptance.TestData) string 
 		name          = "Vidhi Kothari"
 		email_address = "vidhi.kothari@microsoft.com"
 	}
-	sku {
-		name = "Linked"
-	}
+	sku_name = "Linked"
 	identity {
 		type = "SystemAssigned"
 	}
@@ -263,7 +257,7 @@ func (r DatadogMonitorResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 	resource "azurerm_datadog_monitor" "test" {
-	name                = "test-terraform-%d"
+	name                = "acctest-datadog-%d"
 	resource_group_name = azurerm_resource_group.test.name
 	location            = azurerm_resource_group.test.location
 	datadog_organization_properties {
@@ -277,15 +271,13 @@ func (r DatadogMonitorResource) complete(data acceptance.TestData) string {
 	identity {
 		type = "SystemAssigned"
 	}
-	sku {
-		name = "Linked"
-	}
+	sku_name = "Linked"
 	user_info {
 		name          = "Vidhi Kothari"
 		email_address = "vidhi.kothari@microsoft.com"
 		phone_number  = ""
 	}
-	monitoring_status = true
+	monitoring_enabled = true
 	tags = {
 		ENV = "Test"
 	}

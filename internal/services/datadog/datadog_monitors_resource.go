@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datadog/mgmt/2021-03-01/datadog"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -109,47 +109,11 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
+			"identity": commonschema.SystemAssignedIdentityOptional(),
+
+			"sku_name": {
+				Type:     pluginsdk.TypeString,
 				Required: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-								"UserAssigned",
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"sku": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-					},
-				},
 			},
 
 			"user_info": {
@@ -182,7 +146,7 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 				},
 			},
 
-			"monitoring_status": {
+			"monitoring_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -203,11 +167,6 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"type": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"tags": tags.Schema(),
 		},
 	}
@@ -221,27 +180,29 @@ func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewDatadogMonitorID(subscriptionId, resourceGroup, name).ID()
+	id := parse.NewDatadogMonitorID(subscriptionId, resourceGroup, name)
 
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_datadog_monitor", id)
+		return tf.ImportAsExistsError("azurerm_datadog_monitor", id.ID())
 	}
 
 	monitoringStatus := datadog.MonitoringStatusDisabled
-	if d.Get("monitoring_status").(bool) {
+	if d.Get("monitoring_enabled").(bool) {
 		monitoringStatus = datadog.MonitoringStatusEnabled
 	}
 
 	body := datadog.MonitorResource{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Identity: expandMonitorIdentityProperties(d.Get("identity").([]interface{})),
-		Sku:      expandMonitorResourceSku(d.Get("sku").([]interface{})),
+		Sku: &datadog.ResourceSku{
+			Name: utils.String(d.Get("sku_name").(string)),
+		},
 		Properties: &datadog.MonitorProperties{
 			DatadogOrganizationProperties: expandMonitorOrganizationProperties(d.Get("datadog_organization_properties").([]interface{})),
 			UserInfo:                      expandMonitorUserInfo(d.Get("user_info").([]interface{})),
@@ -251,14 +212,14 @@ func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	future, err := client.Create(ctx, resourceGroup, name, &body)
 	if err != nil {
-		return fmt.Errorf("creating Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of the Datadog Monitor %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	d.SetId(id)
+	d.SetId(id.ID())
 	return resourceDatadogMonitorRead(d, meta)
 }
 
@@ -279,7 +240,7 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.Set("name", id.MonitorName)
 	d.Set("resource_group_name", id.ResourceGroup)
@@ -294,13 +255,19 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("user_info", flattenMonitorUserInfo(props.UserInfo, d)); err != nil {
 			return fmt.Errorf("setting `user_info`: %+v", err)
 		}
-		d.Set("monitoring_status", props.MonitoringStatus == datadog.MonitoringStatusEnabled)
+		d.Set("monitoring_enabled", props.MonitoringStatus == datadog.MonitoringStatusEnabled)
 		d.Set("liftr_resource_category", props.LiftrResourceCategory)
 		d.Set("liftr_resource_preference", props.LiftrResourcePreference)
 		d.Set("marketplace_subscription_status", props.MarketplaceSubscriptionStatus)
 	}
-	d.Set("sku", flattenMonitorResourceSku("Linked"))
-	d.Set("type", resp.Type)
+	skuName := ""
+	if resp.Sku != nil {
+		skuName = *resp.Sku.Name
+		if skuName == "Datadog_Billed_Orgs_Monthly" {
+			skuName = "Linked"
+		}
+	}
+	d.Set("sku_name", skuName)
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -317,9 +284,9 @@ func resourceDatadogMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	body := datadog.MonitorResourceUpdateParameters{
 		Properties: &datadog.MonitorUpdateProperties{},
 	}
-	if d.HasChange("monitoring_status") {
+	if d.HasChange("monitoring_enabled") {
 		monitoringStatus := datadog.MonitoringStatusDisabled
-		if d.Get("monitoring_status").(bool) {
+		if d.Get("monitoring_enabled").(bool) {
 			monitoringStatus = datadog.MonitoringStatusEnabled
 		}
 		body.Properties.MonitoringStatus = monitoringStatus
@@ -329,7 +296,7 @@ func resourceDatadogMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.MonitorName, &body); err != nil {
-		return fmt.Errorf("updating Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 	return resourceDatadogMonitorRead(d, meta)
 }
@@ -346,11 +313,11 @@ func resourceDatadogMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.MonitorName)
 	if err != nil {
-		return fmt.Errorf("deleting Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting of %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of the Datadog Monitor %q (Resource Group %q): %+v", id.MonitorName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 	return nil
 }
@@ -362,16 +329,6 @@ func expandMonitorIdentityProperties(input []interface{}) *datadog.IdentityPrope
 	v := input[0].(map[string]interface{})
 	return &datadog.IdentityProperties{
 		Type: datadog.ManagedIdentityTypes(v["type"].(string)),
-	}
-}
-
-func expandMonitorResourceSku(input []interface{}) *datadog.ResourceSku {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-	return &datadog.ResourceSku{
-		Name: utils.String(v["name"].(string)),
 	}
 }
 
@@ -479,15 +436,6 @@ func flattenMonitorUserInfo(input *datadog.UserInfo, d *pluginsdk.ResourceData) 
 			"name":          utils.String(v["name"].(string)),
 			"email_address": utils.String(v["email_address"].(string)),
 			"phone_number":  utils.String(v["phone_number"].(string)),
-		},
-	}
-}
-
-func flattenMonitorResourceSku(input string) []interface{} {
-
-	return []interface{}{
-		map[string]interface{}{
-			"name": input,
 		},
 	}
 }
