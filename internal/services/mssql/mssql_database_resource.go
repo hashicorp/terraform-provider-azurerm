@@ -179,9 +179,6 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if d.HasChange("ledger_enabled") && !d.IsNewResource() {
-		return fmt.Errorf("cannot change `ledger_enabled` after initial creation")
-	}
 	ledgerEnabled := d.Get("ledger_enabled").(bool)
 
 	// When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
@@ -541,7 +538,9 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("sku_name", skuName)
 		d.Set("storage_account_type", flattenMsSqlBackupStorageRedundancy(props.CurrentBackupStorageRedundancy))
 		d.Set("zone_redundant", props.ZoneRedundant)
-		ledgerEnabled = *props.IsLedgerOn
+		if props.IsLedgerOn != nil {
+			ledgerEnabled = *props.IsLedgerOn
+		}
 		d.Set("ledger_enabled", ledgerEnabled)
 	}
 
@@ -1025,6 +1024,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: true,
+			ForceNew: true,
 		},
 
 		"tags": tags.Schema(),

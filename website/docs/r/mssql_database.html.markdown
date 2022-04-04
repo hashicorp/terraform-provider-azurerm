@@ -94,7 +94,7 @@ The following arguments are supported:
 
 ~> **Note:** `geo_backup_enabled` is only applicable for DataWarehouse SKUs (DW*). This setting is ignored for all other SKUs.
 
-* `ledger_enabled` - (Optional) A boolean that specifies if this is a ledger database. This cannot be changed after the database has been created. Defaults to `false`.
+* `ledger_enabled` - (Optional) A boolean that specifies if this is a ledger database. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
