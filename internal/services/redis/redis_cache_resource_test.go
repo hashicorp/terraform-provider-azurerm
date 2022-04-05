@@ -647,9 +647,9 @@ resource "azurerm_redis_cache" "test" {
   shard_count         = 3
 
   redis_configuration {
-    maxmemory_reserved              = 642
-    maxfragmentationmemory_reserved = 642
-    maxmemory_delta                 = 642
+    maxmemory_reserved              = 1328
+    maxfragmentationmemory_reserved = 1328
+    maxmemory_delta                 = 1328
     maxmemory_policy                = "allkeys-lru"
   }
 }
