@@ -16,15 +16,17 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_api_management_api_operation_tag` - now retrieves tags from the correct API [GH-16006]
+* `azurerm_application_gateway` - frontend_ip_configuration blocks can now be changed [GH-16132]
 * `azurerm_application_insights` - Remove disable logic for the Azure created Action Group [GH-16170]
 * `azurerm_linux_function_app` - only one of `application_insights_key` or `application_insights_connection_string` now needs to be optionally specified [GH-16134]
-* `azurerm_windows_function_app` - fix import check for Service Plan OS type [GH-16164]
 * `azurerm_linux_function_app_slot` - only one of `application_insights_key` or `application_insights_connection_string` now needs to be optionally specified [GH-16134]
+* `azurerm_windows_function_app` - fix import check for Service Plan OS type [GH-16164]
 * `azurerm_linux_web_app_slot ` - fix `container_registry_managed_identity_client_id` validation [GH-16149]
 * `azurerm_windows_web_app` - add support for `dotnetcore` in site metadata property `current_stack` [GH-16129]
+* `azurerm_windows_web_app` - fix docker `windowsFXVersion` when `docker_container_registry` is specified [GH-16192]
 * `azurerm_windows_web_app_slot` - add support for `dotnetcore` in site metadata property `current_stack` [GH-16129]
+* `azurerm_windows_web_app_slot` - fix docker `windowsFXVersion` when `docker_container_registry` is specified [GH-16192]
 * `azurerm_storage_data_lake_gen2_filesystem` - add support for `$superuser` in `group` and `owner` properties [GH-16215]
-* `azurerm_application_gateway` - frontend_ip_configuration blocks can now be changed [GH-16132]
 
 ## 3.0.2 (March 26, 2022)
 
