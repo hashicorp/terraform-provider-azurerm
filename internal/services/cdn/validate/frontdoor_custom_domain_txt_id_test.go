@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestFrontdoorCustomDomainDnsTxtRecordID(t *testing.T) {
+func TestFrontdoorCustomDomainTxtID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -90,7 +90,7 @@ func TestFrontdoorCustomDomainDnsTxtRecordID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := FrontdoorCustomDomainDnsTxtRecordID(tc.Input, "test")
+		_, errors := FrontdoorCustomDomainTxtID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

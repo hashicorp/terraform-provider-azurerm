@@ -312,6 +312,15 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
+	if err != nil {
+		if utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for existing %s during update: %+v", id, err)
+		}
+
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
 	props := track1.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
@@ -324,6 +333,11 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
 		},
+	}
+
+	// You must pass the Custom Domains if they exist else you will unassociate the route
+	if existing.RouteProperties.CustomDomains != nil {
+		props.CustomDomains = existing.RouteProperties.CustomDomains
 	}
 
 	if originPath := d.Get("cdn_frontdoor_origin_path").(string); originPath != "" {

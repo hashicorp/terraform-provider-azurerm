@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceCdnFrontdoorRouteCustomDomainAssociation() *pluginsdk.Resource {
+func resourceCdnFrontdoorCustomDomainRouteAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontdoorRouteCustomDomainAssociationCreate,
-		Read:   resourceCdnFrontdoorRouteCustomDomainAssociationRead,
-		Update: resourceCdnFrontdoorRouteCustomDomainAssociationUpdate,
-		Delete: resourceCdnFrontdoorRouteCustomDomainAssociationDelete,
+		Create: resourceCdnFrontdoorCustomDomainRouteAssociationCreate,
+		Read:   resourceCdnFrontdoorCustomDomainRouteAssociationRead,
+		Update: resourceCdnFrontdoorCustomDomainRouteAssociationUpdate,
+		Delete: resourceCdnFrontdoorCustomDomainRouteAssociationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -39,14 +39,14 @@ func resourceCdnFrontdoorRouteCustomDomainAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontdoorEndpointID,
+				ValidateFunc: validate.FrontdoorRouteID,
 			},
 
-			"cdn_frontdoor_dns_txt_validator_id": {
+			"cdn_frontdoor_custom_domain_txt_validator_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontdoorOriginGroupID,
+				ValidateFunc: validate.FrontdoorCustomDomainTxtID,
 			},
 
 			"custom_domains": {
@@ -56,6 +56,7 @@ func resourceCdnFrontdoorRouteCustomDomainAssociation() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 
+						// NOTE: I am using the Insensitively here because Portal lowercases everything
 						"id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -73,7 +74,7 @@ func resourceCdnFrontdoorRouteCustomDomainAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontdoorRouteCustomDomainAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorCustomDomainRouteAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRoutesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -88,7 +89,7 @@ func resourceCdnFrontdoorRouteCustomDomainAssociationCreate(d *pluginsdk.Resourc
 		return fmt.Errorf("generating UUID for the %q: %+v", "azurerm_cdn_frontdoor_custom_domain_association", err)
 	}
 
-	id := parse.NewFrontdoorRouteCustomDomainID(routeId.SubscriptionId, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, uuid)
+	id := parse.NewFrontdoorCustomDomainRouteID(routeId.SubscriptionId, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, uuid)
 
 	// Make sure the Route exists
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
@@ -106,6 +107,11 @@ func resourceCdnFrontdoorRouteCustomDomainAssociationCreate(d *pluginsdk.Resourc
 		},
 	}
 
+	// You must pass the Cache Configuration if it exist else you will remove it and disable compression if enabled
+	if existing.RouteProperties.CacheConfiguration != nil {
+		props.CacheConfiguration = existing.RouteProperties.CacheConfiguration
+	}
+
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, props)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -117,11 +123,11 @@ func resourceCdnFrontdoorRouteCustomDomainAssociationCreate(d *pluginsdk.Resourc
 
 	d.SetId(id.ID())
 	d.Set("cdn_frontdoor_route_id", routeId.ID())
-	d.Set("cdn_frontdoor_dns_txt_validator_id", d.Get("cdn_frontdoor_dns_txt_validator_id").(string))
-	return resourceCdnFrontdoorRouteCustomDomainAssociationRead(d, meta)
+	d.Set("cdn_frontdoor_custom_domain_txt_validator_id", d.Get("cdn_frontdoor_custom_domain_txt_validator_id").(string))
+	return resourceCdnFrontdoorCustomDomainRouteAssociationRead(d, meta)
 }
 
-func resourceCdnFrontdoorRouteCustomDomainAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorCustomDomainRouteAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRoutesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,12 +137,12 @@ func resourceCdnFrontdoorRouteCustomDomainAssociationRead(d *pluginsdk.ResourceD
 		return err
 	}
 
-	validatorId, err := parse.FrontdoorCustomDomainDnsTxtRecordID(d.Get("cdn_frontdoor_dns_txt_validator_id").(string))
+	validatorId, err := parse.FrontdoorCustomDomainTxtID(d.Get("cdn_frontdoor_custom_domain_txt_validator_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id, err := parse.FrontdoorRouteCustomDomainID(d.Id())
+	id, err := parse.FrontdoorCustomDomainRouteID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -151,7 +157,7 @@ func resourceCdnFrontdoorRouteCustomDomainAssociationRead(d *pluginsdk.ResourceD
 	}
 
 	d.Set("cdn_frontdoor_route_id", routeId.ID())
-	d.Set("cdn_frontdoor_dns_txt_validator_id", validatorId.ID())
+	d.Set("cdn_frontdoor_custom_domain_txt_validator_id", validatorId.ID())
 
 	if props := resp.RouteProperties; props != nil {
 		if err := d.Set("custom_domains", flattenRouteActivatedResourceReferenceArray(props.CustomDomains)); err != nil {
@@ -162,7 +168,7 @@ func resourceCdnFrontdoorRouteCustomDomainAssociationRead(d *pluginsdk.ResourceD
 	return nil
 }
 
-func resourceCdnFrontdoorRouteCustomDomainAssociationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorCustomDomainRouteAssociationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRoutesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,7 +178,7 @@ func resourceCdnFrontdoorRouteCustomDomainAssociationUpdate(d *pluginsdk.Resourc
 		return err
 	}
 
-	id, err := parse.FrontdoorRouteCustomDomainID(d.Id())
+	id, err := parse.FrontdoorCustomDomainRouteID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -202,12 +208,10 @@ func resourceCdnFrontdoorRouteCustomDomainAssociationUpdate(d *pluginsdk.Resourc
 		return fmt.Errorf("waiting for the update of %s: %+v", id, err)
 	}
 
-	d.Set("cdn_frontdoor_route_id", routeId.ID())
-	d.Set("cdn_frontdoor_dns_txt_validator_id", d.Get("cdn_frontdoor_dns_txt_validator_id").(string))
-	return resourceCdnFrontdoorRouteCustomDomainAssociationRead(d, meta)
+	return resourceCdnFrontdoorCustomDomainRouteAssociationRead(d, meta)
 }
 
-func resourceCdnFrontdoorRouteCustomDomainAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorCustomDomainRouteAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontdoorRoutesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

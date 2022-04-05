@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = FrontdoorRouteCustomDomainId{}
+var _ resourceids.Id = FrontdoorCustomDomainRouteId{}
 
-func TestFrontdoorRouteCustomDomainIDFormatter(t *testing.T) {
-	actual := NewFrontdoorRouteCustomDomainID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "endpoint1", "route1", "customDomain1").ID()
+func TestFrontdoorCustomDomainRouteIDFormatter(t *testing.T) {
+	actual := NewFrontdoorCustomDomainRouteID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "endpoint1", "route1", "customDomain1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/routes/route1/customDomains/customDomain1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestFrontdoorRouteCustomDomainID(t *testing.T) {
+func TestFrontdoorCustomDomainRouteID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *FrontdoorRouteCustomDomainId
+		Expected *FrontdoorCustomDomainRouteId
 	}{
 
 		{
@@ -106,7 +106,7 @@ func TestFrontdoorRouteCustomDomainID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/routes/route1/customDomains/customDomain1",
-			Expected: &FrontdoorRouteCustomDomainId{
+			Expected: &FrontdoorCustomDomainRouteId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:    "resGroup1",
 				ProfileName:      "profile1",
@@ -126,7 +126,7 @@ func TestFrontdoorRouteCustomDomainID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := FrontdoorRouteCustomDomainID(v.Input)
+		actual, err := FrontdoorCustomDomainRouteID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -159,11 +159,11 @@ func TestFrontdoorRouteCustomDomainID(t *testing.T) {
 	}
 }
 
-func TestFrontdoorRouteCustomDomainIDInsensitively(t *testing.T) {
+func TestFrontdoorCustomDomainRouteIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *FrontdoorRouteCustomDomainId
+		Expected *FrontdoorCustomDomainRouteId
 	}{
 
 		{
@@ -247,7 +247,7 @@ func TestFrontdoorRouteCustomDomainIDInsensitively(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/routes/route1/customDomains/customDomain1",
-			Expected: &FrontdoorRouteCustomDomainId{
+			Expected: &FrontdoorCustomDomainRouteId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:    "resGroup1",
 				ProfileName:      "profile1",
@@ -260,7 +260,7 @@ func TestFrontdoorRouteCustomDomainIDInsensitively(t *testing.T) {
 		{
 			// lower-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/afdendpoints/endpoint1/routes/route1/customdomains/customDomain1",
-			Expected: &FrontdoorRouteCustomDomainId{
+			Expected: &FrontdoorCustomDomainRouteId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:    "resGroup1",
 				ProfileName:      "profile1",
@@ -273,7 +273,7 @@ func TestFrontdoorRouteCustomDomainIDInsensitively(t *testing.T) {
 		{
 			// upper-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PROFILES/profile1/AFDENDPOINTS/endpoint1/ROUTES/route1/CUSTOMDOMAINS/customDomain1",
-			Expected: &FrontdoorRouteCustomDomainId{
+			Expected: &FrontdoorCustomDomainRouteId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:    "resGroup1",
 				ProfileName:      "profile1",
@@ -286,7 +286,7 @@ func TestFrontdoorRouteCustomDomainIDInsensitively(t *testing.T) {
 		{
 			// mixed-cased segment names
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/PrOfIlEs/profile1/AfDeNdPoInTs/endpoint1/RoUtEs/route1/CuStOmDoMaInS/customDomain1",
-			Expected: &FrontdoorRouteCustomDomainId{
+			Expected: &FrontdoorCustomDomainRouteId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:    "resGroup1",
 				ProfileName:      "profile1",
@@ -300,7 +300,7 @@ func TestFrontdoorRouteCustomDomainIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := FrontdoorRouteCustomDomainIDInsensitively(v.Input)
+		actual, err := FrontdoorCustomDomainRouteIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

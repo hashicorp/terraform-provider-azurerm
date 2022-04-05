@@ -11,16 +11,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
+	dnsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/parse"
+	dnsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceCdnFrontdoorDnsTxtValidator() *pluginsdk.Resource {
+func resourceCdnFrontdoorCustomDomainTxtValidator() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCdnFrontdoorDnsTxtValidatorCreate,
-		Read:   resourceCdnFrontdoorDnsTxtValidatorRead,
-		Delete: resourceCdnFrontdoorDnsTxtValidatorDelete,
+		Create: resourceCdnFrontdoorCustomDomainTxtValidatorCreate,
+		Read:   resourceCdnFrontdoorCustomDomainTxtValidatorRead,
+		Delete: resourceCdnFrontdoorCustomDomainTxtValidatorDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(24 * time.Hour),
@@ -30,11 +32,18 @@ func resourceCdnFrontdoorDnsTxtValidator() *pluginsdk.Resource {
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			// TODO: Make an importer
-			_, err := parse.FrontdoorCustomDomainDnsTxtRecordID(id)
+			_, err := parse.FrontdoorCustomDomainTxtID(id)
 			return err
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
+			"dns_txt_record_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: dnsValidate.TxtRecordID,
+			},
+
 			"cdn_frontdoor_custom_domain_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -50,10 +59,15 @@ func resourceCdnFrontdoorDnsTxtValidator() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontdoorDnsTxtValidatorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorCustomDomainTxtValidatorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	txtId, err := dnsParse.TxtRecordID(d.Get("dns_txt_record_id").(string))
+	if err != nil {
+		return err
+	}
 
 	customDomainId, err := parse.FrontdoorCustomDomainID(d.Get("cdn_frontdoor_custom_domain_id").(string))
 	if err != nil {
@@ -62,10 +76,10 @@ func resourceCdnFrontdoorDnsTxtValidatorCreate(d *pluginsdk.ResourceData, meta i
 
 	uuid, err := uuid.GenerateUUID()
 	if err != nil {
-		return fmt.Errorf("generating UUID for the %q: %+v", "azurerm_cdn_frontdoor_dns_txt_validator", err)
+		return fmt.Errorf("generating UUID for the %q: %+v", "azurerm_cdn_frontdoor_custom_domain_txt_validator", err)
 	}
 
-	id := parse.NewFrontdoorCustomDomainDnsTxtRecordID(customDomainId.SubscriptionId, customDomainId.ResourceGroup, customDomainId.ProfileName, customDomainId.CustomDomainName, uuid)
+	id := parse.NewFrontdoorCustomDomainTxtID(customDomainId.SubscriptionId, customDomainId.ResourceGroup, customDomainId.ProfileName, customDomainId.CustomDomainName, uuid)
 
 	// Make sure the custom domain exists
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
@@ -83,7 +97,7 @@ func resourceCdnFrontdoorDnsTxtValidatorCreate(d *pluginsdk.ResourceData, meta i
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Unknown", "Submitting", "Pending"},
 		Target:                    []string{"Approved"},
-		Refresh:                   cdnFrontdoorCustomDomainRefreshFunc(ctx, client, customDomainId),
+		Refresh:                   cdnFrontdoorCustomDomainTxtRefreshFunc(ctx, client, customDomainId),
 		MinTimeout:                30 * time.Second,
 		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 		ContinuousTargetOccurence: 3,
@@ -94,15 +108,21 @@ func resourceCdnFrontdoorDnsTxtValidatorCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	d.SetId(id.ID())
-	return resourceCdnFrontdoorDnsTxtValidatorRead(d, meta)
+	d.Set("dns_txt_record_id", txtId.ID())
+	return resourceCdnFrontdoorCustomDomainTxtValidatorRead(d, meta)
 }
 
-func resourceCdnFrontdoorDnsTxtValidatorRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorCustomDomainTxtValidatorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontdoorCustomDomainDnsTxtRecordID(d.Id())
+	txtId, err := dnsParse.TxtRecordID(d.Get("dns_txt_record_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id, err := parse.FrontdoorCustomDomainTxtID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -119,6 +139,7 @@ func resourceCdnFrontdoorDnsTxtValidatorRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	if props := resp.AFDDomainProperties; props != nil {
+		d.Set("dns_txt_record_id", txtId.ID())
 		d.Set("cdn_frontdoor_custom_domain_id", customDomainId.ID())
 		d.Set("cdn_frontdoor_custom_domain_validation_state", props.DomainValidationState)
 	}
@@ -126,14 +147,14 @@ func resourceCdnFrontdoorDnsTxtValidatorRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceCdnFrontdoorDnsTxtValidatorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorCustomDomainTxtValidatorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	// TODO: Delete doesn't really make sense since this is a fake resource I need to think about this...
 
 	d.SetId("")
 	return nil
 }
 
-func cdnFrontdoorCustomDomainRefreshFunc(ctx context.Context, client *track1.AFDCustomDomainsClient, id *parse.FrontdoorCustomDomainId) pluginsdk.StateRefreshFunc {
+func cdnFrontdoorCustomDomainTxtRefreshFunc(ctx context.Context, client *track1.AFDCustomDomainsClient, id *parse.FrontdoorCustomDomainId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if CDN Frontdoor Custom Domain %q (Resource Group: %q) is available...", id.CustomDomainName, id.ResourceGroup)
 

@@ -72,8 +72,6 @@ The following arguments are supported:
 
 ~> **NOTE:** To to disable caching, do not provide the `cache_configuration` block in the configuration file. 
 
-* `custom_domains` - (Optional) A `custom_domains` block as defined below.
-
 * `enabled` - (Optional) Is this Frontdoor Route enabled? Possible values are `true` or `false`. Defaults to `true`.
 
 * `forwarding_protocol` - (Optional) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `HttpsOnly`.
@@ -105,16 +103,6 @@ A `cache_configuration` block supports the following:
 ~> **NOTE:** Content won't be compressed when the requested content is smaller than `1 KB` or larger than `8 MB`(inclusive).
 
 * `content_types_to_compress` - (Optional) A list of one or more `Content types` (formerly known as `MIME types`) to compress. Possible values include `application/eot`, `application/font`, `application/font-sfnt`, `application/javascript`, `application/json`, `application/opentype`, `application/otf`, `application/pkcs7-mime`, `application/truetype`, `application/ttf`, `application/vnd.ms-fontobject`, `application/xhtml+xml`, `application/xml`, `application/xml+rss`, `application/x-font-opentype`, `application/x-font-truetype`, `application/x-font-ttf`, `application/x-httpd-cgi`, `application/x-mpegurl`, `application/x-opentype`, `application/x-otf`, `application/x-perl`, `application/x-ttf`, `application/x-javascript`, `font/eot`, `font/ttf`, `font/otf`, `font/opentype`, `image/svg+xml`, `text/css`, `text/csv`, `text/html`, `text/javascript`, `text/js`, `text/plain`, `text/richtext`, `text/tab-separated-values`, `text/xml`, `text/x-script`, `text/x-component` or `text/x-java-source`.
-
----
-
-A `custom_domains` block supports the following:
-
-* `id` - (Optional) Resource ID.
-
-* `active` - Is the custom domain active?
-
----
 
 ## Attributes Reference
 
