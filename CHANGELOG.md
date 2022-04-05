@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_gremlin_graph` - the property `indexing_mode` is now case-sensitive [GH-16152]
 * `azurerm_cosmosdb_sql_container` - the property `indexing_mode` is now case-sensitive [GH-16152]
 * `azurerm_kubernetes_cluster` - support for the properties `oidc_issuer_enabled` and `oidc_issuer_url` [GH-16130] 
+* `azurerm_kubernetes_cluster` - the `network_profile` block now supports the property `ip_versions` [GH-16088] 
 * `azurerm_web_application_firewall_policy` - add `KNOWN-CVES` to accepted values for `rule_group_name` [GH-16080]
 
 BUG FIXES:
