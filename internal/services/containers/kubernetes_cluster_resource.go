@@ -609,6 +609,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"oidc_issuer_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"oidc_issuer_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"private_fqdn": { // privateFqdn
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -1222,6 +1232,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
+	enableOidcIssuer := false
+	var oidcIssuerProfile *containerservice.ManagedClusterOIDCIssuerProfile
+	if v, ok := d.GetOk("oidc_issuer_enabled"); ok {
+		enableOidcIssuer = v.(bool)
+		oidcIssuerProfile = expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
+	}
+
 	publicNetworkAccess := containerservice.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = containerservice.PublicNetworkAccessDisabled
@@ -1250,6 +1267,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			PublicNetworkAccess:    publicNetworkAccess,
 			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
 			HTTPProxyConfig:        httpProxyConfig,
+			OidcIssuerProfile:      oidcIssuerProfile,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1734,6 +1752,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.HTTPProxyConfig = httpProxyConfig
 	}
 
+	if d.HasChange("oidc_issuer_enabled") {
+		updateCluster = true
+		oidcIssuerEnabled := d.Get("oidc_issuer_enabled").(bool)
+		oidcIssuerProfile := expandKubernetesClusterOidcIssuerProfile(oidcIssuerEnabled)
+		existing.ManagedClusterProperties.OidcIssuerProfile = oidcIssuerProfile
+	}
+
 	if updateCluster {
 		log.Printf("[DEBUG] Updating %s..", *id)
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
@@ -1984,6 +2009,20 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if err := d.Set("http_proxy_config", httpProxyConfig); err != nil {
 			return fmt.Errorf("setting `http_proxy_config`: %+v", err)
 		}
+
+		oidcIssuerEnabled := false
+		oidcIssuerUrl := ""
+		if props.OidcIssuerProfile != nil {
+			if props.OidcIssuerProfile.Enabled != nil {
+				oidcIssuerEnabled = *props.OidcIssuerProfile.Enabled
+			}
+			if props.OidcIssuerProfile.IssuerURL != nil {
+				oidcIssuerUrl = *props.OidcIssuerProfile.IssuerURL
+			}
+		}
+
+		d.Set("oidc_issuer_enabled", oidcIssuerEnabled)
+		d.Set("oidc_issuer_url", oidcIssuerUrl)
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
@@ -3152,6 +3191,13 @@ func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservi
 	httpProxyConfig.NoProxy = utils.ExpandStringSlice(noProxyRaw)
 
 	return &httpProxyConfig
+}
+
+func expandKubernetesClusterOidcIssuerProfile(input bool) *containerservice.ManagedClusterOIDCIssuerProfile {
+	oidcIssuerProfile := containerservice.ManagedClusterOIDCIssuerProfile{}
+	oidcIssuerProfile.Enabled = &input
+
+	return &oidcIssuerProfile
 }
 
 func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClusterProperties) []interface{} {

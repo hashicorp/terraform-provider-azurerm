@@ -138,6 +138,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
 
+* `oidc_issuer_enabled` - (Required) Enable or Disable the [OIDC issuer URL](https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#oidc-issuer-preview)
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableOIDCIssuerPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#oidc-issuer-preview) for more information.
+
 * `oms_agent` - (Optional) A `oms_agent` block as defined below.
 
 * `open_service_mesh_enabled` - (Optional) Is Open Service Mesh enabled? For more details, please visit [Open Service Mesh for AKS](https://docs.microsoft.com/azure/aks/open-service-mesh-about).
@@ -694,6 +698,8 @@ The following attributes are exported:
 * `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools.
 
 * `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
+
+* `oidc_issuer_url` - The OIDC issuer URL that is associated with the cluster.
 
 * `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
 
