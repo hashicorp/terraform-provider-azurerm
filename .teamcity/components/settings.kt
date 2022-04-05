@@ -36,11 +36,14 @@ var serviceTestConfigurationOverrides = mapOf(
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5),
 
+        // data factory uses NC class VMs which are not available in eastus2
+        "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false)),
+
         // Data Lake has a low quota
         "datalake" to testConfiguration(parallelism = 2),
 
-        // "hdinsight" is super expensive
-        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6"),
+        // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
+        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
         // HPC Cache has a 4 instance per subscription quota as of early 2021
         "hpccache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
