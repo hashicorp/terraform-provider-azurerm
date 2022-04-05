@@ -4,26 +4,32 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v63.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-16147]
 * dependencies: updating `digitaltwins` to use API Version `2020-12-01` [GH-16044]
+* provider: upgrading to Go 1.18 [GH-16247]
+* Data Source: `azurerm_kubernetes_cluster` - support for the properties `oidc_issuer_enabled` and `oidc_issuer_url` [GH-16130] 
 * `azurerm_application_gateway` - add `KNOWN-CVES` to accepted values for `rule_group_name` [GH-16080]
 * `azurerm_automation_account` - `dsc_primary_access_key` and `dsc_secondary_access_key` are now marked as sensitive [GH-16161]
 * `azurerm_cognitive_account` - support for the `custom_question_answering_search_service_id` property [GH-15804]
 * `azurerm_consumption_budget_management_group` - support for `SubscriptionID` and `SubscriptionName` options in `dimension` block [GH-16074]
 * `azurerm_cosmosdb_gremlin_graph` - the property `indexing_mode` is now case-sensitive [GH-16152]
 * `azurerm_cosmosdb_sql_container` - the property `indexing_mode` is now case-sensitive [GH-16152]
+* `azurerm_kubernetes_cluster` - support for the properties `oidc_issuer_enabled` and `oidc_issuer_url` [GH-16130] 
+* `azurerm_kubernetes_cluster` - the `network_profile` block now supports the property `ip_versions` [GH-16088] 
 * `azurerm_web_application_firewall_policy` - add `KNOWN-CVES` to accepted values for `rule_group_name` [GH-16080]
 
 BUG FIXES:
 
 * `azurerm_api_management_api_operation_tag` - now retrieves tags from the correct API [GH-16006]
+* `azurerm_application_gateway` - frontend_ip_configuration blocks can now be changed [GH-16132]
 * `azurerm_application_insights` - Remove disable logic for the Azure created Action Group [GH-16170]
 * `azurerm_linux_function_app` - only one of `application_insights_key` or `application_insights_connection_string` now needs to be optionally specified [GH-16134]
-* `azurerm_windows_function_app` - fix import check for Service Plan OS type [GH-16164]
 * `azurerm_linux_function_app_slot` - only one of `application_insights_key` or `application_insights_connection_string` now needs to be optionally specified [GH-16134]
+* `azurerm_windows_function_app` - fix import check for Service Plan OS type [GH-16164]
 * `azurerm_linux_web_app_slot ` - fix `container_registry_managed_identity_client_id` validation [GH-16149]
 * `azurerm_windows_web_app` - add support for `dotnetcore` in site metadata property `current_stack` [GH-16129]
+* `azurerm_windows_web_app` - fix docker `windowsFXVersion` when `docker_container_registry` is specified [GH-16192]
 * `azurerm_windows_web_app_slot` - add support for `dotnetcore` in site metadata property `current_stack` [GH-16129]
+* `azurerm_windows_web_app_slot` - fix docker `windowsFXVersion` when `docker_container_registry` is specified [GH-16192]
 * `azurerm_storage_data_lake_gen2_filesystem` - add support for `$superuser` in `group` and `owner` properties [GH-16215]
-* `azurerm_application_gateway` - frontend_ip_configuration blocks can now be changed [GH-16132]
 
 ## 3.0.2 (March 26, 2022)
 
