@@ -38,26 +38,22 @@ resource "azurerm_traffic_manager_profile" "example" {
   }
 
   monitor_config {
-    protocol = "http"
+    protocol = "HTTP"
     port     = 80
     path     = "/"
   }
 }
 
-resource "azurerm_traffic_manager_endpoint" "first-vm" {
-  name                = "${var.prefix}-first-vm"
-  resource_group_name = azurerm_resource_group.example.name
-  profile_name        = azurerm_traffic_manager_profile.example.name
-  target_resource_id  = module.first-virtual-machine.network_interface_id
-  type                = "azureEndpoints"
-  weight              = 1
+resource "azurerm_traffic_manager_azure_endpoint" "first-vm" {
+  name               = "${var.prefix}-first-vm"
+  profile_id         = azurerm_traffic_manager_profile.example.id
+  weight             = 1
+  target_resource_id = module.first-virtual-machine.network_interface_id
 }
 
-resource "azurerm_traffic_manager_endpoint" "second-vm" {
-  name                = "${var.prefix}-second-vm"
-  resource_group_name = azurerm_resource_group.example.name
-  profile_name        = azurerm_traffic_manager_profile.example.name
-  target_resource_id  = module.second-virtual-machine.network_interface_id
-  type                = "azureEndpoints"
-  weight              = 1
+resource "azurerm_traffic_manager_azure_endpoint" "second-vm" {
+  name               = "${var.prefix}-second-vm"
+  profile_id         = azurerm_traffic_manager_profile.example.id
+  weight             = 1
+  target_resource_id = module.second-virtual-machine.network_interface_id
 }
