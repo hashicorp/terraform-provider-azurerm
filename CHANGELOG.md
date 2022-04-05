@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v63.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-16147]
 * dependencies: updating `digitaltwins` to use API Version `2020-12-01` [GH-16044]
+* provider: upgrading to Go 1.18 [GH-16247]
 * `azurerm_application_gateway` - add `KNOWN-CVES` to accepted values for `rule_group_name` [GH-16080]
 * `azurerm_automation_account` - `dsc_primary_access_key` and `dsc_secondary_access_key` are now marked as sensitive [GH-16161]
 * `azurerm_cognitive_account` - support for the `custom_question_answering_search_service_id` property [GH-15804]
