@@ -598,6 +598,18 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								},
 							},
 						},
+						"ip_versions": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(containerservice.IPFamilyIPv4),
+									string(containerservice.IPFamilyIPv6),
+								}, false),
+							},
+						},
 					},
 				},
 			},
@@ -2305,6 +2317,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	loadBalancerSku := config["load_balancer_sku"].(string)
 	natGatewayProfileRaw := config["nat_gateway_profile"].([]interface{})
 	outboundType := config["outbound_type"].(string)
+	ipVersions, err := expandIPVersions(config["ip_versions"].([]interface{}))
+	if err != nil {
+		return nil, err
+	}
 
 	networkProfile := containerservice.NetworkProfile{
 		NetworkPlugin:   containerservice.NetworkPlugin(networkPlugin),
@@ -2312,6 +2328,7 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 		NetworkPolicy:   containerservice.NetworkPolicy(networkPolicy),
 		LoadBalancerSku: containerservice.LoadBalancerSku(loadBalancerSku),
 		OutboundType:    containerservice.OutboundType(outboundType),
+		IPFamilies:      ipVersions,
 	}
 
 	if len(loadBalancerProfileRaw) > 0 {
@@ -2385,6 +2402,23 @@ func expandLoadBalancerProfile(d []interface{}) *containerservice.ManagedCluster
 	}
 
 	return profile
+}
+
+func expandIPVersions(input []interface{}) (*[]containerservice.IPFamily, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	ipv := make([]containerservice.IPFamily, 0)
+	for _, data := range input {
+		ipv = append(ipv, containerservice.IPFamily(data.(string)))
+	}
+
+	if len(ipv) == 1 && ipv[0] == containerservice.IPFamilyIPv6 {
+		return nil, fmt.Errorf("`ip_versions` must be `IPv4` or `IPv4` and `IPv6`. `IPv6` alone is not supported")
+	}
+
+	return &ipv, nil
 }
 
 func expandNatGatewayProfile(d []interface{}) *containerservice.ManagedClusterNATGatewayProfile {
@@ -2526,6 +2560,13 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 		ngwProfiles = append(ngwProfiles, ng)
 	}
 
+	ipVersions := make([]interface{}, 0)
+	if ipfs := profile.IPFamilies; ipfs != nil {
+		for _, item := range *ipfs {
+			ipVersions = append(ipVersions, item)
+		}
+	}
+
 	// TODO - Remove the workaround below once issue https://github.com/Azure/azure-rest-api-specs/issues/18056 is resolved
 	sku := profile.LoadBalancerSku
 	for _, v := range containerservice.PossibleLoadBalancerSkuValues() {
@@ -2541,6 +2582,7 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 			"load_balancer_sku":     string(sku),
 			"load_balancer_profile": lbProfiles,
 			"nat_gateway_profile":   ngwProfiles,
+			"ip_versions":           ipVersions,
 			"network_plugin":        string(profile.NetworkPlugin),
 			"network_mode":          string(profile.NetworkMode),
 			"network_policy":        string(profile.NetworkPolicy),
