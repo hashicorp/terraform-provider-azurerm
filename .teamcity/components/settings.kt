@@ -14,7 +14,7 @@ const val defaultDaysOfWeek = "2,3,4,5,6"
 const val defaultDaysOfMonth = "*"
 
 var locations = mapOf(
-        "public" to LocationConfiguration("westeurope", "northeurope", "francecentral", true)
+        "public" to LocationConfiguration("westeurope", "eastus2", "westus2", true)
 )
 
 // specifies the list of Azure Environments where tests should be run nightly
@@ -70,8 +70,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // Spring Cloud only allows a max of 10 provisioned
         "springcloud" to testConfiguration(parallelism = 5),
 
-        // Currently have a quota of 10 nodes, 3 nodes required per test
-        "vmware" to testConfiguration(parallelism = 3),
+        // Currently, we have insufficient quota to actually run these, but there are a few nodes in West Europe, so we'll pin it there for now
+        "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
         "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6")
