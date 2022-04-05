@@ -73,7 +73,8 @@ The following arguments are supported:
 * `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
 
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. This is mandatory when you use `storage_endpoint` to specify a storage account blob endpoint.
-> Note: - Please note that storage accounts configured with `shared_access_key_enabled = false` cannot be used to configure `azurerm_mssql_server_security_alert_policy` with `storage_endpoint` for now.
+
+-> **NOTE:**  Please note that storage accounts configured with `shared_access_key_enabled = false` cannot be used to configure `azurerm_mssql_server_security_alert_policy` with `storage_endpoint` for now.
 
 
 ## Attributes Reference
