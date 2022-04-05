@@ -27,8 +27,10 @@ func resourceContainerRegistryAgentPool() *pluginsdk.Resource {
 		Update: resourceContainerRegistryAgentPoolUpdate,
 		Delete: resourceContainerRegistryAgentPoolDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ContainerRegistryAgentPoolID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -228,7 +230,7 @@ func resourceContainerRegistryAgentPoolRead(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceContainerRegistryAgentPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.AgentPoolsClient
+	client := meta.(*clients.Client).Containers.ContainerRegistryAgentPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
