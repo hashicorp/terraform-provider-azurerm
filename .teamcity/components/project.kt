@@ -22,7 +22,6 @@ fun buildConfigurationsForServices(services: Map<String, String>, providerName :
     var locationsForEnv = locations[environment]!!
 
     services.forEach { (serviceName, displayName) ->
-        // TODO: overriding locations
         var defaultTestConfig = testConfiguration()
         var testConfig = serviceTestConfigurationOverrides.getOrDefault(serviceName, defaultTestConfig)
         var locationsToUse = if (testConfig.locationOverride.primary != "") testConfig.locationOverride else locationsForEnv
