@@ -5,12 +5,14 @@ ENHANCEMENTS:
 * dependencies: updating to `v63.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-16147]
 * dependencies: updating `digitaltwins` to use API Version `2020-12-01` [GH-16044]
 * provider: upgrading to Go 1.18 [GH-16247]
+* Data Source: `azurerm_kubernetes_cluster` - support for the properties `oidc_issuer_enabled` and `oidc_issuer_url` [GH-16130] 
 * `azurerm_application_gateway` - add `KNOWN-CVES` to accepted values for `rule_group_name` [GH-16080]
 * `azurerm_automation_account` - `dsc_primary_access_key` and `dsc_secondary_access_key` are now marked as sensitive [GH-16161]
 * `azurerm_cognitive_account` - support for the `custom_question_answering_search_service_id` property [GH-15804]
 * `azurerm_consumption_budget_management_group` - support for `SubscriptionID` and `SubscriptionName` options in `dimension` block [GH-16074]
 * `azurerm_cosmosdb_gremlin_graph` - the property `indexing_mode` is now case-sensitive [GH-16152]
 * `azurerm_cosmosdb_sql_container` - the property `indexing_mode` is now case-sensitive [GH-16152]
+* `azurerm_kubernetes_cluster` - support for the properties `oidc_issuer_enabled` and `oidc_issuer_url` [GH-16130] 
 * `azurerm_web_application_firewall_policy` - add `KNOWN-CVES` to accepted values for `rule_group_name` [GH-16080]
 
 BUG FIXES:
