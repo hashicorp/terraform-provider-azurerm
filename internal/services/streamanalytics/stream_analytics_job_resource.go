@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -62,7 +62,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// values found in the other API the portal uses
-					string(streamanalytics.OneFullStopZero),
+					string(streamanalytics.CompatibilityLevelOneFullStopZero),
 					"1.1",
 					"1.2",
 				}, false),
@@ -95,10 +95,10 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(streamanalytics.Adjust),
-					string(streamanalytics.Drop),
+					string(streamanalytics.EventsOutOfOrderPolicyAdjust),
+					string(streamanalytics.EventsOutOfOrderPolicyDrop),
 				}, false),
-				Default: string(streamanalytics.Adjust),
+				Default: string(streamanalytics.EventsOutOfOrderPolicyAdjust),
 			},
 
 			"output_error_policy": {
@@ -187,8 +187,8 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		Name:     utils.String(id.Name),
 		Location: utils.String(location),
 		StreamingJobProperties: &streamanalytics.StreamingJobProperties{
-			Sku: &streamanalytics.StreamingJobSku{
-				Name: streamanalytics.Standard,
+			Sku: &streamanalytics.Sku{
+				Name: streamanalytics.SkuNameStandard,
 			},
 			CompatibilityLevel:                 streamanalytics.CompatibilityLevel(compatibilityLevel),
 			EventsLateArrivalMaxDelayInSeconds: utils.Int32(int32(eventsLateArrivalMaxDelayInSeconds)),
