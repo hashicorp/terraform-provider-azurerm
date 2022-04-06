@@ -224,13 +224,12 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.SecurityPolicyProperties; props != nil {
-		secPols, err := flattenCdnFrontdoorSecurityPoliciesParameters(props.Parameters)
+		securityPolicy, err := flattenCdnFrontdoorSecurityPoliciesParameters(props.Parameters)
 		if err != nil {
-			// TODO: Fix this error msg
-			return fmt.Errorf("flattening Frontdoor Security Policy %q (Resource Group %q): %+v", id.SecurityPolicyName, id.ResourceGroup, err)
+			return fmt.Errorf("flattening %s: %+v", id, err)
 		}
 
-		d.Set("security_policies", secPols)
+		d.Set("security_policies", *securityPolicy)
 		d.Set("cdn_frontdoor_profile_name", id.ProfileName)
 	}
 
@@ -272,50 +271,11 @@ func expandCdnFrontdoorSecurityPoliciesParameters(input []interface{}, isStandar
 	return nil, nil
 }
 
-func flattenCdnFrontdoorSecurityPoliciesParameters(input track1.BasicSecurityPolicyPropertiesParameters) ([]interface{}, error) {
+func flattenCdnFrontdoorSecurityPoliciesParameters(input track1.BasicSecurityPolicyPropertiesParameters) (*[]interface{}, error) {
 	results, err := cdnfrontdoorsecurityparams.FlattenCdnFrontdoorFirewallPolicyParameters(input)
 	if err != nil {
-		return results, err
+		return nil, err
 	}
 
-	return nil, nil
-
-	// // TODO: Get this working once I have Custom Domains working
-	// params := make([]interface{}, 0)
-	// associations := make([]interface{}, 0)
-	// if input == nil {
-	// 	return params
-	// }
-
-	// // if we are here we know that the input is a SecurityPolicyWebApplicationFirewallParameters type
-	// values := make(map[string]interface{})
-	// values["waf_policy_id"] = *input.WafPolicy.ID
-
-	// for _, v := range *input.Associations {
-	// 	temp := make(map[string]interface{})
-	// 	domains := make([]interface{}, 0)
-
-	// 	for _, x := range *v.Domains {
-	// 		domain := make(map[string]interface{})
-	// 		if x.ID != nil {
-	// 			domain["id"] = *x.ID
-
-	// 			if x.IsActive != nil {
-	// 				domain["enabled"] = *x.IsActive
-	// 			}
-	// 			domains = append(domains, domain)
-	// 		}
-	// 	}
-
-	// 	association := make([]interface{}, 0)
-	// 	temp["domain"] = domains
-	// 	temp["patterns_to_match"] = *v.PatternsToMatch
-
-	// 	association = append(association, temp)
-	// 	associations = append(associations, association)
-	// }
-
-	// values["association"] = associations
-	// params = append(params, values)
-	// return params
+	return &results, nil
 }

@@ -90,11 +90,12 @@ func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]tr
 		if id := v["cdn_frontdoor_custom_domain_id"].(string); id != "" {
 			activatedResourceReference.ID = utils.String(id)
 
-			enabled := v["active"].(bool)
+			// This is a read-only field
+			// enabled := v["active"].(bool)
 
-			if !enabled {
-				activatedResourceReference.IsActive = utils.Bool(enabled)
-			}
+			// if !enabled {
+			// 	activatedResourceReference.IsActive = utils.Bool(enabled)
+			// }
 
 			results = append(results, activatedResourceReference)
 		}
@@ -104,52 +105,34 @@ func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]tr
 }
 
 func FlattenCdnFrontdoorFirewallPolicyParameters(input track1.BasicSecurityPolicyPropertiesParameters) ([]interface{}, error) {
-	// securityPolicy, ok := input.AsSecurityPolicyWebApplicationFirewallParameters()
-	// if !ok {
-	// 	return nil, fmt.Errorf("expected a security policy web application firewall parameters")
-	// }
-	// associations := make([]interface{}, 0)
-	// domains := make(map[string]interface{})
-	// ///////
+	waf, ok := input.AsSecurityPolicyWebApplicationFirewallParameters()
+	if !ok {
+		return nil, fmt.Errorf("expected security policy web application firewall parameters")
+	}
 
-	// for _, item := range *securityPolicy.Associations {
-	// 	foo := make(map[string]interface{})
+	// we know it's a firewall policy at this point,
+	// create the objects to hold the policy data
+	securityPolicy := make([]interface{}, 0)
+	firewall := make([]interface{}, 0)
+	associations := make([]interface{}, 0)
+	wafPolicy := make(map[string]interface{})
+	firewallPolicy := make(map[string]interface{})
 
-	// 	item.Domains
+	wafPolicy["cdn_frontdoor_firewall_policy_id"] = *waf.WafPolicy.ID
 
-	// v := item.(map[string]interface{})
-	// 	domains := expandSecurityPoliciesActivatedResourceReference(v["domain"].([]interface{}))
+	for _, item := range *waf.Associations {
+		association := make(map[string]interface{})
+		association["domain"] = flattenSecurityPoliciesActivatedResourceReference(item.Domains)
+		association["patterns_to_match"] = utils.FlattenStringSlice(item.PatternsToMatch)
+		associations = append(associations, association)
+	}
 
-	// 	}
+	wafPolicy["association"] = associations
+	firewall = append(firewall, wafPolicy)
+	firewallPolicy["firewall"] = firewall
+	securityPolicy = append(securityPolicy, firewallPolicy)
 
-	// 	association := track1.SecurityPolicyWebApplicationFirewallAssociation{
-	// 		Domains:         domains,
-	// 		PatternsToMatch: utils.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
-	// 	}
-
-	// 	associations = append(associations, association)
-	// }
-
-	// ////
-
-	// // put this inside of association
-	// // patterns_to_match
-	// // ptm := utils.FlattenStringSlice(securityPolicy.Associations)
-	// for _, v := range *securityPolicy.Associations {
-	// 	association := make([]interface{}, 0)
-	// 	associations = append(associations, domains)
-	// 	domains["domain"] = append()
-
-	// 	association = append(association, flattenSecurityPoliciesActivatedResourceReference(v.Domains))
-	// 	association = append(association, flattenSecurityPolicyPatternsToMatch(v.PatternsToMatch))
-	// }
-
-	// //
-	// if wafId := securityPolicy.WafPolicy.ID; wafId != nil {
-	// 	// TODO
-	// }
-
-	return nil, nil
+	return securityPolicy, nil
 }
 
 func flattenSecurityPoliciesActivatedResourceReference(input *[]track1.ActivatedResourceReference) []interface{} {
@@ -158,28 +141,13 @@ func flattenSecurityPoliciesActivatedResourceReference(input *[]track1.Activated
 		return results
 	}
 
-	// missing the domain outter level map...
-
 	for _, item := range *input {
 		domain := make(map[string]interface{})
-		domain["id"] = *item.ID
+		domain["cdn_frontdoor_custom_domain_id"] = *item.ID
 		domain["active"] = *item.IsActive
 
 		results = append(results, domain)
 	}
-
-	return results
-}
-
-func flattenSecurityPolicyPatternsToMatch(input *[]string) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	patternsToMatch := make(map[string]interface{})
-	patternsToMatch["patterns_to_match"] = utils.FlattenStringSlice(input)
-	results = append(results, patternsToMatch)
 
 	return results
 }
