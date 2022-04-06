@@ -27,11 +27,20 @@ var serviceTestConfigurationOverrides = mapOf(
         // these tests all conflict with one another
         "authorization" to testConfiguration(parallelism = 1),
 
+        // Server is only available in certain locations
+        "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
+
+        // HCICluster is only available in certain locations
+        "azurestackhci" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
+
         //Blueprints are constrained on the number of targets available - these execute quickly, so can be serialised
         "blueprints" to testConfiguration(parallelism = 1),
 
         // "cognitive" is expensive - Monday, Wednesday, Friday
         "cognitive" to testConfiguration(daysOfWeek = "2,4,6"),
+
+        // Cosmos is only available in certain locations
+        "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
 
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5),
