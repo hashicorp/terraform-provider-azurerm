@@ -15,6 +15,8 @@ ENHANCEMENTS:
 * `azurerm_dedicated_host` - support for the the `DSv3-Type4` and `ESv3-Type4` SKUs [GH-16253]
 * `azurerm_kubernetes_cluster` - support for the properties `oidc_issuer_enabled` and `oidc_issuer_url` [GH-16130] 
 * `azurerm_kubernetes_cluster` - the `network_profile` block now supports the property `ip_versions` [GH-16088] 
+* `azurerm_service_plan` - add support for `zone_balancing_enabled` [GH-16156]
+* Data Source: `azurerm_service_plan` - add support for `zone_balancing_enabled` [GH-16156]
 * `azurerm_servicebus_namespace` - support for the `customer_managed_key` block [GH-15601]
 * `azurerm_web_application_firewall_policy` - add `KNOWN-CVES` to accepted values for `rule_group_name` [GH-16080]
 
