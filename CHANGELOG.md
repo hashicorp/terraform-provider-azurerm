@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_service_plan` - add support for `zone_balancing_enabled` [GH-16156]
 * `azurerm_servicebus_namespace` - support for the `customer_managed_key` block [GH-15601]
 * `azurerm_web_application_firewall_policy` - add `KNOWN-CVES` to accepted values for `rule_group_name` [GH-16080]
+* `azurerm_mssql_database` - support for property `ledger_enabled` [GH-16214]
 
 BUG FIXES:
 
