@@ -22,17 +22,15 @@ resource "azurerm_datadog_monitor" "example" {
   name                = "example-monitor"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  datadog_organization_properties {
+  datadog_organization {
     api_key = "XXXX"
     application_key = "XXXX"
   }
-   user_info {
-    name          = "Example"
-    email_address = "abc@xyz.com"
+   user {
+    name  = "Example"
+    email = "abc@xyz.com"
   }
-  sku {
-    name = "Linked"
-  }
+  sku_name = "Linked"
   identity {
     type = "SystemAssigned"
   }
@@ -49,23 +47,23 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the datadog Monitor should exist. Changing this forces a new datadog Monitor to be created.
 
+* `sku_name` - (Required) The name which should be used for this sku.
+
 * `identity` - (Required) A `identity` block as defined below.
 
-* `sku` - (Required) A `sku` block as defined below.
+* `user` - (Required) A `user` block as defined below.
 
-* `user_info` - (Required) A `user_info` block as defined below.
+* `datadog_organization` - (Required) A `datadog_organization` block as defined below.
 
 ---
 
-* `datadog_organization_properties` - (Required) A `datadog_organization_properties` block as defined below.
-
-* `monitoring_status` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Possible values are "true" and "false" is allowed.
+* `monitoring_enabled` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Possible values are "true" and "false" is allowed.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the datadog Monitor.
 
 ---
 
-A `datadog_organization_properties` block exports the following:
+A `datadog_organization` block exports the following:
 
 * `api_key` - (Required) Api key associated to the Datadog organization. Changing this forces a new datadog Monitor to be created.
 
@@ -88,17 +86,11 @@ An `identity` block supports the following:
 > **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the datadog Monitor has been created. More details are available below.
 ---
 
-An `sku` block exports the following:
-
-* `name` - (Required) The name which should be used for this sku.
-
----
-
-An `user_info` block exports the following:
+An `user` block exports the following:
 
 * `name` - (Required) The name which should be used for this user_info.
 
-* `email_address` - (Required) Email of the user used by Datadog for contacting them if needed. Changing this forces a new datadog Monitor to be created.
+* `email` - (Required) Email of the user used by Datadog for contacting them if needed. Changing this forces a new datadog Monitor to be created.
 
 * `phone_number` - (Optional) Phone number of the user used by Datadog for contacting them if needed.
 
@@ -110,13 +102,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
-* `liftr_resource_category` - The catogory of resource logs flowing.
-
-* `liftr_resource_preference` - The priority of the resource.
+* `resource_category` - The catogory of resource logs flowing.
 
 * `marketplace_subscription_status` - Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state.
-
-* `type` - The type of the monitor resource.
 
 ---
 
@@ -128,6 +116,18 @@ An `identity` block exports the following:
 
 -> You can access the Principal ID via `${azurerm_datadog_monitor.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_datadog_monitor.example.identity.0.tenant_id}`
 
+## Role Assignment
+
+To enable metrics flow, perform role assignment on the identity created above. `Monitoring reader` role is required.
+
+### Role assignment on the monitor created
+```hcl
+resource "azurerm_role_assignment" "example" {
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = "/subscriptions/5a611eed-e33a-44e8-92b1-3f6bf835905e/providers/Microsoft.Authorization/roleDefinitions/43d0d8ad-25c7-4714-9337-8ba259a9fe05"
+  principal_id       = azurerm_datadog_monitor.example.identity.0.principal_id
+}
+```
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
