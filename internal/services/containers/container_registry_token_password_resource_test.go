@@ -160,6 +160,10 @@ func (r ContainerRegistryTokenPasswordResource) requiresImport(data acceptance.T
 %s
 
 resource "azurerm_container_registry_token_password" "import" {
+  container_registry_token_id = azurerm_container_registry_token.test.id
+  password {
+    name = "password1"
+  }
 }
 `, template)
 }
