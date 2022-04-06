@@ -21,7 +21,8 @@ BUG FIXES:
 
 * `azurerm_api_management_api_operation_tag` - now retrieves tags from the correct API [GH-16006]
 * `azurerm_application_gateway` - frontend_ip_configuration blocks can now be changed [GH-16132]
-* `azurerm_application_insights` - Remove disable logic for the Azure created Action Group [GH-16170]
+* `azurerm_application_insights` - remove disable logic for the Azure created Action Group [GH-16170]
+* `azurerm_cosmosdb_sql_container` - disabling the `analytical_storage_ttl` property now forces a new resoruce to be created [GH-16229]
 * `azurerm_linux_function_app` - only one of `application_insights_key` or `application_insights_connection_string` now needs to be optionally specified [GH-16134]
 * `azurerm_linux_function_app_slot` - only one of `application_insights_key` or `application_insights_connection_string` now needs to be optionally specified [GH-16134]
 * `azurerm_windows_function_app` - fix import check for Service Plan OS type [GH-16164]
