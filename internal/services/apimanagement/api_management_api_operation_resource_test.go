@@ -379,7 +379,7 @@ resource "azurerm_api_management_api_operation" "test" {
       content_type = "application/xml"
 
       example {
-        name  = "default"
+        name  = "sample"
         value = <<SAMPLE
 <response>
   <user name="bravo24">
