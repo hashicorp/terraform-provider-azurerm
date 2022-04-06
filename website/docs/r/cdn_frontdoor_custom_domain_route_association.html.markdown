@@ -10,7 +10,7 @@ description: |-
 
 This resource is used with the `azurerm_cdn_frontdoor_custom_domain` and the `azurerm_cdn_frontdoor_route` resources to associate the Frontdoor Route with the Frontdoor Custom Domain. The successful creation of this resource represents that the Frontdoor Route has been successfully associated with the Frontdoor Custom Domain.
 
--> **NOTE:** The custom domain association functionality has been separated from the Frontdoor Route resource to accommodate for the Custom Domain workflow logic.
+-> **NOTE:** The custom domain association functionality has been separated from the Frontdoor Route resource to accommodate the Custom Domain workflow logic.
 
 ## Example Usage
 
@@ -19,7 +19,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_route_association" "example" {
   cdn_frontdoor_route_id = azurerm_cdn_frontdoor_route.example.id
 
   cdn_frontdoor_custom_domain_txt_validator_ids = [azurerm_cdn_frontdoor_custom_domain_txt_validator.example.id]
-  cdn_frontdoor_custom_domain ids               = [azurerm_cdn_frontdoor_custom_domain.example.id]
+  cdn_frontdoor_custom_domain_ids               = [azurerm_cdn_frontdoor_custom_domain.example.id]
 }
 ```
 
