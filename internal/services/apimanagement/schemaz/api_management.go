@@ -202,14 +202,6 @@ func FlattenApiManagementOperationRepresentation(input *[]apimanagement.Represen
 				return nil, err
 			}
 			output["example"] = example
-
-			if !features.ThreePointOhBeta() && v.Examples["default"] != nil && v.Examples["default"].Value != nil {
-				value, err := convert2Json(v.Examples["default"].Value)
-				if err != nil {
-					return nil, err
-				}
-				output["sample"] = value
-			}
 		}
 
 		if v.SchemaID != nil {
