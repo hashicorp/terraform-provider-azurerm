@@ -655,7 +655,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("Updating workspace identity control for SQL pool: %+v", err)
 		}
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+			return fmt.Errorf("waiting for update workspace identity control for SQL pool of %q: %+v", id, err)
 		}
 	}
 
