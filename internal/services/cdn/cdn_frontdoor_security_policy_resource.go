@@ -61,6 +61,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 						"firewall": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							ForceNew: true,
 							MaxItems: 1,
 
 							Elem: &pluginsdk.Resource{
