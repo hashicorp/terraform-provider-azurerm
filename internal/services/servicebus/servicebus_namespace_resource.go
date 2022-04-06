@@ -121,6 +121,12 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				},
 			},
 
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"default_primary_connection_string": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -203,8 +209,9 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 			Tier: servicebus.SkuTier(sku),
 		},
 		SBNamespaceProperties: &servicebus.SBNamespaceProperties{
-			ZoneRedundant: utils.Bool(d.Get("zone_redundant").(bool)),
-			Encryption:    expandServiceBusNamespaceEncryption(d.Get("customer_managed_key").([]interface{})),
+			ZoneRedundant:    utils.Bool(d.Get("zone_redundant").(bool)),
+			Encryption:       expandServiceBusNamespaceEncryption(d.Get("customer_managed_key").([]interface{})),
+			DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -281,6 +288,11 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 		if customerManagedKey, err := flattenServiceBusNamespaceEncryption(properties.Encryption); err == nil {
 			d.Set("customer_managed_key", customerManagedKey)
 		}
+		localAuthEnabled := true
+		if properties.DisableLocalAuth != nil {
+			localAuthEnabled = !*properties.DisableLocalAuth
+		}
+		d.Set("local_auth_enabled", localAuthEnabled)
 	}
 
 	keys, err := clientStable.ListKeys(ctx, id.ResourceGroup, id.Name, serviceBusNamespaceDefaultAuthorizationRule)
