@@ -36,12 +36,14 @@ The following attributes are exported:
 
 * `id` - The Kusto Cluster ID.
 
-* `hot_cache_period` - The time the data that should be kept in cache for fast queries as ISO 8601 timespan. Default is unlimited.
+* `hot_cache_period` - The time the data that should be kept in cache for fast queries as ISO 8601 timespan.
 
-* `soft_delete_period` - The time the data should be kept before it stops being accessible to queries as ISO 8601 timespan. Default is unlimited.
+* `soft_delete_period` - The time the data should be kept before it stops being accessible to queries as ISO 8601 timespan.
 
 * `size` - The size of the database in bytes.
+
 ## Timeouts
+
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Database.
