@@ -665,6 +665,21 @@ func TestAccMsSqlDatabase_errorOnDisabledEncryption(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_ledgerEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ledgerEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DatabaseID(state.ID)
 	if err != nil {
@@ -1476,6 +1491,18 @@ resource "azurerm_mssql_database" "test" {
   name                                = "acctest-db-%d"
   server_id                           = azurerm_mssql_server.test.id
   transparent_data_encryption_enabled = false
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) ledgerEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name           = "acctest-db-%[2]d"
+  server_id      = azurerm_mssql_server.test.id
+  ledger_enabled = true
 }
 `, r.template(data), data.RandomInteger)
 }
