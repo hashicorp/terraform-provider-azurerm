@@ -387,6 +387,22 @@ func expandRouteAFDEndpointProtocolsArray(input []interface{}) *[]track1.AFDEndp
 	return &results
 }
 
+func expandRouteResourceReferenceArray(input []interface{}) *[]track1.ResourceReference {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	results := make([]track1.ResourceReference, 0)
+
+	for _, item := range input {
+		results = append(results, track1.ResourceReference{
+			ID: utils.String(item.(string)),
+		})
+	}
+
+	return &results
+}
+
 func expandRouteAfdRouteCacheConfiguration(input []interface{}) *track1.AfdRouteCacheConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		return nil

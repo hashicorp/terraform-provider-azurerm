@@ -8,7 +8,7 @@ description: |-
 
 # azurerum_cdn_frontdoor_custom_domain_route_association
 
-This resource is used with the `azurerm_cdn_frontdoor_custom_domain` and the `azurerm_cdn_frontdoor_route` to associate the Frontdoor Route with the Frontdoor Custom Domain. The successful creation of this resource represents that the Frontdoor Route has been successfully associated with the Frontdoor Custom Domain.
+This resource is used with the `azurerm_cdn_frontdoor_custom_domain` and the `azurerm_cdn_frontdoor_route` resources to associate the Frontdoor Route with the Frontdoor Custom Domain. The successful creation of this resource represents that the Frontdoor Route has been successfully associated with the Frontdoor Custom Domain.
 
 -> **NOTE:** The custom domain association functionality has been separated from the Frontdoor Route resource to accommodate for the Custom Domain workflow logic.
 
@@ -16,12 +16,10 @@ This resource is used with the `azurerm_cdn_frontdoor_custom_domain` and the `az
 
 ```hcl
 resource "azurerm_cdn_frontdoor_custom_domain_route_association" "example" {
-  cdn_frontdoor_route_id                       = azurerm_cdn_frontdoor_route.example.id
-  cdn_frontdoor_custom_domain_txt_validator_id = azurerm_cdn_frontdoor_custom_domain_txt_validator.example.id
+  cdn_frontdoor_route_id = azurerm_cdn_frontdoor_route.example.id
 
-  custom_domains {
-    id = azurerm_cdn_frontdoor_custom_domain.example.id
-  }
+  cdn_frontdoor_custom_domain_txt_validator_ids = [azurerm_cdn_frontdoor_custom_domain_txt_validator.example.id]
+  cdn_frontdoor_custom_domain ids               = [azurerm_cdn_frontdoor_custom_domain.example.id]
 }
 ```
 
@@ -29,11 +27,11 @@ resource "azurerm_cdn_frontdoor_custom_domain_route_association" "example" {
 
 The following arguments are supported:
 
-* `cdn_frontdoor_route_id` - (Required) The resource ID of the Frontdoor Custom Domain to validate. Changing this forces a new Frontdoor Custom Domain Route Association to be created.
+* `cdn_frontdoor_route_id` - (Required) The resource ID of the Frontdoor Route to associate the Frontdoor Custom Domain(s) with. Changing this forces a new Frontdoor Custom Domain Route Association to be created.
 
-* `cdn_frontdoor_custom_domain_txt_validator_id` - (Required) The resource ID of the Frontdoor Custom Domain to validate. Changing this forces a new Frontdoor Custom Domain Route Association to be created.
+* `cdn_frontdoor_custom_domain_txt_validator_ids` - (Required) One or more resource IDs of the Frontdoor Custom Domain Validator.
 
-* `custom_domains` - (Required) One or more `custom_domains` block as defined below.
+* `cdn_frontdoor_custom_domain_ids` - (Required) One or more resource IDs of the Frontdoor Custom Domain to associate with the Frontdoor Route.
 
 ## Attributes Reference
 
@@ -41,16 +39,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Frontdoor Endpoint.
 
-[comment]: <> (TODO: This needs to be a list map structure like custom domains)
-* `cdn_frontdoor_custom_domain_validation_state` - The state of the Frontdoor Custom Domain TXT record validation process. Possible return values include `Approved`, `InternalError`, `Pending`, `PendingRevalidation`, `RefreshingValidationToken`, `Rejected`, `Submitting`, `TimedOut` and `Unknown`.
+* `cdn_frontdoor_custom_domains_active_status` - One or more `cdn_frontdoor_custom_domains_active_status` blocks as defined below.
 
 ---
+A `cdn_frontdoor_custom_domains_active_status` block exports the following:
 
-A `custom_domains` block supports the following:
+* `id` - (Computed) The resource ID of the Frontdoor Custom Domain.
 
-* `id` - (Optional) Resource ID.
-
-* `active` - (Computed) Is the custom domain active?
+* `active` - (Computed) Is the Frontdoor Custom Domain active?
 
 ---
 

@@ -10,28 +10,28 @@ import (
 )
 
 type FrontdoorCustomDomainRouteId struct {
-	SubscriptionId   string
-	ResourceGroup    string
-	ProfileName      string
-	AfdEndpointName  string
-	RouteName        string
-	CustomDomainName string
+	SubscriptionId  string
+	ResourceGroup   string
+	ProfileName     string
+	AfdEndpointName string
+	RouteName       string
+	AssociationName string
 }
 
-func NewFrontdoorCustomDomainRouteID(subscriptionId, resourceGroup, profileName, afdEndpointName, routeName, customDomainName string) FrontdoorCustomDomainRouteId {
+func NewFrontdoorCustomDomainRouteID(subscriptionId, resourceGroup, profileName, afdEndpointName, routeName, associationName string) FrontdoorCustomDomainRouteId {
 	return FrontdoorCustomDomainRouteId{
-		SubscriptionId:   subscriptionId,
-		ResourceGroup:    resourceGroup,
-		ProfileName:      profileName,
-		AfdEndpointName:  afdEndpointName,
-		RouteName:        routeName,
-		CustomDomainName: customDomainName,
+		SubscriptionId:  subscriptionId,
+		ResourceGroup:   resourceGroup,
+		ProfileName:     profileName,
+		AfdEndpointName: afdEndpointName,
+		RouteName:       routeName,
+		AssociationName: associationName,
 	}
 }
 
 func (id FrontdoorCustomDomainRouteId) String() string {
 	segments := []string{
-		fmt.Sprintf("Custom Domain Name %q", id.CustomDomainName),
+		fmt.Sprintf("Association Name %q", id.AssociationName),
 		fmt.Sprintf("Route Name %q", id.RouteName),
 		fmt.Sprintf("Afd Endpoint Name %q", id.AfdEndpointName),
 		fmt.Sprintf("Profile Name %q", id.ProfileName),
@@ -42,8 +42,8 @@ func (id FrontdoorCustomDomainRouteId) String() string {
 }
 
 func (id FrontdoorCustomDomainRouteId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/afdEndpoints/%s/routes/%s/customDomains/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, id.CustomDomainName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/afdEndpoints/%s/routes/%s/associations/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, id.AssociationName)
 }
 
 // FrontdoorCustomDomainRouteID parses a FrontdoorCustomDomainRoute ID into an FrontdoorCustomDomainRouteId struct
@@ -75,7 +75,7 @@ func FrontdoorCustomDomainRouteID(input string) (*FrontdoorCustomDomainRouteId, 
 	if resourceId.RouteName, err = id.PopSegment("routes"); err != nil {
 		return nil, err
 	}
-	if resourceId.CustomDomainName, err = id.PopSegment("customDomains"); err != nil {
+	if resourceId.AssociationName, err = id.PopSegment("associations"); err != nil {
 		return nil, err
 	}
 
@@ -147,15 +147,15 @@ func FrontdoorCustomDomainRouteIDInsensitively(input string) (*FrontdoorCustomDo
 		return nil, err
 	}
 
-	// find the correct casing for the 'customDomains' segment
-	customDomainsKey := "customDomains"
+	// find the correct casing for the 'associations' segment
+	associationsKey := "associations"
 	for key := range id.Path {
-		if strings.EqualFold(key, customDomainsKey) {
-			customDomainsKey = key
+		if strings.EqualFold(key, associationsKey) {
+			associationsKey = key
 			break
 		}
 	}
-	if resourceId.CustomDomainName, err = id.PopSegment(customDomainsKey); err != nil {
+	if resourceId.AssociationName, err = id.PopSegment(associationsKey); err != nil {
 		return nil, err
 	}
 

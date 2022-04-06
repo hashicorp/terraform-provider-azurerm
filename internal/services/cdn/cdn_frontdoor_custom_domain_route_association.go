@@ -2,6 +2,7 @@ package cdn
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-uuid"
@@ -42,25 +43,36 @@ func resourceCdnFrontdoorCustomDomainRouteAssociation() *pluginsdk.Resource {
 				ValidateFunc: validate.FrontdoorRouteID,
 			},
 
-			"cdn_frontdoor_custom_domain_txt_validator_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.FrontdoorCustomDomainTxtID,
+			"cdn_frontdoor_custom_domain_txt_validator_ids": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validate.FrontdoorCustomDomainTxtID,
+				},
 			},
 
-			"custom_domains": {
+			"cdn_frontdoor_custom_domain_ids": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Required: true,
+
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: ValidateFrontdoorCustomDomainIDInsensitively,
+				},
+			},
+
+			"cdn_frontdoor_custom_domains_active_status": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 
-						// NOTE: I am using the Insensitively here because Portal lowercases everything
 						"id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: ValidateFrontdoorCustomDomainIDInsensitively,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 
 						"active": {
@@ -101,9 +113,12 @@ func resourceCdnFrontdoorCustomDomainRouteAssociationCreate(d *pluginsdk.Resourc
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	domainIds := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
+	validatorIds := d.Get("cdn_frontdoor_custom_domain_txt_validator_ids").([]interface{})
+
 	props := track1.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
-			CustomDomains: expandRouteActivatedResourceReferenceArray(d.Get("custom_domains").([]interface{})),
+			CustomDomains: expandRouteActivatedResourceReferenceArray(domainIds, existing.RouteProperties.CustomDomains),
 		},
 	}
 
@@ -123,7 +138,9 @@ func resourceCdnFrontdoorCustomDomainRouteAssociationCreate(d *pluginsdk.Resourc
 
 	d.SetId(id.ID())
 	d.Set("cdn_frontdoor_route_id", routeId.ID())
-	d.Set("cdn_frontdoor_custom_domain_txt_validator_id", d.Get("cdn_frontdoor_custom_domain_txt_validator_id").(string))
+	d.Set("cdn_frontdoor_custom_domain_ids", domainIds)
+	d.Set("cdn_frontdoor_custom_domain_txt_validator_ids", validatorIds)
+
 	return resourceCdnFrontdoorCustomDomainRouteAssociationRead(d, meta)
 }
 
@@ -133,11 +150,6 @@ func resourceCdnFrontdoorCustomDomainRouteAssociationRead(d *pluginsdk.ResourceD
 	defer cancel()
 
 	routeId, err := parse.FrontdoorRouteID(d.Get("cdn_frontdoor_route_id").(string))
-	if err != nil {
-		return err
-	}
-
-	validatorId, err := parse.FrontdoorCustomDomainTxtID(d.Get("cdn_frontdoor_custom_domain_txt_validator_id").(string))
 	if err != nil {
 		return err
 	}
@@ -156,12 +168,16 @@ func resourceCdnFrontdoorCustomDomainRouteAssociationRead(d *pluginsdk.ResourceD
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	validatorIds := d.Get("cdn_frontdoor_custom_domain_txt_validator_ids").([]interface{})
+	domainIds := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
+
 	d.Set("cdn_frontdoor_route_id", routeId.ID())
-	d.Set("cdn_frontdoor_custom_domain_txt_validator_id", validatorId.ID())
+	d.Set("cdn_frontdoor_custom_domain_ids", domainIds)
+	d.Set("cdn_frontdoor_custom_domain_txt_validator_ids", validatorIds)
 
 	if props := resp.RouteProperties; props != nil {
-		if err := d.Set("custom_domains", flattenRouteActivatedResourceReferenceArray(props.CustomDomains)); err != nil {
-			return fmt.Errorf("setting `custom_domains`: %+v", err)
+		if err := d.Set("cdn_frontdoor_custom_domains_active_status", flattenRouteActivatedResourceReferenceArray(domainIds, props.CustomDomains)); err != nil {
+			return fmt.Errorf("flattening %q: %+v", "cdn_frontdoor_custom_domains_active_status", err)
 		}
 	}
 
@@ -195,8 +211,13 @@ func resourceCdnFrontdoorCustomDomainRouteAssociationUpdate(d *pluginsdk.Resourc
 
 	props := track1.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
-			CustomDomains: expandRouteActivatedResourceReferenceArray(d.Get("custom_domains").([]interface{})),
+			CustomDomains: expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}), existing.RouteProperties.CustomDomains),
 		},
+	}
+
+	// You must pass the Cache Configuration if it exist else you will remove it and disable compression if enabled
+	if existing.RouteProperties.CacheConfiguration != nil {
+		props.CacheConfiguration = existing.RouteProperties.CacheConfiguration
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, props)
@@ -216,10 +237,23 @@ func resourceCdnFrontdoorCustomDomainRouteAssociationDelete(d *pluginsdk.Resourc
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// TODO: Need to Delete just the custom domain associations on the route
-	id, err := parse.FrontdoorRouteID(d.Get("cdn_frontdoor_route_id").(string))
+	id, err := parse.FrontdoorCustomDomainRouteID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	routeId, err := parse.FrontdoorRouteID(d.Get("cdn_frontdoor_route_id").(string))
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
+	if err != nil {
+		if utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for existing %s: %+v", routeId, err)
+		}
+
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	// NOTE: I had to change the SDK MarshalJSON resource to allow nil
@@ -227,6 +261,11 @@ func resourceCdnFrontdoorCustomDomainRouteAssociationDelete(d *pluginsdk.Resourc
 		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
 			CustomDomains: nil,
 		},
+	}
+
+	// You must pass the Cache Configuration if it exist else you will remove it and disable compression if enabled
+	if existing.RouteProperties.CacheConfiguration != nil {
+		props.CacheConfiguration = existing.RouteProperties.CacheConfiguration
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, props)
@@ -242,51 +281,54 @@ func resourceCdnFrontdoorCustomDomainRouteAssociationDelete(d *pluginsdk.Resourc
 	return nil
 }
 
-func expandRouteResourceReferenceArray(input []interface{}) *[]track1.ResourceReference {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	results := make([]track1.ResourceReference, 0)
-
-	for _, item := range input {
-		results = append(results, track1.ResourceReference{
-			ID: utils.String(item.(string)),
-		})
-	}
-
-	return &results
-}
-
-func expandRouteActivatedResourceReferenceArray(input []interface{}) *[]track1.ActivatedResourceReference {
+func expandRouteActivatedResourceReferenceArray(input []interface{}, customDomains *[]track1.ActivatedResourceReference) *[]track1.ActivatedResourceReference {
 	results := make([]track1.ActivatedResourceReference, 0)
-	for _, item := range input {
-		v := item.(map[string]interface{})
-
-		results = append(results, track1.ActivatedResourceReference{
-			ID: utils.String(v["id"].(string)),
-		})
+	if len(input) == 0 {
+		return customDomains
 	}
+
+	for _, customDomain := range input {
+		id := customDomain.(string)
+		inRoute := false
+
+		if customDomains != nil {
+			for _, item := range *customDomains {
+				if strings.EqualFold(*item.ID, id) {
+					inRoute = true
+					results = append(results, track1.ActivatedResourceReference{
+						ID: utils.String(id),
+					})
+				}
+			}
+		}
+
+		// Adding a new custom domain association
+		if !inRoute {
+			results = append(results, track1.ActivatedResourceReference{
+				ID: utils.String(id),
+			})
+		}
+	}
+
 	return &results
 }
 
-func flattenRouteActivatedResourceReferenceArray(inputs *[]track1.ActivatedResourceReference) []interface{} {
+func flattenRouteActivatedResourceReferenceArray(input []interface{}, inputs *[]track1.ActivatedResourceReference) []interface{} {
 	results := make([]interface{}, 0)
 	if inputs == nil {
 		return results
 	}
 
-	for _, input := range *inputs {
-		result := make(map[string]interface{})
-
-		if input.ID != nil {
-			result["id"] = *input.ID
+	for _, customDomainIds := range input {
+		id := customDomainIds.(string)
+		for _, customDomain := range *inputs {
+			if strings.EqualFold(*customDomain.ID, id) {
+				result := make(map[string]interface{})
+				result["id"] = customDomain.ID
+				result["active"] = customDomain.IsActive
+				results = append(results, result)
+			}
 		}
-
-		if input.IsActive != nil {
-			result["active"] = *input.IsActive
-		}
-		results = append(results, result)
 	}
 
 	return results
