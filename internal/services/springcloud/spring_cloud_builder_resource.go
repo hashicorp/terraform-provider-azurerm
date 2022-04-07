@@ -49,7 +49,7 @@ func resourceSpringCloudBuildServiceBuilder() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudServiceID,
 			},
 
-			"build_pack_groups": {
+			"build_pack_group": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
 				MinItems: 1,
@@ -120,7 +120,7 @@ func resourceSpringCloudBuildServiceBuilderCreateUpdate(d *pluginsdk.ResourceDat
 
 	builderResource := appplatform.BuilderResource{
 		Properties: &appplatform.BuilderProperties{
-			BuildpackGroups: expandBuildServiceBuilderBuildPacksGroupPropertiesArray(d.Get("build_pack_groups").(*pluginsdk.Set).List()),
+			BuildpackGroups: expandBuildServiceBuilderBuildPacksGroupPropertiesArray(d.Get("build_pack_group").(*pluginsdk.Set).List()),
 			Stack:           expandBuildServiceBuilderStackProperties(d.Get("stack").([]interface{})),
 		},
 	}
@@ -160,8 +160,8 @@ func resourceSpringCloudBuildServiceBuilderRead(d *pluginsdk.ResourceData, meta 
 	d.Set("name", id.BuilderName)
 	d.Set("spring_cloud_service_id", parse.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroup, id.SpringName).ID())
 	if props := resp.Properties; props != nil {
-		if err := d.Set("build_pack_groups", flattenBuildServiceBuilderBuildPacksGroupPropertiesArray(props.BuildpackGroups)); err != nil {
-			return fmt.Errorf("setting `build_pack_groups`: %+v", err)
+		if err := d.Set("build_pack_group", flattenBuildServiceBuilderBuildPacksGroupPropertiesArray(props.BuildpackGroups)); err != nil {
+			return fmt.Errorf("setting `build_pack_group`: %+v", err)
 		}
 		if err := d.Set("stack", flattenBuildServiceBuilderStackProperties(props.Stack)); err != nil {
 			return fmt.Errorf("setting `stack`: %+v", err)

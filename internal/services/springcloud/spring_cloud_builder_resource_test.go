@@ -87,7 +87,7 @@ func (r SpringCloudBuildServiceBuilderResource) basic(data acceptance.TestData) 
 resource "azurerm_spring_cloud_builder" "test" {
   name                    = "acctest-absb-%d"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
-  build_pack_groups {
+  build_pack_group {
     name           = "mix"
     build_pack_ids = ["tanzu-buildpacks/java-azure"]
   }
@@ -109,7 +109,7 @@ resource "azurerm_spring_cloud_builder" "import" {
   name                    = azurerm_spring_cloud_builder.test.name
   spring_cloud_service_id = azurerm_spring_cloud_builder.test.spring_cloud_service_id
 
-  build_pack_groups {
+  build_pack_group {
     name           = "mix"
     build_pack_ids = ["tanzu-buildpacks/java-azure"]
   }

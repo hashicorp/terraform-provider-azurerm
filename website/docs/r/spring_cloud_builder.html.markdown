@@ -33,7 +33,7 @@ resource "azurerm_spring_cloud_builder" "example" {
   name                    = "example"
   spring_cloud_service_id = azurerm_spring_cloud_service.example.id
 
-  build_pack_groups {
+  build_pack_group {
     name           = "mix"
     build_pack_ids = ["tanzu-buildpacks/java-azure"]
   }
@@ -53,13 +53,13 @@ The following arguments are supported:
 
 * `spring_cloud_service_id` - (Required) The ID of the Spring Cloud Service. Changing this forces a new Spring Cloud Builder to be created.
 
-* `build_pack_groups` - (Required) One or more `build_pack_groups` blocks as defined below.
+* `build_pack_group` - (Required) One or more `build_pack_group` blocks as defined below.
 
 * `stack` - (Required) A `stack` block as defined below.
 
 ---
 
-A `build_pack_groups` block supports the following:
+A `build_pack_group` block supports the following:
 
 * `name` - (Required) The name which should be used for this build pack group.
 
