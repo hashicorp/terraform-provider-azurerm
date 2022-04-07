@@ -294,7 +294,7 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creating of %q: %+v", id, err)
+				return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 			}
 
 			createWait := pluginsdk.StateChangeConf{
@@ -472,7 +472,7 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for updating of %q: %+v", id, err)
+				return fmt.Errorf("waiting for update of %q: %+v", id, err)
 			}
 
 			return nil
