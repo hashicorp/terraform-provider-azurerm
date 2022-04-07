@@ -1118,7 +1118,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
 			HTTPProxyConfig:        httpProxyConfig,
 			OidcIssuerProfile:      oidcIssuerProfile,
-			SecurityProfile: 		microsoftDefender,
+			SecurityProfile:        microsoftDefender,
 		},
 		Tags: tags.Expand(t),
 	}
