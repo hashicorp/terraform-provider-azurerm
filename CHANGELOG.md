@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v63.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-16147]
 * dependencies: updating `digitaltwins` to use API Version `2020-12-01` [GH-16044]
+* dependencies: updating `streamanalytics` to use API Version `2020-03-01` [GH-16270]
 * provider: upgrading to Go 1.18 [GH-16247]
 * Data Source: `azurerm_kubernetes_cluster` - support for the properties `oidc_issuer_enabled` and `oidc_issuer_url` [GH-16130] 
 * `azurerm_application_gateway` - add `KNOWN-CVES` to accepted values for `rule_group_name` [GH-16080]
