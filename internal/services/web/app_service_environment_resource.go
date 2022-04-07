@@ -142,8 +142,26 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+	}
+
+	createWait := pluginsdk.StateChangeConf{
+		Pending: []string{
+			string(web.ProvisioningStateInProgress),
+		},
+		Target: []string{
+			string(web.ProvisioningStateSucceeded),
+		},
+		MinTimeout: 1 * time.Minute,
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+		Refresh:    appServiceEnvironmentRefresh(ctx, client, id.ResourceGroup, id.HostingEnvironmentName),
+	}
+
+	// as such we'll ignore it and use a custom poller instead
+	if _, err := createWait.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
