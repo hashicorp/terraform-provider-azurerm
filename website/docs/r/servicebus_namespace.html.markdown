@@ -54,6 +54,8 @@ The following arguments are supported:
 
 * `customer_managed_key` - (Optional) An `customer_managed_key` block as defined below.
 
+* `local_auth_enabled` - (Optional) Whether or not SAS authentication is enabled for the Service Bus namespace. Defaults to `true`.
+
 * `zone_redundant` - (Optional) Whether or not this resource is zone redundant. `sku` needs to be `Premium`. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
