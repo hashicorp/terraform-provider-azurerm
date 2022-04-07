@@ -881,7 +881,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"v2.0",
 						"v3.0",
 						"v4.0",
 						"v5.0",
@@ -893,8 +892,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"5.6",
-						"7.3",
 						"7.4",
 					}, false),
 				},
@@ -911,7 +908,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"10-LTS", // Deprecated?
 						"12-LTS",
 						"14-LTS",
 						"16-LTS",
@@ -980,6 +976,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"dotnet",
+						"dotnetcore",
 						"node",
 						"python",
 						"php",
@@ -1082,9 +1079,9 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"2.1",
 						"3.1",
 						"5.0",
+						"6.0",
 					}, false),
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.php_version",
@@ -1099,10 +1096,8 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"5.6", // TODO - Remove? 5.6 is available, but deprecated in the service
-						"7.2", // TODO - Remove? 7.2 is available, but deprecated in the service
-						"7.3",
 						"7.4",
+						"8.0",
 					}, false),
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1117,7 +1112,6 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"2.7",
 						"3.7",
 						"3.8",
 						"3.9",
@@ -1135,12 +1129,9 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"10.1",   // TODO - Remove?  Deprecated
-						"10.6",   // TODO - Remove?  Deprecated
-						"10.14",  // TODO - Remove?  Deprecated
-						"10-lts", // TODO - Remove?  Deprecated
 						"12-lts",
 						"14-lts",
+						"16-lts",
 					}, false),
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1155,8 +1146,8 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"2.5",
 						"2.6",
+						"2.7",
 					}, false),
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -2799,8 +2790,9 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		if winAppStack.DockerContainerName != "" {
 			if winAppStack.DockerContainerRegistry != "" {
 				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+			} else {
+				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
 			}
-			expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
 		}
 		currentStack = winAppStack.CurrentStack
 	}
@@ -2947,6 +2939,10 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 
 		if linuxAppStack.NodeVersion != "" {
 			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
+		}
+
+		if linuxAppStack.RubyVersion != "" {
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
 		}
 
 		if linuxAppStack.PythonVersion != "" {

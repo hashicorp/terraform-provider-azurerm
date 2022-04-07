@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -52,8 +51,6 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"loadbalancer_id": {
 				Type:         pluginsdk.TypeString,
@@ -195,7 +192,6 @@ func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.Set("name", config.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := config.ProbePropertiesFormat; props != nil {
 		intervalInSeconds := 0

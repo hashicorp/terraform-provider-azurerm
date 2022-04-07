@@ -316,14 +316,14 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.0.2.0/24"
+  address_prefixes     = ["172.0.2.0/24"]
 }
 
 resource "azurerm_subnet" "test-aci" {
   name                 = "acctestsubnet-aci%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.0.3.0/24"
+  address_prefixes     = ["172.0.3.0/24"]
 
   delegation {
     name = "aciDelegation"
@@ -394,14 +394,14 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.0.2.0/24"
+  address_prefixes     = ["172.0.2.0/24"]
 }
 
 resource "azurerm_subnet" "test-aci" {
   name                 = "acctestsubnet-aci%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.0.3.0/24"
+  address_prefixes     = ["172.0.3.0/24"]
 
   delegation {
     name = "aciDelegation"
@@ -472,7 +472,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.0.2.0/24"
+  address_prefixes     = ["172.0.2.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -533,7 +533,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.0.2.0/24"
+  address_prefixes     = ["172.0.2.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -650,7 +650,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-// TODO 3.0 - Remove this test since Kube Dashboard will be removed along with Kubernetes version 1.19
+// CLEANUP: 3.0 - Remove this test since Kube Dashboard will be removed along with Kubernetes version 1.19
 func (KubernetesClusterResource) addonProfileKubeDashboardConfig(data acceptance.TestData) string {
 	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
@@ -939,7 +939,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-// TODO 3.0 - Remove this since OMS Agent can only be disabled by omitting the config
+// CLEANUP: 3.0 - Remove this since OMS Agent can only be disabled by omitting the config
 func (KubernetesClusterResource) addonProfileOMSScaleWithoutBlockConfig(data acceptance.TestData) string {
 	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
@@ -1263,8 +1263,8 @@ resource "azurerm_application_gateway" "test" {
   location            = azurerm_resource_group.test.location
 
   sku {
-    name     = "Standard_V2"
-    tier     = "Standard_V2"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 2
   }
 

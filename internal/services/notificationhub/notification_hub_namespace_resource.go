@@ -189,7 +189,6 @@ func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interf
 
 	if props := resp.NamespaceProperties; props != nil {
 		d.Set("enabled", props.Enabled)
-		d.Set("namespace_type", props.NamespaceType)
 		d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
 	}
 

@@ -170,6 +170,32 @@ func TestAccLinuxFunctionAppSlot_withAppSettingsStandardPlan(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionAppSlot_withAppSettingsUserSettingUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appSettingsUserSettings(data, SkuElasticPremiumPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("app_settings.%").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.appSettingsUserSettingsUpdate(data, SkuElasticPremiumPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("app_settings.%").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // backup by plan type
 
 func TestAccLinuxFunctionAppSlot_withBackupElasticPremiumPlan(t *testing.T) {
@@ -566,7 +592,23 @@ func TestAccLinuxFunctionAppSlot_appStackDotNet6(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNet(data, SkuStandardPlan, "6"),
+			Config: r.appStackDotNet(data, SkuStandardPlan, "6.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_appStackDotNet6Isolated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackDotNetIsolated(data, SkuStandardPlan, "6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -744,6 +786,8 @@ func TestAccLinuxFunctionAppSlot_appStackPowerShellCore(t *testing.T) {
 	})
 }
 
+// Others
+
 func TestAccLinuxFunctionAppSlot_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -780,22 +824,6 @@ func TestAccLinuxFunctionAppSlot_identity(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionAppSlot_identityKeyVaultIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
-	r := LinuxFunctionAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.identityUserAssignedKeyVaultIdentity(data, SkuStandardPlan),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
-
-// Others
-
 func TestAccLinuxFunctionAppSlot_updateStorageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -811,6 +839,68 @@ func TestAccLinuxFunctionAppSlot_updateStorageAccount(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updateStorageAccount(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_identityKeyVaultIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identityUserAssignedKeyVaultIdentity(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_msiStorageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msiStorageAccount(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_storageAccountKeyVaultSecret(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageAccountKVSecret(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_storageAccountKeyVaultSecretVersionless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageAccountKVSecretVersionless(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -973,6 +1063,51 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
+func (r LinuxFunctionAppSlotResource) appSettingsUserSettings(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {}
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppSlotResource) appSettingsUserSettingsUpdate(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+  }
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
 func (r LinuxFunctionAppSlotResource) connectionStrings(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1050,8 +1185,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     ]
 
     active_directory {
-      client_id     = "aadclientid"
-      client_secret = "aadsecret"
+      client_id = "aadclientid"
 
       allowed_audiences = [
         "activedirectorytokenaudiences",
@@ -1136,6 +1270,30 @@ resource "azurerm_linux_function_app_slot" "test" {
   site_config {
     application_stack {
       dotnet_version = "%s"
+    }
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, version)
+}
+
+func (r LinuxFunctionAppSlotResource) appStackDotNetIsolated(data acceptance.TestData, planSku string, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    application_stack {
+      dotnet_version              = "%s"
+      use_dotnet_isolated_runtime = true
     }
   }
 }
@@ -1900,6 +2058,195 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.identityTemplate(data, planSku), data.RandomInteger)
 }
 
+func (r LinuxFunctionAppSlotResource) msiStorageAccount(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+
+resource "azurerm_role_assignment" "func_app_access_to_storage" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_linux_function_app_slot.test.identity[0].principal_id
+}
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name            = "acctest-LFAS-%[2]d"
+  function_app_id = azurerm_linux_function_app.test.id
+
+  storage_account_name          = azurerm_storage_account.test.name
+  storage_uses_managed_identity = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppSlotResource) storageAccountKVSecret(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+%[1]s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%[2]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Get",
+    ]
+
+    secret_permissions = [
+      "Get",
+      "Delete",
+      "List",
+      "Purge",
+      "Recover",
+      "Set",
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    secret_permissions = [
+      "Get",
+      "List",
+    ]
+  }
+
+  tags = {
+    environment = "AccTest"
+  }
+}
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "secret-%[2]s"
+  value        = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key};EndpointSuffix=core.windows.net"
+  key_vault_id = azurerm_key_vault.test.id
+}
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name            = "acctest-LFAS-%[3]d"
+  function_app_id = azurerm_linux_function_app.test.id
+
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.test.id
+  storage_key_vault_secret_id     = azurerm_key_vault_secret.test.id
+
+  site_config {}
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, r.identityTemplate(data, planSku), data.RandomString, data.RandomInteger)
+}
+
+func (r LinuxFunctionAppSlotResource) storageAccountKVSecretVersionless(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+%[1]s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%[2]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Get",
+    ]
+
+    secret_permissions = [
+      "Get",
+      "Delete",
+      "List",
+      "Purge",
+      "Recover",
+      "Set",
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    secret_permissions = [
+      "Get",
+      "List",
+    ]
+  }
+
+  tags = {
+    environment = "AccTest"
+  }
+}
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "secret-%[2]s"
+  value        = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key};EndpointSuffix=core.windows.net"
+  key_vault_id = azurerm_key_vault.test.id
+}
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name            = "acctest-LFAS-%[3]d"
+  function_app_id = azurerm_linux_function_app.test.id
+
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.test.id
+  storage_key_vault_secret_id     = azurerm_key_vault_secret.test.versionless_id
+
+  site_config {}
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, r.identityTemplate(data, planSku), data.RandomString, data.RandomInteger)
+}
+
 func (LinuxFunctionAppSlotResource) template(data acceptance.TestData, planSku string) string {
 	var additionalConfig string
 	if strings.EqualFold(planSku, "EP1") {
@@ -2026,6 +2373,8 @@ data "azurerm_storage_account_sas" "test" {
     create  = false
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 `, r.template(data, planSku))

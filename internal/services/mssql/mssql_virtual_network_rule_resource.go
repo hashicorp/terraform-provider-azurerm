@@ -1,7 +1,6 @@
 package mssql
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -104,25 +103,17 @@ func resourceMsSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, parameters); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, parameters)
+	if err != nil {
 		return fmt.Errorf("creating MSSQL %s: %+v", id.String(), err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	// Wait for the provisioning state to become ready
 	log.Printf("[DEBUG] Waiting for MSSQL %s to become ready", id.String())
-	timeout, _ := ctx.Deadline()
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
-		Target:                    []string{"Ready"},
-		Refresh:                   mssqlVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, id),
-		MinTimeout:                1 * time.Minute,
-		ContinuousTargetOccurence: 5,
-		Timeout:                   time.Until(timeout),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for MSSQL %s to be created or updated: %+v", id.String(), err)
-	}
 
 	d.SetId(id.ID())
 
@@ -192,36 +183,4 @@ func resourceMsSqlVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta inter
 	}
 
 	return nil
-}
-
-// mssqlVirtualNetworkStateStatusCodeRefreshFunc refreshes and checks the state of the SQL Virtual Network Rule.
-// Response will contain a VirtualNetworkRuleProperties struct with a State property.
-// The state property contain one of the following states (except ResponseNotFound).
-//	* Deleting
-//	* Initializing
-//	* InProgress
-//	* Unknown
-//	* Ready
-//	* ResponseNotFound (custom state in case of 404)
-func mssqlVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *sql.VirtualNetworkRulesClient, id parse.VirtualNetworkRuleId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				log.Printf("[DEBUG] Retrieving MSSQL %s", id.String())
-				return nil, "ResponseNotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("polling for the state of MSSQL %s: %+v", id.String(), err)
-		}
-
-		if props := resp.VirtualNetworkRuleProperties; props != nil {
-			log.Printf("[DEBUG] Retrieving MSSQL %s returned Status %s", id.String(), props.State)
-			return resp, string(props.State), nil
-		}
-
-		// Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.
-		log.Printf("[DEBUG] Retrieving MSSQL %s returned empty VirtualNetworkRuleProperties", id.String())
-		return resp, "Unknown", nil
-	}
 }

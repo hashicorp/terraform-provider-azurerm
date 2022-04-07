@@ -11,10 +11,9 @@ description: |-
 
 Manages a Microsoft SQL Azure Database Server.
 
-~> **Note:** This resource provides usage of Microsoft SQL Azure Database server using an older `sku` based model. [It is recommended going forward](https://github.com/hashicorp/terraform-provider-azurerm/issues/10217#issuecomment-762036693) to use [`azurerm_mssql_server`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_server) resource which provides support for `vcores`.
+~> **Note:** The `azurerm_sql_server` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_server`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_server) resource instead.
 
-~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](https://www.terraform.io/language/state/sensitive-data).
 
 ## Example Usage
 
@@ -74,7 +73,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Microsoft SQL Server. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this SQL Server. The only possible value is `SystemAssigned`.
 
 ~> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Microsoft SQL Server has been created. More details are available below.
 

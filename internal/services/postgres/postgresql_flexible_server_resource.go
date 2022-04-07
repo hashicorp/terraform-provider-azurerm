@@ -210,12 +210,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				},
 			},
 
-			"cmk_enabled": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Deprecated: "This attribute has been removed from the API and will be removed in version 3.0 of the provider.",
-			},
-
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -379,10 +373,6 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-
-	// `cmk_enabled` has been removed from API since 2021-06-01
-	// and should be removed in version 3.0 of the provider.
-	d.Set("cmk_enabled", "")
 
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)

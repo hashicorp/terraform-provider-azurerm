@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-10-31/digitaltwins"
+	"github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-12-01/digitaltwins"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/parse"
@@ -103,6 +103,7 @@ func resourceDigitalTwinsEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData,
 	properties := digitaltwins.EndpointResource{
 		Properties: &digitaltwins.EventHub{
 			EndpointType:                 digitaltwins.EndpointTypeEventHub,
+			AuthenticationType:           digitaltwins.KeyBased,
 			ConnectionStringPrimaryKey:   utils.String(d.Get("eventhub_primary_connection_string").(string)),
 			ConnectionStringSecondaryKey: utils.String(d.Get("eventhub_secondary_connection_string").(string)),
 			DeadLetterSecret:             utils.String(d.Get("dead_letter_storage_secret").(string)),

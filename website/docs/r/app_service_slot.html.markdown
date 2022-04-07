@@ -11,6 +11,8 @@ description: |-
 
 Manages an App Service Slot (within an App Service).
 
+!> **NOTE:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_linux_web_app_slot`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_web_app_slot) and [`azurerm_windows_web_app_slot`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_web_app_slot) resources instead.
+
 -> **Note:** When using Slots - the `app_settings`, `connection_string` and `site_config` blocks on the `azurerm_app_service` resource will be overwritten when promoting a Slot using the `azurerm_app_service_active_slot` resource.
 
 
@@ -217,6 +219,8 @@ A `site_config` block supports the following:
 ~> **NOTE:** when using an App Service Plan in the `Free` or `Shared` Tiers `always_on` must be set to `false`.
 
 * `app_command_line` - (Optional) App command line to launch, e.g. `/sbin/myserver -b 0.0.0.0`.
+
+* `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
 
 * `cors` - (Optional) A `cors` block as defined below.
 

@@ -94,6 +94,8 @@ The following arguments are supported:
 
 ~> **Note:** `geo_backup_enabled` is only applicable for DataWarehouse SKUs (DW*). This setting is ignored for all other SKUs.
 
+* `ledger_enabled` - (Optional) A boolean that specifies if this is a ledger database. Defaults to `false`. Changing this forces a new resource to be created.
+
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
 * `long_term_retention_policy` - (Optional) A `long_term_retention_policy` block as defined below.
@@ -122,7 +124,7 @@ The following arguments are supported:
 
 ~> **Note:** The default `sku_name` value may differ between Azure locations depending on local availability of Gen4/Gen5 capacity. When databases are replicated using the `creation_source_database_id` property, the source (primary) database cannot have a higher SKU service tier than any secondary databases. When changing the `sku_name` of a database having one or more secondary databases, this resource will first update any secondary databases as necessary. In such cases it's recommended to use the same `sku_name` in your configuration for all related databases, as not doing so may cause an unresolvable diff during subsequent plans.
 
-* `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Changing this forces a new resource to be created.  Possible values are `GRS`, `LRS` and `ZRS`.  The default value is `GRS`.
+* `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Possible values are `Geo`, `GeoZone`, `Local` and `Zone`.  The default value is `Geo`.
 
 * `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
 
@@ -158,7 +160,7 @@ A `long_term_retention_policy` block supports the following:
 * `weekly_retention` - (Optional) The weekly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 520 weeks. e.g. `P1Y`, `P1M`, `P1W` or `P7D`.
 * `monthly_retention` - (Optional) The monthly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 120 months. e.g. `P1Y`, `P1M`, `P4W` or `P30D`.
 * `yearly_retention` - (Optional) The yearly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 10 years. e.g. `P1Y`, `P12M`, `P52W` or `P365D`.
-* `week_of_year` - (Optional) The week of year to take the yearly backup in an ISO 8601 format. Value has to be between `1` and `52`.
+* `week_of_year` - (Required) The week of year to take the yearly backup. Value has to be between `1` and `52`.
 
 ---
 

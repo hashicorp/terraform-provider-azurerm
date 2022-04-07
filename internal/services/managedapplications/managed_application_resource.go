@@ -380,6 +380,14 @@ func flattenManagedApplicationParametersOrOutputs(input interface{}) (map[string
 				results[k] = v.(float64)
 			case string:
 				results[k] = v.(string)
+			case map[string]interface{}:
+				// Azure NVA managed applications read call returns empty map[string]interface{} parameter 'tags'
+				// Do not return an error if the parameter is unsupported type, but is empty
+				if len(v.(map[string]interface{})) == 0 {
+					log.Printf("parameter '%s' is unexpected type %T, but we're ignoring it because of the empty value", k, t)
+				} else {
+					return nil, fmt.Errorf("unexpected parameter type %T", t)
+				}
 			default:
 				return nil, fmt.Errorf("unexpected parameter type %T", t)
 			}

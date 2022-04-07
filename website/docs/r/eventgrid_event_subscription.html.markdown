@@ -61,11 +61,7 @@ The following arguments are supported:
 
 * `azure_function_endpoint` - (Optional) An `azure_function_endpoint` block as defined below.
 
-* `eventhub_endpoint` - (Optional / **Deprecated in favour of `eventhub_endpoint_id`**) A `eventhub_endpoint` block as defined below.
-
 * `eventhub_endpoint_id` - (Optional) Specifies the id where the Event Hub is located.
-
-* `hybrid_connection_endpoint` - (Optional / **Deprecated in favour of `hybrid_connection_endpoint_id`**) A `hybrid_connection_endpoint` block as defined below.
 
 * `hybrid_connection_endpoint_id` - (Optional) Specifies the id where the Hybrid Connection is located.
 
@@ -77,7 +73,7 @@ The following arguments are supported:
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **NOTE:** One of `eventhub_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
+~> **NOTE:** One of `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
@@ -120,18 +116,6 @@ An `azure_function_endpoint` supports the following:
 * `max_events_per_batch` - (Optional) Maximum number of events per batch.
 
 * `preferred_batch_size_in_kilobytes` - (Optional) Preferred batch size in Kilobytes.
-
----
-
-A `eventhub_endpoint` supports the following:
-
-* `eventhub_id` - (Required) Specifies the id of the eventhub where the Event Subscription will receive events.
-
----
-
-A `hybrid_connection_endpoint` supports the following:
-
-* `hybrid_connection_id` - (Required) Specifies the id of the hybrid connection where the Event Subscription will receive events.
 
 ---
 

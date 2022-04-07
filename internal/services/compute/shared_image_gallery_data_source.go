@@ -57,8 +57,7 @@ func dataSourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{
 
 	id := parse.NewSharedImageGalleryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, "", "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", id)

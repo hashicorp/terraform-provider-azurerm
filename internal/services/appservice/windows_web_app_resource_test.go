@@ -562,7 +562,7 @@ func TestAccWindowsWebApp_withDotNet3(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dotNet(data, "v3.0"),
+			Config: r.dotNetCore(data, "v3.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -607,36 +607,7 @@ func TestAccWindowsWebApp_withPhp(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.php(data, "7.3"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccWindowsWebApp_withPhpUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
-	r := WindowsWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.php(data, "7.3"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.php(data, "7.4"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.php(data, "5.6"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1841,6 +1812,31 @@ resource "azurerm_windows_web_app" "test" {
   site_config {
     application_stack {
       dotnet_version = "%s"
+      current_stack  = "dotnet"
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger, dotNetVersion)
+}
+
+func (r WindowsWebAppResource) dotNetCore(data acceptance.TestData, dotNetVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    application_stack {
+      dotnet_version = "%s"
+      current_stack  = "dotnetcore"
     }
   }
 }
@@ -2416,6 +2412,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_storage_share" "test" {
   name                 = "test"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 }
 
 data "azurerm_storage_account_sas" "test" {
@@ -2447,6 +2444,8 @@ data "azurerm_storage_account_sas" "test" {
     create  = false
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomString)

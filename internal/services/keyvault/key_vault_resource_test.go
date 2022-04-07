@@ -469,7 +469,7 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "Managecontacts",
+      "ManageContacts",
     ]
 
     key_permissions = [
@@ -501,11 +501,11 @@ resource "azurerm_key_vault" "import" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 }
@@ -537,7 +537,7 @@ resource "azurerm_subnet" "test_a" {
   name                 = "acctestsubneta%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.KeyVault"]
 }
 
@@ -545,7 +545,7 @@ resource "azurerm_subnet" "test_b" {
   name                 = "acctestsubnetb%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.4.0/24"
+  address_prefixes     = ["10.0.4.0/24"]
   service_endpoints    = ["Microsoft.KeyVault"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -569,11 +569,11 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 
@@ -603,11 +603,11 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 
@@ -638,11 +638,11 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 
@@ -1105,7 +1105,7 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "Managecontacts",
+      "ManageContacts",
     ]
 
     key_permissions = [
@@ -1153,7 +1153,7 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "Managecontacts",
+      "ManageContacts",
     ]
 
     key_permissions = [

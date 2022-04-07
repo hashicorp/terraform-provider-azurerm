@@ -19,7 +19,7 @@ data "azurerm_function_app_host_keys" "example" {
 }
 ```
 
-~> **Note:** All arguments including the secret value will be stored in the raw state as plain-text, including `default_function_key` and `master_key`. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+~> **Note:** All arguments including the secret value will be stored in the raw state as plain-text, including `default_function_key` and `primary_key`. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 ## Argument Reference
 
@@ -35,7 +35,7 @@ The following arguments are supported:
 
 - `default_function_key` - Function App resource's default function key.
 
-- `master_key` - Function App resource's secret key
+- `primary_key` - Function App resource's secret key
 
 - `event_grid_extension_config_key` - Function App resource's Event Grid Extension Config system key.
 

@@ -63,13 +63,15 @@ The following attributes are exported:
 
 ---
 
-The `identity` block exports the following:
+An `identity` block exports the following:
 
-* `type` - The Type of Managed Identity assigned to this Logic App Workflow.
+* `type` - The type of Managed Service Identity that is configured on this API Management Service.
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Logic App Workflow.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Logic App Workflow.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this API Management Service.
 
 ## Timeouts
 
