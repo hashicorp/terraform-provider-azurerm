@@ -344,6 +344,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 
 func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
+	accountClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -407,19 +408,27 @@ func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{
 			}
 		}
 	}
-
-	throughputResp, err := client.GetGremlinGraphThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName)
+	accResp, err := accountClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("reading Throughput on Gremlin Graph %q (Account: %q, Database: %q) ID: %v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
-		} else {
-			d.Set("throughput", nil)
-			d.Set("autoscale_settings", nil)
-		}
-	} else {
-		common.SetResourceDataThroughputFromResponse(throughputResp, d)
+		return fmt.Errorf("reading Cosmos Account %q : %+v", id.DatabaseAccountName, err)
+	}
+	if accResp.ID == nil || *accResp.ID == "" {
+		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.DatabaseAccountName, id.ResourceGroup)
 	}
 
+	if !isServerlessCapacityMode(accResp) {
+		throughputResp, err := client.GetGremlinGraphThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(throughputResp.Response) {
+				return fmt.Errorf("reading Throughput on Gremlin Graph %q (Account: %q, Database: %q) ID: %v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
+			} else {
+				d.Set("throughput", nil)
+				d.Set("autoscale_settings", nil)
+			}
+		} else {
+			common.SetResourceDataThroughputFromResponse(throughputResp, d)
+		}
+	}
 	return nil
 }
 
