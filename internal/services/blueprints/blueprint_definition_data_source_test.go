@@ -29,6 +29,25 @@ func TestAccBlueprintDefinitionDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccBlueprintDefinitionDataSource_basicWithVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
+	r := BlueprintDefinitionDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test stub for Blueprints at Subscription"),
+				check.That(data.ResourceName).Key("name").HasValue("testAcc_basicSubscription"),
+				check.That(data.ResourceName).Key("last_modified").Exists(),
+				check.That(data.ResourceName).Key("target_scope").HasValue("subscription"),
+				check.That(data.ResourceName).Key("time_created").Exists(),
+				check.That(data.ResourceName).Key("versions").Exists(),
+			),
+		},
+	})
+}
+
 //lintignore:AT001
 func TestAccBlueprintDefinitionDataSource_basicAtRootManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
