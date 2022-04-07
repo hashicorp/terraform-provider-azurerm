@@ -1,5 +1,9 @@
 ## 3.1.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_container_registry_agent_pool` [GH-16258]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v63.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-16147]
