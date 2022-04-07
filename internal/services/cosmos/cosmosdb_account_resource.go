@@ -1153,7 +1153,7 @@ func resourceCosmosDbAccountDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
 	// the SDK now will return a `WasNotFound` response even when still deleting
