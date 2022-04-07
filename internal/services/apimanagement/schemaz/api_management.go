@@ -3,6 +3,7 @@ package schemaz
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
@@ -363,8 +364,9 @@ func SchemaApiManagementOperationParameterExampleContract() *pluginsdk.Schema {
 				},
 
 				"value": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:             pluginsdk.TypeString,
+					Optional:         true,
+					DiffSuppressFunc: exampleSuppressEquivalentJSONDiffs,
 				},
 
 				"external_value": {
@@ -401,7 +403,7 @@ func ExpandApiManagementOperationParameterExampleContract(input []interface{}) m
 
 		if vs["value"] != nil {
 			var js interface{}
-			if json.Unmarshal([]byte(vs["value"].(string)), &js) != nil {
+			if json.Unmarshal([]byte(vs["value"].(string)), &js) == nil {
 				outputs[name].Value = js
 			} else {
 				outputs[name].Value = utils.String(vs["value"].(string))
@@ -484,4 +486,18 @@ func convert2Json(rawVal interface{}) (string, error) {
 		value = string(val)
 	}
 	return value, nil
+}
+
+func exampleSuppressEquivalentJSONDiffs(k, old, new string, d *pluginsdk.ResourceData) bool {
+	var ojs interface{}
+	if json.Unmarshal([]byte(old), &ojs) != nil {
+		return strings.Compare(old, new) == 0
+	}
+
+	var njs interface{}
+	if json.Unmarshal([]byte(new), &njs) != nil {
+		return strings.Compare(old, new) == 0
+	}
+
+	return reflect.DeepEqual(ojs, njs)
 }
