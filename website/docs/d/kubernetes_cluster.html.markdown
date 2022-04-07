@@ -78,6 +78,10 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 
+* `oidc_issuer_enabled` - Whether or not the OIDC feature is enabled or disabled.
+
+* `oidc_issuer_url` - The OIDC issuer URL that is associated with the cluster.
+
 * `oms_agent` - An `oms_agent` block as documented below.
 
 * `open_service_mesh_enabled` - Is Open Service Mesh enabled for this managed Kubernetes Cluster?
@@ -96,7 +100,7 @@ The following attributes are exported:
 
 * `service_principal` - A `service_principal` block as documented below.
 
-* `identity` - A `identity` block as documented below.
+* `identity` - An `identity` block as documented below.
 
 * `kubelet_identity` - A `kubelet_identity` block as documented below.
 
@@ -144,7 +148,7 @@ A `agent_pool_profile` block exports the following:
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
-* `zones` - Specifies the Availability Zones where the Nodes within this Agent Pool exist.
+* `zones` - A list of Availability Zones in which this Kubernetes Cluster is located.
 
 ---
 
@@ -301,15 +305,15 @@ A `service_principal` block supports the following:
 
 ---
 
-The `identity` block exports the following:
+An `identity` block exports the following:
 
-* `type` - The type of identity used for the managed cluster.
+* `type` - The type of Managed Service Identity that is configured on this Kubernetes Cluster.
 
-* `principal_id` - The principal id of the system assigned identity which is used by primary components.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Kubernetes Cluster.
 
-* `tenant_id` - The tenant id of the system assigned identity which is used by primary components.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Kubernetes Cluster.
 
-* `user_assigned_identity_id` - The ID of the User Assigned Identity which is used by primary components. This value will be empty when using system assigned identity.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Kubernetes Cluster.
 
 ---
 

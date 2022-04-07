@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/sender"
@@ -27,7 +26,6 @@ type ClientBuilder struct {
 	StorageUseAzureAD           bool
 	TerraformVersion            string
 	Features                    features.UserFeatures
-	UseMSAL                     bool
 }
 
 const azureStackEnvironmentError = `
@@ -87,89 +85,44 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	sender := sender.BuildSender("AzureRM")
 
-	// Authorizers, via autorest or hamilton/auth
 	var auth, storageAuth, synapseAuth, batchManagementAuth autorest.Authorizer
 	var keyVaultAuth *autorest.BearerAuthorizerCallback
 	var tokenFunc common.EndpointTokenFunc
-	var graphAuth autorest.Authorizer // TODO: remove in v3.0
 
-	if builder.UseMSAL {
-		// TODO: remove UseMSAL toggle and make this the default behaviour in v3.0
-		auth, err = builder.AuthConfig.GetMSALToken(ctx, environment.ResourceManager, sender, oauthConfig, string(environment.ResourceManager.Endpoint))
+	auth, err = builder.AuthConfig.GetMSALToken(ctx, environment.ResourceManager, sender, oauthConfig, string(environment.ResourceManager.Endpoint))
+	if err != nil {
+		return nil, fmt.Errorf("unable to get MSAL authorization token for resource manager API: %+v", err)
+	}
+
+	storageAuth, err = builder.AuthConfig.GetMSALToken(ctx, environment.Storage, sender, oauthConfig, string(environment.Storage.Endpoint))
+	if err != nil {
+		return nil, fmt.Errorf("unable to get MSAL authorization token for storage API: %+v", err)
+	}
+
+	if environment.Synapse.IsAvailable() {
+		synapseAuth, err = builder.AuthConfig.GetMSALToken(ctx, environment.Synapse, sender, oauthConfig, string(environment.Synapse.Endpoint))
 		if err != nil {
-			return nil, fmt.Errorf("unable to get MSAL authorization token for resource manager API: %+v", err)
-		}
-
-		storageAuth, err = builder.AuthConfig.GetMSALToken(ctx, environment.Storage, sender, oauthConfig, string(environment.Storage.Endpoint))
-		if err != nil {
-			return nil, fmt.Errorf("unable to get MSAL authorization token for storage API: %+v", err)
-		}
-
-		if environment.Synapse.IsAvailable() {
-			synapseAuth, err = builder.AuthConfig.GetMSALToken(ctx, environment.Synapse, sender, oauthConfig, string(environment.Synapse.Endpoint))
-			if err != nil {
-				return nil, fmt.Errorf("unable to get MSAL authorization token for synapse API: %+v", err)
-			}
-		} else {
-			log.Printf("[DEBUG] Skipping building the Synapse MSAL Authorizer since this is not supported in the current Azure Environment")
-		}
-
-		batchManagementAuth, err = builder.AuthConfig.GetMSALToken(ctx, environment.BatchManagement, sender, oauthConfig, string(environment.BatchManagement.Endpoint))
-		if err != nil {
-			return nil, fmt.Errorf("unable to get MSAL authorization token for batch management API: %+v", err)
-		}
-
-		keyVaultAuth = builder.AuthConfig.MSALBearerAuthorizerCallback(ctx, environment.KeyVault, sender, oauthConfig, string(environment.KeyVault.Endpoint))
-
-		// Helper for obtaining endpoint-specific tokens
-		tokenFunc = func(endpoint string) (autorest.Authorizer, error) {
-			api := environments.Api{Endpoint: environments.ApiEndpoint(endpoint)}
-			authorizer, err := builder.AuthConfig.GetMSALToken(ctx, api, sender, oauthConfig, endpoint)
-			if err != nil {
-				return nil, fmt.Errorf("getting MSAL authorization token for endpoint %s: %+v", endpoint, err)
-			}
-			return authorizer, nil
+			return nil, fmt.Errorf("unable to get MSAL authorization token for synapse API: %+v", err)
 		}
 	} else {
-		auth, err = builder.AuthConfig.GetADALToken(ctx, sender, oauthConfig, env.TokenAudience)
+		log.Printf("[DEBUG] Skipping building the Synapse MSAL Authorizer since this is not supported in the current Azure Environment")
+	}
+
+	batchManagementAuth, err = builder.AuthConfig.GetMSALToken(ctx, environment.BatchManagement, sender, oauthConfig, string(environment.BatchManagement.Endpoint))
+	if err != nil {
+		return nil, fmt.Errorf("unable to get MSAL authorization token for batch management API: %+v", err)
+	}
+
+	keyVaultAuth = builder.AuthConfig.MSALBearerAuthorizerCallback(ctx, environment.KeyVault, sender, oauthConfig, string(environment.KeyVault.Endpoint))
+
+	// Helper for obtaining endpoint-specific tokens
+	tokenFunc = func(endpoint string) (autorest.Authorizer, error) {
+		api := environments.Api{Endpoint: environments.ApiEndpoint(endpoint)}
+		authorizer, err := builder.AuthConfig.GetMSALToken(ctx, api, sender, oauthConfig, endpoint)
 		if err != nil {
-			return nil, fmt.Errorf("unable to get ADAL authorization token for resource manager API: %+v", err)
+			return nil, fmt.Errorf("getting MSAL authorization token for endpoint %s: %+v", endpoint, err)
 		}
-
-		storageAuth, err = builder.AuthConfig.GetADALToken(ctx, sender, oauthConfig, env.ResourceIdentifiers.Storage)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get ADAL authorization token for storage API: %+v", err)
-		}
-
-		if env.ResourceIdentifiers.Synapse != azure.NotAvailable {
-			synapseAuth, err = builder.AuthConfig.GetADALToken(ctx, sender, oauthConfig, env.ResourceIdentifiers.Synapse)
-			if err != nil {
-				return nil, fmt.Errorf("unable to get ADAL authorization token for synapse API: %+v", err)
-			}
-		} else {
-			log.Printf("[DEBUG] Skipping building the Synapse ADAL Authorizer since this is not supported in the current Azure Environment")
-		}
-
-		batchManagementAuth, err = builder.AuthConfig.GetADALToken(ctx, sender, oauthConfig, env.BatchManagementEndpoint)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get ADAL authorization token for batch management API: %+v", err)
-		}
-
-		keyVaultAuth = builder.AuthConfig.ADALBearerAuthorizerCallback(ctx, sender, oauthConfig)
-
-		// Helper for obtaining endpoint-specific tokens
-		tokenFunc = func(endpoint string) (autorest.Authorizer, error) {
-			authorizer, err := builder.AuthConfig.GetADALToken(ctx, sender, oauthConfig, endpoint)
-			if err != nil {
-				return nil, fmt.Errorf("getting ADAL authorization token for endpoint %s: %+v", endpoint, err)
-			}
-			return authorizer, nil
-		}
-
-		graphAuth, err = builder.AuthConfig.GetADALToken(ctx, sender, oauthConfig, env.GraphEndpoint)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get ADAL authorization token for aadgraph API: %+v", err)
-		}
+		return authorizer, nil
 	}
 
 	o := &common.ClientOptions{
@@ -191,12 +144,6 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		Features:                    builder.Features,
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
 		TokenFunc:                   tokenFunc,
-	}
-
-	// TODO: remove in v3.0
-	if !builder.UseMSAL {
-		o.GraphEndpoint = env.GraphEndpoint
-		o.GraphAuthorizer = graphAuth
 	}
 
 	if err := client.Build(ctx, o); err != nil {

@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -94,8 +93,6 @@ func resourceSqlServer() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
-			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
-
 			"fully_qualified_domain_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -155,7 +152,7 @@ func resourceSqlServer() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sql.SecurityAlertPolicyStateDisabled),
 								string(sql.SecurityAlertPolicyStateEnabled),
-								string(sql.SecurityAlertPolicyStateNew), // Only kept for backward compatibility - TODO 3.0 should we change this to enabled and a boolean?
+								string(sql.SecurityAlertPolicyStateNew), // Only kept for backward compatibility - TODO investigate if we can remove this in 4.0
 							}, !features.ThreePointOhBeta()),
 						},
 
@@ -201,7 +198,6 @@ func resourceSqlServer() *pluginsdk.Resource {
 func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).Sql.ServerConnectionPoliciesClient
 	secPolicyClient := meta.(*clients.Client).Sql.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -273,17 +269,6 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("creating/updating Connection Policy for %s: %+v", id, err)
 	}
 
-	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{})),
-	}
-	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
-	if err != nil {
-		return fmt.Errorf("creating/updating Auditing Policy for %s: %+v", id, err)
-	}
-	if err := auditingFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Auditing Policy for %s: %+v", id, err)
-	}
-
 	policyInput := expandSqlServerThreatDetectionPolicy(d)
 	policyFuture, err := secPolicyClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, policyInput)
 	if err != nil {
@@ -298,7 +283,6 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 func resourceSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
-	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).Sql.ServerConnectionPoliciesClient
 	secPolicyClient := meta.(*clients.Client).Sql.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -323,11 +307,6 @@ func resourceSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	connection, err := connectionClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("retrieving Blob Connection Policy for %s: %+v", *id, err)
-	}
-
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving Blob Auditing Policy for %s: %v ", *id, err)
 	}
 
 	secPolicy, err := secPolicyClient.Get(ctx, id.ResourceGroup, id.Name)
@@ -355,10 +334,6 @@ func resourceSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if props := connection.ServerConnectionPolicyProperties; props != nil {
 		d.Set("connection_policy", string(props.ConnectionType))
-	}
-
-	if err := d.Set("extended_auditing_policy", helper.FlattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp, d)); err != nil {
-		return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

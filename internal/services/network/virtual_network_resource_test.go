@@ -107,8 +107,6 @@ func TestAccVirtualNetwork_basicUpdated(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet.#").HasValue("2"),
 				check.That(data.ResourceName).Key("subnet.0.id").Exists(),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
 			),
 		},
 		data.ImportStep(),
@@ -243,6 +241,36 @@ func TestAccVirtualNetwork_bgpCommunity(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetwork_edgeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.edgeZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestVirtualNetworkResource_tagCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tagCount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VirtualNetworkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VirtualNetworkID(state.ID)
 	if err != nil {
@@ -302,20 +330,7 @@ resource "azurerm_virtual_network" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
-func TestVirtualNetworkResource_tagCount(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
-	r := VirtualNetworkResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.tagCount(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
 func (r VirtualNetworkResource) tagCount(data acceptance.TestData) string {
 	tags := ""
 	for i := 0; i < 50; i++ {
@@ -563,4 +578,32 @@ resource "azurerm_virtual_network" "test" {
   flow_timeout_in_minutes = %d
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, flowTimeout)
+}
+
+func (VirtualNetworkResource) edgeZone(data acceptance.TestData) string {
+	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+data "azurerm_extended_locations" "test" {
+  location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

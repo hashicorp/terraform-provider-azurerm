@@ -61,6 +61,20 @@ func TestAccNetworkInterface_dnsServers(t *testing.T) {
 	})
 }
 
+func TestAccNetworkInterface_edgeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.edgeZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
@@ -478,6 +492,32 @@ resource "azurerm_network_interface" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r NetworkInterfaceResource) edgeZone(data acceptance.TestData) string {
+	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+%[1]s
+
+data "azurerm_extended_locations" "test" {
+  location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+
+  ip_configuration {
+    name                          = "primary"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r NetworkInterfaceResource) enableAcceleratedNetworking(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -829,7 +869,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

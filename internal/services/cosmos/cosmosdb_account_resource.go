@@ -33,6 +33,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+var CosmosDbAccountResourceName = "azurerm_cosmosdb_account"
+
 // If the consistency policy of the Cosmos DB Database Account is not bounded staleness,
 // any changes to the configuration for bounded staleness should be suppressed.
 func suppressConsistencyPolicyStalenessConfiguration(_, _, _ string, d *pluginsdk.ResourceData) bool {
@@ -279,16 +281,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"prefix": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-								"Cosmos DB location prefix (ID) must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
-							),
-							Deprecated: "This is deprecated because the service no longer accepts this as an input since Apr 25, 2019",
-						},
-
 						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -558,34 +550,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
-			},
-
-			"primary_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `primary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"secondary_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `secondary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"primary_readonly_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `primary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"secondary_readonly_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `secondary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
 			},
 
 			"connection_strings": {
@@ -1097,8 +1061,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	d.Set("primary_key", keys.PrimaryMasterKey)
 	d.Set("secondary_key", keys.SecondaryMasterKey)
-	d.Set("primary_master_key", keys.PrimaryMasterKey)
-	d.Set("secondary_master_key", keys.SecondaryMasterKey)
 
 	readonlyKeys, err := client.ListReadOnlyKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
@@ -1112,8 +1074,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	d.Set("primary_readonly_key", readonlyKeys.PrimaryReadonlyMasterKey)
 	d.Set("secondary_readonly_key", readonlyKeys.SecondaryReadonlyMasterKey)
-	d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
-	d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
 
 	connStringResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
@@ -1201,7 +1161,16 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 			}
 			status := "Succeeded"
 			if props := resp.DatabaseAccountGetProperties; props != nil {
-				locations := append(*props.ReadLocations, *props.WriteLocations...)
+
+				var locations []documentdb.Location
+
+				if props.ReadLocations != nil {
+					locations = append(locations, *props.ReadLocations...)
+				}
+				if props.WriteLocations != nil {
+					locations = append(locations, *props.WriteLocations...)
+				}
+
 				for _, l := range locations {
 					if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting" {
 						break // return the first non successful status.

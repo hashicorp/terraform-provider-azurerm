@@ -512,7 +512,7 @@ resource "azurerm_firewall_application_rule_collection" "test" {
   rule {
     name        = "rule1"
     description = "test description"
-    fqdn_tags   = ["WindowsDiagnostics"]
+    fqdn_tags   = ["WindowsDiagnostics", "AzureBackup"]
     source_addresses = [
       "10.0.0.0/16",
     ]
@@ -710,11 +710,13 @@ resource "azurerm_firewall_application_rule_collection" "test" {
     name = "rule1"
 
     source_addresses = [
+      "192.0.0.0/16",
       "10.0.0.0/16",
     ]
 
     target_fqdns = [
       "*.google.com",
+      "*.microsoft.com",
     ]
 
     protocol {
@@ -728,10 +730,12 @@ resource "azurerm_firewall_application_rule_collection" "test" {
 
     source_addresses = [
       "192.168.0.1",
+      "10.0.0.1",
     ]
 
     target_fqdns = [
       "*.microsoft.com",
+      "*.google.com",
     ]
 
     protocol {
@@ -850,11 +854,18 @@ func (FirewallApplicationRuleCollectionResource) ipGroups(data acceptance.TestDa
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_ip_group" "test" {
-  name                = "acctestIpGroupForFirewallAppRules"
+resource "azurerm_ip_group" "test1" {
+  name                = "acctestIpGroupForFirewallAppRules1"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   cidrs               = ["192.168.0.0/25", "192.168.0.192/26"]
+}
+
+resource "azurerm_ip_group" "test2" {
+  name                = "acctestIpGroupForFirewallAppRules2"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  cidrs               = ["193.168.0.0/25", "193.168.0.192/26"]
 }
 
 resource "azurerm_firewall_application_rule_collection" "test" {
@@ -868,7 +879,8 @@ resource "azurerm_firewall_application_rule_collection" "test" {
     name = "rule1"
 
     source_ip_groups = [
-      azurerm_ip_group.test.id,
+      azurerm_ip_group.test1.id,
+      azurerm_ip_group.test2.id,
     ]
 
     target_fqdns = [

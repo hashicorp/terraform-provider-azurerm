@@ -54,15 +54,11 @@ The following arguments are supported:
 
 * `display_name` - (Required) The display name of the policy set definition.
 
-* `policy_definitions` - (Optional / **Deprecated in favour of `policy_definition_reference`**) The policy definitions for the policy set definition. This is a json object representing the bundled policy definitions.
-
 * `policy_definition_reference` - (Optional) One or more `policy_definition_reference` blocks as defined below.
 
 * `policy_definition_group` - (Optional) One or more `policy_definition_group` blocks as defined below.
 
 * `description` - (Optional) The description of the policy set definition.
-
-* `management_group_name` - (Optional / **Deprecated in favour of `management_group_id`**) The name of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
 
 * `management_group_id` -  (Optional) The name of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
 

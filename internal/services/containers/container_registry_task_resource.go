@@ -551,7 +551,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"identity": {
-									// TODO - 3.0: should this be `user_assigned_identity_id`?
+									// TODO - 4.0: this should be `user_assigned_identity_id`?
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringIsNotEmpty,

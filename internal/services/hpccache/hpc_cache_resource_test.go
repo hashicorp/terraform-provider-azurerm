@@ -148,42 +148,6 @@ func TestAccHPCCache_dnsSetting(t *testing.T) {
 	})
 }
 
-func TestAccHPCCache_rootSquashDeprecated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
-	r := HPCCacheResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.rootSquashDeprecated(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.rootSquashDeprecated(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
-			),
-		},
-		// Following import verification will cause diff given we simply set whatever is in cfg to state for "root_squash_enabled", since there is no
-		// "cfg" during import verification, the state of the "root_squash_enabled" is always false.
-		// The clarification is that since this is a deprecated property, users shouldn't import an existing resource to a new .tf file whilst using that
-		// deprecated property.
-		// data.ImportStep(),
-		{
-			Config: r.rootSquashDeprecated(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccHPCCache_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
@@ -452,22 +416,6 @@ resource "azurerm_hpc_cache" "test" {
   mtu                 = %d
 }
 `, r.template(data), data.RandomInteger, mtu)
-}
-
-func (r HPCCacheResource) rootSquashDeprecated(data acceptance.TestData, enable bool) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_hpc_cache" "test" {
-  name                = "acctest-HPCC-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  cache_size_in_gb    = 3072
-  subnet_id           = azurerm_subnet.test.id
-  sku_name            = "Standard_2G"
-  root_squash_enabled = %t
-}
-`, r.template(data), data.RandomInteger, enable)
 }
 
 func (r HPCCacheResource) defaultAccessPolicyBasic(data acceptance.TestData) string {
@@ -889,7 +837,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -928,7 +876,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

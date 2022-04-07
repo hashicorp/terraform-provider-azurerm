@@ -130,6 +130,8 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 			"encryption_at_host_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -534,7 +536,8 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
 	props := compute.VirtualMachineScaleSet{
-		Location: utils.String(location),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         utils.String(location),
 		Sku: &compute.Sku{
 			Name:     utils.String(d.Get("sku").(string)),
 			Capacity: utils.Int64(int64(d.Get("instances").(int))),
@@ -944,6 +947,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 	d.Set("zones", zones.Flatten(resp.Zones))
 
 	var skuName *string

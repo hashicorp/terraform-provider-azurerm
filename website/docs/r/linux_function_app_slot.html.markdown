@@ -10,8 +10,6 @@ description: |-
 
 Manages a Linux Function App Slot.
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -70,8 +68,6 @@ The following arguments are supported:
 
 * `site_config` - (Required) a `site_config` block as detailed below.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App Slot.
-
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
@@ -98,15 +94,23 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?
 
-* `identity` - (Optional) an `identity` block as detailed below.
+* `identity` - (Optional) An `identity` block as detailed below.
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
 * `storage_account_access_key` - (Optional) The access key which will be used to access the storage account for the Function App Slot.
 
+* `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App Slot.
+
 * `storage_uses_managed_identity` - (Optional) Should the Function App Slot use its Managed Identity to access storage.
 
-~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified. 
+~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
+
+* `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account for this Function App.
+
+~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name`.
+
+~> **NOTE:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
@@ -174,13 +178,11 @@ A `connection_string` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Linux Function App Slot. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) an `identity_ids` block as detailed below.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Linux Function App Slot.
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity.
-
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity.
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -374,9 +376,11 @@ An `application_stack` block supports the following:
 
 * `docker` - (Optional) a `docker` block as detailed below.
 
-* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1` and `6`
+* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1` and `6.0`.
 
-* `java_version` - (Optional) The version of Java to use. Possible values are `8`, and `11`
+* `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
+
+* `java_version` - (Optional) The version of Java to use. Possible values are `8`, and `11`.
 
 * `node_version` - (Optional) The version of Node to use. Possible values include `12`, and `14`
 
@@ -476,6 +480,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Linux Function App Slot.
 
+* `identity` - An `identity` block as defined below.
+
 * `kind` - The Kind value for this Linux Function App Slot.
 
 * `outbound_ip_address_list` - A list of outbound IP addresses. For example `["52.23.25.3", "52.143.43.12"]`
@@ -487,6 +493,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `possible_outbound_ip_addresses` - A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`. For example `["52.23.25.3", "52.143.43.12","52.143.43.17"]`.
 
 * `site_credential` - A `site_credential` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 
@@ -503,7 +517,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Linux Function App Slot.
 * `update` - (Defaults to 30 minutes) Used when updating the Linux Function App Slot.
-* `read` - (Defaults to 25 minutes) Used when retrieving the Linux Function App Slot.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Linux Function App Slot.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Linux Function App Slot.
 
 ## Import

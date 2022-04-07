@@ -48,7 +48,7 @@ output "storage_account_tier" {
 
 * `min_tls_version` - The minimum supported TLS version for this storage account.
 
-* `allow_blob_public_access` - Is public access allowed to all blobs or containers in the storage account?
+* `allow_nested_items_to_be_public` - Can nested items in the storage account opt into allowing public access?
 
 * `is_hns_enabled` - Is Hierarchical Namespace enabled?
 
