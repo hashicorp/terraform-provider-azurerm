@@ -144,7 +144,7 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+		return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 	}
 
 	createWait := pluginsdk.StateChangeConf{
