@@ -36,13 +36,13 @@ func dataSourceKustoDatabase() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": commonschema.LocationComputed(),
-
 			"cluster_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: kustoValidate.ClusterName,
 			},
+
+			"location": commonschema.LocationComputed(),
 
 			"soft_delete_period": {
 				Type:     pluginsdk.TypeString,
@@ -68,10 +68,7 @@ func dataSourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	clusterName := d.Get("cluster_name").(string)
-	name := d.Get("name").(string)
-	id := parse.NewDatabaseID(subscriptionId, resourceGroup, clusterName, name)
+	id := parse.NewDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 	if err != nil {
