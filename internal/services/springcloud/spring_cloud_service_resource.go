@@ -480,10 +480,10 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	serviceRegistryEnabled := true
 	serviceRegistry, err := serviceRegistryClient.Get(ctx, id.ResourceGroup, id.SpringName, "default")
 	if err != nil {
-		if utils.ResponseWasNotFound(serviceRegistry.Response) {
-			serviceRegistryEnabled = false
+		if !utils.ResponseWasNotFound(serviceRegistry.Response) {
+			return fmt.Errorf("retrieving service registry of %s: %+v", id, err)
 		}
-		return fmt.Errorf("retrieving service registry of %s: %+v", id, err)
+		serviceRegistryEnabled = false
 	}
 	if utils.ResponseWasNotFound(serviceRegistry.Response) {
 		serviceRegistryEnabled = false
