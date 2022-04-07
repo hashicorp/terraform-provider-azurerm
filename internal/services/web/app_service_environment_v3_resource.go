@@ -474,6 +474,7 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 			}
+
 			return nil
 		},
 	}
