@@ -122,9 +122,9 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctest-logz-%d"
-  location = "%s"
+  location = "westeurope"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger)
 }
 
 func (r LogzMonitorResource) basic(data acceptance.TestData, effectiveDate string, email string) string {
@@ -231,7 +231,7 @@ resource "azurerm_logz_monitor" "test" {
     last_name    = "last"
     phone_number = "123456"
   }
-  enabled = false
+  enabled = true
   tags = {
     ENV = "Test"
   }

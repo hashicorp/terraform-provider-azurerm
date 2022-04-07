@@ -117,7 +117,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctest-logz-%d"
-  location = "%s"
+  location = "westeurope"
 }
 
 resource "azurerm_logz_monitor" "test" {
@@ -138,7 +138,7 @@ resource "azurerm_logz_monitor" "test" {
     phone_number = "123456"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, getLogzInstanceName(data.RandomInteger), getEffectiveDate(), email)
+`, data.RandomInteger, getLogzInstanceName(data.RandomInteger), getEffectiveDate(), email)
 }
 
 func (r LogzTagRuleResource) basic(data acceptance.TestData, email string) string {
