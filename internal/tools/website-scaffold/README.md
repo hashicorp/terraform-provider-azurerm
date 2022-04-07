@@ -15,7 +15,7 @@ $ go run main.go -name azurerm_resource_group -brand-name "Resource Group" -type
 Generating document with Terraform configuration from AccTest:
 
 ```
-$ go run main.go -name azurerm_resource_group -brand-name "Resource Group" -type "resource" -resource-id "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1" -website-path ../../../website/ -example -root-dir ../../.. -service-dir ./internal/services/resource -test-case TestAccResourceGroup_basic
+$ go run main.go -name azurerm_resource_group -brand-name "Resource Group" -type "resource" -resource-id "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1" -website-path ../../../website/ -example -root-dir ../../.. -service-pkg ./internal/services/resource -testcase TestAccResourceGroup_basic
 ```
 
 ## Arguments
@@ -32,8 +32,8 @@ $ go run main.go -name azurerm_resource_group -brand-name "Resource Group" -type
 
 * `-example` - (Optional) Wether to generate the Terraform configuration example from AccTest?
 
-* `-root-dir` - (Optional) The path to the project root.
+* `-root-dir` - (Optional) The path to the project root. Required when `-example` is set.
 
-* `-service-dir` - (Optional) The relative path to the service package (e.g. `./internal/services/network`).
+* `-service-dir` - (Optional) The relative path to the service package (e.g. `./internal/services/network`). Required when `-example` is set.
 
-* `-test-case` - (Optional) The name of the AccTest where the Terraform configuration derives from.
+* `-test-case` - (Optional) The name of the AccTest where the Terraform configuration derives from. Required when `-example` is set.

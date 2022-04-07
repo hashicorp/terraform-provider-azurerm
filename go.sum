@@ -359,6 +359,8 @@ github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220322021042-cc5a7d155135 h1:bbLJL69O/UPT47FQrRU1zakS+/LvXGD/XSJgr0udyD0=
 github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220322021042-cc5a7d155135/go.mod h1:iMzpAzVr2v/NUVie/apAYtZlFZYFndPcp6/E0VLxgAM=
+github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220407025246-3a3ee0ab24a8 h1:HHSqLmPZaa8U66U7N2Gtx3gYptSHrUB/rB5t+6fZTkQ=
+github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220407025246-3a3ee0ab24a8/go.mod h1:iMzpAzVr2v/NUVie/apAYtZlFZYFndPcp6/E0VLxgAM=
 github.com/manicminer/hamilton v0.43.0 h1:X/XrzLWFhPx1mlLBycqgKRcIjM9vfCd/QR5YnJKIDTI=
 github.com/manicminer/hamilton v0.43.0/go.mod h1:lbVyngC+/nCWuDp8UhC6Bw+bh7jcP/E+YwqzHTmzemk=
 github.com/manicminer/hamilton-autorest v0.2.0 h1:dDL+t2DrQza0EfNYINYCvXISeNwVqzgVAQh+CH/19ZU=

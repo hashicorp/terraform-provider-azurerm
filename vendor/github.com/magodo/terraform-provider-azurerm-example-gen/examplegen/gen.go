@@ -250,30 +250,47 @@ func (info TestFuncInfo) GenPrintTestCaseFdecl() (*ast.FuncDecl, error) {
 	if len(teststeps.Elts) == 0 {
 		return nil, fmt.Errorf("there is no test step defined")
 	}
-	firstteststep, ok := teststeps.Elts[0].(*ast.CompositeLit)
-	if !ok {
-		return nil, fmt.Errorf("the first test step is not defined as a composite literal")
-	}
 
+	// The first test step can be either:
+	// - A resource.TestStep composite literal: e.g. https://github.com/hashicorp/terraform-provider-azurerm/blob/fcfcdbdf8051050f83c0ec39d09b2bc2ca9152a9/internal/services/network/subnet_resource_test.go#L22
+	// - A call to the data.ApplyStep: e.g. https://github.com/hashicorp/terraform-provider-azurerm/blob/fcfcdbdf8051050f83c0ec39d09b2bc2ca9152a9/internal/services/resource/resource_group_resource_test.go#L24
 	var configcallexpr *ast.CallExpr
-	for _, elt := range firstteststep.Elts {
-		elt, ok := elt.(*ast.KeyValueExpr)
+	switch firstteststep := teststeps.Elts[0].(type) {
+	case *ast.CompositeLit:
 		if !ok {
-			continue
+			return nil, fmt.Errorf("the first test step is not defined as a composite literal")
 		}
-		key, ok := elt.Key.(*ast.Ident)
+		for _, elt := range firstteststep.Elts {
+			elt, ok := elt.(*ast.KeyValueExpr)
+			if !ok {
+				continue
+			}
+			key, ok := elt.Key.(*ast.Ident)
+			if !ok {
+				continue
+			}
+			if key.Name != "Config" {
+				continue
+			}
+			callexpr, ok := elt.Value.(*ast.CallExpr)
+			if !ok {
+				continue
+			}
+			configcallexpr = callexpr
+			break
+		}
+	case *ast.CallExpr:
+		applystep, ok := firstteststep.Fun.(*ast.SelectorExpr)
 		if !ok {
-			continue
+			return nil, fmt.Errorf("the first test step is not a call of selector expression")
 		}
-		if key.Name != "Config" {
-			continue
+		if applystep.Sel.Name != "ApplyStep" {
+			return nil, fmt.Errorf("the first test step is not a call of data.ApplyStep")
 		}
-		callexpr, ok := elt.Value.(*ast.CallExpr)
-		if !ok {
-			continue
+		configcallexpr = &ast.CallExpr{
+			Fun:  firstteststep.Args[0],
+			Args: []ast.Expr{applystep.X},
 		}
-		configcallexpr = callexpr
-		break
 	}
 
 	if configcallexpr == nil {

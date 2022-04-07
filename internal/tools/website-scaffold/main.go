@@ -31,9 +31,9 @@ func main() {
 
 	// example generation related flags
 	genExample := f.Bool("example", false, "Wether to generate the Terraform configuration example from AccTest")
-	rootDir := f.String("root-dir", "", "The path to the project root")
-	servicePkg := f.String("service-pkg", "", "The service package where the AccTest resides in")
-	testCase := f.String("testcase", "", "The name of the AccTest where the Terraform configuration derives from")
+	rootDir := f.String("root-dir", "", "The path to the project root. Required when `-example` is set.")
+	servicePkg := f.String("service-pkg", "", "The service package where the AccTest resides in. Required when `-example` is set.")
+	testCase := f.String("testcase", "", "The name of the AccTest where the Terraform configuration derives from. Required when `-example` is set.")
 
 	_ = f.Parse(os.Args[1:])
 
