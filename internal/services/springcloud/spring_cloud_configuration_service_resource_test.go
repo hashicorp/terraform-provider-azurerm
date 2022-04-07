@@ -54,7 +54,7 @@ func TestAccSpringCloudConfigurationService_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("repositories.0.password", "repositories.0.username"),
+		data.ImportStep("repository.0.password", "repository.0.username"),
 	})
 }
 
@@ -68,7 +68,7 @@ func TestAccSpringCloudConfigurationService_sshAuth(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("repositories.0.host_key", "repositories.0.host_key_algorithm", "repositories.0.private_key"),
+		data.ImportStep("repository.0.host_key", "repository.0.host_key_algorithm", "repository.0.private_key"),
 	})
 }
 
@@ -89,7 +89,7 @@ func TestAccSpringCloudConfigurationService_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("repositories.0.password", "repositories.0.username"),
+		data.ImportStep("repository.0.password", "repository.0.username"),
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -167,7 +167,7 @@ func (r SpringCloudConfigurationServiceResource) complete(data acceptance.TestDa
 resource "azurerm_spring_cloud_configuration_service" "test" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
-  repositories {
+  repository {
     name                     = "fake"
     label                    = "master"
     patterns                 = ["app/dev"]
@@ -189,7 +189,7 @@ func (r SpringCloudConfigurationServiceResource) sshAuth(data acceptance.TestDat
 resource "azurerm_spring_cloud_configuration_service" "test" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
-  repositories {
+  repository {
     name                     = "fake"
     label                    = "master"
     patterns                 = ["app/dev"]

@@ -32,7 +32,7 @@ resource "azurerm_spring_cloud_service" "example" {
 resource "azurerm_spring_cloud_configuration_service" "example" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.example.id
-  repositories {
+  repository {
     name                     = "fake"
     label                    = "master"
     patterns                 = ["app/dev"]
@@ -55,11 +55,11 @@ The following arguments are supported:
 
 ---
 
-* `repositories` - (Optional) One or more `repositories` blocks as defined below.
+* `repository` - (Optional) One or more `repository` blocks as defined below.
 
 ---
 
-A `repositories` block supports the following:
+A `repository` block supports the following:
 
 * `label` - (Required) Label of the repository.
 

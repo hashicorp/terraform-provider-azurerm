@@ -52,7 +52,7 @@ func resourceSpringCloudConfigurationService() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudServiceID,
 			},
 
-			"repositories": {
+			"repository": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
@@ -151,7 +151,7 @@ func resourceSpringCloudConfigurationServiceCreateUpdate(d *pluginsdk.ResourceDa
 		Properties: &appplatform.ConfigurationServiceProperties{
 			Settings: &appplatform.ConfigurationServiceSettings{
 				GitProperty: &appplatform.ConfigurationServiceGitProperty{
-					Repositories: expandConfigurationServiceConfigurationServiceGitRepositoryArray(d.Get("repositories").([]interface{})),
+					Repositories: expandConfigurationServiceConfigurationServiceGitRepositoryArray(d.Get("repository").([]interface{})),
 				},
 			},
 		},
@@ -192,7 +192,7 @@ func resourceSpringCloudConfigurationServiceRead(d *pluginsdk.ResourceData, meta
 	d.Set("spring_cloud_service_id", parse.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroup, id.SpringName).ID())
 	if props := resp.Properties; props != nil {
 		if props.Settings != nil && props.Settings.GitProperty != nil {
-			d.Set("repositories", flattenConfigurationServiceConfigurationServiceGitRepositoryArray(props.Settings.GitProperty.Repositories, d.Get("repositories").([]interface{})))
+			d.Set("repository", flattenConfigurationServiceConfigurationServiceGitRepositoryArray(props.Settings.GitProperty.Repositories, d.Get("repository").([]interface{})))
 		}
 	}
 	return nil
