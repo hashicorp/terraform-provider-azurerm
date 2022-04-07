@@ -1156,6 +1156,29 @@ func resourceCosmosDbAccountDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
+	// the SDK now will return a `WasNotFound` response even when still deleting
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"Deleting"},
+		Target:     []string{"NotFound"},
+		MinTimeout: 30 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+		Refresh: func() (interface{}, string, error) {
+			resp, err2 := client.Get(ctx, id.ResourceGroup, id.Name)
+			if err2 != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return resp, "NotFound", nil
+				}
+				return nil, "", err2
+			}
+
+			return resp, "Deleting", nil
+		},
+	}
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for CosmosDB Account %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
+	}
+
 	return nil
 }
 
