@@ -70,6 +70,8 @@ The following arguments are supported:
 
 * `config_server_git_setting` - (Optional) A `config_server_git_setting` block as defined below.
 
+* `service_registry_enabled` - (Optional) Whether enable the default Service Registry.
+
 * `trace` - (Optional) A `trace` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

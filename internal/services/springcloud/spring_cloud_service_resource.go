@@ -219,6 +219,11 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				},
 			},
 
+			"service_registry_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"outbound_public_ip_addresses": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -275,6 +280,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
+	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -340,6 +346,17 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 	log.Printf("[DEBUG] Updated Monitor Settings for %s.", id)
 
+	if d.Get("service_registry_enabled").(bool) {
+		future, err := serviceRegistryClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default")
+		if err != nil {
+			return fmt.Errorf("creating service registry %s: %+v", id, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation service registry of %s: %+v", id, err)
+		}
+	}
+
 	return resourceSpringCloudServiceRead(d, meta)
 }
 
@@ -347,6 +364,7 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
+	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -401,6 +419,28 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		log.Printf("[DEBUG] Updated Monitor Settings for %s.", id)
 	}
 
+	if d.HasChange("service_registry_enabled") {
+		if d.Get("service_registry_enabled").(bool) {
+			future, err := serviceRegistryClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default")
+			if err != nil {
+				return fmt.Errorf("creating service registry of %s: %+v", id, err)
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for creation service registry of %s: %+v", id, err)
+			}
+		} else {
+			future, err := serviceRegistryClient.Delete(ctx, id.ResourceGroup, id.SpringName, "default")
+			if err != nil {
+				return fmt.Errorf("deleting service registry of %s: %+v", id, err)
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for deletion service registry of %s: %+v", id, err)
+			}
+		}
+	}
+
 	return resourceSpringCloudServiceRead(d, meta)
 }
 
@@ -408,6 +448,7 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
+	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -436,12 +477,26 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving monitoring settings for %s: %+v", id, err)
 	}
 
+	serviceRegistryEnabled := true
+	serviceRegistry, err := serviceRegistryClient.Get(ctx, id.ResourceGroup, id.SpringName, "default")
+	if err != nil {
+		if utils.ResponseWasNotFound(serviceRegistry.Response) {
+			serviceRegistryEnabled = false
+		}
+		return fmt.Errorf("retrieving service registry of %s: %+v", id, err)
+	}
+	if utils.ResponseWasNotFound(serviceRegistry.Response) {
+		serviceRegistryEnabled = false
+	}
+
 	d.Set("name", id.SpringName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if resp.Sku != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}
+
+	d.Set("service_registry_enabled", serviceRegistryEnabled)
 
 	if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(configServer.Properties, d)); err != nil {
 		return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
