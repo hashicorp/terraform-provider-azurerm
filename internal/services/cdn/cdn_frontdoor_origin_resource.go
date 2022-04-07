@@ -60,7 +60,7 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"enable_health_probes": {
+			"health_probes_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -144,7 +144,7 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	props := track1.AFDOrigin{
 		AFDOriginProperties: &track1.AFDOriginProperties{
 			AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
-			EnabledState:                ConvertBoolToEnabledState(d.Get("enable_health_probes").(bool)),
+			EnabledState:                ConvertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
 			HostName:                    utils.String(d.Get("host_name").(string)),
 			HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
@@ -200,7 +200,7 @@ func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `cdn_frontdoor_origin_id`: %+v", err)
 		}
 
-		d.Set("enable_health_probes", ConvertEnabledStateToBool(&props.EnabledState))
+		d.Set("health_probes_enabled", ConvertEnabledStateToBool(&props.EnabledState))
 		d.Set("enforce_certificate_name_check", props.EnforceCertificateNameCheck)
 		d.Set("host_name", props.HostName)
 		d.Set("http_port", props.HTTPPort)
@@ -229,7 +229,7 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	props := track1.AFDOriginUpdateParameters{
 		AFDOriginUpdatePropertiesParameters: &track1.AFDOriginUpdatePropertiesParameters{
 			AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
-			EnabledState:                ConvertBoolToEnabledState(d.Get("enable_health_probes").(bool)),
+			EnabledState:                ConvertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
 			HostName:                    utils.String(d.Get("host_name").(string)),
 			HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),

@@ -135,6 +135,8 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorCreate(d *pluginsdk.Resource
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
+		// NOTE: Per the service team: DeploymentStatus would be the correct check ultimately, however deployment tracking is not yet rolled out.
+		// We are targeting to roll it out by end of next week(4/15/2022).
 		log.Printf("[DEBUG] Waiting for Custom Domain %q secret %q to become %q", customDomainId.CustomDomainName, secretId.SecretName, "Succeeded")
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"InProgress", "NotStarted"},

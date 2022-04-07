@@ -25,7 +25,6 @@ func resourceCdnFrontdoorSecret() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -87,26 +86,6 @@ func resourceCdnFrontdoorSecret() *pluginsdk.Resource {
 						// 	},
 						// },
 
-						// NOTE: Not supported at GA
-						// "managed_certificate": {
-						// 	Type:     pluginsdk.TypeList,
-						// 	Optional: true,
-
-						// 	Elem: &pluginsdk.Resource{
-						// 		Schema: map[string]*pluginsdk.Schema{
-
-						// 			"certificate_type": {
-						// 				Type:     pluginsdk.TypeString,
-						// 				Optional: true,
-						// 				Default:  string(track1.TypeBasicSecretParametersTypeManagedCertificate),
-						// 				ValidateFunc: validation.StringInSlice([]string{
-						// 					string(track1.TypeBasicSecretParametersTypeManagedCertificate),
-						// 				}, false),
-						// 			},
-						// 		},
-						// 	},
-						// },
-
 						"customer_certificate": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -122,7 +101,7 @@ func resourceCdnFrontdoorSecret() *pluginsdk.Resource {
 
 									"secret_version": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 

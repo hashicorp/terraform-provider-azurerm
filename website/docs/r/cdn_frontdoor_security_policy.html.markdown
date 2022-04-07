@@ -55,6 +55,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 resource "azurerm_cdn_frontdoor_security_policy" "test" {
   name                     = "ExampleSecurityPolicy"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  cdn_frontdoor_origin_id  = azurerm_cdn_frontdoor_origin.test.id
 
   security_policies {
     firewall {
@@ -77,6 +78,8 @@ The following arguments are supported:
 * `name` - (Required) The name which should be used for this Frontdoor Security Policy. Changing this forces a new Frontdoor Security Policy to be created.
 
 * `cdn_frontdoor_profile_id` - (Required) The Frontdoor Profile Resource Id that is linked to this Frontdoor Security Policy. Changing this forces a new Frontdoor Security Policy to be created.
+
+* `cdn_frontdoor_origin_id` - (Required) The Frontdoor Origin Resource Id that is linked to this Frontdoor Security Policy. Changing this forces a new Frontdoor Security Policy to be created.
 
 * `security_policies` - (Required) An `security_policies` block as defined below. Changing this forces a new Frontdoor Security Policy to be created.
 

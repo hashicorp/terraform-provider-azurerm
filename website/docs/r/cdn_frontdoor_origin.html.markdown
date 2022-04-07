@@ -54,9 +54,9 @@ The following arguments are supported:
 
 * `host_name` - (Required) The address of the origin. Domain names, IPv4 addresses, and IPv6 addresses are supported. This should be unique across all Frontdoor Origins in an Frontdoor Endpoints.
 
-* `Cdn_frontdoor_origin_id` - (Optional) Resource ID..
+* `cdn_frontdoor_origin_id` - (Optional) Resource ID.
 
-* `enable_health_probes` - (Optional) Are health probes enabled against backends defined under the backendPools? Health probes can only be disabled if there is a single enabled backend in single enabled backend pool. Possible values are `true` or `false`. Defaults to `true`.
+* `health_probes_enabled` - (Optional) Are health probes enabled against backends defined under the backendPools? Health probes can only be disabled if there is a single enabled backend in single enabled backend pool. Possible values are `true` or `false`. Defaults to `true`.
 
 * `enforce_certificate_name_check` - (Optional) Whether to enable certificate name check at origin level. Possible values are `true` or `false`. Defaults to `false`.
 
