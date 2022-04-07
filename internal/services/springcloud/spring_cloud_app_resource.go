@@ -3,6 +3,7 @@ package springcloud
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-03-01-preview/appplatform"
@@ -57,8 +58,7 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudServiceName,
 			},
 
-			// TODO: SDK supports System or User & System and UserAssigned, confirm if API does
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"custom_persistent_disk": {
 				Type:     pluginsdk.TypeList,
@@ -278,7 +278,11 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("service_name", id.SpringName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if err := d.Set("identity", flattenSpringCloudAppIdentity(resp.Identity)); err != nil {
+	identity, err := flattenSpringCloudAppIdentity(resp.Identity, d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %s", err)
 	}
 
@@ -322,16 +326,24 @@ func resourceSpringCloudAppDelete(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func expandSpringCloudAppIdentity(input []interface{}) (*appplatform.ManagedIdentityProperties, error) {
-	config, err := identity.ExpandSystemAssigned(input)
+	config, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	return &appplatform.ManagedIdentityProperties{
-		Type:        appplatform.ManagedIdentityType(config.Type),
-		TenantID:    utils.String(config.TenantId),
-		PrincipalID: utils.String(config.PrincipalId),
-	}, nil
+	out := appplatform.ManagedIdentityProperties{
+		Type: appplatform.ManagedIdentityType(string(config.Type)),
+	}
+	if config.Type == identity.TypeUserAssigned || config.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*appplatform.UserAssignedManagedIdentity)
+		for k := range config.IdentityIds {
+			out.UserAssignedIdentities[k] = &appplatform.UserAssignedManagedIdentity{
+				// intentionally empty
+			}
+		}
+	}
+
+	return &out, nil
 }
 
 func expandSpringCloudAppPersistentDisk(input []interface{}) *appplatform.PersistentDisk {
@@ -363,20 +375,43 @@ func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.Sp
 	return &results
 }
 
-func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties) []interface{} {
-	var systemAssigned *identity.SystemAssigned
-	if input != nil {
-		systemAssigned = &identity.SystemAssigned{
-			Type: identity.Type(string(input.Type)),
-		}
-		if input.PrincipalID != nil {
-			systemAssigned.PrincipalId = *input.PrincipalID
-		}
-		if input.TenantID != nil {
-			systemAssigned.TenantId = *input.TenantID
+func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties, identityConfig []interface{}) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	// TODO: identity ids are not returned in correct casing, remove this when bugfix is released
+	identityIdsMap := make(map[string]string)
+	if len(identityConfig) > 0 {
+		raw := identityConfig[0].(map[string]interface{})
+		identityIdsRaw := raw["identity_ids"].(*schema.Set).List()
+		for _, v := range identityIdsRaw {
+			identityIdsMap[strings.ToLower(v.(string))] = v.(string)
 		}
 	}
-	return identity.FlattenSystemAssigned(systemAssigned)
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			actualIdentityId := k
+			if value, ok := identityIdsMap[strings.ToLower(k)]; ok {
+				actualIdentityId = value
+			}
+			transform.IdentityIds[actualIdentityId] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
+	}
+
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []interface{} {
