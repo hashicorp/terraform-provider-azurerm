@@ -378,7 +378,7 @@ func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.Sp
 func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties, identityConfig []interface{}) (*[]interface{}, error) {
 	var transform *identity.SystemAndUserAssignedMap
 
-	// TODO: identity ids are not returned in correct casing, remove this when bugfix is released
+	// TODO: identity ids are not returned in correct casing, remove this when bugfix is released, issue: https://github.com/Azure/azure-rest-api-specs/issues/18595
 	identityIdsMap := make(map[string]string)
 	if len(identityConfig) > 0 {
 		raw := identityConfig[0].(map[string]interface{})

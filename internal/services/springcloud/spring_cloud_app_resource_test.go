@@ -59,7 +59,7 @@ func TestAccSpringCloudApp_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("url").Exists(),
 			),
 		},
-		// TODO: identity ids are not returned in correct casing, remove this when bugfix is released
+		// TODO: identity ids are not returned in correct casing, remove this when bugfix is released, issue: https://github.com/Azure/azure-rest-api-specs/issues/18595
 		data.ImportStep("identity.0.identity_ids.0"),
 	})
 }
@@ -133,7 +133,7 @@ func TestAccSpringCloudApp_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO: identity ids are not returned in correct casing, remove this when bugfix is released
+		// TODO: identity ids are not returned in correct casing, remove this when bugfix is released, issue: https://github.com/Azure/azure-rest-api-specs/issues/18595
 		data.ImportStep("identity.0.identity_ids.0"),
 		{
 			Config: r.basic(data),
@@ -163,7 +163,7 @@ func TestAccSpringCloudApp_identity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO: identity ids are not returned in correct casing, remove this when bugfix is released
+		// TODO: identity ids are not returned in correct casing, remove this when bugfix is released, issue: https://github.com/Azure/azure-rest-api-specs/issues/18595
 		data.ImportStep("identity.0.identity_ids.0"),
 		{
 			Config: r.identitySystemAssigned(data),
@@ -178,7 +178,7 @@ func TestAccSpringCloudApp_identity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// TODO: identity ids are not returned in correct casing, remove this when bugfix is released
+		// TODO: identity ids are not returned in correct casing, remove this when bugfix is released, issue: https://github.com/Azure/azure-rest-api-specs/issues/18595
 		data.ImportStep("identity.0.identity_ids.0"),
 	})
 }
