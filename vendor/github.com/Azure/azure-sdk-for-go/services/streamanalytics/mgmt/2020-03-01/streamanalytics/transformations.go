@@ -95,7 +95,7 @@ func (client TransformationsClient) CreateOrReplacePreparer(ctx context.Context,
 		"transformationName": autorest.Encode("path", transformationName),
 	}
 
-	const APIVersion = "2017-04-01-preview"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -193,7 +193,7 @@ func (client TransformationsClient) GetPreparer(ctx context.Context, resourceGro
 		"transformationName": autorest.Encode("path", transformationName),
 	}
 
-	const APIVersion = "2017-04-01-preview"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -288,7 +288,7 @@ func (client TransformationsClient) UpdatePreparer(ctx context.Context, transfor
 		"transformationName": autorest.Encode("path", transformationName),
 	}
 
-	const APIVersion = "2017-04-01-preview"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

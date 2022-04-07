@@ -85,7 +85,7 @@ func (client StreamingJobsClient) CreateOrReplacePreparer(ctx context.Context, s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01-preview"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -184,7 +184,7 @@ func (client StreamingJobsClient) DeletePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01-preview"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -283,7 +283,7 @@ func (client StreamingJobsClient) GetPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01-preview"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -373,7 +373,7 @@ func (client StreamingJobsClient) ListPreparer(ctx context.Context, expand strin
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01-preview"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -506,7 +506,7 @@ func (client StreamingJobsClient) ListByResourceGroupPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01-preview"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -577,6 +577,100 @@ func (client StreamingJobsClient) ListByResourceGroupComplete(ctx context.Contex
 	return
 }
 
+// Scale scales a streaming job when the job is running.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// jobName - the name of the streaming job.
+// scaleJobParameters - parameters applicable to a scale streaming job operation.
+func (client StreamingJobsClient) Scale(ctx context.Context, resourceGroupName string, jobName string, scaleJobParameters *ScaleStreamingJobParameters) (result StreamingJobsScaleFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StreamingJobsClient.Scale")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("streamanalytics.StreamingJobsClient", "Scale", err.Error())
+	}
+
+	req, err := client.ScalePreparer(ctx, resourceGroupName, jobName, scaleJobParameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Scale", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.ScaleSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Scale", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// ScalePreparer prepares the Scale request.
+func (client StreamingJobsClient) ScalePreparer(ctx context.Context, resourceGroupName string, jobName string, scaleJobParameters *ScaleStreamingJobParameters) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"jobName":           autorest.Encode("path", jobName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-03-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{jobName}/scale", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	if scaleJobParameters != nil {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithJSON(scaleJobParameters))
+	}
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ScaleSender sends the Scale request. The method will close the
+// http.Response Body if it receives an error.
+func (client StreamingJobsClient) ScaleSender(req *http.Request) (future StreamingJobsScaleFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// ScaleResponder handles the response to the Scale request. The method always
+// closes the http.Response Body.
+func (client StreamingJobsClient) ScaleResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // Start starts a streaming job. Once a job is started it will start processing input events and produce output.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
@@ -626,7 +720,7 @@ func (client StreamingJobsClient) StartPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01-preview"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -720,7 +814,7 @@ func (client StreamingJobsClient) StopPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01-preview"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -822,7 +916,7 @@ func (client StreamingJobsClient) UpdatePreparer(ctx context.Context, streamingJ
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01-preview"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

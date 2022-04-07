@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
@@ -99,7 +99,7 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			props := streamanalytics.PrivateEndpoint{
-				Properties: &streamanalytics.PrivateEndpointProperties{
+				PrivateEndpointProperties: &streamanalytics.PrivateEndpointProperties{
 					ManualPrivateLinkServiceConnections: &[]streamanalytics.PrivateLinkServiceConnection{
 						{
 							PrivateLinkServiceConnectionProperties: &streamanalytics.PrivateLinkServiceConnectionProperties{
@@ -140,7 +140,7 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			if resp.Properties.ManualPrivateLinkServiceConnections == nil {
+			if resp.PrivateEndpointProperties.ManualPrivateLinkServiceConnections == nil {
 				return fmt.Errorf("TODO")
 			}
 
@@ -150,7 +150,7 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 				StreamAnalyticsCluster: id.ClusterName,
 			}
 
-			for _, mplsc := range *resp.Properties.ManualPrivateLinkServiceConnections {
+			for _, mplsc := range *resp.PrivateEndpointProperties.ManualPrivateLinkServiceConnections {
 				state.TargetResourceId = *mplsc.PrivateLinkServiceID
 				state.SubResourceName = strings.Join(*mplsc.GroupIds, "")
 			}
