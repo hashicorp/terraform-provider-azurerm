@@ -137,6 +137,7 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 		envelope.AppServiceEnvironment.ClusterSettings = expandAppServiceEnvironmentClusterSettings(clusterSettingsRaw)
 	}
 
+	// whilst this returns a future go-autorest has a max number of retries
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, envelope)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
