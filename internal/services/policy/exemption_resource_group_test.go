@@ -6,16 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
+	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ResourceGroupPolicyExemptionResource struct{}
@@ -100,7 +98,6 @@ func (r ResourceGroupPolicyExemptionResource) Exists(ctx context.Context, client
 }
 
 func (r ResourceGroupPolicyExemptionResource) basic(data acceptance.TestData) string {
-	template := ResourceGroupAssignmentTestResource{}.withBuiltInPolicySetBasic(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_resource_group_policy_exemption" "test" {
@@ -109,11 +106,10 @@ resource "azurerm_resource_group_policy_exemption" "test" {
   policy_assignment_id = azurerm_resource_group_policy_assignment.test.id
   exemption_category = "Mitigated"
 }
-`, template, data.RandomInteger)
+`, ResourceGroupAssignmentTestResource{}.withBuiltInPolicySetBasic(data), data.RandomInteger)
 }
 
 func (r ResourceGroupPolicyExemptionResource) complete(data acceptance.TestData, endDate string) string {
-	template := ResourceGroupAssignmentTestResource{}.withBuiltInPolicySetBasic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -125,8 +121,7 @@ resource "azurerm_resource_group_policy_exemption" "test" {
 
   display_name = "Policy Exemption for acceptance test"
   description  = "Policy Exemption created in an acceptance test"
-  expires_on   = "%s"
-  policy_definition_reference_ids = ["allowedLocations"]
+  expires_on   = "%[3]s"
 
   metadata = <<METADATA
     {
@@ -134,5 +129,5 @@ resource "azurerm_resource_group_policy_exemption" "test" {
     }
 METADATA
 }
-`, template, data.RandomInteger, endDate)
+`, ResourceGroupAssignmentTestResource{}.withBuiltInPolicySetBasic(data), data.RandomInteger, endDate)
 }
