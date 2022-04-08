@@ -88,6 +88,8 @@ func dataSourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("%s was not a Read/Write Database", id)
 	}
 
+	d.SetId(id.ID())
+
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("cluster_name", id.ClusterName)
