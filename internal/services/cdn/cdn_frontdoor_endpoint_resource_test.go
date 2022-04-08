@@ -151,9 +151,9 @@ func (r CdnFrontdoorProfileEndpointResource) complete(data acceptance.TestData) 
 			%s
 
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
-  name                            = "acctest-c-%d"
-  cdn_frontdoor_profile_id        = azurerm_cdn_frontdoor_profile.test.id
-  enabled                         = true
+  name                     = "acctest-c-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  enabled                  = true
 
   tags = {
     ENV = "Test"
@@ -168,9 +168,9 @@ func (r CdnFrontdoorProfileEndpointResource) update(data acceptance.TestData) st
 			%s
 
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
-  name                            = "acctest-c-%d"
-  cdn_frontdoor_profile_id        = azurerm_cdn_frontdoor_profile.test.id
-  enabled                         = false
+  name                     = "acctest-c-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  enabled                  = false
 
   tags = {
     ENV      = "Test"
