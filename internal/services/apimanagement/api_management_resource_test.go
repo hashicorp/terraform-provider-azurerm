@@ -1103,12 +1103,12 @@ resource "azurerm_resource_group" "test3" {
 }
 
 resource "azurerm_api_management" "test" {
-  name                      = "acctestAM-%d"
-  publisher_name            = "pub1"
-  publisher_email           = "pub1@email.com"
-  notification_sender_email = "notification@email.com"
-
-  sku_name = "Premium_2"
+  name                          = "acctestAM-%d"
+  publisher_name                = "pub1"
+  publisher_email               = "pub1@email.com"
+  notification_sender_email     = "notification@email.com"
+  public_network_access_enabled = true
+  sku_name                      = "Premium_2"
 
   additional_location {
     location = azurerm_resource_group.test2.location
