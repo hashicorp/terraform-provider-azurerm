@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_machine_learning_workspace` - renamed `public_network_access_enabled` to `public_access_behind_virtual_network_enabled` to better reflect what this property does [GH-16288]
+* `azurerm_media_streaming_endpoint` support Standard Streaming Endpoint [GH-16304]
 
 ## 3.1.0 (April 07, 2022)
 
