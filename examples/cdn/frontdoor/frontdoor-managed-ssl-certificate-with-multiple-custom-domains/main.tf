@@ -79,7 +79,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
 resource "azurerm_cdn_frontdoor_security_policy" "example" {
   name                     = "${var.prefix}SecurityPolicy"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
-  cdn_frontdoor_origin_id  = azurerm_cdn_frontdoor_origin.example.id
 
   security_policies {
     firewall {
@@ -131,7 +130,7 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
   name                          = "${var.prefix}-origin"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
 
-  enable_health_probes           = true
+  health_probes_enabled          = true
   enforce_certificate_name_check = false
   host_name                      = join(".", ["contoso", azurerm_dns_zone.example.name])
   priority                       = 1

@@ -48,13 +48,6 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 				ValidateFunc: validate.FrontdoorProfileID,
 			},
 
-			"cdn_frontdoor_origin_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.FrontdoorOriginID,
-			},
-
 			"security_policies": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -152,11 +145,6 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	originId, err := parse.FrontdoorOriginID(d.Get("cdn_frontdoor_origin_id").(string))
-	if err != nil {
-		return err
-	}
-
 	securityPolicyName := d.Get("name").(string)
 	id := parse.NewFrontdoorSecurityPolicyID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, securityPolicyName)
 
@@ -210,7 +198,6 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	d.SetId(id.ID())
-	d.Set("cdn_frontdoor_origin_id", originId.ID())
 	return resourceCdnFrontdoorSecurityPolicyRead(d, meta)
 }
 
@@ -223,7 +210,6 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 	if err != nil {
 		return err
 	}
-	originId := d.Get("cdn_frontdoor_origin_id").(string)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecurityPolicyName)
 	if err != nil {
@@ -236,7 +222,6 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 
 	d.Set("name", id.SecurityPolicyName)
 	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
-	d.Set("cdn_frontdoor_origin_id", originId)
 
 	if props := resp.SecurityPolicyProperties; props != nil {
 		securityPolicy, err := flattenCdnFrontdoorSecurityPoliciesParameters(props.Parameters)

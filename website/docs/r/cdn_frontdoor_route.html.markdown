@@ -13,39 +13,39 @@ Manages a Frontdoor Route.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "example-cdn"
+resource "azurerm_resource_group" "example" {
+  name     = "example-cdn-frontdoor"
   location = "West Europe"
 }
 
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-c-%d"
-  resource_group_name = azurerm_resource_group.test.name
+resource "azurerm_cdn_frontdoor_profile" "example" {
+  name                = "example-profile"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "frontdoor_origin_group" "test" {
-  name                     = "acctest-c-%d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+resource "frontdoor_origin_group" "example" {
+  name                     = "example-originGroup"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 }
 
-resource "azurerm_frontdoor_endpoint" "test" {
-  name                     = "acctest-c-%d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+resource "azurerm_frontdoor_endpoint" "example" {
+  name                     = "example-endpoint"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 }
 
-resource "azurerm_cdn_frontdoor_route" "test" {
-  name                          = "acctest-c-%d"
-  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+resource "azurerm_cdn_frontdoor_route" "example" {
+  name                          = "example-route"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
   enabled                       = true
 
-  cdn_frontdoor_origin_ids   = [azurerm_cdn_frontdoor_origin.test.id]
+  cdn_frontdoor_origin_ids   = [azurerm_cdn_frontdoor_origin.example.id]
   forwarding_protocol        = "HttpsOnly"
   https_redirect             = true
   link_to_default_domain     = true
   patterns_to_match          = ["/*"]
   supported_protocols        = ["Http", "Https"]
-  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.test.id]
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.example.id]
 
   cache_configuration {
     query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"

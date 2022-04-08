@@ -29,7 +29,7 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "example" {
-  name                     = "example-custom-domain"
+  name                     = "example-customDomain"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = "contoso.com"

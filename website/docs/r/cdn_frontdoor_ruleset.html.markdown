@@ -13,19 +13,19 @@ Manages a Frontdoor Rule Set.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "example-cdn"
+resource "azurerm_resource_group" "example" {
+  name     = "example-cdn-frontdoor"
   location = "West Europe"
 }
 
-resource "azurerm_cdn_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
-  resource_group_name = azurerm_resource_group.test.name
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_cdn_frontdoor_rule_set" "test" {
+resource "azurerm_cdn_frontdoor_rule_set" "example" {
   name                     = "exampleruleset"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 }
 ```
 

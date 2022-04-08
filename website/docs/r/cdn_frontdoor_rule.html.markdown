@@ -13,33 +13,28 @@ Manages a Frontdoor Rule.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "example-cdn"
+resource "azurerm_resource_group" "example" {
+  name     = "example-cdn-frontdoor"
   location = "West Europe"
 }
 
-resource "azurerm_cdn_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
-  resource_group_name = azurerm_resource_group.test.name
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_cdn_frontdoor_rule_set" "test" {
-  name                     = "exampleruleset"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-}
-
-resource "azurerm_cdn_frontdoor_endpoint" "test" {
+resource "azurerm_cdn_frontdoor_endpoint" "example" {
   name                     = "example-endpoint"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 
   tags = {
     endpoint = "contoso.com"
   }
 }
 
-resource "azurerm_cdn_frontdoor_origin_group" "test" {
-  name                     = "example-origin-group"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_origin_group" "example" {
+  name                     = "example-originGroup"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 
   health_probe {
     interval_in_seconds = 240
@@ -68,13 +63,13 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
   restore_traffic_or_new_endpoints_time = 10
 }
 
-resource "azurerm_cdn_frontdoor_origin" "test" {
+resource "azurerm_cdn_frontdoor_origin" "example" {
   name                          = "example-origin"
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
 
   enable_health_probes           = true
   enforce_certificate_name_check = false
-  host_name                      = azurerm_cdn_frontdoor_endpoint.test.host_name
+  host_name                      = azurerm_cdn_frontdoor_endpoint.example.host_name
   http_port                      = 80
   https_port                     = 443
   origin_host_header             = "contoso.com"
@@ -82,17 +77,22 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   weight                         = 500
 }
 
-resource "azurerm_cdn_frontdoor_rule" "test" {
-  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+resource "azurerm_cdn_frontdoor_rule_set" "example" {
+  name                     = "exampleruleset"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+}
+
+resource "azurerm_cdn_frontdoor_rule" "example" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.example, azurerm_cdn_frontdoor_origin.example]
 
   name                      = "examplerule"
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.example.id
   order                     = 1
   match_processing_behavior = "Continue"
 
   actions {
     route_configuration_override_action {
-      cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+      cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
       forwarding_protocol           = "HttpsOnly"
       query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
       query_string_parameters       = ["foo", "clientIp={client_ip}"]

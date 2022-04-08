@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-uuid"
@@ -139,7 +140,7 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorCreate(d *pluginsdk.Resource
 		// We are targeting to roll it out by end of next week(4/15/2022).
 		log.Printf("[DEBUG] Waiting for Custom Domain %q secret %q to become %q", customDomainId.CustomDomainName, secretId.SecretName, "Succeeded")
 		stateConf := &pluginsdk.StateChangeConf{
-			Pending:                   []string{"InProgress", "NotStarted"},
+			Pending:                   []string{"InProgress", "NotStarted", "Updating", "Creating"},
 			Target:                    []string{"Succeeded"},
 			Refresh:                   cdnFrontdoorCustomDomainSecretRefreshFunc(ctx, client, secretId),
 			MinTimeout:                30 * time.Second,
@@ -148,7 +149,7 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorCreate(d *pluginsdk.Resource
 		}
 
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for the %q:%q (Resource Group: %q) provisioning state to become %q: %+v", "azurerm_cdn_frontdoor_custom_domain_secret_validator", id.SecretName, id.ResourceGroup, "Succeeded", err)
+			return fmt.Errorf("waiting for the %q:%q (Resource Group: %q) deployment state to become %q: %+v", "azurerm_cdn_frontdoor_custom_domain_secret_validator", id.SecretName, id.ResourceGroup, "Succeeded", err)
 		}
 	}
 
@@ -251,18 +252,34 @@ func cdnFrontdoorCustomDomainSecretRefreshFunc(ctx context.Context, client *trac
 			return resp, "", nil
 		}
 
-		state := track1.AfdProvisioningStateFailed
+		out := "Failed"
+		provisioningState := track1.AfdProvisioningStateFailed
+		deploymentState := track1.DeploymentStatusFailed
 		if props := resp.SecretProperties; props != nil {
 			if props.ProvisioningState != "" {
-				state = props.ProvisioningState
+				provisioningState = props.ProvisioningState
+				deploymentState = props.DeploymentStatus
 			}
 		}
 
-		if state == track1.AfdProvisioningStateFailed {
-			log.Printf("[DEBUG] CDN Frontdoor Secret %q (Resource Group: %q) returned Deployment Status: %q", id.SecretName, id.ResourceGroup, state)
-			return nil, string(state), nil
+		// Due to deployment tracking not being currently implemented in the service
+		// I am first going to check the DeploymentStatus, if I get a NotStarted
+		// I will fall back and use the provisioningState instead. That way when
+		// they do implement the DeploymentStatus, this resource will be checking the
+		// correct field once it goes live. But, for now ProvisioningState is all we
+		// have to go with.
+
+		if deploymentState == track1.DeploymentStatusNotStarted {
+			out = string(provisioningState)
+		} else {
+			out = string(deploymentState)
 		}
 
-		return resp, string(state), nil
+		if strings.EqualFold(out, "failed") {
+			log.Printf("[DEBUG] CDN Frontdoor Secret %q (Resource Group: %q) returned Deployment Status: %q", id.SecretName, id.ResourceGroup, out)
+			return nil, "", fmt.Errorf("deployment state: %q", out)
+		}
+
+		return resp, out, nil
 	}
 }

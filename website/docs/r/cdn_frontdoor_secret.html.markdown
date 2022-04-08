@@ -46,7 +46,8 @@ A `secret_parameters` block supports the following:
 
 A `customer_certificate` - (Required)  block supports the following:
 
-* `secret_source_id` - (Required) The Resource ID of the Azure Key Vault secret. Expected to be in format of /subscriptions/00000000-0000-0000-0000-000000000000​​​​​​​​​/resourceGroups/resourceGroup1​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​/providers/Microsoft.KeyVault/vaults/vault1​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​/secrets/secret1.​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
+* `secret_source_id` - (Required) The Resource ID of the Azure Key Vault secret.
+​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
 * `secret_version` - (Optional) The version of the secret to be used.
 
 * `use_latest` - (Optional) Should the latest version for the certificate be used? Defaults to `true`.

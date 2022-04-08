@@ -13,27 +13,27 @@ Manages a Frontdoor Origin.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-frontdoor-profile"
   location = "West Europe"
 }
 
-resource "azurerm_frontdoor_profile" "test" {
-  name                = "acctest-c-%d"
-  resource_group_name = azurerm_resource_group.test.name
+resource "azurerm_frontdoor_profile" "example" {
+  name                = "example-profile"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_cdn_frontdoor_origin_group" "test" {
-  name                     = "acctest-c-%d"
-  cdn_frontdoor_profile_id = azurerm_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_origin_group" "example" {
+  name                     = "example-originGroup"
+  cdn_frontdoor_profile_id = azurerm_frontdoor_profile.example.id
 }
 
-resource "azurerm_cdn_frontdoor_origin" "test" {
-  name                                  = "acctest-c-%d"
-  cdn_frontdoor_profile_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+resource "azurerm_cdn_frontdoor_origin" "example" {
+  name                                  = "example-origin"
+  cdn_frontdoor_profile_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
   azure_origin_id                       = ""
 
-  enable_health_probes             = true
+  health_probes_enabled            = true
   enforce_certificate_name_check   = false
   host_name                        = ""
   http_port                        = 0

@@ -13,21 +13,21 @@ Manages a Frontdoor Security Policy.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "example-cdn"
+resource "azurerm_resource_group" "example" {
+  name     = "example-cdn-frontdoor"
   location = "West Europe"
 }
 
-resource "azurerm_cdn_frontdoor_profile" "test" {
+resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
-  resource_group_name = azurerm_resource_group.test.name
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   name                              = "exampleWAF"
-  resource_group_name               = azurerm_resource_group.test.name
-  cdn_frontdoor_profile_id          = azurerm_cdn_frontdoor_profile.test.id
-  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  resource_group_name               = azurerm_resource_group.example.name
+  cdn_frontdoor_profile_id          = azurerm_cdn_frontdoor_profile.example.id
+  sku_name                          = azurerm_cdn_frontdoor_profile.example.sku_name
   enabled                           = true
   mode                              = "Prevention"
   redirect_url                      = "https://www.contoso.com"
@@ -52,14 +52,14 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   }
 }
 
-resource "azurerm_cdn_frontdoor_security_policy" "test" {
+resource "azurerm_cdn_frontdoor_security_policy" "example" {
   name                     = "ExampleSecurityPolicy"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  cdn_frontdoor_origin_id  = azurerm_cdn_frontdoor_origin.test.id
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+  cdn_frontdoor_origin_id  = azurerm_cdn_frontdoor_origin.example.id
 
   security_policies {
     firewall {
-      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.test.id
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.example.id
 
       association {
         domain {
@@ -78,8 +78,6 @@ The following arguments are supported:
 * `name` - (Required) The name which should be used for this Frontdoor Security Policy. Changing this forces a new Frontdoor Security Policy to be created.
 
 * `cdn_frontdoor_profile_id` - (Required) The Frontdoor Profile Resource Id that is linked to this Frontdoor Security Policy. Changing this forces a new Frontdoor Security Policy to be created.
-
-* `cdn_frontdoor_origin_id` - (Required) The Frontdoor Origin Resource Id that is linked to this Frontdoor Security Policy. Changing this forces a new Frontdoor Security Policy to be created.
 
 * `security_policies` - (Required) An `security_policies` block as defined below. Changing this forces a new Frontdoor Security Policy to be created.
 

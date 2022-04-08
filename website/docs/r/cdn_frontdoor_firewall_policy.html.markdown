@@ -14,14 +14,14 @@ Manages an Azure CDN Front Door Firewall Policy instance.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example-rg"
+  name     = "example-cdn-frontdoor"
   location = "West Europe"
 }
 
 resource "azurerm_cdn_Frontdoor_profile" "example" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "Premium_AzureFrontdoor"
+  sku_name            = "Premium_AzureFrontDoor"
 }
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
