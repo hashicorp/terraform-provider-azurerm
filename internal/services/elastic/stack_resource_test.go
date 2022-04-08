@@ -261,9 +261,9 @@ resource "azurerm_elastic_stack" "test" {
 
   logs {
     filtering_tag {
-       action = "Include"
-       name   = "TerraformAccTest"
-       value  = "RandomValue%[1]d"
+      action = "Include"
+      name   = "TerraformAccTest"
+      value  = "RandomValue%[1]d"
     }
 
     # NOTE: these are intentionally not set to true here for testing purposes
@@ -295,9 +295,9 @@ resource "azurerm_elastic_stack" "test" {
 
   logs {
     filtering_tag {
-       action = "Include"
-       name   = "TerraformAccTest"
-       value  = "UpdatedValue-%[1]d"
+      action = "Include"
+      name   = "TerraformAccTest"
+      value  = "UpdatedValue-%[1]d"
     }
 
     # NOTE: these are intentionally not set to true here for testing purposes
