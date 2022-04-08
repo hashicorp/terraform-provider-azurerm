@@ -252,7 +252,7 @@ func cdnFrontdoorCustomDomainSecretRefreshFunc(ctx context.Context, client *trac
 			return resp, "", nil
 		}
 
-		out := "Failed"
+		var out string
 		provisioningState := track1.AfdProvisioningStateFailed
 		deploymentState := track1.DeploymentStatusFailed
 		if props := resp.SecretProperties; props != nil {
