@@ -79,13 +79,13 @@ func TestAccCdnFrontdoorEndpoint_update(t *testing.T) {
 }
 
 func (r CdnFrontdoorProfileEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.EndpointID(state.ID)
+	id, err := parse.FrontdoorEndpointID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	client := clients.Cdn.FrontDoorEndpointsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.ProfileName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

@@ -97,7 +97,7 @@ func resourceCdnFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_frontdoor_endpoint", id.ID())
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_endpoint", id.ID())
 		}
 	}
 
