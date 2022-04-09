@@ -53,9 +53,9 @@ The following arguments are supported:
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Origin Group to be created.
 
-* `health_probe` - (Optional) A `health_probe` block as defined below.
+* `load_balancing` - (Required) A `load_balancing` block as defined below.
 
-* `load_balancing` - (Optional) A `load_balancing` block as defined below.
+* `health_probe` - (Optional) A `health_probe` block as defined below.
 
 * `session_affinity` - (Optional) Whether to allow session affinity on this host. Possible values are `true` or `false`. Defaults to `true`.
 

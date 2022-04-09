@@ -25,7 +25,7 @@ func TestAccCdnFrontdoorOriginGroup_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("cdn_frontdoor_profile_id"),
 	})
 }
 
@@ -53,7 +53,7 @@ func TestAccCdnFrontdoorOriginGroup_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("cdn_frontdoor_profile_id"),
 	})
 }
 
@@ -67,14 +67,14 @@ func TestAccCdnFrontdoorOriginGroup_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("cdn_frontdoor_profile_id"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("cdn_frontdoor_profile_id"),
 	})
 }
 
@@ -106,7 +106,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-c-%d"
+  name                = "accTestProfile-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -118,8 +118,14 @@ func (r CdnFrontdoorOriginGroupResource) basic(data acceptance.TestData) string 
 				%s
 
 resource "azurerm_cdn_frontdoor_origin_group" "test" {
-  name                     = "acctest-c-%d"
+  name                     = "accTestOriginGroup-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -132,6 +138,12 @@ func (r CdnFrontdoorOriginGroupResource) requiresImport(data acceptance.TestData
 resource "azurerm_cdn_frontdoor_origin_group" "import" {
   name                     = azurerm_cdn_frontdoor_origin_group.test.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
+  }
 }
 `, config)
 }
@@ -142,7 +154,7 @@ func (r CdnFrontdoorOriginGroupResource) complete(data acceptance.TestData) stri
 			%s
 
 resource "azurerm_cdn_frontdoor_origin_group" "test" {
-  name                     = "acctest-c-%d"
+  name                     = "accTestOriginGroup-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   health_probe {
@@ -158,22 +170,8 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
     successful_samples_required        = 3
   }
 
-  response_based_origin_error_detection {
-    http_error_ranges {
-      begin = 300
-      end   = 599
-    }
-
-    detected_error_types          = "TcpAndHttpErrors"
-    failover_threshold_percentage = 10
-  }
-
   session_affinity                      = true
   restore_traffic_or_new_endpoints_time = 10
-
-  tags = {
-    environment = "test"
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -184,7 +182,7 @@ func (r CdnFrontdoorOriginGroupResource) update(data acceptance.TestData) string
 			%s
 
 resource "azurerm_cdn_frontdoor_origin_group" "test" {
-  name                     = "acctest-c-%d"
+  name                     = "accTestOriginGroup-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   health_probe {
@@ -200,23 +198,8 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
     successful_samples_required        = 5
   }
 
-  response_based_origin_error_detection {
-    http_error_ranges {
-      begin = 100
-      end   = 999
-    }
-
-    detected_error_types          = "TcpErrorsOnly"
-    failover_threshold_percentage = 50
-  }
-
   session_affinity                      = false
   restore_traffic_or_new_endpoints_time = 15
-
-  tags = {
-    environment = "BADF00D"
-    tick        = "SPOOOOOOOOOOON"
-  }
 }
 `, template, data.RandomInteger)
 }

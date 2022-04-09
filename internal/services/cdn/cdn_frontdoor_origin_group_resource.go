@@ -97,7 +97,7 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 
 			"load_balancing": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 
 				Elem: &pluginsdk.Resource{
@@ -169,7 +169,7 @@ func resourceCdnFrontdoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_frontdoor_origin_group", id.ID())
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_origin_group", id.ID())
 		}
 	}
 
