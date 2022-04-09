@@ -46,8 +46,6 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 				ValidateFunc: ValidatedLegacyFrontdoorWAFName,
 			},
 
-			"location": commonschema.LocationComputed(),
-
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"cdn_frontdoor_profile_id": {
@@ -557,10 +555,6 @@ func resourceCdnFrontdoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 
 	if profileId := d.Get("cdn_frontdoor_profile_id").(string); profileId != "" {
 		d.Set("cdn_frontdoor_profile_id", profileId)
-	}
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if sku := resp.Sku; sku != nil {

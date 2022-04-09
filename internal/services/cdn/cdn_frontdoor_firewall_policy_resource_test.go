@@ -15,7 +15,7 @@ import (
 
 type CdnFrontdoorFirewallPolicyResource struct{}
 
-func TestAccFrontDoorFirewallPolicy_basic(t *testing.T) {
+func TestAccCdnFrontdoorFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
 	r := CdnFrontdoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -23,15 +23,13 @@ func TestAccFrontDoorFirewallPolicy_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
-				check.That(data.ResourceName).Key("mode").HasValue("Prevention"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("cdn_frontdoor_profile_id"),
 	})
 }
 
-func TestAccFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
+func TestAccCdnFrontdoorFirewallPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
 	r := CdnFrontdoorFirewallPolicyResource{}
 
@@ -46,7 +44,7 @@ func TestAccFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccFrontDoorFirewallPolicy_update(t *testing.T) {
+func TestAccCdnFrontdoorFirewallPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
 	r := CdnFrontdoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -54,7 +52,7 @@ func TestAccFrontDoorFirewallPolicy_update(t *testing.T) {
 			Config: r.update(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("accTestWAF%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("mode").HasValue("Prevention"),
 			),
 		},
@@ -62,7 +60,7 @@ func TestAccFrontDoorFirewallPolicy_update(t *testing.T) {
 			Config: r.update(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("accTestWAF%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("mode").HasValue("Prevention"),
 				check.That(data.ResourceName).Key("custom_rule.1.name").HasValue("Rule2"),
 				check.That(data.ResourceName).Key("custom_rule.2.name").HasValue("Rule3"),
@@ -73,15 +71,15 @@ func TestAccFrontDoorFirewallPolicy_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("custom_rule.1.name").DoesNotExist(),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("accTestWAF%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("mode").HasValue("Prevention"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("cdn_frontdoor_profile_id"),
 	})
 }
 
-func TestAccFrontDoorFirewallPolicy_complete(t *testing.T) {
+func TestAccCdnFrontdoorFirewallPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
 	r := CdnFrontdoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -89,20 +87,9 @@ func TestAccFrontDoorFirewallPolicy_complete(t *testing.T) {
 			Config: r.update(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
-				check.That(data.ResourceName).Key("mode").HasValue("Prevention"),
-				check.That(data.ResourceName).Key("redirect_url").HasValue("https://www.contoso.com"),
-				check.That(data.ResourceName).Key("custom_block_response_status_code").HasValue("403"),
-				check.That(data.ResourceName).Key("custom_rule.0.name").HasValue("Rule1"),
-				check.That(data.ResourceName).Key("custom_rule.1.name").HasValue("Rule2"),
-				check.That(data.ResourceName).Key("managed_rule.0.type").HasValue("DefaultRuleSet"),
-				check.That(data.ResourceName).Key("managed_rule.0.exclusion.0.match_variable").HasValue("QueryStringArgNames"),
-				check.That(data.ResourceName).Key("managed_rule.0.override.1.exclusion.0.selector").HasValue("really_not_suspicious"),
-				check.That(data.ResourceName).Key("managed_rule.0.override.1.rule.0.exclusion.0.selector").HasValue("innocent"),
-				check.That(data.ResourceName).Key("managed_rule.1.type").HasValue("Microsoft_BotManagerRuleSet"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("cdn_frontdoor_profile_id"),
 	})
 }
 
@@ -135,8 +122,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-c-%[1]d"
+  name                = "accTestProfile-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
+	sku_name            = "Premium_AzureFrontDoor"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -147,7 +135,7 @@ func (r CdnFrontdoorFirewallPolicyResource) basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
-  name                     = "testAccCdnFrontDoorWAF%d"
+  name                     = "accTestWAF%d"
   resource_group_name      = azurerm_resource_group.test.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
@@ -175,7 +163,7 @@ func (r CdnFrontdoorFirewallPolicyResource) update(data acceptance.TestData, upd
 %s
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
-  name                              = "testAccFrontDoorWAF%d"
+  name                              = "accTestWAF%d"
   resource_group_name               = azurerm_resource_group.test.name
   cdn_frontdoor_profile_id          = azurerm_cdn_frontdoor_profile.test.id
   sku_name                          = "Premium_AzureFrontDoor"
@@ -231,7 +219,7 @@ func (r CdnFrontdoorFirewallPolicyResource) updated(data acceptance.TestData) st
 %s
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
-  name                              = "testAccFrontDoorWAF%d"
+  name                              = "accTestWAF%d"
   resource_group_name               = azurerm_resource_group.test.name
   cdn_frontdoor_profile_id          = azurerm_cdn_frontdoor_profile.test.id
   sku_name                          = "Premium_AzureFrontDoor"

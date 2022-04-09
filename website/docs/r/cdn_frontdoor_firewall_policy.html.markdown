@@ -153,6 +153,8 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) The sku's pricing tier for this Cdn Frontdoor firewall policy. Possible values include`Standard_AzureFrontdoor` or `Premium_AzureFrontdoor`. Defaluts to `Standard_AzureFrontdoor`.
 
+->**NOTE:** The `Standard_AzureFrontdoor` firewall policy sku may contain `custom` rules only. The `Premium_AzureFrontdoor` Firewall policy skus may contain both `custom` and `managed` rules.
+
 * `tags` - (Optional) A mapping of tags to assign to the Web Application Firewall Policy.
 
 ---
