@@ -114,23 +114,16 @@ func (r CdnFrontdoorProfileResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-c-%d"
+  name                = "accTestProfile-%d"
   resource_group_name = azurerm_resource_group.test.name
 
-  identity = {
-    type = "SystemAssigned"
-  }
-
-  location                 = "%s"
-  response_timeout_seconds = 0
-  sku_name                 = ""
-
+  sku_name = "Standard_AzureFrontDoor"
 
   tags = {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
 
 func (r CdnFrontdoorProfileResource) requiresImport(data acceptance.TestData) string {
@@ -142,19 +135,13 @@ resource "azurerm_cdn_frontdoor_profile" "import" {
   name                = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  identity = {
-    type = "SystemAssigned"
-  }
-
-  location                 = "%s"
-  response_timeout_seconds = 0
-  sku_name                 = ""
+  sku_name = "Standard_AzureFrontDoor"
 
   tags = {
     ENV = "Test"
   }
 }
-`, config, data.Locations.Primary)
+`, config)
 }
 
 func (r CdnFrontdoorProfileResource) complete(data acceptance.TestData) string {
@@ -163,22 +150,17 @@ func (r CdnFrontdoorProfileResource) complete(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-c-%d"
+  name                = "accTestProfile-%d"
   resource_group_name = azurerm_resource_group.test.name
 
-  identity = {
-    type = "SystemAssigned"
-  }
-
-  location                 = "%s"
-  response_timeout_seconds = 0
-  sku_name                 = ""
+  response_timeout_seconds = 240
+  sku_name                 = "Premium_AzureFrontDoor"
 
   tags = {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
 
 func (r CdnFrontdoorProfileResource) update(data acceptance.TestData) string {
@@ -190,8 +172,11 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
   resource_group_name = azurerm_resource_group.test.name
 
+  response_timeout_seconds = 120
+  sku_name                 = "Premium_AzureFrontDoor"
+
   tags = {
-    ENV = "Test"
+    ENV = "Production"
   }
 }
 `, template, data.RandomInteger)
