@@ -108,13 +108,19 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-c-%d"
+  name                = "accTestProfile-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "test" {
-  name                     = "acctest-c-%d"
+  name                     = "accTestOriginGroup-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -125,18 +131,17 @@ func (r CdnFrontdoorOriginResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_cdn_frontdoor_origin" "test" {
-  name                          = "acctest-c-%d"
+  name                          = "accTestOrigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
-  cdn_frontdoor_origin_id       = ""
 
-  enable_health_probes           = true
+  health_probes_enabled          = true
   enforce_certificate_name_check = false
-  host_name                      = ""
-  http_port                      = 0
-  https_port                     = 0
-  origin_host_header             = ""
-  priority                       = 0
-  weight                         = 0
+  host_name                      = "contoso.com"
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = "www.contoso.com"
+  priority                       = 1
+  weight                         = 1
 }
 `, template, data.RandomInteger)
 }
@@ -147,18 +152,17 @@ func (r CdnFrontdoorOriginResource) requiresImport(data acceptance.TestData) str
 			%s
 
 resource "azurerm_cdn_frontdoor_origin" "import" {
-  name                          = azurerm_cdn_afd_origin.test.name
+  name                          = azurerm_cdn_frontdoor_origin.test.name
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
-  cdn_frontdoor_origin_id       = ""
 
-  enable_health_probes           = true
+  health_probes_enabled          = true
   enforce_certificate_name_check = false
-  host_name                      = ""
-  http_port                      = 0
-  https_port                     = 0
-  origin_host_header             = ""
-  priority                       = 0
-  weight                         = 0
+  host_name                      = "contoso.com"
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = "www.contoso.com"
+  priority                       = 1
+  weight                         = 1
 }
 `, config)
 }
@@ -169,18 +173,17 @@ func (r CdnFrontdoorOriginResource) complete(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_cdn_frontdoor_origin" "test" {
-  name                          = "acctest-c-%d"
+  name                          = "accTestOrigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
-  cdn_frontdoor_origin_id       = ""
 
-  enable_health_probes           = true
+  health_probes_enabled          = true
   enforce_certificate_name_check = false
-  host_name                      = ""
-  http_port                      = 0
-  https_port                     = 0
-  origin_host_header             = ""
-  priority                       = 0
-  weight                         = 0
+  host_name                      = "contoso.com"
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = "www.contoso.com"
+  priority                       = 1
+  weight                         = 1
 }
 `, template, data.RandomInteger)
 }
@@ -191,18 +194,17 @@ func (r CdnFrontdoorOriginResource) update(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_cdn_frontdoor_origin" "test" {
-  name                          = "acctest-c-%d"
+  name                          = "accTestOrigin-%d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
-  cdn_frontdoor_origin_id       = ""
 
-  enable_health_probes           = true
+  health_probes_enabled          = true
   enforce_certificate_name_check = false
-  host_name                      = ""
-  http_port                      = 0
-  https_port                     = 0
-  origin_host_header             = ""
-  priority                       = 0
-  weight                         = 0
+  host_name                      = "contoso.com"
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = "www.contoso.com"
+  priority                       = 1
+  weight                         = 1
 }
 `, template, data.RandomInteger)
 }

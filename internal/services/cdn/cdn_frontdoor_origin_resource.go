@@ -86,7 +86,7 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 			},
 
 			// Must be a valid domain name, IP version 4, or IP version 6
-			"cdn_frontdoor_origin_host_header": {
+			"origin_host_header": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: IsValidDomain,
@@ -139,7 +139,7 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	originHostHeader := d.Get("cdn_frontdoor_origin_host_header").(string)
+	originHostHeader := d.Get("origin_host_header").(string)
 
 	props := track1.AFDOrigin{
 		AFDOriginProperties: &track1.AFDOriginProperties{
@@ -206,7 +206,7 @@ func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("http_port", props.HTTPPort)
 		d.Set("https_port", props.HTTPSPort)
 		d.Set("cdn_frontdoor_origin_group_name", props.OriginGroupName)
-		d.Set("cdn_frontdoor_origin_host_header", props.OriginHostHeader)
+		d.Set("origin_host_header", props.OriginHostHeader)
 		d.Set("priority", props.Priority)
 		d.Set("weight", props.Weight)
 	}
@@ -224,7 +224,7 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	originHostHeader := d.Get("cdn_frontdoor_origin_host_header").(string)
+	originHostHeader := d.Get("origin_host_header").(string)
 
 	props := track1.AFDOriginUpdateParameters{
 		AFDOriginUpdatePropertiesParameters: &track1.AFDOriginUpdatePropertiesParameters{

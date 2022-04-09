@@ -35,10 +35,10 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
 
   health_probes_enabled            = true
   enforce_certificate_name_check   = false
-  host_name                        = ""
+  host_name                        = "contoso.com"
   http_port                        = 0
   https_port                       = 0
-  cdn_frontdoor_origin_host_header = ""
+  origin_host_header               = "www.contoso.com"
   priority                         = 0
   weight                           = 0
 }
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `https_port` - (Optional) The value of the HTTPS port. Must be between `1` and `65535`. Defaults to `443`.
 
-* `cdn_frontdoor_origin_host_header` - (Optional) The host header value sent to the origin with each request. If you leave this blank, the requests hostname determines this value. Azure Frontdoor Origins, such as Web Apps, Blob Storage, and Cloud Services require this host header value to match the origin hostname. This fields value overrides the host header defined in the Frontdoor Endpoint.
+* `origin_host_header` - (Optional) The host header value sent to the origin with each request. If you leave this blank, the requests hostname determines this value. Azure Frontdoor Origins, such as Web Apps, Blob Storage, and Cloud Services require this host header value to match the origin hostname. This fields value overrides the host header defined in the Frontdoor Endpoint.
 
 * `priority` - (Optional) Priority of origin in given origin group for load balancing. Higher priorities will not be used for load balancing if any lower priority origin is healthy.Must be between `1` and `5`(inclusive). Defaults to `1`.
 
