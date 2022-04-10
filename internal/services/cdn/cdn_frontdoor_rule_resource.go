@@ -320,7 +320,7 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 			"conditions": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 
 				Elem: &pluginsdk.Resource{
@@ -646,11 +646,13 @@ func resourceCdnFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_frontdoor_rule", id.ID())
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_rule", id.ID())
 		}
 	}
 
 	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
+	order := d.Get("order").(int)
+
 	actions, err := expandFrontdoorDeliveryRuleActions(d.Get("actions").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding %q: %+v", "actions", err)
@@ -667,7 +669,7 @@ func resourceCdnFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 			Conditions:              &conditions,
 			MatchProcessingBehavior: matchProcessingBehaviorValue,
 			RuleSetName:             &ruleSetId.RuleSetName,
-			Order:                   utils.Int32(int32(d.Get("order").(int))),
+			Order:                   utils.Int32(int32(order)),
 		},
 	}
 
@@ -743,6 +745,9 @@ func resourceCdnFrontdoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
+	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
+	order := d.Get("order").(int)
+
 	actions, err := expandFrontdoorDeliveryRuleActions(d.Get("actions").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding %q: %+v", "actions", err)
@@ -757,13 +762,12 @@ func resourceCdnFrontdoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("expanding %q: configuration file exceeds the maximum of 10 match conditions, got %d", "conditions", len(conditions))
 	}
 
-	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
 	props := track1.RuleUpdateParameters{
 		RuleUpdatePropertiesParameters: &track1.RuleUpdatePropertiesParameters{
 			Actions:                 &actions,
 			Conditions:              &conditions,
 			MatchProcessingBehavior: matchProcessingBehaviorValue,
-			Order:                   utils.Int32(int32(d.Get("order").(int))),
+			Order:                   utils.Int32(int32(order)),
 		},
 	}
 
@@ -802,6 +806,9 @@ func resourceCdnFrontdoorRuleDelete(d *pluginsdk.ResourceData, meta interface{})
 
 func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]track1.BasicDeliveryRuleAction, error) {
 	results := make([]track1.BasicDeliveryRuleAction, 0)
+	if len(input) == 0 {
+		return results, nil
+	}
 
 	type expandfunc func(input []interface{}) (*[]track1.BasicDeliveryRuleAction, error)
 
@@ -855,6 +862,9 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]track1.BasicDeli
 
 func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]track1.BasicDeliveryRuleCondition, error) {
 	results := make([]track1.BasicDeliveryRuleCondition, 0)
+	if len(input) == 0 {
+		return results, nil
+	}
 
 	type expandfunc func(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error)
 	m := cdnfrontdoorruleconditions.InitializeCdnFrontdoorConditionMappings()

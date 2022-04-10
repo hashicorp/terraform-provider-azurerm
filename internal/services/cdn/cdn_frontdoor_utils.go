@@ -259,8 +259,12 @@ func ValidateCdnFrontdoorCacheDuration(i interface{}, k string) (_ []string, err
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
 	}
 
-	if m, _ := validate.RegExHelper(i, k, `^([0-3]|([1-9][0-9])|([1-3][0-6][0-5])).((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$`); !m {
-		return nil, []error{fmt.Errorf(`%q must be between in the d.HH:MM:SS format and must be equal to or lower than %q, got %q`, k, "365.23:59:59", v)}
+	if strings.HasPrefix(v, "0.") {
+		return nil, []error{fmt.Errorf(`%q must not start with %q if the duration is less than 1 day. If the %q is less than 1 day it should be in the HH:MM:SS format, got %q`, k, "0.", k, v)}
+	}
+
+	if m, _ := validate.RegExHelper(i, k, `^([1-3]|([1-9][0-9])|([1-3][0-6][0-5])).((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$|^((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$`); !m {
+		return nil, []error{fmt.Errorf(`%q must be between in the d.HH:MM:SS or HH:MM:SS format and must be equal to or lower than %q, got %q`, k, "365.23:59:59", v)}
 	}
 
 	return nil, nil
