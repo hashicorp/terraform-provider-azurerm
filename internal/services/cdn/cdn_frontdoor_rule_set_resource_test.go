@@ -86,7 +86,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-c-%d"
+  name                = "accTestProfile-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -98,10 +98,10 @@ func (r CdnFrontdoorRuleSetResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_cdn_frontdoor_rule_set" "test" {
-  name                     = "acctestrs%da"
+  name                     = "accTestRuleSet%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
-`, template, data.RandomIntOfLength(5))
+`, template, data.RandomIntOfLength(8))
 }
 
 func (r CdnFrontdoorRuleSetResource) requiresImport(data acceptance.TestData) string {
@@ -122,8 +122,8 @@ func (r CdnFrontdoorRuleSetResource) complete(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_cdn_frontdoor_rule_set" "test" {
-  name                     = "acctestrs%da"
+  name                     = "accTestRuleSet%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
-`, template, data.RandomIntOfLength(5))
+`, template, data.RandomIntOfLength(8))
 }
