@@ -68,23 +68,27 @@ The following arguments are supported:
 
 * `cdn_frontdoor_origin_ids` - (Required) One or more Frontdoor Origin resource IDs this Frontdoor Route will link to. Changing this forces a new Frontdoor Route to be created.
 
+* `supported_protocols` - (Required) One or more Protocols supported by this Frontdoor Route. Possible values are `Http` or `Https`.
+
+* `patterns_to_match` - (Reqired) The route patterns of the rule.
+
 * `cache_configuration` - (Optional) A `cache_configuration` block as defined below.
 
 ~> **NOTE:** To to disable caching, do not provide the `cache_configuration` block in the configuration file. 
 
 * `enabled` - (Optional) Is this Frontdoor Route enabled? Possible values are `true` or `false`. Defaults to `true`.
 
-* `forwarding_protocol` - (Optional) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `HttpsOnly`.
+* `forwarding_protocol` - (Optional) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `MatchRequest`.
 
 * `https_redirect` - (Optional) Automatically redirect HTTP traffic to HTTPS traffic? Possible values are `true` or `false`. Defaults to `true`.
 
 ~> **NOTE:** The `https_redirect` rule is the first rule that will be executed.
 
-* `link_to_default_domain` - (Optional) Will this route be linked to the default domain endpoint? Possible values are `true` or `false`. Defaults to `false`.
+* `link_to_default_domain` - (Optional) Will this route be linked to the default domain endpoint? Possible values are `true` or `false`. Defaults to `true`.
+
+->**NOTE:** On initial creation of the Frontdoor Route resource in Terraform this value must always be set to `true` due to the Custom Domain workflow logic and the creation constraints of the Frontdoor Route resource that have been introduced with this version of Frontdoor.
 
 * `cdn_frontdoor_origin_path` - (Optional) A directory path on the origin that Frontdoor can use to retrieve content from(e.g. contoso.cloudapp.net/originpath).
-
-* `patterns_to_match` - (Optional) The route patterns of the rule.
 
 * `cdn_frontdoor_rule_set_ids` - (Optional) One or more Frontdoor Rule Set Resource ID's.
 

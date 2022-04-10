@@ -15,7 +15,7 @@ import (
 
 type CdnFrontdoorRouteResource struct{}
 
-func TestAccFrontdoorRoute_basic(t *testing.T) {
+func TestAccCdnFrontdoorRoute_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
 	r := CdnFrontdoorRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -25,11 +25,16 @@ func TestAccFrontdoorRoute_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
+		{
+			// You must delete the route first to disassociate the endpoint from the origin and origin group
+			Config: r.destroy(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
 	})
 }
 
-func TestAccFrontdoorRoute_requiresImport(t *testing.T) {
+func TestAccCdnFrontdoorRoute_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
 	r := CdnFrontdoorRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -40,10 +45,15 @@ func TestAccFrontdoorRoute_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+		{
+			// You must delete the route first to disassociate the endpoint from the origin and origin group
+			Config: r.destroy(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
 	})
 }
 
-func TestAccFrontdoorRoute_complete(t *testing.T) {
+func TestAccCdnFrontdoorRoute_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
 	r := CdnFrontdoorRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -53,11 +63,16 @@ func TestAccFrontdoorRoute_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
+		{
+			// You must delete the route first to disassociate the endpoint from the origin and origin group
+			Config: r.destroy(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
 	})
 }
 
-func TestAccFrontdoorRoute_update(t *testing.T) {
+func TestAccCdnFrontdoorRoute_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
 	r := CdnFrontdoorRouteResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -67,14 +82,19 @@ func TestAccFrontdoorRoute_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
+		{
+			// You must delete the route first to disassociate the endpoint from the origin and origin group
+			Config: r.destroy(data),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		},
 	})
 }
 
@@ -92,6 +112,7 @@ func (r CdnFrontdoorRouteResource) Exists(ctx context.Context, clients *clients.
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	return utils.Bool(true), nil
 }
 
@@ -102,20 +123,103 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-afdx-%d"
+  name     = "acctestRG-cdn-afdx-%[1]d"
   location = "%s"
 }
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-c-%d"
+  name                = "accTestProfile-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_cdn_frontdoor_endpoint" "test" {
-  name                 = "acctest-c-%d"
-  frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+resource "azurerm_cdn_frontdoor_origin_group" "test" {
+  name                     = "accTestOriginGroup-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+
+resource "azurerm_cdn_frontdoor_origin" "test" {
+  name                          = "accTestOrigin-%[1]d"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+
+  health_probes_enabled          = true
+  enforce_certificate_name_check = false
+  host_name                      = "contoso.com"
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = "www.contoso.com"
+  priority                       = 1
+  weight                         = 1
+}
+
+resource "azurerm_cdn_frontdoor_endpoint" "test" {
+  name                     = "accTestEndpoint-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "test" {
+  name                     = "accTestRuleSet%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r CdnFrontdoorRouteResource) destroy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-afdx-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "accTestProfile-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_cdn_frontdoor_origin_group" "test" {
+  name                     = "accTestOriginGroup-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
+  }
+}
+
+resource "azurerm_cdn_frontdoor_origin" "test" {
+  name                          = "accTestOrigin-%[1]d"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+
+  health_probes_enabled          = true
+  enforce_certificate_name_check = false
+  host_name                      = "contoso.com"
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = "www.contoso.com"
+  priority                       = 1
+  weight                         = 1
+}
+
+resource "azurerm_cdn_frontdoor_endpoint" "test" {
+  name                     = "accTestEndpoint-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "test" {
+  name                     = "accTestRuleSet%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r CdnFrontdoorRouteResource) basic(data acceptance.TestData) string {
@@ -124,27 +228,13 @@ func (r CdnFrontdoorRouteResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_cdn_frontdoor_route" "test" {
-  name                      = "acctest-c-%d"
-  cdn_frontdoor_endpoint_id = azurerm_cdn_frontdoor_endpoint.test.id
+  name                          = "accTestRoute-%d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
 
-  cache_configuration {
-    query_parameters              = ["foo", "bar"]
-    query_string_caching_behavior = "IgnoreQueryString"
-  }
-
-  custom_domains {
-    id = ""
-  }
-
-  enabled                       = true
-  forwarding_protocol           = true
-  https_redirect                = true
-  link_to_default_domain        = true
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_group.test.id
-  cdn_frontdoor_origin_path     = ""
-  patterns_to_match             = []
-  rule_set_ids                  = [""]
-  supported_protocols           = ["Http", "Https"]
+  patterns_to_match   = ["/*"]
+  supported_protocols = ["Http", "Https"]
 }
 `, template, data.RandomInteger)
 }
@@ -155,27 +245,13 @@ func (r CdnFrontdoorRouteResource) requiresImport(data acceptance.TestData) stri
 			%s
 
 resource "azurerm_cdn_frontdoor_route" "import" {
-  name                      = azurerm_cdn_frontdoor_route.test.name
-  cdn_frontdoor_endpoint_id = azurerm_cdn_frontdoor_endpoint.test.id
+  name                          = azurerm_cdn_frontdoor_route.test.name
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
 
-  cache_configuration {
-    query_parameters              = ""
-    query_string_caching_behavior = ""
-  }
-
-  custom_domains {
-    id = ""
-  }
-
-  enabled_state                 = ""
-  forwarding_protocol           = ""
-  https_redirect                = ""
-  link_to_default_domain        = ""
-  cdn_frontdoor_origin_group_id = ""
-  cdn_frontdoor_origin_path     = ""
-  patterns_to_match             = []
-  rule_set_ids                  = [""]
-  supported_protocols           = ["Http", "Https"]
+  patterns_to_match   = ["/*"]
+  supported_protocols = ["Http", "Https"]
 }
 `, config)
 }
@@ -186,27 +262,24 @@ func (r CdnFrontdoorRouteResource) complete(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_cdn_frontdoor_route" "test" {
-  name                      = "acctest-c-%d"
-  cdn_frontdoor_endpoint_id = azurerm_cdn_frontdoor_endpoint.test.id
+  name                          = "accTestRoute-%d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+
+  enabled             = true
+  forwarding_protocol = "HttpsOnly"
+  https_redirect      = true
+  # Cannot set this value because Frontdoor RP validates that the path is reachable
+  # cdn_frontdoor_origin_path  = "contoso.com/site/content"
+  patterns_to_match          = ["/*"]
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.test.id]
+  supported_protocols        = ["Http", "Https"]
 
   cache_configuration {
-    query_parameters              = ""
-    query_string_caching_behavior = ""
+    query_strings                 = ["foo", "bar"]
+    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
   }
-
-  custom_domains {
-    id = ""
-  }
-
-  enabled_state                 = ""
-  forwarding_protocol           = ""
-  https_redirect                = ""
-  link_to_default_domain        = ""
-  cdn_frontdoor_origin_group_id = ""
-  cdn_frontdoor_origin_path     = ""
-  patterns_to_match             = [""]
-  rule_set_ids                  = [""]
-  supported_protocols           = ["Http", "Https"]
 }
 `, template, data.RandomInteger)
 }
@@ -217,27 +290,25 @@ func (r CdnFrontdoorRouteResource) update(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_cdn_frontdoor_route" "test" {
-  name                      = "acctest-c-%d"
-  cdn_frontdoor_endpoint_id = azurerm_cdn_frontdoor_endpoint.test.id
+  name                          = "accTestRoute-%d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+
+  enabled                = true
+  forwarding_protocol    = "HttpOnly"
+  https_redirect         = false
+  link_to_default_domain = true
+  # Cannot set this value because Frontdoor RP validates that the path is reachable
+  # cdn_frontdoor_origin_path  = "contoso.com/site/content"
+  patterns_to_match          = ["/*"]
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.test.id]
+  supported_protocols        = ["Https"]
 
   cache_configuration {
-    query_parameters              = ""
-    query_string_caching_behavior = ""
+    query_strings                 = ["bar"]
+    query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
   }
-
-  custom_domains {
-    id = ""
-  }
-
-  enabled_state                 = ""
-  forwarding_protocol           = ""
-  https_redirect                = ""
-  link_to_default_domain        = ""
-  cdn_frontdoor_origin_group_id = ""
-  cdn_frontdoor_origin_path     = ""
-  patterns_to_match             = []
-  rule_set_ids                  = [""]
-  supported_protocols           = ["Https"]
 }
 `, template, data.RandomInteger)
 }

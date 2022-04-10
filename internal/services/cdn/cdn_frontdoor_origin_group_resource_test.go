@@ -102,7 +102,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-afdx-%d"
+  name     = "acctestRG-cdn-afdx-%d"
   location = "%s"
 }
 resource "azurerm_cdn_frontdoor_profile" "test" {

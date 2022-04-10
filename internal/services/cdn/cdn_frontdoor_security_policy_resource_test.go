@@ -103,7 +103,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-afdx-%[1]d"
+  name     = "acctestRG-cdn-afdx-%[1]d"
   location = "%[2]s"
 }
 

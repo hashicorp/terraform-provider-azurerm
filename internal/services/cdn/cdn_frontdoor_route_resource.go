@@ -126,7 +126,7 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 			"forwarding_protocol": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(track1.ForwardingProtocolHTTPSOnly),
+				Default:  string(track1.ForwardingProtocolMatchRequest),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(track1.ForwardingProtocolHTTPOnly),
 					string(track1.ForwardingProtocolHTTPSOnly),
@@ -143,6 +143,7 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 			"link_to_default_domain": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"cdn_frontdoor_origin_path": {
@@ -152,7 +153,7 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 
 			"patterns_to_match": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Required: true,
 
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -170,7 +171,7 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 
 			"supported_protocols": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Required: true,
 				MaxItems: 2,
 
 				Elem: &pluginsdk.Schema{
