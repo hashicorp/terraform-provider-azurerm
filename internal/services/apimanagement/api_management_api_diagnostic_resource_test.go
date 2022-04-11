@@ -304,6 +304,10 @@ resource "azurerm_api_management_api_diagnostic" "test" {
     body_bytes     = 3
     headers_to_log = ["Accept"]
     data_masking {
+      query_params {
+        mode  = "Hide"
+        value = "frontend-Request-Test"
+      }
       headers {
         mode  = "Mask"
         value = "frontend-Request-Header"
