@@ -67,10 +67,10 @@ func resourceStreamAnalyticsOutputEventHub() *pluginsdk.Resource {
 			"authentication_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(streamanalytics.ConnectionString),
+				Default:  string(streamanalytics.AuthenticationModeConnectionString),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(streamanalytics.ConnectionString),
-					string(streamanalytics.Msi),
+					string(streamanalytics.AuthenticationModeConnectionString),
+					string(streamanalytics.AuthenticationModeMsi),
 				}, false),
 			},
 

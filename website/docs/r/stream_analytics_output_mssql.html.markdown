@@ -71,9 +71,9 @@ The following arguments are supported:
 
 * `authentication_mode` - (Optional) The authentication mode for the Stream Output. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
 
-* `user` - (Optional) Username used to login to the Microsoft SQL Server. Changing this forces a new resource to be created.
+* `user` - (Optional) Username used to login to the Microsoft SQL Server.
 
-* `password` - (Optional) Password used together with username, to login to the Microsoft SQL Server. Changing this forces a new resource to be created.
+* `password` - (Optional) Password used together with username, to login to the Microsoft SQL Server.
 
 ## Attributes Reference
 
