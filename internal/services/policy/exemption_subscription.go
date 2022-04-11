@@ -52,7 +52,7 @@ func resourceArmSubscriptionPolicyExemption() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_id": {
+			"subscription_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -115,7 +115,10 @@ func resourceArmSubscriptionPolicyExemptionCreateUpdate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	subscriptionId := tenants.NewSubscriptionID(d.Get("subscription_id").(string))
+	subscriptionId, err := tenants.ParseSubscriptionID(d.Get("subscription_id").(string))
+	if err != nil {
+		return err
+	}
 	id := parse.NewSubscriptionPolicyExemptionID(subscriptionId.SubscriptionId, d.Get("name").(string))
 
 	if d.IsNewResource() {
@@ -176,7 +179,7 @@ func resourceArmSubscriptionPolicyExemptionRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ResourceGroupPolicyExemptionID(d.Id())
+	id, err := parse.SubscriptionPolicyExemptionID(d.Id())
 	if err != nil {
 		return fmt.Errorf("reading Policy Exemption: %+v", err)
 	}
