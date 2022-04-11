@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2022-02-01/signalr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
