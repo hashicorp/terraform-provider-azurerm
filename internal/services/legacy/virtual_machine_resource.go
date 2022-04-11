@@ -246,6 +246,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 						"name": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"vhd_uri": {
