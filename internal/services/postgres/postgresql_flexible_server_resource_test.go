@@ -429,7 +429,12 @@ resource "azurerm_postgresql_flexible_server" "test" {
   delegated_subnet_id    = azurerm_subnet.test.id
   private_dns_zone_id    = azurerm_private_dns_zone.test.id
   sku_name               = "GP_Standard_D2s_v3"
-  zone                   = "1"
+  zone                   = "2"
+
+  high_availability {
+    mode                      = "ZoneRedundant"
+    standby_availability_zone = "1"
+  }
 
   maintenance_window {
     day_of_week  = 0

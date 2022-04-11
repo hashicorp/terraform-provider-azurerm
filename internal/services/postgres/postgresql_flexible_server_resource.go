@@ -287,7 +287,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 			Network:          expandArmServerNetwork(d),
 			Version:          postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
 			Storage:          expandArmServerStorage(d),
-			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{})),
+			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), true),
 			Backup:           expandArmServerBackup(d),
 		},
 		Sku:  sku,
@@ -431,7 +431,6 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	var requireFailover bool
 	// failover is only supported when `zone` and `high_availability.0.standby_availability_zone` are exchanged with each other
-
 	if d.HasChanges("zone", "high_availability") {
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
@@ -459,7 +458,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 				}
 			}
 
-			// changes can occur in high_availability.0.standby_availability_zone when zone has not changed in the case where high_availability block has been newly added or high_availability block is removed, meaning HA is now disabled
+			// changes can occur in high_availability.0.standby_availability_zone when zone has not changed in the case where a high_availability block has been newly added or a high_availability block is removed, meaning HA is now disabled
 		} else if d.HasChange("high_availability.0.standby_availability_zone") {
 			if props != nil && props.HighAvailability != nil {
 				// if HA Mode is currently "ZoneRedundant" and is still set to "ZoneRedundant", high_availability.0.standby_availability_zone cannot be changed
@@ -501,7 +500,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("high_availability") {
-		parameters.HighAvailability = expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}))
+		parameters.HighAvailability = expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), false)
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
@@ -682,7 +681,7 @@ func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.Maintena
 	}
 }
 
-func expandFlexibleServerHighAvailability(inputs []interface{}) *postgresqlflexibleservers.HighAvailability {
+func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *postgresqlflexibleservers.HighAvailability {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return &postgresqlflexibleservers.HighAvailability{
 			Mode: postgresqlflexibleservers.HighAvailabilityModeDisabled,
@@ -695,8 +694,11 @@ func expandFlexibleServerHighAvailability(inputs []interface{}) *postgresqlflexi
 		Mode: postgresqlflexibleservers.HighAvailabilityMode(input["mode"].(string)),
 	}
 
-	if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
-		result.StandbyAvailabilityZone = utils.String(v.(string))
+	// service team confirmed it doesn't support to update `high_availability.0.standby_availability_zone` after the PostgreSQL Flexible Server resource is created
+	if isCreate {
+		if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
+			result.StandbyAvailabilityZone = utils.String(v.(string))
+		}
 	}
 
 	return &result
