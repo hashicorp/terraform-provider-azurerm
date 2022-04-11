@@ -1,5 +1,9 @@
 ## 3.2.0 (Unreleased)
 
+FEATURES:
+
+* **New Datasource**: `azurerm_kusto_database` [GH-16180]
+
 ENHANCEMENTS:
 
 * `azurerm_machine_learning_workspace` - renamed `public_network_access_enabled` to `public_access_behind_virtual_network_enabled` to better reflect what this property does [GH-16288]
