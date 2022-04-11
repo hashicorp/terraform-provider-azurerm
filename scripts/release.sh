@@ -51,7 +51,7 @@ else
 fi
 
 DATE="$(date '+%B %d, %Y')"
-PROVIDER_URL="https:\/\/github.com\/hashicorp\/terraform-provider-azuread\/issues"
+PROVIDER_URL="https:\/\/github.com\/hashicorp\/terraform-provider-azurerm\/issues"
 
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 if [[ "${BRANCH}" != "${TRUNK}" ]]; then
