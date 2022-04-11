@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `minimum_tls_version` - (Optional) The minimum TLS version.  Defaults to `1.2`. Changing this forces a new Redis Enterprise Cluster to be created.
 
-* `zones` - (Optional) A list of a one or more Availability Zones, where the Redis Cache should be allocated. Possible values are: `1`, `2` and `3`. Changing this forces a new Redis Enterprise Cluster to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Redis Enterprise Cluster should be located. Changing this forces a new Redis Enterprise Cluster to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Redis Enterprise Cluster.
 

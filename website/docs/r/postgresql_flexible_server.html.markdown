@@ -120,7 +120,7 @@ The following arguments are supported:
 * 
 * `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12` and `13`. Required when `create_mode` is `Default`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `zone` - (Optional) The Availability Zone of the PostgreSQL Flexible Server. Possible values are `1`, `2` and `3`.
+* `zone` - (Optional) Specifies the Availability Zone in which the PostgreSQL Flexible Server should be located.
 
 -> **Note:** Azure will automatically assign an Availability Zone if one is not specified. If the PostgreSQL Flexible Server fails-over to the Standby Availability Zone, the `zone` will be updated to reflect the current Primary Availability Zone. You can use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to the `zone` and `high_availability.0.standby_availability_zone` fields should you wish for Terraform to not migrate the PostgreSQL Flexible Server back to it's primary Availability Zone after a fail-over.
 
@@ -142,7 +142,7 @@ A `high_availability` block supports the following:
 
 * `mode` - (Required) The high availability mode for the PostgreSQL Flexible Server. The only possible value is `ZoneRedundant`.
 
-* `standby_availability_zone` - (Optional) The Availability Zone of the standby Flexible Server. Possible values are `1`, `2` and `3`.
+* `standby_availability_zone` - (Optional) Specifies the Availability Zone in which the standby Flexible Server should be located.
 
 -> **Note:** Azure will automatically assign an Availability Zone if one is not specified. If the PostgreSQL Flexible Server fails-over to the Standby Availability Zone, the `zone` will be updated to reflect the current Primary Availability Zone. You can use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to the `zone` and `high_availability.0.standby_availability_zone` fields should you wish for Terraform to not migrate the PostgreSQL Flexible Server back to it's primary Availability Zone after a fail-over.
 
@@ -153,10 +153,6 @@ A `high_availability` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the PostgreSQL Flexible Server.
-
-* `cmk_enabled` - The status showing whether the data encryption is enabled with a customer-managed key.
-
-~> **Note:** Attribute `cmk_enabled` has been deprecated and will be removed in version 3.0 of the provider.
 
 * `fqdn` - The FQDN of the PostgreSQL Flexible Server.
 

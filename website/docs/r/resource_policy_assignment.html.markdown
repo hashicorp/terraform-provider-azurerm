@@ -83,7 +83,11 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Optional) The Type of Managed Identity which should be added to this Policy Definition. The only possible value is `SystemAssigned`.
+* `type` - (Optional) The Type of Managed Identity which should be added to this Policy Definition. Possible values are `SystemAssigned` and `UserAssigned`.
+
+* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Policy Definition.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned`.
 
 ---
 

@@ -18,9 +18,7 @@ import (
 func PossibleEventSubscriptionEndpointTypes() []string {
 	return []string{
 		string(AzureFunctionEndpoint),
-		string(EventHubEndpoint),
 		string(EventHubEndpointID),
-		string(HybridConnectionEndpoint),
 		string(HybridConnectionEndpointID),
 		string(ServiceBusQueueEndpointID),
 		string(ServiceBusTopicEndpointID),
@@ -64,13 +62,6 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
-			"topic_name": {
-				Type:       pluginsdk.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This field has been updated to readonly field since Apr 25, 2019 so no longer has any affect and will be removed in version 3.0 of the provider.",
-			},
-
 			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
 				utils.RemoveFromStringArray(
 					PossibleEventSubscriptionEndpointTypes(),
@@ -85,24 +76,10 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 				),
 			),
 
-			"eventhub_endpoint": eventSubscriptionSchemaEventHubEndpoint(
-				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
-					string(EventHubEndpoint),
-				),
-			),
-
 			"hybrid_connection_endpoint_id": eventSubscriptionSchemaHybridConnectionEndpointID(
 				utils.RemoveFromStringArray(
 					PossibleEventSubscriptionEndpointTypes(),
 					string(HybridConnectionEndpointID),
-				),
-			),
-
-			"hybrid_connection_endpoint": eventSubscriptionSchemaHybridEndpoint(
-				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
-					string(HybridConnectionEndpoint),
 				),
 			),
 
@@ -162,19 +139,17 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	scope := d.Get("scope").(string)
-
+	id := parse.NewEventSubscriptionID(d.Get("scope").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, scope, name)
+		existing, err := client.Get(ctx, id.Scope, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_eventgrid_event_subscription", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_eventgrid_event_subscription", id.ID())
 		}
 	}
 
@@ -185,12 +160,12 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 
 	filter, err := expandEventGridEventSubscriptionFilter(d)
 	if err != nil {
-		return fmt.Errorf("expanding filters for EventGrid Event Subscription %q (Scope %q): %+v", name, scope, err)
+		return fmt.Errorf("expanding filters for %s: %+v", id, err)
 	}
 
 	expirationTime, err := expandEventGridExpirationTime(d)
 	if err != nil {
-		return fmt.Errorf("creating/updating EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+		return fmt.Errorf("expanding `expiration_time` for %s: %+v", id, err)
 	}
 
 	deadLetterDestination := expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d)
@@ -240,27 +215,15 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 		EventSubscriptionProperties: &eventSubscriptionProperties,
 	}
 
-	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Event Subscription creation with Properties: %+v.", eventSubscription)
-
-	future, err := client.CreateOrUpdate(ctx, scope, name, eventSubscription)
+	future, err := client.CreateOrUpdate(ctx, id.Scope, id.Name, eventSubscription)
 	if err != nil {
-		return fmt.Errorf("creating/updating EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
-
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for EventGrid Event Subscription %q (Scope %q) to become available: %s", name, scope, err)
+		return fmt.Errorf("waiting for %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, scope, name)
-	if err != nil {
-		return fmt.Errorf("retrieving EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read EventGrid Event Subscription %s (Scope %s) ID", name, scope)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceEventGridEventSubscriptionRead(d, meta)
 }
 
@@ -277,15 +240,15 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 	resp, err := client.Get(ctx, id.Scope, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] EventGrid Event Subscription '%s' was not found (resource group '%s')", id.Name, id.Scope)
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on EventGrid Event Subscription '%s': %+v", id.Name, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("scope", id.Scope)
 
 	if props := resp.EventSubscriptionProperties; props != nil {
@@ -302,82 +265,74 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 			deliveryIdentityFlattened = flattenEventGridEventSubscriptionIdentity(deliveryIdentity.Identity)
 		}
 		if err := d.Set("delivery_identity", deliveryIdentityFlattened); err != nil {
-			return fmt.Errorf("setting `delivery_identity` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+			return fmt.Errorf("setting `delivery_identity` for %s: %+v", *id, err)
 		}
 
 		if azureFunctionEndpoint, ok := destination.AsAzureFunctionEventSubscriptionDestination(); ok {
 			if err := d.Set("azure_function_endpoint", flattenEventGridEventSubscriptionAzureFunctionEndpoint(azureFunctionEndpoint)); err != nil {
-				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "azure_function_endpoint", id.Name, id.Scope, err)
+				return fmt.Errorf("setting `azure_function_endpoint` for %s: %+v", *id, err)
 			}
 
 			if azureFunctionEndpoint.DeliveryAttributeMappings != nil {
 				if err := d.Set("delivery_property", flattenDeliveryProperties(d, azureFunctionEndpoint.DeliveryAttributeMappings)); err != nil {
-					return fmt.Errorf("setting `%q` for EventGrid delivery properties %q (Scope %q): %s", "azure_function_endpoint", id.Name, id.Scope, err)
+					return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
 				}
 			}
 		}
 		if v, ok := destination.AsEventHubEventSubscriptionDestination(); ok {
 			if err := d.Set("eventhub_endpoint_id", v.ResourceID); err != nil {
-				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "eventhub_endpoint_id", id.Name, id.Scope, err)
-			}
-
-			if err := d.Set("eventhub_endpoint", flattenEventGridEventSubscriptionEventhubEndpoint(v)); err != nil {
-				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "eventhub_endpoint", id.Name, id.Scope, err)
+				return fmt.Errorf("setting `eventhub_endpoint_id` for %s: %+v", *id, err)
 			}
 
 			if v.DeliveryAttributeMappings != nil {
 				if err := d.Set("delivery_property", flattenDeliveryProperties(d, v.DeliveryAttributeMappings)); err != nil {
-					return fmt.Errorf("setting `%q` for EventGrid delivery properties %q (Scope %q): %s", "eventhub_endpoint", id.Name, id.Scope, err)
+					return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
 				}
 			}
 		}
 		if v, ok := destination.AsHybridConnectionEventSubscriptionDestination(); ok {
 			if err := d.Set("hybrid_connection_endpoint_id", v.ResourceID); err != nil {
-				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "hybrid_connection_endpoint_id", id.Name, id.Scope, err)
-			}
-
-			if err := d.Set("hybrid_connection_endpoint", flattenEventGridEventSubscriptionHybridConnectionEndpoint(v)); err != nil {
-				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "hybrid_connection_endpoint", id.Name, id.Scope, err)
+				return fmt.Errorf("setting `hybrid_connection_endpoint_id` for %s: %+v", *id, err)
 			}
 
 			if v.DeliveryAttributeMappings != nil {
 				if err := d.Set("delivery_property", flattenDeliveryProperties(d, v.DeliveryAttributeMappings)); err != nil {
-					return fmt.Errorf("setting `%q` for EventGrid delivery properties %q (Scope %q): %s", "hybrid_connection_endpoint", id.Name, id.Scope, err)
+					return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
 				}
 			}
 		}
 		if serviceBusQueueEndpoint, ok := destination.AsServiceBusQueueEventSubscriptionDestination(); ok {
 			if err := d.Set("service_bus_queue_endpoint_id", serviceBusQueueEndpoint.ResourceID); err != nil {
-				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "service_bus_queue_endpoint_id", id.Name, id.Scope, err)
+				return fmt.Errorf("setting `service_bus_queue_endpoint_id` for %s: %+v", *id, err)
 			}
 		}
 		if serviceBusTopicEndpoint, ok := destination.AsServiceBusTopicEventSubscriptionDestination(); ok {
 			if err := d.Set("service_bus_topic_endpoint_id", serviceBusTopicEndpoint.ResourceID); err != nil {
-				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "service_bus_topic_endpoint_id", id.Name, id.Scope, err)
+				return fmt.Errorf("setting `service_bus_topic_endpoint_id` for %s: %+v", *id, err)
 			}
 			if serviceBusTopicEndpoint.DeliveryAttributeMappings != nil {
 				if err := d.Set("delivery_property", flattenDeliveryProperties(d, serviceBusTopicEndpoint.DeliveryAttributeMappings)); err != nil {
-					return fmt.Errorf("setting `%q` for EventGrid delivery properties %q (Scope %q): %s", "service_bus_topic_endpoint_id", id.Name, id.Scope, err)
+					return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
 				}
 			}
 		}
 		if v, ok := destination.AsStorageQueueEventSubscriptionDestination(); ok {
 			if err := d.Set("storage_queue_endpoint", flattenEventGridEventSubscriptionStorageQueueEndpoint(v)); err != nil {
-				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "storage_queue_endpoint", id.Name, id.Scope, err)
+				return fmt.Errorf("setting `storage_queue_endpoint` for %s: %+v", *id, err)
 			}
 		}
 		if v, ok := destination.AsWebHookEventSubscriptionDestination(); ok {
 			fullURL, err := client.GetFullURL(ctx, id.Scope, id.Name)
 			if err != nil {
-				return fmt.Errorf("making Read request on EventGrid Event Subscription full URL '%s': %+v", id.Name, err)
+				return fmt.Errorf("retrieving Full WebHook URL for %s: %+v", *id, err)
 			}
 			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(v, &fullURL)); err != nil {
-				return fmt.Errorf("setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "webhook_endpoint", id.Name, id.Scope, err)
+				return fmt.Errorf("setting `webhook_endpoint` for %s: %+v", *id, err)
 			}
 
 			if v.DeliveryAttributeMappings != nil {
 				if err := d.Set("delivery_property", flattenDeliveryProperties(d, v.DeliveryAttributeMappings)); err != nil {
-					return fmt.Errorf("setting `%q` for EventGrid delivery properties %q (Scope %q): %s", "webhook_endpoint", id.Name, id.Scope, err)
+					return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
 				}
 			}
 		}
@@ -389,13 +344,13 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 			deadLetterIdentityFlattened = flattenEventGridEventSubscriptionIdentity(deadLetterIdentity.Identity)
 		}
 		if err := d.Set("dead_letter_identity", deadLetterIdentityFlattened); err != nil {
-			return fmt.Errorf("setting `dead_letter_identity` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+			return fmt.Errorf("setting `dead_letter_identity` for %s: %+v", *id, err)
 		}
 
 		if deadLetterDestination != nil {
 			if storageBlobDeadLetterDestination, ok := deadLetterDestination.AsStorageBlobDeadLetterDestination(); ok {
 				if err := d.Set("storage_blob_dead_letter_destination", flattenEventGridEventSubscriptionStorageBlobDeadLetterDestination(storageBlobDeadLetterDestination)); err != nil {
-					return fmt.Errorf("Error setting `storage_blob_dead_letter_destination` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+					return fmt.Errorf("Error setting `storage_blob_dead_letter_destination` for %s: %+v", *id, err)
 				}
 			}
 		}
@@ -404,29 +359,29 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("included_event_types", filter.IncludedEventTypes)
 			d.Set("advanced_filtering_on_arrays_enabled", filter.EnableAdvancedFilteringOnArrays)
 			if err := d.Set("subject_filter", flattenEventGridEventSubscriptionSubjectFilter(filter)); err != nil {
-				return fmt.Errorf("setting `subject_filter` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+				return fmt.Errorf("setting `subject_filter` for %s: %+v", *id, err)
 			}
 			if err := d.Set("advanced_filter", flattenEventGridEventSubscriptionAdvancedFilter(filter)); err != nil {
-				return fmt.Errorf("setting `advanced_filter` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+				return fmt.Errorf("setting `advanced_filter` for %s: %+v", *id, err)
 			}
 		}
 
 		if props.DeadLetterDestination != nil {
 			if storageBlobDeadLetterDestination, ok := props.DeadLetterDestination.AsStorageBlobDeadLetterDestination(); ok {
 				if err := d.Set("storage_blob_dead_letter_destination", flattenEventGridEventSubscriptionStorageBlobDeadLetterDestination(storageBlobDeadLetterDestination)); err != nil {
-					return fmt.Errorf("setting `storage_blob_dead_letter_destination` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+					return fmt.Errorf("setting `storage_blob_dead_letter_destination` for %s: %+v", *id, err)
 				}
 			}
 		}
 
 		if retryPolicy := props.RetryPolicy; retryPolicy != nil {
 			if err := d.Set("retry_policy", flattenEventGridEventSubscriptionRetryPolicy(retryPolicy)); err != nil {
-				return fmt.Errorf("setting `retry_policy` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+				return fmt.Errorf("setting `retry_policy` for %s: %+v", *id, err)
 			}
 		}
 
 		if err := d.Set("labels", props.Labels); err != nil {
-			return fmt.Errorf("setting `labels` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+			return fmt.Errorf("setting `labels` for %s: %+v", *id, err)
 		}
 	}
 

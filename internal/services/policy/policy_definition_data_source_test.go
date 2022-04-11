@@ -134,8 +134,8 @@ data "azurerm_client_config" "current" {
 }
 
 data "azurerm_policy_definition" "test" {
-  display_name        = "%s"
-  management_group_id = data.azurerm_client_config.current.tenant_id
+  display_name          = "%s"
+  management_group_name = data.azurerm_client_config.current.tenant_id
 }
 `, name)
 }

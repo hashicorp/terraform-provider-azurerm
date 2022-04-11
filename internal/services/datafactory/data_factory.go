@@ -405,7 +405,7 @@ func expandDataFactoryDatasetAzureBlobStorageLocation(d *pluginsdk.ResourceData)
 	props := azureBlobStorageLocations[0].(map[string]interface{})
 
 	blobStorageLocation := datafactory.AzureBlobStorageLocation{
-		Container:  props["container"].(string),
+		Container:  expandDataFactoryExpressionResultType(props["container"].(string), props["dynamic_container_enabled"].(bool)),
 		FolderPath: expandDataFactoryExpressionResultType(props["path"].(string), props["dynamic_path_enabled"].(bool)),
 		FileName:   expandDataFactoryExpressionResultType(props["filename"].(string), props["dynamic_filename_enabled"].(bool)),
 	}
@@ -465,7 +465,9 @@ func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureB
 	result := make(map[string]interface{})
 
 	if input.Container != nil {
-		result["container"] = input.Container
+		container, dynamicContainerEnabled := flattenDataFactoryExpressionResultType(input.FolderPath)
+		result["container"] = container
+		result["dynamic_container_enabled"] = dynamicContainerEnabled
 	}
 	if input.FolderPath != nil {
 		path, dynamicPathEnabled := flattenDataFactoryExpressionResultType(input.FolderPath)

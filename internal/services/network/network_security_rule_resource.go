@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -204,11 +203,6 @@ func resourceNetworkSecurityRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	direction := d.Get("direction").(string)
 	protocol := d.Get("protocol").(string)
 
-	if !meta.(*clients.Client).Features.Network.RelaxedLocking {
-		locks.ByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
-		defer locks.UnlockByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
-	}
-
 	rule := network.SecurityRule{
 		Name: &id.Name,
 		SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
@@ -362,11 +356,6 @@ func resourceNetworkSecurityRuleDelete(d *pluginsdk.ResourceData, meta interface
 	id, err := parse.SecurityRuleID(d.Id())
 	if err != nil {
 		return err
-	}
-
-	if !meta.(*clients.Client).Features.Network.RelaxedLocking {
-		locks.ByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
-		defer locks.UnlockByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkSecurityGroupName, id.Name)

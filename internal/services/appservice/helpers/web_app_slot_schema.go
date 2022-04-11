@@ -7,7 +7,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -101,7 +100,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				"container_registry_managed_identity_client_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: msiValidate.UserAssignedIdentityID,
+					ValidateFunc: validation.IsUUID,
 				},
 
 				"default_documents": {
@@ -588,6 +587,10 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
 		}
 
+		if linuxAppStack.RubyVersion != "" {
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
+		}
+
 		if linuxAppStack.JavaServer != "" {
 			// (@jackofallops) - Java has some special cases for Java SE when using specific versions of the runtime, resulting in this string
 			// being formatted in the form: `JAVA|u242` instead of the standard pattern of `JAVA|u242-java8` for example. This applies to jre8 and java11.
@@ -829,8 +832,9 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 		if winAppStack.DockerContainerName != "" {
 			if winAppStack.DockerContainerRegistry != "" {
 				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+			} else {
+				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
 			}
-			expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
 		}
 		currentStack = winAppStack.CurrentStack
 	}

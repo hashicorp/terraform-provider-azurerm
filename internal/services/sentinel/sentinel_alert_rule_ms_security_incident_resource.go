@@ -106,11 +106,10 @@ func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
 			},
 
 			"display_name_filter": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Computed:      true, // remove in 3.0
-				MinItems:      1,
-				ConflictsWith: []string{"text_whitelist"},
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Computed: true, // remove in 3.0
+				MinItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -121,19 +120,6 @@ func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MinItems: 1,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-			},
-
-			"text_whitelist": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Computed:      true, // remove in 3.0
-				MinItems:      1,
-				ConflictsWith: []string{"display_name_filter"},
-				Deprecated:    "this property has been renamed to display_name_filter to better match the SDK & API",
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -185,8 +171,6 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if dnf, ok := d.GetOk("display_name_filter"); ok {
-		param.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*pluginsdk.Set).List())
-	} else if dnf, ok := d.GetOk("text_whitelist"); ok {
 		param.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*pluginsdk.Set).List())
 	}
 
@@ -253,9 +237,6 @@ func resourceSentinelAlertRuleMsSecurityIncidentRead(d *pluginsdk.ResourceData, 
 		d.Set("enabled", prop.Enabled)
 		d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 
-		if err := d.Set("text_whitelist", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
-			return fmt.Errorf(`setting "text_whitelist": %+v`, err)
-		}
 		if err := d.Set("display_name_filter", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
 			return fmt.Errorf(`setting "display_name_filter": %+v`, err)
 		}

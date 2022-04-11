@@ -97,14 +97,6 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// RP currently does not return this value, but will in the near future
-			// https://github.com/Azure/azure-sdk-for-go/issues/14420
-			"version": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Deprecated: "This field currently is not yet being returned from the service API, please see https://github.com/Azure/azure-sdk-for-go/issues/14420 for more information",
-			},
-
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -226,7 +218,6 @@ func resourceRedisEnterpriseClusterRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("zones", zones.Flatten(model.Zones))
 		if props := model.Properties; props != nil {
 			d.Set("hostname", props.HostName)
-			d.Set("version", props.RedisVersion)
 
 			tlsVersion := ""
 			if props.MinimumTlsVersion != nil {

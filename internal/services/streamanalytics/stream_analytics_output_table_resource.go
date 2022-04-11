@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -141,7 +141,7 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 				Name: utils.String(model.Name),
 				OutputProperties: &streamanalytics.OutputProperties{
 					Datasource: &streamanalytics.AzureTableOutputDataSource{
-						Type:                                 streamanalytics.TypeMicrosoftStorageTable,
+						Type:                                 streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageTable,
 						AzureTableOutputDataSourceProperties: tableOutputProps,
 					},
 				},
@@ -223,7 +223,7 @@ func (r OutputTableResource) Update() sdk.ResourceFunc {
 				Name: utils.String(state.Name),
 				OutputProperties: &streamanalytics.OutputProperties{
 					Datasource: &streamanalytics.AzureTableOutputDataSource{
-						Type: streamanalytics.TypeMicrosoftStorageTable,
+						Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageTable,
 						AzureTableOutputDataSourceProperties: &streamanalytics.AzureTableOutputDataSourceProperties{
 							AccountName:  utils.String(state.StorageAccount),
 							AccountKey:   utils.String(state.StorageAccountKey),
@@ -282,7 +282,7 @@ func (r OutputTableResource) CustomImporter() sdk.ResourceRunFunc {
 
 		props := resp.OutputProperties
 		if _, ok := props.Datasource.AsAzureTableOutputDataSource(); !ok {
-			return fmt.Errorf("specified output is not of type %s", streamanalytics.TypeMicrosoftStorageTable)
+			return fmt.Errorf("specified output is not of type %s", streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageTable)
 		}
 		return nil
 	}

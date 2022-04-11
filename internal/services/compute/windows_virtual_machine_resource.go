@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -27,8 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-// TODO: confirm locking as appropriate
 
 func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -161,6 +161,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_automatic_updates": {
 				Type:     pluginsdk.TypeBool,
@@ -285,6 +287,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"source_image_reference": sourceImageReferenceSchema(true),
 
 			"tags": tags.Schema(),
+
+			"termination_notification": virtualMachineTerminationNotificationSchema(),
 
 			"timezone": {
 				Type:         pluginsdk.TypeString,
@@ -458,10 +462,11 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
 	params := compute.VirtualMachine{
-		Name:     utils.String(id.Name),
-		Location: utils.String(location),
-		Identity: identity,
-		Plan:     plan,
+		Name:             utils.String(id.Name),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         utils.String(location),
+		Identity:         identity,
+		Plan:             plan,
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
@@ -647,6 +652,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		params.PlatformFaultDomain = utils.Int32(int32(platformFaultDomain))
 	}
 
+	if v, ok := d.GetOk("termination_notification"); ok {
+		params.VirtualMachineProperties.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("timezone"); ok {
 		params.VirtualMachineProperties.OsProfile.WindowsConfiguration.TimeZone = utils.String(v.(string))
 	}
@@ -700,9 +709,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
 	identity, err := flattenVirtualMachineIdentity(resp.Identity)
 	if err != nil {
@@ -844,6 +852,12 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference)); err != nil {
 			return fmt.Errorf("setting `source_image_reference`: %+v", err)
+		}
+	}
+
+	if scheduleProfile := props.ScheduledEventsProfile; scheduleProfile != nil {
+		if err := d.Set("termination_notification", flattenVirtualMachineScheduledEventsProfile(scheduleProfile)); err != nil {
+			return fmt.Errorf("setting `termination_notification`: %+v", err)
 		}
 	}
 
@@ -1168,6 +1182,13 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
+	}
+
+	if d.HasChange("termination_notification") {
+		shouldUpdate = true
+
+		notificationRaw := d.Get("termination_notification").([]interface{})
+		update.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(notificationRaw)
 	}
 
 	if d.HasChange("additional_capabilities") {

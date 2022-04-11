@@ -100,11 +100,13 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The Managed Service Identity Type of this container group. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you), `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field, and `SystemAssigned, UserAssigned` which assigns both a system managed identity as well as the specified user assigned identities. Changing this forces a new resource to be created.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Container Group. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
 ~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the container group has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
 
-* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`. Changing this forces a new resource to be created.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Container Group.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -288,9 +290,20 @@ The following attributes are exported:
 
 * `id` - The ID of the Container Group.
 
+* `identity` - An `identity` block as defined below.
+
 * `ip_address` - The IP address allocated to the container group.
 
 * `fqdn` - The FQDN of the container group derived from `dns_name_label`.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
 
 ## Timeouts
 

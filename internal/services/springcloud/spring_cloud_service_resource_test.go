@@ -63,7 +63,10 @@ func TestAccSpringCloudService_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep(
+			"config_server_git_setting.0.ssh_auth.0.private_key",
+			"config_server_git_setting.0.ssh_auth.0.host_key",
+			"config_server_git_setting.0.ssh_auth.0.host_key_algorithm"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -328,14 +331,14 @@ resource "azurerm_subnet" "test1" {
   name                 = "internal1"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_subnet" "test2" {
   name                 = "internal2"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.1.0/24"
+  address_prefixes     = ["10.1.1.0/24"]
 }
 
 data "azuread_service_principal" "test" {

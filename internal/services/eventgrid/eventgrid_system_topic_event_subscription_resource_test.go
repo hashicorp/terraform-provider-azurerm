@@ -266,6 +266,161 @@ func TestAccEventGridSystemTopicEventSubscription_userIdentity(t *testing.T) {
 	})
 }
 
+func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesStatic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
+	r := EventGridSystemTopicEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deliveryProperties(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("false"),
+
+				check.That(data.ResourceName).Key("delivery_property.1.header_name").HasValue("test-2"),
+				check.That(data.ResourceName).Key("delivery_property.1.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.1.value").HasValue("string"),
+				check.That(data.ResourceName).Key("delivery_property.1.secret").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesSecret(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
+	r := EventGridSystemTopicEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deliveryPropertiesSecret(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-secret-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("true"),
+			),
+		},
+		data.ImportStep("delivery_property.0.value"),
+	})
+}
+
+func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesMixed(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
+	r := EventGridSystemTopicEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deliveryPropertiesWithMultipleTypes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-static-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("false"),
+
+				check.That(data.ResourceName).Key("delivery_property.1.header_name").HasValue("test-dynamic-1"),
+				check.That(data.ResourceName).Key("delivery_property.1.type").HasValue("Dynamic"),
+				check.That(data.ResourceName).Key("delivery_property.1.source_field").HasValue("data.system"),
+
+				check.That(data.ResourceName).Key("delivery_property.2.header_name").HasValue("test-secret-1"),
+				check.That(data.ResourceName).Key("delivery_property.2.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.2.secret").HasValue("true"),
+				check.That(data.ResourceName).Key("delivery_property.2.value").HasValue("this-value-is-secret!"),
+			),
+		},
+		data.ImportStep("delivery_property.2.value"),
+	})
+}
+
+func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
+	r := EventGridSystemTopicEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deliveryPropertiesWithMultipleTypes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-static-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("false"),
+				check.That(data.ResourceName).Key("delivery_property.1.header_name").HasValue("test-dynamic-1"),
+				check.That(data.ResourceName).Key("delivery_property.1.type").HasValue("Dynamic"),
+				check.That(data.ResourceName).Key("delivery_property.1.source_field").HasValue("data.system"),
+				check.That(data.ResourceName).Key("delivery_property.2.header_name").HasValue("test-secret-1"),
+				check.That(data.ResourceName).Key("delivery_property.2.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.2.secret").HasValue("true"),
+				check.That(data.ResourceName).Key("delivery_property.2.value").HasValue("this-value-is-secret!"),
+			),
+		},
+		{
+			Config: r.deliveryPropertiesUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-static-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.value").HasValue("2"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("false"),
+				check.That(data.ResourceName).Key("delivery_property.1.header_name").HasValue("test-dynamic-1"),
+				check.That(data.ResourceName).Key("delivery_property.1.type").HasValue("Dynamic"),
+				check.That(data.ResourceName).Key("delivery_property.1.source_field").HasValue("data.topic"),
+				check.That(data.ResourceName).Key("delivery_property.2.header_name").HasValue("test-secret-1"),
+				check.That(data.ResourceName).Key("delivery_property.2.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.2.secret").HasValue("true"),
+				check.That(data.ResourceName).Key("delivery_property.2.value").HasValue("this-value-is-still-secret!"),
+			),
+		},
+	})
+}
+
+func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesForEventHubs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
+	r := EventGridSystemTopicEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deliveryPropertiesForEventHubs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-static-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventGridSystemTopicEventSubscription_deliveryPropertiesHybridRelay(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
+	r := EventGridSystemTopicEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deliveryPropertiesForHybridRelay(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+
+				check.That(data.ResourceName).Key("delivery_property.0.header_name").HasValue("test-static-1"),
+				check.That(data.ResourceName).Key("delivery_property.0.type").HasValue("Static"),
+				check.That(data.ResourceName).Key("delivery_property.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("delivery_property.0.secret").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (EventGridSystemTopicEventSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.SystemTopicEventSubscriptionID(state.ID)
 	if err != nil {
@@ -1263,4 +1418,358 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridSystemTopicEventSubscriptionResource) deliveryProperties(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name                = "acctestservicebustopic-%[1]d"
+  namespace_id        = azurerm_servicebus_namespace.example.id
+  enable_partitioning = true
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctesteg-%[1]d"
+  location               = "Global"
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_resource_group.test.id
+  topic_type             = "Microsoft.Resources.ResourceGroups"
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
+  name                = "acctesteg-%[1]d"
+  system_topic        = azurerm_eventgrid_system_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+
+  advanced_filtering_on_arrays_enabled = true
+
+  subject_filter {
+    subject_begins_with = "test/test"
+  }
+
+  delivery_property {
+    header_name = "test-1"
+    type        = "Static"
+    value       = "1"
+    secret      = false
+  }
+
+  delivery_property {
+    header_name = "test-2"
+    type        = "Static"
+    value       = "string"
+    secret      = false
+  }
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridSystemTopicEventSubscriptionResource) deliveryPropertiesSecret(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name                = "acctestservicebustopic-%[1]d"
+  namespace_id        = azurerm_servicebus_namespace.example.id
+  enable_partitioning = true
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctesteg-%[1]d"
+  location               = "Global"
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_resource_group.test.id
+  topic_type             = "Microsoft.Resources.ResourceGroups"
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
+  name                = "acctesteg-%[1]d"
+  system_topic        = azurerm_eventgrid_system_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+
+  advanced_filtering_on_arrays_enabled = true
+
+  subject_filter {
+    subject_begins_with = "test/test"
+  }
+
+  delivery_property {
+    header_name = "test-secret-1"
+    type        = "Static"
+    value       = "1"
+    secret      = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridSystemTopicEventSubscriptionResource) deliveryPropertiesWithMultipleTypes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name                = "acctestservicebustopic-%[1]d"
+  namespace_id        = azurerm_servicebus_namespace.example.id
+  enable_partitioning = true
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctesteg-%[1]d"
+  location               = "Global"
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_resource_group.test.id
+  topic_type             = "Microsoft.Resources.ResourceGroups"
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
+  name                = "acctesteg-%[1]d"
+  system_topic        = azurerm_eventgrid_system_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+
+  advanced_filtering_on_arrays_enabled = true
+
+  subject_filter {
+    subject_begins_with = "test/test"
+  }
+
+  delivery_property {
+    header_name = "test-static-1"
+    type        = "Static"
+    value       = "1"
+    secret      = false
+  }
+
+  delivery_property {
+    header_name  = "test-dynamic-1"
+    type         = "Dynamic"
+    source_field = "data.system"
+  }
+
+  delivery_property {
+    header_name = "test-secret-1"
+    type        = "Static"
+    value       = "this-value-is-secret!"
+    secret      = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridSystemTopicEventSubscriptionResource) deliveryPropertiesUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name                = "acctestservicebustopic-%[1]d"
+  namespace_id        = azurerm_servicebus_namespace.example.id
+  enable_partitioning = true
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctesteg-%[1]d"
+  location               = "Global"
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_resource_group.test.id
+  topic_type             = "Microsoft.Resources.ResourceGroups"
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
+  name                = "acctesteg-%[1]d"
+  system_topic        = azurerm_eventgrid_system_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+
+  advanced_filtering_on_arrays_enabled = true
+
+  subject_filter {
+    subject_begins_with = "test/test"
+  }
+
+  delivery_property {
+    header_name = "test-static-1"
+    type        = "Static"
+    value       = "2"
+    secret      = false
+  }
+
+  delivery_property {
+    header_name  = "test-dynamic-1"
+    type         = "Dynamic"
+    source_field = "data.topic"
+  }
+
+  delivery_property {
+    header_name = "test-secret-1"
+    type        = "Static"
+    value       = "this-value-is-still-secret!"
+    secret      = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridSystemTopicEventSubscriptionResource) deliveryPropertiesForEventHubs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctesteventhub-%[1]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctesteg-%[1]d"
+  location               = "Global"
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_resource_group.test.id
+  topic_type             = "Microsoft.Resources.ResourceGroups"
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
+  name                = "acctesteg-%[1]d"
+  system_topic        = azurerm_eventgrid_system_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  eventhub_endpoint_id = azurerm_eventhub.test.id
+
+  delivery_property {
+    header_name = "test-static-1"
+    type        = "Static"
+    value       = "1"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (EventGridSystemTopicEventSubscriptionResource) deliveryPropertiesForHybridRelay(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_relay_namespace" "test" {
+  name                = "acctest-%[1]d-rly-eventsub-repo"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "Standard"
+}
+
+resource "azurerm_relay_hybrid_connection" "test" {
+  name                          = "acctest-%[1]d-rhc-eventsub-repo"
+  resource_group_name           = azurerm_resource_group.test.name
+  relay_namespace_name          = azurerm_relay_namespace.test.name
+  requires_client_authorization = false
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctesteg-%[1]d"
+  location               = "Global"
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_resource_group.test.id
+  topic_type             = "Microsoft.Resources.ResourceGroups"
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
+  name                = "acctesteg-%[1]d"
+  system_topic        = azurerm_eventgrid_system_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  hybrid_connection_endpoint_id = azurerm_relay_hybrid_connection.test.id
+
+  delivery_property {
+    header_name = "test-static-1"
+    type        = "Static"
+    value       = "1"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

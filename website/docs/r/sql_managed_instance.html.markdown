@@ -152,7 +152,7 @@ resource "azurerm_subnet" "example" {
   name                 = "subnet-mi"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.0.0/24"
+  address_prefixes     = ["10.0.0.0/24"]
 
   delegation {
     name = "managedinstancedelegation"
@@ -254,7 +254,7 @@ A `sku` block supports the following:
 
  An `identity` block supports the following:
 
- * `type` - (Required) The identity type of the SQL Managed Instance. Only possible values is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this SQL Managed Instance. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
@@ -263,6 +263,8 @@ The following attributes are exported:
 * `id` - The SQL Managed Instance ID.
 
 * `fqdn` - The fully qualified domain name of the Azure Managed SQL Instance
+
+* `identity` - An `identity` block as defined below.
 
 ---
 

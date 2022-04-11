@@ -1,6 +1,7 @@
 package cosmos
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -126,6 +127,13 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			},
 			"indexing_policy": common.CosmosDbIndexingPolicySchema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// The analytical_storage_ttl cannot be changed back once enabled on an existing container. -> we need ForceNew
+			pluginsdk.ForceNewIfChange("analytical_storage_ttl", func(ctx context.Context, old, new, _ interface{}) bool {
+				return (old.(int) == -1 || old.(int) > 0) && new.(int) == 0
+			}),
+		),
 	}
 }
 

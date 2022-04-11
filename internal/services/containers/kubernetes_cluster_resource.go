@@ -236,43 +236,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"identity": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return &schema.Schema{
-						Type:         pluginsdk.TypeList,
-						Optional:     true,
-						ExactlyOneOf: []string{"identity", "service_principal"},
-						MaxItems:     1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(containerservice.ResourceIdentityTypeSystemAssigned),
-										string(containerservice.ResourceIdentityTypeUserAssigned),
-									}, false),
-								},
-								"user_assigned_identity_id": {
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: msivalidate.UserAssignedIdentityID,
-									Optional:     true,
-								},
-								"principal_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"tenant_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					}
-				}
-
-				return commonschema.SystemOrUserAssignedIdentityOptional()
-			}(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"kubelet_identity": {
 				Type:     pluginsdk.TypeList,
@@ -634,6 +598,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								},
 							},
 						},
+						"ip_versions": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(containerservice.IPFamilyIPv4),
+									string(containerservice.IPFamilyIPv6),
+								}, false),
+							},
+						},
 					},
 				},
 			},
@@ -643,6 +620,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+			},
+
+			"oidc_issuer_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"oidc_issuer_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"private_fqdn": { // privateFqdn
@@ -886,17 +873,20 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"kube_admin_config": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Type:      pluginsdk.TypeList,
+				Computed:  true,
+				Sensitive: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"host": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"username": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"password": {
 							Type:      pluginsdk.TypeString,
@@ -929,17 +919,20 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"kube_config": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Type:      pluginsdk.TypeList,
+				Computed:  true,
+				Sensitive: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"host": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"username": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"password": {
 							Type:      pluginsdk.TypeString,
@@ -1009,88 +1002,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 	// CLEANUP: post-3.0 we should inline these?
 	for k, v := range schemaKubernetesAddOns() {
 		resource.Schema[k] = v
-	}
-
-	if features.KubeConfigsAreSensitive() {
-		resource.Schema["kube_config"] = &pluginsdk.Schema{
-			Type:      pluginsdk.TypeList,
-			Computed:  true,
-			Sensitive: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"host": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"username": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"password": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"client_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"client_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"cluster_ca_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-				},
-			},
-		}
-
-		resource.Schema["kube_admin_config"] = &pluginsdk.Schema{
-			Type:      pluginsdk.TypeList,
-			Computed:  true,
-			Sensitive: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"host": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"username": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"password": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"client_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"client_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"cluster_ca_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-				},
-			},
-		}
 	}
 
 	if !features.ThreePointOhBeta() {
@@ -1334,6 +1245,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
+	enableOidcIssuer := false
+	var oidcIssuerProfile *containerservice.ManagedClusterOIDCIssuerProfile
+	if v, ok := d.GetOk("oidc_issuer_enabled"); ok {
+		enableOidcIssuer = v.(bool)
+		oidcIssuerProfile = expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
+	}
+
 	publicNetworkAccess := containerservice.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = containerservice.PublicNetworkAccessDisabled
@@ -1362,6 +1280,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			PublicNetworkAccess:    publicNetworkAccess,
 			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
 			HTTPProxyConfig:        httpProxyConfig,
+			OidcIssuerProfile:      oidcIssuerProfile,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1846,6 +1765,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.HTTPProxyConfig = httpProxyConfig
 	}
 
+	if d.HasChange("oidc_issuer_enabled") {
+		updateCluster = true
+		oidcIssuerEnabled := d.Get("oidc_issuer_enabled").(bool)
+		oidcIssuerProfile := expandKubernetesClusterOidcIssuerProfile(oidcIssuerEnabled)
+		existing.ManagedClusterProperties.OidcIssuerProfile = oidcIssuerProfile
+	}
+
 	if updateCluster {
 		log.Printf("[DEBUG] Updating %s..", *id)
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
@@ -1992,7 +1918,6 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		d.Set("automatic_channel_upgrade", upgradeChannel)
 
-		// TODO: 2.0 we should introduce a access_profile block to match the new API design,
 		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {
 			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
 			if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
@@ -2097,6 +2022,20 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if err := d.Set("http_proxy_config", httpProxyConfig); err != nil {
 			return fmt.Errorf("setting `http_proxy_config`: %+v", err)
 		}
+
+		oidcIssuerEnabled := false
+		oidcIssuerUrl := ""
+		if props.OidcIssuerProfile != nil {
+			if props.OidcIssuerProfile.Enabled != nil {
+				oidcIssuerEnabled = *props.OidcIssuerProfile.Enabled
+			}
+			if props.OidcIssuerProfile.IssuerURL != nil {
+				oidcIssuerUrl = *props.OidcIssuerProfile.IssuerURL
+			}
+		}
+
+		d.Set("oidc_issuer_enabled", oidcIssuerEnabled)
+		d.Set("oidc_issuer_url", oidcIssuerUrl)
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
@@ -2379,6 +2318,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	loadBalancerSku := config["load_balancer_sku"].(string)
 	natGatewayProfileRaw := config["nat_gateway_profile"].([]interface{})
 	outboundType := config["outbound_type"].(string)
+	ipVersions, err := expandIPVersions(config["ip_versions"].([]interface{}))
+	if err != nil {
+		return nil, err
+	}
 
 	networkProfile := containerservice.NetworkProfile{
 		NetworkPlugin:   containerservice.NetworkPlugin(networkPlugin),
@@ -2386,6 +2329,7 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 		NetworkPolicy:   containerservice.NetworkPolicy(networkPolicy),
 		LoadBalancerSku: containerservice.LoadBalancerSku(loadBalancerSku),
 		OutboundType:    containerservice.OutboundType(outboundType),
+		IPFamilies:      ipVersions,
 	}
 
 	if len(loadBalancerProfileRaw) > 0 {
@@ -2459,6 +2403,23 @@ func expandLoadBalancerProfile(d []interface{}) *containerservice.ManagedCluster
 	}
 
 	return profile
+}
+
+func expandIPVersions(input []interface{}) (*[]containerservice.IPFamily, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	ipv := make([]containerservice.IPFamily, 0)
+	for _, data := range input {
+		ipv = append(ipv, containerservice.IPFamily(data.(string)))
+	}
+
+	if len(ipv) == 1 && ipv[0] == containerservice.IPFamilyIPv6 {
+		return nil, fmt.Errorf("`ip_versions` must be `IPv4` or `IPv4` and `IPv6`. `IPv6` alone is not supported")
+	}
+
+	return &ipv, nil
 }
 
 func expandNatGatewayProfile(d []interface{}) *containerservice.ManagedClusterNATGatewayProfile {
@@ -2600,6 +2561,13 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 		ngwProfiles = append(ngwProfiles, ng)
 	}
 
+	ipVersions := make([]interface{}, 0)
+	if ipfs := profile.IPFamilies; ipfs != nil {
+		for _, item := range *ipfs {
+			ipVersions = append(ipVersions, item)
+		}
+	}
+
 	// TODO - Remove the workaround below once issue https://github.com/Azure/azure-rest-api-specs/issues/18056 is resolved
 	sku := profile.LoadBalancerSku
 	for _, v := range containerservice.PossibleLoadBalancerSkuValues() {
@@ -2615,6 +2583,7 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 			"load_balancer_sku":     string(sku),
 			"load_balancer_profile": lbProfiles,
 			"nat_gateway_profile":   ngwProfiles,
+			"ip_versions":           ipVersions,
 			"network_plugin":        string(profile.NetworkPlugin),
 			"network_mode":          string(profile.NetworkMode),
 			"network_policy":        string(profile.NetworkPolicy),
@@ -2749,31 +2718,6 @@ func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []i
 }
 
 func expandKubernetesClusterManagedClusterIdentity(input []interface{}) (*containerservice.ManagedClusterIdentity, error) {
-	if !features.ThreePointOhBeta() {
-		if len(input) == 0 || input[0] == nil {
-			return &containerservice.ManagedClusterIdentity{
-				Type: containerservice.ResourceIdentityTypeNone,
-			}, nil
-		}
-
-		values := input[0].(map[string]interface{})
-
-		if containerservice.ResourceIdentityType(values["type"].(string)) == containerservice.ResourceIdentityTypeUserAssigned {
-			userAssignedIdentities := map[string]*containerservice.ManagedClusterIdentityUserAssignedIdentitiesValue{
-				values["user_assigned_identity_id"].(string): {},
-			}
-
-			return &containerservice.ManagedClusterIdentity{
-				Type:                   containerservice.ResourceIdentityType(values["type"].(string)),
-				UserAssignedIdentities: userAssignedIdentities,
-			}, nil
-		}
-
-		return &containerservice.ManagedClusterIdentity{
-			Type: containerservice.ResourceIdentityType(values["type"].(string)),
-		}, nil
-	}
-
 	expanded, err := identity.ExpandSystemOrUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -2997,44 +2941,6 @@ func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []in
 }
 
 func flattenClusterIdentity(input *containerservice.ManagedClusterIdentity) (*[]interface{}, error) {
-	if !features.ThreePointOhBeta() {
-		// if it's none, omit the block
-		if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
-			return &[]interface{}{}, nil
-		}
-
-		identity := make(map[string]interface{})
-
-		identity["principal_id"] = ""
-		if input.PrincipalID != nil {
-			identity["principal_id"] = *input.PrincipalID
-		}
-
-		identity["tenant_id"] = ""
-		if input.TenantID != nil {
-			identity["tenant_id"] = *input.TenantID
-		}
-
-		identity["user_assigned_identity_id"] = ""
-		if input.UserAssignedIdentities != nil {
-			keys := []string{}
-			for key := range input.UserAssignedIdentities {
-				keys = append(keys, key)
-			}
-			if len(keys) > 0 {
-				parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(keys[0])
-				if err != nil {
-					return nil, err
-				}
-				identity["user_assigned_identity_id"] = parsedId.ID()
-			}
-		}
-
-		identity["type"] = string(input.Type)
-
-		return &[]interface{}{identity}, nil
-	}
-
 	var transform *identity.SystemOrUserAssignedMap
 
 	if input != nil {
@@ -3328,6 +3234,13 @@ func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservi
 	httpProxyConfig.NoProxy = utils.ExpandStringSlice(noProxyRaw)
 
 	return &httpProxyConfig
+}
+
+func expandKubernetesClusterOidcIssuerProfile(input bool) *containerservice.ManagedClusterOIDCIssuerProfile {
+	oidcIssuerProfile := containerservice.ManagedClusterOIDCIssuerProfile{}
+	oidcIssuerProfile.Enabled = &input
+
+	return &oidcIssuerProfile
 }
 
 func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClusterProperties) []interface{} {

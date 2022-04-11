@@ -71,6 +71,19 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 			}
 
+			// ensure location is different than any location of the geo-replication
+			var geoReplicationLocations []string
+			for _, v := range geoReplications {
+				v := v.(map[string]interface{})
+				geoReplicationLocations = append(geoReplicationLocations, azure.NormalizeLocation(v["location"]))
+			}
+			location := location.Normalize(d.Get("location").(string))
+			for _, loc := range geoReplicationLocations {
+				if loc == location {
+					return fmt.Errorf("The `georeplications` list cannot contain the location where the Container Registry exists.")
+				}
+			}
+
 			quarantinePolicyEnabled := d.Get("quarantine_policy_enabled").(bool)
 			if quarantinePolicyEnabled && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset quarantine_policy_enabled")
@@ -900,11 +913,9 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 
 		"sku": {
 			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			Default:          string(containerregistry.SkuNameClassic),
+			Required:         true,
 			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(containerregistry.SkuNameClassic),
 				string(containerregistry.SkuNameBasic),
 				string(containerregistry.SkuNameStandard),
 				string(containerregistry.SkuNamePremium),

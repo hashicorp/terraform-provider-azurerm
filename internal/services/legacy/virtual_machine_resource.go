@@ -34,7 +34,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// TODO move into internal/tf/suppress/base64.go
 func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	return userDataStateFunc(old) == new
 }
@@ -476,7 +475,6 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
-						// TODO 4.0: change this from enable_* to *_enabled
 						"enable_automatic_upgrades": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -515,7 +513,6 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									// TODO: should we make `pass` and `component` Optional + Defaulted?
 									"pass": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
