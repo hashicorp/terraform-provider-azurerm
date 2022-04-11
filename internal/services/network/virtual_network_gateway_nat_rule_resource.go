@@ -19,9 +19,9 @@ import (
 
 func resourceVirtualNetworkGatewayNatRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualNetworkGatewayNatRuleCreateUpdate,
+		Create: resourceVirtualNetworkGatewayNatRuleCreate,
 		Read:   resourceVirtualNetworkGatewayNatRuleRead,
-		Update: resourceVirtualNetworkGatewayNatRuleCreateUpdate,
+		Update: resourceVirtualNetworkGatewayNatRuleUpdate,
 		Delete: resourceVirtualNetworkGatewayNatRuleDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -124,10 +124,10 @@ func resourceVirtualNetworkGatewayNatRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualNetworkGatewayNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.VnetGatewayNatRuleClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	vnetGatewayId, err := parse.VirtualNetworkGatewayID(d.Get("virtual_network_gateway_id").(string))
@@ -137,16 +137,14 @@ func resourceVirtualNetworkGatewayNatRuleCreateUpdate(d *pluginsdk.ResourceData,
 
 	id := parse.NewVirtualNetworkGatewayNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vnetGatewayId.Name, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkGatewayName, id.NatRuleName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
+	existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkGatewayName, id.NatRuleName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_virtual_network_gateway_nat_rule", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_virtual_network_gateway_nat_rule", id.ID())
 	}
 
 	props := network.VirtualNetworkGatewayNatRule{
@@ -165,11 +163,11 @@ func resourceVirtualNetworkGatewayNatRuleCreateUpdate(d *pluginsdk.ResourceData,
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualNetworkGatewayName, id.NatRuleName, props)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of the %s: %+v", id, err)
+		return fmt.Errorf("waiting for update of the %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -217,6 +215,42 @@ func resourceVirtualNetworkGatewayNatRuleRead(d *pluginsdk.ResourceData, meta in
 	}
 
 	return nil
+}
+
+func resourceVirtualNetworkGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VnetGatewayNatRuleClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.VirtualNetworkGatewayNatRuleID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	props := network.VirtualNetworkGatewayNatRule{
+		Name: utils.String(d.Get("name").(string)),
+		VirtualNetworkGatewayNatRuleProperties: &network.VirtualNetworkGatewayNatRuleProperties{
+			ExternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("external_mapping").(*pluginsdk.Set).List()),
+			InternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("internal_mapping").(*pluginsdk.Set).List()),
+			Mode:             network.VpnNatRuleMode(d.Get("mode").(string)),
+			Type:             network.VpnNatRuleType(d.Get("type").(string)),
+		},
+	}
+
+	if v, ok := d.GetOk("ip_configuration_id"); ok {
+		props.VirtualNetworkGatewayNatRuleProperties.IPConfigurationID = utils.String(v.(string))
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualNetworkGatewayName, id.NatRuleName, props)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of the %s: %+v", id, err)
+	}
+
+	return resourceVirtualNetworkGatewayNatRuleRead(d, meta)
 }
 
 func resourceVirtualNetworkGatewayNatRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
