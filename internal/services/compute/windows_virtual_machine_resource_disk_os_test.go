@@ -150,7 +150,6 @@ func TestAccWindowsVirtualMachine_diskOSEphemeralDefault(t *testing.T) {
 			Config: r.diskOSEphemeralDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("os_disk.0.diff_disk_settings.0.placement").HasValue("CacheDisk"),
 			),
 		},
 		data.ImportStep("admin_password"),

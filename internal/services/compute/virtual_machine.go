@@ -301,14 +301,9 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 
 	diffDiskSettings := make([]interface{}, 0)
 	if input.DiffDiskSettings != nil {
-		placement := string(compute.DiffDiskPlacementCacheDisk)
-		if input.DiffDiskSettings.Placement != "" {
-			placement = string(input.DiffDiskSettings.Placement)
-		}
-
 		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
 			"option":    string(input.DiffDiskSettings.Option),
-			"placement": placement,
+			"placement": string(input.DiffDiskSettings.Placement),
 		})
 	}
 
