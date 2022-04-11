@@ -33,5 +33,5 @@ data "azurerm_kusto_database" "test" {
   resource_group_name = azurerm_kusto_database.test.resource_group_name
   cluster_name        = azurerm_kusto_database.test.cluster_name
 }
-`, KustoDatabaseResource{}.basic(data))
+`, KustoDatabaseResource{}.complete(data))
 }
