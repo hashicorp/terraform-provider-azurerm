@@ -171,7 +171,7 @@ resource "azurerm_elastic_stack" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-monthly-consumption_Monthly"
-  elastic_cloud_email_address = "acctestuser-%[1]d@hashicorptest.com"
+  elastic_cloud_email_address = "terraform-acctest@hashicorp.com"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -206,7 +206,7 @@ resource "azurerm_elastic_stack" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-monthly-consumption_Monthly"
-  elastic_cloud_email_address = "acctestuser-%[1]d@hashicorptest.com"
+  elastic_cloud_email_address = "terraform-acctest@hashicorp.com"
 
   tags = {
     ENV = "Test"
@@ -231,7 +231,7 @@ resource "azurerm_elastic_stack" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-monthly-consumption_Monthly"
-  elastic_cloud_email_address = "acctestuser-%[1]d@hashicorptest.com"
+  elastic_cloud_email_address = "terraform-acctest@hashicorp.com"
   monitoring_enabled          = false
 
   tags = {
@@ -257,7 +257,7 @@ resource "azurerm_elastic_stack" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-monthly-consumption_Monthly"
-  elastic_cloud_email_address = "acctestuser-%[1]d@hashicorptest.com"
+  elastic_cloud_email_address = "terraform-acctest@hashicorp.com"
 
   logs {
     filtering_tag {
@@ -291,7 +291,7 @@ resource "azurerm_elastic_stack" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-monthly-consumption_Monthly"
-  elastic_cloud_email_address = "acctestuser-%[1]d@hashicorptest.com"
+  elastic_cloud_email_address = "terraform-acctest@hashicorp.com"
 
   logs {
     filtering_tag {
