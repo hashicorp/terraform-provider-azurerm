@@ -463,7 +463,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 			if props != nil && props.HighAvailability != nil {
 				// if HA Mode is currently "ZoneRedundant" and is still set to "ZoneRedundant", high_availability.0.standby_availability_zone cannot be changed
 				if props.HighAvailability.Mode == postgresqlflexibleservers.HighAvailabilityModeZoneRedundant && !d.HasChange("high_availability.0.mode") {
-					return fmt.Errorf("`an existing high_availability.0.standby_availability_zone` can only be changed when exchanged with the zone specified in `zone`")
+					return fmt.Errorf("an existing `high_availability.0.standby_availability_zone` can only be changed when exchanged with the zone specified in `zone`")
 				}
 				// if high_availability.0.mode changes from "ZoneRedundant", an existing high_availability block has been removed as this is a required field
 				// if high_availability.0.mode is not currently "ZoneRedundant", this must be a newly added block
