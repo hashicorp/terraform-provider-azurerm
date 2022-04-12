@@ -175,6 +175,60 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				},
 			},
 
+			"init_container": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"image": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"environment_variables": {
+							Type:     pluginsdk.TypeMap,
+							ForceNew: true,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"secure_environment_variables": {
+							Type:      pluginsdk.TypeMap,
+							Optional:  true,
+							ForceNew:  true,
+							Sensitive: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"commands": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"volume": containerVolumeSchema(),
+					},
+				},
+			},
 			"container": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -298,102 +352,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 							},
 						},
 
-						"volume": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							ForceNew: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"mount_path": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"read_only": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										ForceNew: true,
-										Default:  false,
-									},
-
-									"share_name": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"storage_account_name": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"storage_account_key": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										Sensitive:    true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"empty_dir": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										ForceNew: true,
-										Default:  false,
-									},
-
-									"git_repo": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										ForceNew: true,
-										MaxItems: 1,
-										Elem: &pluginsdk.Resource{
-											Schema: map[string]*pluginsdk.Schema{
-												"url": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ForceNew: true,
-												},
-
-												"directory": {
-													Type:     pluginsdk.TypeString,
-													Optional: true,
-													ForceNew: true,
-												},
-
-												"revision": {
-													Type:     pluginsdk.TypeString,
-													Optional: true,
-													ForceNew: true,
-												},
-											},
-										},
-									},
-
-									"secret": {
-										Type:      pluginsdk.TypeMap,
-										ForceNew:  true,
-										Optional:  true,
-										Sensitive: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-										},
-									},
-								},
-							},
-						},
+						"volume": containerVolumeSchema(),
 
 						"liveness_probe": SchemaContainerGroupProbe(),
 
@@ -506,6 +465,105 @@ func resourceContainerGroup() *pluginsdk.Resource {
 	}
 }
 
+func containerVolumeSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"mount_path": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"read_only": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					ForceNew: true,
+					Default:  false,
+				},
+
+				"share_name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"storage_account_name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"storage_account_key": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"empty_dir": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					ForceNew: true,
+					Default:  false,
+				},
+
+				"git_repo": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					ForceNew: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"url": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								ForceNew: true,
+							},
+
+							"directory": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ForceNew: true,
+							},
+
+							"revision": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ForceNew: true,
+							},
+						},
+					},
+				},
+
+				"secret": {
+					Type:      pluginsdk.TypeMap,
+					ForceNew:  true,
+					Optional:  true,
+					Sensitive: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
 func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.GroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -534,9 +592,21 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	diagnosticsRaw := d.Get("diagnostics").([]interface{})
 	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
 	dnsConfig := d.Get("dns_config").([]interface{})
-	containers, containerGroupPorts, containerGroupVolumes, err := expandContainerGroupContainers(d)
+	addedEmptyDirs := map[string]bool{}
+	initContainers, initContainerVolumes, err := expandContainerGroupInitContainers(d, addedEmptyDirs)
 	if err != nil {
 		return err
+	}
+	containers, containerGroupPorts, containerVolumes, err := expandContainerGroupContainers(d, addedEmptyDirs)
+	if err != nil {
+		return err
+	}
+	var containerGroupVolumes []containerinstance.Volume
+	if initContainerVolumes != nil {
+		containerGroupVolumes = initContainerVolumes
+	}
+	if containerGroupVolumes != nil {
+		containerGroupVolumes = append(containerGroupVolumes, containerVolumes...)
 	}
 
 	containerGroup := containerinstance.ContainerGroup{
@@ -544,11 +614,12 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Location: &location,
 		Tags:     tags.Expand(t),
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
+			InitContainers:           initContainers,
 			Containers:               containers,
 			Diagnostics:              diagnostics,
 			RestartPolicy:            containerinstance.ContainerGroupRestartPolicy(restartPolicy),
 			OsType:                   containerinstance.OperatingSystemTypes(OSType),
-			Volumes:                  containerGroupVolumes,
+			Volumes:                  &containerGroupVolumes,
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
 			DNSConfig:                expandContainerGroupDnsConfig(dnsConfig),
 		},
@@ -667,6 +738,10 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.Volumes)
 		if err := d.Set("container", containerConfigs); err != nil {
 			return fmt.Errorf("setting `container`: %+v", err)
+		}
+		initContainerConfigs := flattenContainerGroupInitContainers(d, resp.InitContainers, props.Volumes)
+		if err := d.Set("init_container", initContainerConfigs); err != nil {
+			return fmt.Errorf("setting `init_container`: %+v", err)
 		}
 
 		if err := d.Set("image_registry_credential", flattenContainerImageRegistryCredentials(d, props.ImageRegistryCredentials)); err != nil {
@@ -838,13 +913,79 @@ func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Conte
 	}
 }
 
-func expandContainerGroupContainers(d *pluginsdk.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume, error) {
+func expandContainerGroupInitContainers(d *pluginsdk.ResourceData, addedEmptyDirs map[string]bool) (*[]containerinstance.InitContainerDefinition, []containerinstance.Volume, error) {
+	containersConfig := d.Get("init_container").([]interface{})
+	containers := make([]containerinstance.InitContainerDefinition, 0)
+	containerGroupVolumes := make([]containerinstance.Volume, 0)
+	for _, containerConfig := range containersConfig {
+		data := containerConfig.(map[string]interface{})
+
+		name := data["name"].(string)
+		image := data["image"].(string)
+
+		container := containerinstance.InitContainerDefinition{
+			Name: utils.String(name),
+			InitContainerPropertiesDefinition: &containerinstance.InitContainerPropertiesDefinition{
+				Image: utils.String(image),
+			},
+		}
+
+		// Set both sensitive and non-secure environment variables
+		var envVars *[]containerinstance.EnvironmentVariable
+		var secEnvVars *[]containerinstance.EnvironmentVariable
+
+		// Expand environment_variables into slice
+		if v, ok := data["environment_variables"]; ok {
+			envVars = expandContainerEnvironmentVariables(v, false)
+		}
+
+		// Expand secure_environment_variables into slice
+		if v, ok := data["secure_environment_variables"]; ok {
+			secEnvVars = expandContainerEnvironmentVariables(v, true)
+		}
+
+		// Combine environment variable slices
+		*envVars = append(*envVars, *secEnvVars...)
+
+		// Set both secure and non secure environment variables
+		container.EnvironmentVariables = envVars
+
+		if v, ok := data["commands"]; ok {
+			c := v.([]interface{})
+			command := make([]string, 0)
+			for _, v := range c {
+				command = append(command, v.(string))
+			}
+
+			container.Command = &command
+		}
+
+		if v, ok := data["volume"]; ok {
+			volumeMounts, _, err := expandSingleContainerVolume(v)
+			if err != nil {
+				return nil, nil, err
+			}
+			container.VolumeMounts = volumeMounts
+
+			expandedContainerGroupVolumes, err := expandContainerVolume(v, addedEmptyDirs, containerGroupVolumes)
+			if err != nil {
+				return nil, nil, err
+			}
+			containerGroupVolumes = expandedContainerGroupVolumes
+		}
+
+		containers = append(containers, container)
+	}
+
+	return &containers, containerGroupVolumes, nil
+}
+
+func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs map[string]bool) (*[]containerinstance.Container, *[]containerinstance.Port, []containerinstance.Volume, error) {
 	containersConfig := d.Get("container").([]interface{})
 	containers := make([]containerinstance.Container, 0)
 	containerInstancePorts := make([]containerinstance.Port, 0)
 	containerGroupPorts := make([]containerinstance.Port, 0)
 	containerGroupVolumes := make([]containerinstance.Volume, 0)
-	addedEmptyDirs := map[string]bool{}
 
 	for _, containerConfig := range containersConfig {
 		data := containerConfig.(map[string]interface{})
@@ -936,24 +1077,17 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData) (*[]containerinst
 		}
 
 		if v, ok := data["volume"]; ok {
-			volumeMounts, containerGroupVolumesPartial, err := expandContainerVolumes(v)
+			volumeMounts, _, err := expandSingleContainerVolume(v)
 			if err != nil {
 				return nil, nil, nil, err
 			}
 			container.VolumeMounts = volumeMounts
-			if containerGroupVolumesPartial != nil {
-				for _, cgVol := range *containerGroupVolumesPartial {
-					if cgVol.EmptyDir != nil {
-						if addedEmptyDirs[*cgVol.Name] {
-							// empty_dir-volumes are allowed to overlap across containers, in fact that is their primary purpose,
-							// but the containerGroup must not declare same name of such volumes twice.
-							continue
-						}
-						addedEmptyDirs[*cgVol.Name] = true
-					}
-					containerGroupVolumes = append(containerGroupVolumes, cgVol)
-				}
+
+			expandedContainerGroupVolumes, err := expandContainerVolume(v, addedEmptyDirs, containerGroupVolumes)
+			if err != nil {
+				return nil, nil, nil, err
 			}
+			containerGroupVolumes = expandedContainerGroupVolumes
 		}
 
 		if v, ok := data["liveness_probe"]; ok {
@@ -1000,7 +1134,28 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData) (*[]containerinst
 		containerGroupPorts = containerInstancePorts // remove in 3.0 of the provider
 	}
 
-	return &containers, &containerGroupPorts, &containerGroupVolumes, nil
+	return &containers, &containerGroupPorts, containerGroupVolumes, nil
+}
+
+func expandContainerVolume(v interface{}, addedEmptyDirs map[string]bool, containerGroupVolumes []containerinstance.Volume) ([]containerinstance.Volume, error) {
+	_, containerVolumes, err := expandSingleContainerVolume(v)
+	if err != nil {
+		return nil, err
+	}
+	if containerVolumes != nil {
+		for _, cgVol := range *containerVolumes {
+			if cgVol.EmptyDir != nil {
+				if addedEmptyDirs[*cgVol.Name] {
+					// empty_dir-volumes are allowed to overlap across containers, in fact that is their primary purpose,
+					// but the containerGroup must not declare same name of such volumes twice.
+					continue
+				}
+				addedEmptyDirs[*cgVol.Name] = true
+			}
+			containerGroupVolumes = append(containerGroupVolumes, cgVol)
+		}
+	}
+	return containerGroupVolumes, nil
 }
 
 func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]containerinstance.EnvironmentVariable {
@@ -1071,7 +1226,7 @@ func expandContainerImageRegistryCredentials(d *pluginsdk.ResourceData) *[]conta
 	return &output
 }
 
-func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount, *[]containerinstance.Volume, error) {
+func expandSingleContainerVolume(input interface{}) (*[]containerinstance.VolumeMount, *[]containerinstance.Volume, error) {
 	volumesRaw := input.([]interface{})
 
 	if len(volumesRaw) == 0 {
@@ -1295,6 +1450,55 @@ func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *
 	return output
 }
 
+func flattenContainerGroupInitContainers(d *pluginsdk.ResourceData, initContainers *[]containerinstance.InitContainerDefinition, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
+	if initContainers == nil {
+		return nil
+	}
+	// map old container names to index so we can look up things up
+	nameIndexMap := map[string]int{}
+	for i, c := range d.Get("init_container").([]interface{}) {
+		cfg := c.(map[string]interface{})
+		nameIndexMap[cfg["name"].(string)] = i
+	}
+
+	containerCfg := make([]interface{}, 0, len(*initContainers))
+	for _, container := range *initContainers {
+		// TODO fix this crash point
+		name := *container.Name
+
+		// get index from name
+		index := nameIndexMap[name]
+
+		containerConfig := make(map[string]interface{})
+		containerConfig["name"] = name
+
+		if v := container.Image; v != nil {
+			containerConfig["image"] = *v
+		}
+
+		if container.EnvironmentVariables != nil {
+			if len(*container.EnvironmentVariables) > 0 {
+				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables, false, d, index)
+				containerConfig["secure_environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables, true, d, index)
+			}
+		}
+
+		commands := make([]string, 0)
+		if command := container.Command; command != nil {
+			commands = *command
+		}
+		containerConfig["commands"] = commands
+
+		if containerGroupVolumes != nil && container.VolumeMounts != nil {
+			containersConfigRaw := d.Get("container").([]interface{})
+			flattenContainerVolume(containerConfig, containersConfigRaw, *container.Name, container.VolumeMounts, containerGroupVolumes)
+		}
+		containerCfg = append(containerCfg, containerConfig)
+	}
+
+	return containerCfg
+}
+
 func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]containerinstance.Container, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
 	// map old container names to index so we can look up things up
 	nameIndexMap := map[string]int{}
@@ -1349,11 +1553,6 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 		if container.EnvironmentVariables != nil {
 			if len(*container.EnvironmentVariables) > 0 {
 				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables, false, d, index)
-			}
-		}
-
-		if container.EnvironmentVariables != nil {
-			if len(*container.EnvironmentVariables) > 0 {
 				containerConfig["secure_environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables, true, d, index)
 			}
 		}
@@ -1365,22 +1564,8 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 		containerConfig["commands"] = commands
 
 		if containerGroupVolumes != nil && container.VolumeMounts != nil {
-			// Also pass in the container volume config from schema
-			var containerVolumesConfig *[]interface{}
 			containersConfigRaw := d.Get("container").([]interface{})
-			for _, containerConfigRaw := range containersConfigRaw {
-				data := containerConfigRaw.(map[string]interface{})
-				nameRaw := data["name"].(string)
-				if nameRaw == *container.Name {
-					// found container config for current container
-					// extract volume mounts from config
-					if v, ok := data["volume"]; ok {
-						containerVolumesRaw := v.([]interface{})
-						containerVolumesConfig = &containerVolumesRaw
-					}
-				}
-			}
-			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes, containerVolumesConfig)
+			flattenContainerVolume(containerConfig, containersConfigRaw, *container.Name, container.VolumeMounts, containerGroupVolumes)
 		}
 
 		containerConfig["liveness_probe"] = flattenContainerProbes(container.LivenessProbe)
@@ -1392,37 +1577,26 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 	return containerCfg
 }
 
-func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable, isSecure bool, d *pluginsdk.ResourceData, oldContainerIndex int) map[string]interface{} {
-	output := make(map[string]interface{})
-
-	if input == nil {
-		return output
-	}
-
-	if isSecure {
-		for _, envVar := range *input {
-			if envVar.Name != nil && envVar.Value == nil {
-				envVarValue := d.Get(fmt.Sprintf("container.%d.secure_environment_variables.%s", oldContainerIndex, *envVar.Name))
-				output[*envVar.Name] = envVarValue
-			}
-		}
-	} else {
-		for _, envVar := range *input {
-			if envVar.Name != nil && envVar.Value != nil {
-				log.Printf("[DEBUG] NOT SECURE: Name: %s - Value: %s", *envVar.Name, *envVar.Value)
-				output[*envVar.Name] = *envVar.Value
+func flattenContainerVolume(containerConfig map[string]interface{}, containersConfigRaw []interface{}, containerName string, volumeMounts *[]containerinstance.VolumeMount, containerGroupVolumes *[]containerinstance.Volume) {
+	// Also pass in the container volume config from schema
+	var containerVolumesConfig *[]interface{}
+	for _, containerConfigRaw := range containersConfigRaw {
+		data := containerConfigRaw.(map[string]interface{})
+		nameRaw := data["name"].(string)
+		if nameRaw == containerName {
+			// found container config for current container
+			// extract volume mounts from config
+			if v, ok := data["volume"]; ok {
+				containerVolumesRaw := v.([]interface{})
+				containerVolumesConfig = &containerVolumesRaw
 			}
 		}
 	}
-
-	return output
-}
-
-func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, containerGroupVolumes *[]containerinstance.Volume, containerVolumesConfig *[]interface{}) []interface{} {
 	volumeConfigs := make([]interface{}, 0)
 
 	if volumeMounts == nil {
-		return volumeConfigs
+		containerConfig["volume"] = nil
+		return
 	}
 
 	for _, vm := range *volumeMounts {
@@ -1482,7 +1656,33 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 		volumeConfigs = append(volumeConfigs, volumeConfig)
 	}
 
-	return volumeConfigs
+	containerConfig["volume"] = volumeConfigs
+}
+
+func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable, isSecure bool, d *pluginsdk.ResourceData, oldContainerIndex int) map[string]interface{} {
+	output := make(map[string]interface{})
+
+	if input == nil {
+		return output
+	}
+
+	if isSecure {
+		for _, envVar := range *input {
+			if envVar.Name != nil && envVar.Value == nil {
+				envVarValue := d.Get(fmt.Sprintf("container.%d.secure_environment_variables.%s", oldContainerIndex, *envVar.Name))
+				output[*envVar.Name] = envVarValue
+			}
+		}
+	} else {
+		for _, envVar := range *input {
+			if envVar.Name != nil && envVar.Value != nil {
+				log.Printf("[DEBUG] NOT SECURE: Name: %s - Value: %s", *envVar.Name, *envVar.Value)
+				output[*envVar.Name] = *envVar.Value
+			}
+		}
+	}
+
+	return output
 }
 
 func flattenGitRepoVolume(input *containerinstance.GitRepoVolume) []interface{} {

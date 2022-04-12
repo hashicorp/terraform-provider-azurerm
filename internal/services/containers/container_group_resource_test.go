@@ -595,6 +595,36 @@ func TestAccContainerGroup_emptyDirVolumeShared(t *testing.T) {
 	})
 }
 
+func TestAccContainerGroup_emptyDirVolumeSharedWithInitContainer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyDirVolumeSharedWithInitContainer(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ip_address_type"),
+	})
+}
+
+func TestAccContainerGroup_withInitContainer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withInitContainer(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ip_address_type"),
+	})
+}
+
 func TestAccContainerGroup_secretVolume(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
@@ -1938,6 +1968,57 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func (ContainerGroupResource) emptyDirVolumeSharedWithInitContainer(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroupemptyshared-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "None"
+  os_type             = "Linux"
+  restart_policy      = "Never"
+
+  init_container {
+    name     = "init"
+    image    = "busybox"
+    commands = ["touch", "/sharedempty/file.txt"]
+
+    volume {
+      name       = "logs"
+      mount_path = "/sharedempty"
+      read_only  = false
+      empty_dir  = true
+    }
+  }
+
+  container {
+    name   = "reader"
+    image  = "ubuntu:20.04"
+    cpu    = "1"
+    memory = "1.5"
+
+    volume {
+      name       = "logs"
+      mount_path = "/sharedempty"
+      read_only  = false
+      empty_dir  = true
+    }
+
+    commands = ["/bin/bash", "-c", "timeout 30 watch --interval 1 --errexit \"! cat /sharedempty/file.txt\""]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (ContainerGroupResource) emptyDirVolumeShared(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1986,6 +2067,43 @@ resource "azurerm_container_group" "test" {
     }
 
     commands = ["/bin/bash", "-c", "timeout 30 watch --interval 1 --errexit \"! cat /sharedempty/file.txt\""]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerGroupResource) withInitContainer(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroupemptyshared-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "None"
+  os_type             = "Linux"
+  restart_policy      = "Never"
+
+  init_container {
+    name     = "init"
+    image    = "busybox"
+    commands = ["echo", "hello from init"]
+  }
+
+  container {
+    name   = "hw"
+    image  = "ubuntu:20.04"
+    cpu    = "1"
+    memory = "1.5"
+
+    commands = ["echo", "hello from ubuntu"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

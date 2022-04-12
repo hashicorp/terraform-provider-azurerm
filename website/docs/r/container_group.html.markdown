@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `init_container` - (Optional) The definition of an init container that is part of the group as documented in the `init_container` block below. Changing this forces a new resource to be created.
+
 * `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
 
 * `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows`. Changing this forces a new resource to be created.
@@ -107,6 +109,22 @@ An `identity` block supports the following:
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Container Group.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+An `init_container` block supports:
+
+* `name` - (Required) Specifies the name of the Container. Changing this forces a new resource to be created.
+
+* `image` - (Required) The container image name. Changing this forces a new resource to be created.
+
+* `environment_variables` - (Optional) A list of environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
+
+* `secure_environment_variables` - (Optional) A list of sensitive environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
+
+* `commands` - (Optional) A list of commands which should be run on the container. Changing this forces a new resource to be created.
+
+* `volume` - (Optional) The definition of a volume mount for this container as documented in the `volume` block below. Changing this forces a new resource to be created.
 
 ---
 
