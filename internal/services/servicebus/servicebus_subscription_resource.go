@@ -2,6 +2,7 @@ package servicebus
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"log"
 	"time"
 
@@ -24,6 +25,11 @@ func resourceServiceBusSubscription() *pluginsdk.Resource {
 		Read:   resourceServiceBusSubscriptionRead,
 		Update: resourceServiceBusSubscriptionCreateUpdate,
 		Delete: resourceServiceBusSubscriptionDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ServiceBusSubscriptionV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SubscriptionID(id)
