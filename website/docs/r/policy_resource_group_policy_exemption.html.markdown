@@ -35,9 +35,9 @@ resource "azurerm_resource_group_policy_assignment" "example" {
 
 resource "azurerm_resource_group_policy_exemption" "example" {
   name                 = "exampleExemption"
-  resource_group_id                = azurerm_resource_group.example.id
+  resource_group_id    = azurerm_resource_group.example.id
   policy_assignment_id = azurerm_resource_group_policy_assignment.example.id
-  exemption_category = "Mitigated"
+  exemption_category   = "Mitigated"
 }
 ```
 

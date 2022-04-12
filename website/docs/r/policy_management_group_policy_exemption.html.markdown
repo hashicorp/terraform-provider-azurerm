@@ -1,27 +1,29 @@
 ---
 subcategory: "Policy"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_subscription_policy_exemption"
+page_title: "Azure Management Manager: azurerm_management_group_policy_exemption"
 description: |-
-Manages a Subscription Policy Exemption.
+Manages a Management Group Policy Exemption.
 ---
 
-# azurerm_subscription_policy_exemption
+# azurerm_management_group_policy_exemption
 
-Manages a Subscription Policy Exemption.
+Manages a Management Group Policy Exemption.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_subscription" "example" {}
+resource "azurerm_management_group" "example" {
+  display_name = "Example MgmtGroup"
+}
 
 data "azurerm_policy_set_definition" "example" {
   display_name = "Audit machines with insecure password security settings"
 }
 
-resource "azurerm_subscription_policy_assignment" "example" {
-  name                 = "exampleAssignment"
-  subscription_id      = data.azurerm_subscription.example.id
+resource "azurerm_management_group_policy_assignment" "example" {
+  name                 = "assignment1"
+  management_group_id  = azurerm_management_group.example.id
   policy_definition_id = data.azurerm_policy_set_definition.example.id
   location             = "westus"
 
@@ -30,10 +32,10 @@ resource "azurerm_subscription_policy_assignment" "example" {
   }
 }
 
-resource "azurerm_subscription_policy_exemption" "example" {
-  name                 = "exampleExemption"
-  resource_group_id    = data.azurerm_subscription.example.id
-  policy_assignment_id = azurerm_subscription_policy_assignment.example.id
+resource "azurerm_management_group_policy_exemption" "example" {
+  name                 = "exemption1"
+  management_group_id  = azurerm_management_group.example.id
+  policy_assignment_id = azurerm_management_group_policy_assignment.example.id
   exemption_category   = "Mitigated"
 }
 ```
@@ -44,7 +46,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Policy Exemption. Changing this forces a new resource to be created.
 
-* `subscription_id`- (Required) The Subscription ID where the Policy Exemption should be applied. Changing this forces a new resource to be created.
+* `management_group_id`- (Required) The Management Group ID where the Policy Exemption should be applied. Changing this forces a new resource to be created.
 
 * `exemption_category` - (Required) The category of this policy exemption. Possible values are `Waiver` and `Mitigated`.
 
@@ -80,5 +82,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Policy Exemptions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_subscription_policy_exemption.exemption1  /subscriptions/00000000-0000-0000-000000000000/providers/Microsoft.Authorization/policyExemptions/exemption1
+terraform import azurerm_management_group_policy_exemption.exemption1  /providers/Microsoft.Management/managementGroups/group1/providers/Microsoft.Authorization/policyExemptions/exemption1
 ```

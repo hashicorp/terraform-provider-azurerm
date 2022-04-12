@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/sdk/2021-04-01-preview/tenants"
+	managmentGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SubscriptionPolicyExemptionResource struct{}
+type ManagementGroupPolicyExemptionResource struct{}
 
-func TestAccAzureRMSubscriptionPolicyExemption_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_exemption", "test")
-	r := SubscriptionPolicyExemptionResource{}
+func TestAccAzureRMManagementGroupPolicyExemption_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_exemption", "test")
+	r := ManagementGroupPolicyExemptionResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -34,9 +34,9 @@ func TestAccAzureRMSubscriptionPolicyExemption_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSubscriptionPolicyExemption_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_exemption", "test")
-	r := SubscriptionPolicyExemptionResource{}
+func TestAccAzureRMManagementGroupPolicyExemption_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_exemption", "test")
+	r := ManagementGroupPolicyExemptionResource{}
 	endDate := time.Now().UTC().Add(time.Hour * 24).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -50,9 +50,9 @@ func TestAccAzureRMSubscriptionPolicyExemption_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSubscriptionPolicyExemption_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_exemption", "test")
-	r := SubscriptionPolicyExemptionResource{}
+func TestAccAzureRMManagementGroupPolicyExemption_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_exemption", "test")
+	r := ManagementGroupPolicyExemptionResource{}
 	endDate := time.Now().UTC().Add(time.Hour * 24).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -80,15 +80,18 @@ func TestAccAzureRMSubscriptionPolicyExemption_update(t *testing.T) {
 	})
 }
 
-func (r SubscriptionPolicyExemptionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.SubscriptionPolicyExemptionID(state.ID)
+func (r ManagementGroupPolicyExemptionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ResourcePolicyExemptionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	subscriptionId := tenants.NewSubscriptionID(id.SubscriptionId)
+	managementGroupId, err := managmentGroupParse.ManagementGroupID(id.ResourceId)
+	if err != nil {
+		return nil, err
+	}
 
-	resp, err := client.Policy.ExemptionsClient.Get(ctx, subscriptionId.ID(), id.PolicyExemptionName)
+	resp, err := client.Policy.ExemptionsClient.Get(ctx, managementGroupId.ID(), id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
@@ -98,26 +101,26 @@ func (r SubscriptionPolicyExemptionResource) Exists(ctx context.Context, client 
 	return utils.Bool(true), nil
 }
 
-func (r SubscriptionPolicyExemptionResource) basic(data acceptance.TestData) string {
+func (r ManagementGroupPolicyExemptionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_subscription_policy_exemption" "test" {
+resource "azurerm_management_group_policy_exemption" "test" {
   name                 = "acctest-exemption-%d"
-  subscription_id      = data.azurerm_subscription.test.id
-  policy_assignment_id = azurerm_subscription_policy_assignment.test.id
+  management_group_id  = azurerm_management_group.test.id
+  policy_assignment_id = azurerm_management_group_policy_assignment.test.id
   exemption_category   = "Mitigated"
 }
-`, SubscriptionAssignmentTestResource{}.withBuiltInPolicySetBasic(data), data.RandomInteger)
+`, ManagementGroupAssignmentTestResource{}.withBuiltInPolicySetBasic(data), data.RandomInteger)
 }
 
-func (r SubscriptionPolicyExemptionResource) complete(data acceptance.TestData, endDate string) string {
+func (r ManagementGroupPolicyExemptionResource) complete(data acceptance.TestData, endDate string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subscription_policy_exemption" "test" {
+resource "azurerm_management_group_policy_exemption" "test" {
   name                 = "acctest-exemption-%d"
-  subscription_id      = data.azurerm_subscription.test.id
-  policy_assignment_id = azurerm_subscription_policy_assignment.test.id
+  management_group_id  = azurerm_management_group.test.id
+  policy_assignment_id = azurerm_management_group_policy_assignment.test.id
   exemption_category   = "Waiver"
 
   display_name = "Policy Exemption for acceptance test"
@@ -130,5 +133,5 @@ resource "azurerm_subscription_policy_exemption" "test" {
     }
 METADATA
 }
-`, SubscriptionAssignmentTestResource{}.withBuiltInPolicySetBasic(data), data.RandomInteger, endDate)
+`, ManagementGroupAssignmentTestResource{}.withBuiltInPolicySetBasic(data), data.RandomInteger, endDate)
 }

@@ -6,8 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/sdk/2021-04-01-preview/tenants"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -17,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SubscriptionPolicyExemptionResource struct{}
+type ResourcePolicyExemptionResource struct{}
 
-func TestAccAzureRMSubscriptionPolicyExemption_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_exemption", "test")
-	r := SubscriptionPolicyExemptionResource{}
+func TestAccAzureRMResourcePolicyExemption_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_policy_exemption", "test")
+	r := ResourcePolicyExemptionResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -34,9 +32,9 @@ func TestAccAzureRMSubscriptionPolicyExemption_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSubscriptionPolicyExemption_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_exemption", "test")
-	r := SubscriptionPolicyExemptionResource{}
+func TestAccAzureRMResourcePolicyExemption_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_policy_exemption", "test")
+	r := ResourcePolicyExemptionResource{}
 	endDate := time.Now().UTC().Add(time.Hour * 24).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -50,9 +48,9 @@ func TestAccAzureRMSubscriptionPolicyExemption_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSubscriptionPolicyExemption_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subscription_policy_exemption", "test")
-	r := SubscriptionPolicyExemptionResource{}
+func TestAccAzureRMResourcePolicyExemption_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_policy_exemption", "test")
+	r := ResourcePolicyExemptionResource{}
 	endDate := time.Now().UTC().Add(time.Hour * 24).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -80,15 +78,13 @@ func TestAccAzureRMSubscriptionPolicyExemption_update(t *testing.T) {
 	})
 }
 
-func (r SubscriptionPolicyExemptionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.SubscriptionPolicyExemptionID(state.ID)
+func (r ResourcePolicyExemptionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ResourcePolicyExemptionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	subscriptionId := tenants.NewSubscriptionID(id.SubscriptionId)
-
-	resp, err := client.Policy.ExemptionsClient.Get(ctx, subscriptionId.ID(), id.PolicyExemptionName)
+	resp, err := client.Policy.ExemptionsClient.Get(ctx, id.ResourceId, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
@@ -98,26 +94,26 @@ func (r SubscriptionPolicyExemptionResource) Exists(ctx context.Context, client 
 	return utils.Bool(true), nil
 }
 
-func (r SubscriptionPolicyExemptionResource) basic(data acceptance.TestData) string {
+func (r ResourcePolicyExemptionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_subscription_policy_exemption" "test" {
+resource "azurerm_resource_policy_exemption" "test" {
   name                 = "acctest-exemption-%d"
-  subscription_id      = data.azurerm_subscription.test.id
-  policy_assignment_id = azurerm_subscription_policy_assignment.test.id
+  resource_id          = azurerm_resource_policy_assignment.test.resource_id
+  policy_assignment_id = azurerm_resource_policy_assignment.test.id
   exemption_category   = "Mitigated"
 }
-`, SubscriptionAssignmentTestResource{}.withBuiltInPolicySetBasic(data), data.RandomInteger)
+`, ResourceAssignmentTestResource{}.withBuiltInPolicySetBasic(data), data.RandomInteger)
 }
 
-func (r SubscriptionPolicyExemptionResource) complete(data acceptance.TestData, endDate string) string {
+func (r ResourcePolicyExemptionResource) complete(data acceptance.TestData, endDate string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subscription_policy_exemption" "test" {
+resource "azurerm_resource_policy_exemption" "test" {
   name                 = "acctest-exemption-%d"
-  subscription_id      = data.azurerm_subscription.test.id
-  policy_assignment_id = azurerm_subscription_policy_assignment.test.id
+  resource_id          = azurerm_resource_policy_assignment.test.resource_id
+  policy_assignment_id = azurerm_resource_policy_assignment.test.id
   exemption_category   = "Waiver"
 
   display_name = "Policy Exemption for acceptance test"
@@ -130,5 +126,5 @@ resource "azurerm_subscription_policy_exemption" "test" {
     }
 METADATA
 }
-`, SubscriptionAssignmentTestResource{}.withBuiltInPolicySetBasic(data), data.RandomInteger, endDate)
+`, ResourceAssignmentTestResource{}.withBuiltInPolicySetBasic(data), data.RandomInteger, endDate)
 }

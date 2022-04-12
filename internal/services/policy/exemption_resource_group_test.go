@@ -102,9 +102,9 @@ func (r ResourceGroupPolicyExemptionResource) basic(data acceptance.TestData) st
 %s
 resource "azurerm_resource_group_policy_exemption" "test" {
   name                 = "acctest-exemption-%d"
-  resource_group_id                = azurerm_resource_group.test.id
+  resource_group_id    = azurerm_resource_group.test.id
   policy_assignment_id = azurerm_resource_group_policy_assignment.test.id
-  exemption_category = "Mitigated"
+  exemption_category   = "Mitigated"
 }
 `, ResourceGroupAssignmentTestResource{}.withBuiltInPolicySetBasic(data), data.RandomInteger)
 }
@@ -115,9 +115,9 @@ func (r ResourceGroupPolicyExemptionResource) complete(data acceptance.TestData,
 
 resource "azurerm_resource_group_policy_exemption" "test" {
   name                 = "acctest-exemption-%d"
-  resource_group_id                = azurerm_resource_group.test.id
+  resource_group_id    = azurerm_resource_group.test.id
   policy_assignment_id = azurerm_resource_group_policy_assignment.test.id
-  exemption_category = "Waiver"
+  exemption_category   = "Waiver"
 
   display_name = "Policy Exemption for acceptance test"
   description  = "Policy Exemption created in an acceptance test"
