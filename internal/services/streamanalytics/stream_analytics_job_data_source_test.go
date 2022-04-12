@@ -51,7 +51,6 @@ func TestAccDataSourceStreamAnalyticsJob_jobSchedule(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("start_mode").Exists(),
 				check.That(data.ResourceName).Key("start_time").Exists(),
-				check.That(data.ResourceName).Key("last_output_time").Exists(),
 			),
 		},
 	})
@@ -82,7 +81,7 @@ data "azurerm_stream_analytics_job" "test" {
 }
 
 func (d StreamAnalyticsJobDataSource) jobSchedule(data acceptance.TestData) string {
-	config := StreamAnalyticsJobScheduleResource{}.lastOutputEventTime(data)
+	config := StreamAnalyticsJobScheduleResource{}.customTime(data)
 	return fmt.Sprintf(`
 %s
 

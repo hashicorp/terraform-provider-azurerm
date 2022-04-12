@@ -3,7 +3,6 @@ package streamanalytics
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
@@ -115,10 +114,9 @@ func (r JobScheduleResource) Create() sdk.ResourceFunc {
 
 			if outputStartMode == streamanalytics.OutputStartModeCustomTime {
 				if model.StartTime == "" {
-					return fmt.Errorf("`start_time` must be specified is `start_mode` is set to `CustomTime`")
+					return fmt.Errorf("`start_time` must be specified if `start_mode` is set to `CustomTime`")
 				} else {
 					startTime, _ := date.ParseTime(time.RFC3339, model.StartTime)
-					log.Printf("sa_test time: %s", startTime)
 					outputStartTime := &date.Time{
 						Time: startTime,
 					}
@@ -132,7 +130,7 @@ func (r JobScheduleResource) Create() sdk.ResourceFunc {
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting on create/update of %s: %+v", id, err)
+				return fmt.Errorf("waiting on create/update for %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -159,7 +157,7 @@ func (r JobScheduleResource) Read() sdk.ResourceFunc {
 				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			if props := resp.StreamingJobProperties; props != nil {
@@ -261,7 +259,7 @@ func (r JobScheduleResource) Delete() sdk.ResourceFunc {
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting on deletion of %s: %+v", id, err)
+				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 			}
 			return nil
 		},
