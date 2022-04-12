@@ -14,29 +14,36 @@ Manages a Resource Policy Exemption.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "resourceGroup1"
+  name     = "group1"
   location = "westus"
 }
 
-data "azurerm_policy_definition" "example" {
-  display_name = "Allowed locations"
+resource "azurerm_virtual_network" "example" {
+  name                = "network1"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  address_space       = ["10.0.0.0/16"]
 }
 
-resource "azurerm_resource_group_policy_assignment" "example" {
-  name                 = "exampleAssignment"
-  resource_group_id    = azurerm_resource_group.example.id
-  policy_definition_id = data.azurerm_policy_definition.example.id
-  parameters = jsonencode({
-    "listOfAllowedLocations" = {
-      "value" = [azurerm_resource_group.example.location]
-    }
-  })
+data "azurerm_policy_set_definition" "example" {
+  display_name = "Audit machines with insecure password security settings"
 }
 
-resource "azurerm_resource_group_policy_exemption" "example" {
-  name                 = "exampleExemption"
-  resource_group_id    = azurerm_resource_group.example.id
-  policy_assignment_id = azurerm_resource_group_policy_assignment.example.id
+resource "azurerm_resource_policy_assignment" "example" {
+  name                 = "assignment1"
+  resource_id          = azurerm_virtual_network.example.id
+  policy_definition_id = data.azurerm_policy_set_definition.example.id
+  location             = azurerm_resource_group.example.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_resource_policy_exemption" "example" {
+  name                 = "exemption1"
+  resource_id          = azurerm_resource_policy_assignment.example.resource_id
+  policy_assignment_id = azurerm_resource_policy_assignment.example.id
   exemption_category   = "Mitigated"
 }
 ```
