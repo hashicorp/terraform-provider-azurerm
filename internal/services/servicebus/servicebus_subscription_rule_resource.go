@@ -66,7 +66,6 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 				}
 				return []string{}
 			}(),
-			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"filter_type": {
