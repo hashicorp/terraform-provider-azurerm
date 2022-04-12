@@ -101,11 +101,7 @@ func resourceArmSubscriptionPolicyExemption() *pluginsdk.Resource {
 				ValidateFunc: azValidate.ISO8601DateTime,
 			},
 
-			"metadata": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsJSON,
-			},
+			"metadata": metadataSchema(),
 		},
 	}
 }
