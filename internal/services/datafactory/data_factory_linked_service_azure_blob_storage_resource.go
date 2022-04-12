@@ -112,7 +112,6 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				RequiredWith: []string{"use_managed_identity"},
 				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
 			},
 
@@ -213,11 +212,13 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 		}
 	}
 
-	if d.Get("use_managed_identity").(bool) {
+	if d.Get("use_managed_identity").(bool) || d.Get("service_principal_id").(string) != "" {
 		if v, ok := d.GetOk("service_endpoint"); ok {
 			blobStorageProperties.ServiceEndpoint = utils.String(v.(string))
 		}
-	} else {
+	}
+
+	if d.Get("service_principal_id").(string) != "" {
 		secureString := datafactory.SecureString{
 			Value: utils.String(d.Get("service_principal_key").(string)),
 			Type:  datafactory.TypeSecureString,
@@ -226,6 +227,9 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 		blobStorageProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
 		blobStorageProperties.Tenant = utils.String(d.Get("tenant_id").(string))
 		blobStorageProperties.ServicePrincipalKey = &secureString
+		if v, ok := d.GetOk("service_endpoint"); ok {
+			blobStorageProperties.ServiceEndpoint = utils.String(v.(string))
+		}
 	}
 
 	blobStorageLinkedService := &datafactory.AzureBlobStorageLinkedService{
