@@ -2,6 +2,7 @@ package migration
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
