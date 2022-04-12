@@ -3,7 +3,7 @@ subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subscription_policy_exemption"
 description: |-
-Manages a Subscription Policy Exemption.
+  Manages a Subscription Policy Exemption.
 ---
 
 # azurerm_subscription_policy_exemption

@@ -3,7 +3,7 @@ subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resource_policy_exemption"
 description: |-
-Manages a Resource Policy Exemption.
+  Manages a Resource Policy Exemption.
 ---
 
 # azurerm_resource_policy_exemption

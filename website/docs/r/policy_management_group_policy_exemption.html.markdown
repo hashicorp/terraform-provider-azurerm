@@ -3,7 +3,7 @@ subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Management Manager: azurerm_management_group_policy_exemption"
 description: |-
-Manages a Management Group Policy Exemption.
+  Manages a Management Group Policy Exemption.
 ---
 
 # azurerm_management_group_policy_exemption
