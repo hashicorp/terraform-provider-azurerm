@@ -202,7 +202,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					},
 				},
 			},
-
+			"cross_tenant_replication": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 			"custom_domain": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -967,6 +971,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
 	allowBlobPublicAccess := d.Get("allow_nested_items_to_be_public").(bool)
 	allowSharedKeyAccess := d.Get("shared_access_key_enabled").(bool)
+	crossTenantReplication := d.Get("cross_tenant_replication").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -981,11 +986,12 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
-			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
-			NetworkRuleSet:         expandStorageAccountNetworkRules(d, tenantId),
-			IsHnsEnabled:           &isHnsEnabled,
-			EnableNfsV3:            &nfsV3Enabled,
-			AllowSharedKeyAccess:   &allowSharedKeyAccess,
+			EnableHTTPSTrafficOnly:      &enableHTTPSTrafficOnly,
+			NetworkRuleSet:              expandStorageAccountNetworkRules(d, tenantId),
+			IsHnsEnabled:                &isHnsEnabled,
+			EnableNfsV3:                 &nfsV3Enabled,
+			AllowSharedKeyAccess:        &allowSharedKeyAccess,
+			AllowCrossTenantReplication: &crossTenantReplication,
 		},
 	}
 
@@ -1312,6 +1318,11 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			AllowSharedKeyAccess: &allowSharedKeyAccess,
 		},
+	}
+
+	if d.HasChange("cross_tenant_replication") {
+		crossTenantReplication := d.Get("cross_tenant_replication").(bool)
+		opts.AccountPropertiesUpdateParameters.AllowCrossTenantReplication = &crossTenantReplication
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
@@ -1715,6 +1726,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("nfsv3_enabled", props.EnableNfsV3)
+		d.Set("cross_tenant_replication", props.AllowCrossTenantReplication)
 
 		// There is a certain edge case that could result in the Azure API returning a null value for AllowBLobPublicAccess.
 		// Since the field is a pointer, this gets marshalled to a nil value instead of a boolean.
