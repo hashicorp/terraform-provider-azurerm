@@ -196,9 +196,11 @@ func resourceArmResourcePolicyExemptionRead(d *pluginsdk.ResourceData, meta inte
 			return fmt.Errorf("setting `policy_definition_reference_ids: %+v", err)
 		}
 
+		expiresOn := ""
 		if expiresTime := props.ExpiresOn; expiresTime != nil {
-			d.Set("expires_on", expiresTime.String())
+			expiresOn = expiresTime.String()
 		}
+		d.Set("expires_on", expiresOn)
 
 		if metadataStr := flattenJSON(props.Metadata); metadataStr != "" {
 			d.Set("metadata", metadataStr)
