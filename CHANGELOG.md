@@ -3,6 +3,10 @@
 FEATURES:
 
 * **New Datasource**: `azurerm_kusto_database` [GH-16180]
+* **New Resource**: `azurerm_managment_group_policy_exemption` [GH-16293]
+* **New Resource**: `azurerm_resource_group_policy_exemption` [GH-16293]
+* **New Resource**: `azurerm_resource_policy_exemption` [GH-16293]
+* **New Resource**: `azurerm_subscription_policy_exemption` [GH-16293]
 
 ENHANCEMENTS:
 
