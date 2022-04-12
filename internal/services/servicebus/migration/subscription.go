@@ -2,9 +2,6 @@ package migration
 
 import (
 	"context"
-	"log"
-
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -19,6 +16,12 @@ func (ServiceBusSubscriptionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
+		},
+
+		"topic_id": {
+			Type:     pluginsdk.TypeString,
+			Required: features.ThreePointOhBeta(),
 			ForceNew: true,
 		},
 
@@ -82,42 +85,11 @@ func (ServiceBusSubscriptionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		s["topic_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			Deprecated:    `Deprecated in favor of "topic_id"`,
-			ConflictsWith: []string{"topic_id"},
-		}
-
-		s["namespace_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			Deprecated:    `Deprecated in favor of "topic_id"`,
-			ConflictsWith: []string{"topic_id"},
-		}
-
-		s["resource_group_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ValidateFunc:  resourcegroups.ValidateName,
-			Deprecated:    `Deprecated in favor of "topic_id"`,
-			ConflictsWith: []string{"topic_id"},
-		}
-	}
 	return s
 }
 
 func (ServiceBusSubscriptionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		log.Printf("[DEBUG] Updating 'id' if resource identifier is not in camel-case")
 
 		oldId := rawState["id"].(string)
 		id, err := parse.SubscriptionID(oldId)
