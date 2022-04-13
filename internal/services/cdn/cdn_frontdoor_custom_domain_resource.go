@@ -73,11 +73,6 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 				ValidateFunc: validate.FrontdoorCustomDomainID,
 			},
 
-			"cdn_frontdoor_profile_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"tls_settings": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -114,6 +109,11 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"cdn_frontdoor_profile_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"validation_properties": {

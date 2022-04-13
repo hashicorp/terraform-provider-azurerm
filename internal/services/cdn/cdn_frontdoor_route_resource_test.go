@@ -298,7 +298,6 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   enabled                = true
   forwarding_protocol    = "HttpOnly"
   https_redirect         = false
-  link_to_default_domain = true
   # Cannot set this value because Frontdoor RP validates that the path is reachable
   # cdn_frontdoor_origin_path  = "contoso.com/site/content"
   patterns_to_match          = ["/*"]

@@ -186,7 +186,8 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorRead(d *pluginsdk.ResourceDa
 		resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+				d.SetId("")
+				return nil
 			}
 
 			return fmt.Errorf("retrieving %s: %+v", id, err)

@@ -171,17 +171,24 @@ func ConvertRouteLinkToDefaultDomainToBool(linkToDefaultDomain *track1.LinkToDef
 }
 
 func IsValidDomain(i interface{}, k string) (warnings []string, errors []error) {
-	if warn, err := validation.IsIPv6Address(i, k); len(err) == 0 {
-		return warn, err
+	isIPv6 := true
+	isIPv4 := true
+
+	if _, err := validation.IsIPv6Address(i, k); len(err) > 0 {
+		isIPv6 = false
 	}
 
-	if warn, err := validation.IsIPv4Address(i, k); len(err) == 0 {
-		return warn, err
+	if _, err := validation.IsIPv4Address(i, k); len(err) > 0 {
+		isIPv4 = false
 	}
 
-	// TODO: Figure out a better way to validate Doman Name if not and IP Address
-	if warn, err := validation.StringIsNotEmpty(i, k); len(err) == 0 {
-		return warn, err
+	// If it's not an IPv4 or IPv6 check to see if it is a valid Domain name...
+	if !isIPv4 && !isIPv6 {
+		// TODO: Figure out a better way to validate Domain Name if not an IP Address
+		if warn, err := validation.StringIsNotEmpty(i, k); len(err) > 0 {
+			errors = append(errors, fmt.Errorf("expected %q to be an IPv4 IP Address, IPv6 IP Address or a valid domain name, got %q", k, i))
+			return warn, errors
+		}
 	}
 
 	return warnings, errors

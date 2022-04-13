@@ -63,6 +63,16 @@ func resourceCdnFrontdoorCustomDomainRouteAssociation() *pluginsdk.Resource {
 				},
 			},
 
+			// NOTE: I had to pull this field into this resource else I could not get the
+			// execution order correct. So the Route resource will always be created with this
+			// value set to true so that the Route can be created successfully, but the value
+			// will be set to the correct value here.
+			"link_to_default_domain": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"cdn_frontdoor_custom_domains_active_status": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -116,9 +126,16 @@ func resourceCdnFrontdoorCustomDomainRouteAssociationCreate(d *pluginsdk.Resourc
 	domainIds := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
 	validatorIds := d.Get("cdn_frontdoor_custom_domain_txt_validator_ids").([]interface{})
 
+	// since the link to default domain field has been moved to the custom domain route association
+	// resource we need to see if that value has been changed. If it's not true that means that
+	// the custom domain route association has changed the value and we should honor the new
+	// value for this field
+	isLinked := d.Get("link_to_default_domain").(bool)
+
 	props := track1.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
-			CustomDomains: expandRouteActivatedResourceReferenceArray(domainIds, existing.RouteProperties.CustomDomains),
+			CustomDomains:       expandRouteActivatedResourceReferenceArray(domainIds, existing.RouteProperties.CustomDomains),
+			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(isLinked),
 		},
 	}
 
@@ -165,6 +182,7 @@ func resourceCdnFrontdoorCustomDomainRouteAssociationRead(d *pluginsdk.ResourceD
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
@@ -176,6 +194,8 @@ func resourceCdnFrontdoorCustomDomainRouteAssociationRead(d *pluginsdk.ResourceD
 	d.Set("cdn_frontdoor_custom_domain_txt_validator_ids", validatorIds)
 
 	if props := resp.RouteProperties; props != nil {
+		d.Set("link_to_default_domain", ConvertRouteLinkToDefaultDomainToBool(&props.LinkToDefaultDomain))
+
 		if err := d.Set("cdn_frontdoor_custom_domains_active_status", flattenRouteActivatedResourceReferenceArray(domainIds, props.CustomDomains)); err != nil {
 			return fmt.Errorf("flattening %q: %+v", "cdn_frontdoor_custom_domains_active_status", err)
 		}
@@ -206,12 +226,15 @@ func resourceCdnFrontdoorCustomDomainRouteAssociationUpdate(d *pluginsdk.Resourc
 			return fmt.Errorf("checking for existing %s: %+v", routeId, err)
 		}
 
-		return fmt.Errorf("updating %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
+	isLinked := d.Get("link_to_default_domain").(bool)
 
 	props := track1.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
-			CustomDomains: expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}), existing.RouteProperties.CustomDomains),
+			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}), existing.RouteProperties.CustomDomains),
+			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(isLinked),
 		},
 	}
 
@@ -250,16 +273,24 @@ func resourceCdnFrontdoorCustomDomainRouteAssociationDelete(d *pluginsdk.Resourc
 	existing, err := client.Get(ctx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing %s: %+v", routeId, err)
+			// it's already deleted
+			d.SetId("")
+			return nil
 		}
 
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+
+	// I have to force the linked to default domain to true here else removing the
+	// custom domains and not having the linked to default domain set to true will
+	// result in an invalid state and will return an error.
+	isLinked := true
 
 	// NOTE: I had to change the SDK MarshalJSON resource to allow nil
 	props := track1.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
-			CustomDomains: nil,
+			CustomDomains:       nil,
+			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(isLinked),
 		},
 	}
 

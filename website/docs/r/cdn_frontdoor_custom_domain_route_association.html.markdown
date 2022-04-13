@@ -12,11 +12,14 @@ This resource is used with the `azurerm_cdn_frontdoor_custom_domain` and the `az
 
 -> **NOTE:** The custom domain association functionality has been separated from the Frontdoor Route resource to accommodate the Custom Domain workflow logic.
 
+!>**IMPORTANT:** When this resource is destroyed the `link_to_default_domain` field for the `azurerm_cdn_frontdoor_route` resource will be set to `true`, else it would result in an invalid resource configuration and cause an error to be returned during the destroy operation.
+
 ## Example Usage
 
 ```hcl
 resource "azurerm_cdn_frontdoor_custom_domain_route_association" "example" {
   cdn_frontdoor_route_id = azurerm_cdn_frontdoor_route.example.id
+  link_to_default_domain = false
 
   cdn_frontdoor_custom_domain_txt_validator_ids = [azurerm_cdn_frontdoor_custom_domain_txt_validator.example.id]
   cdn_frontdoor_custom_domain_ids               = [azurerm_cdn_frontdoor_custom_domain.example.id]
@@ -32,6 +35,8 @@ The following arguments are supported:
 * `cdn_frontdoor_custom_domain_txt_validator_ids` - (Required) One or more resource IDs of the Frontdoor Custom Domain Validator.
 
 * `cdn_frontdoor_custom_domain_ids` - (Required) One or more resource IDs of the Frontdoor Custom Domain to associate with the Frontdoor Route.
+
+* `link_to_default_domain` - (Optional) Will the Frontdoor Route be linked to the default domain endpoint? Possible values are `true` or `false`. Defaults to `false`.
 
 ## Attributes Reference
 

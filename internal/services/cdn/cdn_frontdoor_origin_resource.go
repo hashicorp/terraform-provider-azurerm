@@ -55,10 +55,15 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"cdn_frontdoor_origin_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
+			// NOTE: In swagger this is the Azure Origin... this is not currently used and is not what I thought is was
+			// This value can be: storage (Azure Blobs), Storage (Classic), Storage (Static Website), Cloud Service,
+			// App Service, Static Web App, API Management, Application Gateway, Public IP Address or a Traffic Manager.
+			// Currently, this functionality is being exposed via the origin_host_header field.
+
+			// "cdn_frontdoor_origin_id": {
+			// 	Type:     pluginsdk.TypeString,
+			// 	Optional: true,
+			// },
 
 			"health_probes_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -85,7 +90,7 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 
-			// Must be a valid domain name, IP version 4, or IP version 6
+			// Must be a valid domain name, IPv4 or IPv6 IP Address
 			"origin_host_header": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -143,7 +148,7 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 
 	props := track1.AFDOrigin{
 		AFDOriginProperties: &track1.AFDOriginProperties{
-			AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
+			// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
 			EnabledState:                ConvertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
 			HostName:                    utils.String(d.Get("host_name").(string)),
@@ -196,9 +201,9 @@ func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if props := resp.AFDOriginProperties; props != nil {
 
-		if err := d.Set("cdn_frontdoor_origin_id", flattenResourceReference(props.AzureOrigin)); err != nil {
-			return fmt.Errorf("setting `cdn_frontdoor_origin_id`: %+v", err)
-		}
+		// if err := d.Set("cdn_frontdoor_origin_id", flattenResourceReference(props.AzureOrigin)); err != nil {
+		// 	return fmt.Errorf("setting `cdn_frontdoor_origin_id`: %+v", err)
+		// }
 
 		d.Set("health_probes_enabled", ConvertEnabledStateToBool(&props.EnabledState))
 		d.Set("enforce_certificate_name_check", props.EnforceCertificateNameCheck)
@@ -228,7 +233,7 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	props := track1.AFDOriginUpdateParameters{
 		AFDOriginUpdatePropertiesParameters: &track1.AFDOriginUpdatePropertiesParameters{
-			AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
+			// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
 			EnabledState:                ConvertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
 			HostName:                    utils.String(d.Get("host_name").(string)),

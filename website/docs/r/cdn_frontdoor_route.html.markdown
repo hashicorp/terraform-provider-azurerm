@@ -10,6 +10,8 @@ description: |-
 
 Manages a Frontdoor Route.
 
+!>**IMPORTANT:** On initial creation of the Frontdoor Route resource the `link_to_default_domain` value will always be set to `true` due to the Custom Domain workflow logic and the creation constraints of the Frontdoor Route resource that have been introduced with this version of Frontdoor. You may control the value of the `link_to_default_domain` field in the `azurerm_custom_domain_association` resource.
+
 ## Example Usage
 
 ```hcl
@@ -66,7 +68,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_origin_group_id` - (Required) The resource ID of the Frontdoor Origin Group. Changing this forces a new Frontdoor Route to be created.
 
-* `cdn_frontdoor_origin_ids` - (Required) One or more Frontdoor Origin resource IDs this Frontdoor Route will link to. Changing this forces a new Frontdoor Route to be created.
+* `cdn_frontdoor_origin_ids` - (Required) One or more Frontdoor Origin resource IDs that this Frontdoor Route will link to. Changing this forces a new Frontdoor Route to be created.
 
 * `supported_protocols` - (Required) One or more Protocols supported by this Frontdoor Route. Possible values are `Http` or `Https`.
 
@@ -74,7 +76,7 @@ The following arguments are supported:
 
 * `cache_configuration` - (Optional) A `cache_configuration` block as defined below.
 
-~> **NOTE:** To to disable caching, do not provide the `cache_configuration` block in the configuration file. 
+~> **NOTE:** To to disable caching, do not provide the `cache_configuration` block in the configuration file.
 
 * `enabled` - (Optional) Is this Frontdoor Route enabled? Possible values are `true` or `false`. Defaults to `true`.
 
@@ -83,10 +85,6 @@ The following arguments are supported:
 * `https_redirect` - (Optional) Automatically redirect HTTP traffic to HTTPS traffic? Possible values are `true` or `false`. Defaults to `true`.
 
 ~> **NOTE:** The `https_redirect` rule is the first rule that will be executed.
-
-* `link_to_default_domain` - (Optional) Will this route be linked to the default domain endpoint? Possible values are `true` or `false`. Defaults to `true`.
-
-->**NOTE:** On initial creation of the Frontdoor Route resource in Terraform this value must always be set to `true` due to the Custom Domain workflow logic and the creation constraints of the Frontdoor Route resource that have been introduced with this version of Frontdoor.
 
 * `cdn_frontdoor_origin_path` - (Optional) A directory path on the origin that Frontdoor can use to retrieve content from(e.g. contoso.cloudapp.net/originpath).
 

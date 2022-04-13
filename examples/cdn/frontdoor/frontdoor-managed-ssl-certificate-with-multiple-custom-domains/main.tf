@@ -211,12 +211,11 @@ resource "azurerm_cdn_frontdoor_route" "example" {
   name                                   = "${var.prefix}-route"
   cdn_frontdoor_endpoint_id              = azurerm_cdn_frontdoor_endpoint.example.id
   cdn_frontdoor_origin_group_id          = azurerm_cdn_frontdoor_origin_group.example.id
+  cdn_frontdoor_origin_ids               = [azurerm_cdn_frontdoor_origin.example.id]
   enabled                                = true
 
-  cdn_frontdoor_origin_ids   = [azurerm_cdn_frontdoor_origin.example.id]
   forwarding_protocol        = "HttpsOnly"
   https_redirect             = true
-  link_to_default_domain     = true
   patterns_to_match          = ["/*"]
   supported_protocols        = ["Http", "Https"]
   cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.example.id]
@@ -287,6 +286,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "fabrikam" {
 
 resource "azurerm_cdn_frontdoor_custom_domain_route_association" "example" {
   cdn_frontdoor_route_id = azurerm_cdn_frontdoor_route.example.id
+  link_to_default_domain = false
 
   cdn_frontdoor_custom_domain_txt_validator_ids = [azurerm_cdn_frontdoor_custom_domain_txt_validator.contoso.id, azurerm_cdn_frontdoor_custom_domain_txt_validator.fabrikam.id]
   cdn_frontdoor_custom_domain_ids               = [azurerm_cdn_frontdoor_custom_domain.contoso.id, azurerm_cdn_frontdoor_custom_domain.fabrikam.id]

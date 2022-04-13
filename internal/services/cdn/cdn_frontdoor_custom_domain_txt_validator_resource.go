@@ -132,7 +132,8 @@ func resourceCdnFrontdoorCustomDomainTxtValidatorRead(d *pluginsdk.ResourceData,
 	resp, err := client.Get(ctx, customDomainId.ResourceGroup, customDomainId.ProfileName, customDomainId.CustomDomainName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("checking for existing %s: %+v", customDomainId, err)
+			d.SetId("")
+			return nil
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", customDomainId, err)

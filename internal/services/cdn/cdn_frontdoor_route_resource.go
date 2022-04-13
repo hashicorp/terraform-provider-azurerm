@@ -140,11 +140,17 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"link_to_default_domain": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
+			// NOTE: I had to move this field into the custom domain route association resource
+			// else I could not get the execution order correct. So the Route resource will
+			// always be created with this value set to true so that the Route can be created
+			// successfully, but the value will be set to the correct value in the
+			// custom domain route association resource.
+
+			// "link_to_default_domain": {
+			// 	Type:     pluginsdk.TypeBool,
+			// 	Optional: true,
+			// 	Default:  false,
+			// },
 
 			"cdn_frontdoor_origin_path": {
 				Type:     pluginsdk.TypeString,
@@ -216,13 +222,19 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	// NOTE: This value will be updated by the custom domain route association resource
+	// If this value is not true on intial creation we get into a chicken or the egg
+	// situation.
+
+	isLinked := true
+
 	props := track1.Route{
 		RouteProperties: &track1.RouteProperties{
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
-			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
+			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(isLinked),
 			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),
@@ -244,7 +256,9 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.SetId(id.ID())
-	d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(d.Get("cdn_frontdoor_origin_ids").([]interface{})))
+	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
+		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
+	}
 
 	return resourceCdnFrontdoorRouteRead(d, meta)
 }
@@ -272,11 +286,15 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontdoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
 
+	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
+		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
+	}
+
 	if props := resp.RouteProperties; props != nil {
 		d.Set("enabled", ConvertEnabledStateToBool(&props.EnabledState))
 		d.Set("forwarding_protocol", props.ForwardingProtocol)
 		d.Set("https_redirect", ConvertRouteHttpsRedirectToBool(&props.HTTPSRedirect))
-		d.Set("link_to_default_domain", ConvertRouteLinkToDefaultDomainToBool(&props.LinkToDefaultDomain))
+		// d.Set("link_to_default_domain", ConvertRouteLinkToDefaultDomainToBool(&props.LinkToDefaultDomain))
 		d.Set("cdn_frontdoor_origin_path", props.OriginPath)
 		d.Set("patterns_to_match", props.PatternsToMatch)
 
@@ -322,13 +340,25 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
+	// since the link to default domain field has been moved to the custom domain route association
+	// resource we need to see if that value has been changed. If it's not true that means that
+	// the custom domain route association has changed the value and we should honor the new
+	// value for this field
+	isLinked := true
+
+	if props := existing.RouteProperties; props != nil {
+		if props.LinkToDefaultDomain == track1.LinkToDefaultDomainDisabled {
+			isLinked = false
+		}
+	}
+
 	props := track1.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
-			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
+			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(isLinked),
 			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),
@@ -351,6 +381,10 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
+	}
+
+	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
+		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
 	}
 
 	return resourceCdnFrontdoorRouteRead(d, meta)
