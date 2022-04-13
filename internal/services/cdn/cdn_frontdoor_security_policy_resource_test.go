@@ -216,7 +216,7 @@ resource "azurerm_frontdoor_security_policy" "test" {
         id = "spoon"
       }
 
-			patterns_to_match = ["/*"]
+      patterns_to_match = ["/*"]
     }
   }
 }

@@ -295,9 +295,9 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
 
-  enabled                = true
-  forwarding_protocol    = "HttpOnly"
-  https_redirect         = false
+  enabled             = true
+  forwarding_protocol = "HttpOnly"
+  https_redirect      = false
   # Cannot set this value because Frontdoor RP validates that the path is reachable
   # cdn_frontdoor_origin_path  = "contoso.com/site/content"
   patterns_to_match          = ["/*"]

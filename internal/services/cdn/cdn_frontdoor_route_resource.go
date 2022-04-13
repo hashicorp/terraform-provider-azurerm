@@ -223,7 +223,7 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	// NOTE: This value will be updated by the custom domain route association resource
-	// If this value is not true on intial creation we get into a chicken or the egg
+	// If this value is not true on initial creation we get into a chicken or the egg
 	// situation.
 
 	isLinked := true
