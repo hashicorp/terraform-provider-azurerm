@@ -826,7 +826,8 @@ func (r WindowsFunctionAppResource) CustomImporter() sdk.ResourceRunFunc {
 		if err != nil || sp.Kind == nil {
 			return fmt.Errorf("reading Service Plan for Windows %s: %+v", id, err)
 		}
-		if strings.Contains(strings.ToLower(*sp.Kind), "linux") || !(strings.Contains(strings.ToLower(*sp.Kind), "elastic") || strings.Contains(strings.ToLower(*sp.Kind), "functionapp") || strings.Contains(strings.ToLower(*sp.Kind), "app")) {
+
+		if strings.Contains(strings.ToLower(*sp.Kind), "linux") {
 			return fmt.Errorf("specified Service Plan is not a Windows Functionapp plan")
 		}
 

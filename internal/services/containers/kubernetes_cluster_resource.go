@@ -598,6 +598,18 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								},
 							},
 						},
+						"ip_versions": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(containerservice.IPFamilyIPv4),
+									string(containerservice.IPFamilyIPv6),
+								}, false),
+							},
+						},
 					},
 				},
 			},
@@ -607,6 +619,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+			},
+
+			"oidc_issuer_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"oidc_issuer_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"private_fqdn": { // privateFqdn
@@ -1222,6 +1244,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
+	enableOidcIssuer := false
+	var oidcIssuerProfile *containerservice.ManagedClusterOIDCIssuerProfile
+	if v, ok := d.GetOk("oidc_issuer_enabled"); ok {
+		enableOidcIssuer = v.(bool)
+		oidcIssuerProfile = expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
+	}
+
 	publicNetworkAccess := containerservice.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = containerservice.PublicNetworkAccessDisabled
@@ -1250,6 +1279,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			PublicNetworkAccess:    publicNetworkAccess,
 			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
 			HTTPProxyConfig:        httpProxyConfig,
+			OidcIssuerProfile:      oidcIssuerProfile,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1734,6 +1764,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.HTTPProxyConfig = httpProxyConfig
 	}
 
+	if d.HasChange("oidc_issuer_enabled") {
+		updateCluster = true
+		oidcIssuerEnabled := d.Get("oidc_issuer_enabled").(bool)
+		oidcIssuerProfile := expandKubernetesClusterOidcIssuerProfile(oidcIssuerEnabled)
+		existing.ManagedClusterProperties.OidcIssuerProfile = oidcIssuerProfile
+	}
+
 	if updateCluster {
 		log.Printf("[DEBUG] Updating %s..", *id)
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
@@ -1984,6 +2021,20 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if err := d.Set("http_proxy_config", httpProxyConfig); err != nil {
 			return fmt.Errorf("setting `http_proxy_config`: %+v", err)
 		}
+
+		oidcIssuerEnabled := false
+		oidcIssuerUrl := ""
+		if props.OidcIssuerProfile != nil {
+			if props.OidcIssuerProfile.Enabled != nil {
+				oidcIssuerEnabled = *props.OidcIssuerProfile.Enabled
+			}
+			if props.OidcIssuerProfile.IssuerURL != nil {
+				oidcIssuerUrl = *props.OidcIssuerProfile.IssuerURL
+			}
+		}
+
+		d.Set("oidc_issuer_enabled", oidcIssuerEnabled)
+		d.Set("oidc_issuer_url", oidcIssuerUrl)
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
@@ -2266,6 +2317,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	loadBalancerSku := config["load_balancer_sku"].(string)
 	natGatewayProfileRaw := config["nat_gateway_profile"].([]interface{})
 	outboundType := config["outbound_type"].(string)
+	ipVersions, err := expandIPVersions(config["ip_versions"].([]interface{}))
+	if err != nil {
+		return nil, err
+	}
 
 	networkProfile := containerservice.NetworkProfile{
 		NetworkPlugin:   containerservice.NetworkPlugin(networkPlugin),
@@ -2273,6 +2328,7 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 		NetworkPolicy:   containerservice.NetworkPolicy(networkPolicy),
 		LoadBalancerSku: containerservice.LoadBalancerSku(loadBalancerSku),
 		OutboundType:    containerservice.OutboundType(outboundType),
+		IPFamilies:      ipVersions,
 	}
 
 	if len(loadBalancerProfileRaw) > 0 {
@@ -2346,6 +2402,23 @@ func expandLoadBalancerProfile(d []interface{}) *containerservice.ManagedCluster
 	}
 
 	return profile
+}
+
+func expandIPVersions(input []interface{}) (*[]containerservice.IPFamily, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	ipv := make([]containerservice.IPFamily, 0)
+	for _, data := range input {
+		ipv = append(ipv, containerservice.IPFamily(data.(string)))
+	}
+
+	if len(ipv) == 1 && ipv[0] == containerservice.IPFamilyIPv6 {
+		return nil, fmt.Errorf("`ip_versions` must be `IPv4` or `IPv4` and `IPv6`. `IPv6` alone is not supported")
+	}
+
+	return &ipv, nil
 }
 
 func expandNatGatewayProfile(d []interface{}) *containerservice.ManagedClusterNATGatewayProfile {
@@ -2487,6 +2560,13 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 		ngwProfiles = append(ngwProfiles, ng)
 	}
 
+	ipVersions := make([]interface{}, 0)
+	if ipfs := profile.IPFamilies; ipfs != nil {
+		for _, item := range *ipfs {
+			ipVersions = append(ipVersions, item)
+		}
+	}
+
 	// TODO - Remove the workaround below once issue https://github.com/Azure/azure-rest-api-specs/issues/18056 is resolved
 	sku := profile.LoadBalancerSku
 	for _, v := range containerservice.PossibleLoadBalancerSkuValues() {
@@ -2502,6 +2582,7 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 			"load_balancer_sku":     string(sku),
 			"load_balancer_profile": lbProfiles,
 			"nat_gateway_profile":   ngwProfiles,
+			"ip_versions":           ipVersions,
 			"network_plugin":        string(profile.NetworkPlugin),
 			"network_mode":          string(profile.NetworkMode),
 			"network_policy":        string(profile.NetworkPolicy),
@@ -3152,6 +3233,13 @@ func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservi
 	httpProxyConfig.NoProxy = utils.ExpandStringSlice(noProxyRaw)
 
 	return &httpProxyConfig
+}
+
+func expandKubernetesClusterOidcIssuerProfile(input bool) *containerservice.ManagedClusterOIDCIssuerProfile {
+	oidcIssuerProfile := containerservice.ManagedClusterOIDCIssuerProfile{}
+	oidcIssuerProfile.Enabled = &input
+
+	return &oidcIssuerProfile
 }
 
 func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClusterProperties) []interface{} {

@@ -588,6 +588,16 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"oidc_issuer_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"oidc_issuer_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"role_based_access_control_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -954,6 +964,24 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		networkProfile := flattenKubernetesClusterDataSourceNetworkProfile(props.NetworkProfile)
 		if err := d.Set("network_profile", networkProfile); err != nil {
 			return fmt.Errorf("setting `network_profile`: %+v", err)
+		}
+
+		oidcIssuerEnabled := false
+		oidcIssuerUrl := ""
+		if props.OidcIssuerProfile != nil {
+			if props.OidcIssuerProfile.Enabled != nil {
+				oidcIssuerEnabled = *props.OidcIssuerProfile.Enabled
+			}
+			if props.OidcIssuerProfile.IssuerURL != nil {
+				oidcIssuerUrl = *props.OidcIssuerProfile.IssuerURL
+			}
+		}
+
+		if err := d.Set("oidc_issuer_enabled", oidcIssuerEnabled); err != nil {
+			return fmt.Errorf("setting `oidc_issuer_enabled`: %+v", err)
+		}
+		if err := d.Set("oidc_issuer_url", oidcIssuerUrl); err != nil {
+			return fmt.Errorf("setting `oidc_issuer_url`: %+v", err)
 		}
 
 		rbacEnabled := true

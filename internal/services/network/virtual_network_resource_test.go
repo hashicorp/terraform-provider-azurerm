@@ -107,8 +107,6 @@ func TestAccVirtualNetwork_basicUpdated(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subnet.#").HasValue("2"),
 				check.That(data.ResourceName).Key("subnet.0.id").Exists(),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
 			),
 		},
 		data.ImportStep(),
