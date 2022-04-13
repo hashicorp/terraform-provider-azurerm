@@ -17,8 +17,54 @@ This resource is used with the `azurerm_cdn_frontdoor_custom_domain` resource to
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-cdn-frontdoor"
+  location = "westeurope"
+}
+
+resource "azurerm_dns_zone" "example" {
+  name                = "mydomain.com"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_cdn_frontdoor_profile" "example" {
+  name                = "example-profile"
+  resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Premium_AzureFrontDoor"
+
+  response_timeout_seconds = 120
+
+  tags = {
+    environment = "Test"
+  }
+}
+
+resource "azurerm_cdn_frontdoor_custom_domain" "contoso" {
+  name                     = "contoso-custom-domain"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+  dns_zone_id              = azurerm_dns_zone.example.id
+  host_name                = join(".", ["contoso", azurerm_dns_zone.example.name])
+
+  tls_settings {
+    certificate_type    = "ManagedCertificate"
+    minimum_tls_version = "TLS12"
+  }
+}
+
+resource "azurerm_dns_txt_record" "contoso" {
+  name                = join(".", ["_dnsauth", "contoso"])
+  zone_name           = azurerm_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  ttl                 = 3600
+
+  record {
+    value = azurerm_cdn_frontdoor_custom_domain.contoso.validation_properties.0.validation_token
+  }
+}
+
 resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "example" {
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.example.id
+  dns_txt_record_id              = azurerm_dns_txt_record.contoso.id
 }
 ```
 
@@ -27,7 +73,8 @@ resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "example" {
 The following arguments are supported:
 
 * `cdn_frontdoor_custom_domain_id` - (Required) The resource ID of the Frontdoor Custom Domain to validate. Changing this forces a new Frontdoor Custom Domain Txt Validator to be created.
-* `dns_txt_record_id` - (Required) The resource ID of the DNS TXT record resource.
+
+* `dns_txt_record_id` - (Required) The resource ID of the DNS TXT record resource. Changing this forces a new Frontdoor Custom Domain Txt Validator to be created.
 
 ## Attributes Reference
 
