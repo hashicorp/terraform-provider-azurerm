@@ -56,6 +56,8 @@ The following arguments are supported:
 
 * `streaming_ingestion_enabled` - (Optional) Specifies if the streaming ingest is enabled.
 
+* `public_network_access_enabled` - (Optional) Is the public network access enabled? Defaults to `true`.
+
 * `purge_enabled` - (Optional) Specifies if the purge operations are enabled.
 
 * `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below. Changing this forces a new resource to be created.
