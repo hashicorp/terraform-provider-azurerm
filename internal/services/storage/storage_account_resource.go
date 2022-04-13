@@ -98,7 +98,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					string(storage.KindFileStorage),
 					string(storage.KindStorageV2),
 				}, false),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				Default:          string(storage.KindStorageV2),
 			},
 
@@ -109,7 +108,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"Standard",
 					"Premium",
-				}, !false),
+				}, false),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -124,7 +123,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					"GZRS",
 					"RAGZRS",
 				}, false),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
@@ -136,7 +134,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					string(storage.AccessTierCool),
 					string(storage.AccessTierHot),
 				}, false),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"azure_files_authentication": {
@@ -316,7 +313,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									string(storage.BypassMetrics),
 									string(storage.BypassNone),
 								}, false),
-								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							},
 							Set: pluginsdk.HashString,
 						},
@@ -1002,7 +998,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
 	if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
 		if allowBlobPublicAccess || minimumTLSVersion != string(storage.MinimumTLSVersionTLS10) {
-			return fmt.Errorf(`%q and "min_tls_version" are not supported for a Storage Account located in %q`, "allow_nested_items_to_be_public", envName)
+			return fmt.Errorf(`"allow_nested_items_to_be_public" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
 		}
 	} else {
 		parameters.AccountPropertiesCreateParameters.AllowBlobPublicAccess = &allowBlobPublicAccess
