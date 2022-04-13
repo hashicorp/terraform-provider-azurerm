@@ -257,9 +257,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"min_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default: func() interface{} {
-					return string(storage.MinimumTLSVersionTLS12)
-				}(),
+				Default:  string(storage.MinimumTLSVersionTLS12),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.MinimumTLSVersionTLS10),
 					string(storage.MinimumTLSVersionTLS11),
@@ -1722,7 +1720,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("nfsv3_enabled", props.EnableNfsV3)
-		d.Set("cross_tenant_replication", props.AllowCrossTenantReplication)
+
+		if crossTenantReplication := props.AllowCrossTenantReplication; crossTenantReplication != nil {
+			d.Set("cross_tenant_replication", crossTenantReplication)
+		}
 
 		// There is a certain edge case that could result in the Azure API returning a null value for AllowBLobPublicAccess.
 		// Since the field is a pointer, this gets marshalled to a nil value instead of a boolean.
