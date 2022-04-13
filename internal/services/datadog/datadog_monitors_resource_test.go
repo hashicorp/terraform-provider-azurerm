@@ -175,112 +175,112 @@ resource "azurerm_resource_group" "test" {
 func (r DatadogMonitorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
-
-resource "azurerm_datadog_monitor" "test" {
-  name                = "acctest-datadog-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "EAST US 2 EUAP"
-  datadog_organization {
-    api_key         = "XXX"
-    application_key = "XXX"
-  }
-  user {
-    name  = "Vidhi Kothari"
-    email = "vidhi.kothari@microsoft.com"
-  }
-  sku_name = "Linked"
-  identity {
-    type = "SystemAssigned"
-  }
-}
+	
+	resource "azurerm_datadog_monitor" "test" {
+		name = "acctest-datadog-%d"
+		resource_group_name = azurerm_resource_group.test.name
+		location = "EAST US 2 EUAP"
+		datadog_organization {
+			api_key = "XXX"
+			application_key = "XXX"
+		}
+		user {
+			name          = "Vidhi Kothari"
+			email = "vidhi.kothari@microsoft.com"
+		}
+		sku_name = "Linked"
+		identity {
+			type = "SystemAssigned"
+		}
+	}
 `, r.template(data), data.RandomInteger%100)
 }
 
 func (r DatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctest-datadog-%d"
-  location = "%s"
-}
-resource "azurerm_datadog_monitor" "test" {
-  name                = "acctest-datadog-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "EAST US 2 EUAP"
-  datadog_organization {
-    api_key         = "XXX"
-    application_key = "XXX"
-  }
-  user {
-    name  = "Vidhi Kothari"
-    email = "vidhi.kothari@microsoft.com"
-  }
-  sku_name = "Linked"
-  identity {
-    type = "SystemAssigned"
-  }
-  monitoring_enabled = false
-  tags = {
-    ENV = "Test"
-  }
-}
+	provider "azurerm" {
+		features {}
+	  }
+	  
+	  resource "azurerm_resource_group" "test" {
+		name     = "acctest-datadog-%d"
+		location = "%s"
+	  }
+	resource "azurerm_datadog_monitor" "test" {
+		name = "acctest-datadog-%d"
+		resource_group_name = azurerm_resource_group.test.name
+		location = "EAST US 2 EUAP"
+		datadog_organization {
+			api_key = "XXX"
+			application_key = "XXX"
+		}
+		user {
+			name          = "Vidhi Kothari"
+			email = "vidhi.kothari@microsoft.com"
+		}
+		sku_name = "Linked"
+		identity {
+			type = "SystemAssigned"
+		}
+		monitoring_enabled = false
+		tags = {
+			ENV = "Test"
+		}
+	}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger%100)
 }
 
 func (r DatadogMonitorResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
-resource "azurerm_datadog_monitor" "import" {
-  name                = azurerm_datadog_monitor.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_datadog_monitor.test.location
-  datadog_organization {
-    api_key         = "XXX"
-    application_key = "XXX"
-  }
-  user {
-    name  = "Vidhi Kothari"
-    email = "vidhi.kothari@microsoft.com"
-  }
-  sku_name = "Linked"
-  identity {
-    type = "SystemAssigned"
-  }
-}
+	resource "azurerm_datadog_monitor" "import" {
+	name                = azurerm_datadog_monitor.test.name
+	resource_group_name =  azurerm_resource_group.test.name
+	location            = azurerm_datadog_monitor.test.location
+	datadog_organization {
+		api_key = "XXX"
+		application_key = "XXX"
+	}
+	user {
+		name          = "Vidhi Kothari"
+		email = "vidhi.kothari@microsoft.com"
+	}
+	sku_name = "Linked"
+	identity {
+		type = "SystemAssigned"
+	}
+	}
 `, r.basic(data))
 }
 
 func (r DatadogMonitorResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
-resource "azurerm_datadog_monitor" "test" {
-  name                = "acctest-datadog-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  datadog_organization {
-    api_key           = "XXX"
-    application_key   = "XXX"
-    enterprise_app_id = ""
-    linking_auth_code = ""
-    linking_client_id = ""
-    redirect_uri      = ""
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-  sku_name = "Linked"
-  user {
-    name         = "Vidhi Kothari"
-    email        = "vidhi.kothari@microsoft.com"
-    phone_number = ""
-  }
-  monitoring_enabled = true
-  tags = {
-    ENV = "Test"
-  }
-}
+	resource "azurerm_datadog_monitor" "test" {
+	name                = "acctest-datadog-%d"
+	resource_group_name = azurerm_resource_group.test.name
+	location            = azurerm_resource_group.test.location
+	datadog_organization {
+		api_key = "XXX"
+		application_key = "XXX"
+		enterprise_app_id = ""
+		linking_auth_code = ""
+		linking_client_id = ""
+		redirect_uri      = ""
+	}
+	identity {
+		type = "SystemAssigned"
+	}
+	sku_name = "Linked"
+	user {
+		name          = "Vidhi Kothari"
+		email = "vidhi.kothari@microsoft.com"
+		phone_number  = ""
+	}
+	monitoring_enabled = true
+	tags = {
+		ENV = "Test"
+	}
+	}
 `, r.template(data), data.RandomInteger%100)
 }
