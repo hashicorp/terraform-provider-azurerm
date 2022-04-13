@@ -17,7 +17,7 @@ This resource is used with the `azurerm_cdn_frontdoor_custom_domain` resource to
 ## Example Usage
 
 ```hcl
-resource "azurerum_cdn_frontdoor_custom_domain_txt_validator" "example" {
+resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "example" {
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.example.id
 }
 ```
