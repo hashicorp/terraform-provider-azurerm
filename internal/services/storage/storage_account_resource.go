@@ -98,7 +98,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					string(storage.KindFileStorage),
 					string(storage.KindStorageV2),
 				}, false),
-				Default:          string(storage.KindStorageV2),
+				Default: string(storage.KindStorageV2),
 			},
 
 			"account_tier": {
