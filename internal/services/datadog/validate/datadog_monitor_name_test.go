@@ -8,37 +8,37 @@ func TestDatadogMonitorsName(t *testing.T) {
 		expected bool
 	}{
 		{
-			//empty
+			// empty
 			input:    "",
 			expected: false,
 		},
 		{
-			//proper string
+			// proper string
 			input:    "hello",
 			expected: true,
 		},
 		{
-			//end with exclamation
+			// end with exclamation
 			input:    "hello!",
 			expected: false,
 		},
 		{
-			//with hypen
+			// with hypen
 			input:    "malcolm-in-the-middle",
 			expected: true,
 		},
 		{
-			//end with fullstop
+			// end with fullstop
 			input:    "hello.",
 			expected: false,
 		},
 		{
-			//less than 32
+			// less than 32
 			input:    "qwertyuioplkjhgfdsazxcv",
 			expected: true,
 		},
 		{
-			//with underscore
+			// with underscore
 			input:    "qwertyuiop_jhgfdsazxcva",
 			expected: true,
 		},

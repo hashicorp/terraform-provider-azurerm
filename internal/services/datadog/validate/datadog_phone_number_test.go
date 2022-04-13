@@ -9,7 +9,7 @@ func TestDatadogMonitorsPhoneNumber(t *testing.T) {
 	}{
 		{
 			Input:    "",
-			Expected: false,
+			Expected: true,
 		},
 		{
 			Input:    "1234567890",
