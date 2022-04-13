@@ -23,10 +23,10 @@ resource "azurerm_datadog_monitor" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   datadog_organization {
-    api_key = "XXXX"
+    api_key         = "XXXX"
     application_key = "XXXX"
   }
-   user {
+  user {
     name  = "Example"
     email = "abc@xyz.com"
   }
