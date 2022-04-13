@@ -402,6 +402,30 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	d.SetId(id.ID())
 
+	ruleSets, hasRuleSets := d.GetOk("network_rulesets")
+	if hasRuleSets {
+		rulesets := networkrulesets.NetworkRuleSet{
+			Properties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
+		}
+
+		// cannot use network rulesets with the basic SKU
+		if parameters.Sku.Name != namespaces.SkuNameBasic {
+			ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
+			namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+			if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
+				return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
+			}
+		} else if rulesets.Properties != nil {
+			props := rulesets.Properties
+			// so if the user has specified the non default rule sets throw a validation error
+			if *props.DefaultAction != networkrulesets.DefaultActionDeny ||
+				(props.IpRules != nil && len(*props.IpRules) > 0) ||
+				(props.VirtualNetworkRules != nil && len(*props.VirtualNetworkRules) > 0) {
+				return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
+			}
+		}
+	}
+
 	return resourceEventHubNamespaceRead(d, meta)
 }
 
