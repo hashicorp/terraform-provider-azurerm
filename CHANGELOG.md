@@ -22,6 +22,7 @@ BUG FIXES:
 * `azurerm_mysql_flexible_server` - `backup_retention_days` can now be set any value from 1-35 [GH-16312]
 * `azurerm_sentinel_watchlist` - support required property `item_search_key` [GH-15861]
 * `azurerm_vpn_server_configuration` - the `server_root_certificate` property is now optional [GH-16366]
+* `azurerm_storage_data_lake_gen2_path` - support `$superuser` as an option for `owner` and `group` [GH-16370]
 
 ## 3.1.0 (April 07, 2022)
 
