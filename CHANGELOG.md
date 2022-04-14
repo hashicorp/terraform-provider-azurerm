@@ -12,22 +12,22 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* Data Source: `azurerm_stream_analytics_job` - support for the `last_output_time`, `start_mode` and `start_time` properties [GH-16349]
+* Data Source: `azurerm_stream_analytics_job` - support for the `last_output_time`, `start_mode`, and `start_time` properties [GH-16349]
 * `azurerm_container_group` - support for the `init_container` block [GH-16204]
-* `azurerm_machine_learning_workspace` - renamed `public_network_access_enabled` to `public_access_behind_virtual_network_enabled` to better reflect what this property does [GH-16288]
-* `azurerm_media_streaming_endpoint` support Standard Streaming Endpoint [GH-16304]
-* `azurerm_cdn_endpoint` - `url_path_condition` now supports `RegEx` and `Wildcard` [GH-16385]
+* `azurerm_machine_learning_workspace` - renamed the `public_network_access_enabled` property to `public_access_behind_virtual_network_enabled` to better reflect what this property does [GH-16288]
+* `azurerm_media_streaming_endpoint` support Standard Streaming Endpoints [GH-16304]
+* `azurerm_cdn_endpoint` - the `url_path_condition` property now allows the `RegEx` and `Wildcard` values [GH-16385]
 
 BUG FIXES:
 
-* Data Source: `azurerm_log_analytics_linked_storage_account` - correct set the `data_source_type` property [GH-16313]
+* Data Source: `azurerm_log_analytics_linked_storage_account` - correctly set the `data_source_type` property [GH-16313]
 * `azurerm_lb_outbound_rule` - allow `0` for the `allocated_outbound_ports` property [GH-16369]
-* `azurerm_mysql_flexible_server` - `backup_retention_days` can now be set any value from 1-35 [GH-16312]
-* `azurerm_sentinel_watchlist` - support required property `item_search_key` [GH-15861]
+* `azurerm_mysql_flexible_server` - `backup_retention_days` can now be set any value from `1`-`35` [GH-16312]
+* `azurerm_sentinel_watchlist` - support for the required property `item_search_key` [GH-15861]
 * `azurerm_vpn_server_configuration` - the `server_root_certificate` property is now optional [GH-16366]
 * `azurerm_storage_data_lake_gen2_path` - support `$superuser` as an option for `owner` and `group` [GH-16370]
-* `azurerm_eventhub_namespace` - can now be updated when cmk is being used [GH-16371]
-* `azurerm_postgresql_flexible_server` - h`igh_availability` blocks can now be added and removed [GH-16328]
+* `azurerm_eventhub_namespace` - can now be updated when customer managed keys are being used [GH-16371]
+* `azurerm_postgresql_flexible_server` - `high_availability` blocks can now be added and removed [GH-16328]
 
 ## 3.1.0 (April 07, 2022)
 
