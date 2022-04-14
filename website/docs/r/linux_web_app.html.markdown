@@ -27,7 +27,7 @@ resource "azurerm_service_plan" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
   os_type             = "Linux"
-  sku_name            = "P1V2"
+  sku_name            = "P1v2"
 }
 
 resource "azurerm_linux_web_app" "example" {
@@ -218,6 +218,8 @@ A `backup` block supports the following:
 ---
 
 A `connection_string` block supports the following:
+
+* `name` - (Required) The name of the Connection String.
 
 * `type` - (Required) Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.
 
@@ -451,7 +453,7 @@ A `site_config` block supports the following:
 
 * `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker. Defaults to `true`.
 
-* `websockets` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
+* `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Linux App Service.
 

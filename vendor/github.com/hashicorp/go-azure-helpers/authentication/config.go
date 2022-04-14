@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
+	authWrapper "github.com/manicminer/hamilton-autorest/auth"
 	"github.com/manicminer/hamilton/auth"
 	"github.com/manicminer/hamilton/environments"
 )
@@ -141,14 +142,14 @@ func (c Config) MSALBearerAuthorizerCallback(ctx context.Context, api environmen
 		})
 	}
 
-	cast, ok := authorizer.(*auth.CachedAuthorizer)
+	cast, ok := authorizer.(auth.Authorizer)
 	if !ok {
 		return autorest.NewBearerAuthorizerCallback(nil, func(_, _ string) (*autorest.BearerAuthorizer, error) {
-			return nil, fmt.Errorf("authorizer was not an auth.CachedAuthorizer for %s", api.Endpoint)
+			return nil, fmt.Errorf("authorizer was not an auth.Authorizer for %s", api.Endpoint)
 		})
 	}
 
-	return cast.BearerAuthorizerCallback()
+	return (&authWrapper.Authorizer{Authorizer: cast}).BearerAuthorizerCallback()
 }
 
 // GetADALToken returns an autorest.Authorizer using an ADAL token via the authentication method defined in the Config

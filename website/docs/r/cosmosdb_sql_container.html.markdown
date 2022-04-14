@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `default_ttl` - (Optional) The default time to live of SQL container. If missing, items are not expired automatically. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 
-* `analytical_storage_ttl` - (Optional) The default time to live of Analytical Storage for this SQL container. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
+* `analytical_storage_ttl` - (Optional) The default time to live of Analytical Storage for this SQL container. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time. Changing this forces a new Cosmos DB SQL Container to be created when removing `analytical_storage_ttl` on an existing Cosmos DB SQL Container.
 
 * `conflict_resolution_policy` - (Optional)  A `conflict_resolution_policy` blocks as defined below.
 

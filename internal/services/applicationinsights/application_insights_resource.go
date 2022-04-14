@@ -171,7 +171,6 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	ruleClient := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
-	actionGroupClient := meta.(*clients.Client).Monitor.ActionGroupsClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -282,34 +281,6 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	// We would like to delete them but deleting them just causes them to be recreated after a few minutes.
 	// Instead, we'll opt to disable them here
 	if d.IsNewResource() && meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
-		// TODO: replace this with a StateWait func
-		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-			time.Sleep(30 * time.Second)
-			actionGroupId := monitorParse.NewActionGroupID(resourceId.SubscriptionId, resourceId.ResourceGroup, "Application Insights Smart Detection")
-
-			groupResult, err := actionGroupClient.Get(ctx, actionGroupId.ResourceGroup, actionGroupId.Name)
-			if err != nil {
-				if utils.ResponseWasNotFound(groupResult.Response) {
-					return pluginsdk.RetryableError(fmt.Errorf("expected %s to be created but was not found, retrying", actionGroupId))
-				}
-				return pluginsdk.NonRetryableError(fmt.Errorf("making Read request for %s: %+v", actionGroupId, err))
-			}
-
-			if groupResult.ActionGroup != nil {
-				groupResult.ActionGroup.Enabled = utils.Bool(false)
-				updateActionGroupResult, err := actionGroupClient.CreateOrUpdate(ctx, actionGroupId.ResourceGroup, actionGroupId.Name, groupResult)
-				if err != nil {
-					if !utils.ResponseWasNotFound(updateActionGroupResult.Response) {
-						return pluginsdk.NonRetryableError(fmt.Errorf("issuing disable request for %s: %+v", actionGroupId, err))
-					}
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-
 		// TODO: replace this with a StateWait func
 		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			time.Sleep(30 * time.Second)

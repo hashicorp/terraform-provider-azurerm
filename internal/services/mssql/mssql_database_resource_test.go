@@ -62,7 +62,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
 				check.That(data.ResourceName).Key("max_size_gb").HasValue("1"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue("Geo"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("Local"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
 			),
@@ -665,6 +665,21 @@ func TestAccMsSqlDatabase_errorOnDisabledEncryption(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_ledgerEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ledgerEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DatabaseID(state.ID)
 	if err != nil {
@@ -740,6 +755,8 @@ resource "azurerm_mssql_database" "test" {
   sample_name  = "AdventureWorksLT"
   sku_name     = "GP_Gen5_2"
 
+  storage_account_type = "Local"
+
   tags = {
     ENV = "Test"
   }
@@ -758,6 +775,8 @@ resource "azurerm_mssql_database" "test" {
   license_type = "LicenseIncluded"
   max_size_gb  = 2
   sku_name     = "GP_Gen5_2"
+
+  storage_account_type = "Zone"
 
   tags = {
     ENV = "Staging"
@@ -1472,6 +1491,18 @@ resource "azurerm_mssql_database" "test" {
   name                                = "acctest-db-%d"
   server_id                           = azurerm_mssql_server.test.id
   transparent_data_encryption_enabled = false
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) ledgerEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name           = "acctest-db-%[2]d"
+  server_id      = azurerm_mssql_server.test.id
+  ledger_enabled = true
 }
 `, r.template(data), data.RandomInteger)
 }

@@ -1,7 +1,7 @@
 ---
 subcategory: "Authorization"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_user_assigned_identity"
+page_title: "Azure Resource Manager: azurerm_user_assigned_identity"
 description: |-
   Manages a new user assigned identity.
 ---

@@ -104,17 +104,17 @@ var (
 	}
 
 	KeyVaultPublic = Api{
-		AppId:    PublishedApis["AzureBatch"],
+		AppId:    PublishedApis["AzureKeyVault"],
 		Endpoint: KeyVaultPublicEndpoint,
 	}
 
 	KeyVaultChina = Api{
-		AppId:    PublishedApis["AzureBatch"],
+		AppId:    PublishedApis["AzureKeyVault"],
 		Endpoint: KeyVaultChinaEndpoint,
 	}
 
 	KeyVaultUSGov = Api{
-		AppId:    PublishedApis["AzureBatch"],
+		AppId:    PublishedApis["AzureKeyVault"],
 		Endpoint: KeyVaultUSGovEndpoint,
 	}
 

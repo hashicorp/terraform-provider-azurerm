@@ -35,7 +35,7 @@ resource "azurerm_key_vault_access_policy" "server" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_postgresql_server.example.identity.0.principal_id
 
-  key_permissions    = ["get", "unwrapkey", "wrapkey"]
+  key_permissions    = ["Get", "UnwrapKey", "WrapKey"]
   secret_permissions = ["get"]
 }
 
@@ -44,8 +44,8 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
-  secret_permissions = ["get"]
+  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_key" "example" {
@@ -63,8 +63,8 @@ resource "azurerm_key_vault_key" "example" {
 
 resource "azurerm_postgresql_server" "example" {
   name                = "example-postgre-server"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   administrator_login          = "psqladmin"
   administrator_login_password = "H@Sh1CoR3!"

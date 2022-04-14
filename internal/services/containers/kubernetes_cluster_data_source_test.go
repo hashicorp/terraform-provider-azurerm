@@ -677,6 +677,36 @@ func TestAccDataSourceKubernetesCluster_nodePublicIP(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_oidcIssuerEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.oidcIssuer(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("oidc_issuer_url").IsSet(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_oidcIssuerDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.oidcIssuer(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("oidc_issuer_url").HasValue(""),
+			),
+		},
+	})
+}
+
 func (KubernetesClusterDataSource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -961,4 +991,15 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.nodePublicIPPrefixConfig(data))
+}
+
+func (KubernetesClusterDataSource) oidcIssuer(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.oidcIssuer(data, enabled))
 }

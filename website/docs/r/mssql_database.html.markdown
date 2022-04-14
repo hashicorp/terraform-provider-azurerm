@@ -94,6 +94,8 @@ The following arguments are supported:
 
 ~> **Note:** `geo_backup_enabled` is only applicable for DataWarehouse SKUs (DW*). This setting is ignored for all other SKUs.
 
+* `ledger_enabled` - (Optional) A boolean that specifies if this is a ledger database. Defaults to `false`. Changing this forces a new resource to be created.
+
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
 * `long_term_retention_policy` - (Optional) A `long_term_retention_policy` block as defined below.
@@ -122,7 +124,7 @@ The following arguments are supported:
 
 ~> **Note:** The default `sku_name` value may differ between Azure locations depending on local availability of Gen4/Gen5 capacity. When databases are replicated using the `creation_source_database_id` property, the source (primary) database cannot have a higher SKU service tier than any secondary databases. When changing the `sku_name` of a database having one or more secondary databases, this resource will first update any secondary databases as necessary. In such cases it's recommended to use the same `sku_name` in your configuration for all related databases, as not doing so may cause an unresolvable diff during subsequent plans.
 
-* `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Changing this forces a new resource to be created.  Possible values are `GRS`, `LRS` and `ZRS`.  The default value is `GRS`.
+* `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Possible values are `Geo`, `GeoZone`, `Local` and `Zone`.  The default value is `Geo`.
 
 * `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
 
