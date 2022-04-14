@@ -17,6 +17,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_mysql_flexible_server` - `backup_retention_days` can now be set any value from 1-35 [GH-16312]
+* `azurerm_sentinel_watchlist` - support required property `item_search_key` [GH-15861]
 
 ## 3.1.0 (April 07, 2022)
 
