@@ -18,6 +18,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_log_analytics_linked_storage_account` - correct set the `data_source_type` property [GH-16313]
+* `azurerm_lb_outbound_rule` - allow `0` for the `allocated_outbound_ports` property [GH-16369]
 * `azurerm_mysql_flexible_server` - `backup_retention_days` can now be set any value from 1-35 [GH-16312]
 * `azurerm_sentinel_watchlist` - support required property `item_search_key` [GH-15861]
 
