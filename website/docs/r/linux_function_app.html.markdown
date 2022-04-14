@@ -389,6 +389,8 @@ A `site_config` block supports the following:
 
 * `application_stack` - (Optional) An `application_stack` block as defined above.
 
+~> **Note:** If this is set, there must not be an application setting `FUNCTIONS_WORKER_RUNTIME`.
+
 * `app_service_logs` - (Optional) An `app_service_logs` block as defined above.
 
 * `auto_swap_slot_name` - (Optional) The Linux Function App Slot Name to automatically swap to when deployment to that slot is successfully completed.
