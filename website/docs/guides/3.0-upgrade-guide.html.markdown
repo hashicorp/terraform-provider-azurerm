@@ -881,9 +881,27 @@ The deprecated field `local_user_not_allowed` will be removed in favour of the `
 
 The deprecated field `process_not_allowed` will be removed in favour of the `processes_not_allowed` property.
 
+### Resource: `azurerm_key_vault`
+
+The deprecated field `soft_delete_enabled` will be removed since it is no longer possible to disable this.
+
+The casing on the values for the `certificate_permissions` field have been updated to use TitleCase (e.g. `setissuers` -> `SetIssuers`).
+
+The casing on the values for the `key_permissions` field have been updated to use TitleCase (e.g. `unwrapKey` -> `UnwrapKey`).
+
+The casing on the values for the `secret_permissions` field have been updated to use TitleCase (e.g. `purge` -> `Purge`).
+
+The casing on the values for the `storage_permissions` field have been updated to use TitleCase (e.g. `regenerateKey` -> `RegenerateKey`).
+
 ### Resource: `azurerm_key_vault_access_policy`
 
-The values for `certificate_permissions`, `key_permissions`, `secret_permissions`, and `storage_permissions` will become case-sensitive.
+The casing on the values for the `certificate_permissions` field have been updated to use TitleCase (e.g. `setissuers` -> `SetIssuers`).
+
+The casing on the values for the `key_permissions` field have been updated to use TitleCase (e.g. `unwrapKey` -> `UnwrapKey`).
+
+The casing on the values for the `secret_permissions` field have been updated to use TitleCase (e.g. `purge` -> `Purge`).
+
+The casing on the values for the `storage_permissions` field have been updated to use TitleCase (e.g. `regenerateKey` -> `RegenerateKey`).
 
 ### Resource: `azurerm_key_vault_certificate`
 
@@ -892,10 +910,6 @@ The field `x509_certificate_properties.0.key_usage`  will be moved from a List t
 ### Resource: `azurerm_key_vault_key`
 
 The field `curve` will no longer accept the value `SECP256K1` since it was renamed to `P-256K`.
-
-### Resource: `azurerm_key_vault`
-
-The deprecated field `soft_delete_enabled` will be removed since it is no longer possible to disable this.
 
 ### Resource: `azurerm_kubernetes_cluster`
 
