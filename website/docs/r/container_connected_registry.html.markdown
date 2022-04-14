@@ -79,8 +79,7 @@ The following arguments are supported:
 * `mode` - (Optional) The mode of the Connected Registry. Possible values are `Mirror`, `ReadOnly`, `ReadWrite` and `Registry`. Changing this forces a new Container Connected Registry to be created.
 
 * `notification` - (Optional) One or more `notification` blocks as defined below.
-i
-Specifies a list of notification subscriptions of the Connected Registry. Each notification is in the following format: `<artifacte>[:<tag>|@<digest>]:<action>`, where action can be one of `push`, `delete` and `*` (i.e. any).
+
 
 * `parent_registry_id` - (Optional) The ID of the parent registry. This can be either a Container Registry ID or a Connected Registry ID. Changing this forces a new Container Connected Registry to be created.
 
