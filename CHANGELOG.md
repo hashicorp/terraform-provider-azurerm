@@ -21,7 +21,7 @@ BUG FIXES:
 * `azurerm_lb_outbound_rule` - allow `0` for the `allocated_outbound_ports` property [GH-16369]
 * `azurerm_mysql_flexible_server` - `backup_retention_days` can now be set any value from 1-35 [GH-16312]
 * `azurerm_sentinel_watchlist` - support required property `item_search_key` [GH-15861]
-
+* `azurerm_vpn_server_configuration` - the `server_root_certificate` property is now optional [GH-16366]
 
 ## 3.1.0 (April 07, 2022)
 
