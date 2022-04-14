@@ -3,7 +3,6 @@ package springcloud
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-03-01-preview/appplatform"
@@ -278,7 +277,7 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("service_name", id.SpringName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	identity, err := flattenSpringCloudAppIdentity(resp.Identity, d.Get("identity").([]interface{}))
+	identity, err := flattenSpringCloudAppIdentity(resp.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
@@ -375,18 +374,8 @@ func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.Sp
 	return &results
 }
 
-func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties, identityConfig []interface{}) (*[]interface{}, error) {
+func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties) (*[]interface{}, error) {
 	var transform *identity.SystemAndUserAssignedMap
-
-	// TODO: identity ids are not returned in correct casing, remove this when bugfix is released, issue: https://github.com/Azure/azure-rest-api-specs/issues/18595
-	identityIdsMap := make(map[string]string)
-	if len(identityConfig) > 0 {
-		raw := identityConfig[0].(map[string]interface{})
-		identityIdsRaw := raw["identity_ids"].(*schema.Set).List()
-		for _, v := range identityIdsRaw {
-			identityIdsMap[strings.ToLower(v.(string))] = v.(string)
-		}
-	}
 
 	if input != nil {
 		transform = &identity.SystemAndUserAssignedMap{
@@ -400,11 +389,7 @@ func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties,
 			transform.TenantId = *input.TenantID
 		}
 		for k, v := range input.UserAssignedIdentities {
-			actualIdentityId := k
-			if value, ok := identityIdsMap[strings.ToLower(k)]; ok {
-				actualIdentityId = value
-			}
-			transform.IdentityIds[actualIdentityId] = identity.UserAssignedIdentityDetails{
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
 				ClientId:    v.ClientID,
 				PrincipalId: v.PrincipalID,
 			}

@@ -105,7 +105,7 @@ func dataSourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("name", id.AppName)
 	d.Set("service_name", id.SpringName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	identity, err := flattenSpringCloudAppIdentity(resp.Identity, nil)
+	identity, err := flattenSpringCloudAppIdentity(resp.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
