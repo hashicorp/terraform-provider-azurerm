@@ -584,7 +584,6 @@ resource "azurerm_postgresql_flexible_server" "test" {
     start_hour   = 0
     start_minute = 0
   }
-
 }
 `, r.template(data), data.RandomInteger, primaryZone)
 }
