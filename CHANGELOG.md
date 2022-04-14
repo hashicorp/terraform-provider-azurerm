@@ -7,10 +7,12 @@ FEATURES:
 * **New Resource**: `azurerm_managment_group_policy_exemption` [GH-16293]
 * **New Resource**: `azurerm_resource_group_policy_exemption` [GH-16293]
 * **New Resource**: `azurerm_resource_policy_exemption` [GH-16293]
+* **New Resource**: `azurerm_stream_analytics_job_schedule` [GH-16349]
 * **New Resource**: `azurerm_subscription_policy_exemption` [GH-16293]
 
 ENHANCEMENTS:
 
+* Data Source: `azurerm_stream_analytics_job` - support for the `last_output_time`, `start_mode` and `start_time` properties [GH-16349]
 * `azurerm_container_group` - support for the `init_container` block [GH-16204]
 * `azurerm_machine_learning_workspace` - renamed `public_network_access_enabled` to `public_access_behind_virtual_network_enabled` to better reflect what this property does [GH-16288]
 * `azurerm_media_streaming_endpoint` support Standard Streaming Endpoint [GH-16304]
