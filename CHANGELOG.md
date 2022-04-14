@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_container_group` - support for the `init_container` block [GH-16204]
 * `azurerm_machine_learning_workspace` - renamed `public_network_access_enabled` to `public_access_behind_virtual_network_enabled` to better reflect what this property does [GH-16288]
 * `azurerm_media_streaming_endpoint` support Standard Streaming Endpoint [GH-16304]
+* `azurerm_cdn_endpoint` - `url_path_condition` now supports `RegEx` and `Wildcard` [GH-16385]
 
 BUG FIXES:
 
