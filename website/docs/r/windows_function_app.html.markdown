@@ -365,7 +365,9 @@ A `site_config` block supports the following:
 
 * `application_insights_key` - (Optional) The Instrumentation Key for connecting the Windows Function App to Application Insights.
 
-* `application_stack` - (Optional) An `application_stack` block as defined above. **Note:** If this is set, there must not be an application setting `FUNCTIONS_WORKER_RUNTIME`.
+* `application_stack` - (Optional) An `application_stack` block as defined above.
+
+~> **Note:** If this is set, there must not be an application setting `FUNCTIONS_WORKER_RUNTIME`.
 
 * `app_service_logs` - (Optional) An `app_service_logs` block as defined above.
 
