@@ -384,7 +384,7 @@ A `url_file_name_condition` block supports the following:
 
 A `url_path_condition` block supports the following:
 
-* `operator` - (Required) Valid values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan` and `LessThanOrEqual`.
+* `operator` - (Required) Valid values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`, `LessThanOrEqual`, `RegEx` and `Wildcard`.
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
