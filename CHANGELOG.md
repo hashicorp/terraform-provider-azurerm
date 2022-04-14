@@ -27,6 +27,7 @@ BUG FIXES:
 * `azurerm_vpn_server_configuration` - the `server_root_certificate` property is now optional [GH-16366]
 * `azurerm_storage_data_lake_gen2_path` - support `$superuser` as an option for `owner` and `group` [GH-16370]
 * `azurerm_eventhub_namespace` - can now be updated when cmk is being used [GH-16371]
+* `azurerm_postgresql_flexible_server` - h`igh_availability` blocks can now be added and removed [GH-16328]
 
 ## 3.1.0 (April 07, 2022)
 
