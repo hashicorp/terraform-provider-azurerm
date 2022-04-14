@@ -135,7 +135,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
   health_probes_enabled          = true
-  enforce_certificate_name_check = false
+  certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
   https_port                     = 443
@@ -156,7 +156,7 @@ resource "azurerm_cdn_frontdoor_origin" "import" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
   health_probes_enabled          = true
-  enforce_certificate_name_check = false
+  certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
   https_port                     = 443
@@ -177,7 +177,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
   health_probes_enabled          = true
-  enforce_certificate_name_check = false
+  certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
   https_port                     = 443
@@ -198,7 +198,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
   health_probes_enabled          = true
-  enforce_certificate_name_check = false
+  certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
   https_port                     = 443

@@ -2,6 +2,7 @@ package cdn
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -140,17 +141,21 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			// NOTE: I had to move this field into the custom domain route association resource
-			// else I could not get the execution order correct. So the Route resource will
-			// always be created with this value set to true so that the Route can be created
-			// successfully, but the value will be set to the correct value in the
-			// custom domain route association resource.
+			"cdn_frontdoor_custom_domain_ids": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
 
-			// "link_to_default_domain": {
-			// 	Type:     pluginsdk.TypeBool,
-			// 	Optional: true,
-			// 	Default:  false,
-			// },
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: ValidateFrontdoorCustomDomainIDInsensitively,
+				},
+			},
+
+			"link_to_default_domain": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 
 			"cdn_frontdoor_origin_path": {
 				Type:     pluginsdk.TypeString,
@@ -193,6 +198,26 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"cdn_frontdoor_custom_domains_active_status": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"active": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -209,6 +234,8 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := parse.NewFrontdoorRouteID(afdEndpointId.SubscriptionId, afdEndpointId.ResourceGroup, afdEndpointId.ProfileName, afdEndpointId.AfdEndpointName, d.Get("name").(string))
 
+	var existing track1.Route
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 		if err != nil {
@@ -220,16 +247,28 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_route", id.ID())
 		}
+	} else {
+		// I need to do a GET here to get the current list of custom domains in the Azure Route
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
+		if err != nil {
+			if utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
 	}
 
-	// NOTE: This value will be updated by the custom domain route association resource
-	// If this value is not true on initial creation we get into a chicken or the egg
-	// situation.
+	isLinked := d.Get("link_to_default_domain").(bool)
 
-	isLinked := true
+	var customDomains *[]track1.ActivatedResourceReference
+	if routeProps := existing.RouteProperties; routeProps != nil {
+		customDomains = routeProps.CustomDomains
+	}
 
 	props := track1.Route{
 		RouteProperties: &track1.RouteProperties{
+			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}), customDomains),
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
@@ -279,27 +318,35 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.RouteName)
-
-	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontdoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
+	domainIds := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
 
 	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
 		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
 	}
 
+	d.Set("name", id.RouteName)
+	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontdoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
+
 	if props := resp.RouteProperties; props != nil {
+		domainField, domainCompute := flattenRouteActivatedResourceReferenceArray(domainIds, props.CustomDomains)
+		d.Set("cdn_frontdoor_custom_domain_ids", domainField)
 		d.Set("enabled", ConvertEnabledStateToBool(&props.EnabledState))
 		d.Set("forwarding_protocol", props.ForwardingProtocol)
 		d.Set("https_redirect", ConvertRouteHttpsRedirectToBool(&props.HTTPSRedirect))
-		// d.Set("link_to_default_domain", ConvertRouteLinkToDefaultDomainToBool(&props.LinkToDefaultDomain))
+		d.Set("link_to_default_domain", ConvertRouteLinkToDefaultDomainToBool(&props.LinkToDefaultDomain))
 		d.Set("cdn_frontdoor_origin_path", props.OriginPath)
 		d.Set("patterns_to_match", props.PatternsToMatch)
 
 		// BUG: Endpoint name is not being returned by the API
 		d.Set("cdn_frontdoor_endpoint_name", id.AfdEndpointName)
+
+		if err := d.Set("cdn_frontdoor_custom_domains_active_status", domainCompute); err != nil {
+			return fmt.Errorf("setting %q: %+v", "cdn_frontdoor_custom_domains_active_status", err)
+		}
 
 		if err := d.Set("cache_configuration", flattenFrontdoorRouteCacheConfiguration(props.CacheConfiguration)); err != nil {
 			return fmt.Errorf("setting `cache_configuration`: %+v", err)
@@ -337,38 +384,27 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("checking for existing %s during update: %+v", id, err)
 		}
 
-		return fmt.Errorf("updating %s: %+v", id, err)
+		return fmt.Errorf("retrieving existing %s during update: %+v", id, err)
 	}
 
-	// since the link to default domain field has been moved to the custom domain route association
-	// resource we need to see if that value has been changed. If it's not true that means that
-	// the custom domain route association has changed the value and we should honor the new
-	// value for this field
-	isLinked := true
-
-	if props := existing.RouteProperties; props != nil {
-		if props.LinkToDefaultDomain == track1.LinkToDefaultDomainDisabled {
-			isLinked = false
-		}
+	var customDomains *[]track1.ActivatedResourceReference
+	if routeProps := existing.RouteProperties; routeProps != nil {
+		customDomains = routeProps.CustomDomains
 	}
 
 	props := track1.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
+			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}), customDomains),
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
-			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(isLinked),
+			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
 			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),
 			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
 		},
-	}
-
-	// You must pass the Custom Domains if they exist else you will unassociate the route
-	if existing.RouteProperties.CustomDomains != nil {
-		props.CustomDomains = existing.RouteProperties.CustomDomains
 	}
 
 	if originPath := d.Get("cdn_frontdoor_origin_path").(string); originPath != "" {
@@ -463,6 +499,63 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *track1.AfdRoute
 	cacheConfiguration.CompressionSettings = compressionSettings
 
 	return cacheConfiguration
+}
+
+func expandRouteActivatedResourceReferenceArray(input []interface{}, customDomains *[]track1.ActivatedResourceReference) *[]track1.ActivatedResourceReference {
+	results := make([]track1.ActivatedResourceReference, 0)
+	if len(input) == 0 {
+		// I had to modify the SDK to allow for nil which in the API means disassociate the custom domains
+		return nil
+	}
+
+	for _, customDomain := range input {
+		id := customDomain.(string)
+		inRoute := false
+
+		if customDomains != nil {
+			for _, item := range *customDomains {
+				if strings.EqualFold(*item.ID, id) {
+					inRoute = true
+					results = append(results, track1.ActivatedResourceReference{
+						ID: utils.String(id),
+					})
+				}
+			}
+		}
+
+		// Adding the custom domain association
+		if !inRoute {
+			results = append(results, track1.ActivatedResourceReference{
+				ID: utils.String(id),
+			})
+		}
+	}
+
+	return &results
+}
+
+func flattenRouteActivatedResourceReferenceArray(input []interface{}, inputs *[]track1.ActivatedResourceReference) ([]interface{}, []interface{}) {
+	computeResults := make([]interface{}, 0)
+	fieldResults := make([]interface{}, 0)
+
+	if inputs == nil {
+		return nil, nil
+	}
+
+	for _, customDomainIds := range input {
+		id := customDomainIds.(string)
+		for _, customDomain := range *inputs {
+			if strings.EqualFold(*customDomain.ID, id) {
+				result := make(map[string]interface{})
+				result["id"] = customDomain.ID
+				result["active"] = customDomain.IsActive
+				fieldResults = append(fieldResults, customDomain.ID)
+				computeResults = append(computeResults, result)
+			}
+		}
+	}
+
+	return fieldResults, computeResults
 }
 
 func flattenRouteResourceReferenceArry(input *[]track1.ResourceReference) []interface{} {

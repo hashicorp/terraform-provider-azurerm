@@ -131,7 +131,7 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
 
   health_probes_enabled          = true
-  enforce_certificate_name_check = false
+  certificate_name_check_enabled = false
   host_name                      = join(".", ["contoso", azurerm_dns_zone.example.name])
   priority                       = 1
   weight                         = 1
@@ -293,8 +293,9 @@ resource "azurerm_cdn_frontdoor_custom_domain_route_association" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain_secret_validator" "example" {
-  cdn_frontdoor_custom_domain_ids                  = [azurerm_cdn_frontdoor_custom_domain.contoso.id, azurerm_cdn_frontdoor_custom_domain.fabrikam.id]
-  cdn_frontdoor_custom_domain_route_association_id = azurerm_cdn_frontdoor_custom_domain_route_association.example.id
+  cdn_frontdoor_route_id                        = azurerm_cdn_frontdoor_route.example.id
+  cdn_frontdoor_custom_domain_ids               = [azurerm_cdn_frontdoor_custom_domain.contoso.id, azurerm_cdn_frontdoor_custom_domain.fabrikam.id]
+  cdn_frontdoor_custom_domain_txt_validator_ids = [azurerm_cdn_frontdoor_custom_domain_txt_validator.contoso.id, azurerm_cdn_frontdoor_custom_domain_txt_validator.fabrikam.id]
 }
 
 resource "azurerm_dns_cname_record" "contoso" {

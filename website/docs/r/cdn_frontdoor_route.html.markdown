@@ -20,6 +20,11 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+resource "azurerm_dns_zone" "example" {
+  name                = "example.com"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
 resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.example.name
@@ -35,16 +40,41 @@ resource "azurerm_frontdoor_endpoint" "example" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 }
 
+resource "azurerm_cdn_frontdoor_custom_domain" "contoso" {
+  name                     = "contoso-custom-domain"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+  dns_zone_id              = azurerm_dns_zone.example.id
+  host_name                = join(".", ["contoso", azurerm_dns_zone.example.name])
+
+  tls_settings {
+    certificate_type    = "ManagedCertificate"
+    minimum_tls_version = "TLS12"
+  }
+}
+
+resource "azurerm_cdn_frontdoor_custom_domain" "fabrikam" {
+  name                     = "fabrikam-custom-domain"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+  dns_zone_id              = azurerm_dns_zone.example.id
+  host_name                = join(".", ["fabrikam", azurerm_dns_zone.example.name])
+
+  tls_settings {
+    certificate_type    = "ManagedCertificate"
+    minimum_tls_version = "TLS12"
+  }
+}
+
 resource "azurerm_cdn_frontdoor_route" "example" {
-  name                          = "example-route"
-  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
-  enabled                       = true
+  name                            = "example-route"
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id, azurerm_cdn_frontdoor_custom_domain.fabrikam.id]
+  cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.example.id
+  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.example.id
+  enabled                         = true
 
   cdn_frontdoor_origin_ids   = [azurerm_cdn_frontdoor_origin.example.id]
   forwarding_protocol        = "HttpsOnly"
   https_redirect             = true
-  link_to_default_domain     = true
+  link_to_default_domain     = false
   patterns_to_match          = ["/*"]
   supported_protocols        = ["Http", "Https"]
   cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.example.id]
@@ -73,6 +103,10 @@ The following arguments are supported:
 * `supported_protocols` - (Required) One or more Protocols supported by this Frontdoor Route. Possible values are `Http` or `Https`.
 
 * `patterns_to_match` - (Reqired) The route patterns of the rule.
+
+* `cdn_frontdoor_custom_domain_ids` - (Optional) One or more resource IDs of the Frontdoor Custom Domains to associate with the Frontdoor Route.
+
+* `link_to_default_domain` - (Optional) Will the Frontdoor Route be linked to the default domain endpoint? Possible values are `true` or `false`. Defaults to `false`.
 
 * `cache_configuration` - (Optional) A `cache_configuration` block as defined below.
 

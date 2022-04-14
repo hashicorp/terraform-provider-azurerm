@@ -100,7 +100,7 @@ func resourceCdnFrontdoorCustomDomainTxtValidatorCreate(d *pluginsdk.ResourceDat
 		Refresh:                   cdnFrontdoorCustomDomainTxtRefreshFunc(ctx, client, customDomainId),
 		MinTimeout:                30 * time.Second,
 		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
-		ContinuousTargetOccurence: 3,
+		ContinuousTargetOccurence: 1,
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {

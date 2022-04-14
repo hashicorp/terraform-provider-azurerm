@@ -36,6 +36,13 @@ func resourceCdnFrontdoorCustomDomainSecretValidator() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
+			"cdn_frontdoor_route_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.FrontdoorRouteID,
+			},
+
 			"cdn_frontdoor_custom_domain_ids": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -47,11 +54,15 @@ func resourceCdnFrontdoorCustomDomainSecretValidator() *pluginsdk.Resource {
 				},
 			},
 
-			"cdn_frontdoor_custom_domain_route_association_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.FrontdoorCustomDomainRouteID,
+			"cdn_frontdoor_custom_domain_txt_validator_ids": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				ForceNew: true,
+
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validate.FrontdoorCustomDomainTxtID,
+				},
 			},
 
 			"cdn_frontdoor_custom_domain_secrets_state": {
@@ -88,7 +99,7 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorCreate(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	customDomainRouteId, err := parse.FrontdoorCustomDomainRouteID(d.Get("cdn_frontdoor_custom_domain_route_association_id").(string))
+	routeId, err := parse.FrontdoorRouteID(d.Get("cdn_frontdoor_route_id").(string))
 	if err != nil {
 		return err
 	}
@@ -98,7 +109,7 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorCreate(d *pluginsdk.Resource
 		return fmt.Errorf("generating UUID for the %q: %+v", "azurerm_cdn_frontdoor_custom_domain_secret_validator", err)
 	}
 
-	id := parse.NewFrontdoorCustomDomainSecretID(customDomainRouteId.SubscriptionId, customDomainRouteId.ResourceGroup, customDomainRouteId.ProfileName, "secretValidator", uuid)
+	id := parse.NewFrontdoorCustomDomainSecretID(routeId.SubscriptionId, routeId.ResourceGroup, routeId.ProfileName, "secretValidator", uuid)
 
 	customDomainIds := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
 
@@ -108,13 +119,30 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorCreate(d *pluginsdk.Resource
 			return err
 		}
 
+		// I need to wait for the Custom Domains to be associated by the route before I can grab the TLS Settings
+		// else the TLS Settings will be nil causing a panic...
+		log.Printf("[DEBUG] Waiting for Custom Domain %q TLS Settings to become %q", customDomainId.CustomDomainName, "Succeeded")
+		customDomainStateConf := &pluginsdk.StateChangeConf{
+			Pending:                   []string{"Pending"},
+			Target:                    []string{"Succeeded"},
+			Refresh:                   cdnFrontdoorCustomDomainTLSSettingsRefreshFunc(ctx, customDomainClient, customDomainId),
+			MinTimeout:                30 * time.Second,
+			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+			ContinuousTargetOccurence: 1,
+		}
+
+		if _, err = customDomainStateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for the %q:%q (Resource Group: %q) TLS Settings to become %q: %+v", "azurerm_cdn_frontdoor_custom_domain_secret_validator", id.SecretName, id.ResourceGroup, "Succeeded", err)
+		}
+
+		// Now that I know they are there I can grab them...
 		customDomainResp, err := customDomainClient.Get(ctx, customDomainId.ResourceGroup, customDomainId.ProfileName, customDomainId.CustomDomainName)
 		if err != nil {
 			if utils.ResponseWasNotFound(customDomainResp.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", *customDomainId, err)
 			}
 
-			return fmt.Errorf("retrieving up  %s: %+v", customDomainId, err)
+			return fmt.Errorf("retrieving Frontdoor Custom Domain %s: %+v", customDomainId, err)
 		}
 
 		tlsSecret := ""
@@ -145,7 +173,7 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorCreate(d *pluginsdk.Resource
 			Refresh:                   cdnFrontdoorCustomDomainSecretRefreshFunc(ctx, client, secretId),
 			MinTimeout:                30 * time.Second,
 			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
-			ContinuousTargetOccurence: 3,
+			ContinuousTargetOccurence: 1,
 		}
 
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -153,9 +181,12 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorCreate(d *pluginsdk.Resource
 		}
 	}
 
+	validatorIds := d.Get("cdn_frontdoor_custom_domain_txt_validator_ids").([]interface{})
+
 	d.SetId(id.ID())
 	d.Set("cdn_frontdoor_custom_domain_ids", customDomainIds)
-	d.Set("cdn_frontdoor_custom_domain_route_association_id", customDomainRouteId.ID())
+	d.Set("cdn_frontdoor_route_id", routeId.ID())
+	d.Set("cdn_frontdoor_custom_domain_txt_validator_ids", validatorIds)
 	return resourceCdnFrontdoorCustomDomainSecretValidatorRead(d, meta)
 }
 
@@ -165,11 +196,12 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorRead(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	customDomainRouteId, err := parse.FrontdoorCustomDomainRouteID(d.Get("cdn_frontdoor_custom_domain_route_association_id").(string))
+	routeId, err := parse.FrontdoorRouteID(d.Get("cdn_frontdoor_route_id").(string))
 	if err != nil {
 		return err
 	}
 
+	validatorIds := d.Get("cdn_frontdoor_custom_domain_txt_validator_ids").([]interface{})
 	customDomainIds := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
 	customDomainsSecretsState := make([]interface{}, 0)
 
@@ -226,8 +258,9 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorRead(d *pluginsdk.ResourceDa
 	}
 
 	d.Set("cdn_frontdoor_custom_domain_ids", customDomainIds)
-	d.Set("cdn_frontdoor_custom_domain_route_association_id", customDomainRouteId.ID())
+	d.Set("cdn_frontdoor_route_id", routeId.ID())
 	d.Set("cdn_frontdoor_custom_domain_secrets_state", customDomainsSecretsState)
+	d.Set("cdn_frontdoor_custom_domain_txt_validator_ids", validatorIds)
 
 	return nil
 }
@@ -235,6 +268,37 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorRead(d *pluginsdk.ResourceDa
 func resourceCdnFrontdoorCustomDomainSecretValidatorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.SetId("")
 	return nil
+}
+
+func cdnFrontdoorCustomDomainTLSSettingsRefreshFunc(ctx context.Context, client *track1.AFDCustomDomainsClient, id *parse.FrontdoorCustomDomainId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if CDN Frontdoor TLS Settings %q (Resource Group: %q) are available...", id.CustomDomainName, id.ResourceGroup)
+		out := "Pending"
+
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				log.Printf("[DEBUG] Retrieving CDN Frontdoor TLS Settings %q (Resource Group: %q) returned an error: %+v", id.CustomDomainName, id.ResourceGroup, err)
+				return nil, "", fmt.Errorf("polling for the CDN Frontdoor TLS Settings %q (Resource Group: %q): %+v", id.CustomDomainName, id.ResourceGroup, err)
+			}
+
+			// The route and custom domain may not have been associated yet so a 404 is acceptable
+			// keep polling until it shows up
+			return resp, out, nil
+		}
+
+		if props := resp.AFDDomainProperties; props != nil {
+			if tlsSettings := props.TLSSettings; tlsSettings != nil {
+				if secret := tlsSettings.Secret; secret != nil {
+					if secret.ID != nil {
+						out = "Succeeded"
+					}
+				}
+			}
+		}
+
+		return resp, out, nil
+	}
 }
 
 func cdnFrontdoorCustomDomainSecretRefreshFunc(ctx context.Context, client *track1.SecretsClient, id *parse.FrontdoorSecretId) pluginsdk.StateRefreshFunc {

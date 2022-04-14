@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
@@ -71,7 +72,7 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"enforce_certificate_name_check": {
+			"certificate_name_check_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -111,6 +112,34 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
+			"private_link": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+
+						"approval_message": { // A custom message to be included in the approval request to connect to the Private Link.
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"location": { // The location of the Private Link resource.
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"private_link_service_id": { // The Resource Id of the Private Link resource.
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+					},
+				},
+			},
+
 			"cdn_frontdoor_origin_group_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -121,6 +150,7 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 
 func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
+	profileClient := meta.(*clients.Client).Cdn.FrontdoorProfileClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -130,6 +160,27 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	id := parse.NewFrontdoorOriginID(originGroupId.SubscriptionId, originGroupId.ResourceGroup, originGroupId.ProfileName, originGroupId.OriginGroupName, d.Get("name").(string))
+
+	// I need to get the profile SKU so I know if it is valid or not to define a private link as
+	// private links are only allowed in the premium sku...
+	profileId := parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
+
+	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
+	if err != nil {
+		if utils.ResponseWasNotFound(profile.Response) {
+			return fmt.Errorf("%s does not exist: %+v", profileId, err)
+		}
+
+		return fmt.Errorf("retrieving SKU information from %s: %+v", profileId, err)
+	}
+
+	var sku string
+
+	if profileSku := profile.Sku; profileSku != nil {
+		sku = string(profileSku.Name)
+	} else {
+		return fmt.Errorf("retrieving SKU information from %s: %+v", profileId, err)
+	}
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
@@ -145,12 +196,13 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	originHostHeader := d.Get("origin_host_header").(string)
+	enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
 
 	props := track1.AFDOrigin{
 		AFDOriginProperties: &track1.AFDOriginProperties{
 			// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
 			EnabledState:                ConvertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
-			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
+			EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
 			HostName:                    utils.String(d.Get("host_name").(string)),
 			HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
 			HTTPSPort:                   utils.Int32(int32(d.Get("https_port").(int))),
@@ -161,6 +213,19 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 
 	if originHostHeader != "" {
 		props.OriginHostHeader = utils.String(originHostHeader)
+	}
+
+	privateLinkSettings := d.Get("private_link").([]interface{})
+	if len(privateLinkSettings) > 0 {
+		if sku == string(track1.SkuNamePremiumAzureFrontDoor) {
+			if !enableCertNameCheck {
+				return fmt.Errorf("%q requires that the %q field be set to %q, got %q", "private_link", "certificate_name_check_enabled", "true", "false")
+			} else {
+				props.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLinkSettings)
+			}
+		} else {
+			return fmt.Errorf("the %q field is only valid if the %q SKU is set to %q, got %q", "private_link", "Frontdoor Profile", track1.SkuNamePremiumAzureFrontDoor, sku)
+		}
 	}
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, props)
@@ -205,8 +270,12 @@ func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 		// 	return fmt.Errorf("setting `cdn_frontdoor_origin_id`: %+v", err)
 		// }
 
+		if props.SharedPrivateLinkResource != nil {
+			d.Set("private_link", flattenPrivateLinkSettings(props.SharedPrivateLinkResource))
+		}
+
 		d.Set("health_probes_enabled", ConvertEnabledStateToBool(&props.EnabledState))
-		d.Set("enforce_certificate_name_check", props.EnforceCertificateNameCheck)
+		d.Set("certificate_name_check_enabled", props.EnforceCertificateNameCheck)
 		d.Set("host_name", props.HostName)
 		d.Set("http_port", props.HTTPPort)
 		d.Set("https_port", props.HTTPSPort)
@@ -221,6 +290,7 @@ func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 
 func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
+	profileClient := meta.(*clients.Client).Cdn.FrontdoorProfileClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -229,19 +299,56 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
+	// I need to get the profile SKU so I know if it is valid or not to define a private link as
+	// private links are only allowed in the premium sku...
+	profileId := parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
+
+	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
+	if err != nil {
+		if utils.ResponseWasNotFound(profile.Response) {
+			return fmt.Errorf("%s does not exist: %+v", profileId, err)
+		}
+
+		return fmt.Errorf("retrieving SKU information from %s: %+v", profileId, err)
+	}
+
+	var sku string
+
+	if profileSku := profile.Sku; profileSku != nil {
+		sku = string(profileSku.Name)
+	} else {
+		return fmt.Errorf("retrieving SKU information from %s: %+v", profileId, err)
+	}
+
 	originHostHeader := d.Get("origin_host_header").(string)
+	enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
 
 	props := track1.AFDOriginUpdateParameters{
 		AFDOriginUpdatePropertiesParameters: &track1.AFDOriginUpdatePropertiesParameters{
 			// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
 			EnabledState:                ConvertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
-			EnforceCertificateNameCheck: utils.Bool(d.Get("enforce_certificate_name_check").(bool)),
+			EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
 			HostName:                    utils.String(d.Get("host_name").(string)),
 			HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
 			HTTPSPort:                   utils.Int32(int32(d.Get("https_port").(int))),
 			Priority:                    utils.Int32(int32(d.Get("priority").(int))),
 			Weight:                      utils.Int32(int32(d.Get("weight").(int))),
 		},
+	}
+
+	if d.HasChange("private_link") {
+		privateLinkSettings := d.Get("private_link").([]interface{})
+		if len(privateLinkSettings) > 0 {
+			if sku == string(track1.SkuNamePremiumAzureFrontDoor) {
+				if !enableCertNameCheck {
+					return fmt.Errorf("%q requires that the %q field be set to %q, got %q", "private_link", "certificate_name_check_enabled", "true", "false")
+				} else {
+					props.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLinkSettings)
+				}
+			} else {
+				return fmt.Errorf("the %q field is only valid if the %q SKU is set to %q, got %q", "private_link", "Frontdoor Profile", track1.SkuNamePremiumAzureFrontDoor, sku)
+			}
+		}
 	}
 
 	if originHostHeader != "" {
@@ -279,4 +386,47 @@ func resourceCdnFrontdoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	return nil
+}
+
+func expandPrivateLinkSettings(input []interface{}) *track1.SharedPrivateLinkResourceProperties {
+	if len(input) == 0 {
+		return &track1.SharedPrivateLinkResourceProperties{}
+	}
+
+	config := input[0].(map[string]interface{})
+
+	resourceId := config["private_link_service_id"].(string)
+	location := config["location"].(string)
+	approvalMessage := config["approval_message"].(string)
+
+	privateLinkResource := track1.SharedPrivateLinkResourceProperties{
+		PrivateLink: &track1.ResourceReference{
+			ID: &resourceId,
+		},
+		PrivateLinkLocation: &location,
+		RequestMessage:      &approvalMessage,
+	}
+
+	return &privateLinkResource
+}
+
+func flattenPrivateLinkSettings(input *track1.SharedPrivateLinkResourceProperties) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	// resourceId := config["resource_id"].(string)
+	// location := config["location"].(string)
+	// approvalMessage := config["approval_message"].(string)
+
+	// privateLinkResource := track1.SharedPrivateLinkResourceProperties{
+	// 	PrivateLink: &track1.ResourceReference{
+	// 		ID: &resourceId,
+	// 	},
+	// 	PrivateLinkLocation: &location,
+	// 	RequestMessage:      &approvalMessage,
+	// }
+
+	return results
 }

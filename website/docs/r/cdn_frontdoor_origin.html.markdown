@@ -34,7 +34,7 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
   azure_origin_id                       = ""
 
   health_probes_enabled          = true
-  enforce_certificate_name_check = false
+  certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 0
   https_port                     = 0
@@ -58,7 +58,11 @@ The following arguments are supported:
 
 * `health_probes_enabled` - (Optional) Are health probes enabled against backends defined under the backendPools? Health probes can only be disabled if there is a single enabled backend in single enabled backend pool. Possible values are `true` or `false`. Defaults to `true`.
 
-* `enforce_certificate_name_check` - (Optional) Whether to enable certificate name check at origin level. Possible values are `true` or `false`. Defaults to `false`.
+* `certificate_name_check_enabled` - (Optional) Whether to enable certificate name check at origin level. Possible values are `true` or `false`. Defaults to `false`.
+
+* `private_link` - (Optional) TBD.
+
+->**NOTE:** To include a `private_link` in the Frontdoor Origin your Frontdoor Profile must be a `Premium_AzureFrontDoor` SKU and the `certificate_name_check_enabled` field must be set to `true`.
 
 * `http_port` - (Optional) The value of the HTTP port. Must be between `1` and `65535`. Defaults to `80`.
 
