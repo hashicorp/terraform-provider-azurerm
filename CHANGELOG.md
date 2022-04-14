@@ -1,33 +1,33 @@
-## 3.2.0 (Unreleased)
+## 3.2.0 (April 14, 2022)
 
 FEATURES:
 
-* **New Datasource**: `azurerm_kusto_database` [GH-16180]
-* **New Resource**: `azurerm_container_connected_registry` [GH-15731]
-* **New Resource**: `azurerm_managment_group_policy_exemption` [GH-16293]
-* **New Resource**: `azurerm_resource_group_policy_exemption` [GH-16293]
-* **New Resource**: `azurerm_resource_policy_exemption` [GH-16293]
-* **New Resource**: `azurerm_stream_analytics_job_schedule` [GH-16349]
-* **New Resource**: `azurerm_subscription_policy_exemption` [GH-16293]
+* **New Datasource**: `azurerm_kusto_database` ([#16180](https://github.com/hashicorp/terraform-provider-azurerm/issues/16180))
+* **New Resource**: `azurerm_container_connected_registry` ([#15731](https://github.com/hashicorp/terraform-provider-azurerm/issues/15731))
+* **New Resource**: `azurerm_managment_group_policy_exemption` ([#16293](https://github.com/hashicorp/terraform-provider-azurerm/issues/16293))
+* **New Resource**: `azurerm_resource_group_policy_exemption` ([#16293](https://github.com/hashicorp/terraform-provider-azurerm/issues/16293))
+* **New Resource**: `azurerm_resource_policy_exemption` ([#16293](https://github.com/hashicorp/terraform-provider-azurerm/issues/16293))
+* **New Resource**: `azurerm_stream_analytics_job_schedule` ([#16349](https://github.com/hashicorp/terraform-provider-azurerm/issues/16349))
+* **New Resource**: `azurerm_subscription_policy_exemption` ([#16293](https://github.com/hashicorp/terraform-provider-azurerm/issues/16293))
 
 ENHANCEMENTS:
 
-* Data Source: `azurerm_stream_analytics_job` - support for the `last_output_time`, `start_mode`, and `start_time` properties [GH-16349]
-* `azurerm_container_group` - support for the `init_container` block [GH-16204]
-* `azurerm_machine_learning_workspace` - renamed the `public_network_access_enabled` property to `public_access_behind_virtual_network_enabled` to better reflect what this property does [GH-16288]
-* `azurerm_media_streaming_endpoint` support Standard Streaming Endpoints [GH-16304]
-* `azurerm_cdn_endpoint` - the `url_path_condition` property now allows the `RegEx` and `Wildcard` values [GH-16385]
+* Data Source: `azurerm_stream_analytics_job` - support for the `last_output_time`, `start_mode`, and `start_time` properties ([#16349](https://github.com/hashicorp/terraform-provider-azurerm/issues/16349))
+* `azurerm_container_group` - support for the `init_container` block ([#16204](https://github.com/hashicorp/terraform-provider-azurerm/issues/16204))
+* `azurerm_machine_learning_workspace` - renamed the `public_network_access_enabled` property to `public_access_behind_virtual_network_enabled` to better reflect what this property does ([#16288](https://github.com/hashicorp/terraform-provider-azurerm/issues/16288))
+* `azurerm_media_streaming_endpoint` support Standard Streaming Endpoints ([#16304](https://github.com/hashicorp/terraform-provider-azurerm/issues/16304))
+* `azurerm_cdn_endpoint` - the `url_path_condition` property now allows the `RegEx` and `Wildcard` values ([#16385](https://github.com/hashicorp/terraform-provider-azurerm/issues/16385))
 
 BUG FIXES:
 
-* Data Source: `azurerm_log_analytics_linked_storage_account` - correctly set the `data_source_type` property [GH-16313]
-* `azurerm_lb_outbound_rule` - allow `0` for the `allocated_outbound_ports` property [GH-16369]
-* `azurerm_mysql_flexible_server` - `backup_retention_days` can now be set any value from `1`-`35` [GH-16312]
-* `azurerm_sentinel_watchlist` - support for the required property `item_search_key` [GH-15861]
-* `azurerm_vpn_server_configuration` - the `server_root_certificate` property is now optional [GH-16366]
-* `azurerm_storage_data_lake_gen2_path` - support `$superuser` as an option for `owner` and `group` [GH-16370]
-* `azurerm_eventhub_namespace` - can now be updated when customer managed keys are being used [GH-16371]
-* `azurerm_postgresql_flexible_server` - `high_availability` blocks can now be added and removed [GH-16328]
+* Data Source: `azurerm_log_analytics_linked_storage_account` - correctly set the `data_source_type` property ([#16313](https://github.com/hashicorp/terraform-provider-azurerm/issues/16313))
+* `azurerm_lb_outbound_rule` - allow `0` for the `allocated_outbound_ports` property ([#16369](https://github.com/hashicorp/terraform-provider-azurerm/issues/16369))
+* `azurerm_mysql_flexible_server` - `backup_retention_days` can now be set any value from `1`-`35` ([#16312](https://github.com/hashicorp/terraform-provider-azurerm/issues/16312))
+* `azurerm_sentinel_watchlist` - support for the required property `item_search_key` ([#15861](https://github.com/hashicorp/terraform-provider-azurerm/issues/15861))
+* `azurerm_vpn_server_configuration` - the `server_root_certificate` property is now optional ([#16366](https://github.com/hashicorp/terraform-provider-azurerm/issues/16366))
+* `azurerm_storage_data_lake_gen2_path` - support `$superuser` as an option for `owner` and `group` ([#16370](https://github.com/hashicorp/terraform-provider-azurerm/issues/16370))
+* `azurerm_eventhub_namespace` - can now be updated when customer managed keys are being used ([#16371](https://github.com/hashicorp/terraform-provider-azurerm/issues/16371))
+* `azurerm_postgresql_flexible_server` - `high_availability` blocks can now be added and removed ([#16328](https://github.com/hashicorp/terraform-provider-azurerm/issues/16328))
 
 ## 3.1.0 (April 07, 2022)
 
