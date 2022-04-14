@@ -19,7 +19,7 @@ tools:
 	go install mvdan.cc/gofumpt@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.45.0
 
-build: fmtcheck generate
+build: fmtcheck gdenerate
 	go install
 
 fmt:
@@ -129,7 +129,7 @@ teamcity-test:
 	@$(MAKE) -C .teamcity tools
 	@$(MAKE) -C .teamcity test
 
-validate-examples:
+validate-examples: build
 	./scripts/validate-examples.sh
 
 pr-check: generate build test lint tflint website-lint
