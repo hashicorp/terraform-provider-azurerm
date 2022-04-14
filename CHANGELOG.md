@@ -25,6 +25,7 @@ BUG FIXES:
 * `azurerm_sentinel_watchlist` - support required property `item_search_key` [GH-15861]
 * `azurerm_vpn_server_configuration` - the `server_root_certificate` property is now optional [GH-16366]
 * `azurerm_storage_data_lake_gen2_path` - support `$superuser` as an option for `owner` and `group` [GH-16370]
+* `azurerm_eventhub_namespace` - can now be updated when cmk is being used [GH-16371]
 
 ## 3.1.0 (April 07, 2022)
 
