@@ -227,9 +227,6 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 		blobStorageProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
 		blobStorageProperties.Tenant = utils.String(d.Get("tenant_id").(string))
 		blobStorageProperties.ServicePrincipalKey = &secureString
-		if v, ok := d.GetOk("service_endpoint"); ok {
-			blobStorageProperties.ServiceEndpoint = utils.String(v.(string))
-		}
 	}
 
 	blobStorageLinkedService := &datafactory.AzureBlobStorageLinkedService{
