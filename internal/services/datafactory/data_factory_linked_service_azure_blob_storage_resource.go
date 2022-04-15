@@ -303,10 +303,10 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 			d.Set("tenant_id", blobStorage.Tenant)
 		}
 
+		d.Set("use_managed_identity", false)
 		if blobStorage.ServicePrincipalID != nil {
 			d.Set("service_principal_id", blobStorage.ServicePrincipalID)
-			d.Set("use_managed_identity", false)
-		} else {
+		} else if blobStorage.ServiceEndpoint != nil {
 			d.Set("service_endpoint", blobStorage.ServiceEndpoint)
 			d.Set("use_managed_identity", true)
 		}
