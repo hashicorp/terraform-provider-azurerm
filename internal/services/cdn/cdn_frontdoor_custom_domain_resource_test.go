@@ -107,7 +107,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-c-%d"
+  name                = "accTestProfile-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -119,19 +119,15 @@ func (r CdnFrontdoorCustomDomainResource) basic(data acceptance.TestData) string
 				%s
 
 resource "azurerm_cdn_frontdoor_custom_domain" "test" {
-  name                     = "acctest-c-%d"
+  name                     = "accTestCustomDomain-%d"
   frontdoor_cdn_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  azure_dns_zone_id                       = ""
-  host_name                               = ""
-  pre_validated_custom_domain_resource_id = ""
+  azure_dns_zone_id = ""
+  host_name         = ""
 
-  tls_settings {
+  tls {
     certificate_type    = ""
     minimum_tls_version = ""
-    secret {
-      id = ""
-    }
   }
 }
 `, template, data.RandomInteger)
@@ -146,16 +142,12 @@ resource "azurerm_cdn_frontdoor_custom_domain" "import" {
   name                     = azurerm_cdn_frontdoor_custom_domain.test.name
   frontdoor_cdn_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  azure_dns_zone_id                       = ""
-  host_name                               = ""
-  pre_validated_custom_domain_resource_id = ""
+  azure_dns_zone_id = ""
+  host_name         = ""
 
-  tls_settings {
+  tls {
     certificate_type    = ""
     minimum_tls_version = ""
-    secret {
-      id = ""
-    }
   }
 }
 `, config)
@@ -167,19 +159,15 @@ func (r CdnFrontdoorCustomDomainResource) complete(data acceptance.TestData) str
 			%s
 
 resource "azurerm_cdn_frontdoor_custom_domain" "test" {
-  name                     = "acctest-c-%d"
+  name                     = "accTestCustomDomain-%d"
   frontdoor_cdn_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  azure_dns_zone_id                       = ""
-  host_name                               = ""
-  pre_validated_custom_domain_resource_id = ""
+  azure_dns_zone_id = ""
+  host_name         = ""
 
-  tls_settings {
+  tls {
     certificate_type    = ""
     minimum_tls_version = ""
-    secret {
-      id = ""
-    }
   }
 }
 `, template, data.RandomInteger)
@@ -191,21 +179,18 @@ func (r CdnFrontdoorCustomDomainResource) update(data acceptance.TestData) strin
 			%s
 
 resource "azurerm_cdn_frontdoor_custom_domain" "test" {
-  name                     = "acctest-c-%d"
+  name                     = "accTestCustomDomain-%d"
   frontdoor_cdn_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  azure_dns_zone {
-    id = ""
-  }
-  pre_validated_custom_domain_resource_id {
-    id = ""
-  }
-  tls_settings {
+
+  azure_dns_zone_id = ""
+
+  tls {
     certificate_type    = ""
     minimum_tls_version = ""
-    secret {
-      id = ""
-    }
   }
 }
 `, template, data.RandomInteger)
 }
+
+// TODO: Add test case that uses pre_validated_custom_domain_resource_id
+// TODO: Add test case that uses CMK

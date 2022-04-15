@@ -10,8 +10,6 @@ description: |-
 
 Manages a Frontdoor Route.
 
-!>**IMPORTANT:** On initial creation of the Frontdoor Route resource the `link_to_default_domain` value will always be set to `true` due to the Custom Domain workflow logic and the creation constraints of the Frontdoor Route resource that have been introduced with this version of Frontdoor. You may control the value of the `link_to_default_domain` field in the `azurerm_custom_domain_association` resource.
-
 ## Example Usage
 
 ```hcl
@@ -46,7 +44,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "contoso" {
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = join(".", ["contoso", azurerm_dns_zone.example.name])
 
-  tls_settings {
+  tls {
     certificate_type    = "ManagedCertificate"
     minimum_tls_version = "TLS12"
   }
@@ -58,7 +56,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "fabrikam" {
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = join(".", ["fabrikam", azurerm_dns_zone.example.name])
 
-  tls_settings {
+  tls {
     certificate_type    = "ManagedCertificate"
     minimum_tls_version = "TLS12"
   }
@@ -66,20 +64,20 @@ resource "azurerm_cdn_frontdoor_custom_domain" "fabrikam" {
 
 resource "azurerm_cdn_frontdoor_route" "example" {
   name                            = "example-route"
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id, azurerm_cdn_frontdoor_custom_domain.fabrikam.id]
   cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.example.id
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.example.id
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id, azurerm_cdn_frontdoor_custom_domain.fabrikam.id]
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.example.id]
+  cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.example.id]
   enabled                         = true
 
-  cdn_frontdoor_origin_ids   = [azurerm_cdn_frontdoor_origin.example.id]
-  forwarding_protocol        = "HttpsOnly"
-  https_redirect             = true
-  link_to_default_domain     = false
-  patterns_to_match          = ["/*"]
-  supported_protocols        = ["Http", "Https"]
-  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.example.id]
+  forwarding_protocol            = "HttpsOnly"
+  https_redirect_enabled         = true
+  link_to_default_domain_enabled = false
+  patterns_to_match              = ["/*"]
+  supported_protocols            = ["Http", "Https"]
 
-  cache_configuration {
+  cache {
     query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
     query_strings                 = ["account", "settings"]
     compression_enabled           = true
@@ -106,19 +104,19 @@ The following arguments are supported:
 
 * `cdn_frontdoor_custom_domain_ids` - (Optional) One or more resource IDs of the Frontdoor Custom Domains to associate with the Frontdoor Route.
 
-* `link_to_default_domain` - (Optional) Will the Frontdoor Route be linked to the default domain endpoint? Possible values are `true` or `false`. Defaults to `false`.
+* `link_to_default_domain_enabled` - (Optional) Will the Frontdoor Route be linked to the default domain endpoint? Possible values are `true` or `false`. Defaults to `false`.
 
-* `cache_configuration` - (Optional) A `cache_configuration` block as defined below.
+* `cache` - (Optional) A `cache` block as defined below.
 
-~> **NOTE:** To to disable caching, do not provide the `cache_configuration` block in the configuration file.
+~> **NOTE:** To to disable caching, do not provide the `cache` block in the configuration file.
 
 * `enabled` - (Optional) Is this Frontdoor Route enabled? Possible values are `true` or `false`. Defaults to `true`.
 
 * `forwarding_protocol` - (Optional) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `MatchRequest`.
 
-* `https_redirect` - (Optional) Automatically redirect HTTP traffic to HTTPS traffic? Possible values are `true` or `false`. Defaults to `true`.
+* `https_redirect_enabled` - (Optional) Automatically redirect HTTP traffic to HTTPS traffic? Possible values are `true` or `false`. Defaults to `true`.
 
-~> **NOTE:** The `https_redirect` rule is the first rule that will be executed.
+~> **NOTE:** The `https_redirect_enabled` rule is the first rule that will be executed.
 
 * `cdn_frontdoor_origin_path` - (Optional) A directory path on the origin that Frontdoor can use to retrieve content from(e.g. contoso.cloudapp.net/originpath).
 
@@ -126,7 +124,7 @@ The following arguments are supported:
 
 ---
 
-A `cache_configuration` block supports the following:
+A `cache` block supports the following:
 
 * `query_string_caching_behavior` - (Optional) Defines how the Frontdoor will cache requests that include query strings. Possible values include `IgnoreQueryString`, `IgnoreSpecifiedQueryStrings`, `IncludeSpecifiedQueryStrings` or `UseQueryString`. Defaults it `IgnoreQueryString`.
 

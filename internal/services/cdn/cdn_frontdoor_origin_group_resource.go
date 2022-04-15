@@ -110,7 +110,7 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 
-						"sample_size": {
+						"sample_count": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      16,
@@ -132,13 +132,13 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"session_affinity": {
+			"session_affinity_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
-			"restore_traffic_or_new_endpoints_time": {
+			"restore_traffic_or_new_endpoints_after_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      10,
@@ -177,8 +177,8 @@ func resourceCdnFrontdoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 		AFDOriginGroupProperties: &track1.AFDOriginGroupProperties{
 			HealthProbeSettings:   expandCdnFrontdoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
 			LoadBalancingSettings: expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
-			SessionAffinityState:  ConvertBoolToEnabledState(d.Get("session_affinity").(bool)),
-			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int32(int32(d.Get("restore_traffic_or_new_endpoints_time").(int))),
+			SessionAffinityState:  ConvertBoolToEnabledState(d.Get("session_affinity_enabled").(bool)),
+			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int32(int32(d.Get("restore_traffic_or_new_endpoints_after_minutes").(int))),
 		},
 	}
 
@@ -228,8 +228,8 @@ func resourceCdnFrontdoorOriginGroupRead(d *pluginsdk.ResourceData, meta interfa
 
 		// BUG: API does not return the profile name, pull it form the ID
 		d.Set("cdn_frontdoor_profile_name", id.ProfileName)
-		d.Set("session_affinity", ConvertEnabledStateToBool(&props.SessionAffinityState))
-		d.Set("restore_traffic_or_new_endpoints_time", props.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes)
+		d.Set("session_affinity_enabled", ConvertEnabledStateToBool(&props.SessionAffinityState))
+		d.Set("restore_traffic_or_new_endpoints_after_minutes", props.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes)
 	}
 
 	return nil
@@ -249,8 +249,8 @@ func resourceCdnFrontdoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 		AFDOriginGroupUpdatePropertiesParameters: &track1.AFDOriginGroupUpdatePropertiesParameters{
 			HealthProbeSettings:   expandCdnFrontdoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
 			LoadBalancingSettings: expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
-			SessionAffinityState:  ConvertBoolToEnabledState(d.Get("session_affinity").(bool)),
-			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int32(int32(d.Get("restore_traffic_or_new_endpoints_time").(int))),
+			SessionAffinityState:  ConvertBoolToEnabledState(d.Get("session_affinity_enabled").(bool)),
+			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int32(int32(d.Get("restore_traffic_or_new_endpoints_after_minutes").(int))),
 		},
 	}
 
@@ -313,7 +313,7 @@ func expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input []interf
 
 	return &track1.LoadBalancingSettingsParameters{
 		AdditionalLatencyInMilliseconds: utils.Int32(int32(v["additional_latency_in_milliseconds"].(int))),
-		SampleSize:                      utils.Int32(int32(v["sample_size"].(int))),
+		SampleSize:                      utils.Int32(int32(v["sample_count"].(int))),
 		SuccessfulSamplesRequired:       utils.Int32(int32(v["successful_samples_required"].(int))),
 	}
 }
@@ -331,7 +331,7 @@ func flattenCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input *track1
 	}
 
 	if input.SampleSize != nil {
-		result["sample_size"] = *input.SampleSize
+		result["sample_count"] = *input.SampleSize
 	}
 
 	if input.SuccessfulSamplesRequired != nil {

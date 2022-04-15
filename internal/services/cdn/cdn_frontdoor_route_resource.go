@@ -68,7 +68,7 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 			},
 
 			// NOTE: AfdRouteCacheConfiguration to disable caching, do not provide block in API call.
-			"cache_configuration": {
+			"cache": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -135,7 +135,7 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"https_redirect": {
+			"https_redirect_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -151,7 +151,7 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				},
 			},
 
-			"link_to_default_domain": {
+			"link_to_default_domain_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -259,7 +259,7 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	isLinked := d.Get("link_to_default_domain").(bool)
+	isLinked := d.Get("link_to_default_domain_enabled").(bool)
 
 	var customDomains *[]track1.ActivatedResourceReference
 	if routeProps := existing.RouteProperties; routeProps != nil {
@@ -269,10 +269,10 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	props := track1.Route{
 		RouteProperties: &track1.RouteProperties{
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}), customDomains),
-			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
+			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
-			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
+			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect_enabled").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(isLinked),
 			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
@@ -336,8 +336,8 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("cdn_frontdoor_custom_domain_ids", domainField)
 		d.Set("enabled", ConvertEnabledStateToBool(&props.EnabledState))
 		d.Set("forwarding_protocol", props.ForwardingProtocol)
-		d.Set("https_redirect", ConvertRouteHttpsRedirectToBool(&props.HTTPSRedirect))
-		d.Set("link_to_default_domain", ConvertRouteLinkToDefaultDomainToBool(&props.LinkToDefaultDomain))
+		d.Set("https_redirect_enabled", ConvertRouteHttpsRedirectToBool(&props.HTTPSRedirect))
+		d.Set("link_to_default_domain_enabled", ConvertRouteLinkToDefaultDomainToBool(&props.LinkToDefaultDomain))
 		d.Set("cdn_frontdoor_origin_path", props.OriginPath)
 		d.Set("patterns_to_match", props.PatternsToMatch)
 
@@ -348,8 +348,8 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting %q: %+v", "cdn_frontdoor_custom_domains_active_status", err)
 		}
 
-		if err := d.Set("cache_configuration", flattenFrontdoorRouteCacheConfiguration(props.CacheConfiguration)); err != nil {
-			return fmt.Errorf("setting `cache_configuration`: %+v", err)
+		if err := d.Set("cache", flattenFrontdoorRouteCacheConfiguration(props.CacheConfiguration)); err != nil {
+			return fmt.Errorf("setting `cache`: %+v", err)
 		}
 
 		if err := d.Set("cdn_frontdoor_origin_group_id", flattenResourceReference(props.OriginGroup)); err != nil {
@@ -395,11 +395,11 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	props := track1.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}), customDomains),
-			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache_configuration").([]interface{})),
+			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
-			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect").(bool)),
-			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain").(bool)),
+			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect_enabled").(bool)),
+			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain_enabled").(bool)),
 			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),

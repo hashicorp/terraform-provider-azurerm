@@ -126,7 +126,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   host_name                               = ""
   pre_validated_custom_domain_resource_id = ""
 
-  tls_settings {
+  tls {
     certificate_type    = ""
     minimum_tls_version = ""
     secret {
@@ -150,7 +150,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "import" {
   host_name                               = ""
   pre_validated_custom_domain_resource_id = ""
 
-  tls_settings {
+  tls {
     certificate_type    = ""
     minimum_tls_version = ""
     secret {
@@ -174,7 +174,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   host_name                               = ""
   pre_validated_custom_domain_resource_id = ""
 
-  tls_settings {
+  tls {
     certificate_type    = ""
     minimum_tls_version = ""
     secret {
@@ -199,7 +199,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   pre_validated_custom_domain_resource_id {
     id = ""
   }
-  tls_settings {
+  tls {
     certificate_type    = ""
     minimum_tls_version = ""
     secret {

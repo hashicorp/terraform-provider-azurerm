@@ -261,7 +261,6 @@ func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.Set("name", id.OriginName)
-
 	d.Set("cdn_frontdoor_origin_group_id", parse.NewFrontdoorOriginGroupID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.OriginGroupName).ID())
 
 	if props := resp.AFDOriginProperties; props != nil {

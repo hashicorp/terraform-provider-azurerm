@@ -52,7 +52,7 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 				ValidateFunc: validate.FrontdoorRuleSetID,
 			},
 
-			"match_processing_behavior": {
+			"behavior_on_match": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(track1.MatchProcessingBehaviorContinue),
@@ -305,7 +305,8 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 										}, false),
 									},
 
-									// Allowed format is d.hh:mm:ss, maximum duration is 366 days
+									// Allowed format is d.HH:MM:SS or HH:MM:SS if duration is less than a day
+									// maximum duration is 366 days(e.g. 365.23:59:59)
 									"cache_duration": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
@@ -650,7 +651,7 @@ func resourceCdnFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
+	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("behavior_on_match").(string))
 	order := d.Get("order").(int)
 
 	actions, err := expandFrontdoorDeliveryRuleActions(d.Get("actions").([]interface{}))
@@ -712,7 +713,7 @@ func resourceCdnFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("cdn_frontdoor_rule_set_id", ruleSetId.ID())
 
 	if props := resp.RuleProperties; props != nil {
-		d.Set("match_processing_behavior", props.MatchProcessingBehavior)
+		d.Set("behavior_on_match", props.MatchProcessingBehavior)
 		d.Set("order", props.Order)
 
 		// BUG: RuleSetName is not being returned by the API
@@ -745,7 +746,7 @@ func resourceCdnFrontdoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("match_processing_behavior").(string))
+	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("behavior_on_match").(string))
 	order := d.Get("order").(int)
 
 	actions, err := expandFrontdoorDeliveryRuleActions(d.Get("actions").([]interface{}))

@@ -118,7 +118,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_size                        = 16
+    sample_count                       = 16
     successful_samples_required        = 3
   }
 }

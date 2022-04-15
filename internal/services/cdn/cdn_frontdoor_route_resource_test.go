@@ -138,7 +138,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_size                        = 16
+    sample_count                       = 16
     successful_samples_required        = 3
   }
 }
@@ -148,7 +148,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
   health_probes_enabled          = true
-  enforce_certificate_name_check = false
+  certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
   https_port                     = 443
@@ -191,7 +191,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_size                        = 16
+    sample_count                       = 16
     successful_samples_required        = 3
   }
 }
@@ -201,7 +201,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
   health_probes_enabled          = true
-  enforce_certificate_name_check = false
+  certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
   https_port                     = 443
@@ -233,8 +233,9 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
 
-  patterns_to_match   = ["/*"]
-  supported_protocols = ["Http", "Https"]
+  link_to_default_domain_enabled = true
+  patterns_to_match              = ["/*"]
+  supported_protocols            = ["Http", "Https"]
 }
 `, template, data.RandomInteger)
 }
@@ -250,8 +251,9 @@ resource "azurerm_cdn_frontdoor_route" "import" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
 
-  patterns_to_match   = ["/*"]
-  supported_protocols = ["Http", "Https"]
+  link_to_default_domain_enabled = true
+  patterns_to_match              = ["/*"]
+  supported_protocols            = ["Http", "Https"]
 }
 `, config)
 }
@@ -266,17 +268,16 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.test.id]
 
-  enabled             = true
-  forwarding_protocol = "HttpsOnly"
-  https_redirect      = true
-  # Cannot set this value because Frontdoor RP validates that the path is reachable
-  # cdn_frontdoor_origin_path  = "contoso.com/site/content"
-  patterns_to_match          = ["/*"]
-  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.test.id]
-  supported_protocols        = ["Http", "Https"]
+  enabled                        = true
+  forwarding_protocol            = "HttpsOnly"
+  https_redirect_enabled         = true
+  link_to_default_domain_enabled = true
+  patterns_to_match              = ["/*"]
+  supported_protocols            = ["Http", "Https"]
 
-  cache_configuration {
+  cache {
     query_strings                 = ["foo", "bar"]
     query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
   }
@@ -295,19 +296,22 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
 
-  enabled             = true
-  forwarding_protocol = "HttpOnly"
-  https_redirect      = false
-  # Cannot set this value because Frontdoor RP validates that the path is reachable
-  # cdn_frontdoor_origin_path  = "contoso.com/site/content"
-  patterns_to_match          = ["/*"]
-  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.test.id]
-  supported_protocols        = ["Https"]
+  enabled                        = true
+  forwarding_protocol            = "HttpOnly"
+  https_redirect_enabled         = false
+  link_to_default_domain_enabled = true
+  patterns_to_match              = ["/*"]
+  cdn_frontdoor_rule_set_ids     = [azurerm_cdn_frontdoor_rule_set.test.id]
+  supported_protocols            = ["Https"]
 
-  cache_configuration {
+  cache {
     query_strings                 = ["bar"]
     query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
   }
 }
 `, template, data.RandomInteger)
 }
+
+// TODO: Add test with real custom domain once I figure out how to do that
+// in the meantime I will use the link_to_default_domain_enabled to make the
+// Frontdoor endpoint our "Custom Domain". I have bigger fish to fry at the moment.

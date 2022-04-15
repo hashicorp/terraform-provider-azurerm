@@ -26,6 +26,9 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 resource "azurerm_cdn_frontdoor_origin_group" "example" {
   name                         = "example-originGroup"
   cdn_cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+  session_affinity_enabled     = true
+
+  restore_traffic_or_new_endpoints_after_minutes = 10
 
   health_probe {
     interval_in_seconds = 240
@@ -36,12 +39,9 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_size                        = 16
+    sample_count                       = 16
     successful_samples_required        = 3
   }
-
-  session_affinity                      = true
-  restore_traffic_or_new_endpoints_time = 10
 }
 ```
 
@@ -57,9 +57,9 @@ The following arguments are supported:
 
 * `health_probe` - (Optional) A `health_probe` block as defined below.
 
-* `session_affinity` - (Optional) Whether to allow session affinity on this host. Possible values are `true` or `false`. Defaults to `true`.
+* `session_affinity_enabled` - (Optional) Whether to allow session affinity on this host. Possible values are `true` or `false`. Defaults to `true`.
 
-* `restore_traffic_or_new_endpoints_time` - (Optional) Time in minutes to shift the traffic to another endpoint when an healthy endpoint becomes unhealthy or a new endpoint is added. Default is `10` minutes.
+* `restore_traffic_or_new_endpoints_after_minutes` - (Optional) Time in minutes to shift the traffic to another endpoint when an healthy endpoint becomes unhealthy or a new endpoint is added. Default is `10` minutes.
 
 ~> **NOTE:** This property is currently not used, but will be in the near future.
 
@@ -81,7 +81,7 @@ A `load_balancing` block supports the following:
 
 * `additional_latency_in_milliseconds` - (Optional) The additional latency in milliseconds for probes to fall into the lowest latency bucket. Possible values are between `0` and `1000` seconds(inclusive). Defaults to `0`.
 
-* `sample_size` - (Optional) The number of samples to consider for load balancing decisions. Possible values are between `0` and `255`(inclusive). Defaults to `16`.
+* `sample_count` - (Optional) The number of samples to consider for load balancing decisions. Possible values are between `0` and `255`(inclusive). Defaults to `16`.
 
 * `successful_samples_required` - (Optional) The number of samples within the sample period that must succeed. Possible values are between `0` and `255`(inclusive). Defaults to `3`.
 

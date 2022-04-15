@@ -31,16 +31,16 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 resource "azurerm_cdn_frontdoor_origin" "example" {
   name                                  = "example-origin"
   cdn_frontdoor_profile_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
-  azure_origin_id                       = ""
 
   health_probes_enabled          = true
   certificate_name_check_enabled = false
-  host_name                      = "contoso.com"
-  http_port                      = 0
-  https_port                     = 0
-  origin_host_header             = "www.contoso.com"
-  priority                       = 0
-  weight                         = 0
+
+  host_name          = "contoso.com"
+  http_port          = 80
+  https_port         = 443
+  origin_host_header = "www.contoso.com"
+  priority           = 1
+  weight             = 1
 }
 ```
 
@@ -82,11 +82,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Frontdoor Origin.
 
-* `deployment_status` - 
-
 * `origin_group_name` - The name of the origin group which contains this Frontdoor Origin.
-
-* `provisioning_state` - Provisioning status
 
 ## Timeouts
 

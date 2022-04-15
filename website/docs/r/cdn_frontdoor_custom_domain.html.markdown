@@ -34,7 +34,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = "contoso.com"
 
-  tls_settings {
+  tls {
     certificate_type    = "ManagedCertificate"
     minimum_tls_version = "TLS12"
   }
@@ -55,11 +55,11 @@ The following arguments are supported:
 
 * `pre_validated_cdn_frontdoor_custom_domain_id` - (Optional) Resource ID.
 
-* `tls_settings` - (Optional) A `tls_settings` block as defined below.
+* `tls` - (Required) A `tls` block as defined below.
 
 ---
 
-A `tls_settings` block supports the following:
+A `tls` block supports the following:
 
 * `certificate_type` - (Optional) Defines the source of the SSL certificate. Possible values include `CustomerCertificate` and `ManagedCertificate`. Defaults to `ManagedCertificate`.
 

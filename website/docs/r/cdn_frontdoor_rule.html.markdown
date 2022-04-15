@@ -37,6 +37,9 @@ resource "azurerm_cdn_frontdoor_endpoint" "example" {
 resource "azurerm_cdn_frontdoor_origin_group" "example" {
   name                     = "example-originGroup"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+  session_affinity_enabled = true
+
+  restore_traffic_or_new_endpoints_minutes = 10
 
   health_probe {
     interval_in_seconds = 240
@@ -47,30 +50,18 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_size                        = 16
+    sample_count                       = 16
     successful_samples_required        = 3
   }
-
-  response_based_origin_error_detection {
-    http_error_ranges {
-      begin = 300
-      end   = 599
-    }
-
-    detected_error_types          = "TcpAndHttpErrors"
-    failover_threshold_percentage = 10
-  }
-
-  session_affinity                      = true
-  restore_traffic_or_new_endpoints_time = 10
 }
 
 resource "azurerm_cdn_frontdoor_origin" "example" {
   name                          = "example-origin"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
 
-  enable_health_probes           = true
-  enforce_certificate_name_check = false
+  health_probes_enabled          = true
+  certificate_name_check_enabled = false
+
   host_name                      = azurerm_cdn_frontdoor_endpoint.example.host_name
   http_port                      = 80
   https_port                     = 443
@@ -90,7 +81,7 @@ resource "azurerm_cdn_frontdoor_rule" "example" {
   name                      = "examplerule"
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.example.id
   order                     = 1
-  match_processing_behavior = "Continue"
+  behavior_on_match         = "Continue"
 
   actions {
     route_configuration_override_action {
@@ -162,7 +153,7 @@ The following arguments are supported:
 
 ~>**NOTE:** If the Frontdoor Rule has an order value of `0` they do not require any conditions and the actions will always be applied.
 
-* `match_processing_behavior` - (Optional) If this rule is a match should the rules engine continue processing the remaining rules or stop? Possible values are `Continue` and `Stop`. Defaults to `Continue`.
+* `behavior_on_match` - (Optional) If this rule is a match should the rules engine continue processing the remaining rules or stop? Possible values are `Continue` and `Stop`. Defaults to `Continue`.
 
 * `actions` - (Required) An `actions` block as defined below.
 
@@ -257,14 +248,6 @@ A `request_header_action` block supports the following:
 * `value` - (Optional) The value to append or overwrite.
 
 ~>**NOTE:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
-
----
-
-A `parameter_name_override` block supports the following:
-
-* `param_name` - (Required) The name of the parameter.
-
-* `param_indicator` - (Required) Indicates the purpose of the parameter. Possible values include `Expires`, `KeyId` or `Signature`.
 
 ---
 

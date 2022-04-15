@@ -106,8 +106,11 @@ resource "azurerm_cdn_frontdoor_endpoint" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "example" {
-  name                         = "${var.prefix}-origin-group"
+  name                     = "${var.prefix}-origin-group"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+  session_affinity_enabled = true
+
+  restore_traffic_or_new_endpoints_after_minutes = 10
 
   health_probe {
     interval_in_seconds = 240
@@ -118,12 +121,9 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_size                        = 16
+    sample_count                       = 16
     successful_samples_required        = 3
   }
-
-  session_affinity                      = true
-  restore_traffic_or_new_endpoints_time = 10
 }
 
 resource "azurerm_cdn_frontdoor_origin" "example" {
@@ -148,7 +148,7 @@ resource "azurerm_cdn_frontdoor_rule" "example" {
   name                      = "${var.prefix}rule"
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.example.id
   order                     = 1
-  match_processing_behavior = "Continue"
+  behavior_on_match         = "Continue"
 
   actions {
     route_configuration_override_action {
@@ -208,19 +208,19 @@ resource "azurerm_cdn_frontdoor_rule" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_route" "example" {
-  name                                   = "${var.prefix}-route"
-  cdn_frontdoor_endpoint_id              = azurerm_cdn_frontdoor_endpoint.example.id
-  cdn_frontdoor_origin_group_id          = azurerm_cdn_frontdoor_origin_group.example.id
-  cdn_frontdoor_origin_ids               = [azurerm_cdn_frontdoor_origin.example.id]
-  enabled                                = true
+  name                          = "${var.prefix}-route"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
+  enabled                       = true
 
   forwarding_protocol        = "HttpsOnly"
-  https_redirect             = true
+  https_redirect_enabled     = true
   patterns_to_match          = ["/*"]
   supported_protocols        = ["Http", "Https"]
   cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.example.id]
 
-  cache_configuration {
+  cache {
     compression_enabled           = true
     content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
     query_strings                 = ["account", "settings"]
@@ -234,7 +234,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "contoso" {
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = join(".", ["contoso", azurerm_dns_zone.example.name])
 
-  tls_settings {
+  tls {
     certificate_type    = "ManagedCertificate"
     minimum_tls_version = "TLS12"
   }
@@ -246,7 +246,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "fabrikam" {
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = join(".", ["fabrikam", azurerm_dns_zone.example.name])
 
-  tls_settings {
+  tls {
     certificate_type    = "ManagedCertificate"
     minimum_tls_version = "TLS12"
   }
@@ -285,8 +285,8 @@ resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "fabrikam" {
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain_route_association" "example" {
-  cdn_frontdoor_route_id = azurerm_cdn_frontdoor_route.example.id
-  link_to_default_domain = false
+  cdn_frontdoor_route_id         = azurerm_cdn_frontdoor_route.example.id
+  link_to_default_domain_enabled = false
 
   cdn_frontdoor_custom_domain_txt_validator_ids = [azurerm_cdn_frontdoor_custom_domain_txt_validator.contoso.id, azurerm_cdn_frontdoor_custom_domain_txt_validator.fabrikam.id]
   cdn_frontdoor_custom_domain_ids               = [azurerm_cdn_frontdoor_custom_domain.contoso.id, azurerm_cdn_frontdoor_custom_domain.fabrikam.id]
@@ -301,19 +301,19 @@ resource "azurerm_cdn_frontdoor_custom_domain_secret_validator" "example" {
 resource "azurerm_dns_cname_record" "contoso" {
   depends_on = [azurerm_cdn_frontdoor_custom_domain_secret_validator.example]
 
-  name                                           = "contoso"
-  zone_name                                      = azurerm_dns_zone.example.name
-  resource_group_name                            = azurerm_resource_group.example.name
-  ttl                                            = 3600
-  record                                         = azurerm_cdn_frontdoor_endpoint.example.host_name
+  name                = "contoso"
+  zone_name           = azurerm_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  ttl                 = 3600
+  record              = azurerm_cdn_frontdoor_endpoint.example.host_name
 }
 
 resource "azurerm_dns_cname_record" "fabrikam" {
   depends_on = [azurerm_cdn_frontdoor_custom_domain_secret_validator.example]
 
-  name                                           = "fabrikam"
-  zone_name                                      = azurerm_dns_zone.example.name
-  resource_group_name                            = azurerm_resource_group.example.name
-  ttl                                            = 3600
-  record                                         = azurerm_cdn_frontdoor_endpoint.example.host_name
+  name                = "fabrikam"
+  zone_name           = azurerm_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  ttl                 = 3600
+  record              = azurerm_cdn_frontdoor_endpoint.example.host_name
 }

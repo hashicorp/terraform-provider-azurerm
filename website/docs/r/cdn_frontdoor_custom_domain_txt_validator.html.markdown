@@ -45,7 +45,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "contoso" {
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = join(".", ["contoso", azurerm_dns_zone.example.name])
 
-  tls_settings {
+  tls {
     certificate_type    = "ManagedCertificate"
     minimum_tls_version = "TLS12"
   }

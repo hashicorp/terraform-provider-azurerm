@@ -123,7 +123,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_size                        = 16
+    sample_count                       = 16
     successful_samples_required        = 3
   }
 }
@@ -141,7 +141,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "import" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_size                        = 16
+    sample_count                       = 16
     successful_samples_required        = 3
   }
 }
@@ -156,6 +156,9 @@ func (r CdnFrontdoorOriginGroupResource) complete(data acceptance.TestData) stri
 resource "azurerm_cdn_frontdoor_origin_group" "test" {
   name                     = "accTestOriginGroup-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  session_affinity_enabled = true
+
+  restore_traffic_or_new_endpoints_after_minutes = 10
 
   health_probe {
     interval_in_seconds = 240
@@ -166,12 +169,9 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_size                        = 16
+    sample_count                       = 16
     successful_samples_required        = 3
   }
-
-  session_affinity                      = true
-  restore_traffic_or_new_endpoints_time = 10
 }
 `, template, data.RandomInteger)
 }
@@ -184,6 +184,9 @@ func (r CdnFrontdoorOriginGroupResource) update(data acceptance.TestData) string
 resource "azurerm_cdn_frontdoor_origin_group" "test" {
   name                     = "accTestOriginGroup-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  session_affinity_enabled = false
+
+  restore_traffic_or_new_endpoints_after_minutes = 15
 
   health_probe {
     interval_in_seconds = 120
@@ -194,12 +197,9 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
 
   load_balancing {
     additional_latency_in_milliseconds = 32
-    sample_size                        = 32
+    sample_count                       = 32
     successful_samples_required        = 5
   }
-
-  session_affinity                      = false
-  restore_traffic_or_new_endpoints_time = 15
 }
 `, template, data.RandomInteger)
 }

@@ -143,7 +143,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_size                        = 16
+    sample_count                       = 16
     successful_samples_required        = 3
   }
 }
@@ -153,7 +153,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
 
   health_probes_enabled          = true
-  enforce_certificate_name_check = false
+  certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80
   https_port                     = 443
@@ -236,7 +236,7 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 
   name                      = "accTestRule%d"
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
-  match_processing_behavior = "Continue"
+  behavior_on_match         = "Continue"
   order                     = 1
 
   actions {
@@ -308,7 +308,7 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 
   name                      = "accTestRule%d"
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
-  match_processing_behavior = "Stop"
+  behavior_on_match         = "Stop"
   order                     = 2
 
   actions {

@@ -73,9 +73,9 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 				ValidateFunc: validate.FrontdoorCustomDomainID,
 			},
 
-			"tls_settings": {
+			"tls": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 
 				Elem: &pluginsdk.Resource{
@@ -169,7 +169,7 @@ func resourceCdnFrontdoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 			HostName:                           utils.String(d.Get("host_name").(string)),
 			AzureDNSZone:                       expandResourceReference(d.Get("dns_zone_id").(string)),
 			PreValidatedCustomDomainResourceID: expandResourceReference(d.Get("pre_validated_cdn_frontdoor_custom_domain_id").(string)),
-			TLSSettings:                        expandCustomDomainAFDDomainHttpsParameters(d.Get("tls_settings").([]interface{})),
+			TLSSettings:                        expandCustomDomainAFDDomainHttpsParameters(d.Get("tls").([]interface{})),
 		},
 	}
 
@@ -231,8 +231,8 @@ func resourceCdnFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 			return fmt.Errorf("setting `pre_validated_cdn_frontdoor_custom_domain_id`: %+v", err)
 		}
 
-		if err := d.Set("tls_settings", flattenCustomDomainAFDDomainHttpsParameters(props.TLSSettings)); err != nil {
-			return fmt.Errorf("setting `tls_settings`: %+v", err)
+		if err := d.Set("tls", flattenCustomDomainAFDDomainHttpsParameters(props.TLSSettings)); err != nil {
+			return fmt.Errorf("setting `tls`: %+v", err)
 		}
 
 		if err := d.Set("validation_properties", flattenCustomDomainDomainValidationProperties(props.ValidationProperties)); err != nil {
@@ -257,7 +257,7 @@ func resourceCdnFrontdoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		AFDDomainUpdatePropertiesParameters: &track1.AFDDomainUpdatePropertiesParameters{
 			AzureDNSZone:                       expandResourceReference(d.Get("dns_zone_id").(string)),
 			PreValidatedCustomDomainResourceID: expandResourceReference(d.Get("pre_validated_cdn_frontdoor_custom_domain_id").(string)),
-			TLSSettings:                        expandCustomDomainAFDDomainHttpsParameters(d.Get("tls_settings").([]interface{})),
+			TLSSettings:                        expandCustomDomainAFDDomainHttpsParameters(d.Get("tls").([]interface{})),
 		},
 	}
 
