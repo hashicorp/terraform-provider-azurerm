@@ -43,20 +43,6 @@ func TestAccPortalDashboard_complete(t *testing.T) {
 	})
 }
 
-func TestAccPortalDashboard_withoutDashboardProperties(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_portal_dashboard", "test")
-	r := PortalDashboardResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withoutDashboardProperties(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (PortalDashboardResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DashboardID(state.ID)
 	if err != nil {
@@ -172,26 +158,6 @@ resource "azurerm_portal_dashboard" "test" {
 	}
 }
 DASH
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (PortalDashboardResource) withoutDashboardProperties(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_portal_dashboard" "test" {
-  name                = "my-test-dashboard"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  dashboard_properties = ""
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
