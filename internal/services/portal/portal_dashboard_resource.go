@@ -84,21 +84,15 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	dashboard := portal.Dashboard{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-		DashboardProperties: &portal.DashboardProperties{
-			Lenses:   map[string]*portal.DashboardLens{},
-			Metadata: map[string]interface{}{},
-		},
 	}
 
-	if v, ok := d.GetOk("dashboard_properties"); ok {
-		var dashboardProperties portal.DashboardProperties
+	var dashboardProperties portal.DashboardProperties
 
-		dashboardPropsRaw := v.(string)
-		if err := json.Unmarshal([]byte(dashboardPropsRaw), &dashboardProperties); err != nil {
-			return fmt.Errorf("parsing JSON: %+v", err)
-		}
-		dashboard.DashboardProperties = &dashboardProperties
+	dashboardPropsRaw := d.Get("dashboard_properties").(string)
+	if err := json.Unmarshal([]byte(dashboardPropsRaw), &dashboardProperties); err != nil {
+		return fmt.Errorf("parsing JSON: %+v", err)
 	}
+	dashboard.DashboardProperties = &dashboardProperties
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, dashboard); err != nil {
 		return fmt.Errorf("creating/updating %s %+v", id, err)
@@ -134,15 +128,11 @@ func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("location", azure.NormalizeLocation(*resp.Location))
 	}
 
-	var dashboardProperties string
-	if resp.DashboardProperties != nil {
-		props, jsonErr := json.Marshal(resp.DashboardProperties)
-		if jsonErr != nil {
-			return fmt.Errorf("parsing JSON for Dashboard Properties: %+v", jsonErr)
-		}
-		dashboardProperties = string(props)
+	props, jsonErr := json.Marshal(resp.DashboardProperties)
+	if jsonErr != nil {
+		return fmt.Errorf("parsing JSON for Dashboard Properties: %+v", jsonErr)
 	}
-	d.Set("dashboard_properties", dashboardProperties)
+	d.Set("dashboard_properties", string(props))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
