@@ -6,17 +6,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -51,10 +51,11 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 			"location":            azure.SchemaLocation(),
 			"tags":                tags.Schema(),
 			"dashboard_properties": {
-				Type:      pluginsdk.TypeString,
-				Optional:  true,
-				Computed:  true,
-				StateFunc: utils.NormalizeJson,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				StateFunc:    utils.NormalizeJson,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
@@ -83,15 +84,21 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	dashboard := portal.Dashboard{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		DashboardProperties: &portal.DashboardProperties{
+			Lenses:   map[string]*portal.DashboardLens{},
+			Metadata: map[string]interface{}{},
+		},
 	}
 
-	var dashboardProperties portal.DashboardProperties
+	if v, ok := d.GetOk("dashboard_properties"); ok {
+		var dashboardProperties portal.DashboardProperties
 
-	dashboardPropsRaw := d.Get("dashboard_properties").(string)
-	if err := json.Unmarshal([]byte(dashboardPropsRaw), &dashboardProperties); err != nil {
-		return fmt.Errorf("parsing JSON: %+v", err)
+		dashboardPropsRaw := v.(string)
+		if err := json.Unmarshal([]byte(dashboardPropsRaw), &dashboardProperties); err != nil {
+			return fmt.Errorf("parsing JSON: %+v", err)
+		}
+		dashboard.DashboardProperties = &dashboardProperties
 	}
-	dashboard.DashboardProperties = &dashboardProperties
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, dashboard); err != nil {
 		return fmt.Errorf("creating/updating %s %+v", id, err)
@@ -127,11 +134,15 @@ func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("location", azure.NormalizeLocation(*resp.Location))
 	}
 
-	props, jsonErr := json.Marshal(resp.DashboardProperties)
-	if jsonErr != nil {
-		return fmt.Errorf("parsing JSON for Dashboard Properties: %+v", jsonErr)
+	var dashboardProperties string
+	if resp.DashboardProperties != nil {
+		props, jsonErr := json.Marshal(resp.DashboardProperties)
+		if jsonErr != nil {
+			return fmt.Errorf("parsing JSON for Dashboard Properties: %+v", jsonErr)
+		}
+		dashboardProperties = string(props)
 	}
-	d.Set("dashboard_properties", string(props))
+	d.Set("dashboard_properties", dashboardProperties)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
