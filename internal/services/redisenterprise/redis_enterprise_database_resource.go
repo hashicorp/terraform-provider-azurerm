@@ -1,6 +1,7 @@
 package redisenterprise
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -463,6 +464,7 @@ func resourceRedisEnterpriseDatabaseUpdate(d *pluginsdk.ResourceData, meta inter
 
 func resourceRedisEnterpriseDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
+	clusterClient := meta.(*clients.Client).RedisEnterprise.Client
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -471,11 +473,44 @@ func resourceRedisEnterpriseDatabaseDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+	dbId := databases.NewDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.DatabaseName)
+	clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
+
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
+	}
+
+	// can't use the poll since cluster deletion also deletes the default database, which will case db deletion failure
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"found"},
+		Target:                    []string{"clusterNotFound", "dbNotFound"},
+		Refresh:                   redisEnterpriseDatabaseDeleteRefreshFunc(ctx, client, clusterClient, clusterId, dbId),
+		ContinuousTargetOccurence: 3,
+		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for deletion %s: %+v", id, err)
 	}
 
 	return nil
+}
+func redisEnterpriseDatabaseDeleteRefreshFunc(ctx context.Context, databaseClient *databases.DatabasesClient, clusterClient *redisenterprise.RedisEnterpriseClient, clusterId redisenterprise.RedisEnterpriseId, databaseId databases.DatabaseId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		cluster, err := clusterClient.Get(ctx, clusterId)
+		if err != nil {
+			if response.WasNotFound(cluster.HttpResponse) {
+				return "clusterNotFound", "clusterNotFound", nil
+			}
+		}
+		db, err := databaseClient.Get(ctx, databaseId)
+		if err != nil {
+			if response.WasNotFound(db.HttpResponse) {
+				return "dbNotFound", "dbNotFound", nil
+			}
+		}
+		return db, "found", nil
+	}
 }
 
 func expandArmDatabaseModuleArray(input []interface{}, isGeoEnabled bool) (*[]databases.Module, error) {
