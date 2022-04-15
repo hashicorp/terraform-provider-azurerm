@@ -71,6 +71,13 @@ func TestAccStreamAnalyticsOutputSql_maxBatchCountAndMaxWriterCount(t *testing.T
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
+		{
 			Config: r.maxBatchCountAndMaxWriterCount(data, 10001, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -79,6 +86,13 @@ func TestAccStreamAnalyticsOutputSql_maxBatchCountAndMaxWriterCount(t *testing.T
 		data.ImportStep("password"),
 		{
 			Config: r.maxBatchCountAndMaxWriterCount(data, 10002, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
