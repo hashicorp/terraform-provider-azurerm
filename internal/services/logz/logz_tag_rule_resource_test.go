@@ -21,7 +21,7 @@ func TestAccLogzTagRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
 	email := uuid.New().String()
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, email),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -36,7 +36,7 @@ func TestAccLogzTagRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
 	email := uuid.New().String()
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, email),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -54,7 +54,7 @@ func TestAccLogzTagRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
 	email := uuid.New().String()
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, email),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -69,7 +69,7 @@ func TestAccLogzTagRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
 	email := uuid.New().String()
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, email),
 			Check: acceptance.ComposeTestCheckFunc(
