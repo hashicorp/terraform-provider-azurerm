@@ -350,7 +350,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			availabilityRequest := web.ResourceNameAvailabilityRequest{
-				Name: utils.String(functionAppSlot.Name),
+				Name: utils.String(fmt.Sprintf("%s-%s", functionAppId.SiteName, functionAppSlot.Name)),
 				Type: web.CheckNameResourceTypesMicrosoftWebsites,
 			}
 
