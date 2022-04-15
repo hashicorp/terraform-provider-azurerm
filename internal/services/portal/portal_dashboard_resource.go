@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -52,11 +51,10 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 			"location":            azure.SchemaLocation(),
 			"tags":                tags.Schema(),
 			"dashboard_properties": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				StateFunc:    utils.NormalizeJson,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:      pluginsdk.TypeString,
+				Optional:  true,
+				Computed:  true,
+				StateFunc: utils.NormalizeJson,
 			},
 		},
 	}
