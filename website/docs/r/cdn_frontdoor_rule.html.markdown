@@ -62,12 +62,12 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
   health_probes_enabled          = true
   certificate_name_check_enabled = false
 
-  host_name                      = azurerm_cdn_frontdoor_endpoint.example.host_name
-  http_port                      = 80
-  https_port                     = 443
-  origin_host_header             = "contoso.com"
-  priority                       = 1
-  weight                         = 500
+  host_name          = azurerm_cdn_frontdoor_endpoint.example.host_name
+  http_port          = 80
+  https_port         = 443
+  origin_host_header = "contoso.com"
+  priority           = 1
+  weight             = 500
 }
 
 resource "azurerm_cdn_frontdoor_rule_set" "example" {
