@@ -19,7 +19,7 @@ tools:
 	go install mvdan.cc/gofumpt@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.45.0
 
-build: fmtcheck gdenerate
+build: fmtcheck generate
 	go install
 
 fmt:
