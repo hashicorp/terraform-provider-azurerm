@@ -198,8 +198,18 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("database", v.Database)
 		d.Set("table", v.Table)
 		d.Set("user", v.User)
-		d.Set("max_batch_count", v.MaxBatchCount)
-		d.Set("max_writer_count", v.MaxWriterCount)
+
+		maxBatchCount := float64(10000)
+		if v.MaxBatchCount != nil {
+			maxBatchCount = *v.MaxBatchCount
+		}
+		d.Set("max_batch_count", maxBatchCount)
+
+		maxWriterCount := float64(1)
+		if v.MaxWriterCount != nil {
+			maxWriterCount = *v.MaxWriterCount
+		}
+		d.Set("max_writer_count", maxWriterCount)
 	}
 
 	return nil
