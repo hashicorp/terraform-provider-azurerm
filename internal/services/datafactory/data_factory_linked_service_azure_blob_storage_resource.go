@@ -57,6 +57,17 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
 			},
 
+			"storage_kind": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Storage",
+					"StorageV2",
+					"BlobStorage",
+					"BlockBlobStorage",
+				}, false),
+			},
+
 			"sas_uri": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -242,6 +253,10 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 		blobStorageLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
 	}
 
+	if v, ok := d.GetOk("storage_kind"); ok {
+		blobStorageLinkedService.AccountKind = utils.String(v.(string))
+	}
+
 	if v, ok := d.GetOk("additional_properties"); ok {
 		blobStorageLinkedService.AdditionalProperties = v.(map[string]interface{})
 	}
@@ -309,6 +324,7 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 	}
 
 	if properties := blobStorage.AzureBlobStorageLinkedServiceTypeProperties; properties != nil {
+		d.Set("storage_kind", properties.AccountKind)
 		if sasToken := properties.SasToken; sasToken != nil {
 			if keyVaultPassword, ok := sasToken.AsAzureKeyVaultSecretReference(); ok {
 				if err := d.Set("key_vault_sas_token", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {

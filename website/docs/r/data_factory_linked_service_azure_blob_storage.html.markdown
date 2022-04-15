@@ -125,6 +125,8 @@ A `key_vault_sas_token` block supports the following:
 
 * `service_principal_key` - (Optional) The service principal key in which to authenticate against the AAzure Blob Storage account.  Required if `service_principal_id` is set.
 
+* `storage_kind` - (Optional) Specify the kind of the storage account. Allowed values are `Storage`, `StorageV2`, `BlobStorage` and `BlockBlobStorage`.
+
 * `tenant_id` - (Optional) The tenant id or name in which to authenticate against the Azure Blob Storage account.
 
 ## Attributes Reference
