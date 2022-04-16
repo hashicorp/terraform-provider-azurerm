@@ -132,7 +132,7 @@ The following arguments are supported:
 
 A `private_link` block supports the following
 
-* `request_message` - (Required) The request message the `private_link_target_id` will recieve when the Frontdoor Private Origin is requesting approval for the private link connection(e.g.`Request access for Private Link Origin CDN Frontdoor`).
+* `request_message` - (Required) The request message the `private_link_target_id` will receive when the Frontdoor Private Origin is requesting approval for the private link connection(e.g.`Request access for Private Link Origin CDN Frontdoor`).
 
 * `target_type` - (Optional) `TBD` (`**NOTE:**` as of right now I know these are valid `blob`, `blob_secondary` or `site`. This value is not valid for `Load Balancer` resources).
 
