@@ -78,6 +78,23 @@ func TestAccCdnFrontdoorOrigin_update(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontdoorOrigin_privateLinkBlobPrimary(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
+	r := CdnFrontdoorOriginResource{}
+
+	// NOTE: The Private Link will not be approved at this point but it will
+	// be created. There is currently no way to automate the approval process.
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateLinkBlobPrimary(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CdnFrontdoorOriginResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontdoorOriginID(state.ID)
 	if err != nil {
@@ -123,6 +140,62 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r CdnFrontdoorOriginResource) templatePremium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-afdx-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "accTestProfile-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Premium_AzureFrontDoor"
+}
+
+resource "azurerm_cdn_frontdoor_origin_group" "test" {
+  name                     = "accTestOriginGroup-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_count                       = 16
+    successful_samples_required        = 3
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r CdnFrontdoorOriginResource) templatePrivateLink(data acceptance.TestData) string {
+	template := r.templatePremium(data)
+	return fmt.Sprintf(`
+
+	%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+
+  allow_nested_items_to_be_public = false
+
+  network_rules {
+    default_action = "Deny"
+  }
+
+  tags = {
+    environment = "Test"
+  }
+}
+`, template, data.RandomString)
 }
 
 func (r CdnFrontdoorOriginResource) basic(data acceptance.TestData) string {
@@ -205,6 +278,32 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   origin_host_header             = "www.contoso.com"
   priority                       = 1
   weight                         = 1
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontdoorOriginResource) privateLinkBlobPrimary(data acceptance.TestData) string {
+	template := r.templatePrivateLink(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_origin" "test" {
+  name                          = "accTestOrigin-%d"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+
+  health_probes_enabled          = true
+  certificate_name_check_enabled = true
+  host_name                      = azurerm_storage_account.test.primary_blob_host
+  origin_host_header             = azurerm_storage_account.test.primary_blob_host
+  priority                       = 1
+  weight                         = 500
+
+  private_link {
+    request_message        = "Request access for Private Link Origin AFDx"
+    target_type            = "blob"
+    location               = azurerm_resource_group.test.location
+    private_link_target_id = azurerm_storage_account.test.id
+  }
 }
 `, template, data.RandomInteger)
 }

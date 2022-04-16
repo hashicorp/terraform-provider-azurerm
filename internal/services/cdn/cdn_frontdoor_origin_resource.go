@@ -119,7 +119,7 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 
-						"approval_message": { // A custom message to be included in the approval request to connect to the Private Link.
+						"request_message": { // A custom message to be included in the approval request to connect to the Private Link.
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -131,7 +131,18 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"private_link_service_id": { // The Resource Id of the Private Link resource.
+						// TODO: Add validation check if this is not a Load Balancer that this is required
+						"target_type": { // The type of the target resource that the Private Link resource will attempt to connect too.
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"blob",
+								"blob_secondary",
+								"site",
+							}, false),
+						},
+
+						"private_link_target_id": { // The Resource Id of the Private Link resource.
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
@@ -200,6 +211,7 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 
 	props := track1.AFDOrigin{
 		AFDOriginProperties: &track1.AFDOriginProperties{
+			// AzureOrigin is currently not used, service team asked me to temporarily remove it from the resource
 			// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
 			EnabledState:                ConvertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
@@ -394,16 +406,18 @@ func expandPrivateLinkSettings(input []interface{}) *track1.SharedPrivateLinkRes
 
 	config := input[0].(map[string]interface{})
 
-	resourceId := config["private_link_service_id"].(string)
+	resourceId := config["private_link_target_id"].(string)
 	location := config["location"].(string)
-	approvalMessage := config["approval_message"].(string)
+	groupId := config["target_type"].(string)
+	requestMessage := config["request_message"].(string)
 
 	privateLinkResource := track1.SharedPrivateLinkResourceProperties{
 		PrivateLink: &track1.ResourceReference{
-			ID: &resourceId,
+			ID: utils.String(resourceId),
 		},
-		PrivateLinkLocation: &location,
-		RequestMessage:      &approvalMessage,
+		GroupID:             utils.String(groupId),
+		PrivateLinkLocation: utils.String(location),
+		RequestMessage:      utils.String(requestMessage),
 	}
 
 	return &privateLinkResource
@@ -414,18 +428,25 @@ func flattenPrivateLinkSettings(input *track1.SharedPrivateLinkResourcePropertie
 	if input == nil {
 		return results
 	}
+	result := make(map[string]interface{})
 
-	// resourceId := config["resource_id"].(string)
-	// location := config["location"].(string)
-	// approvalMessage := config["approval_message"].(string)
+	if input.PrivateLink.ID != nil {
+		result["private_link_target_id"] = input.PrivateLink.ID
+	}
 
-	// privateLinkResource := track1.SharedPrivateLinkResourceProperties{
-	// 	PrivateLink: &track1.ResourceReference{
-	// 		ID: &resourceId,
-	// 	},
-	// 	PrivateLinkLocation: &location,
-	// 	RequestMessage:      &approvalMessage,
-	// }
+	if input.PrivateLinkLocation != nil {
+		result["location"] = input.PrivateLinkLocation
+	}
+
+	if input.RequestMessage != nil {
+		result["request_message"] = input.RequestMessage
+	}
+
+	if input.GroupID != nil {
+		result["target_type"] = input.GroupID
+	}
+
+	results = append(results, result)
 
 	return results
 }

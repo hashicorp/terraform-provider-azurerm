@@ -179,7 +179,7 @@ The `custom_rule` block supports the following:
 
 ---
 
-The `match_condition` block supports the following:
+A `match_condition` block supports the following:
 
 * `match_variable` - (Required) The request variable to compare with. Possible values are `Cookies`, `PostArgs`, `QueryString`, `RemoteAddr`, `RequestBody`, `RequestHeader`, `RequestMethod`, `RequestUri`, or `SocketAddr`.
 
@@ -195,7 +195,7 @@ The `match_condition` block supports the following:
 
 ---
 
-The `managed_rule` block supports the following:
+A `managed_rule` block supports the following:
 
 * `type` - (Required) The name of the managed rule to use with this resource.
 
@@ -207,7 +207,7 @@ The `managed_rule` block supports the following:
 
 ---
 
-The `override` block supports the following:
+A `override` block supports the following:
 
 * `rule_group_name` - (Required) The managed rule group to override.
 
@@ -217,7 +217,7 @@ The `override` block supports the following:
 
 ---
 
-The `rule` block supports the following:
+A `rule` block supports the following:
 
 * `rule_id` - (Required) Identifier for the managed rule.
 
@@ -229,7 +229,7 @@ The `rule` block supports the following:
 
 ---
 
-The `exclusion` block supports the following:
+A `exclusion` block supports the following:
 
 * `match_variable` - (Required) The variable type to be excluded. Possible values are `QueryStringArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`.
 

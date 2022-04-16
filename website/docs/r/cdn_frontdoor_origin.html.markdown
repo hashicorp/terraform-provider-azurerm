@@ -44,6 +44,62 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
 }
 ```
 
+## Example Usage With Private Link
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-frontdoor-profile"
+  location = "West Europe"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "saexample"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+
+  allow_nested_items_to_be_public = false
+
+  network_rules {
+    default_action = "Deny"
+  }
+
+  tags = {
+    environment = "Example"
+  }
+}
+
+resource "azurerm_frontdoor_profile" "example" {
+  name                = "example-profile"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_cdn_frontdoor_origin_group" "example" {
+  name                     = "example-originGroup"
+  cdn_frontdoor_profile_id = azurerm_frontdoor_profile.example.id
+}
+
+resource "azurerm_cdn_frontdoor_origin" "example" {
+  name                          = "example-origin"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+
+  health_probes_enabled          = true
+  certificate_name_check_enabled = true
+  host_name                      = azurerm_storage_account.example.primary_blob_host
+  origin_host_header             = azurerm_storage_account.example.primary_blob_host
+  priority                       = 1
+  weight                         = 500
+
+  private_link {
+    request_message        = "Request access for Private Link Origin CDN Frontdoor"
+    target_type            = "blob"
+    location               = azurerm_storage_account.example.location
+    private_link_target_id = azurerm_storage_account.example.id
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -60,9 +116,9 @@ The following arguments are supported:
 
 * `certificate_name_check_enabled` - (Optional) Whether to enable certificate name check at origin level. Possible values are `true` or `false`. Defaults to `false`.
 
-* `private_link` - (Optional) TBD.
+* `private_link` - (Optional) A `private_link` block as defined below.
 
-->**NOTE:** To include a `private_link` in the Frontdoor Origin your Frontdoor Profile must be a `Premium_AzureFrontDoor` SKU and the `certificate_name_check_enabled` field must be set to `true`.
+->**NOTE:** A `private_link` field is only valid if the Frontdoor Origins `sku_name` is a `Premium_AzureFrontDoor` SKU and the `certificate_name_check_enabled` field is set to `true`.
 
 * `http_port` - (Optional) The value of the HTTP port. Must be between `1` and `65535`. Defaults to `80`.
 
@@ -72,7 +128,17 @@ The following arguments are supported:
 
 * `priority` - (Optional) Priority of origin in given origin group for load balancing. Higher priorities will not be used for load balancing if any lower priority origin is healthy.Must be between `1` and `5`(inclusive). Defaults to `1`.
 
-* `weight` - (Optional) Weight of the origin in given origin group for load balancing. Must be between `1` and `1000`(inclusive). Defaults to `500`.
+---
+
+A `private_link` block supports the following
+
+* `request_message` - (Required) The request message the `private_link_target_id` will recieve when the Frontdoor Private Origin is requesting approval for the private link connection(e.g.`Request access for Private Link Origin CDN Frontdoor`).
+
+* `target_type` - (Optional) `TBD` (`**NOTE:**` as of right now I know these are valid `blob`, `blob_secondary` or `site`. This value is not valid for `Load Balancer` resources).
+
+* `location` - (Required) The location of the private link resource, for performance reasons this value should match the location of the `private_link_target_id` resource.
+
+* `private_link_target_id` - (Required) The resource ID of the Azure resource to connect to via the private link(e.g. `azurerm_storage_account.example.id`).
 
 ---
 
