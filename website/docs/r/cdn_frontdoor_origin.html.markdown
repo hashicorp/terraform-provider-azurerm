@@ -118,7 +118,7 @@ The following arguments are supported:
 
 * `private_link` - (Optional) A `private_link` block as defined below.
 
-->**NOTE:** A `private_link` field is only valid if the Frontdoor Origins `sku_name` is a `Premium_AzureFrontDoor` SKU and the `certificate_name_check_enabled` field is set to `true`.
+->**NOTE:** A `private_link` field is only valid if the Frontdoor Profile is a `Premium_AzureFrontDoor` SKU and the Frontdoor Origins `certificate_name_check_enabled` field is set to `true`.
 
 * `http_port` - (Optional) The value of the HTTP port. Must be between `1` and `65535`. Defaults to `80`.
 
@@ -130,11 +130,13 @@ The following arguments are supported:
 
 ---
 
-A `private_link` block supports the following
+A `private_link` block supports the following:
 
-* `request_message` - (Required) The request message the `private_link_target_id` will receive when the Frontdoor Private Origin is requesting approval for the private link connection(e.g.`Request access for Private Link Origin CDN Frontdoor`).
+!>**IMPORTANT:** The approval of the Private Link Endpoint is currently a manual step in this process. For more information please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/private-link).
 
-* `target_type` - (Optional) `TBD` (`**NOTE:**` as of right now I know these are valid `blob`, `blob_secondary` or `site`. This value is not valid for `Load Balancer` resources).
+* `request_message` - (Optional) The request message that will be submitted to the `private_link_target_id` when requesting the private link connection. Defaults to `Access request for CDN Frontdoor Private Link Origin`.
+
+* `target_type` - (Optional) `TBD` (`**NOTE:**` as of right now I know these are valid `blob`, `secondary_blob` or `sites`. This value is not valid for `Load Balancer` resources).
 
 * `location` - (Required) The location of the private link resource, for performance reasons this value should match the location of the `private_link_target_id` resource.
 

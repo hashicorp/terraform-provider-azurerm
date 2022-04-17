@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
+	privateLinkServiceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -119,30 +120,26 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 
-						"request_message": { // A custom message to be included in the approval request to connect to the Private Link.
+						"request_message": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "Access request for CDN Frontdoor Private Link Origin",
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"location": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"location": { // The location of the Private Link resource.
+						"target_type": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(ValidPrivateLinkTargetTypes(), false),
 						},
 
-						// TODO: Add validation check if this is not a Load Balancer that this is required
-						"target_type": { // The type of the target resource that the Private Link resource will attempt to connect too.
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"blob",
-								"blob_secondary",
-								"site",
-							}, false),
-						},
-
-						"private_link_target_id": { // The Resource Id of the Private Link resource.
+						"private_link_target_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
@@ -233,6 +230,16 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 			if !enableCertNameCheck {
 				return fmt.Errorf("%q requires that the %q field be set to %q, got %q", "private_link", "certificate_name_check_enabled", "true", "false")
 			} else {
+				// Check if this a Load Balancer Private Link or not, the Load Balancer Private Link requires
+				// that you stand up your own Private Link Service, which is why I am attempting to parse a
+				// Private Link Service ID here...
+				settings := privateLinkSettings[0].(map[string]interface{})
+				targetType := settings["target_type"].(string)
+				_, err := privateLinkServiceParse.PrivateLinkServiceID(settings["private_link_target_id"].(string))
+				if err != nil && targetType == "" {
+					// It is not a Load Balancer and the Target Type is empty, which is invalid...
+					return fmt.Errorf("the %[1]q block requires that you define the %[2]q field if the %[1]q is not a Load Balancer, expected %[3]s got %[4]q", "private_link", "target_type", azure.QuotedStringSlice(ValidPrivateLinkTargetTypes()), targetType)
+				}
 				props.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLinkSettings)
 			}
 		} else {
@@ -354,6 +361,16 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 				if !enableCertNameCheck {
 					return fmt.Errorf("%q requires that the %q field be set to %q, got %q", "private_link", "certificate_name_check_enabled", "true", "false")
 				} else {
+					// Check if this a Load Balancer Private Link or not, the Load Balancer Private Link requires
+					// that you stand up your own Private Link Service, which is why I am attempting to parse a
+					// Private Link Service ID here...
+					settings := privateLinkSettings[0].(map[string]interface{})
+					targetType := settings["target_type"].(string)
+					_, err := privateLinkServiceParse.PrivateLinkServiceID(settings["private_link_target_id"].(string))
+					if err != nil && targetType == "" {
+						// It is not a Load Balancer and the Target Type is empty, which is invalid...
+						return fmt.Errorf("the %[1]q block requires that you define the %[2]q field if the %[1]q is not a Load Balancer, expected %[3]s got %[4]q", "private_link", "target_type", azure.QuotedStringSlice(ValidPrivateLinkTargetTypes()), targetType)
+					}
 					props.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLinkSettings)
 				}
 			} else {
@@ -382,6 +399,13 @@ func resourceCdnFrontdoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	// TODO: Check to see if there is a Load Balancer Private Link connected,
+	// if so disconnect the Private Link association with the Frontdoor Origin
+	// else the destroy will fail because the Private Link Service has an active
+	// Private Link Endpoint connection...
+
+	// It looks like Frontdoor does remove the Private link, I just need to poll here until it is removed...
+	// Investigate this further...
 	id, err := parse.FrontdoorOriginID(d.Id())
 	if err != nil {
 		return err

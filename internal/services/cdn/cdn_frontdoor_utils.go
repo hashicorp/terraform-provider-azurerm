@@ -13,6 +13,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+func ValidPrivateLinkTargetTypes() []string {
+	return []string{"blob", "secondary_blob", "sites"}
+}
+
 func ConvertCdnFrontdoorTags(tagMap *map[string]string) map[string]*string {
 	t := make(map[string]*string)
 
