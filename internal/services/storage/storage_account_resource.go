@@ -965,7 +965,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
 	allowBlobPublicAccess := d.Get("allow_nested_items_to_be_public").(bool)
 	allowSharedKeyAccess := d.Get("shared_access_key_enabled").(bool)
-	crossTenantReplication := d.Get("cross_tenant_replication").(bool)
+	crossTenantReplication := d.Get("cross_tenant_replication_enabled").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -1314,8 +1314,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 	}
 
-	if d.HasChange("cross_tenant_replication") {
-		crossTenantReplication := d.Get("cross_tenant_replication").(bool)
+	if d.HasChange("cross_tenant_replication_enabled") {
+		crossTenantReplication := d.Get("cross_tenant_replication_enabled").(bool)
 		opts.AccountPropertiesUpdateParameters.AllowCrossTenantReplication = &crossTenantReplication
 	}
 
@@ -1722,7 +1722,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("nfsv3_enabled", props.EnableNfsV3)
 
 		if crossTenantReplication := props.AllowCrossTenantReplication; crossTenantReplication != nil {
-			d.Set("cross_tenant_replication", crossTenantReplication)
+			d.Set("cross_tenant_replication_enabled", crossTenantReplication)
 		}
 
 		// There is a certain edge case that could result in the Azure API returning a null value for AllowBLobPublicAccess.
