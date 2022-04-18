@@ -46,6 +46,8 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `restrict_outbound_network_access` - (Required) Whether or not to restrict outbound network access.  Value is optional but if passed in, must be `Enabled` or `Disabled`.
+
 * `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
@@ -69,6 +71,10 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `trusted_external_tenants` - (Optional) Specifies a list of tenant IDs that are trusted by the cluster. Default setting trusts all other tenants. Use `trusted_external_tenants = ["*"]` to explicitly allow all other tenants, `trusted_external_tenants = ["MyTenantOnly"]` for only your tenant or `trusted_external_tenants = ["<tenantId1>", "<tenantIdx>"]` to allow specific other tenants.
+
+* `allowed_ip_range_list` - (Optional) The list of ips in the format of CIDR allowed to connect to the cluster.
+
+* `allowed_fqdn_list` - (Optional) List of allowed FQDNs(Fully Qualified Domain Name) for egress from Cluster.
 
 ~> **NOTE:** In v3.0 of `azurerm` a new or updated Kusto Cluster will only allow your own tenant by default. Explicit configuration of this setting will change from `trusted_external_tenants = ["MyTenantOnly"]` to `trusted_external_tenants = []`.
 
