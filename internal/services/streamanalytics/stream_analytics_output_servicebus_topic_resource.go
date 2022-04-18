@@ -90,20 +90,8 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						"ContentType",
-						"CorrelationId",
-						"Label",
-						"MessageId",
-						"PartitionKey",
-						"ReplyTo",
-						"ReplyToSessionId",
-						"ScheduledEnqueueTimeUtc",
-						"SessionId",
-						"TimeToLive",
-						"To",
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
