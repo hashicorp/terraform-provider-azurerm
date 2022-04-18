@@ -31,7 +31,7 @@ func validateCIDR(i interface{}, k string) (warnings []string, errors []error) {
 		return
 	}
 
-	if classA.IP.Equal(ipnet.IP) || classB.IP.Equal(ipnet.IP) || classC.IP.Equal(ipnet.IP) {
+	if classA.Contains(ipnet.IP) || classB.Contains(ipnet.IP) || classC.Contains(ipnet.IP) {
 	} else {
 		errors = append(errors, fmt.Errorf("%s is not valid CIDR. Got %q.", k, cidr))
 	}
