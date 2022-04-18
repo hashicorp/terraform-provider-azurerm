@@ -18,6 +18,27 @@ func CIDR(i interface{}, k string) (warnings []string, errors []error) {
 	return warnings, errors
 }
 
+func validateCIDR(i interface{}, k string) (warnings []string, errors []error) {
+	cidr := i.(string)
+
+	_, classA, _ := net.ParseCIDR("10.0.0.0/8")
+	_, classB, _ := net.ParseCIDR("172.16.0.0/12")
+	_, classC, _ := net.ParseCIDR("192.168.0.0/16")
+
+	_, ipnet, err := net.ParseCIDR(cidr)
+	if err != nil {
+		errors = append(errors, err)
+		return
+	}
+
+	if classA.IP.Equal(ipnet.IP) || classB.IP.Equal(ipnet.IP) || classC.IP.Equal(ipnet.IP) {
+	} else {
+		errors = append(errors, fmt.Errorf("%s is not valid CIDR. Got %q.", k, cidr))
+	}
+
+	return warnings, errors
+}
+
 func IPv4Address(i interface{}, k string) (warnings []string, errors []error) {
 	return validateIpv4Address(i, k, false)
 }
