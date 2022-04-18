@@ -442,10 +442,8 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("optimization_type", string(props.OptimizationType))
 
 		compressionEnabled := false
-		if _, ok := d.GetOk("is_compression_enabled"); ok {
-			if v := props.IsCompressionEnabled; v != nil {
-				compressionEnabled = *v
-			}
+		if v := props.IsCompressionEnabled; v != nil {
+			compressionEnabled = *v
 		}
 		d.Set("is_compression_enabled", compressionEnabled)
 

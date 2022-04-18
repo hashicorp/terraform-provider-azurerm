@@ -753,6 +753,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
+  version                = "8.0.21"
 
   high_availability {
     mode                      = "ZoneRedundant"
@@ -775,6 +776,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
+  version                = "8.0.21"
 
   high_availability {
     mode                      = "ZoneRedundant"
@@ -814,6 +816,8 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   sku_name               = "GP_Standard_D4ds_v4"
+  version                = "8.0.21"
+  zone                   = "1"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -828,6 +832,8 @@ resource "azurerm_mysql_flexible_server" "replica" {
   location            = azurerm_resource_group.test.location
   create_mode         = "Replica"
   source_server_id    = azurerm_mysql_flexible_server.test.id
+  version             = "8.0.21"
+  zone                = "1"
 }
 `, r.source(data), data.RandomInteger)
 }
@@ -843,6 +849,8 @@ resource "azurerm_mysql_flexible_server" "replica" {
   create_mode         = "Replica"
   source_server_id    = azurerm_mysql_flexible_server.test.id
   replication_role    = "None"
+  version             = "8.0.21"
+  zone                = "1"
 }
 `, r.source(data), data.RandomInteger)
 }
@@ -889,6 +897,8 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_password       = "QAZwsx123"
   sku_name                     = "GP_Standard_D4ds_v4"
   geo_redundant_backup_enabled = true
+  version                      = "8.0.21"
+  zone                         = "1"
 
   storage {
     size_gb           = %d
@@ -911,6 +921,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   sku_name               = "GP_Standard_D2ds_v4"
   zone                   = "%s"
+  version                = "8.0.21"
 
   high_availability {
     mode                      = "ZoneRedundant"

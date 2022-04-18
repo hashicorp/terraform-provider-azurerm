@@ -1,7 +1,7 @@
 ---
 subcategory: "Time Series Insights"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_iot_time_series_insights_standard_environment"
+page_title: "Azure Resource Manager: azurerm_iot_time_series_insights_reference_data_set"
 description: |-
   Manages an Azure IoT Time Series Insights Reference Data Set.
 ---

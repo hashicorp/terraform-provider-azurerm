@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-03-01-preview/appplatform"
-	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -878,9 +877,7 @@ func flattenSpringCloudTrace(input *appplatform.MonitoringSettingProperties) []i
 		enabled = *input.TraceEnabled
 	}
 	if input.AppInsightsInstrumentationKey != nil {
-		if _, err := uuid.FromString(*input.AppInsightsInstrumentationKey); err == nil {
-			connectionString = *input.AppInsightsInstrumentationKey
-		}
+		connectionString = *input.AppInsightsInstrumentationKey
 	}
 	if input.AppInsightsSamplingRate != nil {
 		samplingRate = *input.AppInsightsSamplingRate

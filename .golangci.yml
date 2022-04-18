@@ -1,5 +1,6 @@
 run:
   timeout: 60m
+  go: 1.18
   modules-download-mode: vendor
   skip-dirs:
     - /sdk/ # Excluding sdk folders as these are externally generated

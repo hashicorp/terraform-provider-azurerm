@@ -562,7 +562,7 @@ func TestAccWindowsWebApp_withDotNet3(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dotNet(data, "v3.0"),
+			Config: r.dotNetCore(data, "v3.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1812,6 +1812,31 @@ resource "azurerm_windows_web_app" "test" {
   site_config {
     application_stack {
       dotnet_version = "%s"
+      current_stack  = "dotnet"
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger, dotNetVersion)
+}
+
+func (r WindowsWebAppResource) dotNetCore(data acceptance.TestData, dotNetVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    application_stack {
+      dotnet_version = "%s"
+      current_stack  = "dotnetcore"
     }
   }
 }

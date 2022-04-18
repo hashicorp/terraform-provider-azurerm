@@ -881,6 +881,10 @@ The deprecated field `local_user_not_allowed` will be removed in favour of the `
 
 The deprecated field `process_not_allowed` will be removed in favour of the `processes_not_allowed` property.
 
+### Resource: `azurerm_key_vault_access_policy`
+
+The values for `certificate_permissions`, `key_permissions`, `secret_permissions`, and `storage_permissions` will become case-sensitive.
+
 ### Resource: `azurerm_key_vault_certificate`
 
 The field `x509_certificate_properties.0.key_usage`  will be moved from a List to a Set, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
@@ -1381,7 +1385,7 @@ The field `role_name` will no longer accept the values `Workspace Admin`, `Apach
 
 The field `spark_version` will no longer accept the value `3.0`.
 
-### Resource: `azurerm_synapse_workspace_key`
+### Resource: `azurerm_synapse_workspace`
 
 The `identity` block is now required to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187). You will need to add:
 
