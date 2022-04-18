@@ -3,7 +3,7 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_hub_connection"
 description: |-
-Manages a Connection for a Virtual Hub.
+  Manages a Connection for a Virtual Hub.
 ---
 
 # azurerm_virtual_hub_connection
