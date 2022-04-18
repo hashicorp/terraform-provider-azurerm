@@ -3,7 +3,7 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_hub_connection"
 description: |-
-  Manages a Connection for a Virtual Hub.
+Manages a Connection for a Virtual Hub.
 ---
 
 # azurerm_virtual_hub_connection
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 ---
 
-* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to `false`.
+* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Defaults to `false`.
 
 * `routing` - (Optional)  A `routing` block as defined below.
 
