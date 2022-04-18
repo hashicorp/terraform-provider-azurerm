@@ -880,6 +880,14 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.docker_container_name",
+					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"v3.0",
 						"v4.0",
@@ -891,6 +899,14 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"php_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.docker_container_name",
+					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"7.4",
 					}, false),
@@ -899,6 +915,14 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"python_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.docker_container_name",
+					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"3.4.0", // Note: The portal only lists `3.6`, however, the service only uses the value `3.4.0`. Anything else is silently discarded
 					}, false),
@@ -907,6 +931,14 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"node_version": { // Discarded by service if JavaVersion is specified
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.docker_container_name",
+					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"12-LTS",
 						"14-LTS",
@@ -920,6 +952,14 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"java_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.docker_container_name",
+					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"1.8",
 						"11",
@@ -948,8 +988,16 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				},
 
 				"docker_container_name": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.docker_container_name",
+					},
 					ValidateFunc: validation.StringIsNotEmpty,
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.docker_container_tag",
@@ -1078,6 +1126,15 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.ruby_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.docker_image",
+					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"3.1",
 						"5.0",
@@ -1095,6 +1152,15 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"php_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.ruby_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.docker_image",
+					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"7.4",
 						"8.0",
@@ -1111,6 +1177,15 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"python_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.ruby_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.docker_image",
+					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"3.7",
 						"3.8",
@@ -1128,6 +1203,15 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"node_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.ruby_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.docker_image",
+					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"12-lts",
 						"14-lts",
@@ -1145,6 +1229,15 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"ruby_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.ruby_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.docker_image",
+					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"2.6",
 						"2.7",
@@ -1159,8 +1252,17 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				},
 
 				"java_version": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.ruby_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.docker_image",
+					},
 					ValidateFunc: validation.StringIsNotEmpty, // There a significant number of variables here, and the versions are not uniformly formatted.
 					// TODO - Needs notes in the docs for this to help users navigate the inconsistencies in the service. e.g. jre8 va java8 etc
 					ConflictsWith: []string{
@@ -1188,8 +1290,17 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				},
 
 				"docker_image": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.ruby_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.docker_image",
+					},
 					ValidateFunc: validation.StringIsNotEmpty,
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.docker_image_tag",
@@ -2778,7 +2889,7 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.AppCommandLine = utils.String(winSiteConfig.AppCommandLine)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
+	if metadata.ResourceData.HasChange("site_config.0.application_stack") && len(winSiteConfig.ApplicationStack) > 0 {
 		winAppStack := winSiteConfig.ApplicationStack[0]
 		expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
 		expanded.PhpVersion = utils.String(winAppStack.PhpVersion)
