@@ -207,7 +207,7 @@ resource "azurerm_redis_enterprise_database" "test" {
 
   module {
     name = "RedisBloom"
-    args = "ERROR_RATE 0.01 INITIAL_SIZE 400"
+    args = "ERROR_RATE 1 INITIAL_SIZE 400"
   }
 
   module {
