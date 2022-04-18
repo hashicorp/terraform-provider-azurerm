@@ -3,6 +3,7 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -95,7 +96,7 @@ func TestAccCdnFrontdoorOrigin_privateLinkBlobPrimary(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorOrigin_privateLinkBlobSecondary(t *testing.T) {
+func TestAccCdnFrontdoorOrigin_privateLinkStorageStaticWebSite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
 	r := CdnFrontdoorOriginResource{}
 
@@ -103,7 +104,7 @@ func TestAccCdnFrontdoorOrigin_privateLinkBlobSecondary(t *testing.T) {
 	// be created. There is currently no way to automate the approval process.
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.privateLinkBlobSecondary(data),
+			Config: r.privateLinkStaticWebSite(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -164,7 +165,20 @@ func (r CdnFrontdoorOriginResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(true), nil
 }
 
-func (r CdnFrontdoorOriginResource) template(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) template(data acceptance.TestData, profileSku string, isLoadBalancer bool) string {
+	var skuConfig string // default will result in an empty string which is Standard_AzureFrontDoor
+	if !strings.EqualFold(profileSku, "default") {
+		skuConfig = fmt.Sprintf(`  sku_name            = "%s"`, profileSku)
+	}
+
+	// NOTE: This is a hack for what I believe is a bug in the CDN Frontdoor API. I am currently speaking with the service
+	// team about how to correctly fix this issue, but in the meantime this is what we need to do to get this scenario to
+	// work.
+	var loadBalancerDependsOn string
+	if isLoadBalancer {
+		loadBalancerDependsOn = "  depends_on = [azurerm_private_link_service.test]"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -180,8 +194,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
+%s
   name                = "accTestProfile-%d"
   resource_group_name = azurerm_resource_group.test.name
+	%s
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "test" {
@@ -194,45 +210,11 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
     successful_samples_required        = 3
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (r CdnFrontdoorOriginResource) templatePremium(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cdn-afdx-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "accTestProfile-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Premium_AzureFrontDoor"
-}
-
-resource "azurerm_cdn_frontdoor_origin_group" "test" {
-  name                     = "accTestOriginGroup-%d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-
-  load_balancing {
-    additional_latency_in_milliseconds = 0
-    sample_count                       = 16
-    successful_samples_required        = 3
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, loadBalancerDependsOn, data.RandomInteger, skuConfig, data.RandomInteger)
 }
 
 func (r CdnFrontdoorOriginResource) templatePrivateLinkStorage(data acceptance.TestData) string {
-	template := r.templatePremium(data)
+	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
 
 	%s
@@ -257,15 +239,47 @@ resource "azurerm_storage_account" "test" {
 `, template, data.RandomString)
 }
 
+func (r CdnFrontdoorOriginResource) templatePrivateLinkStorageStaticWebSite(data acceptance.TestData) string {
+	template := r.template(data, "Premium_AzureFrontDoor", false)
+	return fmt.Sprintf(`
+
+	%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+
+  allow_nested_items_to_be_public = false
+
+  network_rules {
+    default_action = "Deny"
+  }
+
+  static_website {
+    index_document     = "index.html"
+		error_404_document = "404.html"
+  }
+
+  tags = {
+    environment = "Test"
+  }
+}
+`, template, data.RandomString)
+}
+
 func (r CdnFrontdoorOriginResource) templatePrivateLinkLoadBalancer(data acceptance.TestData) string {
-	template := r.templatePremium(data)
+	template := r.template(data, "Premium_AzureFrontDoor", true)
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
 	%s
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvm-%[2]d"
+  name                = "acctestvn-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.5.0.0/16"]
@@ -314,20 +328,12 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                  = azurerm_subnet.test.id
     primary                    = true
   }
-
-  nat_ip_configuration {
-    name                       = "secondary"
-    private_ip_address         = "10.5.1.18"
-    private_ip_address_version = "IPv4"
-    subnet_id                  = azurerm_subnet.test.id
-    primary                    = false
-  }
 }
 `, template, data.RandomInteger)
 }
 
 func (r CdnFrontdoorOriginResource) templatePrivateLinkWebApp(data acceptance.TestData) string {
-	template := r.templatePremium(data)
+	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
 
 	%s
@@ -406,7 +412,7 @@ resource "azurerm_linux_web_app" "test" {
 }
 
 func (r CdnFrontdoorOriginResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "default", false)
 	return fmt.Sprintf(`
 				%s
 
@@ -448,7 +454,7 @@ resource "azurerm_cdn_frontdoor_origin" "import" {
 }
 
 func (r CdnFrontdoorOriginResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "default", false)
 	return fmt.Sprintf(`
 			%s
 
@@ -469,7 +475,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 }
 
 func (r CdnFrontdoorOriginResource) update(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template(data, "default", false)
 	return fmt.Sprintf(`
 			%s
 
@@ -515,8 +521,8 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorOriginResource) privateLinkBlobSecondary(data acceptance.TestData) string {
-	template := r.templatePrivateLinkStorage(data)
+func (r CdnFrontdoorOriginResource) privateLinkStaticWebSite(data acceptance.TestData) string {
+	template := r.templatePrivateLinkStorageStaticWebSite(data)
 	return fmt.Sprintf(`
 %s
 
@@ -526,14 +532,14 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 
   health_probes_enabled          = true
   certificate_name_check_enabled = true
-  host_name                      = azurerm_storage_account.test.secondary_blob_host
-  origin_host_header             = azurerm_storage_account.test.secondary_blob_host
+  host_name                      = azurerm_storage_account.test.primary_web_host
+  origin_host_header             = azurerm_storage_account.test.primary_web_host
   priority                       = 1
   weight                         = 500
 
   private_link {
     request_message        = "Request access for CDN Frontdoor Private Link Origin"
-    target_type            = "secondary_blob"
+    target_type            = "web"
     location               = azurerm_resource_group.test.location
     private_link_target_id = azurerm_storage_account.test.id
   }

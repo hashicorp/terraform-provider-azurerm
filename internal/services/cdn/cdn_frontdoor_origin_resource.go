@@ -124,7 +124,7 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "Access request for CDN Frontdoor Private Link Origin",
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.StringLenBetween(1, 140),
 						},
 
 						"location": {

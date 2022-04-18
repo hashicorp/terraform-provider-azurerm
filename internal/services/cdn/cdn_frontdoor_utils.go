@@ -14,7 +14,7 @@ import (
 )
 
 func ValidPrivateLinkTargetTypes() []string {
-	return []string{"blob", "secondary_blob", "sites"}
+	return []string{"blob", "blob_secondary", "sites", "web"}
 }
 
 func ConvertCdnFrontdoorTags(tagMap *map[string]string) map[string]*string {
