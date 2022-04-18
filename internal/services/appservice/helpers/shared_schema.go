@@ -1460,7 +1460,7 @@ func FlattenIpRestrictions(ipRestrictionsList *[]web.IPSecurityRestriction) []Ip
 			if *v.IPAddress == "Any" {
 				continue
 			}
-			ipRestriction.IpAddress = *v.IPAddress
+
 			if v.Tag == web.IPFilterTagServiceTag {
 				ipRestriction.ServiceTag = *v.IPAddress
 			} else {

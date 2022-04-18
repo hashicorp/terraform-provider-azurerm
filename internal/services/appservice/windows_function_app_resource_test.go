@@ -692,6 +692,7 @@ func TestAccWindowsFunctionApp_appStackDotNet6(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccWindowsFunctionApp_appStackDotNet6Isolated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
@@ -918,6 +919,7 @@ func TestAccWindowsFunctionApp_storageAccountKeyVaultSecret(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccWindowsFunctionApp_storageAccountKeyVaultSecretVersionless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
@@ -1214,6 +1216,7 @@ resource "azurerm_windows_function_app" "test" {
     ]
 
     http2_enabled = true
+
     ip_restriction {
       ip_address = "10.10.10.10/32"
       name       = "test-restriction"
@@ -1226,6 +1229,14 @@ resource "azurerm_windows_function_app" "test" {
         x_forwarded_host  = ["example.com"]
       }
     }
+
+    ip_restriction {
+      service_tag = "ActionGroup"
+      name        = "test-servicetag-restriction"
+      priority    = 125
+      action      = "Allow"
+    }
+
     load_balancing_mode      = "LeastResponseTime"
     remote_debugging_enabled = true
     remote_debugging_version = "VS2019"
