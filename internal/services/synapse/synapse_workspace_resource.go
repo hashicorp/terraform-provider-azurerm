@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2021-06-01-preview/synapse"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	purviewValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/validate"
@@ -178,7 +177,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedIdentityRequired(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"managed_resource_group_name": commonschema.ResourceGroupNameOptionalComputed(),
 
@@ -360,17 +359,11 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if features.ThreePointOh() {
-		expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
-		}
-		workspaceInfo.Identity = expandedIdentity
-	} else {
-		workspaceInfo.Identity = &synapse.ManagedIdentity{
-			Type: synapse.ResourceIdentityTypeSystemAssigned,
-		}
+	expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
+	workspaceInfo.Identity = expandedIdentity
 
 	if purviewId, ok := d.GetOk("purview_id"); ok {
 		workspaceInfo.WorkspaceProperties.PurviewConfiguration = &synapse.PurviewConfiguration{
@@ -496,7 +489,12 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
+	flattenIdenties, err := flattenIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("retrieving Managed Identities for %s: %+v", *id, err)
+	}
+
+	if err := d.Set("identity", flattenIdenties); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	if props := resp.WorkspaceProperties; props != nil {
@@ -927,7 +925,7 @@ func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) []interface
 }
 
 func expandIdentity(input []interface{}) (*synapse.ManagedIdentity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
@@ -935,15 +933,25 @@ func expandIdentity(input []interface{}) (*synapse.ManagedIdentity, error) {
 	out := synapse.ManagedIdentity{
 		Type: synapse.ResourceIdentityType(string(expanded.Type)),
 	}
+
+	if len(expanded.IdentityIds) > 0 {
+		userAssignedIdentities := make(map[string]*synapse.UserAssignedManagedIdentity)
+		for id := range expanded.IdentityIds {
+			userAssignedIdentities[id] = &synapse.UserAssignedManagedIdentity{}
+		}
+		out.UserAssignedIdentities = userAssignedIdentities
+	}
+
 	return &out, nil
 }
 
-func flattenIdentity(input *synapse.ManagedIdentity) []interface{} {
-	var config *identity.SystemAssigned
+func flattenIdentity(input *synapse.ManagedIdentity) (interface{}, error) {
+	var config *identity.SystemAndUserAssignedMap
 
 	if input != nil {
-		config = &identity.SystemAssigned{
-			Type: identity.Type(string(input.Type)),
+		config = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: nil,
 		}
 
 		if input.PrincipalID != nil {
@@ -952,7 +960,15 @@ func flattenIdentity(input *synapse.ManagedIdentity) []interface{} {
 		if input.TenantID != nil {
 			config.TenantId = input.TenantID.String()
 		}
+		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
+		for k := range input.UserAssignedIdentities {
+			identityIds[k] = identity.UserAssignedIdentityDetails{
+				// since v is an `interface{}` there's no guarantee this is returned
+			}
+		}
+
+		config.IdentityIds = identityIds
 	}
 
-	return identity.FlattenSystemAssigned(config)
+	return identity.FlattenSystemAndUserAssignedMap(config)
 }

@@ -203,6 +203,14 @@ func (r SynapseWorkspaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuaid%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_synapse_workspace" "test" {
   name                                 = "acctestsw%d"
   resource_group_name                  = azurerm_resource_group.test.name
@@ -212,10 +220,11 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login_password     = "H@Sh1CoR3!"
 
   identity {
-    type = "SystemAssigned"
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SynapseWorkspaceResource) requiresImport(data acceptance.TestData) string {

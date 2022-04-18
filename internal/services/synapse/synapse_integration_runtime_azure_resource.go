@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2021-06-01-preview/synapse"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -59,11 +59,11 @@ func resourceSynapseIntegrationRuntimeAzure() *pluginsdk.Resource {
 			"compute_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(synapse.General),
+				Default:  string(synapse.DataFlowComputeTypeGeneral),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(synapse.General),
-					string(synapse.ComputeOptimized),
-					string(synapse.MemoryOptimized),
+					string(synapse.DataFlowComputeTypeGeneral),
+					string(synapse.DataFlowComputeTypeComputeOptimized),
+					string(synapse.DataFlowComputeTypeMemoryOptimized),
 				}, false),
 			},
 

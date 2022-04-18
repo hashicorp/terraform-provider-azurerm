@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/synapse/mgmt/2021-03-01/synapse"
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2021-06-01-preview/synapse"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -453,12 +453,12 @@ func expandArmSparkPoolLibraryRequirements(input []interface{}) *synapse.Library
 	}
 }
 
-func expandSparkPoolSparkConfig(input []interface{}) *synapse.LibraryRequirements {
+func expandSparkPoolSparkConfig(input []interface{}) *synapse.SparkConfigProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	value := input[0].(map[string]interface{})
-	return &synapse.LibraryRequirements{
+	return &synapse.SparkConfigProperties{
 		Content:  utils.String(value["content"].(string)),
 		Filename: utils.String(value["filename"].(string)),
 	}
@@ -540,7 +540,7 @@ func flattenArmSparkPoolLibraryRequirements(input *synapse.LibraryRequirements) 
 	}
 }
 
-func flattenSparkPoolSparkConfig(input *synapse.LibraryRequirements) []interface{} {
+func flattenSparkPoolSparkConfig(input *synapse.SparkConfigProperties) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
