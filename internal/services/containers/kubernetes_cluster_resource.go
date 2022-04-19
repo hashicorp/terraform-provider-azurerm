@@ -840,12 +840,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										Required: true,
 									},
 									"dns_server": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"root_domain_name": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},

@@ -680,9 +680,9 @@ A `gmsa_profile` block supports the following:
 
 * `enabled` - (Required) Specifies whether to enable Windows gMSA in the managed cluster.
 
-* `dns_Server` - (Required) Specifies the DNS server for Windows gMSA. Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
+* `dns_Server` - (Optional) Specifies the DNS server for Windows gMSA. Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
 
-* `root_domain_name` - (Required)  Specifies the root domain name for Windows gMSA. Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
+* `root_domain_name` - (Optional)  Specifies the root domain name for Windows gMSA. Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
 
 ---
 
