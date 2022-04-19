@@ -1,0 +1,114 @@
+---
+subcategory: "Stream Analytics"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_stream_analytics_output_cosmosdb"
+description: |-
+  Manages a Stream Analytics Output CosmosDB.
+---
+
+# azurerm_stream_analytics_output_cosmosdb
+
+Manages a Stream Analytics Output CosmosDB.
+
+## Example Usage
+
+```hcl
+data "azurerm_resource_group" "example" {
+  name = "example-resources"
+}
+
+data "azurerm_stream_analytics_job" "example" {
+  name                = "example-job"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_cosmosdb_account" "example" {
+  name                = "exampledb"
+  resource_group_name = data.azurerm_resource_group.example.name
+  location            = data.azurerm_resource_group.example.location
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  consistency_policy {
+    consistency_level       = "BoundedStaleness"
+    max_interval_in_seconds = 10
+    max_staleness_prefix    = 200
+  }
+
+  geo_location {
+    prefix            = "prefix-customid"
+    location          = azurerm_resource_group.example.location
+    failover_priority = 0
+  }
+}
+
+resource "azurerm_cosmosdb_sql_database" "example" {
+  name                = "cosmos-sql-db"
+  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = azurerm_cosmosdb_account.example.name
+  throughput          = 400
+}
+
+resource "azurerm_cosmosdb_sql_container" "example" {
+  name                = "examplecontainer"
+  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = azurerm_cosmosdb_account.example.name
+  database_name       = azurerm_cosmosdb_sql_database.example.name
+  partition_key_path  = "foo"
+}
+
+resource "azurerm_stream_analytics_output_cosmosdb" "example" {
+  name                      = "output-to-cosmosdb"
+  stream_analytics_job_name = azurerm_stream_analytics_job.example.name
+  resource_group_name       = azurerm_stream_analytics_job.example.resource_group_name
+  account_id                = azurerm_cosmosdb_account.example.name
+  account_key               = azurerm_cosmosdb_account.example.primary_access_key
+  database                  = azurerm_cosmosdb_sql_database.example.name
+  collection_name_pattern   = azurerm_cosmosdb_sql_container.example.id
+}
+```
+
+## Arguments Reference
+
+The following arguments are supported:
+
+* `name` - (Required) The name of the Stream Output. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the Resource Group where the Stream Analytics Job exists. Changing this forces a new resource to be created.
+
+* `stream_analytics_job_name` - (Required) The name of the Stream Analytics Job. Changing this forces a new resource to be created.
+
+* `account_name` - (Required) The name of the CosmosDB Account.
+
+* `account_key` - (Required) The Account Key for the CosmosDB database.
+
+* `database` - (Required) The name or id of the CosmosDB database.
+
+* `collection_name_pattern` - (Required) The collection name pattern for the collection to be used. It can be the name of the container, or a collection name format which contains an optional {partition} token.
+
+* `document_id` - (Optional) The name of the field in output events used to specify the primary key which insert or update operations are based on.
+
+* `partition_key` - (Optional) The name of the field in output events used to specify the key for partitioning output across collections. If 'collection_name_pattern' contains the {partition} token, this property is required to be specified.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Stream Analytics Output CosmosDB.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics.
+
+## Import
+
+Stream Analytics Output to CosmosDB can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_stream_analytics_output_cosmosdb.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
+```
