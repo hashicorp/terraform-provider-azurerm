@@ -237,6 +237,41 @@ func TestAccLinuxFunctionApp_withAppSettingsUserSettingUpdate(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionApp_addAppSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackNode(data, SkuConsumptionPlan, "14"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("app_settings.%").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.appSettingsAdded(data, SkuConsumptionPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("app_settings.%").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.appStackNode(data, SkuConsumptionPlan, "14"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("app_settings.%").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // backup by plan type
 
 func TestAccLinuxFunctionApp_withBackupElasticPremiumPlan(t *testing.T) {
@@ -1233,6 +1268,38 @@ resource "azurerm_linux_function_app" "test" {
 
   site_config {}
 }
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) appSettingsAdded(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+  }
+
+  site_config {
+    application_stack {
+      node_version = "14"
+    }
+  }
+}
+
 `, r.template(data, planSku), data.RandomInteger)
 }
 
