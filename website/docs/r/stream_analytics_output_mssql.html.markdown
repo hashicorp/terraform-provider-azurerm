@@ -75,9 +75,7 @@ The following arguments are supported:
 
 * `max_batch_count` - (Optional) The max batch count to write to the SQL Database. Defaults to `10000`. Possible values are between `1` and `1073741824`.
 
-* `max_writer_count` - (Optional) The max writer count for the SQL Database. Defaults to `1`. Possible values are `0` and `1`.
-
--> **NOTE:** `0` means it's based on query partition. `1` means single writer.
+* `max_writer_count` - (Optional) The max writer count for the SQL Database. Defaults to `1`. Possible values are `0` which bases the writer count on the query partition and `1` which corresponds to a single writer.
 
 ## Attributes Reference
 
