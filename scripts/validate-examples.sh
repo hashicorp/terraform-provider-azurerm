@@ -23,7 +23,7 @@ for d in $exampleDirs; do
   exampleHasErrors=false
   # Though we are using the local built azurerm provider to validate example,
   # we still need to call `terraform init` here as examples might contain other providers.
-  terraform -chdir=$d init > /dev/null || exampleHasErrors=true
+  TF_CLI_CONFIG_FILE=$terraformrc terraform -chdir=$d init > /dev/null || exampleHasErrors=true
   if ! ${exampleHasErrors}; then
     # Always use the local built azurerm provider to validate examples, to avoid examples using
     # unreleased features leading to error during CI.
