@@ -880,70 +880,70 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.docker_container_name",
-					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"v3.0",
 						"v4.0",
 						"v5.0",
 						"v6.0",
 					}, false),
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_container_name",
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+					},
 				},
 
 				"php_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.docker_container_name",
-					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"7.4",
 					}, false),
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_container_name",
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+					},
 				},
 
 				"python_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.docker_container_name",
-					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"3.4.0", // Note: The portal only lists `3.6`, however, the service only uses the value `3.4.0`. Anything else is silently discarded
 					}, false),
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_container_name",
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+					},
 				},
 
 				"node_version": { // Discarded by service if JavaVersion is specified
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.docker_container_name",
-					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"12-LTS",
 						"14-LTS",
 						"16-LTS",
 					}, false),
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_container_name",
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+					},
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.java_version",
 					},
@@ -952,18 +952,18 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"java_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.docker_container_name",
-					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"1.8",
 						"11",
 					}, false),
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_container_name",
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+					},
 				},
 
 				"java_container": {
@@ -988,17 +988,17 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				},
 
 				"docker_container_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
 						"site_config.0.application_stack.0.python_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.docker_container_name",
 					},
-					ValidateFunc: validation.StringIsNotEmpty,
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.docker_container_tag",
 					},
@@ -1126,20 +1126,20 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.ruby_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.docker_image",
-					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"3.1",
 						"5.0",
 						"6.0",
 					}, false),
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.ruby_version",
+					},
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.php_version",
 						"site_config.0.application_stack.0.python_version",
@@ -1152,19 +1152,19 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"php_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.ruby_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.docker_image",
-					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"7.4",
 						"8.0",
 					}, false),
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.ruby_version",
+					},
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.python_version",
@@ -1177,46 +1177,46 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"python_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.ruby_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.docker_image",
-					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"3.7",
 						"3.8",
 						"3.9",
 					}, false),
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.ruby_version",
+					},
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.ruby_version",
 						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.ruby_version",
 					},
 				},
 
 				"node_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.ruby_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.docker_image",
-					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"12-lts",
 						"14-lts",
 						"16-lts",
 					}, false),
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.ruby_version",
+					},
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.php_version",
@@ -1229,19 +1229,19 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"ruby_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.ruby_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.docker_image",
-					},
 					ValidateFunc: validation.StringInSlice([]string{
 						"2.6",
 						"2.7",
 					}, false),
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.ruby_version",
+					},
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.php_version",
@@ -1252,19 +1252,19 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				},
 
 				"java_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					AtLeastOneOf: []string{
-						"site_config.0.application_stack.0.dotnet_version",
-						"site_config.0.application_stack.0.php_version",
-						"site_config.0.application_stack.0.python_version",
-						"site_config.0.application_stack.0.node_version",
-						"site_config.0.application_stack.0.ruby_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.docker_image",
-					},
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty, // There a significant number of variables here, and the versions are not uniformly formatted.
 					// TODO - Needs notes in the docs for this to help users navigate the inconsistencies in the service. e.g. jre8 va java8 etc
+					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_image",
+						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
+						"site_config.0.application_stack.0.php_version",
+						"site_config.0.application_stack.0.python_version",
+						"site_config.0.application_stack.0.ruby_version",
+					},
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.php_version",
@@ -1290,18 +1290,18 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				},
 
 				"docker_image": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 					AtLeastOneOf: []string{
+						"site_config.0.application_stack.0.docker_image",
 						"site_config.0.application_stack.0.dotnet_version",
+						"site_config.0.application_stack.0.java_version",
+						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.php_version",
 						"site_config.0.application_stack.0.python_version",
-						"site_config.0.application_stack.0.node_version",
 						"site_config.0.application_stack.0.ruby_version",
-						"site_config.0.application_stack.0.java_version",
-						"site_config.0.application_stack.0.docker_image",
 					},
-					ValidateFunc: validation.StringIsNotEmpty,
 					RequiredWith: []string{
 						"site_config.0.application_stack.0.docker_image_tag",
 					},
@@ -2889,23 +2889,27 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		expanded.AppCommandLine = utils.String(winSiteConfig.AppCommandLine)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.application_stack") && len(winSiteConfig.ApplicationStack) > 0 {
-		winAppStack := winSiteConfig.ApplicationStack[0]
-		expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
-		expanded.PhpVersion = utils.String(winAppStack.PhpVersion)
-		expanded.NodeVersion = utils.String(winAppStack.NodeVersion)
-		expanded.PythonVersion = utils.String(winAppStack.PythonVersion)
-		expanded.JavaVersion = utils.String(winAppStack.JavaVersion)
-		expanded.JavaContainer = utils.String(winAppStack.JavaContainer)
-		expanded.JavaContainerVersion = utils.String(winAppStack.JavaContainerVersion)
-		if winAppStack.DockerContainerName != "" {
-			if winAppStack.DockerContainerRegistry != "" {
-				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-			} else {
-				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
+		if len(winSiteConfig.ApplicationStack) == 1 {
+			winAppStack := winSiteConfig.ApplicationStack[0]
+			expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
+			expanded.PhpVersion = utils.String(winAppStack.PhpVersion)
+			expanded.NodeVersion = utils.String(winAppStack.NodeVersion)
+			expanded.PythonVersion = utils.String(winAppStack.PythonVersion)
+			expanded.JavaVersion = utils.String(winAppStack.JavaVersion)
+			expanded.JavaContainer = utils.String(winAppStack.JavaContainer)
+			expanded.JavaContainerVersion = utils.String(winAppStack.JavaContainerVersion)
+			if winAppStack.DockerContainerName != "" {
+				if winAppStack.DockerContainerRegistry != "" {
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+				} else {
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+				}
 			}
+			currentStack = winAppStack.CurrentStack
+		} else {
+			expanded.WindowsFxVersion = utils.String("")
 		}
-		currentStack = winAppStack.CurrentStack
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.virtual_application") {
@@ -3038,40 +3042,44 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 		expanded.AppCommandLine = utils.String(linuxSiteConfig.AppCommandLine)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.application_stack") && len(linuxSiteConfig.ApplicationStack) > 0 {
-		linuxAppStack := linuxSiteConfig.ApplicationStack[0]
-		if linuxAppStack.NetFrameworkVersion != "" {
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
-		}
-
-		if linuxAppStack.PhpVersion != "" {
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PHP|%s", linuxAppStack.PhpVersion))
-		}
-
-		if linuxAppStack.NodeVersion != "" {
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
-		}
-
-		if linuxAppStack.RubyVersion != "" {
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
-		}
-
-		if linuxAppStack.PythonVersion != "" {
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
-		}
-
-		if linuxAppStack.JavaServer != "" {
-			// (@jackofallops) - Java has some special cases for Java SE when using specific versions of the runtime, resulting in this string
-			// being formatted in the form: `JAVA|u242` instead of the standard pattern of `JAVA|u242-java8` for example. This applies to jre8 and java11.
-			if linuxAppStack.JavaServer == "JAVA" && linuxAppStack.JavaServerVersion == "" {
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("%s|%s", linuxAppStack.JavaServer, linuxAppStack.JavaVersion))
-			} else {
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("%s|%s-%s", linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion, linuxAppStack.JavaVersion))
+	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
+		if len(linuxSiteConfig.ApplicationStack) == 1 {
+			linuxAppStack := linuxSiteConfig.ApplicationStack[0]
+			if linuxAppStack.NetFrameworkVersion != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
 			}
-		}
 
-		if linuxAppStack.DockerImage != "" {
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+			if linuxAppStack.PhpVersion != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PHP|%s", linuxAppStack.PhpVersion))
+			}
+
+			if linuxAppStack.NodeVersion != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
+			}
+
+			if linuxAppStack.RubyVersion != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
+			}
+
+			if linuxAppStack.PythonVersion != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
+			}
+
+			if linuxAppStack.JavaServer != "" {
+				// (@jackofallops) - Java has some special cases for Java SE when using specific versions of the runtime, resulting in this string
+				// being formatted in the form: `JAVA|u242` instead of the standard pattern of `JAVA|u242-java8` for example. This applies to jre8 and java11.
+				if linuxAppStack.JavaServer == "JAVA" && linuxAppStack.JavaServerVersion == "" {
+					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("%s|%s", linuxAppStack.JavaServer, linuxAppStack.JavaVersion))
+				} else {
+					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("%s|%s-%s", linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion, linuxAppStack.JavaVersion))
+				}
+			}
+
+			if linuxAppStack.DockerImage != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+			}
+		} else {
+			expanded.LinuxFxVersion = utils.String("")
 		}
 	}
 
