@@ -10,6 +10,8 @@ description: |-
 
 Manages Azure Backup for an Azure VM
 
+~> **NOTE:** Due to API limitation, destroying `azurerm_backup_protected_vm` will time out when `soft_delete_enabled` is set to `true` in the `azurerm_recovery_services_vault` specified by `recovery_vault_name`.
+
 ## Example Usage
 
 ```hcl
