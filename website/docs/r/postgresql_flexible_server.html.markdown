@@ -130,9 +130,9 @@ The following arguments are supported:
 
 A `maintenance_window` block supports the following:
 
-* `day_of_week` - (Optional) The day of week for maintenance window. Defaults to `0`.
+* `day_of_week` - (Optional) The day of week for maintenance window, where the week starts on a Sunday, i.e. Sunday = `0`, Monday = `1`. Defaults to `0`.
 
-* `start_hour` - (Optional) The day of week for maintenance window. Defaults to `0`.
+* `start_hour` - (Optional) The start hour for maintenance window. Defaults to `0`.
 
 * `start_minute` - (Optional) The start minute for maintenance window. Defaults to `0`.
 
