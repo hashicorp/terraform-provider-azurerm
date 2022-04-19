@@ -1,3 +1,9 @@
+## 3.3.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_stream_analytics_output_servicebus_topic` - support for the `system_property_columns` property [GH-16425]
+
 ## 3.2.0 (April 14, 2022)
 
 FEATURES:
