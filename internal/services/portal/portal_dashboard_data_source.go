@@ -3,6 +3,7 @@ package portal
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -27,8 +28,13 @@ func dataSourcePortalDashboard() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validate.DashboardName,
+			},
+			"display_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 			"location":            commonschema.LocationComputed(),
