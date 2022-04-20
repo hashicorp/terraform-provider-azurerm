@@ -14,7 +14,9 @@ BUG FIXES:
 * `azurerm_linux_function_app` - fix a bug in updates to `app_settings` where settings could be lost [GH-16442]
 * `azurerm_linux_function_app_slot` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
 * `azurerm_linux_web_app` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
+* `azurerm_linux_web_app` - fix a potential crash when an empty `app_stack` block is used [GH-16446]
 * `azurerm_linux_web_app_slot` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
+* `azurerm_linux_web_app_slot` - fix a potential crash when an empty `app_stack` block is used [GH-16446]
 * `azurerm_sentinel_alert_rule_fusion` - no longer sending the `etag` during updates as this is no longer required [GH-16428]
 * `azurerm_sentinel_alert_rule_machine_learning_behavior_analytics` - no longer sending the `etag` during updates as this is no longer required [GH-16428]
 * `azurerm_sentinel_alert_rule_ms_security_incident` - no longer sending the `etag` during updates as this is no longer required [GH-16428]
@@ -28,7 +30,10 @@ BUG FIXES:
 * `azurerm_windows_function_app` - fix a bug in updates to `app_settings` where settings could be lost [GH-16442]
 * `azurerm_windows_function_app_slot` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
 * `azurerm_windows_web_app` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
+* `azurerm_windows_web_app` - fix a potential crash when an empty `app_stack` block is used [GH-16446]
 * `azurerm_windows_web_app_slot` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified  [GH-16426]
+* `azurerm_windows_web_app_slot` - fix a potential crash when an empty `app_stack` block is used [GH-16446]
+
 
 ## 3.2.0 (April 14, 2022)
 
