@@ -15,6 +15,13 @@ BUG FIXES:
 * `azurerm_linux_function_app_slot` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
 * `azurerm_linux_web_app` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
 * `azurerm_linux_web_app_slot` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
+* `azurerm_sentinel_alert_rule_fusion` - no longer sending the `etag` during updates as this is no longer required [GH-16428]
+* `azurerm_sentinel_alert_rule_machine_learning_behavior_analytics` - no longer sending the `etag` during updates as this is no longer required [GH-16428]
+* `azurerm_sentinel_alert_rule_ms_security_incident` - no longer sending the `etag` during updates as this is no longer required [GH-16428]
+* `azurerm_sentinel_alert_rule_scheduled` - no longer sending the `etag` during updates as this is no longer required [GH-16428]
+* `azurerm_sentinel_data_connector_aws_cloud_trail` - no longer sending the `etag` during updates as this is no longer required [GH-16428]
+* `azurerm_sentinel_data_connector_microsoft_cloud_app_security` - no longer sending the `etag` during updates as this is no longer required [GH-16428]
+* `azurerm_sentinel_data_connector_office_365` - no longer sending the `etag` during updates as this is no longer required [GH-16428]
 * `azurerm_storage_account` - updating `identity` before `customer_managed_key` which enables adding a new identity with access to a CMK [GH-16419]
 * `azurerm_subnet` - `address_prefixes` is now (explicitly) required [GH-16402]
 * `azurerm_windows_function_app` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
@@ -22,10 +29,6 @@ BUG FIXES:
 * `azurerm_windows_function_app_slot` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
 * `azurerm_windows_web_app` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
 * `azurerm_windows_web_app_slot` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified  [GH-16426]
-
-
-
-
 
 ## 3.2.0 (April 14, 2022)
 
