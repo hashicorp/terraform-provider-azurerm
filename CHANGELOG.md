@@ -4,7 +4,8 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.19.0` of `github.com/tombuildsstuff/giovanni` [GH-16460]
 * Data Source: `azurerm_storage_account` - exporting `nfsv3_enabled` [GH-16404]
-* `azurerm_stream_analytics_output_servicebus_topic` - support for the `system_property_columns` property [GH-16425]
+* `azurerm_stream_analytics_output_mssql` - support for the `system_property_columns` property [GH-16425]
+* `azurerm_stream_analytics_output_servicebus_topic` - support for the `max_batch_count` and `max_writer_count` properties [GH-16409]
 * `azurerm_virtual_hub_connection` - the field `internet_security_enabled` can now be updated [GH-16430]
 
 BUG FIXES:
