@@ -66,7 +66,7 @@ func TestAccStreamAnalyticsOutputCosmosDB_complete(t *testing.T) {
 	})
 }
 
-func TestAccStreamAnalyticsOutputCosmosDB_requiredImport(t *testing.T) {
+func TestAccStreamAnalyticsOutputCosmosDB_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_cosmosdb", "test")
 	r := StreamAnalyticsOutputCosmosDBResource{}
 
