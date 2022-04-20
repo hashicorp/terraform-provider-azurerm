@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the frontend ip configuration.
 
-* `zones` - (Optional) Specifies a list of Availability Zones in which the IP Address for this Load Balancer should be located. Changing this forces a new API Management service to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which the IP Address for this Load Balancer should be located. Changing this forces a new Load Balancer to be created.
 
 -> **NOTE:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/azure/load-balancer/load-balancer-standard-availability-zones) and [in select regions](https://docs.microsoft.com/azure/availability-zones/az-overview) at this time.
 
