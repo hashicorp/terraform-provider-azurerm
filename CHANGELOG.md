@@ -11,15 +11,21 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_linux_function_app` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
+* `azurerm_linux_function_app` - fix a bug in updates to `app_settings` where settings could be lost [GH-16442]
 * `azurerm_linux_function_app_slot` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
 * `azurerm_linux_web_app` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
 * `azurerm_linux_web_app_slot` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
 * `azurerm_storage_account` - updating `identity` before `customer_managed_key` which enables adding a new identity with access to a CMK [GH-16419]
 * `azurerm_subnet` - `address_prefixes` is now (explicitly) required [GH-16402]
 * `azurerm_windows_function_app` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
+* `azurerm_windows_function_app` - fix a bug in updates to `app_settings` where settings could be lost [GH-16442]
 * `azurerm_windows_function_app_slot` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
 * `azurerm_windows_web_app` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
 * `azurerm_windows_web_app_slot` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified  [GH-16426]
+
+
+
+
 
 ## 3.2.0 (April 14, 2022)
 
