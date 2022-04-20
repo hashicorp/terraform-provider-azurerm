@@ -77,7 +77,7 @@ func TestAccStreamAnalyticsOutputCosmosDB_requiredImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiredImport),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 func (r StreamAnalyticsOutputCosmosDBResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -158,7 +158,7 @@ resource "azurerm_stream_analytics_output_cosmosdb" "test" {
 `, template, data.RandomString, data.RandomInteger)
 }
 
-func (r StreamAnalyticsOutputCosmosDBResource) requiredImport(data acceptance.TestData) string {
+func (r StreamAnalyticsOutputCosmosDBResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
