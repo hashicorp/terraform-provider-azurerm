@@ -37,6 +37,8 @@ The following arguments are supported:
 
 * `quota` - The quota of the File Share in GB.
 
+* `access_tier` - The tier of the File Share. Can be one of `Hot`, `Cool`, `TransactionOptimized`, or `Premium`.
+
 * `metadata` - A map of custom file share metadata.
 
 * `acl` - One or more acl blocks as defined below.

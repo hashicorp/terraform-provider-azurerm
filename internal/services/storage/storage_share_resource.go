@@ -120,6 +120,17 @@ func resourceStorageShare() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"access_tier": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice(
+					[]string{string(shares.HotAccessTier),
+						string(shares.CoolAccessTier),
+						string(shares.PremiumAccessTier),
+						string(shares.TransactionOptimizedAccessTier)}, false),
+			},
 		},
 	}
 }
@@ -167,6 +178,11 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		QuotaInGB:       quota,
 		MetaData:        metaData,
 		EnabledProtocol: shares.ShareProtocol(d.Get("enabled_protocol").(string)),
+	}
+
+	if accessTier := d.Get("access_tier").(string); accessTier != "" {
+		tier := shares.AccessTier(accessTier)
+		input.AccessTier = &tier
 	}
 
 	if err := client.Create(ctx, account.ResourceGroup, accountName, shareName, input); err != nil {
@@ -221,6 +237,10 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("quota", props.QuotaGB)
 	d.Set("url", id.ID())
 	d.Set("enabled_protocol", string(props.EnabledProtocol))
+
+	if accessTier := props.AccessTier; accessTier != nil {
+		d.Set("access_tier", string(*accessTier))
+	}
 
 	if err := d.Set("acl", flattenStorageShareACLs(props.ACLs)); err != nil {
 		return fmt.Errorf("flattening `acl`: %+v", err)
@@ -294,6 +314,17 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		log.Printf("[DEBUG] Updated the ACL's for File Share %q (Storage Account %q)", id.Name, id.AccountName)
+	}
+
+	if d.HasChange("access_tier") {
+		log.Printf("[DEBUG] Updating the Access Tier for File Share %q (Storage Account %q)", id.Name, id.AccountName)
+
+		tier := shares.AccessTier(d.Get("access_tier").(string))
+		if err := client.UpdateTier(ctx, account.ResourceGroup, id.AccountName, id.Name, tier); err != nil {
+			return fmt.Errorf("updating Access Tier for File Share %q (Storage Account %q): %s", id.Name, id.AccountName, err)
+		}
+
+		log.Printf("[DEBUG] Updated the Access Tier for File Share %q (Storage Account %q)", id.Name, id.AccountName)
 	}
 
 	return resourceStorageShareRead(d, meta)

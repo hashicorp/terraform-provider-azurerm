@@ -110,6 +110,14 @@ func (w DataPlaneStorageShareWrapper) UpdateQuota(ctx context.Context, _, accoun
 	return err
 }
 
+func (w DataPlaneStorageShareWrapper) UpdateTier(ctx context.Context, _, accountname, shareName string, tier shares.AccessTier) error {
+	props := shares.ShareProperties{
+		AccessTier: &tier,
+	}
+	_, err := w.client.SetProperties(ctx, accountname, shareName, props)
+	return err
+}
+
 func (w DataPlaneStorageShareWrapper) createRefreshFunc(ctx context.Context, accountName string, shareName string, input shares.CreateInput) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := w.client.Create(ctx, accountName, shareName, input)
