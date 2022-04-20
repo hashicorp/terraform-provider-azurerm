@@ -8,6 +8,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_storage_account` - updating `identity` before `customer_managed_key` which enables adding a new identity with access to a CMK [GH-16419]
 * `azurerm_subnet` - `address_prefixes` is now (explicitly) required [GH-16402]
 
 ## 3.2.0 (April 14, 2022)
