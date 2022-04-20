@@ -491,7 +491,7 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	flattenIdenties, err := flattenIdentity(resp.Identity)
 	if err != nil {
-		return fmt.Errorf("retrieving Managed Identities for %s: %+v", *id, err)
+		return err
 	}
 
 	if err := d.Set("identity", flattenIdenties); err != nil {
@@ -961,9 +961,12 @@ func flattenIdentity(input *synapse.ManagedIdentity) (interface{}, error) {
 			config.TenantId = input.TenantID.String()
 		}
 		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
-		for k := range input.UserAssignedIdentities {
-			identityIds[k] = identity.UserAssignedIdentityDetails{
-				// since v is an `interface{}` there's no guarantee this is returned
+		if input.UserAssignedIdentities != nil {
+			for k, v := range input.UserAssignedIdentities {
+				identityIds[k] = identity.UserAssignedIdentityDetails{
+					ClientId:    utils.String(v.ClientID.String()),
+					PrincipalId: utils.String(v.PrincipalID.String()),
+				}
 			}
 		}
 

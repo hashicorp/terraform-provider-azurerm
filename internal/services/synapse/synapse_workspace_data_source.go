@@ -73,7 +73,7 @@ func dataSourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 	flattenIdentities, err := flattenIdentity(resp.Identity)
 	if err != nil {
-		return fmt.Errorf("retrieving Managed Identities for %s: %+v", id, err)
+		return err
 	}
 	if err := d.Set("identity", flattenIdentities); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
