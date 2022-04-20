@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Frontdoor Secret. Changing this forces a new Frontdoor Secret to be created.
 
-* `cdn_frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Secret to be created.
+* `cdn_frontdoor_profile_id` - (Required) The Resource ID of the Frontdoor Profile. Changing this forces a new Frontdoor Secret to be created.
 
 * `secret_parameters` - (Required) A `secret_parameters` block as defined below. Changing this forces a new Frontdoor Secret to be created.
 

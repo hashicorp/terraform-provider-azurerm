@@ -288,10 +288,29 @@ func cdnFrontdoorCustomDomainTLSSettingsRefreshFunc(ctx context.Context, client 
 		}
 
 		if props := resp.AFDDomainProperties; props != nil {
-			if tlsSettings := props.TLSSettings; tlsSettings != nil {
-				if secret := tlsSettings.Secret; secret != nil {
-					if secret.ID != nil {
-						out = "Succeeded"
+			// first lets check the validation state of the custom domain
+			if props.DomainValidationState == track1.DomainValidationStateApproved {
+				if tlsSettings := props.TLSSettings; tlsSettings != nil {
+					if secret := tlsSettings.Secret; secret != nil {
+						if secret.ID != nil {
+							out = "Succeeded"
+						}
+					}
+				}
+			} else {
+				// Now see if it's still pending or not...
+				if props.DomainValidationState == track1.DomainValidationStatePending ||
+					props.DomainValidationState == track1.DomainValidationStateSubmitting {
+					return resp, out, nil
+				} else {
+					// we might be in a bad state check the state to see if we should return an error or not...
+					if props.DomainValidationState == track1.DomainValidationStateInternalError ||
+						props.DomainValidationState == track1.DomainValidationStateRejected ||
+						props.DomainValidationState == track1.DomainValidationStateTimedOut ||
+						props.DomainValidationState == track1.DomainValidationStateUnknown ||
+						props.DomainValidationState == track1.DomainValidationStatePendingRevalidation ||
+						props.DomainValidationState == track1.DomainValidationStateRefreshingValidationToken {
+						return nil, "", fmt.Errorf("the custom domain %q (resource group: %q) has returned the validation state of %q, which indicates that an error has occured or that the custom domain is in an unsupported state", id.CustomDomainName, id.ResourceGroup, props.DomainValidationState)
 					}
 				}
 			}

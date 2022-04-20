@@ -104,7 +104,12 @@ func resourceCdnFrontdoorCustomDomainTxtValidatorCreate(d *pluginsdk.ResourceDat
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for the %q:%q (Resource Group: %q) domain validation state to become %q: %+v", "azurerm_cdn_frontdoor_custom_domain", id.CustomDomainName, id.ResourceGroup, "Approved", err)
+		// err == "unexpected state 'RefreshingValidationToken', wanted target 'Approved'. last error: %!s(<nil>)"
+		// The Terraform Plugin SDK "func (e *UnexpectedStateError) Error() string" should be checking to see if
+		// the last error is nil or not, if it is nil do not append the last error part to the returned error(e.g. "last error: %!s(<nil>"))
+		// it feels weird and is a confusing message.
+
+		return fmt.Errorf("waiting for the %q:%q (Resource Group: %q) validation state to become %q: %+v", "azurerm_cdn_frontdoor_custom_domain", id.CustomDomainName, id.ResourceGroup, "Approved", err)
 	}
 
 	d.SetId(id.ID())
@@ -172,7 +177,7 @@ func cdnFrontdoorCustomDomainTxtRefreshFunc(ctx context.Context, client *track1.
 		state := track1.DomainValidationStateUnknown
 		if props := resp.AFDDomainProperties; props != nil {
 			// 'DomainValidationStateUnknown', 'DomainValidationStateSubmitting', 'DomainValidationStatePending',
-			// 'DomainValidationStateRejected', 'DomainValidationStateTimedOut', 'DomainValidationStatePendingRevalidation',
+			// 'DomainValidationStateRejected', 'DomainValidationStateTimedOut', '',
 			// 'DomainValidationStateApproved', 'DomainValidationStateRefreshingValidationToken',
 			// 'DomainValidationStateInternalError'
 			if props.DomainValidationState != "" {

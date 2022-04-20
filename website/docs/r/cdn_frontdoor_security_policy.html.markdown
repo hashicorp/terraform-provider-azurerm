@@ -101,7 +101,7 @@ A `association` block supports the following:
 
 * `domain` - (Required) One or more `domain` blocks as defined below. Changing this forces a new Frontdoor Security Policy to be created.
 
-* `patterns_to_match` - (Optional) The list of paths to match for this firewall policy. Possilbe value includes `/*`. Defaults to `/*`.
+* `patterns_to_match` - (Required) The list of paths to match for this firewall policy. Possilbe value includes `/*`.
 
 ---
 

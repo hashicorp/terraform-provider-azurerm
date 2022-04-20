@@ -107,7 +107,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-c-%d"
+  name                = "accTestEndpoint-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -119,7 +119,7 @@ func (r CdnFrontdoorProfileEndpointResource) basic(data acceptance.TestData) str
 				%s
 
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
-  name                     = "acctest-c-%d"
+  name                     = "accTestEndpoint-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   tags = {
@@ -151,7 +151,7 @@ func (r CdnFrontdoorProfileEndpointResource) complete(data acceptance.TestData) 
 			%s
 
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
-  name                     = "acctest-c-%d"
+  name                     = "accTestEndpoint-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
   enabled                  = true
 
@@ -168,7 +168,7 @@ func (r CdnFrontdoorProfileEndpointResource) update(data acceptance.TestData) st
 			%s
 
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
-  name                     = "acctest-c-%d"
+  name                     = "accTestEndpoint-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
   enabled                  = false
 

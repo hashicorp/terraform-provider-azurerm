@@ -106,12 +106,11 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 												// NOTE: Per the service team the only acceptable value as of GA is "/*"
 												"patterns_to_match": {
 													Type:     pluginsdk.TypeList,
-													Optional: true,
+													Required: true,
 													MaxItems: 25,
 
 													Elem: &pluginsdk.Schema{
-														Type:    pluginsdk.TypeString,
-														Default: "/*",
+														Type: pluginsdk.TypeString,
 														ValidateFunc: validation.StringInSlice([]string{
 															"/*",
 														}, false),

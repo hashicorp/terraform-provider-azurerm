@@ -15,36 +15,8 @@ import (
 
 type CdnFrontdoorCustomDomainTxtValidatorResource struct{}
 
-func TestAccCdnFrontdoorCustomDomainTxtValidator_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontdoorCustomDomainTxtValidatorResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccCdnFrontdoorCustomDomainTxtValidator_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontdoorCustomDomainTxtValidatorResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.RequiresImportErrorStep(r.requiresImport),
-	})
-}
-
 func TestAccCdnFrontdoorCustomDomainTxtValidator_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain_txt_validator", "test")
 	r := CdnFrontdoorCustomDomainTxtValidatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,45 +25,16 @@ func TestAccCdnFrontdoorCustomDomainTxtValidator_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccCdnFrontdoorCustomDomainTxtValidator_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontdoorCustomDomainTxtValidatorResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
 func (r CdnFrontdoorCustomDomainTxtValidatorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CustomDomainID(state.ID)
+	// This is not a real resource so it does not really exist in Azure, but if it exists in state that means that it was created successfully
+	_, err := parse.FrontdoorCustomDomainTxtID(state.ID)
 	if err != nil {
-		return nil, err
+		return utils.Bool(false), nil
 	}
 
-	client := clients.Cdn.FrontDoorCustomDomainsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
-	}
 	return utils.Bool(true), nil
 }
 
@@ -102,63 +45,91 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cdn-afdx-%d"
-  location = "%s"
+  name     = "acctestRG-cdn-afdx-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%[1]d.com"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-c-%d"
+  name                = "accTestProfile-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+
+resource "azurerm_cdn_frontdoor_origin_group" "test" {
+  name                     = "accTestOriginGroup-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_count                       = 16
+    successful_samples_required        = 3
+  }
 }
 
-func (r CdnFrontdoorCustomDomainTxtValidatorResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-				%s
+resource "azurerm_cdn_frontdoor_origin" "test" {
+  name                          = "accTestOrigin-%[1]d"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+
+  health_probes_enabled          = true
+  certificate_name_check_enabled = false
+  host_name                      = join(".", ["fabrikam", azurerm_dns_zone.test.name])
+  priority                       = 1
+  weight                         = 1
+}
+
+resource "azurerm_cdn_frontdoor_endpoint" "test" {
+  name                     = "accTestEndpoint-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
 
 resource "azurerm_cdn_frontdoor_custom_domain" "test" {
-  name                     = "acctest-c-%d"
-  frontdoor_cdn_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  name                     = "accTestCustomDomain-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  azure_dns_zone_id                       = ""
-  host_name                               = ""
-  pre_validated_custom_domain_resource_id = ""
-
-  tls {
-    certificate_type    = ""
-    minimum_tls_version = ""
-    secret {
-      id = ""
-    }
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func (r CdnFrontdoorCustomDomainTxtValidatorResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
-	return fmt.Sprintf(`
-			%s
-
-resource "azurerm_cdn_frontdoor_custom_domain" "import" {
-  name                     = azurerm_cdn_frontdoor_custom_domain.test.name
-  frontdoor_cdn_profile_id = azurerm_cdn_frontdoor_profile.test.id
-
-  azure_dns_zone_id                       = ""
-  host_name                               = ""
-  pre_validated_custom_domain_resource_id = ""
+  dns_zone_id = azurerm_dns_zone.test.id
+  host_name   = join(".", ["fabrikam", azurerm_dns_zone.test.name])
 
   tls {
-    certificate_type    = ""
-    minimum_tls_version = ""
-    secret {
-      id = ""
-    }
+    certificate_type    = "ManagedCertificate"
+    minimum_tls_version = "TLS12"
   }
 }
-`, config)
+
+resource "azurerm_cdn_frontdoor_route" "test" {
+  name                            = "accTestRoute-%[1]d"
+  cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.test.id]
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.test.id]
+  enabled                         = true
+
+  link_to_default_domain_enabled = true
+  https_redirect_enabled         = true
+  forwarding_protocol            = "HttpsOnly"
+  patterns_to_match              = ["/*"]
+  supported_protocols            = ["Http", "Https"]
+
+  cache {
+    compression_enabled       = true
+    content_types_to_compress = ["text/html", "text/javascript", "text/xml"]
+  }
+}
+
+resource "azurerm_dns_txt_record" "fabrikam" {
+  name                = join(".", ["_dnsauth", "fabrikam"])
+  zone_name           = azurerm_dns_zone.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  ttl                 = 3600
+
+  record {
+    value = azurerm_cdn_frontdoor_custom_domain.test.validation_properties.0.validation_token
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (r CdnFrontdoorCustomDomainTxtValidatorResource) complete(data acceptance.TestData) string {
@@ -166,46 +137,9 @@ func (r CdnFrontdoorCustomDomainTxtValidatorResource) complete(data acceptance.T
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_cdn_frontdoor_custom_domain" "test" {
-  name                     = "acctest-c-%d"
-  frontdoor_cdn_profile_id = azurerm_cdn_frontdoor_profile.test.id
-
-  azure_dns_zone_id                       = ""
-  host_name                               = ""
-  pre_validated_custom_domain_resource_id = ""
-
-  tls {
-    certificate_type    = ""
-    minimum_tls_version = ""
-    secret {
-      id = ""
-    }
-  }
+resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "test" {
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.test.id
+  dns_txt_record_id              = azurerm_dns_txt_record.fabrikam.id
 }
-`, template, data.RandomInteger)
-}
-
-func (r CdnFrontdoorCustomDomainTxtValidatorResource) update(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-			%s
-
-resource "azurerm_cdn_frontdoor_custom_domain" "test" {
-  name                     = "acctest-c-%d"
-  frontdoor_cdn_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  azure_dns_zone {
-    id = ""
-  }
-  pre_validated_custom_domain_resource_id {
-    id = ""
-  }
-  tls {
-    certificate_type    = ""
-    minimum_tls_version = ""
-    secret {
-      id = ""
-    }
-  }
-}
-`, template, data.RandomInteger)
+`, template)
 }
