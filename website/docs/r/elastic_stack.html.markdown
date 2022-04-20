@@ -1,14 +1,14 @@
 ---
 subcategory: "Elastic"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_elastic_stack"
+page_title: "Azure Resource Manager: azurerm_elasticsearch"
 description: |-
-  Manages an Elastic Stack in Elastic Cloud.
+  Manages an Elasticsearch cluster in Elastic Cloud.
 ---
 
-# azurerm_elastic_stack
+# azurerm_elasticsearch
 
-Manages an Elastic Stack in Elastic Cloud.
+Manages an Elasticsearch in Elastic Cloud.
 
 ## Example Usage
 
@@ -18,8 +18,8 @@ resource "azurerm_resource_group" "test" {
   location = "West Europe"
 }
 
-resource "azurerm_elastic_stack" "test" {
-  name                        = "example-elastic-stack"
+resource "azurerm_elasticsearch" "test" {
+  name                        = "example-elasticsearch"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-monthly-consumption_Monthly"
@@ -31,23 +31,23 @@ resource "azurerm_elastic_stack" "test" {
 
 The following arguments are supported:
 
-* `elastic_cloud_email_address` - (Required) Specifies the Email Address which should be associated with this Elastic Stack account. Changing this forces a new Elastic Stack to be created.
+* `elastic_cloud_email_address` - (Required) Specifies the Email Address which should be associated with this Elasticsearch account. Changing this forces a new Elasticsearch to be created.
 
-* `location` - (Required) The Azure Region where the Elastic Stack should exist. Changing this forces a new Elastic Stack to be created.
+* `location` - (Required) The Azure Region where the Elasticsearch resource should exist. Changing this forces a new Elasticsearch to be created.
 
-* `name` - (Required) The name which should be used for this Elastic Stack. Changing this forces a new Elastic Stack to be created.
+* `name` - (Required) The name which should be used for this Elasticsearch resource. Changing this forces a new Elasticsearch to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Elastic Stack should exist. Changing this forces a new Elastic Stack to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Elasticsearch resource should exist. Changing this forces a new Elasticsearch to be created.
 
-* `sku_name` - (Required) Specifies the name of the SKU for this Elastic Stack. Changing this forces a new Elastic Stack to be created.
+* `sku_name` - (Required) Specifies the name of the SKU for this Elasticsearch. Changing this forces a new Elasticsearch to be created.
 
 ---
 
 * `logs` - (Optional) A `logs` block as defined below.
 
-* `monitoring_enabled` - (Optional) Specifies if the Elastic Stack should have monitoring configured? Defaults to `true`. Changing this forces a new Elastic Stack to be created.
+* `monitoring_enabled` - (Optional) Specifies if the Elasticsearch should have monitoring configured? Defaults to `true`. Changing this forces a new Elasticsearch to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Elastic Stack.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Elasticsearch resource.
 
 ---
 
@@ -65,17 +65,17 @@ The `logs` block supports the following:
 
 * `filtering_tag` - (Optional) A list of `filtering_tag` blocks as defined above.
 
-* `send_activity_logs` - (Optional) Specifies if the Azure Activity Logs should be sent to the Elastic Stack cluster. Defaults to `false`.
+* `send_activity_logs` - (Optional) Specifies if the Azure Activity Logs should be sent to the Elasticsearch cluster. Defaults to `false`.
 
-* `send_azuread_logs` - (Optional) Specifies if the AzureAD Logs should be sent to the Elastic Stack cluster. Defaults to `false`.
+* `send_azuread_logs` - (Optional) Specifies if the AzureAD Logs should be sent to the Elasticsearch cluster. Defaults to `false`.
 
-* `send_subscription_logs` - (Optional) Specifies if the Azure Subscription Logs should be sent to the Elastic Stack cluster. Defaults to `false`.
+* `send_subscription_logs` - (Optional) Specifies if the Azure Subscription Logs should be sent to the Elasticsearch cluster. Defaults to `false`.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Elastic Stack.
+* `id` - The ID of the Elasticsearch.
 
 * `elastic_cloud_deployment_id` - The ID of the Deployment within Elastic Cloud.
 
@@ -83,25 +83,25 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `elastic_cloud_user_id` - The ID of the User Account within Elastic Cloud.
 
-* `elasticsearch_service_url` - The URL to the Elasticsearch Service associated with this Elastic Stack.
+* `elasticsearch_service_url` - The URL to the Elasticsearch Service associated with this Elasticsearch.
 
-* `kibana_service_url` - The URL to the Kibana Dashboard associated with this Elastic Stack.
+* `kibana_service_url` - The URL to the Kibana Dashboard associated with this Elasticsearch.
 
-* `kibana_sso_uri` - The URI used for SSO to the Kibana Dashboard associated with this Elastic Stack.
+* `kibana_sso_uri` - The URI used for SSO to the Kibana Dashboard associated with this Elasticsearch.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Elastic Stack.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Elastic Stack.
-* `update` - (Defaults to 30 minutes) Used when updating the Elastic Stack.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Elastic Stack.
+* `create` - (Defaults to 30 minutes) Used when creating the Elasticsearch.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Elasticsearch.
+* `update` - (Defaults to 30 minutes) Used when updating the Elasticsearch.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Elasticsearch.
 
 ## Import
 
-Elastic Stack's can be imported using the `resource id`, e.g.
+Elasticsearch's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_elastic_stack.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Elastic/monitors/monitor1
+terraform import azurerm_elasticsearch.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Elastic/monitors/monitor1
 ```

@@ -21,12 +21,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceStack() *pluginsdk.Resource {
+func resourceElasticsearch() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceStackCreate,
-		Read:   resourceStackRead,
-		Update: resourceStackUpdate,
-		Delete: resourceStackDelete,
+		Create: resourceElasticsearchCreate,
+		Read:   resourceElasticsearchRead,
+		Update: resourceElasticsearchUpdate,
+		Delete: resourceElasticsearchDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -46,7 +46,7 @@ func resourceStack() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ElasticStackName,
+				ValidateFunc: validate.ElasticsearchName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -159,7 +159,7 @@ func resourceStack() *pluginsdk.Resource {
 	}
 }
 
-func resourceStackCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Elastic.MonitorClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -214,10 +214,10 @@ func resourceStackCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return resourceStackRead(d, meta)
+	return resourceElasticsearchRead(d, meta)
 }
 
-func resourceStackRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceElasticsearchRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Elastic.MonitorClient
 	logsClient := meta.(*clients.Client).Elastic.TagRuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -295,7 +295,7 @@ func resourceStackRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceStackUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceElasticsearchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -334,10 +334,10 @@ func resourceStackUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return resourceStackRead(d, meta)
+	return resourceElasticsearchRead(d, meta)
 }
 
-func resourceStackDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceElasticsearchDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Elastic.MonitorClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

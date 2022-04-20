@@ -17,9 +17,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceStack() *pluginsdk.Resource {
+func dataSourceElasticsearch() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceStackRead,
+		Read: dataSourceElasticsearchRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,7 +30,7 @@ func dataSourceStack() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ElasticStackName,
+				ValidateFunc: validate.ElasticsearchName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -127,7 +127,7 @@ func dataSourceStack() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStackRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceElasticsearchRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Elastic.MonitorClient
 	logsClient := meta.(*clients.Client).Elastic.TagRuleClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type StackResourceTest struct{}
+type ElasticsearchResourceTest struct{}
 
-func TestAccElasticStack_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elastic_stack", "test")
-	r := StackResourceTest{}
+func TestAccElasticsearch_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elasticsearch", "test")
+	r := ElasticsearchResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -37,9 +37,9 @@ func TestAccElasticStack_basic(t *testing.T) {
 	})
 }
 
-func TestAccElasticStack_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elastic_stack", "test")
-	r := StackResourceTest{}
+func TestAccElasticsearch_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elasticsearch", "test")
+	r := ElasticsearchResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -51,9 +51,9 @@ func TestAccElasticStack_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccElasticStack_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elastic_stack", "test")
-	r := StackResourceTest{}
+func TestAccElasticsearch_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elasticsearch", "test")
+	r := ElasticsearchResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -65,9 +65,9 @@ func TestAccElasticStack_complete(t *testing.T) {
 	})
 }
 
-func TestAccElasticStack_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elastic_stack", "test")
-	r := StackResourceTest{}
+func TestAccElasticsearch_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elasticsearch", "test")
+	r := ElasticsearchResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -93,9 +93,9 @@ func TestAccElasticStack_update(t *testing.T) {
 	})
 }
 
-func TestAccElasticStack_logs(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elastic_stack", "test")
-	r := StackResourceTest{}
+func TestAccElasticsearch_logs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elasticsearch", "test")
+	r := ElasticsearchResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// this proves that we don't need to destroy the `logs` block separately
@@ -108,9 +108,9 @@ func TestAccElasticStack_logs(t *testing.T) {
 	})
 }
 
-func TestAccElasticStack_logsUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elastic_stack", "test")
-	r := StackResourceTest{}
+func TestAccElasticsearch_logsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elasticsearch", "test")
+	r := ElasticsearchResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// create with it
@@ -139,7 +139,7 @@ func TestAccElasticStack_logsUpdate(t *testing.T) {
 	})
 }
 
-func (r StackResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ElasticsearchResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := monitorsresource.ParseMonitorID(state.ID)
 	if err != nil {
 		return nil, err
@@ -155,7 +155,7 @@ func (r StackResourceTest) Exists(ctx context.Context, client *clients.Client, s
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r StackResourceTest) basic(data acceptance.TestData) string {
+func (r ElasticsearchResourceTest) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -166,7 +166,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elastic_stack" "test" {
+resource "azurerm_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -176,21 +176,21 @@ resource "azurerm_elastic_stack" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StackResourceTest) requiresImport(data acceptance.TestData) string {
+func (r ElasticsearchResourceTest) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_elastic_stack" "import" {
-  name                        = azurerm_elastic_stack.test.name
-  resource_group_name         = azurerm_elastic_stack.test.resource_group_name
-  location                    = azurerm_elastic_stack.test.location
-  sku_name                    = azurerm_elastic_stack.test.sku_name
-  elastic_cloud_email_address = azurerm_elastic_stack.test.elastic_cloud_email_address
+resource "azurerm_elasticsearch" "import" {
+  name                        = azurerm_elasticsearch.test.name
+  resource_group_name         = azurerm_elasticsearch.test.resource_group_name
+  location                    = azurerm_elasticsearch.test.location
+  sku_name                    = azurerm_elasticsearch.test.sku_name
+  elastic_cloud_email_address = azurerm_elasticsearch.test.elastic_cloud_email_address
 }
 `, r.basic(data))
 }
 
-func (r StackResourceTest) update(data acceptance.TestData) string {
+func (r ElasticsearchResourceTest) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -201,7 +201,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elastic_stack" "test" {
+resource "azurerm_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -215,7 +215,7 @@ resource "azurerm_elastic_stack" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StackResourceTest) complete(data acceptance.TestData) string {
+func (r ElasticsearchResourceTest) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -226,7 +226,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elastic_stack" "test" {
+resource "azurerm_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -241,7 +241,7 @@ resource "azurerm_elastic_stack" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StackResourceTest) logs(data acceptance.TestData) string {
+func (r ElasticsearchResourceTest) logs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -252,7 +252,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elastic_stack" "test" {
+resource "azurerm_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -275,7 +275,7 @@ resource "azurerm_elastic_stack" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StackResourceTest) logsUpdated(data acceptance.TestData) string {
+func (r ElasticsearchResourceTest) logsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -286,7 +286,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elastic_stack" "test" {
+resource "azurerm_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location

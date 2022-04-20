@@ -1,30 +1,30 @@
 ---
 subcategory: "Elastic"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_elastic_stack"
+page_title: "Azure Resource Manager: azurerm_elasticsearch"
 description: |- 
-    Gets information about an existing Elastic Stack.
+    Gets information about an existing Elasticsearch resource.
 
 ---
 
-# Data Source: azurerm_elastic_stack
+# Data Source: azurerm_elasticsearch
 
-Use this data source to access information about an existing Elastic Stack.
+Use this data source to access information about an existing Elasticsearch resource.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_elastic_stack" "example" {
-  name                = "my-elastic-stack"
+data "azurerm_elasticsearch" "example" {
+  name                = "my-elastic-search"
   resource_group_name = "example-resources"
 }
 
 output "elasticsearch_endpoint" {
-  value = data.azurerm_elastic_stack.example.elasticsearch_service_url
+  value = data.azurerm_elasticsearch.example.elasticsearch_service_url
 }
 
 output "kibana_endpoint" {
-  value = data.azurerm_elastic_stack.example.kibana_service_url
+  value = data.azurerm_elasticsearch.example.kibana_service_url
 }
 ```
 
@@ -32,39 +32,39 @@ output "kibana_endpoint" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Elastic Stack resource.
+* `name` - (Required) The name of the Elasticsearch resource.
 
-* `resource_group_name` - (Required) The name of the resource group in which the Elastic Stack exists.
+* `resource_group_name` - (Required) The name of the resource group in which the Elasticsearch exists.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Elastic Stack.
+* `id` - The ID of the Elasticsearch.
 
 * `elastic_cloud_deployment_id` - The ID of the Deployment within Elastic Cloud.
 
-* `elastic_cloud_email_address` - The Email Address which is associated with this Elastic Stack account.
+* `elastic_cloud_email_address` - The Email Address which is associated with this Elasticsearch account.
 
 * `elastic_cloud_sso_default_url` - The Default URL used for Single Sign On (SSO) to Elastic Cloud.
 
 * `elastic_cloud_user_id` - The ID of the User Account within Elastic Cloud.
 
-* `elasticsearch_service_url` - The URL to the Elasticsearch Service associated with this Elastic Stack.
+* `elasticsearch_service_url` - The URL to the Elasticsearch Service associated with this Elasticsearch.
 
-* `kibana_service_url` - The URL to the Kibana Dashboard associated with this Elastic Stack.
+* `kibana_service_url` - The URL to the Kibana Dashboard associated with this Elasticsearch.
 
-* `kibana_sso_uri` - The URI used for SSO to the Kibana Dashboard associated with this Elastic Stack.
+* `kibana_sso_uri` - The URI used for SSO to the Kibana Dashboard associated with this Elasticsearch.
 
-* `location` - The Azure Region in which this Elastic Stack exists.
+* `location` - The Azure Region in which this Elasticsearch exists.
 
 * `logs` - A `logs` block as defined below.
 
-* `monitoring_enabled` - Specifies if monitoring is enabled on this Elastic Stack or not.
+* `monitoring_enabled` - Specifies if monitoring is enabled on this Elasticsearch or not.
 
-* `sku_name` - The name of the SKU used for this Elastic Stack.
+* `sku_name` - The name of the SKU used for this Elasticsearch.
 
-* `tags` - A mapping of tags assigned to the Elastic Stack.
+* `tags` - A mapping of tags assigned to the Elasticsearch.
 
 ---
 
@@ -82,15 +82,15 @@ The `logs` block exports the following:
 
 * `filtering_tag` - A list of `filtering_tag` blocks as defined above.
 
-* `send_activity_logs` - Should the Azure Activity Logs should be sent to the Elastic Stack cluster?
+* `send_activity_logs` - Should the Azure Activity Logs should be sent to the Elasticsearch cluster?
 
-* `send_azuread_logs` - Should the AzureAD Logs should be sent to the Elastic Stack cluster?
+* `send_azuread_logs` - Should the AzureAD Logs should be sent to the Elasticsearch cluster?
 
-* `send_subscription_logs` - Should the Azure Subscription Logs should be sent to the Elastic Stack cluster?
+* `send_subscription_logs` - Should the Azure Subscription Logs should be sent to the Elasticsearch cluster?
 
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Elastic Stack.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Elasticsearch.
