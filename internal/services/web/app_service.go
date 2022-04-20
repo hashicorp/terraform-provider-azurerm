@@ -153,7 +153,7 @@ func schemaAppServiceAuthSettings() *pluginsdk.Schema {
 					Required: true,
 				},
 
-				"additional_login_params": {
+				"additional_login_parameters": {
 					Type:     pluginsdk.TypeMap,
 					Optional: true,
 					Elem: &pluginsdk.Schema{
@@ -1030,7 +1030,7 @@ func expandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsPrope
 		siteAuthSettingsProperties.Enabled = utils.Bool(v.(bool))
 	}
 
-	if v, ok := setting["additional_login_params"]; ok {
+	if v, ok := setting["additional_login_parameters"]; ok {
 		input := v.(map[string]interface{})
 
 		additionalLoginParams := make([]string, 0)
@@ -1240,7 +1240,7 @@ func flattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []inte
 		result["enabled"] = *input.Enabled
 	}
 
-	result["additional_login_params"] = flattenAdditionalLoginParams(input.AdditionalLoginParams)
+	result["additional_login_parameters"] = flattenAdditionalLoginParams(input.AdditionalLoginParams)
 
 	allowedExternalRedirectUrls := make([]string, 0)
 	if s := input.AllowedExternalRedirectUrls; s != nil {
