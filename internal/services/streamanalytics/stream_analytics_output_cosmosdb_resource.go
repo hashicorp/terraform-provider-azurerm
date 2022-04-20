@@ -3,14 +3,13 @@ package streamanalytics
 import (
 	"context"
 	"fmt"
-	parse2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
-	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
+	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
+	cosmosValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
@@ -25,10 +24,9 @@ var _ sdk.ResourceWithCustomImporter = OutputCosmosDBResource{}
 
 type OutputCosmosDBResourceModel struct {
 	Name                  string `tfschema:"name"`
-	StreamAnalyticsJob    string `tfschema:"stream_analytics_job_name"`
-	ResourceGroup         string `tfschema:"resource_group_name"`
+	StreamAnalyticsJob    string `tfschema:"stream_analytics_job_id"`
 	AccountKey            string `tfschema:"cosmosdb_account_key"`
-	Database              string `tfschema:"cosmosdb_sql_database_name"`
+	Database              string `tfschema:"cosmosdb_sql_database_id"`
 	CollectionNamePattern string `tfschema:"collection_name_pattern"`
 	DocumentID            string `tfschema:"document_id"`
 	PartitionKey          string `tfschema:"partition_key"`
@@ -43,14 +41,12 @@ func (r OutputCosmosDBResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"stream_analytics_job_name": {
+		"stream_analytics_job_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.StreamingJobID,
 		},
-
-		"resource_group_name": azure.SchemaResourceGroupName(),
 
 		"cosmosdb_account_key": {
 			Type:         pluginsdk.TypeString,
@@ -59,10 +55,10 @@ func (r OutputCosmosDBResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"cosmosdb_sql_database_name": {
+		"cosmosdb_sql_database_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate2.SqlDatabaseID,
+			ValidateFunc: cosmosValidate.SqlDatabaseID,
 		},
 
 		"collection_name_pattern": {
@@ -109,7 +105,11 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.StreamAnalytics.OutputsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := parse.NewOutputID(subscriptionId, model.ResourceGroup, model.StreamAnalyticsJob, model.Name)
+			streamingJobStruct, err := parse.StreamingJobID(model.StreamAnalyticsJob)
+			if err != nil {
+				return err
+			}
+			id := parse.NewOutputID(subscriptionId, streamingJobStruct.ResourceGroup, streamingJobStruct.Name, model.Name)
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
@@ -120,9 +120,9 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			databaseIdStruct, err := parse2.SqlDatabaseID(model.Database)
+			databaseIdStruct, err := cosmosParse.SqlDatabaseID(model.Database)
 			if err != nil {
-				return fmt.Errorf("parsing database id %s: %+v", id, err)
+				return err
 			}
 
 			documentDbOutputProps := &streamanalytics.DocumentDbOutputDataSourceProperties{
@@ -139,7 +139,7 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 				OutputProperties: &streamanalytics.OutputProperties{
 					Datasource: &streamanalytics.DocumentDbOutputDataSource{
 						DocumentDbOutputDataSourceProperties: documentDbOutputProps,
-						Type:                                 streamanalytics.TypeMicrosoftStorageDocumentDB,
+						Type:                                 streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageDocumentDB,
 					},
 				},
 			}
@@ -181,8 +181,7 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 
 				state := OutputCosmosDBResourceModel{
 					Name:               id.Name,
-					StreamAnalyticsJob: id.StreamingjobName,
-					ResourceGroup:      id.ResourceGroup,
+					StreamAnalyticsJob: id.StreamingJobID(),
 				}
 
 				state.AccountKey = metadata.ResourceData.Get("cosmosdb_account_key").(string)
@@ -251,51 +250,24 @@ func (r OutputCosmosDBResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			needUpdateDateSourceProps := false
-			dataSourceProps := streamanalytics.DocumentDbOutputDataSourceProperties{}
-			d := metadata.ResourceData
-
-			if d.HasChange("cosmosdb_account_key") {
-				needUpdateDateSourceProps = true
-				dataSourceProps.AccountKey = &state.AccountKey
-			}
-
-			if d.HasChange("cosmosdb_sql_database_name") {
-				needUpdateDateSourceProps = true
-				dataSourceProps.Database = &state.Database
-			}
-
-			if d.HasChange("collection_name_pattern") {
-				needUpdateDateSourceProps = true
-				dataSourceProps.CollectionNamePattern = &state.CollectionNamePattern
-			}
-
-			if d.HasChange("document_id") {
-				needUpdateDateSourceProps = true
-				dataSourceProps.DocumentID = &state.DocumentID
-			}
-
-			if d.HasChange("partition_key") {
-				needUpdateDateSourceProps = true
-				dataSourceProps.PartitionKey = &state.PartitionKey
-			}
-
-			if !needUpdateDateSourceProps {
-				return nil
-			}
-
-			updatedDataSource := streamanalytics.DocumentDbOutputDataSource{
-				Type:                                 streamanalytics.TypeMicrosoftStorageDocumentDB,
-				DocumentDbOutputDataSourceProperties: &dataSourceProps,
-			}
-			props := streamanalytics.Output{
-				OutputProperties: &streamanalytics.OutputProperties{
-					Datasource: updatedDataSource,
-				},
-			}
-
-			if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
+			if metadata.ResourceData.HasChangesExcept("name", "stream_analytics_job_id") {
+				props := streamanalytics.Output{
+					OutputProperties: &streamanalytics.OutputProperties{
+						Datasource: streamanalytics.DocumentDbOutputDataSource{
+							Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageDocumentDB,
+							DocumentDbOutputDataSourceProperties: &streamanalytics.DocumentDbOutputDataSourceProperties{
+								AccountKey:            &state.AccountKey,
+								Database:              &state.Database,
+								CollectionNamePattern: &state.CollectionNamePattern,
+								DocumentID:            &state.DocumentID,
+								PartitionKey:          &state.PartitionKey,
+							},
+						},
+					},
+				}
+				if _, err := client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
+					return fmt.Errorf("updating %s: %+v", *id, err)
+				}
 			}
 
 			return nil
@@ -318,7 +290,7 @@ func (r OutputCosmosDBResource) CustomImporter() sdk.ResourceRunFunc {
 
 		props := resp.OutputProperties
 		if _, ok := props.Datasource.AsDocumentDbOutputDataSource(); !ok {
-			return fmt.Errorf("specified output is not of type %s", streamanalytics.TypeMicrosoftStorageDocumentDB)
+			return fmt.Errorf("specified output is not of type %s", streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageDocumentDB)
 		}
 		return nil
 	}

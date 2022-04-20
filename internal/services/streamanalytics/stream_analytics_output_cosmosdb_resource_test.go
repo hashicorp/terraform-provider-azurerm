@@ -51,52 +51,19 @@ func TestAccStreamAnalyticsOutputCosmosDB_update(t *testing.T) {
 	})
 }
 
-func (r StreamAnalyticsOutputCosmosDBResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%[1]s
+func TestAccStreamAnalyticsOutputCosmosDB_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_cosmosdb", "test")
+	r := StreamAnalyticsOutputCosmosDBResource{}
 
-resource "azurerm_cosmosdb_sql_container" "test" {
-  name                = "test-container%[2]s"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
-}
-
-resource "azurerm_stream_analytics_output_cosmosdb" "test" {
-  name                       = "acctestoutput-%[3]d"
-  stream_analytics_job_name  = azurerm_stream_analytics_job.test.name
-  resource_group_name        = azurerm_stream_analytics_job.test.resource_group_name
-  cosmosdb_account_key       = azurerm_cosmosdb_account.test.primary_key
-  cosmosdb_sql_database_name = azurerm_cosmosdb_sql_database.test.id
-  collection_name_pattern    = azurerm_cosmosdb_sql_container.test.id
-}
-`, template, data.RandomString, data.RandomInteger)
-}
-
-func (r StreamAnalyticsOutputCosmosDBResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cosmosdb_sql_container" "updated" {
-  name                = "updated-container%[2]s"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
-}
-
-resource "azurerm_stream_analytics_output_cosmosdb" "test" {
-  name                       = "acctestoutput-%[3]d"
-  stream_analytics_job_name  = azurerm_stream_analytics_job.test.name
-  resource_group_name        = azurerm_stream_analytics_job.test.resource_group_name
-  cosmosdb_account_key       = azurerm_cosmosdb_account.test.primary_key
-  cosmosdb_sql_database_name = azurerm_cosmosdb_sql_database.test.name
-  collection_name_pattern    = azurerm_cosmosdb_sql_container.updated.id
-}
-`, template, data.RandomString, data.RandomInteger)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("cosmosdb_account_key"),
+	})
 }
 
 func TestAccStreamAnalyticsOutputCosmosDB_requiredImport(t *testing.T) {
@@ -110,7 +77,7 @@ func TestAccStreamAnalyticsOutputCosmosDB_requiredImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		data.RequiresImportErrorStep(r.requiredImport),
 	})
 }
 func (r StreamAnalyticsOutputCosmosDBResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -129,18 +96,79 @@ func (r StreamAnalyticsOutputCosmosDBResource) Exists(ctx context.Context, clien
 	return utils.Bool(true), nil
 }
 
-func (r StreamAnalyticsOutputCosmosDBResource) requiresImport(data acceptance.TestData) string {
+func (r StreamAnalyticsOutputCosmosDBResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_stream_analytics_output_cosmosdb" "test" {
+  name                     = "acctestoutput-%[3]d"
+  stream_analytics_job_id  = azurerm_stream_analytics_job.test.id
+  cosmosdb_account_key     = azurerm_cosmosdb_account.test.primary_key
+  cosmosdb_sql_database_id = azurerm_cosmosdb_sql_database.test.id
+  collection_name_pattern  = azurerm_cosmosdb_sql_container.test.id
+}
+`, template, data.RandomString, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputCosmosDBResource) updated(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_database" "updated" {
+  name                = "updated-cosmos-sql-db"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  throughput          = 400
+}
+
+resource "azurerm_cosmosdb_sql_container" "updated" {
+  name                = "updated-container%[2]s"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.updated.name
+  partition_key_path  = "/definition/id"
+}
+
+resource "azurerm_stream_analytics_output_cosmosdb" "test" {
+  name                     = "acctestoutput-%[3]d"
+  stream_analytics_job_id  = azurerm_stream_analytics_job.test.id
+  cosmosdb_account_key     = azurerm_cosmosdb_account.test.primary_key
+  cosmosdb_sql_database_id = azurerm_cosmosdb_sql_database.updated.id
+  collection_name_pattern  = azurerm_cosmosdb_sql_container.updated.id
+}
+`, template, data.RandomString, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputCosmosDBResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_stream_analytics_output_cosmosdb" "test" {
+  name                     = "acctestoutput-%[3]d"
+  stream_analytics_job_id  = azurerm_stream_analytics_job.test.id
+  cosmosdb_account_key     = azurerm_cosmosdb_account.test.primary_key
+  cosmosdb_sql_database_id = azurerm_cosmosdb_sql_database.test.id
+  collection_name_pattern  = "foopattern{partition}"
+  partition_key            = "partitionkey"
+  document_id              = "exampledocumentid"
+}
+`, template, data.RandomString, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputCosmosDBResource) requiredImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_stream_analytics_output_cosmosdb" "import" {
-  name                       = azurerm_stream_analytics_output_cosmosdb.test.name
-  stream_analytics_job_name  = azurerm_stream_analytics_output_cosmosdb.test.stream_analytics_job_name
-  resource_group_name        = azurerm_stream_analytics_output_cosmosdb.test.resource_group_name
-  cosmosdb_account_key       = azurerm_stream_analytics_output_cosmosdb.test.cosmosdb_account_key
-  cosmosdb_sql_database_name = azurerm_stream_analytics_output_cosmosdb.test.cosmosdb_sql_database_name
-  collection_name_pattern    = azurerm_stream_analytics_output_cosmosdb.test.collection_name_pattern
+  name                     = azurerm_stream_analytics_output_cosmosdb.test.name
+  stream_analytics_job_id  = azurerm_stream_analytics_output_cosmosdb.test.stream_analytics_job_id
+  cosmosdb_account_key     = azurerm_stream_analytics_output_cosmosdb.test.cosmosdb_account_key
+  cosmosdb_sql_database_id = azurerm_stream_analytics_output_cosmosdb.test.cosmosdb_sql_database_id
+  collection_name_pattern  = azurerm_stream_analytics_output_cosmosdb.test.collection_name_pattern
 }
 `, template)
 }
@@ -170,7 +198,6 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    prefix            = "prefix-customid"
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
@@ -181,6 +208,14 @@ resource "azurerm_cosmosdb_sql_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   throughput          = 400
+}
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                = "test-container%[2]s"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+  partition_key_path  = "/definition/id"
 }
 
 resource "azurerm_stream_analytics_job" "test" {

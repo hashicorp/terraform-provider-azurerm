@@ -3,12 +3,12 @@ subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_output_cosmosdb"
 description: |-
-  Manages a Stream Analytics Output CosmosDB.
+  Manages a Stream Analytics Output to CosmosDB.
 ---
 
 # azurerm_stream_analytics_output_cosmosdb
 
-Manages a Stream Analytics Output CosmosDB.
+Manages a Stream Analytics Output to CosmosDB.
 
 ## Example Usage
 
@@ -72,17 +72,15 @@ resource "azurerm_stream_analytics_output_cosmosdb" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Stream Output. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Stream Analytics Output. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Stream Analytics Job exists. Changing this forces a new resource to be created.
+* `stream_analytics_job_id` - (Required) The ID of the Stream Analytics Job. Changing this forces a new resource to be created.
 
-* `stream_analytics_job_name` - (Required) The name of the Stream Analytics Job. Changing this forces a new resource to be created.
+* `account_name` - (Required) The name of the CosmosDB account.
 
-* `account_name` - (Required) The name of the CosmosDB Account.
+* `account_key` - (Required) The account key for the CosmosDB database.
 
-* `account_key` - (Required) The Account Key for the CosmosDB database.
-
-* `database` - (Required) The name or id of the CosmosDB database.
+* `cosmosdb_sql_database_id` - (Required) The ID of the CosmosDB database.
 
 * `collection_name_pattern` - (Required) The collection name pattern for the collection to be used. It can be the name of the container, or a collection name format which contains an optional {partition} token.
 
@@ -94,20 +92,20 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Stream Analytics Output CosmosDB.
+* `id` - The ID of the Stream Analytics Output for CosmosDB.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics.
-* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics.
+* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output for CosmosDB.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Output for CosmosDB.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Output for CosmosDB.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Output for CosmosDB.
 
 ## Import
 
-Stream Analytics Output to CosmosDB can be imported using the `resource id`, e.g.
+Stream Analytics Outputs for CosmosDB can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_stream_analytics_output_cosmosdb.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
