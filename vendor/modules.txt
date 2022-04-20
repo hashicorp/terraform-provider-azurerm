@@ -230,7 +230,6 @@ github.com/hashicorp/go-cty/cty/msgpack
 github.com/hashicorp/go-cty/cty/set
 # github.com/hashicorp/go-getter v1.5.4
 ## explicit; go 1.13
-github.com/hashicorp/go-getter/helper/url
 # github.com/hashicorp/go-hclog v0.16.1
 ## explicit; go 1.13
 github.com/hashicorp/go-hclog
