@@ -1872,7 +1872,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   is_virtual_network_filter_enabled = true
-  ip_range_filter                   = [""]
+  ip_range_filter                   = []
 
   virtual_network_rule {
     id                                   = azurerm_subnet.subnet1.id
