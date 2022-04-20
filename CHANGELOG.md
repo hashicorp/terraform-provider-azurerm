@@ -6,6 +6,10 @@ ENHANCEMENTS:
 * `azurerm_stream_analytics_output_servicebus_topic` - support for the `system_property_columns` property [GH-16425]
 * `azurerm_virtual_hub_connection` - the field `internet_security_enabled` can now be updated [GH-16430]
 
+BUG FIXES:
+
+* `azurerm_subnet` - `address_prefixes` is now (explicitly) required [GH-16402]
+
 ## 3.2.0 (April 14, 2022)
 
 FEATURES:
