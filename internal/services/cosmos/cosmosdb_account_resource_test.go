@@ -767,7 +767,7 @@ func TestAccCosmosDBAccount_vNetFiltersThreePointOh(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vNetFilters(data),
+			Config: r.vNetFiltersThreePointOh(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("is_virtual_network_filter_enabled").HasValue("true"),
