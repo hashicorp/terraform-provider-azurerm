@@ -1465,6 +1465,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	if len(siteConfig) == 0 {
 		return nil, nil
 	}
+
 	expanded := &web.SiteConfig{}
 	if existing != nil {
 		expanded = existing
@@ -1474,21 +1475,16 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 
 	appSettings := make([]web.NameValuePair, 0)
 
-	appSettings = append(appSettings, web.NameValuePair{
-		Name:  utils.String("FUNCTIONS_EXTENSION_VERSION"),
-		Value: utils.String(version),
-	})
+	if existing != nil && existing.AppSettings != nil {
+		appSettings = *existing.AppSettings
+	}
+
+	appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_EXTENSION_VERSION", version, false)
 
 	if storageUsesMSI {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("AzureWebJobsStorage__accountName"),
-			Value: utils.String(storageString),
-		})
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageString, false)
 	} else {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("AzureWebJobsStorage"),
-			Value: utils.String(storageString),
-		})
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageString, false)
 	}
 
 	linuxSiteConfig := siteConfig[0]
@@ -1496,10 +1492,11 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
 		if linuxSiteConfig.HealthCheckPath != "" && metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 			v := strconv.Itoa(linuxSiteConfig.HealthCheckEvictionTime)
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("WEBSITE_HEALTHCHECK_MAXPINGFAILURES"),
-				Value: utils.String(v),
-			})
+			if v == "0" {
+				appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
+			} else {
+				appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
+			}
 		}
 	}
 
@@ -1509,18 +1506,16 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.FunctionAppScaleLimit = utils.Int32(int32(linuxSiteConfig.AppScaleLimit))
 	}
 
-	if linuxSiteConfig.AppInsightsConnectionString != "" {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("APPLICATIONINSIGHTS_CONNECTION_STRING"),
-			Value: utils.String(linuxSiteConfig.AppInsightsConnectionString),
-		})
+	if linuxSiteConfig.AppInsightsConnectionString == "" {
+		appSettings = updateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", linuxSiteConfig.AppInsightsConnectionString, true)
+	} else {
+		appSettings = updateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", linuxSiteConfig.AppInsightsConnectionString, false)
 	}
 
-	if linuxSiteConfig.AppInsightsInstrumentationKey != "" {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("APPINSIGHTS_INSTRUMENTATIONKEY"),
-			Value: utils.String(linuxSiteConfig.AppInsightsInstrumentationKey),
-		})
+	if linuxSiteConfig.AppInsightsInstrumentationKey == "" {
+		appSettings = updateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", linuxSiteConfig.AppInsightsInstrumentationKey, true)
+	} else {
+		appSettings = updateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", linuxSiteConfig.AppInsightsInstrumentationKey, false)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
@@ -1539,92 +1534,54 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.AppCommandLine = utils.String(linuxSiteConfig.AppCommandLine)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.application_stack") && len(linuxSiteConfig.ApplicationStack) > 0 {
-		if len(linuxSiteConfig.ApplicationStack) > 0 {
-			linuxAppStack := linuxSiteConfig.ApplicationStack[0]
-			if linuxAppStack.DotNetVersion != "" {
-				if linuxAppStack.DotNetIsolated {
-					appSettings = append(appSettings, web.NameValuePair{
-						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-						Value: utils.String("dotnet-isolated"),
-					})
-					linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion)
-				} else {
-					appSettings = append(appSettings, web.NameValuePair{
-						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-						Value: utils.String("dotnet"),
-					})
-					linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion)
-				}
+	if len(linuxSiteConfig.ApplicationStack) > 0 {
+		linuxAppStack := linuxSiteConfig.ApplicationStack[0]
+		if linuxAppStack.DotNetVersion != "" {
+			if linuxAppStack.DotNetIsolated {
+				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated", false)
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion))
+			} else {
+				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet", false)
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion))
 			}
-
-			if linuxAppStack.NodeVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("node"),
-				})
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
-					Value: utils.String(linuxAppStack.NodeVersion),
-				})
-				linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("Node|%s", linuxAppStack.NodeVersion)
-			}
-
-			if linuxAppStack.PythonVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("python"),
-				})
-				linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("Python|%s", linuxAppStack.PythonVersion)
-			}
-
-			if linuxAppStack.JavaVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("java"),
-				})
-				linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion)
-			}
-
-			if linuxAppStack.PowerShellCoreVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("powershell"),
-				})
-				linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion)
-			}
-
-			if linuxAppStack.CustomHandler {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("custom"),
-				})
-				linuxSiteConfig.LinuxFxVersion = "" // Custom needs an explicit empty string here
-			}
-
-			if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
-				dockerConfig := linuxAppStack.Docker[0]
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("DOCKER_REGISTRY_SERVER_URL"),
-					Value: utils.String(dockerConfig.RegistryURL),
-				})
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("DOCKER_REGISTRY_SERVER_USERNAME"),
-					Value: utils.String(dockerConfig.RegistryUsername),
-				})
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("DOCKER_REGISTRY_SERVER_PASSWORD"),
-					Value: utils.String(dockerConfig.RegistryPassword),
-				})
-				linuxSiteConfig.LinuxFxVersion = fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag)
-			}
-		} else {
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-				Value: utils.String(""),
-			})
-			linuxSiteConfig.LinuxFxVersion = ""
 		}
+
+		if linuxAppStack.NodeVersion != "" {
+			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "node", false)
+			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_NODE_DEFAULT_VERSION", linuxAppStack.NodeVersion, false)
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("Node|%s", linuxAppStack.NodeVersion))
+		}
+
+		if linuxAppStack.PythonVersion != "" {
+			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "python", false)
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("Python|%s", linuxAppStack.PythonVersion))
+		}
+
+		if linuxAppStack.JavaVersion != "" {
+			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "java", false)
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion))
+		}
+
+		if linuxAppStack.PowerShellCoreVersion != "" {
+			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "powershell", false)
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion))
+		}
+
+		if linuxAppStack.CustomHandler {
+			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "custom", false)
+			expanded.LinuxFxVersion = utils.String("") // Custom needs an explicit empty string here
+		}
+
+		if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
+			dockerConfig := linuxAppStack.Docker[0]
+			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", dockerConfig.RegistryURL, false)
+			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_USERNAME", dockerConfig.RegistryUsername, false)
+			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_PASSWORD", dockerConfig.RegistryPassword, false)
+			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag))
+		}
+	} else {
+		appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)
+		expanded.LinuxFxVersion = utils.String("")
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_use_managed_identity") {
@@ -1729,34 +1686,58 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	return expanded, nil
 }
 
+// updateOrAppendAppSettings is used to modify a collection of web.NameValuePair items.
+func updateOrAppendAppSettings(input []web.NameValuePair, name string, value string, remove bool) []web.NameValuePair {
+	for k, v := range input {
+		if v.Name != nil && *v.Name == name {
+			if remove {
+				input[k] = input[len(input)-1]
+				input[len(input)-1] = web.NameValuePair{}
+				input = input[:len(input)-1]
+			} else {
+				input[k] = web.NameValuePair{
+					Name:  utils.String(name),
+					Value: utils.String(value),
+				}
+			}
+			return input
+		}
+	}
+
+	if !remove {
+		input = append(input, web.NameValuePair{
+			Name:  utils.String(name),
+			Value: utils.String(value),
+		})
+	}
+
+	return input
+}
+
 func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionApp, existing *web.SiteConfig, metadata sdk.ResourceMetaData, version string, storageString string, storageUsesMSI bool) (*web.SiteConfig, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil
 	}
+
 	expanded := &web.SiteConfig{}
 	if existing != nil {
 		expanded = existing
 		// need to zero fxversion to re-calculate based on changes below or removing app_stack doesn't apply
-		expanded.LinuxFxVersion = utils.String("")
+		expanded.WindowsFxVersion = utils.String("")
 	}
 
 	appSettings := make([]web.NameValuePair, 0)
 
-	appSettings = append(appSettings, web.NameValuePair{
-		Name:  utils.String("FUNCTIONS_EXTENSION_VERSION"),
-		Value: utils.String(version),
-	})
+	if existing != nil && existing.AppSettings != nil {
+		appSettings = *existing.AppSettings
+	}
+
+	appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_EXTENSION_VERSION", version, false)
 
 	if storageUsesMSI {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("AzureWebJobsStorage__accountName"),
-			Value: utils.String(storageString),
-		})
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageString, false)
 	} else {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("AzureWebJobsStorage"),
-			Value: utils.String(storageString),
-		})
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageString, false)
 	}
 
 	windowsSiteConfig := siteConfig[0]
@@ -1764,10 +1745,11 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
 		if windowsSiteConfig.HealthCheckPath != "" && metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 			v := strconv.Itoa(windowsSiteConfig.HealthCheckEvictionTime)
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("WEBSITE_HEALTHCHECK_MAXPINGFAILURES"),
-				Value: utils.String(v),
-			})
+			if v == "0" {
+				appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
+			} else {
+				appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
+			}
 		}
 	}
 
@@ -1777,18 +1759,16 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 		expanded.FunctionAppScaleLimit = utils.Int32(int32(windowsSiteConfig.AppScaleLimit))
 	}
 
-	if windowsSiteConfig.AppInsightsConnectionString != "" {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("APPLICATIONINSIGHTS_CONNECTION_STRING"),
-			Value: utils.String(windowsSiteConfig.AppInsightsConnectionString),
-		})
+	if windowsSiteConfig.AppInsightsConnectionString == "" {
+		appSettings = updateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", windowsSiteConfig.AppInsightsConnectionString, true)
+	} else {
+		appSettings = updateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", windowsSiteConfig.AppInsightsConnectionString, false)
 	}
 
-	if windowsSiteConfig.AppInsightsInstrumentationKey != "" {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("APPINSIGHTS_INSTRUMENTATIONKEY"),
-			Value: utils.String(windowsSiteConfig.AppInsightsInstrumentationKey),
-		})
+	if windowsSiteConfig.AppInsightsInstrumentationKey == "" {
+		appSettings = updateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", windowsSiteConfig.AppInsightsInstrumentationKey, true)
+	} else {
+		appSettings = updateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", windowsSiteConfig.AppInsightsInstrumentationKey, false)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
@@ -1807,68 +1787,41 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 		expanded.AppCommandLine = utils.String(windowsSiteConfig.AppCommandLine)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.application_stack") && len(windowsSiteConfig.ApplicationStack) > 0 {
-		if len(windowsSiteConfig.ApplicationStack) > 0 {
-			windowsAppStack := windowsSiteConfig.ApplicationStack[0]
-			if windowsAppStack.DotNetVersion != "" {
-				if windowsAppStack.DotNetIsolated {
-					appSettings = append(appSettings, web.NameValuePair{
-						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-						Value: utils.String("dotnet-isolated"),
-					})
-					windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET-ISOLATED|%s", windowsAppStack.DotNetVersion)
-
-				} else {
-					appSettings = append(appSettings, web.NameValuePair{
-						Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-						Value: utils.String("dotnet"),
-					})
-					windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET|%s", windowsAppStack.DotNetVersion)
-				}
+	if len(windowsSiteConfig.ApplicationStack) > 0 {
+		windowsAppStack := windowsSiteConfig.ApplicationStack[0]
+		if windowsAppStack.DotNetVersion != "" {
+			if windowsAppStack.DotNetIsolated {
+				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated", false)
+				windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET-ISOLATED|%s", windowsAppStack.DotNetVersion)
+			} else {
+				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet", false)
+				windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("DOTNET|%s", windowsAppStack.DotNetVersion)
 			}
-
-			if windowsAppStack.NodeVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("node"),
-				})
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
-					Value: utils.String(windowsAppStack.NodeVersion),
-				})
-				windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("Node|%s", windowsAppStack.NodeVersion)
-			}
-
-			if windowsAppStack.JavaVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("java"),
-				})
-				windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("Java|%s", windowsAppStack.JavaVersion)
-			}
-
-			if windowsAppStack.PowerShellCoreVersion != "" {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("powershell"),
-				})
-				windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("PowerShell|%s", windowsAppStack.PowerShellCoreVersion)
-			}
-
-			if windowsAppStack.CustomHandler {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("custom"),
-				})
-				windowsSiteConfig.WindowsFxVersion = "" // Custom needs an explicit empty string here
-			}
-		} else {
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-				Value: utils.String(""),
-			})
-			windowsSiteConfig.WindowsFxVersion = ""
 		}
+
+		if windowsAppStack.NodeVersion != "" {
+			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "node", false)
+			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_NODE_DEFAULT_VERSION", windowsAppStack.NodeVersion, false)
+			windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("Node|%s", windowsAppStack.NodeVersion)
+		}
+
+		if windowsAppStack.JavaVersion != "" {
+			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "java", false)
+			windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("Java|%s", windowsAppStack.JavaVersion)
+		}
+
+		if windowsAppStack.PowerShellCoreVersion != "" {
+			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "powershell", false)
+			windowsSiteConfig.WindowsFxVersion = fmt.Sprintf("PowerShell|%s", windowsAppStack.PowerShellCoreVersion)
+		}
+
+		if windowsAppStack.CustomHandler {
+			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "custom", false)
+			windowsSiteConfig.WindowsFxVersion = "" // Custom needs an explicit empty string here
+		}
+	} else {
+		appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)
+		windowsSiteConfig.WindowsFxVersion = ""
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {

@@ -722,6 +722,10 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
 			siteConfig, err := helpers.ExpandSiteConfigWindowsFunctionApp(state.SiteConfig, existing.SiteConfig, metadata, state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
+			if err != nil {
+				return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
+			}
+
 			if state.BuiltinLogging {
 				if state.AppSettings == nil && !state.StorageUsesMSI {
 					state.AppSettings = make(map[string]string)
@@ -734,9 +738,6 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("site_config") {
-				if err != nil {
-					return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
-				}
 				existing.SiteConfig = siteConfig
 			}
 
@@ -754,7 +755,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("waiting to update %s: %+v", id, err)
 			}
 
-			if _, err := client.UpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, web.SiteConfigResource{SiteConfig: siteConfig}); err != nil {
+			if _, err := client.UpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, web.SiteConfigResource{SiteConfig: existing.SiteConfig}); err != nil {
 				return fmt.Errorf("updating Site Config for Windows %s: %+v", id, err)
 			}
 
