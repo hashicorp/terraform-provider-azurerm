@@ -273,7 +273,6 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorDelete(d *pluginsdk.Resource
 func cdnFrontdoorCustomDomainTLSSettingsRefreshFunc(ctx context.Context, client *track1.AFDCustomDomainsClient, id *parse.FrontdoorCustomDomainId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if CDN Frontdoor TLS Settings %q (Resource Group: %q) are available...", id.CustomDomainName, id.ResourceGroup)
-		out := "Pending"
 
 		resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
 		if err != nil {
@@ -284,39 +283,31 @@ func cdnFrontdoorCustomDomainTLSSettingsRefreshFunc(ctx context.Context, client 
 
 			// The route and custom domain may not have been associated yet so a 404 is acceptable
 			// keep polling until it shows up
-			return resp, out, nil
+			return resp, "Pending", nil
 		}
 
 		if props := resp.AFDDomainProperties; props != nil {
-			// first lets check the validation state of the custom domain
-			if props.DomainValidationState == track1.DomainValidationStateApproved {
-				if tlsSettings := props.TLSSettings; tlsSettings != nil {
-					if secret := tlsSettings.Secret; secret != nil {
-						if secret.ID != nil {
-							out = "Succeeded"
-						}
-					}
-				}
-			} else {
-				// Now see if it's still pending or not...
-				if props.DomainValidationState == track1.DomainValidationStatePending ||
-					props.DomainValidationState == track1.DomainValidationStateSubmitting {
-					return resp, out, nil
+			validationState := props.DomainValidationState
+
+			// First lets check the validation state of the custom domain
+			if validationState == track1.DomainValidationStateApproved {
+				// Are the Domains TLS Settings available yet?
+				if props.TLSSettings != nil && props.TLSSettings.Secret != nil && props.TLSSettings.Secret.ID != nil {
+					return resp, "Succeeded", nil
 				} else {
-					// we might be in a bad state check the state to see if we should return an error or not...
-					if props.DomainValidationState == track1.DomainValidationStateInternalError ||
-						props.DomainValidationState == track1.DomainValidationStateRejected ||
-						props.DomainValidationState == track1.DomainValidationStateTimedOut ||
-						props.DomainValidationState == track1.DomainValidationStateUnknown ||
-						props.DomainValidationState == track1.DomainValidationStatePendingRevalidation ||
-						props.DomainValidationState == track1.DomainValidationStateRefreshingValidationToken {
-						return nil, "", fmt.Errorf("the custom domain %q (resource group: %q) has returned the validation state of %q, which indicates that an error has occured or that the custom domain is in an unsupported state", id.CustomDomainName, id.ResourceGroup, props.DomainValidationState)
-					}
+					// Nope.
+					return resp, "Pending", nil
 				}
+			} else if validationState == track1.DomainValidationStatePending || validationState == track1.DomainValidationStateSubmitting {
+				return resp, "Pending", nil
 			}
+
+			// It's not Approved, Pending or Submitting... we are in a bad state return an error...
+			return nil, "", fmt.Errorf("the custom domain %q (resource group: %q) has returned the validation state of %q, which indicates that an error has occurred or that the custom domain is in an unsupported state", id.CustomDomainName, id.ResourceGroup, validationState)
 		}
 
-		return resp, out, nil
+		// Default to pending because the Domain Properties may not be available yet...
+		return resp, "Pending", nil
 	}
 }
 

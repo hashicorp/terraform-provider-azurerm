@@ -181,7 +181,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
 
         patterns_to_match = ["/*"]
       }
-		}
+    }
   }
 }
 `, template, data.RandomInteger)
@@ -207,7 +207,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "import" {
 
         patterns_to_match = ["/*"]
       }
-		}
+    }
   }
 }
 `, config, data.RandomInteger)
