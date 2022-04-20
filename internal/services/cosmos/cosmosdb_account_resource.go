@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -193,24 +195,26 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				}, !features.ThreePointOhBeta()),
 			},
 
-			"ip_range_filter": {
-				Type: func() pluginsdk.ValueType {
-					if features.FourPointOhBeta() {
-						return pluginsdk.TypeSet
-					}
-					return pluginsdk.TypeString
-				}(),
-				Optional: true,
-				Elem: func() *pluginsdk.Schema {
-					if features.FourPointOhBeta() {
-						return &pluginsdk.Schema{
+			"ip_range_filter": func() *schema.Schema {
+				if features.FourPointOhBeta() {
+					return &schema.Schema{
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.IsCIDR,
-						}
+						},
 					}
-					return nil
-				},
-			},
+				}
+				return &schema.Schema{
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/([1-2][0-9]|3[0-2]))?\b[,]?)*$`),
+						"Cosmos DB ip_range_filter must be a set of CIDR IP addresses separated by commas with no spaces: '10.0.0.1,10.0.0.2,10.20.0.0/16'",
+					),
+				}
+			}(),
 
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_free_tier": {
