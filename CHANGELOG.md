@@ -5,6 +5,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.19.0` of `github.com/tombuildsstuff/giovanni` [GH-16460]
 * Data Source: `azurerm_kubernetes_cluster` - exporting the `microsoft_defender` block [GH-16218]
 * Data Source: `azurerm_storage_account` - exporting `nfsv3_enabled` [GH-16404]
+* `azurerm_data_factory_linked_service_azure_blob_storage` - support for the `service_principal_linked_key_vault_key` property [GH-16414]
 * `azurerm_kubernetes_cluster` - support for the `microsoft_defender` block [GH-16218]
 * `azurerm_stream_analytics_output_mssql` - support for the `system_property_columns` property [GH-16425]
 * `azurerm_stream_analytics_output_servicebus_topic` - support for the `max_batch_count` and `max_writer_count` properties [GH-16409]
