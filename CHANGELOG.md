@@ -8,6 +8,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - support for the `microsoft_defender` block [GH-16218]
 * `azurerm_stream_analytics_output_mssql` - support for the `system_property_columns` property [GH-16425]
 * `azurerm_stream_analytics_output_servicebus_topic` - support for the `max_batch_count` and `max_writer_count` properties [GH-16409]
+* `azurerm_stream_analytics_output_table` - support for the `columns_to_remove` property [GH-16389]
 * `azurerm_virtual_hub_connection` - the field `internet_security_enabled` can now be updated [GH-16430]
 
 BUG FIXES:
