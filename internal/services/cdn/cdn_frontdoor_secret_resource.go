@@ -87,10 +87,10 @@ func resourceCdnFrontdoorSecret() *pluginsdk.Resource {
 										Default:  true,
 									},
 
+									// This is a READ-ONLY field as the secret resource is reading these from the certificate in the key vault...
 									"subject_alternative_names": {
 										Type:     pluginsdk.TypeList,
-										Optional: true,
-										MaxItems: 100,
+										Computed: true,
 
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,

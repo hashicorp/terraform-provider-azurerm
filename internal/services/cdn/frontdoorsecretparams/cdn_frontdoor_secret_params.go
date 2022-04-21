@@ -62,14 +62,26 @@ func ExpandCdnFrontdoorCustomerCertificateParameters(input []interface{}) (*trac
 
 	secretSource := frontdoorParse.NewFrontdoorKeyVaultSecretID(kvId.SubscriptionId, kvId.ResourceGroup, kvId.Name, certName)
 
+	useLatest := item["use_latest"].(bool)
+	certificateVersion := item["key_vault_certificate_version"].(string)
+
+	if useLatest {
+		if certificateVersion != "" {
+			return nil, fmt.Errorf("the %q block is invalid. %q must be empty when %q is set to %q, got %[2]q: %[5]q and %[3]q: %[4]q", "customer_certificate", "key_vault_certificate_version", "use_latest", "true", certificateVersion)
+		}
+	} else {
+		if certificateVersion == "" {
+			return nil, fmt.Errorf("the %q block is invalid. %q must have a value when %q is set to %q, got %[2]q: %[5]q and %[3]q: %[4]q", "customer_certificate", "key_vault_certificate_version", "use_latest", "false", certificateVersion)
+		}
+	}
+
 	customerCertificate := &track1.CustomerCertificateParameters{
 		Type: m.CustomerCertificate.TypeName,
 		SecretSource: &track1.ResourceReference{
 			ID: utils.String(secretSource.ID()),
 		},
-		SecretVersion:           utils.String(item["key_vault_certificate_version"].(string)),
-		UseLatestVersion:        utils.Bool(item["use_latest"].(bool)),
-		SubjectAlternativeNames: utils.ExpandStringSlice(item["subject_alternative_names"].([]interface{})),
+		SecretVersion:    utils.String(certificateVersion),
+		UseLatestVersion: utils.Bool(useLatest),
 	}
 
 	if secretParameter := track1.BasicSecretParameters(customerCertificate); secretParameter != nil {

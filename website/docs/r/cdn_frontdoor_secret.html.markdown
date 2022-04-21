@@ -10,9 +10,54 @@ description: |-
 
 Manages a Frontdoor Secret.
 
+!>**IMPORTANT:** You must add an `Access Policy` to your `azurerm_key_vault` for the `Microsoft.AzureFrontDoor-Cdn` Enterprise Application Object ID.
+
+| Object ID                              | Key Permissions | Secret Permissions | Certificate Permissions |
+|:---------------------------------------|:---------------:|:------------------:|:-----------------------:|
+| Microsoft.AzureFrontDoor-Cdn Object ID | -               | **Get**            | -                       |
+| You Personal AAD Object ID             | -               | **Get**            | **Get** and **List**    |
+| Terraform Service Principal            | -               | **Get**            | **Get**                 |
+
+->**NOTE:** You only need to add the `Access Policy` for your personal AAD Object ID if you are planning to view the `secrets` via the Azure Portal.
+
 ## Example Usage
 
 ```hcl
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "example" {
+  name                        = "example-keyvault"
+  location                    = azurerm_resource_group.example.location
+  resource_group_name         = azurerm_resource_group.example.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "premium"
+  soft_delete_retention_days  = 7
+
+  # Frontdoor Enterprise Application Object ID(e.g. Microsoft.AzureFrontDoor-Cdn)
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id for the Microsoft.AzureFrontDoor-Cdn Enterprise Application
+
+    secret_permissions = [
+      "Get",
+    ]
+  }
+
+  # Terraform Service Principal
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id of the Service Principal that Terraform is running as
+
+    certificate_permissions = [
+      "Get",
+    ]
+
+    secret_permissions = [
+      "Get",
+    ]
+  }
+}
+
 resource "azurerm_key_vault_certificate" "example" {
   name         = "example-cert"
   key_vault_id = azurerm_key_vault.test.id
@@ -32,7 +77,6 @@ resource "azurerm_cdn_frontdoor_secret" "example" {
       key_vault_certificate_name    = azurerm_key_vault_certificate.test.name
       key_vault_certificate_version = azurerm_key_vault_certificate.test.version
       use_latest                    = false
-      subject_alternative_names     = ["*.contoso.com", "contoso.com"]
     }
   }
 }
@@ -64,9 +108,11 @@ A `customer_certificate` - (Required)  block supports the following:
 ​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
 * `key_vault_certificate_version` - (Optional) The version of the Azure Key Vault certificate to be used.
 
-* `use_latest` - (Optional) Should the latest version for the certificate be used? Defaults to `true`.
+->**NOTE:** The `key_vault_certificate_version` field should be removed from the configuration file if the `use_latest` field is set to `true`.
 
-* `subject_alternative_names` - (Optional) One or more, up to 100, subject alternative names.
+* `use_latest` - (Optional) Should the latest version of the certificate be used? Defaults to `true`.
+
+* `subject_alternative_names` - (Computed) One or more `subject alternative names` contained within the key vault certificate.
 
 ---
 
