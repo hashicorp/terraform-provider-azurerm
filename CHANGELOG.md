@@ -1,5 +1,9 @@
 ## 3.3.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_spring_cloud_container_deployment` [GH-16181]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.19.0` of `github.com/tombuildsstuff/giovanni` [GH-16460]
