@@ -57,27 +57,6 @@ func TestAccCdnFrontdoorSecret_complete(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontdoorSecret_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_secret", "test")
-	r := CdnFrontdoorSecretResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r CdnFrontdoorSecretResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.FrontdoorSecretID(state.ID)
 	if err != nil {
@@ -154,18 +133,6 @@ resource "azurerm_cdn_frontdoor_secret" "test" {
   parameters {
     type = ""
   }
-}
-`, template, data.RandomInteger)
-}
-
-func (r CdnFrontdoorSecretResource) update(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-			%s
-
-resource "azurerm_cdn_frontdoor_secret" "test" {
-  name                     = "acctest-c-%d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 `, template, data.RandomInteger)
 }
