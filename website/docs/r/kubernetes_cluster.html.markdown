@@ -561,10 +561,6 @@ A `nat_gateway_profile` block supports the following:
 
 * `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be between `1` and `100` inclusive.
 
-->**Note:** To configure dual-stack networking `ip_versions` should be set to `["IPv4", "IPv6"]`
-
-->**Note:** Dual-stack networking requires that the Preview Feature `Microsoft.ContainerService/AKS-EnableDualStack` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-kubenet-dual-stack?tabs=azure-cli%2Ckubectl#register-the-aks-enabledualstack-preview-feature) for more information.
-
 ---
 
 An `oms_agent` block supports the following:
