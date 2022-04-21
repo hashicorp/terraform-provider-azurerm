@@ -17,6 +17,7 @@ BUG FIXES:
 * `azurerm_key_vault_key` - fix an authentication issue preventing management of resources in the USGovernment cloud [GH-16455]
 * `azurerm_key_vault_managed_storage_account` - fix an authentication issue preventing management of resources in the USGovernment cloud [GH-16455]
 * `azurerm_key_vault_secret` - fix an authentication issue preventing management of resources in the USGovernment cloud [GH-16455]
+* `azurerm_kubernetes_cluster` - fix issue where `role_based_access_control_enabled` could not be disabled [GH-16488]
 * `azurerm_linux_function_app` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
 * `azurerm_linux_function_app` - fix a bug in updates to `app_settings` where settings could be lost [GH-16442]
 * `azurerm_linux_function_app_slot` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
