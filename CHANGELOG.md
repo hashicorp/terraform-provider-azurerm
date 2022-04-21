@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.19.0` of `github.com/tombuildsstuff/giovanni` [GH-16460]
 * Data Source: `azurerm_kubernetes_cluster` - exporting the `microsoft_defender` block [GH-16218]
 * Data Source: `azurerm_storage_account` - exporting `nfsv3_enabled` [GH-16404]
+* `azurerm_data_factory_linked_service_azure_blob_storage` - support for `storage_kind` [GH-16403]
 * `azurerm_data_factory_linked_service_azure_blob_storage` - support for the `service_principal_linked_key_vault_key` property [GH-16414]
 * `azurerm_kubernetes_cluster` - support for the `microsoft_defender` block [GH-16218]
 * `azurerm_redis_enterprise_cluster` - support for the `linked_database_id` and `linked_database_group_nickname` properties [GH-16045]
