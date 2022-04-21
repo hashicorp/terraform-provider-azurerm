@@ -288,6 +288,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   data_factory_id      = azurerm_data_factory.test.id
   service_endpoint     = azurerm_storage_account.test.primary_blob_endpoint
   use_managed_identity = true
+  storage_kind         = "StorageV2"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
