@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `data_factory_linked_service_sql_server_resource` - support for the `user_name` property [GH-16118]
 * `azurerm_kubernetes_cluster` - support for the `microsoft_defender` block [GH-16218]
 * `azurerm_redis_enterprise_cluster` - support for the `linked_database_id` and `linked_database_group_nickname` properties [GH-16045]
+* `azurerm_spring_cloud_service` - support for the `service_registry_enabled` property [GH-16277]
 * `azurerm_stream_analytics_output_mssql` - support for the `system_property_columns` property [GH-16425]
 * `azurerm_stream_analytics_output_servicebus_topic` - support for the `max_batch_count` and `max_writer_count` properties [GH-16409]
 * `azurerm_stream_analytics_output_table` - support for the `columns_to_remove` property [GH-16389]
