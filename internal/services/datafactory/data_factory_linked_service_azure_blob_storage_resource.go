@@ -65,6 +65,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
 			},
 
+			// TODO for @favoretti: rename this to 'sas_token_linked_key_vault_key' for 3.4.0
 			"key_vault_sas_token": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -86,6 +87,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO for @favoretti: rename this to 'service_principal_linked_key_vault_key' for 3.4.0
 			"key_vault_service_principal_key": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
