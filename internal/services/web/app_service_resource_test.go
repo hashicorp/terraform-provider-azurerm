@@ -1620,7 +1620,7 @@ func TestAccAppService_authSettingsAdditionalLoginParams(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("auth_settings.0.additional_login_parameters.test_key").HasValue("test_value"),
+				check.That(data.ResourceName).Key("auth_settings.0.additional_login_params.test_key").HasValue("test_value"),
 				check.That(data.ResourceName).Key("auth_settings.0.issuer").HasValue(fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
 				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_id").HasValue("aadclientid"),
 				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_secret").HasValue("aadsecret"),
@@ -4884,7 +4884,7 @@ resource "azurerm_app_service" "test" {
     enabled = true
     issuer  = "https://sts.windows.net/%s"
 
-    additional_login_parameters = {
+    additional_login_params = {
       test_key = "test_value"
     }
 

@@ -162,7 +162,7 @@ func TestAccFunctionAppSlot_authSettings(t *testing.T) {
 				check.That(data.ResourceName).Key("auth_settings.0.unauthenticated_client_action").HasValue("RedirectToLoginPage"),
 				check.That(data.ResourceName).Key("auth_settings.0.token_refresh_extension_hours").HasValue("75"),
 				check.That(data.ResourceName).Key("auth_settings.0.token_store_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("auth_settings.0.additional_login_parameters.test_key").HasValue("test_value"),
+				check.That(data.ResourceName).Key("auth_settings.0.additional_login_params.test_key").HasValue("test_value"),
 				check.That(data.ResourceName).Key("auth_settings.0.allowed_external_redirect_urls.#").HasValue("1"),
 				check.That(data.ResourceName).Key("auth_settings.0.allowed_external_redirect_urls.0").HasValue("https://terra.form"),
 				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_id").HasValue("aadclientid"),
@@ -1212,7 +1212,7 @@ resource "azurerm_function_app_slot" "test" {
     token_refresh_extension_hours = 75
     token_store_enabled           = true
 
-    additional_login_parameters = {
+    additional_login_params = {
       test_key = "test_value"
     }
 
