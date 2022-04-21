@@ -39,7 +39,7 @@ resource "azurerm_spring_cloud_container_deployment" "example" {
   name                = "example"
   spring_cloud_app_id = azurerm_spring_cloud_app.example.id
   instance_count      = 2
-  args                = ["-c", "echo hello"]
+  arguments           = ["-c", "echo hello"]
   commands            = ["/bin/sh"]
   environment_variables = {
     "Foo" : "Bar"
@@ -65,15 +65,15 @@ The following arguments are supported:
 
 ---
 
-* `args` - (Optional) Arguments to the entrypoint. The docker image's CMD is used if this is not provided.
+* `arguments` - (Optional) Specifies the arguments to the entrypoint. The docker image's `CMD` is used if not specified.
 
-* `commands` - (Optional) Entrypoint array. Not executed within a shell. The docker image's ENTRYPOINT is used if this is not provided.
+* `commands` - (Optional) Specifies the entrypoint array. It will not be executed within a shell. The docker image's `ENTRYPOINT` is used if not specified.
 
 * `environment_variables` - (Optional) Specifies the environment variables of the Spring Cloud Deployment as a map of key-value pairs.
 
 * `instance_count` - (Optional) Specifies the required instance count of the Spring Cloud Deployment. Possible Values are between `1` and `500`. Defaults to `1` if not specified.
 
-* `language_framework` - (Optional) Language framework of the container image uploaded.
+* `language_framework` - (Optional) Specifies the language framework of the container image.
 
 * `quota` - (Optional) A `quota` block as defined below.
 

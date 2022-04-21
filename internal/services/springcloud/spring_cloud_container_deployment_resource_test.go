@@ -137,7 +137,7 @@ resource "azurerm_spring_cloud_container_deployment" "test" {
   name                = "acctest-scjd%s"
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
   instance_count      = 2
-  args                = ["-c", "echo hello"]
+  arguments           = ["-c", "echo hello"]
   commands            = ["/bin/sh"]
   environment_variables = {
     "Foo" : "Bar"

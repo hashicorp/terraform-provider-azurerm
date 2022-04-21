@@ -62,11 +62,12 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"args": {
+			"arguments": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
@@ -74,7 +75,8 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
@@ -82,7 +84,8 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
@@ -94,9 +97,11 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 			},
 
 			"language_framework": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"springboot",
+				}, false),
 			},
 
 			"quota": {
@@ -188,7 +193,7 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 					Server:            utils.String(d.Get("server").(string)),
 					ContainerImage:    utils.String(d.Get("image").(string)),
 					Command:           utils.ExpandStringSlice(d.Get("commands").([]interface{})),
-					Args:              utils.ExpandStringSlice(d.Get("args").([]interface{})),
+					Args:              utils.ExpandStringSlice(d.Get("arguments").([]interface{})),
 					LanguageFramework: utils.String(d.Get("language_framework").(string)),
 				},
 			},
@@ -249,7 +254,7 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 			if container := source.CustomContainer; container != nil {
 				d.Set("server", container.Server)
 				d.Set("image", container.ContainerImage)
-				d.Set("args", utils.FlattenStringSlice(container.Args))
+				d.Set("arguments", utils.FlattenStringSlice(container.Args))
 				d.Set("commands", utils.FlattenStringSlice(container.Command))
 				d.Set("language_framework", container.LanguageFramework)
 			}
