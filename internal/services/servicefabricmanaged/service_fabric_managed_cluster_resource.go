@@ -922,7 +922,7 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 				DestinationAddressPrefixes: &[]string{"0.0.0.0/0"},
 				Direction:                  managedcluster.DirectionInbound,
 				Name:                       fmt.Sprintf("rule%d-allow-fe", rule.FrontendPort),
-				Priority:                   1000,
+				Priority:                   1000 + int64(idx),
 				Protocol:                   sgProto,
 			}
 		}
