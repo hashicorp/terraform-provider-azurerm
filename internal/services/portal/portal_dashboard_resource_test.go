@@ -225,7 +225,7 @@ resource "azurerm_portal_dashboard" "test" {
 DASH
 
   tags = {
-      hidden-title = "Test Display Name"
+    hidden-title = "Test Display Name"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

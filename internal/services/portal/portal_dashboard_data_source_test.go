@@ -100,7 +100,7 @@ data "azurerm_portal_dashboard" "test" {
   display_name        = "Test Display Name"
   resource_group_name = azurerm_resource_group.test.name
 
-  depends_on = [%s.test]
+  depends_on = ["%s.test"]
 }
 `, PortalDashboardResource{}.hiddenTitle(data), resourceName)
 }
