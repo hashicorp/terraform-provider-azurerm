@@ -18,7 +18,7 @@ require (
 	github.com/hashicorp/go-version v1.3.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.1
 	github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220407025246-3a3ee0ab24a8
-	github.com/manicminer/hamilton v0.43.0
+	github.com/manicminer/hamilton v0.44.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.2.0
