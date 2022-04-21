@@ -198,6 +198,20 @@ func IsValidDomain(i interface{}, k string) (warnings []string, errors []error) 
 	return warnings, errors
 }
 
+func ValidateCdnFrontdoorName(i interface{}, k string) (_ []string, errors []error) {
+	if m, regexErrs := validate.RegExHelper(i, k, `(^[\da-zA-Z])([-\da-zA-Z]{0,88})([\da-zA-Z]$)`); !m {
+		return nil, append(regexErrs, fmt.Errorf(`%q must be between 2 and 90 characters in length and begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens`, k))
+	}
+	return nil, nil
+}
+
+func ValidateCdnFrontdoorEndpointName(i interface{}, k string) (_ []string, errors []error) {
+	if m, regexErrs := validate.RegExHelper(i, k, `(^[\da-zA-Z])([-\da-zA-Z]{0,44})([\da-zA-Z]$)`); !m {
+		return nil, append(regexErrs, fmt.Errorf(`%q must be between 2 and 46 characters in length and begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens`, k))
+	}
+	return nil, nil
+}
+
 func ValidateFrontdoorCustomDomainIDInsensitively(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {

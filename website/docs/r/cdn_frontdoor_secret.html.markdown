@@ -13,14 +13,26 @@ Manages a Frontdoor Secret.
 ## Example Usage
 
 ```hcl
+resource "azurerm_key_vault_certificate" "example" {
+  name         = "example-cert"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate {
+    contents = filebase64("my-certificate.pfx")
+  }
+}
+
 resource "azurerm_cdn_frontdoor_secret" "example" {
-  name                     = "exampleSecret"
-  cdn_frontdoor_profile_id = cdn_frontdoor_profile.example.id
+  name                     = "example-customer-managed-secret"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   secret_parameters {
     customer_certificate {
-      secret_source_id = azurerm_key_vault_secret.example.id
-      use_latest       = true
+      key_vault_id                  = azurerm_key_vault_certificate.test.key_vault_id
+      key_vault_certificate_name    = azurerm_key_vault_certificate.test.name
+      key_vault_certificate_version = azurerm_key_vault_certificate.test.version
+      use_latest                    = false
+      subject_alternative_names     = ["*.contoso.com", "contoso.com"]
     }
   }
 }
@@ -46,9 +58,11 @@ A `secret_parameters` block supports the following:
 
 A `customer_certificate` - (Required)  block supports the following:
 
-* `secret_source_id` - (Required) The Resource ID of the Azure Key Vault secret.
+* `key_vault_id`- (Required) The Resource ID of the Azure Key Vault which contains the certificate.
+
+* `key_vault_certificate_name` - (Required) The Name of the Azure Key Vault certificate.
 ​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
-* `secret_version` - (Optional) The version of the secret to be used.
+* `key_vault_certificate_version` - (Optional) The version of the Azure Key Vault certificate to be used.
 
 * `use_latest` - (Optional) Should the latest version for the certificate be used? Defaults to `true`.
 

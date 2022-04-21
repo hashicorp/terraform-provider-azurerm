@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyValutValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -55,51 +57,25 @@ func resourceCdnFrontdoorSecret() *pluginsdk.Resource {
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
-						// NOTE: Not supported at GA
-						// "url_signing_key": {
-						// 	Type:     pluginsdk.TypeList,
-						// 	Optional: true,
-						// 	MaxItems: 1,
-
-						// 	Elem: &pluginsdk.Resource{
-						// 		Schema: map[string]*pluginsdk.Schema{
-
-						// 			"key_id": {
-						// 				Type:         pluginsdk.TypeString,
-						// 				Required:     true,
-						// 				ValidateFunc: validation.StringIsNotEmpty,
-						// 			},
-
-						// 			"secret_source_id": {
-						// 				Type:         pluginsdk.TypeString,
-						// 				Required:     true,
-						// 				ValidateFunc: validation.StringIsNotEmpty,
-						// 			},
-
-						// 			"secret_version": {
-						// 				Type:         pluginsdk.TypeString,
-						// 				Required:     true,
-						// 				ValidateFunc: validation.StringIsNotEmpty,
-						// 			},
-						// 		},
-						// 	},
-						// },
-
 						"customer_certificate": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									// TODO: Add validation: No Azure Key Vault name found in provided SecretSource id
-									"secret_source_id": {
+									"key_vault_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										ValidateFunc: keyValutValidation.VaultID,
 									},
 
-									"secret_version": {
+									"key_vault_certificate_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: keyValutValidation.NestedItemName,
+									},
+
+									"key_vault_certificate_version": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -123,26 +99,6 @@ func resourceCdnFrontdoorSecret() *pluginsdk.Resource {
 								},
 							},
 						},
-
-						// NOTE: Not supported at GA
-						// "azure_first_party_managed_certificate": {
-						// 	Type:     pluginsdk.TypeList,
-						// 	Optional: true,
-
-						// 	Elem: &pluginsdk.Resource{
-						// 		Schema: map[string]*pluginsdk.Schema{
-
-						// 			"certificate_type": {
-						// 				Type:     pluginsdk.TypeString,
-						// 				Optional: true,
-						// 				Default:  string(track1.TypeBasicSecretParametersTypeAzureFirstPartyManagedCertificate),
-						// 				ValidateFunc: validation.StringInSlice([]string{
-						// 					string(track1.TypeBasicSecretParametersTypeAzureFirstPartyManagedCertificate),
-						// 				}, false),
-						// 			},
-						// 		},
-						// 	},
-						// },
 					},
 				},
 			},
@@ -224,13 +180,18 @@ func resourceCdnFrontdoorSecretRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.Set("name", id.SecretName)
-
 	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.SecretProperties; props != nil {
-		if err := d.Set("parameters", flattenSecretSecretParameters(&props.Parameters)); err != nil {
-			return fmt.Errorf("setting `parameters`: %+v", err)
+		var customerCertificate []interface{}
+		if customerCertificate, err = flattenSecretSecretParameters(props.Parameters); err != nil {
+			return fmt.Errorf("flattening `secret_parameters`: %+v", err)
 		}
+
+		if err := d.Set("secret_parameters", customerCertificate); err != nil {
+			return fmt.Errorf("setting `secret_parameters`: %+v", err)
+		}
+
 		d.Set("cdn_frontdoor_profile_name", props.ProfileName)
 	}
 
@@ -267,16 +228,14 @@ func expandCdnFrontdoorBasicSecretParameters(input []interface{}) (track1.BasicS
 	m := *cdnfrontdoorsecretparams.InitializeCdnFrontdoorSecretMappings()
 
 	secrets := map[string]expandfunc{
-		m.UrlSigningKey.ConfigName:                     cdnfrontdoorsecretparams.ExpandCdnFrontdoorUrlSigningKeyParameters,
-		m.ManagedCertificate.ConfigName:                cdnfrontdoorsecretparams.ExpandCdnFrontdoorManagedCertificateParameters,
-		m.CustomerCertificate.ConfigName:               cdnfrontdoorsecretparams.ExpandCdnFrontdoorCustomerCertificateParameters,
-		m.AzureFirstPartyManagedCertificate.ConfigName: cdnfrontdoorsecretparams.ExpandCdnFrontdoorAzureFirstPartyManagedCertificateyParameters,
+		m.CustomerCertificate.ConfigName: cdnfrontdoorsecretparams.ExpandCdnFrontdoorCustomerCertificateParameters,
 	}
 
-	basicSecretParameters := input[0].(map[string]interface{})
+	secretParameters := input[0].(map[string]interface{})
 
+	// I will leave this in a loop as there will be more of these coming...
 	for secretName, expand := range secrets {
-		if config := basicSecretParameters[secretName].([]interface{}); len(config) > 0 {
+		if config := secretParameters[secretName].([]interface{}); config != nil {
 			expanded, err := expand(config)
 			if err != nil {
 				return nil, err
@@ -289,9 +248,10 @@ func expandCdnFrontdoorBasicSecretParameters(input []interface{}) (track1.BasicS
 	}
 
 	if len(results) > 1 {
-		return nil, fmt.Errorf("%q is invalid, you may only have one %q defined in the configuration file, got %d", "secret_parameters", "secret_parameter", len(results))
+		return nil, fmt.Errorf("%[1]q is invalid, you may only have one %[1]q defined in the configuration file, got %d", "secret_parameter", len(results))
 	}
 
+	// There can be only one, so the first one that is not nil is the right one...
 	for _, basicSecretParameter := range results {
 		if basicSecretParameter != nil {
 			return basicSecretParameter, nil
@@ -301,15 +261,46 @@ func expandCdnFrontdoorBasicSecretParameters(input []interface{}) (track1.BasicS
 	return nil, fmt.Errorf("unknown secret parameter type encountered")
 }
 
-func flattenSecretSecretParameters(input *track1.BasicSecretParameters) []interface{} {
+func flattenSecretSecretParameters(input track1.BasicSecretParameters) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return results, nil
 	}
 
-	// TODO: Not returned pull from state if exists
-	// result := make(map[string]interface{})
-	// result["type"] = input.Type
-	// return append(results, result)
-	return nil
+	result := make(map[string]interface{})
+	wrapper := make([]interface{}, 0)
+	fields := make(map[string]interface{})
+
+	customerCertificate, ok := input.AsCustomerCertificateParameters()
+	if !ok {
+		return nil, fmt.Errorf("expected a Customer Certificate Parameter")
+	}
+
+	secretSourceId, err := parse.FrontdoorKeyVaultSecretID(*customerCertificate.SecretSource.ID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse the %q field of the %q, got %q", "Secret Source", "Customer Certificate", *customerCertificate.SecretSource.ID)
+	}
+
+	keyVaultId := keyVaultParse.NewVaultID(secretSourceId.SubscriptionId, secretSourceId.ResourceGroup, secretSourceId.VaultName)
+
+	fields["key_vault_id"] = keyVaultId.ID()
+	fields["key_vault_certificate_name"] = secretSourceId.SecretName
+
+	if customerCertificate.SecretVersion != nil {
+		fields["key_vault_certificate_version"] = *customerCertificate.SecretVersion
+	}
+
+	if customerCertificate.UseLatestVersion != nil {
+		fields["use_latest"] = *customerCertificate.UseLatestVersion
+	}
+
+	if customerCertificate.SubjectAlternativeNames != nil {
+		fields["subject_alternative_names"] = utils.FlattenStringSlice(customerCertificate.SubjectAlternativeNames)
+	}
+
+	wrapper = append(wrapper, fields)
+	result["customer_certificate"] = wrapper
+	results = append(results, result)
+
+	return results, nil
 }
