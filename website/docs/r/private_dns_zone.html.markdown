@@ -60,13 +60,21 @@ The `soa_record` block supports:
 The following attributes are exported:
 
 * `id` - The Private DNS Zone ID.
-* `fqdn` - The fully qualified domain name of the Record Set.
-* `host_name` - The domain name of the authoritative name server for the SOA record.
-* `serial_number` - The serial number for the SOA record. 
+* `soa_record` - A `soa_record` block as defined below.
 * `number_of_record_sets` - The current number of record sets in this Private DNS zone.
 * `max_number_of_record_sets` - The maximum number of record sets that can be created in this Private DNS zone.
 * `max_number_of_virtual_network_links` - The maximum number of virtual networks that can be linked to this Private DNS zone.
 * `max_number_of_virtual_network_links_with_registration` - The maximum number of virtual networks that can be linked to this Private DNS zone with registration enabled.
+
+---
+
+A `soa_record` block exports the following:
+
+* `fqdn` - The fully qualified domain name of the Record Set.
+
+* `host_name` - The domain name of the authoritative name server for the SOA record.
+
+* `serial_number` - The serial number for the SOA record.
 
 ## Timeouts
 
