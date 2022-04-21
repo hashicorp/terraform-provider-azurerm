@@ -3,14 +3,14 @@ package streamanalytics
 import (
 	"context"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
-	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
-	cosmosValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
+	cosmosValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
