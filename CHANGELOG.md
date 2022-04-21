@@ -14,6 +14,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_cdn_endpoint` -`origin.0.http/https_ports` are now set as the default values of `80`/`443` [GH-16143]
 * `azurerm_key_vault_certificate` - fix an authentication issue preventing management of resources in the USGovernment cloud [GH-16455]
 * `azurerm_key_vault_key` - fix an authentication issue preventing management of resources in the USGovernment cloud [GH-16455]
 * `azurerm_key_vault_managed_storage_account` - fix an authentication issue preventing management of resources in the USGovernment cloud [GH-16455]
