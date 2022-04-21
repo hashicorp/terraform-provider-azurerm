@@ -87,8 +87,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO for @favoretti: rename this to 'service_principal_linked_key_vault_key' for 3.4.0
-			"key_vault_service_principal_key": {
+			"service_principal_linked_key_vault_key": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -241,7 +240,7 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 		if v, ok := d.GetOk("service_endpoint"); ok {
 			blobStorageProperties.ServiceEndpoint = utils.String(v.(string))
 		}
-		if kvsp, ok := d.GetOk("key_vault_service_principal_key"); ok {
+		if kvsp, ok := d.GetOk("service_principal_linked_key_vault_key"); ok {
 			blobStorageProperties.ServicePrincipalKey = expandAzureKeyVaultSecretReference(kvsp.([]interface{}))
 		} else {
 			secureString := datafactory.SecureString{
@@ -347,8 +346,8 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 
 		if spKey := properties.ServicePrincipalKey; spKey != nil {
 			if kvSPkey, ok := spKey.AsAzureKeyVaultSecretReference(); ok {
-				if err := d.Set("key_vault_service_principal_key", flattenAzureKeyVaultSecretReference(kvSPkey)); err != nil {
-					return fmt.Errorf("Error setting `key_vault_service_principal_key`: %+v", err)
+				if err := d.Set("service_principal_linked_key_vault_key", flattenAzureKeyVaultSecretReference(kvSPkey)); err != nil {
+					return fmt.Errorf("Error setting `service_principal_linked_key_vault_key`: %+v", err)
 				}
 			}
 		}

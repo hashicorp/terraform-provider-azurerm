@@ -87,7 +87,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   service_endpoint     = "https://storageaccountname.blob.core.windows.net"
   service_principal_id = "00000000-0000-0000-0000-000000000000"
   tenant_id            = "00000000-0000-0000-0000-000000000000"
-  key_vault_service_principal_key {
+  service_principal_linked_key_vault_key {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
   }
@@ -130,11 +130,11 @@ A `key_vault_sas_token` block supports the following:
 
 ---
 
-* `key_vault_service_principal_key` - (Optional) A `key_vault_service_principal_key` block as defined below. Use this argument to store Service Principal key in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
+* `service_principal_linked_key_vault_key` - (Optional) A `service_principal_linked_key_vault_key` block as defined below. Use this argument to store Service Principal key in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
 
 ---
 
-A `key_vault_service_principal_key` block supports the following:
+A `service_principal_linked_key_vault_key` block supports the following:
 
 * `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
 
