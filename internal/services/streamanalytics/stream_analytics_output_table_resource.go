@@ -89,7 +89,7 @@ func (r OutputTableResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"columns_to_remove": {
-			Type:     pluginsdk.TypeSet,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
@@ -257,14 +257,12 @@ func (r OutputTableResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			tableOutput, ok := props.OutputProperties.Datasource.AsAzureTableOutputDataSource()
-			if !ok {
-				return fmt.Errorf("converting output data source to a table output: %+v", err)
-			}
-			if v := state.ColumnsToRemove; v != nil && len(v) > 0 {
-				tableOutput.ColumnsToRemove = &v
-			} else {
-				tableOutput.ColumnsToRemove = &[]string{}
+			if metadata.ResourceData.HasChange("columns_to_remove") {
+				tableOutput, ok := props.OutputProperties.Datasource.AsAzureTableOutputDataSource()
+				if !ok {
+					return fmt.Errorf("converting output data source to a table output: %+v", err)
+				}
+				tableOutput.ColumnsToRemove = &state.ColumnsToRemove
 			}
 
 			if _, err = client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
