@@ -8,10 +8,15 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - support for the `microsoft_defender` block [GH-16218]
 * `azurerm_stream_analytics_output_mssql` - support for the `system_property_columns` property [GH-16425]
 * `azurerm_stream_analytics_output_servicebus_topic` - support for the `max_batch_count` and `max_writer_count` properties [GH-16409]
+* `azurerm_stream_analytics_output_table` - support for the `columns_to_remove` property [GH-16389]
 * `azurerm_virtual_hub_connection` - the field `internet_security_enabled` can now be updated [GH-16430]
 
 BUG FIXES:
 
+* `azurerm_key_vault_certificate` - fix an authentication issue preventing management of resources in the USGovernment cloud [GH-16455]
+* `azurerm_key_vault_key` - fix an authentication issue preventing management of resources in the USGovernment cloud [GH-16455]
+* `azurerm_key_vault_managed_storage_account` - fix an authentication issue preventing management of resources in the USGovernment cloud [GH-16455]
+* `azurerm_key_vault_secret` - fix an authentication issue preventing management of resources in the USGovernment cloud [GH-16455]
 * `azurerm_linux_function_app` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
 * `azurerm_linux_function_app` - fix a bug in updates to `app_settings` where settings could be lost [GH-16442]
 * `azurerm_linux_function_app_slot` - fix `ip_address` being incorrectly set into state when `service_tag` setting specified [GH-16426]
