@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_storage_account` - exporting `nfsv3_enabled` [GH-16404]
 * `azurerm_data_factory_linked_service_azure_blob_storage` - support for the `service_principal_linked_key_vault_key` property [GH-16414]
 * `azurerm_kubernetes_cluster` - support for the `microsoft_defender` block [GH-16218]
+* `azurerm_redis_enterprise_cluster` - support for the `linked_database_id` and `linked_database_group_nickname` properties [GH-16045]
 * `azurerm_stream_analytics_output_mssql` - support for the `system_property_columns` property [GH-16425]
 * `azurerm_stream_analytics_output_servicebus_topic` - support for the `max_batch_count` and `max_writer_count` properties [GH-16409]
 * `azurerm_stream_analytics_output_table` - support for the `columns_to_remove` property [GH-16389]
