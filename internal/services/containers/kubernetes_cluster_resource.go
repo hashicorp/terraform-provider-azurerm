@@ -1032,11 +1032,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	rbacEnabled := true
 	var azureADProfile *containerservice.ManagedClusterAADProfile
-	if v, ok := d.GetOk("role_based_access_control_enabled"); ok {
-		rbacEnabled = v.(bool)
-	}
 	if v, ok := d.GetOk("azure_active_directory_role_based_access_control"); ok {
 		azureADProfile, err = expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(v.([]interface{}), tenantId)
 		if err != nil {
@@ -1108,7 +1104,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			AgentPoolProfiles:      agentProfiles,
 			AutoScalerProfile:      autoScalerProfile,
 			DNSPrefix:              utils.String(dnsPrefix),
-			EnableRBAC:             utils.Bool(rbacEnabled),
+			EnableRBAC:             utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
 			KubernetesVersion:      utils.String(kubernetesVersion),
 			LinuxProfile:           linuxProfile,
 			WindowsProfile:         windowsProfile,
