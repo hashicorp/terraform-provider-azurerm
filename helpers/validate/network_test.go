@@ -43,7 +43,7 @@ func TestCIDR(t *testing.T) {
 	}
 }
 
-func TestvalidateCIDR(t *testing.T) {
+func TestValidateCIDR(t *testing.T) {
 	cases := []struct {
 		CIDR   string
 		Errors int
@@ -80,7 +80,7 @@ func TestvalidateCIDR(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.CIDR, func(t *testing.T) {
-			_, errors := validateCIDR(tc.CIDR, "test")
+			_, errors := ValidateCIDR(tc.CIDR, "test")
 
 			if len(errors) != tc.Errors {
 				t.Fatalf("Expected CIDR to return %d error(s) not %d", tc.Errors, len(errors))

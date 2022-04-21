@@ -18,7 +18,7 @@ func CIDR(i interface{}, k string) (warnings []string, errors []error) {
 	return warnings, errors
 }
 
-func validateCIDR(i interface{}, k string) (warnings []string, errors []error) {
+func ValidateCIDR(i interface{}, k string) (warnings []string, errors []error) {
 	cidr := i.(string)
 
 	_, classA, _ := net.ParseCIDR("10.0.0.0/8")
