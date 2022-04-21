@@ -1789,11 +1789,11 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, gateway)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
+		return fmt.Errorf("waiting for create of %s: %+v", id, err)
 	}
 
 	if stopApplicationGateway {
@@ -1823,21 +1823,19 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	applicationGateway, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(applicationGateway.Response) {
-			log.Printf("[DEBUG] %s was not found - removing from state", *id)
-			d.SetId("")
-			return nil
-		}
-
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
-	}
-
-	if d.HasChange("enable_http2") {
-		applicationGateway.ApplicationGatewayPropertiesFormat.EnableHTTP2 = utils.Bool(d.Get("enable_http2").(bool))
 	}
 
 	if d.HasChange("tags") {
 		applicationGateway.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if applicationGateway.ApplicationGatewayPropertiesFormat == nil {
+		applicationGateway.ApplicationGatewayPropertiesFormat = &network.ApplicationGatewayPropertiesFormat{}
+	}
+
+	if d.HasChange("enable_http2") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.EnableHTTP2 = utils.Bool(d.Get("enable_http2").(bool))
 	}
 
 	if d.HasChange("trusted_root_certificate") {
@@ -1964,13 +1962,9 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("zones") {
-		if features.ThreePointOhBeta() {
-			zones := zones.Expand(d.Get("zones").(*schema.Set).List())
-			if len(zones) > 0 {
-				applicationGateway.Zones = &zones
-			}
-		} else {
-			applicationGateway.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			applicationGateway.Zones = &zones
 		}
 	}
 
@@ -1992,30 +1986,34 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	// validation (todo these should probably be moved into their respective expand functions, which would then return an error?)
-	for _, backendHttpSettings := range *applicationGateway.ApplicationGatewayPropertiesFormat.BackendHTTPSettingsCollection {
-		if props := backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
-			if props.HostName == nil || props.PickHostNameFromBackendAddress == nil {
-				continue
-			}
+	if applicationGateway.ApplicationGatewayPropertiesFormat != nil && applicationGateway.ApplicationGatewayPropertiesFormat.BackendHTTPSettingsCollection != nil {
+		for _, backendHttpSettings := range *applicationGateway.ApplicationGatewayPropertiesFormat.BackendHTTPSettingsCollection {
+			if props := backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
+				if props.HostName == nil || props.PickHostNameFromBackendAddress == nil {
+					continue
+				}
 
-			if *props.HostName != "" && *props.PickHostNameFromBackendAddress {
-				return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
+				if *props.HostName != "" && *props.PickHostNameFromBackendAddress {
+					return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
+				}
 			}
 		}
 	}
 
-	for _, probe := range *applicationGateway.ApplicationGatewayPropertiesFormat.Probes {
-		if props := probe.ApplicationGatewayProbePropertiesFormat; props != nil {
-			if props.Host == nil || props.PickHostNameFromBackendHTTPSettings == nil {
-				continue
-			}
+	if applicationGateway.ApplicationGatewayPropertiesFormat != nil && applicationGateway.ApplicationGatewayPropertiesFormat.Probes != nil {
+		for _, probe := range *applicationGateway.ApplicationGatewayPropertiesFormat.Probes {
+			if props := probe.ApplicationGatewayProbePropertiesFormat; props != nil {
+				if props.Host == nil || props.PickHostNameFromBackendHTTPSettings == nil {
+					continue
+				}
 
-			if *props.Host == "" && !*props.PickHostNameFromBackendHTTPSettings {
-				return fmt.Errorf("One of `host` or `pick_host_name_from_backend_http_settings` must be set")
-			}
+				if *props.Host == "" && !*props.PickHostNameFromBackendHTTPSettings {
+					return fmt.Errorf("One of `host` or `pick_host_name_from_backend_http_settings` must be set")
+				}
 
-			if *props.Host != "" && *props.PickHostNameFromBackendHTTPSettings {
-				return fmt.Errorf("Only one of `host` or `pick_host_name_from_backend_http_settings` can be set")
+				if *props.Host != "" && *props.PickHostNameFromBackendHTTPSettings {
+					return fmt.Errorf("Only one of `host` or `pick_host_name_from_backend_http_settings` can be set")
+				}
 			}
 		}
 	}
@@ -2050,11 +2048,11 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, applicationGateway)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	if stopApplicationGateway {
