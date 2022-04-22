@@ -1,3 +1,9 @@
+## 3.4.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v63.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-16283]
+
 ## 3.3.0 (April 21, 2022)
 
 FEATURES:
