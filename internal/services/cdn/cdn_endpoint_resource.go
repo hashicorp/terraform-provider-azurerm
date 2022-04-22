@@ -625,8 +625,8 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 			}
 
 			hostName := ""
-			httpPort := 0
-			httpsPort := 0
+			httpPort := 80
+			httpsPort := 443
 			if props := i.DeepCreatedOriginProperties; props != nil {
 				if props.HostName != nil {
 					hostName = *props.HostName

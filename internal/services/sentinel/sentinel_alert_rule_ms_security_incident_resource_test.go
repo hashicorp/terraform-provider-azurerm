@@ -240,10 +240,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "CapacityReservation"
+  name                               = "acctestLAW-%d"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  sku                                = "CapacityReservation"
+  reservation_capacity_in_gb_per_day = 100
 }
 
 resource "azurerm_log_analytics_solution" "test" {

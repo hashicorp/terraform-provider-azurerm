@@ -47,6 +47,10 @@ output "redis_enterprise_database_secondary_key" {
 
 * `cluster_id` - The Redis Enterprise Cluster ID that is hosting the Redis Enterprise Database.
 
+* `linked_database_id` - The Linked Database list for the Redis Enterprise Database instance.
+
+* `linked_database_group_nickname` - The Linked Database Group Nickname for the Redis Enterprise Database instance.
+
 * `primary_access_key` - The Primary Access Key for the Redis Enterprise Database instance.
 
 * `secondary_access_key` - The Secondary Access Key for the Redis Enterprise Database instance.

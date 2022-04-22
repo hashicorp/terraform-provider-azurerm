@@ -67,7 +67,7 @@ The following arguments are supported:
 
 An `autoscale_settings` block supports the following:
 
-* `max_throughput` - (Optional) The maximum throughput of the Cassandra KeySpace (RU/s). Must be between `4,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
+* `max_throughput` - (Optional) The maximum throughput of the Cassandra KeySpace (RU/s). Must be between `1,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
 
 
 ## Attributes Reference

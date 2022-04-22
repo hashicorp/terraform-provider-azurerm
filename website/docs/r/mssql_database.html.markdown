@@ -48,7 +48,7 @@ resource "azurerm_mssql_database" "test" {
   license_type   = "LicenseIncluded"
   max_size_gb    = 4
   read_scale     = true
-  sku_name       = "BC_Gen5_2"
+  sku_name       = "S0"
   zone_redundant = true
 
   extended_auditing_policy {
@@ -93,6 +93,8 @@ The following arguments are supported:
 * `geo_backup_enabled` - (Optional) A boolean that specifies if the Geo Backup Policy is enabled. 
 
 ~> **Note:** `geo_backup_enabled` is only applicable for DataWarehouse SKUs (DW*). This setting is ignored for all other SKUs.
+
+* `ledger_enabled` - (Optional) A boolean that specifies if this is a ledger database. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 

@@ -19,18 +19,18 @@ fun AzureRM(environment: String, configuration : ClientConfiguration) : Project 
 
 fun buildConfigurationsForServices(services: Map<String, String>, providerName : String, environment: String, config : ClientConfiguration): List<BuildType> {
     var list = ArrayList<BuildType>()
-    var locationsForEnv = locations.get(environment)!!
+    var locationsForEnv = locations[environment]!!
 
     services.forEach { (serviceName, displayName) ->
-        // TODO: overriding locations
         var defaultTestConfig = testConfiguration()
         var testConfig = serviceTestConfigurationOverrides.getOrDefault(serviceName, defaultTestConfig)
+        var locationsToUse = if (testConfig.locationOverride.primary != "") testConfig.locationOverride else locationsForEnv
         var runNightly = runNightly.getOrDefault(environment, false)
 
         var service = serviceDetails(serviceName, displayName, environment)
         var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.daysOfWeek, testConfig.daysOfMonth)
 
-        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsForEnv,  testConfig.useAltSubscription)
+        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse,  testConfig.useAltSubscription)
 
         list.add(buildConfig)
     }
@@ -46,10 +46,11 @@ fun pullRequestBuildConfiguration(environment: String, configuration: ClientConf
     return buildConfiguration
 }
 
-class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, daysOfMonth: String = defaultDaysOfMonth, useAltSubscription: Boolean = false) {
+class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, daysOfMonth: String = defaultDaysOfMonth, useAltSubscription: Boolean = false, locationOverride: LocationConfiguration = LocationConfiguration("","","", false)) {
     var parallelism = parallelism
     var startHour = startHour
     var daysOfWeek = daysOfWeek
     var daysOfMonth = daysOfMonth
     var useAltSubscription = useAltSubscription
+    var locationOverride = locationOverride
 }
