@@ -286,12 +286,19 @@ func flattenSecretSecretParameters(input track1.BasicSecretParameters) ([]interf
 	fields["key_vault_id"] = keyVaultId.ID()
 	fields["key_vault_certificate_name"] = secretSourceId.SecretName
 
-	if customerCertificate.SecretVersion != nil {
-		fields["key_vault_certificate_version"] = *customerCertificate.SecretVersion
+	var useLatest bool
+	if customerCertificate.UseLatestVersion != nil {
+		useLatest = *customerCertificate.UseLatestVersion
+		fields["use_latest"] = useLatest
 	}
 
-	if customerCertificate.UseLatestVersion != nil {
-		fields["use_latest"] = *customerCertificate.UseLatestVersion
+	// The API always sends back the version, which causes a diff
+	// if your config has use latest set to true. So only include this
+	// in the return values if use latest is set to false...
+	if !useLatest {
+		if customerCertificate.SecretVersion != nil {
+			fields["key_vault_certificate_version"] = *customerCertificate.SecretVersion
+		}
 	}
 
 	if customerCertificate.SubjectAlternativeNames != nil {
