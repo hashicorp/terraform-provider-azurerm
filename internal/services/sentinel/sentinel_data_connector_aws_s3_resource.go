@@ -37,6 +37,7 @@ func (r DataConnectorAwsS3Resource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
 		"log_analytics_workspace_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -47,7 +48,7 @@ func (r DataConnectorAwsS3Resource) Arguments() map[string]*pluginsdk.Schema {
 		"aws_role_arn": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.IsARN,
 		},
 
 		"destination_table": {

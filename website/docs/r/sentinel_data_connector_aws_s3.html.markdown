@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `aws_role_arn` - (Required) The ARN of the AWS role, which is connected to this AWS CloudTrail Data Connector. See the [Azure document](https://docs.microsoft.com/en-us/azure/sentinel/connect-aws?tabs=s3#create-an-aws-assumed-role-and-grant-access-to-the-aws-sentinel-account) for details.
 
-* `destination_table` - (Required) The logs destination table name.
+* `destination_table` - (Required) The name of the Log Analytics table that will store the ingested data.
 
 * `sqs_urls` - (Required) Specifies a list of AWS SQS urls for the AWS S3 Data Connector.
 
