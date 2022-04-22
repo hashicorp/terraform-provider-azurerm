@@ -126,9 +126,13 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `local_account_disabled` - (Optional) - If `true` local accounts will be disabled. Defaults to `false`. See [the documentation](https://docs.microsoft.com/en-us/azure/aks/managed-aad#disable-local-accounts) for more information.
 
--> **NOTE:** If `local_account_disabled` is set to `true`, it is required to enable Kubernetes RBAC and AKS-managed Azure AD integration. See [the documentation](https://docs.microsoft.com/en-us/azure/aks/managed-aad#azure-ad-authentication-overview) for more information.
+-> **Note:** If `local_account_disabled` is set to `true`, it is required to enable Kubernetes RBAC and AKS-managed Azure AD integration. See [the documentation](https://docs.microsoft.com/en-us/azure/aks/managed-aad#azure-ad-authentication-overview) for more information.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
+
+* `microsoft_defender` - (Optional) A `microsoft_defender` block as defined below.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-AzureDefender` is enabled, see [the documentation](https://docs.microsoft.com/azure/defender-for-cloud/defender-for-containers-enable?tabs=aks-deploy-portal%2Ck8s-deploy-asc%2Ck8s-verify-asc%2Ck8s-remove-arc%2Caks-removeprofile-api&pivots=defender-for-container-aks) for more information.
 
 * `network_profile` - (Optional) A `network_profile` block as defined below.
 
@@ -137,6 +141,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 * `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
 
 -> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
+
+* `oidc_issuer_enabled` - (Required) Enable or Disable the [OIDC issuer URL](https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#oidc-issuer-preview)
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableOIDCIssuerPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#oidc-issuer-preview) for more information.
 
 * `oms_agent` - (Optional) A `oms_agent` block as defined below.
 
@@ -151,10 +159,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnablePrivateClusterPublicFQDN` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/private-clusters#create-a-private-aks-cluster-with-a-public-dns-address) for more information.
 
 -> **Note:** If you use BYO DNS Zone, AKS cluster should either use a User Assigned Identity or a service principal (which is deprecated) with the `Private DNS Zone Contributor` role and access to this Private DNS Zone. If `UserAssigned` identity is used - to prevent improper resource order destruction - cluster should depend on the role assignment, like in this example:
-
-`public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`. Changing this forces a new resource to be created.
-
--> **Note:** When `public_network_access_enabled` is set to `true`, `0.0.0.0/32` must be added to `api_server_authorized_ip_ranges`.
 
 ```
 resource "azurerm_resource_group" "example" {
@@ -195,6 +199,10 @@ resource "azurerm_kubernetes_cluster" "example" {
 }
 
 ```
+
+`public_network_access_enabled` - (Optional) Whether public network access is allowed for this Kubernetes Cluster. Defaults to `true`. Changing this forces a new resource to be created.
+
+-> **Note:** When `public_network_access_enabled` is set to `true`, `0.0.0.0/32` must be added to `api_server_authorized_ip_ranges`.
 
 * `role_based_access_control_enabled` (Optional) - Whether Role Based Access Control for the Kubernetes Cluster should be enabled. Defaults to `true`. Changing this forces a new resource to be created.
 
@@ -301,10 +309,6 @@ A `default_node_pool` block supports the following:
 
 * `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`.
 
-* `availability_zones` - (Optional) A list of Availability Zones across which the Node Pool should be spread. Changing this forces a new resource to be created.
-
--> **Note:** This requires that the `type` is set to `VirtualMachineScaleSets` and that `load_balancer_sku` is set to `Standard`.
-
 * `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler) be enabled for this Node Pool? Defaults to `false`.
 
 -> **Note:** This requires that the `type` is set to `VirtualMachineScaleSets`.
@@ -345,7 +349,7 @@ A `default_node_pool` block supports the following:
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist. Changing this forces a new resource to be created.
 
-  -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/PodSubnetPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni#register-the-podsubnetpreview-preview-feature) for more information.
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/PodSubnetPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni#register-the-podsubnetpreview-preview-feature) for more information.
 
 * `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`.
 
@@ -377,13 +381,19 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 
 -> **Note:** If `enable_auto_scaling` is set to `false` both `min_count` and `max_count` fields need to be set to `null` or omitted from the configuration.
 
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster should be located. Changing this forces a new Kubernetes Cluster to be created.
+
+-> **Note:** This requires that the `type` is set to `VirtualMachineScaleSets` and that `load_balancer_sku` is set to `standard`.
+
 ---
 
 An `identity` block supports the following:
 
-* `type` - The type of identity used for the managed cluster. Possible values are `SystemAssigned` and `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Kubernetes Cluster. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of User Assigned Identity IDs which should be assigned to this Kubernetes Cluster. At this time only a single value is supported. This must be specified when `type` is set to `UserAssigned`.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Kubernetes Cluster.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -457,6 +467,12 @@ A `maintenance_window` block supports the following:
 
 ---
 
+A `microsoft_defender` block supports the following:
+
+* `log_analytics_workspace_id` - (Required) Specifies the ID of the Log Analytics Workspace where the audit logs collected by Microsoft Defender should be sent to.
+
+---
+
 An `allowed` block exports the following:
 
 * `day` - (Required) A day in a week. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
@@ -505,17 +521,23 @@ A `network_profile` block supports the following:
 
 Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking) can be [found in the `./examples/kubernetes/` directory in the Github repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/kubernetes).
 
-* `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `Basic` and `Standard`. Defaults to `Standard`.
+* `ip_versions` - (Optional) Specifies a list of IP versions the Kubernetes Cluster will use to assign IP addresses to its nodes and pods. Possible values are `IPv4` and/or `IPv6`. `IPv4` must always be specified. Changing this forces a new resource to be created.
 
-* `load_balancer_profile` - (Optional) A `load_balancer_profile` block. This can only be specified when `load_balancer_sku` is set to `Standard`.
+->**Note:** To configure dual-stack networking `ip_versions` should be set to `["IPv4", "IPv6"]`
 
-* `nat_gateway_profile` - (Optional) A `nat_gateway_profile` block. This can only be specified when `load_balancer_sku` is set to `Standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`.
+->**Note:** Dual-stack networking requires that the Preview Feature `Microsoft.ContainerService/AKS-EnableDualStack` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-kubenet-dual-stack?tabs=azure-cli%2Ckubectl#register-the-aks-enabledualstack-preview-feature) for more information.
+
+* `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `standard`.
+
+* `load_balancer_profile` - (Optional) A `load_balancer_profile` block. This can only be specified when `load_balancer_sku` is set to `standard`.
+
+* `nat_gateway_profile` - (Optional) A `nat_gateway_profile` block. This can only be specified when `load_balancer_sku` is set to `standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`.
 
 ---
 
 A `load_balancer_profile` block supports the following:
 
-~> **Note:** The fields `managed_outbound_ip_count`, `outbound_ip_address_ids` and `outbound_ip_prefix_ids` are mutually exclusive. Note that when specifying `outbound_ip_address_ids` ([azurerm_public_ip](/docs/providers/azurerm/r/public_ip.html)) the SKU must be `Standard`.
+~> **Note:** The fields `managed_outbound_ip_count`, `outbound_ip_address_ids` and `outbound_ip_prefix_ids` are mutually exclusive. Note that when specifying `outbound_ip_address_ids` ([azurerm_public_ip](/docs/providers/azurerm/r/public_ip.html)) the SKU must be `standard`.
 
 * `idle_timeout_in_minutes` - (Optional) Desired outbound flow idle timeout in minutes for the cluster load balancer. Must be between `4` and `120` inclusive. Defaults to `30`.
 
@@ -629,7 +651,7 @@ A `sysctl_config` block supports the following:
 
 * `net_netfilter_nf_conntrack_buckets` - (Optional) The sysctl setting net.netfilter.nf_conntrack_buckets. Must be between `65536` and `147456`. Changing this forces a new resource to be created.
 
-* `net_netfilter_nf_conntrack_max` - (Optional) The sysctl setting net.netfilter.nf_conntrack_max. Must be between `131072` and `589824`. Changing this forces a new resource to be created.
+* `net_netfilter_nf_conntrack_max` - (Optional) The sysctl setting net.netfilter.nf_conntrack_max. Must be between `131072` and `1048576`. Changing this forces a new resource to be created.
 
 * `vm_max_map_count` - (Optional) The sysctl setting vm.max_map_count. Must be between `65530` and `262144`. Changing this forces a new resource to be created.
 
@@ -693,6 +715,8 @@ The following attributes are exported:
 
 * `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
 
+* `oidc_issuer_url` - The OIDC issuer URL that is associated with the cluster.
+
 * `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
 
 ---
@@ -709,11 +733,11 @@ A `nat_gateway_profile` block exports the following:
 
 ---
 
-The `identity` block exports the following:
+An `identity` block exports the following:
 
-* `principal_id` - The principal id of the system assigned identity which is used by main components.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The tenant id of the system assigned identity which is used by main components.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 

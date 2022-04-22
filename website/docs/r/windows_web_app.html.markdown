@@ -26,7 +26,7 @@ resource "azurerm_service_plan" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
-  sku_name            = "P1V2"
+  sku_name            = "P1v2"
 }
 
 resource "azurerm_windows_web_app" "example" {
@@ -119,9 +119,11 @@ A `application_logs` block supports the following:
 
 An `application_stack` block supports the following:
 
-* `current_stack` - (Optional) The Application Stack for the Windows Web App. Possible values include `dotnet`, `node`, `python`, `php`, and `java`.
+* `current_stack` - (Optional) The Application Stack for the Windows Web App. Possible values include `dotnet`, `dotnetcore`, `node`, `python`, `php`, and `java`.
 
 ~> **NOTE:** Whilst this property is Optional omitting it can cause unexpected behaviour, in particular for display of settings in the Azure Portal.
+
+~> **NOTE:** The value of `dotnetcore` is for use in combination with `dotnet_version` set to `v3.0` only.
 
 * `docker_container_name` - (Optional) The name of the Docker Container. For example `azure-app-service/samples/aspnethelloworld`
 
@@ -217,6 +219,8 @@ A `backup` block supports the following:
 
 A `connection_string` block supports the following:
 
+* `name` - (Required) The name of the Connection String.
+
 * `type` - (Required) Type of database. Possible values include: `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 
 * `value` - (Required) The connection string value.
@@ -305,11 +309,13 @@ A `http_logs` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `ManagedServiceIdentityTypeSystemAssigned`, `ManagedServiceIdentityTypeUserAssigned`, and `ManagedServiceIdentityTypeSystemAssignedUserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Windows Web App. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of Identity IDs.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Windows Web App.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -457,7 +463,7 @@ A `site_config` block supports the following:
 
 * `virtual_application` - (Optional) One or more `virtual_application` blocks as defined below.
 
-* `websockets` - (Optional) Should Web Sockets be enabled. Defaults to `false`. 
+* `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`. 
 
 * `worker_count` - (Optional) The number of Workers for this Windows App Service.
 
@@ -557,6 +563,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Windows Web App.
 
+* `identity` - An `identity` block as defined below.
+
 * `kind` - The Kind value for this Windows Web App. 
 
 * `outbound_ip_address_list` - A list of outbound IP addresses - such as `["52.23.25.3", "52.143.43.12"]`
@@ -568,6 +576,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
 * `site_credential` - A `site_credential` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 

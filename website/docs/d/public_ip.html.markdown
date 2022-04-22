@@ -111,6 +111,7 @@ output "public_ip_address" {
 * `sku` - The SKU of the Public IP.
 * `ip_tags` - A mapping of tags to assigned to the resource.
 * `tags` - A mapping of tags to assigned to the resource.
+* `zones` - A list of Availability Zones in which this Public IP is located.
 
 ## Timeouts
 

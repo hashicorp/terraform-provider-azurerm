@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
@@ -125,7 +125,7 @@ func (r OutputFunctionResource) Create() sdk.ResourceFunc {
 				Name: utils.String(model.Name),
 				OutputProperties: &streamanalytics.OutputProperties{
 					Datasource: &streamanalytics.AzureFunctionOutputDataSource{
-						Type: streamanalytics.TypeMicrosoftAzureFunction,
+						Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftAzureFunction,
 						AzureFunctionOutputDataSourceProperties: &streamanalytics.AzureFunctionOutputDataSourceProperties{
 							FunctionAppName: utils.String(model.FunctionApp),
 							FunctionName:    utils.String(model.FunctionName),
@@ -212,7 +212,7 @@ func (r OutputFunctionResource) Update() sdk.ResourceFunc {
 				Name: utils.String(state.Name),
 				OutputProperties: &streamanalytics.OutputProperties{
 					Datasource: &streamanalytics.AzureFunctionOutputDataSource{
-						Type: streamanalytics.TypeMicrosoftStorageTable,
+						Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageTable,
 						AzureFunctionOutputDataSourceProperties: &streamanalytics.AzureFunctionOutputDataSourceProperties{
 							FunctionAppName: utils.String(state.FunctionApp),
 							FunctionName:    utils.String(state.FunctionName),
@@ -268,7 +268,7 @@ func (r OutputFunctionResource) CustomImporter() sdk.ResourceRunFunc {
 
 		props := resp.OutputProperties
 		if _, ok := props.Datasource.AsAzureFunctionOutputDataSource(); !ok {
-			return fmt.Errorf("specified output is not of type %s", streamanalytics.TypeMicrosoftAzureFunction)
+			return fmt.Errorf("specified output is not of type %s", streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftAzureFunction)
 		}
 		return nil
 	}

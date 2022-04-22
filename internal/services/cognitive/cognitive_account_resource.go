@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	searchValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -285,6 +286,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props := model.Properties; props != nil {
 			if apiProps := props.ApiProperties; apiProps != nil {
 				d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
+				d.Set("custom_question_answering_search_service_id", apiProps.QnaAzureSearchEndpointId)
 				d.Set("metrics_advisor_aad_client_id", apiProps.AadClientId)
 				d.Set("metrics_advisor_aad_tenant_id", apiProps.AadTenantId)
 				d.Set("metrics_advisor_super_user_name", apiProps.SuperUser)
@@ -433,18 +435,17 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 			networkRules = append(networkRules, rule)
 		}
 	}
-	if d.HasChange("network_acls.0.virtual_network_rules") {
-		networkRulesRaw := v["virtual_network_rules"]
-		for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
-			value := v.(map[string]interface{})
-			subnetId := value["subnet_id"].(string)
-			subnetIds = append(subnetIds, subnetId)
-			rule := cognitiveservicesaccounts.VirtualNetworkRule{
-				Id:                               subnetId,
-				IgnoreMissingVnetServiceEndpoint: utils.Bool(value["ignore_missing_vnet_service_endpoint"].(bool)),
-			}
-			networkRules = append(networkRules, rule)
+
+	networkRulesRaw := v["virtual_network_rules"]
+	for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
+		value := v.(map[string]interface{})
+		subnetId := value["subnet_id"].(string)
+		subnetIds = append(subnetIds, subnetId)
+		rule := cognitiveservicesaccounts.VirtualNetworkRule{
+			Id:                               subnetId,
+			IgnoreMissingVnetServiceEndpoint: utils.Bool(value["ignore_missing_vnet_service_endpoint"].(bool)),
 		}
+		networkRules = append(networkRules, rule)
 	}
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
@@ -500,6 +501,13 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 			props.QnaRuntimeEndpoint = utils.String(v.(string))
 		} else {
 			return nil, fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+		}
+	}
+	if v, ok := d.GetOk("custom_question_answering_search_service_id"); ok {
+		if kind == "TextAnalytics" {
+			props.QnaAzureSearchEndpointId = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("the Search Service ID `custom_question_answering_search_service_id` can only be set when kind is set to `TextAnalytics`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
@@ -805,6 +813,12 @@ func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+		},
+
+		"custom_question_answering_search_service_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: searchValidate.SearchServiceID,
 		},
 
 		"storage": {

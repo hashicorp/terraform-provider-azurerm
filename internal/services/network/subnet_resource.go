@@ -59,8 +59,7 @@ func resourceSubnet() *pluginsdk.Resource {
 
 			"address_prefixes": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,

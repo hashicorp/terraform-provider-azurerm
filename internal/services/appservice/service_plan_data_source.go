@@ -31,6 +31,7 @@ type ServicePlanDataSourceModel struct {
 	Reserved                  bool              `tfschema:"reserved"`
 	WorkerCount               int               `tfschema:"worker_count"`
 	MaximumElasticWorkerCount int               `tfschema:"maximum_elastic_worker_count"`
+	ZoneBalancing             bool              `tfschema:"zone_balancing_enabled"`
 	Tags                      map[string]string `tfschema:"tags"`
 }
 
@@ -98,6 +99,11 @@ func (r ServicePlanDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"zone_balancing_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"tags": tags.SchemaDataSource(),
 	}
 }
@@ -147,13 +153,11 @@ func (r ServicePlanDataSource) Read() sdk.ResourceFunc {
 					servicePlan.AppServiceEnvironmentId = utils.NormalizeNilableString(props.HostingEnvironmentProfile.ID)
 				}
 
-				if v := props.PerSiteScaling; v != nil {
-					servicePlan.PerSiteScaling = *v
-				}
+				servicePlan.PerSiteScaling = utils.NormaliseNilableBool(props.PerSiteScaling)
 
-				if v := props.Reserved; v != nil {
-					servicePlan.Reserved = *v
-				}
+				servicePlan.Reserved = utils.NormaliseNilableBool(props.Reserved)
+
+				servicePlan.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
 
 				servicePlan.MaximumElasticWorkerCount = int(utils.NormaliseNilableInt32(props.MaximumElasticWorkerCount))
 			}

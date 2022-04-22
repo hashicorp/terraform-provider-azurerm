@@ -43,13 +43,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `identity_ids` -  The list of User Managed Identity ID's which are assigned to the Virtual Machine Scale Set.
+* `type` - The type of Managed Service Identity that is configured on this Virtual Machine Scale Set.
 
-* `principal_id` - The ID of the System Managed Service Principal assigned to the Virtual Machine Scale Set.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Virtual Machine Scale Set.
 
-* `type` - The identity type of the Managed Identity assigned to the Virtual Machine Scale Set.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Virtual Machine Scale Set.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Virtual Machine Scale Set.
 
 ---
 

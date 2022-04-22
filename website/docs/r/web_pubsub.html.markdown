@@ -3,12 +3,12 @@ subcategory: "Web PubSub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_pubsub"
 description: |-
-  Manages an Azure Web Pubsub service.
+  Manages an Azure Web PubSub service.
 ---
 
 # azurerm_web_pubsub
 
-Manages an Azure Web Pubsub Service.
+Manages an Azure Web PubSub Service.
 
 ## Example Usage
 
@@ -44,17 +44,17 @@ resource "azurerm_web_pubsub" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Web Pubsub service. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Web PubSub service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Web Pubsub service. Changing
+* `resource_group_name` - (Required) The name of the resource group in which to create the Web PubSub service. Changing
   this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the Web Pubsub service exists. Changing this
+* `location` - (Required) Specifies the supported Azure location where the Web PubSub service exists. Changing this
   forces a new resource to be created.
 
 * `sku` - (Required) Specifies which sku to use. Possible values are `Free_F1` and `Standard_S1`.
 
-* `capacity` - (Optional) Specifies the number of units associated with this Web Pubsub resource. Valid values are:
+* `capacity` - (Optional) Specifies the number of units associated with this Web PubSub resource. Valid values are:
   Free: `1`, Standard: `1`, `2`, `5`, `10`, `20`, `50`, `100`.
 
 * `public_network_access_enabled` - (Optional) Whether to enable public network access? Defaults to `true`.
@@ -88,45 +88,57 @@ A `live_trace` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of identity used for the Web PubSub service. Possible values are `SystemAssigned` and `UserAssigned`. If `UserAssigned` is set, a `user_assigned_identity_id` must be set as well.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Web PubSub. Possible values are `SystemAssigned`, `UserAssigned`.
 
-* `identity_ids` - (Optional) A list of User Assigned Identity IDs which should be assigned to this Web PubSub service.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned`
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Web Pubsub service.
+* `id` - The ID of the Web PubSub service.
 
-* `hostname` - The FQDN of the Web Pubsub service.
+* `hostname` - The FQDN of the Web PubSub service.
 
-* `ip_address` - The publicly accessible IP of the Web Pubsub service.
+* `identity` - An `identity` block as defined below.
 
-* `public_port` - The publicly accessible port of the Web Pubsub service which is designed for browser/client use.
+* `ip_address` - The publicly accessible IP of the Web PubSub service.
 
-* `server_port` - The publicly accessible port of the Web Pubsub service which is designed for customer server side use.
+* `public_port` - The publicly accessible port of the Web PubSub service which is designed for browser/client use.
 
-* `primary_access_key` - The primary access key for the Web Pubsub service.
+* `server_port` - The publicly accessible port of the Web PubSub service which is designed for customer server side use.
 
-* `primary_connection_string` - The primary connection string for the Web Pubsub service.
+* `primary_access_key` - The primary access key for the Web PubSub service.
 
-* `secondary_access_key` - The secondary access key for the Web Pubsub service.
+* `primary_connection_string` - The primary connection string for the Web PubSub service.
 
-* `secondary_connection_string` - The secondary connection string for the Web Pubsub service.
+* `secondary_access_key` - The secondary access key for the Web PubSub service.
+
+* `secondary_connection_string` - The secondary connection string for the Web PubSub service.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 
 The `timeouts` block allows you to
 specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Web Pubsub Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Web Pubsub Service.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Web Pubsub Service.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Web Pubsub Service.
+* `create` - (Defaults to 30 minutes) Used when creating the Web PubSub Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Web PubSub Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Web PubSub Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Web PubSub Service.
 
 ## Import
 
-Web Pubsub services can be imported using the `resource id`, e.g.
+Web PubSub services can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_web_pubsub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubSub/pubsub1

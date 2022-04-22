@@ -37,7 +37,7 @@ output "api_management_id" {
 
 * `location` - The Azure location where the API Management Service exists.
 
-* `zones` - List of the availability zones where the API Management Service exists.
+* `zones` - A list of Availability Zones in which this API Management Service is located.
 
 * `gateway_url` - The URL for the API Management Service's Gateway.
 
@@ -91,15 +91,15 @@ A `additional_location` block exports the following:
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `type` - Specifies the type of Managed Service Identity that is configured on this API Management Service.
+* `type` - The type of Managed Service Identity that is configured on this API Management Service.
 
-* `principal_id` - Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
 
-* `tenant_id` - Specifies the Tenant ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
 
-* `identity_ids` - A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this API Management Service.
 
 ---
 

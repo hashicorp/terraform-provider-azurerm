@@ -151,9 +151,9 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								strings.Title(string(iothub.IPFilterTargetTypeAll)),
-								strings.Title(string(iothub.IPFilterTargetTypeServiceAPI)),
-								strings.Title(string(iothub.IPFilterTargetTypeDeviceAPI)),
+								azure.TitleCase(string(iothub.IPFilterTargetTypeAll)),
+								azure.TitleCase(string(iothub.IPFilterTargetTypeServiceAPI)),
+								azure.TitleCase(string(iothub.IPFilterTargetTypeDeviceAPI)),
 							}, false),
 						},
 					},
@@ -442,7 +442,7 @@ func expandDpsIPFilterRules(d *pluginsdk.ResourceData) *[]iothub.IPFilterRule {
 			FilterName: utils.String(rawRule["name"].(string)),
 			Action:     iothub.IPFilterActionType(rawRule["action"].(string)),
 			IPMask:     utils.String(rawRule["ip_mask"].(string)),
-			Target:     iothub.IPFilterTargetType(strings.Title(rawRule["target"].(string))),
+			Target:     iothub.IPFilterTargetType(azure.TitleCase(rawRule["target"].(string))),
 		}
 
 		rules = append(rules, *rule)

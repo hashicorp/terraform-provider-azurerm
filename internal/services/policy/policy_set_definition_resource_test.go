@@ -458,7 +458,7 @@ resource "azurerm_policy_set_definition" "test" {
   name                = "acctestpolset-%d"
   policy_type         = "Custom"
   display_name        = "acctestpolset-%d"
-  management_group_id = azurerm_management_group.test.group_id
+  management_group_id = azurerm_management_group.test.id
 
   parameters = <<PARAMETERS
     {
