@@ -125,7 +125,6 @@ func TestAccAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
 
 func TestAccAppServiceEnvironment_withCertificatePfx(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
-	certData := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 	r := AppServiceEnvironmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -133,9 +132,6 @@ func TestAccAppServiceEnvironment_withCertificatePfx(t *testing.T) {
 			Config: r.withCertificatePfx(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("id").MatchesOtherKey(
-					check.That(certData.ResourceName).Key("hosting_environment_profile_id"),
-				),
 			),
 		},
 		data.ImportStep(),

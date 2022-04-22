@@ -107,9 +107,8 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"path": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
 						},
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,

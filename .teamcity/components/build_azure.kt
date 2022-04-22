@@ -9,7 +9,7 @@ class ClientConfiguration(var clientId: String,
                           val subscriptionIdAlt : String) {
 }
 
-class LocationConfiguration(var primary : String, var secondary : String, var ternary : String, var rotate : Boolean) {
+class LocationConfiguration(var primary : String, var secondary : String, var tertiary : String, var rotate : Boolean) {
 }
 
 fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: String, config: ClientConfiguration, locationsForEnv: LocationConfiguration, useAltSubscription: Boolean = false) {
@@ -29,6 +29,6 @@ fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: Strin
     hiddenPasswordVariable("env.ARM_TENANT_ID", config.tenantId, "The ID of the Azure Tenant used for Testing")
     hiddenVariable("env.ARM_TEST_LOCATION", locationsForEnv.primary, "The Primary region which should be used for testing")
     hiddenVariable("env.ARM_TEST_LOCATION_ALT", locationsForEnv.secondary, "The Secondary region which should be used for testing")
-    hiddenVariable("env.ARM_TEST_LOCATION_ALT2", locationsForEnv.ternary, "The Tertiary region which should be used for testing")
+    hiddenVariable("env.ARM_TEST_LOCATION_ALT2", locationsForEnv.tertiary, "The Tertiary region which should be used for testing")
     hiddenVariable("env.ARM_THREEPOINTZERO_BETA", "true", "Opt into the use of 3.0 beta resources")
 }

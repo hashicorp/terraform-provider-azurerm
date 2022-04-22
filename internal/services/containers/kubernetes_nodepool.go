@@ -559,7 +559,7 @@ func schemaNodePoolSysctlConfig() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(131072, 589824),
+					ValidateFunc: validation.IntBetween(131072, 1048576),
 				},
 
 				"vm_max_map_count": {

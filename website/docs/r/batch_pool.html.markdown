@@ -153,9 +153,9 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The identity type of the Batch Account. Only possible values is `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Batch Account. Only possible value is `UserAssigned`.
 
- * `identity_ids` - (Required) Specifies a list of user assigned identity ids.
+ * `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
 
 ---
 

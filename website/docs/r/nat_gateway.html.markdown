@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
-* `zones` - (Optional) A list of availability zones where the NAT Gateway should be provisioned. Changing this forces a new resource to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this NAT Gateway should be located. Changing this forces a new NAT Gateway to be created.
 
 ## Attributes Reference
 
