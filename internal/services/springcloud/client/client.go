@@ -6,17 +6,17 @@ import (
 )
 
 type Client struct {
-	AppsClient               *appplatform.AppsClient
-	BindingsClient           *appplatform.BindingsClient
-	CertificatesClient       *appplatform.CertificatesClient
-	ConfigServersClient      *appplatform.ConfigServersClient  
+	AppsClient                 *appplatform.AppsClient
+	BindingsClient             *appplatform.BindingsClient
+	CertificatesClient         *appplatform.CertificatesClient
+	ConfigServersClient        *appplatform.ConfigServersClient
 	ConfigurationServiceClient *appplatform.ConfigurationServicesClient
-	CustomDomainsClient      *appplatform.CustomDomainsClient
-	MonitoringSettingsClient *appplatform.MonitoringSettingsClient
-	DeploymentsClient        *appplatform.DeploymentsClient
-	ServicesClient           *appplatform.ServicesClient
-	ServiceRegistryClient    *appplatform.ServiceRegistriesClient
-	StoragesClient           *appplatform.StoragesClient
+	CustomDomainsClient        *appplatform.CustomDomainsClient
+	MonitoringSettingsClient   *appplatform.MonitoringSettingsClient
+	DeploymentsClient          *appplatform.DeploymentsClient
+	ServicesClient             *appplatform.ServicesClient
+	ServiceRegistryClient      *appplatform.ServiceRegistriesClient
+	StoragesClient             *appplatform.StoragesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -54,16 +54,16 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&storageClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AppsClient:               &appsClient,
-		BindingsClient:           &bindingsClient,
-		CertificatesClient:       &certificatesClient,
-		ConfigServersClient:      &configServersClient,
+		AppsClient:                 &appsClient,
+		BindingsClient:             &bindingsClient,
+		CertificatesClient:         &certificatesClient,
+		ConfigServersClient:        &configServersClient,
 		ConfigurationServiceClient: &configurationServiceClient,
-		CustomDomainsClient:      &customDomainsClient,
-		DeploymentsClient:        &deploymentsClient,
-		MonitoringSettingsClient: &monitoringSettingsClient,
-		ServicesClient:           &servicesClient,
-		ServiceRegistryClient:    &serviceRegistryClient,
-		StoragesClient:           &storageClient,
+		CustomDomainsClient:        &customDomainsClient,
+		DeploymentsClient:          &deploymentsClient,
+		MonitoringSettingsClient:   &monitoringSettingsClient,
+		ServicesClient:             &servicesClient,
+		ServiceRegistryClient:      &serviceRegistryClient,
+		StoragesClient:             &storageClient,
 	}
 }

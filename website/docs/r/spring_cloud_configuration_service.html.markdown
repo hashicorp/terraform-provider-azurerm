@@ -61,27 +61,27 @@ The following arguments are supported:
 
 A `repository` block supports the following:
 
-* `label` - (Required) Label of the repository.
+* `label` - (Required) Specifies the label of the repository.
 
-* `name` - (Required) The name which should be used for this repository.
+* `name` - (Required) Specifies the name which should be used for this repository.
 
-* `patterns` - (Required) Collection of patterns of the repository.
+* `patterns` - (Required) Specifies the collection of patterns of the repository.
 
-* `uri` - (Required) URI of the repository.
+* `uri` - (Required) Specifies the URI of the repository.
 
-* `host_key` - (Optional) Public SSH key of git repository.
+* `host_key` - (Optional) Specifies the SSH public key of git repository.
 
-* `host_key_algorithm` - (Optional) SSH key algorithm of git repository.
+* `host_key_algorithm` - (Optional) Specifies the SSH key algorithm of git repository.
 
-* `password` - (Optional) Password of git repository basic auth.
+* `password` - (Optional) Specifies the password of git repository basic auth.
 
-* `private_key` - (Optional) Private SSH key algorithm of git repository.
+* `private_key` - (Optional) Specifies the SSH private key of git repository.
 
-* `search_paths` - (Optional) Searching path of the repository
+* `search_paths` - (Optional) Specifies a list of searching path of the repository
 
-* `strict_host_key_checking` - (Optional) Strict host key checking or not.
+* `strict_host_key_checking` - (Optional) Specifies whether enable the strict host key checking.
 
-* `username` - (Optional) Username of git repository basic auth.
+* `username` - (Optional) Specifies the username of git repository basic auth.
 
 ## Attributes Reference
 
