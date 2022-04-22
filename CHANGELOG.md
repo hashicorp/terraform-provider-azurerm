@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v63.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-16283]
+* dependencies: updating to `v0.11.26` of `github.com/Azure/go-autorest` [GH-16458]
 
 ## 3.3.0 (April 21, 2022)
 
