@@ -8,20 +8,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2021-08-01/redisenterprise"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2022-01-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -95,15 +93,6 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 			"hostname": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
-			},
-
-			// RP currently does not return this value, but will in the near future
-			// https://github.com/Azure/azure-sdk-for-go/issues/14420
-			// TODO 3.0 remove or keep?
-			"version": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Deprecated: "This field currently is not yet being returned from the service API, please see https://github.com/Azure/azure-sdk-for-go/issues/14420 for more information",
 			},
 
 			"tags": commonschema.Tags(),
@@ -227,7 +216,6 @@ func resourceRedisEnterpriseClusterRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("zones", zones.Flatten(model.Zones))
 		if props := model.Properties; props != nil {
 			d.Set("hostname", props.HostName)
-			d.Set("version", props.RedisVersion)
 
 			tlsVersion := ""
 			if props.MinimumTlsVersion != nil {

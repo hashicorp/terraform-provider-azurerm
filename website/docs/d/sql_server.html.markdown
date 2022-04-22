@@ -51,11 +51,11 @@ output "sql_server_id" {
 
 An `identity` block exports the following:
 
-* `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Azure Active Directory Tenant.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
-* `type` - The identity type of the SQL Server.
+* `type` - The identity type of this Managed Service Identity.
 
 ## Timeouts
 

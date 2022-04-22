@@ -974,7 +974,6 @@ resource "azurerm_lb" "test" {
 
 resource "azurerm_lb_outbound_rule" "test" {
   name                     = "OutboundRule-%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
   loadbalancer_id          = azurerm_lb.test.id
   protocol                 = "All"
   enable_tcp_reset         = true

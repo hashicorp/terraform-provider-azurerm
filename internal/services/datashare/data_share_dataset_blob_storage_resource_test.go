@@ -135,12 +135,12 @@ resource "azurerm_data_share" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "RAGRS"
-  allow_blob_public_access = true
+  name                            = "acctest%[3]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "RAGRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {

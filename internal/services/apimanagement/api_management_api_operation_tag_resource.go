@@ -74,7 +74,7 @@ func resourceApiManagementApiOperationTagCreateUpdate(d *pluginsdk.ResourceData,
 	id := parse.NewOperationTagID(subscriptionId, apiOperationId.ResourceGroup, apiOperationId.ServiceName, apiOperationId.ApiName, apiOperationId.OperationName, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, apiOperationId.ResourceGroup, apiOperationId.ServiceName, name)
+		existing, err := client.GetByOperation(ctx, apiOperationId.ResourceGroup, apiOperationId.ServiceName, apiOperationId.ApiName, apiOperationId.OperationName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing Tag %q: %s", id, err)

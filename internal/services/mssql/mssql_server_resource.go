@@ -198,7 +198,6 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -292,24 +291,12 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("issuing create request for Connection Policy %s: %+v", id.String(), err)
 	}
 
-	auditingProps := sql.ExtendedServerBlobAuditingPolicy{}
-
-	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
-	if err != nil {
-		return fmt.Errorf("issuing create request for Blob Auditing Policies %s: %+v", id.String(), err)
-	}
-
-	if err = auditingFuture.WaitForCompletionRef(ctx, auditingClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Blob Auditing Policies %s: %+v", id.String(), err)
-	}
-
 	return resourceMsSqlServerRead(d, meta)
 }
 
 func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
 	aadOnlyAuthentictionsClient := meta.(*clients.Client).MSSQL.ServerAzureADOnlyAuthenticationsClient
@@ -433,17 +420,6 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 	if _, err = connectionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, connection); err != nil {
 		return fmt.Errorf("issuing update request for Connection Policy %s: %+v", id.String(), err)
-	}
-
-	auditingProps := sql.ExtendedServerBlobAuditingPolicy{}
-
-	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
-	if err != nil {
-		return fmt.Errorf("issuing update request for Blob Auditing Policies %s: %+v", id.String(), err)
-	}
-
-	if err = auditingFuture.WaitForCompletionRef(ctx, auditingClient.Client); err != nil {
-		return fmt.Errorf("waiting for update of Blob Auditing Policies %s: %+v", id.String(), err)
 	}
 
 	return resourceMsSqlServerRead(d, meta)

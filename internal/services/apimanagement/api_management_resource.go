@@ -687,52 +687,54 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		publicNetworkAccess = apimanagement.PublicNetworkAccessDisabled
 	}
 
-	// before creating check to see if the resource exists in the soft delete state
-	softDeleted, err := deletedServicesClient.GetByName(ctx, id.ServiceName, location)
-	if err != nil {
-		// If Terraform lacks permission to read at the Subscription we'll get 403, not 404
+	if d.IsNewResource() {
+		// before creating check to see if the resource exists in the soft delete state
+		softDeleted, err := deletedServicesClient.GetByName(ctx, id.ServiceName, location)
+		if err != nil {
+			// If Terraform lacks permission to read at the Subscription we'll get 403, not 404
+			if !utils.ResponseWasNotFound(softDeleted.Response) && !utils.ResponseWasForbidden(softDeleted.Response) {
+				return fmt.Errorf("checking for the presence of an existing Soft-Deleted API Management %q (Location %q): %+v", id.ServiceName, location, err)
+			}
+		}
+
+		// if so, does the user want us to recover it?
 		if !utils.ResponseWasNotFound(softDeleted.Response) && !utils.ResponseWasForbidden(softDeleted.Response) {
-			return fmt.Errorf("checking for the presence of an existing Soft-Deleted API Management %q (Location %q): %+v", id.ServiceName, location, err)
-		}
-	}
+			if !meta.(*clients.Client).Features.ApiManagement.RecoverSoftDeleted {
+				// this exists but the users opted out, so they must import this it out-of-band
+				return fmt.Errorf(optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(id.ServiceName, location))
+			}
 
-	// if so, does the user want us to recover it?
-	if !utils.ResponseWasNotFound(softDeleted.Response) && !utils.ResponseWasForbidden(softDeleted.Response) {
-		if !meta.(*clients.Client).Features.ApiManagement.RecoverSoftDeleted {
-			// this exists but the users opted out, so they must import this it out-of-band
-			return fmt.Errorf(optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(id.ServiceName, location))
-		}
+			// First recover the deleted API Management, since all other properties are ignored during a restore operation
+			// (don't set the ID just yet to avoid tainting on failure)
+			params := apimanagement.ServiceResource{
+				Location: utils.String(location),
+				ServiceProperties: &apimanagement.ServiceProperties{
+					Restore: utils.Bool(true),
+				},
+			}
 
-		// First recover the deleted API Management, since all other properties are ignored during a restore operation
-		// (don't set the ID just yet to avoid tainting on failure)
-		params := apimanagement.ServiceResource{
-			Location: utils.String(location),
-			ServiceProperties: &apimanagement.ServiceProperties{
-				Restore: utils.Bool(true),
-			},
-		}
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, params); err != nil {
+				return fmt.Errorf("recovering %s: %+v", id, err)
+			}
 
-		if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, params); err != nil {
-			return fmt.Errorf("recovering %s: %+v", id, err)
-		}
+			// Wait for the ProvisioningState to become "Succeeded" before attempting to update
+			log.Printf("[DEBUG] Waiting for %s to become ready", id)
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context had no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"Deleted", "Activating", "Updating", "Unknown"},
+				Target:                    []string{"Succeeded", "Ready"},
+				Refresh:                   apiManagementRefreshFunc(ctx, client, id.ServiceName, id.ResourceGroup),
+				MinTimeout:                1 * time.Minute,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
+			}
 
-		// Wait for the ProvisioningState to become "Succeeded" before attempting to update
-		log.Printf("[DEBUG] Waiting for %s to become ready", id)
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending:                   []string{"Deleted", "Activating", "Updating", "Unknown"},
-			Target:                    []string{"Succeeded", "Ready"},
-			Refresh:                   apiManagementRefreshFunc(ctx, client, id.ServiceName, id.ResourceGroup),
-			MinTimeout:                1 * time.Minute,
-			ContinuousTargetOccurence: 2,
-		}
-		if d.IsNewResource() {
-			stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-		} else {
-			stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-		}
-
-		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
+			}
 		}
 	}
 

@@ -27,7 +27,7 @@ func Default() UserFeatures {
 			PermanentlyDeleteOnDestroy: true,
 		},
 		ResourceGroup: ResourceGroupFeatures{
-			PreventDeletionIfContainsResources: false,
+			PreventDeletionIfContainsResources: true,
 		},
 		TemplateDeployment: TemplateDeploymentFeatures{
 			DeleteNestedItemsDuringDeletion: true,

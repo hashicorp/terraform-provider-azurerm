@@ -57,11 +57,7 @@ The following arguments are supported:
 
 * `virtual_network_name` - (Required) The name of the virtual network to which to attach the subnet. Changing this forces a new resource to be created.
 
-* `address_prefix` - (Optional / **Deprecated in favour of `address_prefixes`**) The address prefix to use for the subnet.
-
-* `address_prefixes` - (Optional) The address prefixes to use for the subnet.
-
--> **NOTE:** One of `address_prefix` or `address_prefixes` is required.
+* `address_prefixes` - (Required) The address prefixes to use for the subnet.
 
 ---
 

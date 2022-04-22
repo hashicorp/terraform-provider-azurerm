@@ -18,9 +18,7 @@ import (
 func PossibleEventSubscriptionEndpointTypes() []string {
 	return []string{
 		string(AzureFunctionEndpoint),
-		string(EventHubEndpoint),
 		string(EventHubEndpointID),
-		string(HybridConnectionEndpoint),
 		string(HybridConnectionEndpointID),
 		string(ServiceBusQueueEndpointID),
 		string(ServiceBusTopicEndpointID),
@@ -78,24 +76,10 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 				),
 			),
 
-			"eventhub_endpoint": eventSubscriptionSchemaEventHubEndpoint(
-				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
-					string(EventHubEndpoint),
-				),
-			),
-
 			"hybrid_connection_endpoint_id": eventSubscriptionSchemaHybridConnectionEndpointID(
 				utils.RemoveFromStringArray(
 					PossibleEventSubscriptionEndpointTypes(),
 					string(HybridConnectionEndpointID),
-				),
-			),
-
-			"hybrid_connection_endpoint": eventSubscriptionSchemaHybridEndpoint(
-				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
-					string(HybridConnectionEndpoint),
 				),
 			),
 
@@ -300,10 +284,6 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("setting `eventhub_endpoint_id` for %s: %+v", *id, err)
 			}
 
-			if err := d.Set("eventhub_endpoint", flattenEventGridEventSubscriptionEventhubEndpoint(v)); err != nil {
-				return fmt.Errorf("setting `eventhub_endpoint` for %s: %+v", *id, err)
-			}
-
 			if v.DeliveryAttributeMappings != nil {
 				if err := d.Set("delivery_property", flattenDeliveryProperties(d, v.DeliveryAttributeMappings)); err != nil {
 					return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
@@ -313,10 +293,6 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 		if v, ok := destination.AsHybridConnectionEventSubscriptionDestination(); ok {
 			if err := d.Set("hybrid_connection_endpoint_id", v.ResourceID); err != nil {
 				return fmt.Errorf("setting `hybrid_connection_endpoint_id` for %s: %+v", *id, err)
-			}
-
-			if err := d.Set("hybrid_connection_endpoint", flattenEventGridEventSubscriptionHybridConnectionEndpoint(v)); err != nil {
-				return fmt.Errorf("setting `hybrid_connection_endpoint` for %s: %+v", *id, err)
 			}
 
 			if v.DeliveryAttributeMappings != nil {

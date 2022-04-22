@@ -389,6 +389,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionApp.StorageAccountName, functionApp.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
 				}
 			}
+
 			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionApp(functionApp.SiteConfig, nil, metadata, functionApp.FunctionExtensionsVersion, storageString, functionApp.StorageUsesMSI)
 			if err != nil {
 				return fmt.Errorf("expanding site_config for Linux %s: %+v", id, err)
@@ -703,7 +704,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
-			storageString := ""
+			storageString := state.StorageAccountName
 			if !state.StorageUsesMSI {
 				if state.StorageKeyVaultSecretID != "" {
 					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
@@ -725,6 +726,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
 			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionApp(state.SiteConfig, existing.SiteConfig, metadata, state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
+			if err != nil {
+				return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
+			}
+
 			if state.BuiltinLogging {
 				if state.AppSettings == nil && !state.StorageUsesMSI {
 					state.AppSettings = make(map[string]string)
@@ -737,9 +742,6 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("site_config") {
-				if err != nil {
-					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
-				}
 				existing.SiteConfig = siteConfig
 			}
 
@@ -757,7 +759,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("waiting to update %s: %+v", id, err)
 			}
 
-			if _, err := client.UpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, web.SiteConfigResource{SiteConfig: siteConfig}); err != nil {
+			if _, err := client.UpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, web.SiteConfigResource{SiteConfig: existing.SiteConfig}); err != nil {
 				return fmt.Errorf("updating Site Config for Linux %s: %+v", id, err)
 			}
 

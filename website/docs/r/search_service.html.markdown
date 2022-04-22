@@ -62,7 +62,7 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be used for the Search Service. At this time the only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Search Service. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
@@ -86,11 +86,11 @@ A `query_keys` block exports the following:
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `principal_id` - The (Client) ID of the Service Principal.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 

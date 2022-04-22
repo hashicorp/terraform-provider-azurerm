@@ -123,7 +123,6 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 
 func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
-	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	serversClient := meta.(*clients.Client).MSSQL.ServersClient
 	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
@@ -179,6 +178,8 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 			}
 		}
 	}
+
+	ledgerEnabled := d.Get("ledger_enabled").(bool)
 
 	// When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
 	// partner databases. To work around this, we'll try to identify any partner databases that are secondary to this
@@ -250,6 +251,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 			SampleName:                       sql.SampleName(d.Get("sample_name").(string)),
 			RequestedBackupStorageRedundancy: expandMsSqlBackupStorageRedundancy(d.Get("storage_account_type").(string)),
 			ZoneRedundant:                    utils.Bool(d.Get("zone_redundant").(bool)),
+			IsLedgerOn:                       utils.Bool(ledgerEnabled),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -436,14 +438,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return nil
 	}
 
-	if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
-		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{}
-		if _, err = auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, auditingProps); err != nil {
-			return fmt.Errorf("setting Blob Auditing Policies for %s: %+v", id, err)
-		}
-	}
-
-	if d.HasChange("long_term_retention_policy") {
+	if d.HasChange("long_term_retention_policy") && !ledgerEnabled {
 		v := d.Get("long_term_retention_policy")
 		longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(v.([]interface{}))
 		if longTermRetentionProps != nil {
@@ -521,6 +516,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("server_id", serverId.ID())
 
 	skuName := ""
+	ledgerEnabled := false
 	if props := resp.DatabaseProperties; props != nil {
 		d.Set("auto_pause_delay_in_minutes", props.AutoPauseDelay)
 		d.Set("collation", props.Collation)
@@ -542,6 +538,10 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("sku_name", skuName)
 		d.Set("storage_account_type", flattenMsSqlBackupStorageRedundancy(props.CurrentBackupStorageRedundancy))
 		d.Set("zone_redundant", props.ZoneRedundant)
+		if props.IsLedgerOn != nil {
+			ledgerEnabled = *props.IsLedgerOn
+		}
+		d.Set("ledger_enabled", ledgerEnabled)
 	}
 
 	securityAlertPolicy, err := securityAlertPoliciesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
@@ -554,7 +554,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	geoBackupPolicy := true
 
 	// Hyper Scale SKU's do not currently support LRP and do not honour normal SRP operations
-	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") {
+	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") && !ledgerEnabled {
 		longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			return fmt.Errorf("retrieving Long Term Retention Policies for %s: %+v", id, err)
@@ -910,7 +910,6 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"storage_account_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Default: func() string {
 				if !features.ThreePointOhBeta() {
 					return "GRS"
@@ -1020,6 +1019,14 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  true,
 		},
+
+		"ledger_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+		},
+
 		"tags": tags.Schema(),
 	}
 

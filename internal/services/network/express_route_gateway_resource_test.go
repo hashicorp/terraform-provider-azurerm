@@ -160,7 +160,7 @@ resource "azurerm_virtual_hub" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   virtual_wan_id      = azurerm_virtual_wan.test.id
-  address_prefixes    = ["10.0.1.0/24"]
+  address_prefix      = "10.0.1.0/24"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

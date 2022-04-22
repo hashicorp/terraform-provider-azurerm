@@ -106,7 +106,7 @@ The `api_management` block supports the following:
 
 The `application_insights` block supports the following:
 
-* `disable_generated_rule` - (Optional) Should the `azurerm_application_insights` resources disable the Azure generated Alert Rule and Action Group during the create step? Defaults to `false`.
+* `disable_generated_rule` - (Optional) Should the `azurerm_application_insights` resources disable the Azure generated Alert Rule during the create step? Defaults to `false`.
 
 ---
 

@@ -52,7 +52,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *pluginsdk.Resource {
 			"url": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.IsURLWithHTTPS,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"use_managed_identity": {
