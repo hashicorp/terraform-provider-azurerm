@@ -69,9 +69,9 @@ A `build_pack_group` block supports the following:
 
 A `stack` block supports the following:
 
-* `id` - (Required) ID of the ClusterStack.
+* `id` - (Required) Specifies the ID of the ClusterStack.
 
-* `version` - (Required) Version of the ClusterStack
+* `version` - (Required) Specifies the version of the ClusterStack
 
 ## Attributes Reference
 
