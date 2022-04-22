@@ -5,6 +5,10 @@ ENHANCEMENTS:
 * dependencies: updating to `v63.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-16283]
 * dependencies: updating to `v0.11.26` of `github.com/Azure/go-autorest` [GH-16458]
 
+BUG FIXES:
+
+* `azurerm_resource_policy_remediation` - will no longer try to cancel a completed remediation task during deletion [GH-16478]
+
 ## 3.3.0 (April 21, 2022)
 
 FEATURES:
@@ -35,7 +39,6 @@ BUG FIXES:
 * `azurerm_key_vault_managed_storage_account` - now authenticates and manages resources correctly within the US Gov Cloud ([#16455](https://github.com/hashicorp/terraform-provider-azurerm/issues/16455))
 * `azurerm_key_vault_secret` - now authenticates and manages resources correctly within the US Gov Cloud ([#16455](https://github.com/hashicorp/terraform-provider-azurerm/issues/16455))
 * `azurerm_kubernetes_cluster` - the `role_based_access_control_enabled` property can now be disabled ([#16488](https://github.com/hashicorp/terraform-provider-azurerm/issues/16488))
-* `azurerm_resource_policy_remediation` - will no longer try to cancel a completed remediation task during deletion ([#16478](https://github.com/hashicorp/terraform-provider-azurerm/issues/16478))
 * `azurerm_linux_function_app` - the `ip_address` property is now correctly set into state when the `service_tag` property is specified ([#16426](https://github.com/hashicorp/terraform-provider-azurerm/issues/16426))
 * `azurerm_linux_function_app` - fix a bug in updates to `app_settings` where settings could be lost ([#16442](https://github.com/hashicorp/terraform-provider-azurerm/issues/16442))
 * `azurerm_linux_function_app_slot` -  this `ip_address` property is now correctly set into state when the `service_tag` property is specified ([#16426](https://github.com/hashicorp/terraform-provider-azurerm/issues/16426))
