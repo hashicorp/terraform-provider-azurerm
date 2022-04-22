@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
--> **NOTE:** `public_network_access_enabled` doesn't support the PointInTimeRestore mode.
+-> **NOTE:** `public_network_access_enabled` doesn't support PointInTimeRestore mode.
 
 * `restore_point_in_time` - (Optional) When `create_mode` is `PointInTimeRestore` the point in time to restore from `creation_source_server_id`. 
 

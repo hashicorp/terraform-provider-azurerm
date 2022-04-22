@@ -684,7 +684,7 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	if mode == postgresql.CreateModePointInTimeRestore {
 		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
 		if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
-			return fmt.Errorf("`public_network_access_enabled` doesn't support the PointInTimeRestore mode")
+			return fmt.Errorf("`public_network_access_enabled` doesn't support PointInTimeRestore mode")
 		}
 	} else {
 		publicAccess := postgresql.PublicNetworkAccessEnumEnabled
