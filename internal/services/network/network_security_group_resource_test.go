@@ -60,6 +60,28 @@ func TestAccNetworkSecurityGroup_singleRule(t *testing.T) {
 	})
 }
 
+func TestAccNetworkSecurityGroup_removeRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+	r := NetworkSecurityGroupResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.singleRule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
+			),
+		},
+		{
+			Config: r.removeRule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_rule.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccNetworkSecurityGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
 	r := NetworkSecurityGroupResource{}
@@ -321,6 +343,25 @@ resource "azurerm_network_security_group" "test" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (NetworkSecurityGroupResource) removeRule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acceptanceTestSecurityGroup1"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
