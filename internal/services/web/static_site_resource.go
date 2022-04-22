@@ -280,6 +280,15 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if features.FourPointOhBeta() {
 		skuName := ""
+		if sku := resp.Sku; sku != nil {
+			if v := sku.Name; v != nil {
+				skuName = *v
+			}
+		}
+		d.Set("sku_name", skuName)
+
+	} else {
+		skuName := ""
 		skuTier := ""
 		if sku := resp.Sku; sku != nil {
 			if v := sku.Name; v != nil {
@@ -292,14 +301,6 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		d.Set("sku_size", skuName)
 		d.Set("sku_tier", skuTier)
-	} else {
-		skuName := ""
-		if sku := resp.Sku; sku != nil {
-			if v := sku.Name; v != nil {
-				skuName = *v
-			}
-		}
-		d.Set("sku_name", skuName)
 	}
 
 	secretResp, err := client.ListStaticSiteSecrets(ctx, id.ResourceGroup, id.Name)
