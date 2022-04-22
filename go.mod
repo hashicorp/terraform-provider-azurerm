@@ -2,7 +2,7 @@ module github.com/hashicorp/terraform-provider-azurerm
 
 require (
 	github.com/Azure/azure-sdk-for-go v63.1.0+incompatible
-	github.com/Azure/go-autorest/autorest v0.11.24
+	github.com/Azure/go-autorest/autorest v0.11.26
 	github.com/Azure/go-autorest/autorest/date v0.3.0
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/Azure/go-autorest/autorest/validation v0.3.1
@@ -24,7 +24,7 @@ require (
 	github.com/sergi/go-diff v1.2.0
 	github.com/shopspring/decimal v1.2.0
 	github.com/tombuildsstuff/giovanni v0.19.0
-	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
+	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
 	gopkg.in/yaml.v2 v2.3.0
 )
@@ -33,7 +33,7 @@ require (
 	cloud.google.com/go/storage v1.16.0 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest/adal v0.9.18 // indirect
-	github.com/Azure/go-autorest/autorest/azure/cli v0.4.4 // indirect
+	github.com/Azure/go-autorest/autorest/azure/cli v0.4.5 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-cidr v1.1.0 // indirect
@@ -42,7 +42,7 @@ require (
 	github.com/aws/aws-sdk-go v1.38.69 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/fatih/color v1.12.0 // indirect
-	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
+	github.com/golang-jwt/jwt/v4 v4.4.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
