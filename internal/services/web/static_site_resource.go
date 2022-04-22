@@ -1,7 +1,5 @@
 package web
 
-// This file is a workaround for issue https://github.com/Azure/azure-rest-api-specs/issues/18501. This can be removed once it is resolved.
-
 import (
 	"fmt"
 	"log"
