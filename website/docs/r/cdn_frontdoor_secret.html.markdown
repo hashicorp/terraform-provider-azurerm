@@ -10,13 +10,15 @@ description: |-
 
 Manages a Frontdoor Secret.
 
+## Required Key Vault Permissions
+
 !>**IMPORTANT:** You must add an `Access Policy` to your `azurerm_key_vault` for the `Microsoft.AzureFrontDoor-Cdn` Enterprise Application Object ID.
 
-| Object ID                              | Key Permissions | Secret Permissions | Certificate Permissions |
-|:---------------------------------------|:---------------:|:------------------:|:-----------------------:|
-| Microsoft.AzureFrontDoor-Cdn Object ID | -               | **Get**            | -                       |
-| You Personal AAD Object ID             | -               | **Get**            | **Get** and **List**    |
-| Terraform Service Principal            | -               | **Get**            | **Get**                 |
+| Object ID                                | Key Permissions | Secret Permissions   | Certificate Permissions                       |
+|:-----------------------------------------|:---------------:|:--------------------:|:---------------------------------------------:|
+| `Microsoft.AzureFrontDoor-Cdn` Object ID | -               | **Get**              | -                                             |
+| Your Personal AAD Object ID              | -               | **Get** and **List** | **Get**, **List**, **Purge** and **Recover**  |
+| Terraform Service Principal              | -               | **Get**              | **Get**, **Import**, **Delete** and **Purge** |
 
 ->**NOTE:** You only need to add the `Access Policy` for your personal AAD Object ID if you are planning to view the `secrets` via the Azure Portal.
 
@@ -56,6 +58,9 @@ resource "azurerm_key_vault" "example" {
 
     certificate_permissions = [
       "Get",
+      "Import",
+      "Delete",
+      "Purge"
     ]
 
     secret_permissions = [
