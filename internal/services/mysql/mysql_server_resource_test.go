@@ -516,6 +516,7 @@ resource "azurerm_mysql_server" "replica" {
 
   create_mode                      = "Replica"
   creation_source_server_id        = azurerm_mysql_server.test.id
+  public_network_access_enabled	   = false
   ssl_enforcement_enabled          = true
   ssl_minimal_tls_version_enforced = "TLS1_1"
 }
