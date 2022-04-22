@@ -285,7 +285,7 @@ data "azurerm_client_config" "current" {}
 data "azurerm_subscription" "test" {}
 
 data "azurerm_management_group" "root" {
-  group_id = data.azurerm_client_config.current.tenant_id
+  name = data.azurerm_client_config.current.tenant_id
 }
 
 data "azurerm_blueprint_definition" "test" {

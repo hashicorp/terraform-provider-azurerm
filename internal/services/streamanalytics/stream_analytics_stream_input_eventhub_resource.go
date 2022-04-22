@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -132,7 +132,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 	props := streamanalytics.Input{
 		Name: utils.String(resourceId.InputName),
 		Properties: &streamanalytics.StreamInputProperties{
-			Type: streamanalytics.TypeStream,
+			Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
 			Datasource: &streamanalytics.EventHubStreamInputDataSource{
 				Type:                                    streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftServiceBusEventHub,
 				EventHubStreamInputDataSourceProperties: eventHubDataSourceProps,

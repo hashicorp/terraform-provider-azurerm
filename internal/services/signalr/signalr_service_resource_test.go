@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -287,10 +288,10 @@ func TestAccSignalRService_skuAndCapacityUpdate(t *testing.T) {
 func TestAccSignalRService_serviceMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
-
+	config := r.withServiceMode(data, "Serverless")
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withServiceMode(data, "Serverless"),
+			Config: config,
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("hostname").Exists(),
@@ -380,10 +381,10 @@ func TestAccSignalRService_cors(t *testing.T) {
 func TestAccSignalRService_upstreamSetting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
-
+	config := r.withUpstreamEndpoints(data)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withUpstreamEndpoints(data),
+			Config: config,
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("upstream_endpoint.#").HasValue("4"),
@@ -520,57 +521,40 @@ resource "azurerm_signalr_service" "test" {
 }
 
 func (r SignalRServiceResource) withServiceMode(data acceptance.TestData, serviceMode string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_signalr_service" "test" {
-  name                = "acctestSignalR-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    name     = "Free_F1"
-    capacity = 1
-  }
-
+	featuresSnippet := fmt.Sprintf(`
   features {
     flag  = "ServiceMode"
     value = "%s"
   }
-
   features {
     flag  = "EnableConnectivityLogs"
     value = "False"
   }
-
   features {
     flag  = "EnableMessagingLogs"
     value = "False"
   }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, serviceMode)
-}
+`, serviceMode)
+	if features.ThreePointOhBeta() {
+		featuresSnippet = fmt.Sprintf(`
+  service_mode = "%s"
+  connectivity_logs_enabled = false
+  messaging_logs_enabled = false
+`, serviceMode)
+	}
 
-func (r SignalRServiceResource) withUpstreamEndpoints(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_signalr_service" "test" {
-  name                = "acctestSignalR-%d"
+  name                = "acctestSignalR-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -579,6 +563,14 @@ resource "azurerm_signalr_service" "test" {
     capacity = 1
   }
 
+  %[3]s
+
+}
+`, data.RandomInteger, data.Locations.Primary, featuresSnippet)
+}
+
+func (r SignalRServiceResource) withUpstreamEndpoints(data acceptance.TestData) string {
+	featuresSnippet := `
   features {
     flag  = "ServiceMode"
     value = "Serverless"
@@ -593,6 +585,36 @@ resource "azurerm_signalr_service" "test" {
     flag  = "EnableMessagingLogs"
     value = "False"
   }
+`
+	if features.ThreePointOhBeta() {
+		featuresSnippet = `
+  service_mode = "Serverless"
+  connectivity_logs_enabled = false
+  messaging_logs_enabled = false
+`
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+
+  %s
 
   upstream_endpoint {
     category_pattern = ["*"]
@@ -622,7 +644,7 @@ resource "azurerm_signalr_service" "test" {
     url_template     = "http://foo4.com"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, featuresSnippet)
 }
 
 func (r SignalRServiceResource) withFeatureFlags(data acceptance.TestData) string {

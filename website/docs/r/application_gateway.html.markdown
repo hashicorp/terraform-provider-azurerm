@@ -145,7 +145,7 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
-* `zones` - (Optional) A collection of availability zones to spread the Application Gateway over.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Application Gateway should be located. Changing this forces a new Application Gateway to be created.
 
 * `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
 
@@ -324,11 +324,11 @@ A `http_listener` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The Managed Service Identity Type of this Application Gateway. The only possible value is `UserAssigned`.
-
-* `identity_ids` - (Required) Specifies a list with a single user managed identity id to be assigned to the Application Gateway.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Application Gateway. Only possible value is `UserAssigned`.
+ 
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Application Gateway.
 
 ---
 
@@ -361,9 +361,9 @@ An `ip_configuration` block supports the following:
 
 A `match` block supports the following:
 
-* `body` - (Optional) A snippet from the Response Body which must be present in the Response..
+* `body` - (Required) A snippet from the Response Body which must be present in the Response.
 
-* `status_code` - (Optional) A list of allowed status codes for this Health Probe.
+* `status_code` - (Required) A list of allowed status codes for this Health Probe.
 
 ---
 

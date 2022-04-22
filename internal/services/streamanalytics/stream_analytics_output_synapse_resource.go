@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,7 +25,7 @@ func resourceStreamAnalyticsOutputSynapse() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.OutputID(id)
 			return err
-		}, importStreamAnalyticsOutput(streamanalytics.TypeMicrosoftSQLServerDataWarehouse)),
+		}, importStreamAnalyticsOutput(streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftSQLServerDataWarehouse)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -117,7 +117,7 @@ func resourceStreamAnalyticsOutputSynapseCreateUpdate(d *pluginsdk.ResourceData,
 		Name: utils.String(id.Name),
 		OutputProperties: &streamanalytics.OutputProperties{
 			Datasource: &streamanalytics.AzureSynapseOutputDataSource{
-				Type: streamanalytics.TypeMicrosoftSQLServerDataWarehouse,
+				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftSQLServerDataWarehouse,
 				AzureSynapseOutputDataSourceProperties: &streamanalytics.AzureSynapseOutputDataSourceProperties{
 					Server:   utils.String(d.Get("server").(string)),
 					Database: utils.String(d.Get("database").(string)),

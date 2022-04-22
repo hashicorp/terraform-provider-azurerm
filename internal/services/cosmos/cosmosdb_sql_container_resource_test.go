@@ -73,6 +73,20 @@ func TestAccCosmosDbSqlContainer_analyticalStorageTTL(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.analyticalStorageTTL_removed(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.analyticalStorageTTL(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -265,7 +279,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   default_ttl = 500
   throughput  = 600
   indexing_policy {
-    indexing_mode = "Consistent"
+    indexing_mode = "consistent"
 
     included_path {
       path = "/*"
@@ -281,22 +295,22 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     composite_index {
       index {
         path  = "/path1"
-        order = "Descending"
+        order = "descending"
       }
       index {
         path  = "/path2"
-        order = "Ascending"
+        order = "ascending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path4"
-        order = "Descending"
+        order = "descending"
       }
     }
   }
@@ -325,6 +339,26 @@ resource "azurerm_cosmosdb_sql_container" "test" {
 `, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual), data.RandomInteger, data.RandomInteger)
 }
 
+func (CosmosSqlContainerResource) analyticalStorageTTL_removed(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                = "acctest-CSQLC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+  partition_key_path  = "/definition/id"
+}
+`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", documentdb.DefaultConsistencyLevelEventual), data.RandomInteger, data.RandomInteger)
+}
+
 func (CosmosSqlContainerResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -341,7 +375,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   default_ttl = 1000
   throughput  = 400
   indexing_policy {
-    indexing_mode = "Consistent"
+    indexing_mode = "consistent"
 
     included_path {
       path = "/*"
@@ -358,22 +392,22 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     composite_index {
       index {
         path  = "/path1"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path2"
-        order = "Descending"
+        order = "descending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path4"
-        order = "Descending"
+        order = "descending"
       }
     }
   }
@@ -409,7 +443,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   partition_key_path  = "/definition/id"
 
   indexing_policy {
-    indexing_mode = "Consistent"
+    indexing_mode = "consistent"
 
     included_path {
       path = "/*"
@@ -426,22 +460,22 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     composite_index {
       index {
         path  = "/path1"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path2"
-        order = "Descending"
+        order = "descending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path4"
-        order = "Descending"
+        order = "descending"
       }
     }
   }
@@ -461,7 +495,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   partition_key_path  = "/definition/id"
 
   indexing_policy {
-    indexing_mode = "Consistent"
+    indexing_mode = "consistent"
 
     included_path {
       path = "/*"
@@ -478,22 +512,22 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     composite_index {
       index {
         path  = "/path1"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path2"
-        order = "Descending"
+        order = "descending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "Ascending"
+        order = "ascending"
       }
       index {
         path  = "/path4"
-        order = "Descending"
+        order = "descending"
       }
     }
 

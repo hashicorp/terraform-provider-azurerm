@@ -427,8 +427,9 @@ func (WindowsVirtualMachineResource) diskOSDiskDiskEncryptionSetDependencies(dat
 provider "azurerm" {
   features {
     key_vault {
-      recover_soft_deleted_key_vaults = false
-      purge_soft_delete_on_destroy    = false
+      recover_soft_deleted_key_vaults    = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -504,7 +505,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {

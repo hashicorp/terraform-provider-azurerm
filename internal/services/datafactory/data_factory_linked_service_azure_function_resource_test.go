@@ -109,11 +109,10 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_function" "test" {
-  name                = "acctestlsblob%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  url                 = "foo"
-  key                 = "bar"
+  name            = "acctestlsblob%d"
+  data_factory_id = azurerm_data_factory.test.id
+  url             = "foo"
+  key             = "bar"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -136,13 +135,12 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_function" "test" {
-  name                = "acctestlsblob%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  url                 = "foo"
-  key                 = "bar"
-  annotations         = ["test1", "test2", "test3"]
-  description         = "test description"
+  name            = "acctestlsblob%d"
+  data_factory_id = azurerm_data_factory.test.id
+  url             = "foo"
+  key             = "bar"
+  annotations     = ["test1", "test2", "test3"]
+  description     = "test description"
 
   parameters = {
     foO = "test1"
@@ -175,9 +173,8 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_function" "test" {
-  name                = "acctestlsblob%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  name            = "acctestlsblob%d"
+  data_factory_id = azurerm_data_factory.test.id
 
   url         = "foo"
   key         = "bar"
@@ -224,17 +221,15 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name                = "linkkv"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  key_vault_id        = azurerm_key_vault.test.id
+  name            = "linkkv"
+  data_factory_id = azurerm_data_factory.test.id
+  key_vault_id    = azurerm_key_vault.test.id
 }
 
 resource "azurerm_data_factory_linked_service_azure_function" "test" {
-  name                = "acctestlsblob%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  url                 = "foo"
+  name            = "acctestlsblob%d"
+  data_factory_id = azurerm_data_factory.test.id
+  url             = "foo"
   key_vault_key {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"

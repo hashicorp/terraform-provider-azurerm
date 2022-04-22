@@ -126,7 +126,8 @@ resource "azurerm_storage_account" "example" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
-  allow_blob_public_access = false
+
+  allow_nested_items_to_be_public = false
 
   network_rules {
     default_action             = "Deny"
@@ -161,6 +162,10 @@ resource "azurerm_mssql_server_extended_auditing_policy" "example" {
 The following arguments are supported:
 
 * `server_id` - (Required) The ID of the sql server to set the extended auditing policy. Changing this forces a new resource to be created.
+
+* `enabled` - (Required) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
+
+->**NOTE:**  If `enabled` is `true`, `storage_endpoint` or `log_monitoring_enabled` are required.
 
 * `storage_endpoint` - (Optional) The blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all extended auditing logs.
 

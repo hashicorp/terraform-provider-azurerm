@@ -631,7 +631,8 @@ func (DataFactoryResource) keyVaultKeyEncryption(data acceptance.TestData) strin
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -705,7 +706,8 @@ resource "azurerm_data_factory" "test" {
     ]
   }
 
-  customer_managed_key_id = azurerm_key_vault_key.test.id
+  customer_managed_key_id          = azurerm_key_vault_key.test.id
+  customer_managed_key_identity_id = azurerm_user_assigned_identity.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

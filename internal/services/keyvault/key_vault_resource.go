@@ -358,8 +358,12 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	read, err := client.Get(ctx, id.ResourceGroup, id.Name)

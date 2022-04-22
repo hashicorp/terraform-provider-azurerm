@@ -37,17 +37,9 @@ func dataSourceArmPolicyDefinition() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
 
-			"management_group_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"management_group_name"},
-				Deprecated:    "Deprecated in favour of `management_group_name`", // TODO -- remove this in next major version
-			},
-
 			"management_group_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"management_group_id"},
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			"type": {
@@ -92,9 +84,6 @@ func dataSourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface
 	name := d.Get("name").(string)
 	managementGroupName := ""
 	if v, ok := d.GetOk("management_group_name"); ok {
-		managementGroupName = v.(string)
-	}
-	if v, ok := d.GetOk("management_group_id"); ok {
 		managementGroupName = v.(string)
 	}
 

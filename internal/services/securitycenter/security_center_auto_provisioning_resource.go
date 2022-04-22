@@ -5,31 +5,32 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// NOTE: 'default' is the only valid name currently supported by the API
-// No other names can be created and the 'default' resource can not be destroyed
-const securityCenterAutoProvisioningName = "default"
-
 func resourceSecurityCenterAutoProvisioning() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSecurityCenterAutoProvisioningUpdate,
+		Create: resourceSecurityCenterAutoProvisioningCreateUpdate,
 		Read:   resourceSecurityCenterAutoProvisioningRead,
-		Update: resourceSecurityCenterAutoProvisioningUpdate,
+		Update: resourceSecurityCenterAutoProvisioningCreateUpdate,
 		Delete: resourceSecurityCenterAutoProvisioningDelete,
 
-		// TODO: introduce an ID Parser and then replace this with an importer which validates the ID during import
-		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
-		},
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.AutoProvisioningSettingID(id)
+			return err
+		}),
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.AutoProvisioningV0ToV1{},
+		}),
+		SchemaVersion: 1,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -52,9 +53,10 @@ func resourceSecurityCenterAutoProvisioning() *pluginsdk.Resource {
 	}
 }
 
-func resourceSecurityCenterAutoProvisioningUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutoProvisioningCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutoProvisioningClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	// No need for import check as there's always single resource called 'default'
@@ -67,38 +69,38 @@ func resourceSecurityCenterAutoProvisioningUpdate(d *pluginsdk.ResourceData, met
 		},
 	}
 
+	// NOTE: 'default' is the only valid name currently supported by the API
+	// No other names can be created and the 'default' resource can not be destroyed
+	id := parse.NewAutoProvisioningSettingID(subscriptionId, "default")
+
 	// There is no update function or operation in the API, only create
-	if _, err := client.Create(ctx, securityCenterAutoProvisioningName, settings); err != nil {
-		return fmt.Errorf("creating/updating Security Center auto provisioning: %+v", err)
+	if _, err := client.Create(ctx, id.Name, settings); err != nil {
+		return fmt.Errorf("updating auto-provisioning setting for %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, securityCenterAutoProvisioningName)
-	if err != nil {
-		return fmt.Errorf("reading Security Center auto provisioning: %+v", err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Security Center auto provisioning ID is nil or empty")
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	return resourceSecurityCenterAutoProvisioningRead(d, meta)
 }
 
 func resourceSecurityCenterAutoProvisioningRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutoProvisioningClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := client.Get(ctx, securityCenterAutoProvisioningName)
+	id, err := parse.AutoProvisioningSettingID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Security Center subscription was not found: %v", err)
+			log.Printf("[DEBUG] %s was not found - removing from state", err)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading Security Center auto provisioning: %+v", err)
+		return fmt.Errorf("retrieving auto-provisioning setting %s: %+v", id, err)
 	}
 
 	if properties := resp.AutoProvisioningSettingProperties; properties != nil {
@@ -113,17 +115,22 @@ func resourceSecurityCenterAutoProvisioningDelete(d *pluginsdk.ResourceData, met
 	// Instead we reset back to 'Off' which is the default
 
 	client := meta.(*clients.Client).SecurityCenter.AutoProvisioningClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	id, err := parse.AutoProvisioningSettingID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	settings := security.AutoProvisioningSetting{
 		AutoProvisioningSettingProperties: &security.AutoProvisioningSettingProperties{
-			AutoProvision: "Off",
+			AutoProvision: security.AutoProvisionOff,
 		},
 	}
 
 	// There is no update function or operation in the API, only create
-	if _, err := client.Create(ctx, securityCenterAutoProvisioningName, settings); err != nil {
+	if _, err := client.Create(ctx, id.Name, settings); err != nil {
 		return fmt.Errorf("resetting Security Center auto provisioning to 'Off': %+v", err)
 	}
 

@@ -33,6 +33,36 @@ func TestAccContainerGroup_SystemAssignedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccContainerGroup_ProbeHttpGet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ProbeHttpGet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("identity.0.principal_id"),
+	})
+}
+
+func TestAccContainerGroup_ProbeExec(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ProbeExec(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("identity.0.principal_id"),
+	})
+}
+
 func TestAccContainerGroup_SystemAssignedIdentityNoNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
@@ -565,6 +595,36 @@ func TestAccContainerGroup_emptyDirVolumeShared(t *testing.T) {
 	})
 }
 
+func TestAccContainerGroup_emptyDirVolumeSharedWithInitContainer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyDirVolumeSharedWithInitContainer(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ip_address_type"),
+	})
+}
+
+func TestAccContainerGroup_withInitContainer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withInitContainer(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ip_address_type"),
+	})
+}
+
 func TestAccContainerGroup_secretVolume(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
@@ -595,7 +655,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -603,6 +663,96 @@ resource "azurerm_container_group" "test" {
     image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerGroupResource) ProbeHttpGet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "ubuntu:20.04"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
+    readiness_probe {
+      http_get {
+        path   = "/"
+        port   = 443
+        scheme = "Http"
+      }
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerGroupResource) ProbeExec(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "ubuntu:20.04"
+    cpu    = "0.5"
+    memory = "0.5"
+    liveness_probe {
+      exec = ["cat", "/tmp/healthy"]
+    }
     ports {
       port     = 80
       protocol = "TCP"
@@ -678,7 +828,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -726,7 +876,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -769,7 +919,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -805,7 +955,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   exposed_port {
@@ -850,7 +1000,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -880,7 +1030,7 @@ resource "azurerm_container_group" "import" {
   name                = azurerm_container_group.test.name
   location            = azurerm_container_group.test.location
   resource_group_name = azurerm_container_group.test.resource_group_name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -916,7 +1066,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -971,7 +1121,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -1027,7 +1177,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -1069,7 +1219,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -1117,7 +1267,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   exposed_port {
@@ -1174,7 +1324,7 @@ resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 
   delegation {
     name = "delegation"
@@ -1253,7 +1403,7 @@ resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 
   delegation {
     name = "delegation"
@@ -1324,7 +1474,7 @@ resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 
   delegation {
     name = "delegation"
@@ -1370,9 +1520,7 @@ resource "azurerm_container_group" "test" {
   }
 
   dns_config {
-    nameservers    = ["reddog.microsoft.com", "somecompany.somedomain"]
-    options        = ["one:option", "two:option", "red:option", "blue:option"]
-    search_domains = ["default.svc.cluster.local."]
+    nameservers = ["reddog.microsoft.com", "somecompany.somedomain"]
   }
 
   identity {
@@ -1401,8 +1549,8 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
-  os_type             = "windows"
+  ip_address_type     = "Public"
+  os_type             = "Windows"
 
   container {
     name   = "windowsservercore"
@@ -1463,9 +1611,9 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   dns_name_label      = "acctestcontainergroup-%d"
-  os_type             = "windows"
+  os_type             = "Windows"
   restart_policy      = "Never"
 
   container {
@@ -1585,7 +1733,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   dns_name_label      = "acctestcontainergroup-%d"
   os_type             = "Linux"
   restart_policy      = "OnFailure"
@@ -1686,7 +1834,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   dns_name_label      = "acctestcontainergroup-%d"
   os_type             = "Linux"
   restart_policy      = "OnFailure"
@@ -1763,7 +1911,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   dns_name_label      = "acctestcontainergroup-%d"
   os_type             = "Linux"
   restart_policy      = "OnFailure"
@@ -1820,6 +1968,57 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func (ContainerGroupResource) emptyDirVolumeSharedWithInitContainer(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroupemptyshared-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "None"
+  os_type             = "Linux"
+  restart_policy      = "Never"
+
+  init_container {
+    name     = "init"
+    image    = "busybox"
+    commands = ["touch", "/sharedempty/file.txt"]
+
+    volume {
+      name       = "logs"
+      mount_path = "/sharedempty"
+      read_only  = false
+      empty_dir  = true
+    }
+  }
+
+  container {
+    name   = "reader"
+    image  = "ubuntu:20.04"
+    cpu    = "1"
+    memory = "1.5"
+
+    volume {
+      name       = "logs"
+      mount_path = "/sharedempty"
+      read_only  = false
+      empty_dir  = true
+    }
+
+    commands = ["/bin/bash", "-c", "timeout 30 watch --interval 1 --errexit \"! cat /sharedempty/file.txt\""]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (ContainerGroupResource) emptyDirVolumeShared(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1873,6 +2072,43 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (ContainerGroupResource) withInitContainer(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroupemptyshared-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "None"
+  os_type             = "Linux"
+  restart_policy      = "Never"
+
+  init_container {
+    name     = "init"
+    image    = "busybox"
+    commands = ["echo", "hello from init"]
+  }
+
+  container {
+    name   = "hw"
+    image  = "ubuntu:20.04"
+    cpu    = "1"
+    memory = "1.5"
+
+    commands = ["echo", "hello from ubuntu"]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (ContainerGroupResource) secretVolume(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1888,7 +2124,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   os_type             = "Linux"
 
   container {
@@ -1948,7 +2184,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   dns_name_label      = "jerome-aci-label"
   os_type             = "Linux"
 

@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -70,7 +69,7 @@ func (r WatchlistResource) Exists(ctx context.Context, clients *clients.Client, 
 		return nil, err
 	}
 
-	if resp, err := client.Get(ctx, id.ResourceGroup, sentinel.OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
+	if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
@@ -89,6 +88,7 @@ resource "azurerm_sentinel_watchlist" "test" {
   name                       = "accTestWL-%d"
   log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
   display_name               = "test"
+  item_search_key            = "Key"
 }
 `, template, data.RandomInteger)
 }
@@ -105,6 +105,7 @@ resource "azurerm_sentinel_watchlist" "test" {
   description                = "description"
   labels                     = ["label1", "laebl2"]
   default_duration           = "P2DT3H"
+  item_search_key            = "Key"
 }
 `, template, data.RandomInteger)
 }
@@ -118,6 +119,7 @@ resource "azurerm_sentinel_watchlist" "import" {
   name                       = azurerm_sentinel_watchlist.test.name
   log_analytics_workspace_id = azurerm_sentinel_watchlist.test.log_analytics_workspace_id
   display_name               = azurerm_sentinel_watchlist.test.display_name
+  item_search_key            = azurerm_sentinel_watchlist.test.item_search_key
 }
 `, template)
 }
@@ -137,7 +139,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-workspace-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "pergb2018"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "sentinel" {

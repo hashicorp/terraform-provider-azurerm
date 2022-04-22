@@ -200,9 +200,6 @@ func TestAccRouteTable_multipleRoutes(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
-				check.That(data.ResourceName).Key("route.0.name").HasValue("route1"),
-				check.That(data.ResourceName).Key("route.0.address_prefix").HasValue("10.1.0.0/16"),
-				check.That(data.ResourceName).Key("route.0.next_hop_type").HasValue("VnetLocal"),
 			),
 		},
 		{
@@ -210,12 +207,6 @@ func TestAccRouteTable_multipleRoutes(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("route.#").HasValue("2"),
-				check.That(data.ResourceName).Key("route.0.name").HasValue("route1"),
-				check.That(data.ResourceName).Key("route.0.address_prefix").HasValue("10.1.0.0/16"),
-				check.That(data.ResourceName).Key("route.0.next_hop_type").HasValue("VnetLocal"),
-				check.That(data.ResourceName).Key("route.1.name").HasValue("route2"),
-				check.That(data.ResourceName).Key("route.1.address_prefix").HasValue("10.2.0.0/16"),
-				check.That(data.ResourceName).Key("route.1.next_hop_type").HasValue("VnetLocal"),
 			),
 		},
 		data.ImportStep(),
@@ -330,7 +321,7 @@ resource "azurerm_route_table" "test" {
   route {
     name           = "acctestRoute"
     address_prefix = "10.1.0.0/16"
-    next_hop_type  = "vnetlocal"
+    next_hop_type  = "VnetLocal"
   }
 
   disable_bgp_route_propagation = true
@@ -357,7 +348,7 @@ resource "azurerm_route_table" "test" {
   route {
     name           = "route1"
     address_prefix = "10.1.0.0/16"
-    next_hop_type  = "vnetlocal"
+    next_hop_type  = "VnetLocal"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -422,13 +413,13 @@ resource "azurerm_route_table" "test" {
   route {
     name           = "route1"
     address_prefix = "10.1.0.0/16"
-    next_hop_type  = "vnetlocal"
+    next_hop_type  = "VnetLocal"
   }
 
   route {
     name           = "route2"
     address_prefix = "10.2.0.0/16"
-    next_hop_type  = "vnetlocal"
+    next_hop_type  = "VnetLocal"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -453,7 +444,7 @@ resource "azurerm_route_table" "test" {
   route {
     name           = "route1"
     address_prefix = "10.1.0.0/16"
-    next_hop_type  = "vnetlocal"
+    next_hop_type  = "VnetLocal"
   }
 
   tags = {
@@ -483,7 +474,7 @@ resource "azurerm_route_table" "test" {
   route {
     name           = "route1"
     address_prefix = "10.1.0.0/16"
-    next_hop_type  = "vnetlocal"
+    next_hop_type  = "VnetLocal"
   }
 
   tags = {

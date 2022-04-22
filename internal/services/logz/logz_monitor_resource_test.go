@@ -137,10 +137,10 @@ resource "azurerm_logz_monitor" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   plan {
-    billing_cycle  = "Monthly"
+    billing_cycle  = "MONTHLY"
     effective_date = "%s"
     plan_id        = "100gb14days"
-    usage_type     = "Committed"
+    usage_type     = "COMMITTED"
   }
 
   user {
@@ -163,10 +163,10 @@ resource "azurerm_logz_monitor" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   plan {
-    billing_cycle  = "Monthly"
+    billing_cycle  = "MONTHLY"
     effective_date = "%s"
     plan_id        = "100gb14days"
-    usage_type     = "Committed"
+    usage_type     = "COMMITTED"
   }
 
   user {
@@ -190,10 +190,10 @@ resource "azurerm_logz_monitor" "import" {
   resource_group_name = azurerm_logz_monitor.test.resource_group_name
   location            = azurerm_logz_monitor.test.location
   plan {
-    billing_cycle  = "Monthly"
+    billing_cycle  = "MONTHLY"
     effective_date = "%s"
     plan_id        = "100gb14days"
-    usage_type     = "Committed"
+    usage_type     = "COMMITTED"
   }
 
   user {
@@ -219,10 +219,10 @@ resource "azurerm_logz_monitor" "test" {
   company_name      = "company-name-1"
   enterprise_app_id = "e081a27c-bc01-4159-bc06-7f9f711e3b3a"
   plan {
-    billing_cycle  = "Monthly"
+    billing_cycle  = "MONTHLY"
     effective_date = "%s"
     plan_id        = "100gb14days"
-    usage_type     = "Committed"
+    usage_type     = "COMMITTED"
   }
 
   user {
