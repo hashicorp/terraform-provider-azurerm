@@ -23,7 +23,7 @@ output "id" {
 }
 ```
 
-## Arguments Referencez
+## Arguments Reference
 
 The following arguments are supported:
 

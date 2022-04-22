@@ -196,7 +196,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Ms Sql Server Extended Auditing Policys can be imported using the `resource id`, e.g.
+Ms Sql Server Extended Auditing Policies can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_mssql_server_extended_auditing_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Sql/servers/sqlServer1/extendedAuditingSettings/default

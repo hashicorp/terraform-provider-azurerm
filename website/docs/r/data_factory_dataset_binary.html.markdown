@@ -144,7 +144,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Data Factorie Binary Datasets can be imported using the `resource id`, e.g.
+Data Factory Binary Datasets can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_data_factory_dataset_binary.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/datasets/example

@@ -198,7 +198,7 @@ The following arguments are supported:
 
 * `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine Scale Set.
 
-* `vtpm_enabled` - (Optional) Specifies if vTPM (Virtual Trusted Plaform Module) and Trusted Launch is enabled for the Virtual Machine. Changing this forces a new resource to be created.
+* `vtpm_enabled` - (Optional) Specifies if vTPM (Virtual Trusted Platform Module) and Trusted Launch is enabled for the Virtual Machine. Changing this forces a new resource to be created.
 
 * `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below.
 

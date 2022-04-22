@@ -14,7 +14,7 @@ Manages the Custom Https Configuration for an Azure Front Door Frontend Endpoint
 
 !> **BREAKING CHANGE:** In order to address the ordering issue we have changed the design on how to retrieve existing sub resources such as frontend endpoints. Existing design will be deprecated and will result in an incorrect configuration. Please refer to the updated documentation below for more information.
 
-!> **BREAKING CHANGE:** The `resource_group_name` field has been removed as of the `v2.58.0` provider release. If the `resource_group_name` field has been defined in your current `azurerm_frontdoor_custom_https_configuration` resource configuration file please remove it else you will receive a `An argument named "resource_group_name" is not expected here.` error. If your pre-existing Front Door instance contained inline `custom_https_configuration` blocks there are additional steps that will need to be completed to succefully migrate your Front Door onto the `v2.58.0` provider which [can be found in this guide](../guides/2.58.0-frontdoor-upgrade-guide.html).
+!> **BREAKING CHANGE:** The `resource_group_name` field has been removed as of the `v2.58.0` provider release. If the `resource_group_name` field has been defined in your current `azurerm_frontdoor_custom_https_configuration` resource configuration file please remove it else you will receive a `An argument named "resource_group_name" is not expected here.` error. If your pre-existing Front Door instance contained inline `custom_https_configuration` blocks there are additional steps that will need to be completed to successfully migrate your Front Door onto the `v2.58.0` provider which [can be found in this guide](../guides/2.58.0-frontdoor-upgrade-guide.html).
 
 !> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April which may cause issues with the CDN/FrontDoor resources. [More information is available in this Github issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the Github issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
@@ -118,7 +118,7 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 * `azure_key_vault_certificate_secret_version` - (Optional) The version of the Key Vault secret representing the full certificate PFX. Defaults to `Latest`.
 
-~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instuctions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
+~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instructions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
 
 
 ## Attributes Reference
