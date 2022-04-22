@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	appserviceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -1534,4 +1535,69 @@ func FlattenSiteCredentials(input web.User) []SiteCredential {
 	})
 
 	return result
+}
+
+type StickySettings struct {
+	AppSettingNames       []string `tfschema:"app_setting_names"`
+	ConnectionStringNames []string `tfschema:"connection_string_names"`
+}
+
+func StickySettingsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"app_setting_names": {
+					Type:     pluginsdk.TypeList,
+					MinItems: 1,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: appserviceValidate.AppSettingName,
+					},
+				},
+
+				"connection_string_names": {
+					Type:     pluginsdk.TypeList,
+					MinItems: 1,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: appserviceValidate.AppSettingName,
+					},
+				},
+			},
+		},
+	}
+}
+
+func ExpandStickySettings(input []StickySettings) *web.SlotConfigNames {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &web.SlotConfigNames{
+		AppSettingNames:       &input[0].AppSettingNames,
+		ConnectionStringNames: &input[0].ConnectionStringNames,
+	}
+}
+
+func FlattenStickySettings(input *web.SlotConfigNames) []StickySettings {
+	if input == nil || (input.AppSettingNames == nil && input.ConnectionStringNames == nil) {
+		return nil
+	}
+	result := StickySettings{}
+
+	if input.AppSettingNames != nil {
+		result.AppSettingNames = *input.AppSettingNames
+	}
+
+	if input.ConnectionStringNames != nil {
+		result.ConnectionStringNames = *input.ConnectionStringNames
+	}
+
+	return []StickySettings{result}
 }
