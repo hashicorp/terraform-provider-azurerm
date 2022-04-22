@@ -70,6 +70,8 @@ output "hostname" {
 
 * `redis_configuration` - A `redis_configuration` block as defined below.
 
+* `zones` - A list of Availability Zones in which this Redis Cache is located.
+
 ---
 
 A `patch_schedule` block supports the following:

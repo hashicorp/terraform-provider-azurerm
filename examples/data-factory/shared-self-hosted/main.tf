@@ -199,7 +199,7 @@ resource "azurerm_virtual_machine_extension" "test" {
   type_handler_version = "1.10"
   settings = jsonencode({
     "fileUris"         = ["https://raw.githubusercontent.com/Azure/azure-quickstart-templates/00b79d2102c88b56502a63041936ef4dd62cf725/101-vms-with-selfhost-integration-runtime/gatewayInstall.ps1"],
-    "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File gatewayInstall.ps1 ${azurerm_data_factory_integration_runtime_self_hosted.host.auth_key_1} && timeout /t 120"
+    "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File gatewayInstall.ps1 ${azurerm_data_factory_integration_runtime_self_hosted.host.primary_authorization_key} && timeout /t 120"
   })
 }
 
@@ -215,9 +215,8 @@ resource "azurerm_data_factory" "host" {
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "host" {
-  name                = "${var.prefix}IRHOST"
-  data_factory_name   = azurerm_data_factory.host.name
-  resource_group_name = azurerm_resource_group.host.name
+  name            = "${var.prefix}IRHOST"
+  data_factory_id = azurerm_data_factory.host.id
 }
 
 resource "azurerm_resource_group" "target" {
@@ -242,9 +241,8 @@ resource "azurerm_data_factory" "target" {
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "target" {
-  name                = "${var.prefix}IRTGT"
-  data_factory_name   = azurerm_data_factory.target.name
-  resource_group_name = azurerm_resource_group.target.name
+  name            = "${var.prefix}IRTGT"
+  data_factory_id = azurerm_data_factory.target.id
 
   rbac_authorization {
     resource_id = azurerm_data_factory_integration_runtime_self_hosted.host.id

@@ -11,6 +11,8 @@ description: |-
 
 Manages a Function App deployment Slot.
 
+!> **NOTE:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_linux_function_app_slot`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app_slot) and [`azurerm_windows_function_app_slot`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_function_app_slot) resources instead.
+
 ## Example Usage (with App Service Plan)
 
 ```hcl
@@ -93,8 +95,6 @@ The following arguments are supported:
 * `os_type` - (Optional) A string indicating the Operating System type for this function app. 
 
 ~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default). 
-
-* `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
 
 * `enabled` - (Optional) Is the Function App enabled?
 

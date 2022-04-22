@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/validate"
@@ -55,10 +56,14 @@ func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			// TODO use `azure.SchemaResourceGroupName()` in version 3.0
 			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/8653
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": func() *pluginsdk.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaResourceGroupNameDiffSuppress()
+				}
+				return azure.SchemaResourceGroupName()
+			}(),
 
 			"scope": {
 				Type:     pluginsdk.TypeString,

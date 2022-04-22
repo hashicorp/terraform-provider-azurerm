@@ -98,8 +98,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 								typeLogicApp,
 								typeLogAnalytics,
 								typeEventHub,
-							}, !features.ThreePointOh()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 
 						"resource_id": {
@@ -178,7 +177,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 														string(security.LesserThanOrEqualTo),
 														string(security.NotEquals),
 														string(security.StartsWith),
-													}, !features.ThreePointOh()),
+													}, !features.ThreePointOhBeta()),
 													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 												},
 												"property_type": {
@@ -189,7 +188,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 														string(security.String),
 														string(security.Boolean),
 														string(security.Number),
-													}, !features.ThreePointOh()),
+													}, !features.ThreePointOhBeta()),
 													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 												},
 											},
@@ -556,7 +555,7 @@ func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationA
 			}
 			actionMap := map[string]string{
 				"resource_id": *actionLogicApp.LogicAppResourceID,
-				"type":        "LogicApp",
+				"type":        "logicapp",
 				"trigger_url": "",
 			}
 
@@ -576,7 +575,7 @@ func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationA
 			}
 			actionMap := map[string]string{
 				"resource_id":       *actionEventHub.EventHubResourceID,
-				"type":              "EventHub",
+				"type":              "eventhub",
 				"connection_string": "",
 			}
 
@@ -596,7 +595,7 @@ func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationA
 			}
 			actionMap := map[string]string{
 				"resource_id": *actionLogAnalytics.WorkspaceResourceID,
-				"type":        "LogAnalytics",
+				"type":        "loganalytics",
 			}
 
 			resultSlice = append(resultSlice, actionMap)

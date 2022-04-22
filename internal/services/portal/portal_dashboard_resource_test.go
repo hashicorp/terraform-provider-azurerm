@@ -16,7 +16,7 @@ import (
 type PortalDashboardResource struct{}
 
 func TestAccPortalDashboard_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dashboard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_portal_dashboard", "test")
 	r := PortalDashboardResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,7 +30,7 @@ func TestAccPortalDashboard_basic(t *testing.T) {
 }
 
 func TestAccPortalDashboard_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dashboard", "test")
+	data := acceptance.BuildTestData(t, "azurerm_portal_dashboard", "test")
 	r := PortalDashboardResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +68,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_dashboard" "test" {
+resource "azurerm_portal_dashboard" "test" {
   name                 = "my-test-dashboard"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
@@ -119,7 +119,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_dashboard" "test" {
+resource "azurerm_portal_dashboard" "test" {
   name                = "my-test-dashboard"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location

@@ -79,9 +79,12 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 
 			// default TTL is simply an index on _ts with expireAfterOption, given we can't seem to set TTLs on a given index lets expose this to match the portal
 			"default_ttl_seconds": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntAtLeast(-1),
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				ValidateFunc: validation.All(
+					validation.IntAtLeast(-1),
+					validation.IntNotInSlice([]int{0}),
+				),
 			},
 
 			"analytical_storage_ttl": {
@@ -163,8 +166,8 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	var ttl *int
-	if v := d.Get("default_ttl_seconds").(int); v > 0 {
-		ttl = utils.Int(v)
+	if v, ok := d.GetOk("default_ttl_seconds"); ok {
+		ttl = utils.Int(v.(int))
 	}
 
 	indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
@@ -232,8 +235,8 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	var ttl *int
-	if v := d.Get("default_ttl_seconds").(int); v > 0 {
-		ttl = utils.Int(v)
+	if v, ok := d.GetOk("default_ttl_seconds"); ok {
+		ttl = utils.Int(v.(int))
 	}
 
 	indexes, hasIdKey := expandCosmosMongoCollectionIndex(d.Get("index").(*pluginsdk.Set).List(), ttl)
@@ -342,8 +345,13 @@ func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta interfa
 			}
 
 			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(res.Indexes, accountIsVersion36)
-			if err := d.Set("default_ttl_seconds", ttl); err != nil {
-				return fmt.Errorf("failed to set `default_ttl_seconds`: %+v", err)
+			// In fact, the Azure API does not return `ExpireAfterSeconds` aka `default_ttl_seconds` when `default_ttl_seconds` is not set in tf the config.
+			// When "default_ttl_seconds" is set to nil, it will be set to 0 in state file. 0 is invalid value for `default_ttl_seconds` and could not pass tf validation.
+			// So when `default_ttl_seconds` is not set in tf config, we should not set the value of `default_ttl_seconds` but keep null in the state file.
+			if ttl != nil {
+				if err := d.Set("default_ttl_seconds", ttl); err != nil {
+					return fmt.Errorf("failed to set `default_ttl_seconds`: %+v", err)
+				}
 			}
 			if err := d.Set("index", indexes); err != nil {
 				return fmt.Errorf("failed to set `index`: %+v", err)

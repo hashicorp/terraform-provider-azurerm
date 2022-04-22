@@ -135,12 +135,12 @@ resource "azurerm_key_vault_key" "test" {
   key_size     = 2048
 
   key_opts = [
-    "Decrypt",
-    "Encrypt",
-    "Sign",
-    "UnwrapKey",
-    "Verify",
-    "WrapKey",
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
   ]
 }
 

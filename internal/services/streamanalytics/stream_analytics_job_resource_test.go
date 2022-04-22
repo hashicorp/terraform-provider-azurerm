@@ -69,7 +69,7 @@ func TestAccStreamAnalyticsJob_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
 	r := StreamAnalyticsJobResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -90,7 +90,7 @@ func TestAccStreamAnalyticsJob_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
 	r := StreamAnalyticsJobResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identity(data),
 			Check: acceptance.ComposeTestCheckFunc(

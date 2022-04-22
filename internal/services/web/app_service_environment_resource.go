@@ -138,8 +138,13 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	// whilst this returns a future go-autorest has a max number of retries
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, envelope); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, envelope)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 	}
 
 	createWait := pluginsdk.StateChangeConf{
@@ -279,7 +284,9 @@ func resourceAppServiceEnvironmentRead(d *pluginsdk.ResourceData, meta interface
 			pricingTier = convertToIsolatedSKU(*props.MultiSize)
 		}
 		d.Set("pricing_tier", pricingTier)
-		d.Set("user_whitelisted_ip_ranges", props.UserWhitelistedIPRanges)
+		if !features.ThreePointOhBeta() {
+			d.Set("user_whitelisted_ip_ranges", props.UserWhitelistedIPRanges)
+		}
 		d.Set("allowed_user_ip_cidrs", props.UserWhitelistedIPRanges)
 		d.Set("cluster_setting", flattenClusterSettings(props.ClusterSettings))
 	}
@@ -312,7 +319,6 @@ func resourceAppServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta interfa
 
 	log.Printf("[DEBUG] Deleting App Service Environment %q (Resource Group %q)", id.HostingEnvironmentName, id.ResourceGroup)
 
-	// TODO: should this behaviour be added to the `features` block?
 	forceDeleteAllChildren := utils.Bool(false)
 	future, err := client.Delete(ctx, id.ResourceGroup, id.HostingEnvironmentName, forceDeleteAllChildren)
 	if err != nil {

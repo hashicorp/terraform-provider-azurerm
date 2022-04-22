@@ -62,8 +62,6 @@ The following arguments are supported:
 
 * `table_names` - (Optional) The names of the Azure tables that the workspace should read.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Log Analytics Storage Insights.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 

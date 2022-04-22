@@ -64,11 +64,13 @@ The following arguments are supported:
 
 -> **Note:** At this time Azure Spring Cloud Service is only supported in a subset of regions (including `East US`, `South East Asia`, `West Europe` and `West US 2`.
 
-* `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0` and `S0`. Defaults to `S0`.
+* `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0`, `S0` and `E0`. Defaults to `S0`.
 
 * `network` - (Optional) A `network` block as defined below. Changing this forces a new resource to be created.
 
 * `config_server_git_setting` - (Optional) A `config_server_git_setting` block as defined below.
+
+* `service_registry_enabled` - (Optional) Whether enable the default Service Registry.
 
 * `trace` - (Optional) A `trace` block as defined below.
 

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -271,17 +271,10 @@ func resourcePurviewSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceGroupName,
+			ValidateFunc: resourcegroups.ValidateName,
 		},
 
-		"identity": func() *schema.Schema {
-			// TODO: document that this will become required in 3.0
-			if features.ThreePointOhBeta() {
-				return commonschema.SystemAssignedIdentityRequired()
-			}
-
-			return commonschema.SystemAssignedIdentityComputed()
-		}(),
+		"identity": commonschema.SystemAssignedIdentityRequired(),
 
 		"managed_resources": {
 			Type:     pluginsdk.TypeList,

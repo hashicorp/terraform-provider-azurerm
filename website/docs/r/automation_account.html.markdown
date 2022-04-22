@@ -54,7 +54,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of identity used for the automation account. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) The type of identity used for this Automation Account. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) The ID of the User Assigned Identity which should be assigned to this Automation Account.
 
@@ -68,11 +68,21 @@ The following attributes are exported:
 
 * `id` - The ID of the Automation Account.
 
+* `identity` - An `identity` block as defined below.
+
 * `dsc_server_endpoint` - The DSC Server Endpoint associated with this Automation Account.
 
 * `dsc_primary_access_key` - The Primary Access Key for the DSC Endpoint associated with this Automation Account.
 
 * `dsc_secondary_access_key` - The Secondary Access Key for the DSC Endpoint associated with this Automation Account.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 

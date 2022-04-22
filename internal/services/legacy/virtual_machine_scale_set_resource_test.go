@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -930,7 +930,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -1070,7 +1070,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -1161,7 +1161,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -1251,7 +1251,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -1349,7 +1349,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -1444,7 +1444,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -1543,7 +1543,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -1642,7 +1642,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -1742,7 +1742,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -1841,7 +1841,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_application_security_group" "test" {
@@ -1937,7 +1937,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2027,7 +2027,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2117,7 +2117,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2210,7 +2210,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2303,7 +2303,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2405,7 +2405,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2503,7 +2503,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2593,7 +2593,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsn-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2629,9 +2629,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "acctestbap-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "acctestbap-%[1]d"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -2713,7 +2712,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsn-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2749,9 +2748,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "acctestbap-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "acctestbap-%[1]d"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -2837,7 +2835,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsn-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2873,9 +2871,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "acctestbap-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "acctestbap-%[1]d"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -2957,7 +2954,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsn-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2993,9 +2990,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "acctestbap-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "acctestbap-%[1]d"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -3077,7 +3073,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -3148,7 +3144,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -3219,7 +3215,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -3309,7 +3305,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -3379,7 +3375,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -3422,7 +3418,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       name                                         = "TestIPConfiguration"
       primary                                      = true
       subnet_id                                    = azurerm_subnet.test.id
-      application_gateway_backend_address_pool_ids = [azurerm_application_gateway.test.backend_address_pool[0].id]
+      application_gateway_backend_address_pool_ids = [tolist(azurerm_application_gateway.test.backend_address_pool)[0].id]
     }
   }
 
@@ -3446,7 +3442,7 @@ resource "azurerm_subnet" "gwtest" {
   name                 = "gw-subnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.3.0/24"
+  address_prefixes     = ["10.0.3.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -3578,7 +3574,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -3608,9 +3604,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_nat_pool" "test" {
@@ -3694,7 +3689,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -3780,7 +3775,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -3868,7 +3863,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -3966,7 +3961,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -4072,7 +4067,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -4189,7 +4184,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -4307,7 +4302,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -4424,7 +4419,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -4542,7 +4537,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -4614,7 +4609,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_lb" "test" {
@@ -4630,9 +4625,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -4712,7 +4706,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -4801,7 +4795,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -4877,7 +4871,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -4977,7 +4971,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.0.0/16"
+  address_prefixes     = ["10.0.0.0/16"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -5000,7 +4994,6 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   name                           = "AccTestLBRule"
   protocol                       = "Tcp"
@@ -5012,17 +5005,15 @@ resource "azurerm_lb_rule" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "acctest-lb-probe"
-  port                = 22
-  protocol            = "Tcp"
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "acctest-lb-probe"
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "acctestbapool"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "acctestbapool"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -5123,7 +5114,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.0.0/16"
+  address_prefixes     = ["10.0.0.0/16"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -5146,7 +5137,6 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   name                           = "AccTestLBRule"
   protocol                       = "Tcp"
@@ -5158,17 +5148,15 @@ resource "azurerm_lb_rule" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "acctest-lb-probe"
-  port                = 22
-  protocol            = "Tcp"
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "acctest-lb-probe"
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "acctestbapool"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "acctestbapool"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -5253,7 +5241,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "test" {

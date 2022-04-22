@@ -67,7 +67,7 @@ func resourceMediaStreamingEndpoint() *pluginsdk.Resource {
 			"scale_units": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(1, 10),
+				ValidateFunc: validation.IntBetween(0, 10),
 			},
 
 			"access_control": {

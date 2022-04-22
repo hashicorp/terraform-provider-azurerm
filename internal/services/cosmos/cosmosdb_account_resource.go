@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -32,6 +34,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+var CosmosDbAccountResourceName = "azurerm_cosmosdb_account"
 
 // If the consistency policy of the Cosmos DB Database Account is not bounded staleness,
 // any changes to the configuration for bounded staleness should be suppressed.
@@ -82,8 +86,10 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			}),
 		),
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.DatabaseAccountID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
@@ -114,7 +120,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.DatabaseAccountOfferTypeStandard),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"analytical_storage": {
@@ -186,17 +192,29 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 					string(documentdb.DatabaseAccountKindGlobalDocumentDB),
 					string(documentdb.DatabaseAccountKindMongoDB),
 					string(documentdb.DatabaseAccountKindParse),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
-			"ip_range_filter": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/([1-2][0-9]|3[0-2]))?\b[,]?)*$`),
-					"Cosmos DB ip_range_filter must be a set of CIDR IP addresses separated by commas with no spaces: '10.0.0.1,10.0.0.2,10.20.0.0/16'",
-				),
-			},
+			"ip_range_filter": func() *schema.Schema {
+				if features.FourPointOhBeta() {
+					return &schema.Schema{
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.IsCIDR,
+						},
+					}
+				}
+				return &schema.Schema{
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/([1-2][0-9]|3[0-2]))?\b[,]?)*$`),
+						"Cosmos DB ip_range_filter must be a set of CIDR IP addresses separated by commas with no spaces: '10.0.0.1,10.0.0.2,10.20.0.0/16'",
+					),
+				}
+			}(),
 
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_free_tier": {
@@ -250,7 +268,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 								string(documentdb.DefaultConsistencyLevelEventual),
 								string(documentdb.DefaultConsistencyLevelSession),
 								string(documentdb.DefaultConsistencyLevelStrong),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"max_interval_in_seconds": {
@@ -277,16 +295,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"prefix": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-								"Cosmos DB location prefix (ID) must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
-							),
-							Deprecated: "This is deprecated because the service no longer accepts this as an input since Apr 25, 2019",
-						},
-
 						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -338,7 +346,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 									out = append(out, "EnableAnalyticalStorage")
 								}
 								return validation.StringInSlice(out, !features.ThreePointOhBeta())
-
 							}(),
 						},
 					},
@@ -559,34 +566,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"primary_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `primary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"secondary_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `secondary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"primary_readonly_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `primary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"secondary_readonly_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `secondary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
 			"connection_strings": {
 				Type:      pluginsdk.TypeList,
 				Computed:  true,
@@ -628,7 +607,12 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	t := d.Get("tags").(map[string]interface{})
 	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)
-	ipRangeFilter := d.Get("ip_range_filter").(string)
+	var ipRangeFilter *[]documentdb.IPAddressOrRange
+	if features.FourPointOhBeta() {
+		ipRangeFilter = common.CosmosDBIpRangeFilterToIpRules(*utils.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List()))
+	} else {
+		ipRangeFilter = common.CosmosDBIpRangeFilterToIpRulesThreePointOh(d.Get("ip_range_filter").(string))
+	}
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
@@ -673,7 +657,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Identity: expandedIdentity,
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           utils.String(offerType),
-			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
+			IPRules:                            ipRangeFilter,
 			IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableFreeTier:                     utils.Bool(enableFreeTier),
 			EnableAutomaticFailover:            utils.Bool(enableAutomaticFailover),
@@ -770,7 +754,12 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)
-	ipRangeFilter := d.Get("ip_range_filter").(string)
+	var ipRangeFilter *[]documentdb.IPAddressOrRange
+	if features.FourPointOhBeta() {
+		ipRangeFilter = common.CosmosDBIpRangeFilterToIpRules(*utils.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List()))
+	} else {
+		ipRangeFilter = common.CosmosDBIpRangeFilterToIpRulesThreePointOh(d.Get("ip_range_filter").(string))
+	}
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
@@ -826,7 +815,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Identity: expandedIdentity,
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           utils.String(offerType),
-			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
+			IPRules:                            ipRangeFilter,
 			IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableFreeTier:                     utils.Bool(enableFreeTier),
 			EnableAutomaticFailover:            utils.Bool(enableAutomaticFailover),
@@ -975,7 +964,11 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if props := resp.DatabaseAccountGetProperties; props != nil {
 		d.Set("offer_type", string(props.DatabaseAccountOfferType))
-		d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(props.IPRules))
+		if features.FourPointOhBeta() {
+			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(props.IPRules))
+		} else {
+			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilterThreePointOh(props.IPRules))
+		}
 		d.Set("endpoint", props.DocumentEndpoint)
 
 		d.Set("enable_free_tier", props.EnableFreeTier)
@@ -1096,8 +1089,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	d.Set("primary_key", keys.PrimaryMasterKey)
 	d.Set("secondary_key", keys.SecondaryMasterKey)
-	d.Set("primary_master_key", keys.PrimaryMasterKey)
-	d.Set("secondary_master_key", keys.SecondaryMasterKey)
 
 	readonlyKeys, err := client.ListReadOnlyKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
@@ -1111,8 +1102,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	d.Set("primary_readonly_key", readonlyKeys.PrimaryReadonlyMasterKey)
 	d.Set("secondary_readonly_key", readonlyKeys.SecondaryReadonlyMasterKey)
-	d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
-	d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
 
 	connStringResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
@@ -1147,8 +1136,13 @@ func resourceCosmosDbAccountDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
 		return fmt.Errorf("deleting CosmosDB Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
 	// the SDK now will return a `WasNotFound` response even when still deleting
@@ -1200,7 +1194,16 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 			}
 			status := "Succeeded"
 			if props := resp.DatabaseAccountGetProperties; props != nil {
-				locations := append(*props.ReadLocations, *props.WriteLocations...)
+
+				var locations []documentdb.Location
+
+				if props.ReadLocations != nil {
+					locations = append(locations, *props.ReadLocations...)
+				}
+				if props.WriteLocations != nil {
+					locations = append(locations, *props.WriteLocations...)
+				}
+
 				for _, l := range locations {
 					if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting" {
 						break // return the first non successful status.

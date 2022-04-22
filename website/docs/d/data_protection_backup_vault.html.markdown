@@ -49,13 +49,13 @@ output "azurerm_data_protection_backup_vault_principal_id" {
 
 ---
 
-`identity` exports the following:
+An `identity` block exports the following:
 
-* `type` -  Specifies the identity type of the Backup Vault.
+* `type` - The type of Managed Service Identity that is configured on this Backup Vault.
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Backup Vault.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Backup Vault.
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Backup Vault.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Backup Vault.
 
 ## Timeouts
 

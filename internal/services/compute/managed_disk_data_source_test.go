@@ -70,7 +70,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = "10"
-  zones                = ["2"]
+  zone                 = "2"
 
   tags = {
     environment = "acctest"
@@ -104,7 +104,7 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = "4"
   disk_iops_read_write = "101"
   disk_mbps_read_write = "10"
-  zones                = ["2"]
+  zone                 = "2"
 
   tags = {
     environment = "acctest"

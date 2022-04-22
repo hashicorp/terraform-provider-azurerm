@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -73,12 +73,14 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 					"DSv3-Type1",
 					"DSv3-Type2",
 					"DSv3-Type3",
+					"DSv3-Type4",
 					"DSv4-Type1",
 					"EASv4-Type1",
 					"EDSv4-Type1",
 					"ESv3-Type1",
 					"ESv3-Type2",
 					"ESv3-Type3",
+					"ESv3-Type4",
 					"ESv4-Type1",
 					"FSv2-Type2",
 					"FSv2-Type3",

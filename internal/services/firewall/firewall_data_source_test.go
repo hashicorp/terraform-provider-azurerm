@@ -110,7 +110,7 @@ resource "azurerm_subnet" "test" {
   name                 = "AzureFirewallSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -125,6 +125,8 @@ resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"

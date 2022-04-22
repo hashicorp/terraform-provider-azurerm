@@ -137,15 +137,13 @@ resource "azurerm_data_factory" "test" {
 
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlsblob%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = azurerm_storage_account.test.primary_connection_string
+  name              = "acctestlsblob%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = azurerm_storage_account.test.primary_connection_string
 }
 
 resource "azurerm_data_factory_dataset_binary" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
@@ -189,15 +187,13 @@ resource "azurerm_data_factory" "test" {
 
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlsblob%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  connection_string   = azurerm_storage_account.test.primary_connection_string
+  name              = "acctestlsblob%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = azurerm_storage_account.test.primary_connection_string
 }
 
 resource "azurerm_data_factory_dataset_binary" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
@@ -229,7 +225,6 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_linked_service_web" "test" {
   name                = "acctestlsweb%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Anonymous"
   url                 = "https://www.bing.com"
@@ -237,7 +232,6 @@ resource "azurerm_data_factory_linked_service_web" "test" {
 
 resource "azurerm_data_factory_dataset_binary" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
@@ -274,7 +268,6 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_linked_service_sftp" "test" {
   name                = "acctestlssftp%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Basic"
   host                = "http://www.bing.com"
@@ -285,7 +278,6 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 
 resource "azurerm_data_factory_dataset_binary" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_sftp.test.name
 
@@ -316,8 +308,7 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_linked_service_sftp" "test" {
   name                = "acctestlssftp%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Basic"
   host                = "http://www.bing.com"
   port                = 22
@@ -327,8 +318,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 
 resource "azurerm_data_factory_dataset_binary" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_sftp.test.name
 
   sftp_server_location {

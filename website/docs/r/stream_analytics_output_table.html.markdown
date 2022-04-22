@@ -70,6 +70,8 @@ The following arguments are supported:
 
 * `batch_size` - (Required) The number of records for a batch operation. Must be between `1` and `100`.
 
+* `columns_to_remove` - (Optional) A list of the column names to be removed from output event entities.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 

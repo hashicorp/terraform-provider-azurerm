@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `logic_app_integration_account_id` - (Optional) The ID of the integration account linked by this Logic App Workflow.
 
-* `state` - (Optional) The state of the Logic App Workflow. Defaults to `true`.
+* `enabled` - (Optional) Is the Logic App Workflow enabled? Defaults to `true`.
 
 * `workflow_parameters` - (Optional) Specifies a map of Key-Value pairs of the Parameter Definitions to use for this Logic App Workflow. The key is the parameter name, and the value is a json encoded string of the parameter definition (see: https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-definition-language#parameters).
   
@@ -115,9 +115,11 @@ A `claim` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The Type of Managed Identity assigned to this Logic App Workflow. Possible values are `SystemAssigned` and `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Logic App Workflow. Possible values are `SystemAssigned`, `UserAssigned`.
 
-* `identity_ids` - (Optional) A list of Managed Identity ID's which should be assigned to this Logic App Workflow.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Logic App Workflow.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned`
 
 ## Attributes Reference
 

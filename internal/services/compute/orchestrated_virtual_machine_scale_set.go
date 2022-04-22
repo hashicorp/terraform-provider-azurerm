@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -1768,10 +1768,15 @@ func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]compute.VirtualM
 			"storage_account_type":           storageAccountType,
 			"write_accelerator_enabled":      writeAcceleratorEnabled,
 			"ultra_ssd_disk_iops_read_write": iops,
-			"ultra_ssd_mbps_read_write":      mbps,
-			"disk_iops_read_write":           iops,
-			"disk_mbps_read_write":           mbps,
+			"ultra_ssd_disk_mbps_read_write": mbps,
 		})
+
+		if !features.ThreePointOhBeta() {
+			output = append(output, map[string]interface{}{
+				"disk_iops_read_write": iops,
+				"disk_mbps_read_write": mbps,
+			})
+		}
 	}
 
 	return output

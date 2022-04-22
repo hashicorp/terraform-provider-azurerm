@@ -81,7 +81,7 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(network.IPVersionIPv4),
 						string(network.IPVersionIPv6),
-					}, !features.ThreePointOh()),
+					}, !features.ThreePointOhBeta()),
 				},
 
 				"ip_prefix": {
@@ -112,7 +112,6 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 						"Zone-Redundant",
 					}, false),
 				}
-				// TODO - 3.0 make Computed only
 				s["zones"] = &pluginsdk.Schema{
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -182,7 +181,6 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	} else {
 		zones := &[]string{"1", "2"}
-		// TODO - Remove in 3.0
 		if deprecatedZonesRaw, ok := d.GetOk("zones"); ok {
 			deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
 			if deprecatedZones != nil {

@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `min_api_version` - (Optional)  The version which the control plane API calls to API Management service are limited with version equal to or newer than.
 
-* `zones` - (Optional) A list of availability zones.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this API Management service should be located. Changing this forces a new API Management service to be created.
 
 ~> **NOTE:** Availability zones are only supported in the Premium tier.
 
@@ -91,7 +91,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Custom public IPs are only supported on the `Premium` and `Developer` tiers when deployed in a virtual network.
 
-* `public_network_access_enabled` - (Optional) Is public access to the service allowed?.
+* `public_network_access_enabled` - (Optional) Is public access to the service allowed?. Defaults to `true`
 
 * `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`. 
 > **NOTE:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. And please ensure other necessary ports are open according to [api management network configuration](https://docs.microsoft.com/en-us/azure/api-management/api-management-using-with-vnet#-common-network-configuration-issues).
@@ -142,11 +142,11 @@ A `hostname_configuration` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
@@ -199,6 +199,8 @@ A `proxy` block supports the following:
 -> **NOTE:** Either `key_vault_id` or `certificate` and `certificate_password` must be specified.
 
 * `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
+
+* `ssl_keyvault_identity_client_id` - (Optional) The Managed Identity Client ID to use to access the Key Vault. This Identity must be specified in the `identity` block to be used.
 
 ---
 
@@ -269,10 +271,6 @@ A `security` block supports the following:
 * `tls_rsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA` field
-
-* `enable_triple_des_ciphers` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be enabled for alL TLS versions (1.0, 1.1 and 1.2)? Defaults to `false`.
-
- -> **Note:** This property has been deprecated in favour of the `triple_des_ciphers_enabled` property and will be removed in version 3.0 of the provider.
 
 * `triple_des_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be enabled for alL TLS versions (1.0, 1.1 and 1.2)? Defaults to `false`.
 

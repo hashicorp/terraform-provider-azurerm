@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -112,6 +112,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	defer cancel()
 
 	id := parse.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 		if err != nil {
@@ -142,7 +143,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 		Name: utils.String(id.Name),
 		OutputProperties: &streamanalytics.OutputProperties{
 			Datasource: &streamanalytics.BlobOutputDataSource{
-				Type: streamanalytics.TypeMicrosoftStorageBlob,
+				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageBlob,
 				BlobOutputDataSourceProperties: &streamanalytics.BlobOutputDataSourceProperties{
 					StorageAccounts: &[]streamanalytics.StorageAccount{
 						{

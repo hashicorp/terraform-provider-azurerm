@@ -10,6 +10,7 @@ func SchemaLocation() *pluginsdk.Schema {
 	return commonschema.Location()
 }
 
+// Deprecated: use `commonschema.LocationComputed()` instead
 func SchemaLocationForDataSource() *pluginsdk.Schema {
 	return commonschema.LocationComputed()
 }

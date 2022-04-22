@@ -112,7 +112,7 @@ func resourceAppServiceCertificateOrder() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"Standard",
 					"WildCard",
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"validity_in_years": {

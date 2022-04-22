@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/domainservices/mgmt/2020-01-01/aad"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -90,7 +91,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 						},
 
 						// location is computed here
-						"location": azure.SchemaLocationForDataSource(),
+						"location": commonschema.LocationComputed(),
 
 						"service_status": {
 							Type:     pluginsdk.TypeString,
@@ -439,8 +440,7 @@ func resourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta in
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("resource_id", resp.ID)
 
-	loc := location.NormalizeNilable(resp.Location)
-	d.Set("location", loc)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.DomainServiceProperties; props != nil {
 		d.Set("deployment_id", props.DeploymentID)

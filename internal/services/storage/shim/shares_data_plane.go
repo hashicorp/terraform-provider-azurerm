@@ -87,7 +87,7 @@ func (w DataPlaneStorageShareWrapper) Get(ctx context.Context, _, accountName, s
 
 	return &StorageShareProperties{
 		MetaData:        props.MetaData,
-		QuotaGB:         props.ShareQuota,
+		QuotaGB:         props.QuotaInGB,
 		ACLs:            acls.SignedIdentifiers,
 		EnabledProtocol: props.EnabledProtocol,
 	}, nil
@@ -104,7 +104,9 @@ func (w DataPlaneStorageShareWrapper) UpdateMetaData(ctx context.Context, _, acc
 }
 
 func (w DataPlaneStorageShareWrapper) UpdateQuota(ctx context.Context, _, accountName, shareName string, quotaGB int) error {
-	_, err := w.client.SetProperties(ctx, accountName, shareName, quotaGB)
+	_, err := w.client.SetProperties(ctx, accountName, shareName, shares.ShareProperties{
+		QuotaInGb: &quotaGB,
+	})
 	return err
 }
 

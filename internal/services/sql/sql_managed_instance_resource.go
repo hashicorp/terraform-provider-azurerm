@@ -32,6 +32,9 @@ func resourceArmSqlMiServer() *schema.Resource {
 		Read:   resourceArmSqlMiServerRead,
 		Update: resourceArmSqlMiServerCreateUpdate,
 		Delete: resourceArmSqlMiServerDelete,
+
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_sql_managed_instance` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_managed_instance` resource instead."),
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ManagedInstanceID(id)
 			return err
@@ -108,7 +111,7 @@ func resourceArmSqlMiServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"LicenseIncluded",
 					"BasePrice",
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 

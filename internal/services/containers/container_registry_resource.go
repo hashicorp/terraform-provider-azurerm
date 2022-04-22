@@ -71,9 +71,22 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 			}
 
+			// ensure location is different than any location of the geo-replication
+			var geoReplicationLocations []string
+			for _, v := range geoReplications {
+				v := v.(map[string]interface{})
+				geoReplicationLocations = append(geoReplicationLocations, azure.NormalizeLocation(v["location"]))
+			}
+			location := location.Normalize(d.Get("location").(string))
+			for _, loc := range geoReplicationLocations {
+				if loc == location {
+					return fmt.Errorf("The `georeplications` list cannot contain the location where the Container Registry exists.")
+				}
+			}
+
 			quarantinePolicyEnabled := d.Get("quarantine_policy_enabled").(bool)
 			if quarantinePolicyEnabled && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
-				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set quarantine_policy {}")
+				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset quarantine_policy_enabled")
 			}
 
 			retentionPolicyEnabled, ok := d.GetOk("retention_policy.0.enabled")
@@ -84,6 +97,16 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			trustPolicyEnabled, ok := d.GetOk("trust_policy.0.enabled")
 			if ok && trustPolicyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set trust_policy {}")
+			}
+
+			exportPolicyEnabled := d.Get("export_policy_enabled").(bool)
+			if !exportPolicyEnabled {
+				if !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
+					return fmt.Errorf("ACR export policy can only be disabled when using the Premium Sku. If you are downgrading from a Premium SKU please unset `export_policy_enabled` or set `export_policy_enabled = true`")
+				}
+				if d.Get("public_network_access_enabled").(bool) {
+					return fmt.Errorf("To disable export of artifacts, `public_network_access_enabled` must also be `false`")
+				}
 			}
 
 			encryptionEnabled, ok := d.GetOk("encryption.0.enabled")
@@ -173,6 +196,8 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	trustPolicyRaw := d.Get("trust_policy").([]interface{})
 	trustPolicy := expandTrustPolicy(trustPolicyRaw)
 
+	exportPolicy := expandExportPolicy(d.Get("export_policy_enabled").(bool))
+
 	encryptionRaw := d.Get("encryption").([]interface{})
 	encryption := expandEncryption(encryptionRaw)
 
@@ -206,6 +231,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 				QuarantinePolicy: quarantinePolicy,
 				RetentionPolicy:  retentionPolicy,
 				TrustPolicy:      trustPolicy,
+				ExportPolicy:     exportPolicy,
 			},
 			PublicNetworkAccess:      publicNetworkAccess,
 			ZoneRedundancy:           zoneRedundancy,
@@ -288,6 +314,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	quarantinePolicy := expandQuarantinePolicy(d.Get("quarantine_policy_enabled").(bool))
 	retentionPolicy := expandRetentionPolicy(d.Get("retention_policy").([]interface{}))
 	trustPolicy := expandTrustPolicy(d.Get("trust_policy").([]interface{}))
+	exportPolicy := expandExportPolicy(d.Get("export_policy_enabled").(bool))
 
 	publicNetworkAccess := containerregistry.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
@@ -310,6 +337,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 				QuarantinePolicy: quarantinePolicy,
 				RetentionPolicy:  retentionPolicy,
 				TrustPolicy:      trustPolicy,
+				ExportPolicy:     exportPolicy,
 			},
 			PublicNetworkAccess:      publicNetworkAccess,
 			Encryption:               encryption,
@@ -482,15 +510,14 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if properties := resp.RegistryProperties; properties != nil {
-		if err := d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(properties.Policies)); err != nil {
-			return fmt.Errorf("setting `quarantine_policy`: %+v", err)
-		}
+		d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(properties.Policies))
 		if err := d.Set("retention_policy", flattenRetentionPolicy(properties.Policies)); err != nil {
 			return fmt.Errorf("setting `retention_policy`: %+v", err)
 		}
 		if err := d.Set("trust_policy", flattenTrustPolicy(properties.Policies)); err != nil {
 			return fmt.Errorf("setting `trust_policy`: %+v", err)
 		}
+		d.Set("export_policy_enabled", flattenExportPolicy(properties.Policies))
 		if err := d.Set("encryption", flattenEncryption(properties.Encryption)); err != nil {
 			return fmt.Errorf("setting `encryption`: %+v", err)
 		}
@@ -656,6 +683,18 @@ func expandTrustPolicy(p []interface{}) *containerregistry.TrustPolicy {
 	}
 
 	return &trustPolicy
+}
+
+func expandExportPolicy(enabled bool) *containerregistry.ExportPolicy {
+	exportPolicy := containerregistry.ExportPolicy{
+		Status: containerregistry.ExportPolicyStatusDisabled,
+	}
+
+	if enabled {
+		exportPolicy.Status = containerregistry.ExportPolicyStatusEnabled
+	}
+
+	return &exportPolicy
 }
 
 func expandReplicationsFromLocations(p []interface{}) []containerregistry.Replication {
@@ -851,6 +890,14 @@ func flattenTrustPolicy(p *containerregistry.Policies) []interface{} {
 	return []interface{}{trustPolicy}
 }
 
+func flattenExportPolicy(p *containerregistry.Policies) bool {
+	if p == nil || p.ExportPolicy == nil {
+		return false
+	}
+
+	return p.ExportPolicy.Status == containerregistry.ExportPolicyStatusEnabled
+}
+
 func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 	out := map[string]*pluginsdk.Schema{
 		"name": {
@@ -866,11 +913,9 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 
 		"sku": {
 			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			Default:          string(containerregistry.SkuNameClassic),
+			Required:         true,
 			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(containerregistry.SkuNameClassic),
 				string(containerregistry.SkuNameBasic),
 				string(containerregistry.SkuNameStandard),
 				string(containerregistry.SkuNamePremium),
@@ -1080,6 +1125,12 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+
+		"export_policy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		},
 
 		"zone_redundancy_enabled": {

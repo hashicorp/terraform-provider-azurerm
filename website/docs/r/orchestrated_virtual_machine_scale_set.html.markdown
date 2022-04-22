@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group which the Orchestrated Virtual Machine should be assigned to. Changing this forces a new resource to be created.
 
-* `zones` - (Optional) A list of Availability Zones in which the Virtual Machines in this Scale Set should be created in. Changing this forces a new resource to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Orchestrated Virtual Machine should be located. Changing this forces a new Orchestrated Virtual Machine to be created.
 
 ~> **NOTE:** Due to a limitation of the Azure API at this time only one Availability Zone can be defined.
 
@@ -349,9 +349,9 @@ A `plan` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Identity which should be assigned to the Windows Orchestrated Virtual Machine Scale Set. Possible value is `UserAssigned`.
+* `type` - (Required) The type of Managed Identity that should be configured on this Orchestrated Windows Virtual Machine Scale Set. Only possible value is `UserAssigned`.
 
-* `identity_ids` - (Required) A list of User Managed Identity ID's which should be assigned to the Orchestrated Windows Virtual Machine Scale Set.
+* `identity_ids` - (Required) Specifies a list of User Managed Identity IDs to be assigned to this Orchestrated Windows Virtual Machine Scale Set.
 
 ---
 

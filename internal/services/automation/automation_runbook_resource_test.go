@@ -176,6 +176,9 @@ resource "azurerm_automation_runbook" "test" {
 # Some test content
 # for Terraform acceptance test
 CONTENT
+  tags = {
+    ENV = "runbook_test"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

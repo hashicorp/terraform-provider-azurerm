@@ -7,7 +7,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -32,7 +31,7 @@ func dataSourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"administrator_login": {
 				Type:     pluginsdk.TypeString,
@@ -62,12 +61,6 @@ func dataSourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"backup_retention_days": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
-			},
-
-			"cmk_enabled": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Deprecated: "This attribute has been removed from the API and will be removed in version 3.0 of the provider.",
 			},
 
 			"fqdn": {
@@ -108,10 +101,6 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta i
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-
-	// `cmk_enabled` has been removed from API since 2021-06-01
-	// and should be removed in version 3.0 of the provider.
-	d.Set("cmk_enabled", "")
 
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)

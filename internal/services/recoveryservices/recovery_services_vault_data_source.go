@@ -28,9 +28,9 @@ func dataSourceRecoveryServicesVault() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
-
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"location": commonschema.LocationComputed(),
 
 			"tags": tags.SchemaDataSource(),
 

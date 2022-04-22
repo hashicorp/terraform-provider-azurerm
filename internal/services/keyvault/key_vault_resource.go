@@ -46,8 +46,10 @@ func resourceKeyVault() *pluginsdk.Resource {
 		Update: resourceKeyVaultUpdate,
 		Delete: resourceKeyVaultDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VaultID(id)
+			return err
+		}),
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -356,8 +358,12 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	read, err := client.Get(ctx, id.ResourceGroup, id.Name)

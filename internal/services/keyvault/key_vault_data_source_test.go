@@ -85,7 +85,6 @@ func TestAccDataSourceKeyVault_softDelete(t *testing.T) {
 		{
 			Config: r.enableSoftDelete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("sku_name").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
