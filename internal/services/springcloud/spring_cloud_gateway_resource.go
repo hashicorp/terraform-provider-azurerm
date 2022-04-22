@@ -59,28 +59,33 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"description": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"documentation": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"server_url": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"title": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"version": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -101,7 +106,8 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -109,7 +115,8 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -117,7 +124,8 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -125,7 +133,8 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -201,25 +210,29 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"client_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"client_secret": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"issuer_uri": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"scope": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
