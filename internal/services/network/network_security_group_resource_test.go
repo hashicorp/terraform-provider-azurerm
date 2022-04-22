@@ -60,7 +60,7 @@ func TestAccNetworkSecurityGroup_singleRule(t *testing.T) {
 	})
 }
 
-func TestAccNetworkSecurityGroup_removeRule(t *testing.T) {
+func TestAccNetworkSecurityGroup_securityRuleDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
 	r := NetworkSecurityGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -78,46 +78,21 @@ func TestAccNetworkSecurityGroup_removeRule(t *testing.T) {
 				check.That(data.ResourceName).Key("security_rule.#").HasValue("0"),
 			),
 		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccNetworkSecurityGroup_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	r := NetworkSecurityGroupResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.singleRule(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-
-				// The configuration for this step contains one security_rule
-				// block, which should now be reflected in the state.
 				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
 			),
 		},
 		{
-			Config: r.basic(data),
+			Config: r.emptySecurityRule(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-
-				// The configuration for this step contains no security_rule
-				// blocks at all, which means "ignore any existing security groups"
-				// and thus the one from the previous step is preserved.
-				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
-			),
-		},
-		{
-			Config: r.rulesExplicitZero(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-
-				// The configuration for this step assigns security_rule = []
-				// to state explicitly that no rules are desired, so the
-				// rule from the first step should now be removed.
 				check.That(data.ResourceName).Key("security_rule.#").HasValue("0"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -204,28 +179,6 @@ func TestAccNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccNetworkSecurityGroup_deleteRule(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	r := NetworkSecurityGroupResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.singleRule(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.deleteRule(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("security_rule.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -554,7 +507,7 @@ resource "azurerm_network_security_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (NetworkSecurityGroupResource) deleteRule(data acceptance.TestData) string {
+func (NetworkSecurityGroupResource) emptySecurityRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
