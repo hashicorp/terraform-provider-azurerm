@@ -264,7 +264,7 @@ A `site_config` block supports the following:
 
 * `windows_fx_version` - (Optional) The Windows Docker container image (`DOCKER|<user/image:tag>`)
 
-Additional examples of how to run Containers via the `azurerm_app_service_slot` resource can be found in [the `./examples/app-service` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service).
+Additional examples of how to run Containers via the `azurerm_app_service_slot` resource can be found in [the `./examples/app-service` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service).
 
 * `managed_pipeline_mode` - (Optional) The Managed Pipeline Mode. Possible values are `Integrated` and `Classic`. Defaults to `Integrated`.
 
