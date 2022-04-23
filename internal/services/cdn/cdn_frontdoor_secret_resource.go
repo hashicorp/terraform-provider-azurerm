@@ -1,6 +1,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -10,10 +11,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyValutValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -59,32 +58,16 @@ func resourceCdnFrontdoorSecret() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"customer_certificate": {
 							Type:     pluginsdk.TypeList,
-							Optional: true,
+							Required: true,
+							ForceNew: true,
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"key_vault_id": {
+									"key_vault_certificate_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: keyValutValidation.VaultID,
-									},
-
-									"key_vault_certificate_name": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: keyValutValidation.NestedItemName,
-									},
-
-									"key_vault_certificate_version": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"use_latest": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  true,
+										ForceNew:     true,
+										ValidateFunc: keyValutValidation.KeyVaultChildIDWithOptionalVersion,
 									},
 
 									// This is a READ-ONLY field as the secret resource is reading these from the certificate in the key vault...
@@ -136,7 +119,7 @@ func resourceCdnFrontdoorSecretCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	secretParams, err := expandCdnFrontdoorBasicSecretParameters(d.Get("secret_parameters").([]interface{}))
+	secretParams, err := expandCdnFrontdoorBasicSecretParameters(ctx, d.Get("secret_parameters").([]interface{}), meta.(*clients.Client))
 	if err != nil {
 		return fmt.Errorf("expanding %q: %+v", "secret_parameters", err)
 	}
@@ -220,42 +203,22 @@ func resourceCdnFrontdoorSecretDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandCdnFrontdoorBasicSecretParameters(input []interface{}) (track1.BasicSecretParameters, error) {
-	results := make([]track1.BasicSecretParameters, 0)
-
-	type expandfunc func(input []interface{}) (*track1.BasicSecretParameters, error)
-
-	m := *cdnfrontdoorsecretparams.InitializeCdnFrontdoorSecretMappings()
-
-	secrets := map[string]expandfunc{
-		m.CustomerCertificate.ConfigName: cdnfrontdoorsecretparams.ExpandCdnFrontdoorCustomerCertificateParameters,
+func expandCdnFrontdoorBasicSecretParameters(ctx context.Context, input []interface{}, clients *clients.Client) (track1.BasicSecretParameters, error) {
+	if len(input) == 0 {
+		return nil, fmt.Errorf("%[1]q is invalid, expected to receive a %q, got %d", "secret_parameter", "Customer Certificate Parameter", len(input))
 	}
 
 	secretParameters := input[0].(map[string]interface{})
+	m := *cdnfrontdoorsecretparams.InitializeCdnFrontdoorSecretMappings()
+	config := secretParameters[m.CustomerCertificate.ConfigName]
 
-	// I will leave this in a loop as there will be more of these coming...
-	for secretName, expand := range secrets {
-		if config := secretParameters[secretName].([]interface{}); config != nil {
-			expanded, err := expand(config)
-			if err != nil {
-				return nil, err
-			}
-
-			if expanded != nil {
-				results = append(results, *expanded)
-			}
-		}
+	customerCertificate, err := cdnfrontdoorsecretparams.ExpandCdnFrontdoorCustomerCertificateParameters(ctx, config.([]interface{}), clients)
+	if err != nil {
+		return nil, err
 	}
 
-	if len(results) > 1 {
-		return nil, fmt.Errorf("%[1]q is invalid, you may only have one %[1]q defined in the configuration file, got %d", "secret_parameter", len(results))
-	}
-
-	// There can be only one, so the first one that is not nil is the right one...
-	for _, basicSecretParameter := range results {
-		if basicSecretParameter != nil {
-			return basicSecretParameter, nil
-		}
+	if customerCertificate != nil {
+		return *customerCertificate, nil
 	}
 
 	return nil, fmt.Errorf("unknown secret parameter type encountered")
@@ -268,7 +231,6 @@ func flattenSecretSecretParameters(input track1.BasicSecretParameters) ([]interf
 	}
 
 	result := make(map[string]interface{})
-	wrapper := make([]interface{}, 0)
 	fields := make(map[string]interface{})
 
 	customerCertificate, ok := input.AsCustomerCertificateParameters()
@@ -276,37 +238,47 @@ func flattenSecretSecretParameters(input track1.BasicSecretParameters) ([]interf
 		return nil, fmt.Errorf("expected a Customer Certificate Parameter")
 	}
 
+	// Secret Source ID is what comes back from Frontdoor, now I need to build the URL from that...
+	// secretSourceId: /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​/providers/Microsoft.KeyVault/vaults/keyVaultName1​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​/secrets/certificateName​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​1
+	// id            : "https://[vaultName].vault.azure.net/certificates/[certificateName]/[certificateVersion]"
+	// versionless id: "https://[vaultName].vault.azure.net/certificates/[certificateName]"
+
 	secretSourceId, err := parse.FrontdoorKeyVaultSecretID(*customerCertificate.SecretSource.ID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse the %q field of the %q, got %q", "Secret Source", "Customer Certificate", *customerCertificate.SecretSource.ID)
 	}
 
-	keyVaultId := keyVaultParse.NewVaultID(secretSourceId.SubscriptionId, secretSourceId.ResourceGroup, secretSourceId.VaultName)
+	var keyVaultCertificateId string
 
-	fields["key_vault_id"] = keyVaultId.ID()
-	fields["key_vault_certificate_name"] = secretSourceId.SecretName
-
-	var useLatest bool
 	if customerCertificate.UseLatestVersion != nil {
-		useLatest = *customerCertificate.UseLatestVersion
-		fields["use_latest"] = useLatest
-	}
+		// The API always sends back the version...
+		var certificateVersion string
+		var useLatest bool
 
-	// The API always sends back the version, which causes a diff
-	// if your config has use latest set to true. So only include this
-	// in the return values if use latest is set to false...
-	if !useLatest {
 		if customerCertificate.SecretVersion != nil {
-			fields["key_vault_certificate_version"] = *customerCertificate.SecretVersion
+			certificateVersion = *customerCertificate.SecretVersion
+		}
+
+		if customerCertificate.UseLatestVersion != nil {
+			useLatest = *customerCertificate.UseLatestVersion
+		}
+
+		if useLatest {
+			// Build the versionless certificate id
+			keyVaultCertificateId = fmt.Sprintf("https://%s.vault.azure.net/certificates/%s", secretSourceId.VaultName, secretSourceId.SecretName)
+		} else {
+			// Build the certificate id with the version information
+			keyVaultCertificateId = fmt.Sprintf("https://%s.vault.azure.net/certificates/%s/%s", secretSourceId.VaultName, secretSourceId.SecretName, certificateVersion)
 		}
 	}
+
+	fields["key_vault_certificate_id"] = keyVaultCertificateId
 
 	if customerCertificate.SubjectAlternativeNames != nil {
 		fields["subject_alternative_names"] = utils.FlattenStringSlice(customerCertificate.SubjectAlternativeNames)
 	}
 
-	wrapper = append(wrapper, fields)
-	result["customer_certificate"] = wrapper
+	result["customer_certificate"] = []interface{}{fields}
 	results = append(results, result)
 
 	return results, nil

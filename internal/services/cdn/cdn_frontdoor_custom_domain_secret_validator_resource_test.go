@@ -13,11 +13,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorCustomDomainSecretValidatorResource struct{}
+type CdnFrontdoorCustomDomainSecretValidatorResource struct {
+	DoNotRunFrontdooCustomDomainTests bool
+}
 
 func TestAccCdnFrontdoorCustomDomainSecretValidator_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain_secret_validator", "test")
-	r := CdnFrontdoorCustomDomainSecretValidatorResource{}
+	r := CdnFrontdoorCustomDomainSecretValidatorResource{DoNotRunFrontdooCustomDomainTests: true}
+	r.preCheck(t)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -37,6 +41,12 @@ func (r CdnFrontdoorCustomDomainSecretValidatorResource) Exists(ctx context.Cont
 	}
 
 	return utils.Bool(true), nil
+}
+
+func (r CdnFrontdoorCustomDomainSecretValidatorResource) preCheck(t *testing.T) {
+	if r.DoNotRunFrontdooCustomDomainTests {
+		t.Skipf("`azurerm_cdn_frontdoor_custom_domain_secret_validator` currently is not testable due to service requirements")
+	}
 }
 
 func (r CdnFrontdoorCustomDomainSecretValidatorResource) template(data acceptance.TestData) string {

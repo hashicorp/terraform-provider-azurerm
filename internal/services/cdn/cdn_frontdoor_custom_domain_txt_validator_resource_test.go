@@ -13,11 +13,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorCustomDomainTxtValidatorResource struct{}
+type CdnFrontdoorCustomDomainTxtValidatorResource struct {
+	DoNotRunFrontdooCustomDomainTests bool
+}
 
 func TestAccCdnFrontdoorCustomDomainTxtValidator_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain_txt_validator", "test")
-	r := CdnFrontdoorCustomDomainTxtValidatorResource{}
+	r := CdnFrontdoorCustomDomainTxtValidatorResource{DoNotRunFrontdooCustomDomainTests: true}
+	r.preCheck(t)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -36,6 +40,12 @@ func (r CdnFrontdoorCustomDomainTxtValidatorResource) Exists(ctx context.Context
 	}
 
 	return utils.Bool(true), nil
+}
+
+func (r CdnFrontdoorCustomDomainTxtValidatorResource) preCheck(t *testing.T) {
+	if r.DoNotRunFrontdooCustomDomainTests {
+		t.Skipf("`azurerm_cdn_frontdoor_custom_domain_txt_validator` currently is not testable due to service requirements")
+	}
 }
 
 func (r CdnFrontdoorCustomDomainTxtValidatorResource) template(data acceptance.TestData) string {

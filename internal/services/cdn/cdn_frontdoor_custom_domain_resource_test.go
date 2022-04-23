@@ -13,11 +13,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorCustomDomainResource struct{}
+type CdnFrontdoorCustomDomainResource struct {
+	DoNotRunFrontdooCustomDomainTests bool
+}
 
 func TestAccCdnFrontdoorCustomDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontdoorCustomDomainResource{}
+	r := CdnFrontdoorCustomDomainResource{DoNotRunFrontdooCustomDomainTests: true}
+	r.preCheck(t)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -31,7 +35,9 @@ func TestAccCdnFrontdoorCustomDomain_basic(t *testing.T) {
 
 func TestAccCdnFrontdoorCustomDomain_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontdoorCustomDomainResource{}
+	r := CdnFrontdoorCustomDomainResource{DoNotRunFrontdooCustomDomainTests: true}
+	r.preCheck(t)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -45,7 +51,9 @@ func TestAccCdnFrontdoorCustomDomain_requiresImport(t *testing.T) {
 
 func TestAccCdnFrontdoorCustomDomain_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontdoorCustomDomainResource{}
+	r := CdnFrontdoorCustomDomainResource{DoNotRunFrontdooCustomDomainTests: true}
+	r.preCheck(t)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -75,6 +83,12 @@ func (r CdnFrontdoorCustomDomainResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	return utils.Bool(true), nil
+}
+
+func (r CdnFrontdoorCustomDomainResource) preCheck(t *testing.T) {
+	if r.DoNotRunFrontdooCustomDomainTests {
+		t.Skipf("`azurerm_cdn_frontdoor_custom_domain` currently is not testable due to service requirements")
+	}
 }
 
 func (r CdnFrontdoorCustomDomainResource) template(data acceptance.TestData) string {

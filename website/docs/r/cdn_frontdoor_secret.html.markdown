@@ -84,10 +84,7 @@ resource "azurerm_cdn_frontdoor_secret" "example" {
 
   secret_parameters {
     customer_certificate {
-      key_vault_id                  = azurerm_key_vault_certificate.test.key_vault_id
-      key_vault_certificate_name    = azurerm_key_vault_certificate.test.name
-      key_vault_certificate_version = azurerm_key_vault_certificate.test.version
-      use_latest                    = false
+      key_vault_certificate_id = azurerm_key_vault_certificate.test.id
     }
   }
 }
@@ -111,17 +108,11 @@ A `secret_parameters` block supports the following:
 
 ---
 
-A `customer_certificate` - (Required)  block supports the following:
+A `customer_certificate` block supports the following:
 
-* `key_vault_id`- (Required) The Resource ID of the Azure Key Vault which contains the certificate.
+* `key_vault_certificate_id` - (Required) The key vault certificate resources ID attribute. Changing this forces a new Frontdoor Secret to be created.
 
-* `key_vault_certificate_name` - (Required) The Name of the Azure Key Vault certificate.
-​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
-* `key_vault_certificate_version` - (Optional) The version of the Azure Key Vault certificate to be used.
-
-->**NOTE:** The `key_vault_certificate_version` field should be removed from the configuration file if the `use_latest` field is set to `true`.
-
-* `use_latest` - (Optional) Should the latest version of the certificate be used? Defaults to `true`.
+->**NOTE:** If you would like to use the **latest version** of the Key Vault Certificate use the Key Vault Certificates `versionless_id` attribute as the `key_vault_certificate_id` fields value(e.g. `key_vault_certificate_id = azurerm_key_vault_certificate.example.versionless_id`).
 
 * `subject_alternative_names` - (Computed) One or more `subject alternative names` contained within the key vault certificate.
 

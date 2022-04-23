@@ -13,11 +13,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorSecretResource struct{}
+type CdnFrontdoorSecretResource struct {
+	DoNotRunFrontdooCustomDomainTests bool
+}
 
 func TestAccCdnFrontdoorSecret_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_secret", "test")
-	r := CdnFrontdoorSecretResource{}
+	r := CdnFrontdoorSecretResource{DoNotRunFrontdooCustomDomainTests: true}
+	r.preCheck(t)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -31,7 +35,9 @@ func TestAccCdnFrontdoorSecret_basic(t *testing.T) {
 
 func TestAccCdnFrontdoorSecret_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_secret", "test")
-	r := CdnFrontdoorSecretResource{}
+	r := CdnFrontdoorSecretResource{DoNotRunFrontdooCustomDomainTests: true}
+	r.preCheck(t)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -45,7 +51,9 @@ func TestAccCdnFrontdoorSecret_requiresImport(t *testing.T) {
 
 func TestAccCdnFrontdoorSecret_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_secret", "test")
-	r := CdnFrontdoorSecretResource{}
+	r := CdnFrontdoorSecretResource{DoNotRunFrontdooCustomDomainTests: true}
+	r.preCheck(t)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -74,6 +82,12 @@ func (r CdnFrontdoorSecretResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(true), nil
 }
 
+func (r CdnFrontdoorSecretResource) preCheck(t *testing.T) {
+	if r.DoNotRunFrontdooCustomDomainTests {
+		t.Skipf("`azurerm_cdn_frontdoor_secret` currently is not testable due to service requirements")
+	}
+}
+
 func (r CdnFrontdoorSecretResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -86,7 +100,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-c-%d"
+  name                = "accTestProfile-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -98,10 +112,13 @@ func (r CdnFrontdoorSecretResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_cdn_frontdoor_secret" "test" {
-  name                     = "acctest-c-%d"
+  name                     = "accTestSecret-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  parameters {
-    type = ""
+
+  secret_parameters {
+    customer_certificate {
+      key_vault_certificate_id = azurerm_key_vault_certificate.test.id
+    }
   }
 }
 `, template, data.RandomInteger)
@@ -115,8 +132,11 @@ func (r CdnFrontdoorSecretResource) requiresImport(data acceptance.TestData) str
 resource "azurerm_cdn_frontdoor_secret" "import" {
   name                     = azurerm_cdn_frontdoor_secret.test.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  parameters {
-    type = ""
+
+  secret_parameters {
+    customer_certificate {
+      key_vault_certificate_id = azurerm_key_vault_certificate.test.id
+    }
   }
 }
 `, config)
@@ -128,10 +148,13 @@ func (r CdnFrontdoorSecretResource) complete(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_cdn_frontdoor_secret" "test" {
-  name                     = "acctest-c-%d"
+  name                     = "accTestSecret-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  parameters {
-    type = ""
+
+  secret_parameters {
+    customer_certificate {
+      key_vault_certificate_id = azurerm_key_vault_certificate.test.versionless_id
+    }
   }
 }
 `, template, data.RandomInteger)

@@ -1,8 +1,10 @@
 package cdnfrontdoorsecretparams
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	frontdoorParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -47,46 +49,53 @@ func InitializeCdnFrontdoorSecretMappings() *CdnFrontdoorSecretMappings {
 	return m
 }
 
-func ExpandCdnFrontdoorCustomerCertificateParameters(input []interface{}) (*track1.BasicSecretParameters, error) {
+func ExpandCdnFrontdoorCustomerCertificateParameters(ctx context.Context, input []interface{}, clients *clients.Client) (*track1.BasicSecretParameters, error) {
 	m := InitializeCdnFrontdoorSecretMappings()
 	item := input[0].(map[string]interface{})
 
-	// must create the secret_source
-	kv := item["key_vault_id"].(string)
-	certName := item["key_vault_certificate_name"].(string)
-
-	kvId, err := keyVaultParse.VaultID(kv)
+	// New Direction: Parse the certificate id (e.g. URL) and derive the rest of the information from there...
+	certificateBaseURL := item["key_vault_certificate_id"].(string)
+	certificateId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(certificateBaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse %q, %q", "key_vault_id", kv)
+		return nil, fmt.Errorf("retrieving the Key Vault Certificate Resource ID from the Key Vault Certificate Base URL %q: %s", certificateBaseURL, err)
 	}
 
-	secretSource := frontdoorParse.NewFrontdoorKeyVaultSecretID(kvId.SubscriptionId, kvId.ResourceGroup, kvId.Name, certName)
-
-	useLatest := item["use_latest"].(bool)
-	certificateVersion := item["key_vault_certificate_version"].(string)
-
-	if useLatest {
-		if certificateVersion != "" {
-			return nil, fmt.Errorf("the %q block is invalid. %q must be empty when %q is set to %q, got %[2]q: %[5]q and %[3]q: %[4]q", "customer_certificate", "key_vault_certificate_version", "use_latest", "true", certificateVersion)
-		}
-	} else {
-		if certificateVersion == "" {
-			return nil, fmt.Errorf("the %q block is invalid. %q must have a value when %q is set to %q, got %[2]q: %[5]q and %[3]q: %[4]q", "customer_certificate", "key_vault_certificate_version", "use_latest", "false", certificateVersion)
-		}
+	var useLatest bool
+	if certificateId.Version == "" {
+		useLatest = true
 	}
+
+	keyVaultBaseId, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, clients.Resource, certificateId.KeyVaultBaseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving the Key Vault Resource ID from the Key Vault Base URL %q: %s", certificateId.KeyVaultBaseUrl, err)
+	}
+
+	if keyVaultBaseId == nil {
+		return nil, fmt.Errorf("unexpected %q Key Vault Resource ID retrieved from the Key Vault Base URL %q", "nil", certificateId.KeyVaultBaseUrl)
+	}
+
+	keyVaultId, err := keyVaultParse.VaultID(*keyVaultBaseId)
+	if err != nil {
+		return nil, err
+	}
+
+	secretSource := frontdoorParse.NewFrontdoorKeyVaultSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, certificateId.Name)
 
 	customerCertificate := &track1.CustomerCertificateParameters{
 		Type: m.CustomerCertificate.TypeName,
 		SecretSource: &track1.ResourceReference{
 			ID: utils.String(secretSource.ID()),
 		},
-		SecretVersion:    utils.String(certificateVersion),
 		UseLatestVersion: utils.Bool(useLatest),
+	}
+
+	if !useLatest {
+		customerCertificate.SecretVersion = utils.String(certificateId.Version)
 	}
 
 	if secretParameter := track1.BasicSecretParameters(customerCertificate); secretParameter != nil {
 		return &secretParameter, nil
 	}
 
-	return nil, nil
+	return nil, fmt.Errorf("unexpected %q Customer Certificate received from the Key Vault Certificate Base URL %q", "nil", certificateId.KeyVaultBaseUrl)
 }
