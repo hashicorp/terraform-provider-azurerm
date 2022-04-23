@@ -26,8 +26,10 @@ func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 		Update: resourceCosmosDbCassandraKeyspaceUpdate,
 		Delete: resourceCosmosDbCassandraKeyspaceDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.CassandraKeyspaceID(id)
+			return err
+		}),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -72,21 +74,20 @@ func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 
 func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	account := d.Get("account_name").(string)
+	id := parse.NewCassandraKeyspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	existing, err := client.GetCassandraKeyspace(ctx, resourceGroup, account, name)
+	existing, err := client.GetCassandraKeyspace(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of creating Cosmos Cassandra Keyspace %q (Account: %q): %+v", name, account, err)
+			return fmt.Errorf("checking for presence of creating %s: %+v", id, err)
 		}
 	} else {
 		if existing.ID == nil && *existing.ID == "" {
-			return fmt.Errorf("generating import ID for Cosmos Cassandra Keyspace %q (Account: %q)", name, account)
+			return fmt.Errorf("generating import ID for %s", id)
 		}
 
 		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_keyspace", *existing.ID)
@@ -95,7 +96,7 @@ func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta int
 	db := documentdb.CassandraKeyspaceCreateUpdateParameters{
 		CassandraKeyspaceCreateUpdateProperties: &documentdb.CassandraKeyspaceCreateUpdateProperties{
 			Resource: &documentdb.CassandraKeyspaceResource{
-				ID: &name,
+				ID: &id.Name,
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
@@ -111,25 +112,16 @@ func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta int
 		db.CassandraKeyspaceCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
-	future, err := client.CreateUpdateCassandraKeyspace(ctx, resourceGroup, account, name, db)
+	future, err := client.CreateUpdateCassandraKeyspace(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name, db)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for Cosmos Cassandra Keyspace %q (Account: %q): %+v", name, account, err)
+		return fmt.Errorf("issuing create/update request for %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for Cosmos Cassandra Keyspace %q (Account: %q): %+v", name, account, err)
+		return fmt.Errorf("waiting on create/update future for %s: %+v", id, err)
 	}
 
-	resp, err := client.GetCassandraKeyspace(ctx, resourceGroup, account, name)
-	if err != nil {
-		return fmt.Errorf("making get request for Cosmos Cassandra Keyspace %q (Account: %q): %+v", name, account, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("getting ID from Cosmos Cassandra Keyspace %q (Account: %q)", name, account)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceCosmosDbCassandraKeyspaceRead(d, meta)
 }
@@ -187,6 +179,7 @@ func resourceCosmosDbCassandraKeyspaceUpdate(d *pluginsdk.ResourceData, meta int
 
 func resourceCosmosDbCassandraKeyspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CassandraClient
+	accountClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -214,18 +207,27 @@ func resourceCosmosDbCassandraKeyspaceRead(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
-	throughputResp, err := client.GetCassandraKeyspaceThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+	accResp, err := accountClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("reading Throughput on Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
-		} else {
-			d.Set("throughput", nil)
-			d.Set("autoscale_settings", nil)
-		}
-	} else {
-		common.SetResourceDataThroughputFromResponse(throughputResp, d)
+		return fmt.Errorf("reading Cosmos Account %q : %+v", id.DatabaseAccountName, err)
+	}
+	if accResp.ID == nil || *accResp.ID == "" {
+		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.DatabaseAccountName, id.ResourceGroup)
 	}
 
+	if !isServerlessCapacityMode(accResp) {
+		throughputResp, err := client.GetCassandraKeyspaceThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(throughputResp.Response) {
+				return fmt.Errorf("reading Throughput on Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
+			} else {
+				d.Set("throughput", nil)
+				d.Set("autoscale_settings", nil)
+			}
+		} else {
+			common.SetResourceDataThroughputFromResponse(throughputResp, d)
+		}
+	}
 	return nil
 }
 

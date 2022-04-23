@@ -23,8 +23,8 @@ func resourceApiManagementIdentityProviderFacebook() *pluginsdk.Resource {
 		Read:   resourceApiManagementIdentityProviderFacebookRead,
 		Update: resourceApiManagementIdentityProviderFacebookCreateUpdate,
 		Delete: resourceApiManagementIdentityProviderFacebookDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: identityProviderImportFunc(apimanagement.IdentityProviderTypeFacebook),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -72,8 +72,8 @@ func resourceApiManagementIdentityProviderFacebookCreateUpdate(d *pluginsdk.Reso
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_facebook", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_facebook", id.ID())
 		}
 	}
 

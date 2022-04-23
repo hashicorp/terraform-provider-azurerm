@@ -38,7 +38,7 @@ resource "azurerm_mysql_flexible_server" "example" {
 resource "azurerm_mysql_flexible_server_configuration" "example" {
   name                = "interactive_timeout"
   resource_group_name = azurerm_resource_group.example.name
-  server_name         = azurerm_mysql_server.example.name
+  server_name         = azurerm_mysql_flexible_server.example.name
   value               = "600"
 }
 ```

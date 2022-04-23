@@ -3,15 +3,22 @@ package compute
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -41,7 +48,9 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		// TODO: remove support the the legacy Orchestrated Virtual Machine Scale Set in 3.0
+		// The plan was to remove support the the legacy Orchestrated Virtual Machine Scale Set in 3.0.
+		// Turns out it's still in use
+		// TODO: Revisit in 4.0
 		// TODO: exposing requireGuestProvisionSignal once it's available
 		// https://github.com/Azure/azure-rest-api-specs/pull/7246
 
@@ -74,7 +83,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateOrchestratedVirtualMachineScaleSetSku,
+				ValidateFunc: computeValidate.OrchestratedVirtualMachineScaleSetSku,
 			},
 
 			"os_profile": OrchestratedVirtualMachineScaleSetOSProfileSchema(),
@@ -112,7 +121,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
-			"identity": OrchestratedVirtualMachineScaleSetIdentitySchema(),
+			// whilst the Swagger defines multiple at this time only UAI is supported
+			"identity": commonschema.UserAssignedIdentityOptional(),
 
 			"license_type": {
 				Type:     pluginsdk.TypeString,
@@ -184,7 +194,13 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"termination_notification": OrchestratedVirtualMachineScaleSetTerminateNotificationSchema(),
 
-			"zones": azure.SchemaZones(),
+			"zones": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaZones()
+				}
+
+				return commonschema.ZonesMultipleOptionalForceNew()
+			}(),
 
 			"tags": tags.Schema(),
 
@@ -199,30 +215,29 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	isLegacy := true
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
 		// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-		existing, err := client.Get(ctx, resourceGroup, name, compute.ExpandTypesForGetVMScaleSetsUserData)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_orchestrated_virtual_machine_scale_set", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_orchestrated_virtual_machine_scale_set", id.ID())
 		}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	props := compute.VirtualMachineScaleSet{
 		Location: utils.String(location),
@@ -235,7 +250,15 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			// in both VMSS and Orchestrated VMSS...
 			OrchestrationMode: compute.OrchestrationModeFlexible,
 		},
-		Zones: zones,
+	}
+
+	if features.ThreePointOhBeta() {
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			props.Zones = &zones
+		}
+	} else {
+		props.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
 	}
 
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
@@ -260,12 +283,40 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	instances := d.Get("instances").(int)
 	if v, ok := d.GetOk("sku_name"); ok {
 		isLegacy = false
-		sku, err := azure.ExpandOrchestratedVirtualMachineScaleSetSku(v.(string), instances)
+		sku, err := expandOrchestratedVirtualMachineScaleSetSku(v.(string), instances)
 		if err != nil {
 			return fmt.Errorf("expanding 'sku_name': %+v", err)
 		}
 		props.Sku = sku
 	}
+
+	// hasHealthExtension is currently not needed but I added the plumming because we will need it
+	// once upgrade policy is added to OVMSS
+	hasHealthExtension := false
+
+	if v, ok := d.GetOk("extension"); ok {
+		var err error
+		virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
+		if err != nil {
+			return err
+		}
+	}
+
+	if hasHealthExtension {
+		log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q (Resource Group %q) has a Health Extension defined", id.Name, id.ResourceGroup)
+	}
+
+	if v, ok := d.GetOk("extensions_time_budget"); ok {
+		if virtualMachineProfile.ExtensionProfile == nil {
+			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
+		}
+		virtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(v.(string))
+	}
+
+	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
+	sourceImageId := d.Get("source_image_id").(string)
+	sourceImageReference := expandOrchestratedSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+	virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 
 	osType := compute.OperatingSystemTypesWindows
 	var winConfigRaw []interface{}
@@ -286,16 +337,57 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 		if len(winConfigRaw) > 0 {
 			winConfig := winConfigRaw[0].(map[string]interface{})
+			provisionVMAgent := winConfig["provision_vm_agent"].(bool)
+
 			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(winConfig, customData)
 
 			// if the Computer Prefix Name was not defined use the computer name
 			if vmssOsProfile.ComputerNamePrefix == nil || len(*vmssOsProfile.ComputerNamePrefix) == 0 {
 				// validate that the computer name is a valid Computer Prefix Name
-				_, errs := computeValidate.WindowsComputerNamePrefix(name, "computer_name_prefix")
+				_, errs := computeValidate.WindowsComputerNamePrefix(id.Name, "computer_name_prefix")
 				if len(errs) > 0 {
 					return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
 				}
-				vmssOsProfile.ComputerNamePrefix = utils.String(name)
+				vmssOsProfile.ComputerNamePrefix = utils.String(id.Name)
+			}
+
+			// Validate patch mode and hotpatching configuration
+			isHotpatchEnabledImage := isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+			patchMode := winConfig["patch_mode"].(string)
+			hotpatchingEnabled := winConfig["hotpatching_enabled"].(bool)
+
+			if isHotpatchEnabledImage {
+				// it is a hotpatching enabled image, validate hotpatching enabled settings
+				if patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
+					return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q", "patch_mode", compute.WindowsVMGuestPatchModeAutomaticByPlatform)
+				}
+
+				if !provisionVMAgent {
+					return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q", "provision_vm_agent", "true")
+				}
+
+				if !hasHealthExtension {
+					return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always always contain a %q", "extension", "application health extension")
+				}
+
+				if !hotpatchingEnabled {
+					return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q", "hotpatching_enabled", "true")
+				}
+			} else {
+				// not a hotpatching enabled image verify Automatic VM Guest Patching settings
+				if patchMode == string(compute.WindowsVMGuestPatchModeAutomaticByPlatform) {
+					if !provisionVMAgent {
+						return fmt.Errorf("when %q is set to %q then %q must be set to %q", "patch_mode", patchMode, "provision_vm_agent", "true")
+					}
+
+					if !hasHealthExtension {
+						return fmt.Errorf("when %q is set to %q then the %q field must always always contain a %q", "patch_mode", patchMode, "extension", "application health extension")
+					}
+				}
+
+				if hotpatchingEnabled {
+					return fmt.Errorf("%q field is not supported unless you are using one of the following hotpatching enable images, %q or %q", "hotpatching_enabled", "2022-datacenter-azure-edition", "2022-datacenter-azure-edition-core-smalldisk")
+				}
 			}
 		}
 
@@ -305,13 +397,28 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			vmssOsProfile = expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(linConfig, customData)
 
 			// if the Computer Prefix Name was not defined use the computer name
-			if len(*vmssOsProfile.ComputerNamePrefix) == 0 {
+			if vmssOsProfile.ComputerNamePrefix == nil || len(*vmssOsProfile.ComputerNamePrefix) == 0 {
 				// validate that the computer name is a valid Computer Prefix Name
-				_, errs := computeValidate.LinuxComputerNamePrefix(name, "computer_name_prefix")
+				_, errs := computeValidate.LinuxComputerNamePrefix(id.Name, "computer_name_prefix")
 				if len(errs) > 0 {
 					return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
 				}
-				vmssOsProfile.ComputerNamePrefix = utils.String(name)
+
+				vmssOsProfile.ComputerNamePrefix = utils.String(id.Name)
+			}
+
+			// Validate Automatic VM Guest Patching Settings
+			provisionVmAgent := *vmssOsProfile.LinuxConfiguration.ProvisionVMAgent
+			patchMode := vmssOsProfile.LinuxConfiguration.PatchSettings.PatchMode
+
+			if patchMode == compute.LinuxVMGuestPatchModeAutomaticByPlatform {
+				if !provisionVmAgent {
+					return fmt.Errorf("when the %q field is set to %q the %q field must always be set to %q, got %q", "patch_mode", patchMode, "provision_vm_agent", "true", strconv.FormatBool(provisionVmAgent))
+				}
+
+				if !hasHealthExtension {
+					return fmt.Errorf("when the %q field is set to %q the %q field must contain at least one %q, got %q", "patch_mode", patchMode, "extension", "application health extension", "0")
+				}
 			}
 		}
 
@@ -328,18 +435,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	if v, ok := d.GetOk("os_disk"); ok {
 		virtualMachineProfile.StorageProfile.OsDisk = ExpandOrchestratedVirtualMachineScaleSetOSDisk(v.([]interface{}), osType)
-	}
-
-	if v, ok := d.GetOk("source_image_reference"); ok {
-		sourceImageId := ""
-		if sid, ok := d.GetOk("source_image_id"); ok {
-			sourceImageId = sid.(string)
-		}
-		sourceImageReference, err := expandSourceImageReference(v.([]interface{}), sourceImageId)
-		if err != nil {
-			return err
-		}
-		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 	}
 
 	if v, ok := d.GetOk("data_disk"); ok {
@@ -359,28 +454,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 		networkProfile.NetworkInterfaceConfigurations = networkInterfaces
 		virtualMachineProfile.NetworkProfile = networkProfile
-	}
-
-	// hasHealthExtension is currently not needed but I added the plumming because we will need it
-	// once upgrade policy is added to OVMSS
-	hasHealthExtension := false
-	if v, ok := d.GetOk("extension"); ok {
-		var err error
-		virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
-		if err != nil {
-			return err
-		}
-	}
-
-	if v, ok := d.GetOk("extensions_time_budget"); ok {
-		if virtualMachineProfile.ExtensionProfile == nil {
-			virtualMachineProfile.ExtensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
-		}
-		virtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(v.(string))
-	}
-
-	if hasHealthExtension {
-		log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q (Resource Group %q) has a Health Extension defined", name, resourceGroup)
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
@@ -423,7 +496,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		if v, ok := d.GetOk("identity"); ok {
-			identity, err := ExpandVirtualMachineScaleSetIdentity(v.([]interface{}))
+			identity, err := expandVirtualMachineScaleSetIdentity(v.([]interface{}))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -435,7 +508,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		if v, ok := d.GetOk("zone_balance"); ok && v.(bool) {
-			if len(*zones) == 0 {
+			if props.Zones == nil || len(*props.Zones) == 0 {
 				return fmt.Errorf("`zone_balance` can only be set to `true` when zones are specified")
 			}
 
@@ -445,36 +518,36 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		props.VirtualMachineScaleSetProperties.VirtualMachineProfile = &virtualMachineProfile
 	}
 
-	log.Printf("[DEBUG] Creating Orchestrated Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props)
+	log.Printf("[DEBUG] Creating Orchestrated %s.", id)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
 	if err != nil {
-		return fmt.Errorf("creating Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Orchestrated %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for Orchestrated Virtual Machine Scale Set %q (Resource Group %q) to be created..", name, resourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to be created.", id)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		// If it is a Retryable Error re-issue the PUT for 10 loops until either the error goes away or the limit has been reached
 		if strings.Contains(err.Error(), "RetryableError") {
-			log.Printf("[DEBUG] Retryable error hit for Orchestrated Virtual Machine Scale Set %q (Resource Group %q) to be created..", name, resourceGroup)
+			log.Printf("[DEBUG] Retryable error hit for %s to be created..", id)
 			errCount := 1
 
 			for {
-				log.Printf("[DEBUG] Retrying PUT %d for Orchestrated Virtual Machine Scale Set %q (Resource Group %q)..", errCount, name, resourceGroup)
-				future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props)
+				log.Printf("[DEBUG] Retrying PUT %d for Orchestrated %s.", errCount, id)
+				future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
 				if err != nil {
-					return fmt.Errorf("creating Orchestrated Virtual Machine Scale Set %q (Resource Group %q) after %d retries: %+v", name, resourceGroup, errCount, err)
+					return fmt.Errorf("creating Orchestrated %s after %d retries: %+v", id, errCount, err)
 				}
 
 				err = future.WaitForCompletionRef(ctx, client.Client)
 				if err != nil && strings.Contains(err.Error(), "RetryableError") {
 					if errCount == 10 {
-						return fmt.Errorf("waiting for creation of Orchestrated Virtual Machine Scale Set %q (Resource Group %q) after %d retries: %+v", name, resourceGroup, err, errCount)
+						return fmt.Errorf("waiting for creation of Orchestrated %s after %d retries: %+v", id, err, errCount)
 					}
 					errCount++
 				} else {
 					if err != nil {
 						// Hit an error while retying that is not retryable anymore...
-						return fmt.Errorf("hit unretryable error waiting for creation of Orchestrated Virtual Machine Scale Set %q (Resource Group %q) after %d retries: %+v", name, resourceGroup, err, errCount)
+						return fmt.Errorf("hit unretryable error waiting for creation of Orchestrated %s after %d retries: %+v", id, err, errCount)
 					} else {
 						// err is nil and finally succeeded continue with the rest of the create function...
 						break
@@ -483,23 +556,14 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			}
 		} else {
 			// Not a retryable error...
-			return fmt.Errorf("waiting for creation of Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for creation of Orchestrated %s: %+v", id, err)
 		}
 	}
 
-	log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q (Resource Group %q) was created", name, resourceGroup)
-	log.Printf("[DEBUG] Retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
+	log.Printf("[DEBUG] Orchestrated %s was created", id)
+	log.Printf("[DEBUG] Retrieving Orchestrated %s.", id)
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, resourceGroup, name, compute.ExpandTypesForGetVMScaleSetsUserData)
-	if err != nil {
-		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): ID was nil", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceOrchestratedVirtualMachineScaleSetRead(d, meta)
 }
@@ -516,6 +580,8 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	isLegacy := true
 	updateInstances := false
+	isHotpatchEnabledImage := false
+	linuxAutomaticVMGuestPatchingEnabled := false
 
 	// retrieve
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
@@ -573,6 +639,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		osProfileRaw := d.Get("os_profile").([]interface{})
 		vmssOsProfile := compute.VirtualMachineScaleSetUpdateOSProfile{}
 		windowsConfig := compute.WindowsConfiguration{}
+		windowsConfig.PatchSettings = &compute.PatchSettings{}
 		linuxConfig := compute.LinuxConfiguration{}
 
 		if len(osProfileRaw) > 0 {
@@ -591,6 +658,11 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			if len(winConfigRaw) > 0 {
 				winConfig := winConfigRaw[0].(map[string]interface{})
 
+				// If the image allows hotpatching the patch mode can only ever be AutomaticByPlatform.
+				sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
+				sourceImageId := d.Get("source_image_id").(string)
+				isHotpatchEnabledImage = isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+
 				if d.HasChange("os_profile.0.windows_configuration.0.enable_automatic_updates") ||
 					d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") ||
 					d.HasChange("os_profile.0.windows_configuration.0.timezone") ||
@@ -604,15 +676,38 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				}
 
 				if d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") {
-					windowsConfig.ProvisionVMAgent = utils.Bool(winConfig["provision_vm_agent"].(bool))
+					provisionVMAgent := winConfig["provision_vm_agent"].(bool)
+					if isHotpatchEnabledImage && !provisionVMAgent {
+						return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q, got %q", "provision_vm_agent", "true", strconv.FormatBool(provisionVMAgent))
+					}
+					windowsConfig.ProvisionVMAgent = utils.Bool(provisionVMAgent)
 				}
 
-				if d.HasChange("os_profile.0.windows_configuration.0.timezone") {
-					windowsConfig.TimeZone = utils.String(winConfig["timezone"].(string))
+				if d.HasChange("os_profile.0.windows_configuration.0.patch_mode") {
+					patchMode := winConfig["patch_mode"].(string)
+					if isHotpatchEnabledImage && (patchMode != string(compute.WindowsVMGuestPatchModeAutomaticByPlatform)) {
+						return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q, got %q", "patch_mode", compute.WindowsVMGuestPatchModeAutomaticByPlatform, patchMode)
+					}
+					windowsConfig.PatchSettings.PatchMode = compute.WindowsVMGuestPatchMode(patchMode)
+				}
+
+				// Disabling hotpatching is not supported in images that support hotpatching
+				// so while the attribute is exposed in VMSS it is hardcoded inside the images that
+				// support hotpatching to always be enabled and cannot be set to false, ever.
+				if d.HasChange("os_profile.0.windows_configuration.0.hotpatching_enabled") {
+					hotpatchingEnabled := winConfig["hotpatching_enabled"].(bool)
+					if isHotpatchEnabledImage && !hotpatchingEnabled {
+						return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always be set to %q, got %q", "hotpatching_enabled", "true", strconv.FormatBool(hotpatchingEnabled))
+					}
+					windowsConfig.PatchSettings.EnableHotpatching = utils.Bool(hotpatchingEnabled)
 				}
 
 				if d.HasChange("os_profile.0.windows_configuration.0.secret") {
 					vmssOsProfile.Secrets = expandWindowsSecrets(winConfig["secret"].([]interface{}))
+				}
+
+				if d.HasChange("os_profile.0.windows_configuration.0.timezone") {
+					windowsConfig.TimeZone = utils.String(winConfig["timezone"].(string))
 				}
 
 				if d.HasChange("os_profile.0.windows_configuration.0.winrm_listener") {
@@ -626,6 +721,8 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			if len(linConfigRaw) > 0 {
 				osType = compute.OperatingSystemTypesLinux
 				linConfig := linConfigRaw[0].(map[string]interface{})
+				provisionVMAgent := linConfig["provision_vm_agent"].(bool)
+				patchMode := linConfig["patch_mode"].(string)
 
 				if d.HasChange("os_profile.0.linux_configuration.0.provision_vm_agent") ||
 					d.HasChange("os_profile.0.linux_configuration.0.disable_password_authentication") ||
@@ -634,7 +731,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				}
 
 				if d.HasChange("os_profile.0.linux_configuration.0.provision_vm_agent") {
-					linuxConfig.ProvisionVMAgent = utils.Bool(linConfig["provision_vm_agent"].(bool))
+					linuxConfig.ProvisionVMAgent = utils.Bool(provisionVMAgent)
 				}
 
 				if d.HasChange("os_profile.0.linux_configuration.0.disable_password_authentication") {
@@ -647,6 +744,21 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 						linuxConfig.SSH = &compute.SSHConfiguration{}
 					}
 					linuxConfig.SSH.PublicKeys = &sshPublicKeys
+				}
+
+				if d.HasChange("os_profile.0.linux_configuration.0.patch_mode") {
+					if patchMode == string(compute.LinuxPatchAssessmentModeAutomaticByPlatform) {
+						if !provisionVMAgent {
+							return fmt.Errorf("when the %q field is set to %q the %q field must always be set to %q, got %q", "patch_mode", patchMode, "provision_vm_agent", "true", strconv.FormatBool(provisionVMAgent))
+						}
+
+						linuxAutomaticVMGuestPatchingEnabled = true
+					}
+
+					if linuxConfig.PatchSettings == nil {
+						linuxConfig.PatchSettings = &compute.LinuxPatchSettings{}
+					}
+					linuxConfig.PatchSettings.PatchMode = compute.LinuxVMGuestPatchMode(patchMode)
 				}
 
 				vmssOsProfile.LinuxConfiguration = &linuxConfig
@@ -679,10 +791,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
 				sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 				sourceImageId := d.Get("source_image_id").(string)
-				sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-				if err != nil {
-					return err
-				}
+				sourceImageReference := expandOrchestratedSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
 				// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
 				updateProps.VirtualMachineProfile.StorageProfile.DataDisks = existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.DataDisks
@@ -748,8 +857,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		}
 
 		if d.HasChange("identity") {
-			identityRaw := d.Get("identity").([]interface{})
-			identity, err := ExpandOrchestratedVirtualMachineScaleSetIdentity(identityRaw)
+			identity, err := expandVirtualMachineScaleSetIdentity(d.Get("identity").([]interface{}))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -775,7 +883,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			if d.HasChange("sku_name") {
 				updateInstances = true
 
-				sku, err = azure.ExpandOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string), instances)
+				sku, err = expandOrchestratedVirtualMachineScaleSetSku(d.Get("sku_name").(string), instances)
 				if err != nil {
 					return err
 				}
@@ -787,10 +895,19 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		if d.HasChanges("extension", "extensions_time_budget") {
 			updateInstances = true
 
-			extensionProfile, _, err := expandOrchestratedVirtualMachineScaleSetExtensions(d.Get("extension").(*pluginsdk.Set).List())
+			extensionProfile, hasHealthExtension, err := expandOrchestratedVirtualMachineScaleSetExtensions(d.Get("extension").(*pluginsdk.Set).List())
 			if err != nil {
 				return err
 			}
+
+			if isHotpatchEnabledImage && !hasHealthExtension {
+				return fmt.Errorf("when referencing a hotpatching enabled image the %q field must always contain a %q", "extension", "application health extension")
+			}
+
+			if linuxAutomaticVMGuestPatchingEnabled && !hasHealthExtension {
+				return fmt.Errorf("when the %q field is set to %q the %q field must contain at least one %q, got %q", "patch_mode", compute.LinuxPatchAssessmentModeAutomaticByPlatform, "extension", "application health extension", "0")
+			}
+
 			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
 			updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 		}
@@ -861,11 +978,12 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("zones", zones.Flatten(resp.Zones))
 
 	var skuName *string
 	var instances int
 	if resp.Sku != nil {
-		skuName, err = azure.FlattenOrchestratedVirtualMachineScaleSetSku(resp.Sku)
+		skuName, err = flattenOrchestratedVirtualMachineScaleSetSku(resp.Sku)
 		if err != nil || skuName == nil {
 			return fmt.Errorf("setting `sku_name`: %+v", err)
 		}
@@ -878,9 +996,9 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		d.Set("instances", instances)
 	}
 
-	identity, err := FlattenOrchestratedVirtualMachineScaleSetIdentity(resp.Identity)
+	identity, err := flattenOrchestratedVirtualMachineScaleSetIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
@@ -989,10 +1107,6 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 	}
 
-	if err := d.Set("zones", resp.Zones); err != nil {
-		return fmt.Errorf("setting `zones`: %+v", err)
-	}
-
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -1061,4 +1175,35 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	log.Printf("[DEBUG] Deleted Orchestrated Virtual Machine Scale Set %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	return nil
+}
+
+func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*compute.Sku, error) {
+	skuParts := strings.Split(input, "_")
+
+	if len(skuParts) < 2 || strings.Contains(input, "__") || strings.Contains(input, " ") {
+		return nil, fmt.Errorf("'sku_name'(%q) is not formatted properly.", input)
+	}
+
+	sku := &compute.Sku{
+		Name:     utils.String(input),
+		Capacity: utils.Int64(int64(capacity)),
+		Tier:     utils.String("Standard"),
+	}
+
+	return sku, nil
+}
+
+func flattenOrchestratedVirtualMachineScaleSetSku(input *compute.Sku) (*string, error) {
+	var skuName string
+	if input != nil && input.Name != nil {
+		if strings.HasPrefix(strings.ToLower(*input.Name), "standard") {
+			skuName = *input.Name
+		} else {
+			skuName = fmt.Sprintf("Standard_%s", *input.Name)
+		}
+
+		return &skuName, nil
+	}
+
+	return nil, fmt.Errorf("Sku struct 'name' is nil")
 }

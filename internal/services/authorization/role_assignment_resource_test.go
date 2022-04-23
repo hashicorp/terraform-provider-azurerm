@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -131,6 +132,10 @@ func TestAccRoleAssignment_custom(t *testing.T) {
 // delegatedManagedIdentityResourceID is used in a cross tenant scenario.
 // users should set up lighthouse delegation first and then use managing tenant SP to run this test.
 func TestAccRoleAssignment_delegatedManagedIdentityResourceID(t *testing.T) {
+	if !features.ThreePointOhBeta() {
+		t.Skip("This test does not apply on v3.0")
+	}
+
 	if os.Getenv("HAS_LIGHTHOUSE_DELEGATION_SETUP") == "" {
 		t.Skip("Skipping as HAS_LIGHTHOUSE_DELEGATION_SETUP is not specified")
 		return
@@ -205,13 +210,11 @@ func TestAccRoleAssignment_ServicePrincipalGroup(t *testing.T) {
 // TODO - "real" management group with appropriate required for testing
 func TestAccRoleAssignment_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
-	groupId := uuid.New().String()
-
 	r := RoleAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.managementGroupConfig(groupId),
+			Config: r.managementGroupConfig(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -589,8 +592,8 @@ resource "azurerm_role_assignment" "test" {
 `, rInt, roleAssignmentID)
 }
 
-func (RoleAssignmentResource) managementGroupConfig(groupId string) string {
-	return fmt.Sprintf(`
+func (RoleAssignmentResource) managementGroupConfig() string {
+	return `
 provider "azurerm" {
   features {}
 }
@@ -605,16 +608,14 @@ data "azurerm_role_definition" "test" {
   name = "Monitoring Reader"
 }
 
-resource "azurerm_management_group" "test" {
-  group_id = "%s"
-}
+resource "azurerm_management_group" "test" {}
 
 resource "azurerm_role_assignment" "test" {
   scope              = azurerm_management_group.test.id
   role_definition_id = data.azurerm_role_definition.test.id
   principal_id       = data.azurerm_client_config.test.object_id
 }
-`, groupId)
+`
 }
 
 func (RoleAssignmentResource) condition(groupId string) string {

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type HDInsightHBaseClusterResource struct {
-}
+type HDInsightHBaseClusterResource struct{}
 
 func TestAccHDInsightHBaseCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hbase_cluster", "test")
@@ -494,7 +493,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -545,7 +543,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -653,7 +650,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -719,7 +715,6 @@ resource "azurerm_hdinsight_hbase_cluster" "import" {
   dynamic "gateway" {
     for_each = azurerm_hdinsight_hbase_cluster.test.gateway
     content {
-      enabled  = gateway.value.enabled
       password = gateway.value.password
       username = gateway.value.username
     }
@@ -794,7 +789,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -845,7 +839,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -899,7 +892,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_hdinsight_hbase_cluster" "test" {
@@ -914,7 +907,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -970,7 +962,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_hdinsight_hbase_cluster" "test" {
@@ -985,15 +977,19 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
 
   storage_account {
     storage_container_id = azurerm_storage_container.test.id
+    storage_resource_id  = azurerm_storage_account.test.id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
+  }
+
+  network {
+    connection_direction = "Outbound"
   }
 
   roles {
@@ -1331,7 +1327,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1421,7 +1416,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     hbase = "2.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1432,7 +1426,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1443,7 +1437,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1509,7 +1503,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     hbase = "2.1"
   }
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1520,7 +1513,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1531,7 +1524,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1571,7 +1564,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1627,7 +1619,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -1693,7 +1684,6 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "sshuser"
     password = "TerrAform123!"
   }

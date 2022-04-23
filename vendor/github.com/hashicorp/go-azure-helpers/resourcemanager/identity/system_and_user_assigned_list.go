@@ -11,10 +11,10 @@ import (
 var _ json.Marshaler = &SystemAndUserAssignedList{}
 
 type SystemAndUserAssignedList struct {
-	Type        Type     `json:"type"`
-	PrincipalId string   `json:"principalId"`
-	TenantId    string   `json:"tenantId"`
-	IdentityIds []string `json:"userAssignedIdentities"`
+	Type        Type     `json:"type" tfschema:"type"`
+	PrincipalId string   `json:"principalId" tfschema:"principal_id"`
+	TenantId    string   `json:"tenantId" tfschema:"tenant_id"`
+	IdentityIds []string `json:"userAssignedIdentities" tfschema:"identity_ids"`
 }
 
 func (s *SystemAndUserAssignedList) MarshalJSON() ([]byte, error) {
@@ -81,7 +81,12 @@ func ExpandSystemAndUserAssignedList(input []interface{}) (*SystemAndUserAssigne
 
 // FlattenSystemAndUserAssignedList turns a SystemAndUserAssignedList into a []interface{}
 func FlattenSystemAndUserAssignedList(input *SystemAndUserAssignedList) (*[]interface{}, error) {
-	if input == nil || (input.Type != TypeSystemAssigned && input.Type != TypeSystemAssignedUserAssigned && input.Type != TypeUserAssigned) {
+	if input == nil {
+		return &[]interface{}{}, nil
+	}
+
+	input.Type = normalizeType(input.Type)
+	if input.Type != TypeSystemAssigned && input.Type != TypeSystemAssignedUserAssigned && input.Type != TypeUserAssigned {
 		return &[]interface{}{}, nil
 	}
 

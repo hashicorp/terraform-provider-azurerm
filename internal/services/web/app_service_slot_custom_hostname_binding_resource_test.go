@@ -14,10 +14,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppServiceSlotCustomHostnameBindingResource struct {
-}
+type AppServiceSlotCustomHostnameBindingResource struct{}
 
 func TestAccAppServiceSlotCustomHostnameBinding_basic(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("Skipping as either ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_custom_hostname_binding", "test")
 	r := AppServiceSlotCustomHostnameBindingResource{}
 
@@ -33,6 +36,10 @@ func TestAccAppServiceSlotCustomHostnameBinding_basic(t *testing.T) {
 }
 
 func TestAccAppServiceSlotCustomHostnameBinding_requiresImport(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("Skipping as either ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_custom_hostname_binding", "test")
 	r := AppServiceSlotCustomHostnameBindingResource{}
 
@@ -48,6 +55,10 @@ func TestAccAppServiceSlotCustomHostnameBinding_requiresImport(t *testing.T) {
 }
 
 func TestAccAppServiceSlotCustomHostnameBinding_ssl(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("Skipping as either ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_custom_hostname_binding", "test")
 	r := AppServiceSlotCustomHostnameBindingResource{}
 
@@ -224,8 +235,8 @@ resource "azurerm_key_vault" "test" {
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
-    secret_permissions      = ["delete", "get", "set"]
-    certificate_permissions = ["create", "delete", "get", "import", "purge"]
+    secret_permissions      = ["Delete", "Get", "Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 }
 

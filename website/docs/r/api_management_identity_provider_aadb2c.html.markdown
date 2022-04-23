@@ -40,14 +40,14 @@ resource "azuread_application_password" "example" {
 }
 
 resource "azurerm_api_management_identity_provider_aadb2c" "example" {
-  api_management_id = azurerm_api_management.example.id
-  client_id         = azuread_application.example.application_id
-  client_secret     = "P@55w0rD!%[7]s"
-  allowed_tenant    = "myb2ctenant.onmicrosoft.com"
-  signin_tenant     = "myb2ctenant.onmicrosoft.com"
-  authority         = "myb2ctenant.b2clogin.com"
-  signin_policy     = "B2C_1_Login"
-  signup_policy     = "B2C_1_Signup"
+  api_management_name = azurerm_api_management.example.name
+  client_id           = azuread_application.example.application_id
+  client_secret       = "P@55w0rD!%[7]s"
+  allowed_tenant      = "myb2ctenant.onmicrosoft.com"
+  signin_tenant       = "myb2ctenant.onmicrosoft.com"
+  authority           = "myb2ctenant.b2clogin.com"
+  signin_policy       = "B2C_1_Login"
+  signup_policy       = "B2C_1_Signup"
 
   depends_on = [azuread_application_password.example]
 }

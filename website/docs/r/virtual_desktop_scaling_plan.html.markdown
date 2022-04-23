@@ -96,7 +96,7 @@ resource "azurerm_virtual_desktop_scaling_plan" "example" {
     off_peak_start_time                  = "22:00"
     off_peak_load_balancing_algorithm    = "DepthFirst"
   }
-  hostpool_reference {
+  host_pool {
     hostpool_id          = azurerm_virtual_desktop_host_pool.example.id
     scaling_plan_enabled = true
   }

@@ -75,17 +75,16 @@ func resourceBatchApplication() *pluginsdk.Resource {
 
 func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("account_name").(string)
+	id := parse.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("checking for presence of existing Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 	if !utils.ResponseWasNotFound(resp.Response) {
@@ -104,18 +103,11 @@ func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta interface{})
 		},
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, accountName, name, &parameters); err != nil {
-		return fmt.Errorf("creating Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+	if _, err := client.Create(ctx, id.ResourceGroup, id.BatchAccountName, id.Name, &parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err = client.Get(ctx, resourceGroup, accountName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Batch Application %q (Account Name %q / Resource Group %q) ID", name, accountName, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceBatchApplicationRead(d, meta)
 }

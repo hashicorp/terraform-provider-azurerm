@@ -5,12 +5,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-var _ sdk.TypedServiceRegistration = Registration{}
+var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 type Registration struct{}
 
-func (r Registration) PackagePath() string {
-	return "TODO: Not implemented yet"
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/app-service"
 }
 
 func (r Registration) WebsiteCategories() []string {
@@ -22,11 +22,13 @@ func (r Registration) Name() string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	if features.ThreePointOhBetaResources() {
+	if features.ThreePointOhBeta() {
 		return []sdk.DataSource{
 			AppServiceSourceControlTokenDataSource{},
+			LinuxFunctionAppDataSource{},
 			LinuxWebAppDataSource{},
 			ServicePlanDataSource{},
+			WindowsFunctionAppDataSource{},
 			WindowsWebAppDataSource{},
 		}
 	}
@@ -34,16 +36,25 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	if features.ThreePointOhBetaResources() {
+	if features.ThreePointOhBeta() {
 		return []sdk.Resource{
-			AppServiceSourceControlResource{},
 			AppServiceSourceControlTokenResource{},
+			FunctionAppActiveSlotResource{},
+			FunctionAppFunctionResource{},
+			FunctionAppHybridConnectionResource{},
 			LinuxFunctionAppResource{},
+			LinuxFunctionAppSlotResource{},
 			LinuxWebAppResource{},
 			LinuxWebAppSlotResource{},
 			ServicePlanResource{},
-			WindowsWebAppResource{},
+			SourceControlResource{},
+			SourceControlSlotResource{},
+			WebAppActiveSlotResource{},
+			WebAppHybridConnectionResource{},
 			WindowsFunctionAppResource{},
+			WindowsFunctionAppSlotResource{},
+			WindowsWebAppResource{},
+			WindowsWebAppSlotResource{},
 		}
 	}
 	return []sdk.Resource{}

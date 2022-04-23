@@ -5,8 +5,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,9 +31,9 @@ func dataSourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"type": {
 				Type:     pluginsdk.TypeString,
@@ -53,6 +55,7 @@ func dataSourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_bgp": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -189,28 +192,27 @@ func dataSourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 
 func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VnetGatewayConnectionsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewNetworkGatewayConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ConnectionName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Virtual Network Gateway Connection %q (Resource Group %q) was not found", name, resGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on AzureRM Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("resource_group_name", id.ResourceGroup)
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if resp.VirtualNetworkGatewayConnectionPropertiesFormat != nil {
 		gwc := *resp.VirtualNetworkGatewayConnectionPropertiesFormat

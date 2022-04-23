@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type KubernetesServiceVersionDataSource struct {
-}
+type KubernetesServiceVersionDataSource struct{}
 
 const k8sVersionRX = `[0-9]+\.[0-9]+\.[0-9]*`
 

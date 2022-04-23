@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosMongoCollectionResource struct {
-}
+type CosmosMongoCollectionResource struct{}
 
 func TestAccCosmosDbMongoCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
@@ -44,6 +43,21 @@ func TestAccCosmosDbMongoCollection_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("shard_key").HasValue("seven"),
 				check.That(data.ResourceName).Key("default_ttl_seconds").HasValue("707"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDbMongoCollection_neverExpires(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
+	r := CosmosMongoCollectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.neverExpires(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -198,6 +212,21 @@ func TestAccCosmosDbMongoCollection_serverless(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.serverless(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDbMongoCollection_autoscaleWithoutShareKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
+	r := CosmosMongoCollectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoscaleWithoutShareKey(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -429,4 +458,43 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   analytical_storage_ttl = 600
 }
 `, CosmosDBAccountResource{}.mongoAnalyticalStorage(data, documentdb.DefaultConsistencyLevelEventual), data.RandomInteger, data.RandomInteger)
+}
+
+func (CosmosMongoCollectionResource) autoscaleWithoutShareKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+resource "azurerm_cosmosdb_mongo_collection" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
+  autoscale_settings {
+    max_throughput = "4000"
+  }
+}
+`, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
+}
+
+func (CosmosMongoCollectionResource) neverExpires(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_mongo_collection" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
+
+  index {
+    keys   = ["_id"]
+    unique = true
+  }
+
+  default_ttl_seconds = -1
+}
+`, CosmosMongoDatabaseResource{}.basic(data), data.RandomInteger)
 }

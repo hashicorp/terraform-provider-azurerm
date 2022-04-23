@@ -13,14 +13,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/version"
 )
 
+type EndpointTokenFunc func(endpoint string) (autorest.Authorizer, error)
+
 type ClientOptions struct {
 	SubscriptionId   string
 	TenantID         string
 	PartnerId        string
 	TerraformVersion string
 
-	GraphAuthorizer           autorest.Authorizer
-	GraphEndpoint             string
 	KeyVaultAuthorizer        autorest.Authorizer
 	ResourceManagerAuthorizer autorest.Authorizer
 	ResourceManagerEndpoint   string
@@ -37,7 +37,11 @@ type ClientOptions struct {
 	StorageUseAzureAD           bool
 
 	// Some Dataplane APIs require a token scoped for a specific endpoint
-	TokenFunc func(endpoint string) (autorest.Authorizer, error)
+	TokenFunc EndpointTokenFunc
+
+	// TODO: remove graph configuration in v3.0
+	GraphAuthorizer autorest.Authorizer
+	GraphEndpoint   string
 }
 
 func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.Authorizer) {
@@ -59,6 +63,9 @@ func setUserAgent(client *autorest.Client, tfVersion, partnerID string, disableT
 	tfUserAgent := fmt.Sprintf("HashiCorp Terraform/%s (+https://www.terraform.io) Terraform Plugin SDK/%s", tfVersion, meta.SDKVersionString())
 
 	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, version.ProviderVersion)
+	if features.FourPointOhBeta() {
+		providerUserAgent = fmt.Sprintf("%s terraform-provider-azurerm/%s+4.0-beta", tfUserAgent, version.ProviderVersion)
+	}
 	client.UserAgent = strings.TrimSpace(fmt.Sprintf("%s %s", client.UserAgent, providerUserAgent))
 
 	// append the CloudShell version to the user agent if it exists

@@ -221,7 +221,8 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(managedcluster.ClusterUpgradeCadenceWaveZero),
 				string(managedcluster.ClusterUpgradeCadenceWaveOne),
-				string(managedcluster.ClusterUpgradeCadenceWaveTwo)}, false),
+				string(managedcluster.ClusterUpgradeCadenceWaveTwo),
+			}, false),
 		},
 	}
 }
@@ -300,7 +301,6 @@ func (k ClusterResource) Update() sdk.ResourceFunc {
 func (k ClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			resourceId, err := managedcluster.ParseManagedClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resourceID: %+v", err)
@@ -337,7 +337,6 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				} else if isPrimary {
 					return fmt.Errorf("only one node type can be primary at any given time. ")
 				}
-
 			}
 
 			for _, lbi := range rd.Get("lb_rule").([]interface{}) {
@@ -466,7 +465,6 @@ func createOrUpdate(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		if resp.HttpResponse != nil {
 			deleteResponses = append(deleteResponses, resp)
 		}
-
 	}
 
 	if len(deleteResponses) > 0 {
@@ -797,7 +795,6 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 		}
 		out.LoadBalancingRules = &lbRules
 		out.NetworkSecurityRules = &nsRules
-
 	}
 	return out
 }

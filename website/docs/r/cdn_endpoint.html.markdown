@@ -122,7 +122,7 @@ A `delivery_rule` block supports the following:
 
 * `name` - (Required) The Name which should be used for this Delivery Rule.
 
-* `order` - (Required) The order used for this rule, which must be larger than 1.
+* `order` - (Required) The order used for this rule. The order values should be sequential and begin at `1`.
 
 * `cache_expiration_action` - (Optional) A `cache_expiration_action` block as defined above.
 
@@ -384,7 +384,7 @@ A `url_file_name_condition` block supports the following:
 
 A `url_path_condition` block supports the following:
 
-* `operator` - (Required) Valid values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan` and `LessThanOrEqual`.
+* `operator` - (Required) Valid values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`, `LessThanOrEqual`, `RegEx` and `Wildcard`.
 
 * `negate_condition` - (Optional) Defaults to `false`.
 
@@ -399,6 +399,8 @@ A `url_path_condition` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the CDN Endpoint.
+
+* `fqdn` - The Fully Qualified Domain Name of the CDN Endpoint.
 
 ## Timeouts
 

@@ -69,7 +69,6 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 				}
 
 				future, err := client.UpdateAutoScaleConfiguration(ctx, resourceGroup, name, params)
-
 				if err != nil {
 					return fmt.Errorf("changing autoscale of the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
 				}

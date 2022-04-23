@@ -5,8 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -21,15 +24,17 @@ func dataSourceAppService() *pluginsdk.Resource {
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_app_service` data source has been superseded by the `azurerm_linux_function_app` and `azurerm_windows_web_app` data sources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider."),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"app_service_plan_id": {
 				Type:     pluginsdk.TypeString,
@@ -151,41 +156,41 @@ func dataSourceAppService() *pluginsdk.Resource {
 
 func dataSourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewAppServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: App Service %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making Read request on AzureRM App Service %q: %+v", name, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	configResp, err := client.GetConfiguration(ctx, resourceGroup, name)
+	configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM App Service Configuration %q: %+v", name, err)
+		return fmt.Errorf("making Read request on %s Configuration: %+v", id, err)
 	}
 
-	appSettingsResp, err := client.ListApplicationSettings(ctx, resourceGroup, name)
+	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM App Service AppSettings %q: %+v", name, err)
+		return fmt.Errorf("making Read request on %s AppSettings: %+v", id, err)
 	}
 
-	connectionStringsResp, err := client.ListConnectionStrings(ctx, resourceGroup, name)
+	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM App Service ConnectionStrings %q: %+v", name, err)
+		return fmt.Errorf("making Read request on %s ConnectionStrings: %+v", id, err)
 	}
 
-	scmResp, err := client.GetSourceControl(ctx, resourceGroup, name)
+	scmResp, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM App Service Source Control %q: %+v", name, err)
+		return fmt.Errorf("making Read request on %s Source Control: %+v", id, err)
 	}
 
-	siteCredFuture, err := client.ListPublishingCredentials(ctx, resourceGroup, name)
+	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		return err
 	}
@@ -195,16 +200,14 @@ func dataSourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
+		return fmt.Errorf("making Read request on %s Site Credential: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.SiteName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.SiteProperties; props != nil {
 		d.Set("app_service_plan_id", props.ServerFarmID)

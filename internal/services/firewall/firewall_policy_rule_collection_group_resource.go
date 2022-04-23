@@ -61,7 +61,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 			},
 
 			"application_rule_collection": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -85,7 +85,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 							}, false),
 						},
 						"rule": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MinItems: 1,
 							Elem: &pluginsdk.Resource{
@@ -101,7 +101,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"protocols": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
@@ -122,7 +122,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										},
 									},
 									"source_addresses": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -134,7 +134,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										},
 									},
 									"source_ip_groups": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -142,7 +142,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										},
 									},
 									"destination_addresses": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -154,7 +154,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										},
 									},
 									"destination_fqdns": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -162,7 +162,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										},
 									},
 									"destination_urls": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -170,7 +170,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										},
 									},
 									"destination_fqdn_tags": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -182,7 +182,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										Optional: true,
 									},
 									"web_categories": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -197,7 +197,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 			},
 
 			"network_rule_collection": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -221,7 +221,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 							}, false),
 						},
 						"rule": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MinItems: 1,
 							Elem: &pluginsdk.Resource{
@@ -232,7 +232,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"protocols": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -245,7 +245,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										},
 									},
 									"source_addresses": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -257,7 +257,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										},
 									},
 									"source_ip_groups": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -265,7 +265,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										},
 									},
 									"destination_addresses": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -274,7 +274,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										},
 									},
 									"destination_ip_groups": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -282,7 +282,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										},
 									},
 									"destination_fqdns": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -290,7 +290,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										},
 									},
 									"destination_ports": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -308,7 +308,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 			},
 
 			"nat_rule_collection": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -329,13 +329,11 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								// Hardcode to using `Dnat` instead of the one defined in Swagger (i.e. network.DNAT) because of: https://github.com/Azure/azure-rest-api-specs/issues/9986
 								// Setting `StateFunc: state.IgnoreCase` will cause other issues, as tracked by: https://github.com/hashicorp/terraform-plugin-sdk/issues/485
-								// Another solution is to customize the hash function for the containing block, but as there are a couple of properties here, especially
-								// has property whose type is another nested block (Set), so the implementation is nontrivial and error-prone.
 								"Dnat",
 							}, false),
 						},
 						"rule": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Required: true,
 							MinItems: 1,
 							Elem: &pluginsdk.Resource{
@@ -346,7 +344,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"protocols": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -357,7 +355,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										},
 									},
 									"source_addresses": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -369,7 +367,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										},
 									},
 									"source_ip_groups": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -385,7 +383,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										),
 									},
 									"destination_ports": {
-										Type:     pluginsdk.TypeSet,
+										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -450,10 +448,10 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 		},
 	}
 	var rulesCollections []network.BasicFirewallPolicyRuleCollection
-	rulesCollections = append(rulesCollections, expandFirewallPolicyRuleCollectionApplication(d.Get("application_rule_collection").(*pluginsdk.Set).List())...)
-	rulesCollections = append(rulesCollections, expandFirewallPolicyRuleCollectionNetwork(d.Get("network_rule_collection").(*pluginsdk.Set).List())...)
+	rulesCollections = append(rulesCollections, expandFirewallPolicyRuleCollectionApplication(d.Get("application_rule_collection").([]interface{}))...)
+	rulesCollections = append(rulesCollections, expandFirewallPolicyRuleCollectionNetwork(d.Get("network_rule_collection").([]interface{}))...)
 
-	natRules, err := expandFirewallPolicyRuleCollectionNat(d.Get("nat_rule_collection").(*pluginsdk.Set).List())
+	natRules, err := expandFirewallPolicyRuleCollectionNat(d.Get("nat_rule_collection").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding NAT rule collection: %w", err)
 	}
@@ -567,7 +565,7 @@ func expandFirewallPolicyRuleCollectionNat(input []interface{}) ([]network.Basic
 	result := make([]network.BasicFirewallPolicyRuleCollection, 0)
 	for _, e := range input {
 		rule := e.(map[string]interface{})
-		rules, err := expandFirewallPolicyRuleNat(rule["rule"].(*pluginsdk.Set).List())
+		rules, err := expandFirewallPolicyRuleNat(rule["rule"].([]interface{}))
 		if err != nil {
 			return nil, err
 		}
@@ -596,7 +594,7 @@ func expandFirewallPolicyFilterRuleCollection(input []interface{}, f func(input 
 			Name:               utils.String(rule["name"].(string)),
 			Priority:           utils.Int32(int32(rule["priority"].(int))),
 			RuleCollectionType: network.RuleCollectionTypeFirewallPolicyFilterRuleCollection,
-			Rules:              f(rule["rule"].(*pluginsdk.Set).List()),
+			Rules:              f(rule["rule"].([]interface{})),
 		}
 		result = append(result, output)
 	}
@@ -608,7 +606,7 @@ func expandFirewallPolicyRuleApplication(input []interface{}) *[]network.BasicFi
 	for _, e := range input {
 		condition := e.(map[string]interface{})
 		var protocols []network.FirewallPolicyRuleApplicationProtocol
-		for _, p := range condition["protocols"].(*pluginsdk.Set).List() {
+		for _, p := range condition["protocols"].([]interface{}) {
 			proto := p.(map[string]interface{})
 			protocols = append(protocols, network.FirewallPolicyRuleApplicationProtocol{
 				ProtocolType: network.FirewallPolicyRuleApplicationProtocolType(proto["type"].(string)),
@@ -620,14 +618,14 @@ func expandFirewallPolicyRuleApplication(input []interface{}) *[]network.BasicFi
 			Description:          utils.String(condition["description"].(string)),
 			RuleType:             network.RuleTypeApplicationRule,
 			Protocols:            &protocols,
-			SourceAddresses:      utils.ExpandStringSlice(condition["source_addresses"].(*pluginsdk.Set).List()),
-			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].(*pluginsdk.Set).List()),
-			DestinationAddresses: utils.ExpandStringSlice(condition["destination_addresses"].(*pluginsdk.Set).List()),
-			TargetFqdns:          utils.ExpandStringSlice(condition["destination_fqdns"].(*pluginsdk.Set).List()),
-			TargetUrls:           utils.ExpandStringSlice(condition["destination_urls"].(*pluginsdk.Set).List()),
-			FqdnTags:             utils.ExpandStringSlice(condition["destination_fqdn_tags"].(*pluginsdk.Set).List()),
+			SourceAddresses:      utils.ExpandStringSlice(condition["source_addresses"].([]interface{})),
+			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
+			DestinationAddresses: utils.ExpandStringSlice(condition["destination_addresses"].([]interface{})),
+			TargetFqdns:          utils.ExpandStringSlice(condition["destination_fqdns"].([]interface{})),
+			TargetUrls:           utils.ExpandStringSlice(condition["destination_urls"].([]interface{})),
+			FqdnTags:             utils.ExpandStringSlice(condition["destination_fqdn_tags"].([]interface{})),
 			TerminateTLS:         utils.Bool(condition["terminate_tls"].(bool)),
-			WebCategories:        utils.ExpandStringSlice(condition["web_categories"].(*pluginsdk.Set).List()),
+			WebCategories:        utils.ExpandStringSlice(condition["web_categories"].([]interface{})),
 		}
 		result = append(result, output)
 	}
@@ -639,19 +637,19 @@ func expandFirewallPolicyRuleNetwork(input []interface{}) *[]network.BasicFirewa
 	for _, e := range input {
 		condition := e.(map[string]interface{})
 		var protocols []network.FirewallPolicyRuleNetworkProtocol
-		for _, p := range condition["protocols"].(*pluginsdk.Set).List() {
+		for _, p := range condition["protocols"].([]interface{}) {
 			protocols = append(protocols, network.FirewallPolicyRuleNetworkProtocol(p.(string)))
 		}
 		output := &network.Rule{
 			Name:                 utils.String(condition["name"].(string)),
 			RuleType:             network.RuleTypeNetworkRule,
 			IPProtocols:          &protocols,
-			SourceAddresses:      utils.ExpandStringSlice(condition["source_addresses"].(*pluginsdk.Set).List()),
-			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].(*pluginsdk.Set).List()),
-			DestinationAddresses: utils.ExpandStringSlice(condition["destination_addresses"].(*pluginsdk.Set).List()),
-			DestinationIPGroups:  utils.ExpandStringSlice(condition["destination_ip_groups"].(*pluginsdk.Set).List()),
-			DestinationFqdns:     utils.ExpandStringSlice(condition["destination_fqdns"].(*pluginsdk.Set).List()),
-			DestinationPorts:     utils.ExpandStringSlice(condition["destination_ports"].(*pluginsdk.Set).List()),
+			SourceAddresses:      utils.ExpandStringSlice(condition["source_addresses"].([]interface{})),
+			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
+			DestinationAddresses: utils.ExpandStringSlice(condition["destination_addresses"].([]interface{})),
+			DestinationIPGroups:  utils.ExpandStringSlice(condition["destination_ip_groups"].([]interface{})),
+			DestinationFqdns:     utils.ExpandStringSlice(condition["destination_fqdns"].([]interface{})),
+			DestinationPorts:     utils.ExpandStringSlice(condition["destination_ports"].([]interface{})),
 		}
 		result = append(result, output)
 	}
@@ -663,7 +661,7 @@ func expandFirewallPolicyRuleNat(input []interface{}) (*[]network.BasicFirewallP
 	for _, e := range input {
 		condition := e.(map[string]interface{})
 		var protocols []network.FirewallPolicyRuleNetworkProtocol
-		for _, p := range condition["protocols"].(*pluginsdk.Set).List() {
+		for _, p := range condition["protocols"].([]interface{}) {
 			protocols = append(protocols, network.FirewallPolicyRuleNetworkProtocol(p.(string)))
 		}
 		destinationAddresses := []string{condition["destination_address"].(string)}
@@ -679,10 +677,10 @@ func expandFirewallPolicyRuleNat(input []interface{}) (*[]network.BasicFirewallP
 			Name:                 utils.String(condition["name"].(string)),
 			RuleType:             network.RuleTypeNatRule,
 			IPProtocols:          &protocols,
-			SourceAddresses:      utils.ExpandStringSlice(condition["source_addresses"].(*pluginsdk.Set).List()),
-			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].(*pluginsdk.Set).List()),
+			SourceAddresses:      utils.ExpandStringSlice(condition["source_addresses"].([]interface{})),
+			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
 			DestinationAddresses: &destinationAddresses,
-			DestinationPorts:     utils.ExpandStringSlice(condition["destination_ports"].(*pluginsdk.Set).List()),
+			DestinationPorts:     utils.ExpandStringSlice(condition["destination_ports"].([]interface{})),
 			TranslatedPort:       utils.String(strconv.Itoa(condition["translated_port"].(int))),
 		}
 		if condition["translated_address"].(string) != "" {

@@ -7,15 +7,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 // Default:  string(sql.CreateModeDefault),
 
 var _ pluginsdk.StateUpgrade = DatabaseV0ToV1{}
 
-type DatabaseV0ToV1 struct {
-}
+type DatabaseV0ToV1 struct{}
 
 func (d DatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -60,7 +58,6 @@ func (d DatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
 			Computed:   true,
-			Deprecated: "the `extended_auditing_policy` block has been moved to `azurerm_mssql_server_extended_auditing_policy` and `azurerm_mssql_database_extended_auditing_policy`. This block will be removed in version 3.0 of the provider.",
 			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			MaxItems:   1,
 			Elem: &pluginsdk.Resource{
@@ -239,11 +236,6 @@ func (d DatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Set:      pluginsdk.HashString,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Sql_Injection",
-								"Sql_Injection_Vulnerability",
-								"Access_Anomaly",
-							}, true),
 						},
 					},
 

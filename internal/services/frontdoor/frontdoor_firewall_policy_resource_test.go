@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FrontDoorFirewallPolicyResource struct {
-}
+type FrontDoorFirewallPolicyResource struct{}
 
 func TestAccFrontDoorFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_firewall_policy", "test")
@@ -208,6 +207,10 @@ resource "azurerm_frontdoor_firewall_policy" "test" {
   managed_rule {
     type    = "BotProtection"
     version = "preview-0.1"
+  }
+
+  tags = {
+    ENV = "Test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

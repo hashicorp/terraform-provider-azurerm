@@ -18,12 +18,12 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_container_registry" "example" {
-  name                     = "example-registry"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  sku                      = "Premium"
-  admin_enabled            = false
-  georeplication_locations = ["East US", "West Europe"]
+  name                = "example-registry"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "Premium"
+  admin_enabled       = false
+  georeplications     = ["East US", "West Europe"]
 }
 
 resource "azurerm_container_registry_scope_map" "example" {

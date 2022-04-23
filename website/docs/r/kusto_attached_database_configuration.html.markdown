@@ -61,7 +61,7 @@ resource "azurerm_kusto_attached_database_configuration" "example" {
   cluster_name                         = azurerm_kusto_cluster.follower_cluster.name
   cluster_resource_id                  = azurerm_kusto_cluster.followed_cluster.id
   database_name                        = azurerm_kusto_database.example.name
-  default_principal_modifications_kind = "None"
+  default_principal_modifications_kind = "Union"
 
   sharing {
     external_tables_to_exclude    = ["ExternalTable2"]

@@ -76,7 +76,7 @@ The following arguments are supported:
 
 ~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed. 
 
-* `index_policy` - (Required) The configuration of the indexing policy. One or more `index_policy` blocks as defined below. Changing this forces a new resource to be created.
+* `index_policy` - (Required) The configuration of the indexing policy. One or more `index_policy` blocks as defined below.
 
 * `conflict_resolution_policy` - (Optional)  A `conflict_resolution_policy` blocks as defined below.
 
@@ -86,7 +86,7 @@ The following arguments are supported:
 
 An `autoscale_settings` block supports the following:
 
-* `max_throughput` - (Optional) The maximum throughput of the Gremlin graph (RU/s). Must be between `4,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
+* `max_throughput` - (Optional) The maximum throughput of the Gremlin graph (RU/s). Must be between `1,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
 
 ---
 

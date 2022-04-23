@@ -42,23 +42,12 @@ func resourceManagementGroup() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"group_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"name"},
-				Deprecated:    "Deprecated in favour of `name`",
-				ValidateFunc:  validate.ManagementGroupName,
-			},
-
 			"name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"group_id"},
-				ValidateFunc:  validate.ManagementGroupName,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ManagementGroupName,
 			},
 
 			"display_name": {
@@ -96,9 +85,6 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	armTenantID := meta.(*clients.Client).Account.TenantId
 
 	var groupName string
-	if v := d.Get("group_id"); v != "" {
-		groupName = v.(string)
-	}
 	if v := d.Get("name"); v != "" {
 		groupName = v.(string)
 	}
@@ -107,6 +93,8 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		groupName = uuid.New().String()
 	}
 
+	id := parse.NewManagementGroupId(groupName)
+
 	parentManagementGroupId := d.Get("parent_management_group_id").(string)
 	if parentManagementGroupId == "" {
 		parentManagementGroupId = fmt.Sprintf("/providers/Microsoft.Management/managementGroups/%s", armTenantID)
@@ -114,15 +102,15 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	recurse := false
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
+		existing, err := client.Get(ctx, id.Name, "children", &recurse, "", managementGroupCacheControl)
 		if err != nil {
 			// 403 is returned if group does not exist, bug tracked at: https://github.com/Azure/azure-rest-api-specs/issues/9549
 			if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasForbidden(existing.Response) {
 				return fmt.Errorf("unable to check for presence of existing Management Group %q: %s", groupName, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_management_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasForbidden(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_management_group", id.ID())
 		}
 	}
 
@@ -144,7 +132,7 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		properties.CreateManagementGroupProperties.DisplayName = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, groupName, properties, managementGroupCacheControl)
+	future, err := client.CreateOrUpdate(ctx, id.Name, properties, managementGroupCacheControl)
 	if err != nil {
 		return fmt.Errorf("unable to create Management Group %q: %+v", groupName, err)
 	}
@@ -171,12 +159,12 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("failed waiting for read on Managementgroup %q", groupName)
 	}
 
-	resp, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
+	resp, err := client.Get(ctx, id.Name, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve Management Group %q: %+v", groupName, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	subscriptionIds := expandManagementGroupSubscriptionIds(d.Get("subscription_ids").(*pluginsdk.Set))
 
@@ -236,7 +224,6 @@ func resourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.Set("name", id.Name)
-	d.Set("group_id", id.Name)
 
 	if props := resp.Properties; props != nil {
 		d.Set("display_name", props.DisplayName)

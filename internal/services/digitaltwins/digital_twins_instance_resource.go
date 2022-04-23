@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-10-31/digitaltwins"
+	"github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-12-01/digitaltwins"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -58,6 +58,7 @@ func resourceDigitalTwinsInstance() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceDigitalTwinsInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.InstanceClient
@@ -148,8 +149,13 @@ func resourceDigitalTwinsInstanceUpdate(d *pluginsdk.ResourceData, meta interfac
 		props.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, props); err != nil {
-		return fmt.Errorf("updating Digital Twins Instance %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, props)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	return resourceDigitalTwinsInstanceRead(d, meta)

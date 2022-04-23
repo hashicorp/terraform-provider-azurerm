@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AdvancedThreatProtectionResource struct {
-}
+type AdvancedThreatProtectionResource struct{}
 
 func TestAccAdvancedThreatProtection_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "test")

@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type AppConfigurationDataSource struct {
-}
+type AppConfigurationDataSource struct{}
 
 func TestAccAppConfigurationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_configuration", "test")

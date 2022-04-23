@@ -133,7 +133,7 @@ func (br costManagementExportBaseResource) createFunc(resourceName, scopeFieldNa
 				return tf.ImportAsExistsError(resourceName, id.ID())
 			}
 
-			if err := createOrUpdateCostManagementExport(ctx, client, metadata, id); err != nil {
+			if err := createOrUpdateCostManagementExport(ctx, client, metadata, id, nil); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -163,7 +163,7 @@ func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.R
 			}
 
 			metadata.ResourceData.Set("name", id.Name)
-			// lintignore:R001
+			//lintignore:R001
 			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
 			if schedule := resp.Schedule; schedule != nil {
@@ -227,7 +227,15 @@ func (br costManagementExportBaseResource) updateFunc() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := createOrUpdateCostManagementExport(ctx, client, metadata, *id); err != nil {
+			// Update operation requires latest eTag to be set in the request.
+			resp, err := client.Get(ctx, id.Scope, id.Name, "")
+			if err != nil {
+				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
+			if resp.ETag == nil {
+				return fmt.Errorf("add %s: etag was nil", *id)
+			}
+			if err := createOrUpdateCostManagementExport(ctx, client, metadata, *id, resp.ETag); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -236,7 +244,7 @@ func (br costManagementExportBaseResource) updateFunc() sdk.ResourceFunc {
 	}
 }
 
-func createOrUpdateCostManagementExport(ctx context.Context, client *costmanagement.ExportsClient, metadata sdk.ResourceMetaData, id parse.CostManagementExportId) error {
+func createOrUpdateCostManagementExport(ctx context.Context, client *costmanagement.ExportsClient, metadata sdk.ResourceMetaData, id parse.CostManagementExportId, etag *string) error {
 	from, _ := time.Parse(time.RFC3339, metadata.ResourceData.Get("recurrence_period_start_date").(string))
 	to, _ := time.Parse(time.RFC3339, metadata.ResourceData.Get("recurrence_period_end_date").(string))
 
@@ -251,6 +259,7 @@ func createOrUpdateCostManagementExport(ctx context.Context, client *costmanagem
 	}
 
 	props := costmanagement.Export{
+		ETag: etag,
 		ExportProperties: &costmanagement.ExportProperties{
 			Schedule: &costmanagement.ExportSchedule{
 				Recurrence: costmanagement.RecurrenceType(metadata.ResourceData.Get("recurrence_type").(string)),

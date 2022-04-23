@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppConfigurationKeyResource struct {
-}
+type AppConfigurationKeyResource struct{}
 
 func TestAccAppConfigurationKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
@@ -122,6 +121,7 @@ func TestAccAppConfigurationKey_requiresImport(t *testing.T) {
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
+
 func TestAccAppConfigurationKey_lockUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_key", "test")
 	r := AppConfigurationKeyResource{}
@@ -142,6 +142,7 @@ func TestAccAppConfigurationKey_lockUpdate(t *testing.T) {
 		},
 	})
 }
+
 func (t AppConfigurationKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	resourceID, err := parse.KeyId(state.ID)
 	if err != nil {
@@ -149,6 +150,10 @@ func (t AppConfigurationKeyResource) Exists(ctx context.Context, clients *client
 	}
 
 	client, err := clients.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+	if client == nil {
+		// if the AppConfiguration is gone all the data will be too
+		return utils.Bool(false), nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -293,16 +298,16 @@ resource "azurerm_key_vault" "example" {
     object_id = data.azurerm_client_config.test.object_id
 
     key_permissions = [
-      "create",
-      "get",
+      "Create",
+      "Get",
     ]
 
     secret_permissions = [
-      "set",
-      "get",
-      "delete",
-      "purge",
-      "recover"
+      "Set",
+      "Get",
+      "Delete",
+      "Purge",
+      "Recover"
     ]
   }
 }

@@ -13,16 +13,18 @@ import (
 )
 
 type AccessPackage struct {
-	ID                  *string    `json:"id,omitempty"`
-	CatalogId           *string    `json:"catalogId,omitempty"`
-	CreatedBy           *string    `json:"createdBy,omitempty"`
-	CreatedDateTime     *time.Time `json:"createdDateTime,omitempty"`
-	Description         *string    `json:"description,omitempty"`
-	DisplayName         *string    `json:"displayName,omitempty"`
-	IsHidden            *bool      `json:"isHidden,omitempty"`
-	IsRoleScopesVisible *bool      `json:"isRoleScopesVisible,omitempty"`
-	ModifiedBy          *string    `json:"modifiedBy,omitempty"`
-	ModifiedDateTime    *time.Time `json:"modifiedDateTime,omitempty"`
+	ID               *string               `json:"id,omitempty"`
+	Catalog          *AccessPackageCatalog `json:"catalog,omitempty"`
+	CreatedDateTime  *time.Time            `json:"createdDateTime,omitempty"`
+	Description      *string               `json:"description,omitempty"`
+	DisplayName      *string               `json:"displayName,omitempty"`
+	IsHidden         *bool                 `json:"isHidden,omitempty"`
+	ModifiedDateTime *time.Time            `json:"modifiedDateTime,omitempty"`
+	//Beta
+	IsRoleScopesVisible *bool   `json:"isRoleScopesVisible,omitempty"`
+	ModifiedBy          *string `json:"modifiedBy,omitempty"`
+	CatalogId           *string `json:"catalogId,omitempty"`
+	CreatedBy           *string `json:"createdBy,omitempty"`
 }
 
 type AccessPackageAssignmentPolicy struct {
@@ -44,16 +46,18 @@ type AccessPackageAssignmentPolicy struct {
 }
 
 type AccessPackageCatalog struct {
-	ID                  *string                    `json:"id,omitempty"`
-	CatalogStatus       AccessPackageCatalogStatus `json:"catalogStatus,omitempty"`
-	CatalogType         AccessPackageCatalogType   `json:"catalogType,omitempty"`
-	CreatedBy           *string                    `json:"createdBy,omitempty"`
-	CreatedDateTime     *time.Time                 `json:"createdDateTime,omitempty"`
-	Description         *string                    `json:"description,omitempty"`
-	DisplayName         *string                    `json:"displayName,omitempty"`
-	IsExternallyVisible *bool                      `json:"isExternallyVisible,omitempty"`
-	ModifiedBy          *string                    `json:"modifiedBy,omitempty"`
-	ModifiedDateTime    *time.Time                 `json:"modifiedDateTime,omitempty"`
+	ID                  *string                   `json:"id,omitempty"`
+	State               AccessPackageCatalogState `json:"state,omitempty"`
+	CatalogType         AccessPackageCatalogType  `json:"catalogType,omitempty"`
+	CreatedDateTime     *time.Time                `json:"createdDateTime,omitempty"`
+	Description         *string                   `json:"description,omitempty"`
+	DisplayName         *string                   `json:"displayName,omitempty"`
+	IsExternallyVisible *bool                     `json:"isExternallyVisible,omitempty"`
+	ModifiedDateTime    *time.Time                `json:"modifiedDateTime,omitempty"`
+	//Beta
+	CatalogStatus AccessPackageCatalogStatus `json:"catalogStatus,omitempty"`
+	CreatedBy     *string                    `json:"createdBy,omitempty"`
+	ModifiedBy    *string                    `json:"modifiedBy,omitempty"`
 }
 
 type AccessPackageLocalizedContent struct {
@@ -67,10 +71,19 @@ type AccessPackageLocalizedTexts struct {
 }
 
 type AccessPackageQuestion struct {
-	ID         *string                        `json:"id,omitempty"`
-	IsRequired *bool                          `json:"isRequired,omitempty"`
-	Sequence   *int32                         `json:"sequence,omitempty"`
-	Text       *AccessPackageLocalizedContent `json:"text,omitempty"`
+	ODataType            *odata.Type                             `json:"@odata.type,omitempty"`
+	ID                   *string                                 `json:"id,omitempty"`
+	IsRequired           *bool                                   `json:"isRequired,omitempty"`
+	Sequence             *int32                                  `json:"sequence,omitempty"`
+	Text                 *AccessPackageLocalizedContent          `json:"text,omitempty"`
+	Choices              *[]AccessPackageMultipleChoiceQuestions `json:"choices,omitempty"`
+	IsSingleLineQuestion *bool                                   `json:"isSingleLineQuestion,omitempty"`
+}
+
+type AccessPackageMultipleChoiceQuestions struct {
+	ODataType    *odata.Type                    `json:"@odata.type,omitempty"`
+	ActualValue  *string                        `json:"actualValue,string"`
+	DisplayValue *AccessPackageLocalizedContent `json:"displayValue,omitempty"`
 }
 
 type AccessPackageResource struct {
@@ -85,7 +98,7 @@ type AccessPackageResource struct {
 	OriginSystem                     AccessPackageResourceOriginSystem `json:"originSystem,omitempty"`
 	ResourceType                     *AccessPackageResourceType        `json:"resourceType,omitempty"`
 	Url                              *string                           `json:"url,omitempty"`
-	// Attributes is a returned collection but is not documented or used
+	// Attributes is a returned collection but is not documented or used in beta
 }
 
 type AccessPackageResourceEnvironment struct {
@@ -155,6 +168,13 @@ type AddIn struct {
 type AddInKeyValue struct {
 	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
+}
+
+type AdministrativeUnit struct {
+	Description *StringNullWhenEmpty          `json:"description,omitempty"`
+	DisplayName *string                       `json:"displayName,omitempty"`
+	ID          *string                       `json:"id,omitempty"`
+	Visibility  *AdministrativeUnitVisibility `json:"visibility,omitempty"`
 }
 
 type ApiPreAuthorizedApplication struct {
@@ -494,12 +514,15 @@ type ApprovalStage struct {
 }
 
 type AssignmentReviewSettings struct {
-	IsEnabled      *bool      `json:"isEnabled,omitempty"`
-	RecurrenceType *string    `json:"recurrenceType,omitempty"`
-	ReviewerType   *string    `json:"reviewerType,omitempty"`
-	StartDateTime  *time.Time `json:"startDateTime,omitempty"`
-	DurationInDays *int32     `json:"durationInDays,omitempty"`
-	Reviewers      *[]UserSet `json:"reviewers,omitempty"`
+	IsEnabled                       *bool                           `json:"isEnabled,omitempty"`
+	RecurrenceType                  AccessReviewRecurranceType      `json:"recurrenceType,omitempty"`
+	ReviewerType                    AccessReviewReviewerType        `json:"reviewerType,omitempty"`
+	StartDateTime                   *time.Time                      `json:"startDateTime,omitempty"`
+	DurationInDays                  *int32                          `json:"durationInDays,omitempty"`
+	Reviewers                       *[]UserSet                      `json:"reviewers,omitempty"`
+	IsAccessRecommendationEnabled   *bool                           `json:"isAccessRecommendationEnabled,omitempty"`
+	IsApprovalJustificationRequired *bool                           `json:"isApprovalJustificationRequired,omitempty"`
+	AccessReviewTimeoutBehavior     AccessReviewTimeoutBehaviorType `json:"accessReviewTimeoutBehavior,omitempty"`
 }
 
 type AuditActivityInitiator struct {
@@ -517,9 +540,17 @@ type BaseNamedLocation struct {
 	ModifiedDateTime *time.Time  `json:"modifiedDateTime,omitempty"`
 }
 
+type ClaimsMappingPolicy struct {
+	DirectoryObject
+	Definition            *[]string `json:"definition,omitempty"`
+	Description           *string   `json:"description,omitempty"`
+	DisplayName           *string   `json:"displayName,omitempty"`
+	IsOrganizationDefault *bool     `json:"isOrganizationDefault,omitempty"`
+}
+
 type CloudAppSecurityControl struct {
-	IsEnabled            *bool   `json:"isEnabled,omitempty"`
-	CloudAppSecurityType *string `json:"cloudAppSecurityType,omitempty"`
+	IsEnabled            *bool                                                `json:"isEnabled,omitempty"`
+	CloudAppSecurityType *ConditionalAccessCloudAppSecuritySessionControlType `json:"cloudAppSecurityType,omitempty"`
 }
 
 type ConditionalAccessApplications struct {
@@ -529,20 +560,38 @@ type ConditionalAccessApplications struct {
 }
 
 type ConditionalAccessConditionSet struct {
-	Applications     *ConditionalAccessApplications `json:"applications,omitempty"`
-	Users            *ConditionalAccessUsers        `json:"users,omitempty"`
-	ClientAppTypes   *[]string                      `json:"clientAppTypes,omitempty"`
-	Locations        *ConditionalAccessLocations    `json:"locations,omitempty"`
-	Platforms        *ConditionalAccessPlatforms    `json:"platforms,omitempty"`
-	SignInRiskLevels *[]string                      `json:"signInRiskLevels,omitempty"`
-	UserRiskLevels   *[]string                      `json:"userRiskLevels,omitempty"`
+	Applications     *ConditionalAccessApplications    `json:"applications,omitempty"`
+	ClientAppTypes   *[]ConditionalAccessClientAppType `json:"clientAppTypes,omitempty"`
+	Devices          *ConditionalAccessDevices         `json:"devices,omitempty"`
+	DeviceStates     *ConditionalAccessDeviceStates    `json:"deviceStates,omitempty"`
+	Locations        *ConditionalAccessLocations       `json:"locations,omitempty"`
+	Platforms        *ConditionalAccessPlatforms       `json:"platforms,omitempty"`
+	SignInRiskLevels *[]ConditionalAccessRiskLevel     `json:"signInRiskLevels,omitempty"`
+	UserRiskLevels   *[]ConditionalAccessRiskLevel     `json:"userRiskLevels,omitempty"`
+	Users            *ConditionalAccessUsers           `json:"users,omitempty"`
+}
+
+type ConditionalAccessDevices struct {
+	IncludeDevices *[]string                `json:"includeDevices,omitempty"`
+	ExcludeDevices *[]string                `json:"excludeDevices,omitempty"`
+	DeviceFilter   *ConditionalAccessFilter `json:"deviceFilter,omitempty"`
+}
+
+type ConditionalAccessDeviceStates struct {
+	IncludeStates *ConditionalAccessDeviceStatesInclude `json:"includeStates,omitempty"`
+	ExcludeStates *ConditionalAccessDeviceStatesExclude `json:"excludeStates,omitempty"`
+}
+
+type ConditionalAccessFilter struct {
+	Mode *ConditionalAccessFilterMode `json:"mode,omitempty"`
+	Rule *string                      `json:"rule,omitempty"`
 }
 
 type ConditionalAccessGrantControls struct {
-	Operator                    *string   `json:"operator,omitempty"`
-	BuiltInControls             *[]string `json:"builtInControls,omitempty"`
-	CustomAuthenticationFactors *[]string `json:"customAuthenticationFactors,omitempty"`
-	TermsOfUse                  *[]string `json:"termsOfUse,omitempty"`
+	Operator                    *string                          `json:"operator,omitempty"`
+	BuiltInControls             *[]ConditionalAccessGrantControl `json:"builtInControls,omitempty"`
+	CustomAuthenticationFactors *[]string                        `json:"customAuthenticationFactors,omitempty"`
+	TermsOfUse                  *[]string                        `json:"termsOfUse,omitempty"`
 }
 
 type ConditionalAccessLocations struct {
@@ -551,8 +600,8 @@ type ConditionalAccessLocations struct {
 }
 
 type ConditionalAccessPlatforms struct {
-	IncludePlatforms *[]string `json:"includePlatforms,omitempty"`
-	ExcludePlatforms *[]string `json:"excludePlatforms,omitempty"`
+	IncludePlatforms *[]ConditionalAccessDevicePlatform `json:"includePlatforms,omitempty"`
+	ExcludePlatforms *[]ConditionalAccessDevicePlatform `json:"excludePlatforms,omitempty"`
 }
 
 // ConditionalAccessPolicy describes an Conditional Access Policy object.
@@ -616,6 +665,61 @@ type CredentialUserRegistrationDetails struct {
 	IsRegistered      *bool                     `json:"isRegistered,omitempty"`
 	UserDisplayName   *string                   `json:"userDisplayName,omitempty"`
 	UserPrincipalName *string                   `json:"UserPrincipalName,omitempty"`
+}
+
+type DelegatedPermissionGrant struct {
+	Id          *string                              `json:"id,omitempty"`
+	ClientId    *string                              `json:"clientId,omitempty"`
+	ConsentType *DelegatedPermissionGrantConsentType `json:"consentType,omitempty"`
+	PrincipalId *string                              `json:"principalId,omitempty"`
+	ResourceId  *string                              `json:"resourceId,omitempty"`
+	Scopes      *[]string                            `json:"-"`
+}
+
+func (d DelegatedPermissionGrant) MarshalJSON() ([]byte, error) {
+	var val *StringNullWhenEmpty
+	if d.Scopes != nil {
+		scopes := make([]string, 0)
+		for _, s := range *d.Scopes {
+			scopes = append(scopes, string(s))
+		}
+		theScopes := StringNullWhenEmpty(strings.Join(scopes, " "))
+		val = &theScopes
+	}
+
+	// Local type needed to avoid recursive MarshalJSON calls
+	type delegatedPermissionGrant DelegatedPermissionGrant
+	grant := struct {
+		Scopes *StringNullWhenEmpty `json:"scope,omitempty"`
+		*delegatedPermissionGrant
+	}{
+		Scopes:                   val,
+		delegatedPermissionGrant: (*delegatedPermissionGrant)(&d),
+	}
+	buf, err := json.Marshal(&grant)
+	return buf, err
+}
+
+func (d *DelegatedPermissionGrant) UnmarshalJSON(data []byte) error {
+	// Local type needed to avoid recursive UnmarshalJSON calls
+	type delegatedPermissionGrant DelegatedPermissionGrant
+	grant := struct {
+		Scopes *string `json:"scope"`
+		*delegatedPermissionGrant
+	}{
+		delegatedPermissionGrant: (*delegatedPermissionGrant)(d),
+	}
+	if err := json.Unmarshal(data, &grant); err != nil {
+		return err
+	}
+	if grant.Scopes != nil {
+		var scopes []string
+		for _, s := range strings.Split(*grant.Scopes, " ") {
+			scopes = append(scopes, strings.TrimSpace(s))
+		}
+		d.Scopes = &scopes
+	}
+	return nil
 }
 
 type DeviceDetail struct {
@@ -719,6 +823,15 @@ type ExtensionSchemaProperty struct {
 	Type ExtensionSchemaPropertyDataType `json:"type,omitempty"`
 }
 
+type FederatedIdentityCredential struct {
+	Audiences   *[]string            `json:"audiences,omitempty"`
+	Description *StringNullWhenEmpty `json:"description,omitempty"`
+	ID          *string              `json:"id,omitempty"`
+	Issuer      *string              `json:"issuer,omitempty"`
+	Name        *string              `json:"name,omitempty"`
+	Subject     *string              `json:"subject,omitempty"`
+}
+
 type Fido2AuthenticationMethod struct {
 	ID                      *string           `json:"id,omitempty"`
 	DisplayName             *string           `json:"displayName,omitempty"`
@@ -742,7 +855,7 @@ type Group struct {
 	Owners           *Owners                `json:"owners@odata.bind,omitempty"`
 	SchemaExtensions *[]SchemaExtensionData `json:"-"`
 
-	AllowExternalSenders          *string                             `json:"allowExternalSenders,omitempty"`
+	AllowExternalSenders          *bool                               `json:"allowExternalSenders,omitempty"`
 	AssignedLabels                *[]GroupAssignedLabel               `json:"assignedLabels,omitempty"`
 	AssignedLicenses              *[]GroupAssignedLicense             `json:"assignLicenses,omitempty"`
 	AutoSubscribeNewMembers       *bool                               `json:"autoSubscribeNewMembers,omitempty"`
@@ -761,8 +874,8 @@ type Group struct {
 	Mail                          *string                             `json:"mail,omitempty"`
 	MailEnabled                   *bool                               `json:"mailEnabled,omitempty"`
 	MailNickname                  *string                             `json:"mailNickname,omitempty"`
-	MembershipRule                *string                             `json:"membershipRule,omitempty"`
-	MembershipRuleProcessingState *string                             `json:"membershipRuleProcessingState,omitempty"`
+	MembershipRule                *StringNullWhenEmpty                `json:"membershipRule,omitempty"`
+	MembershipRuleProcessingState *GroupMembershipRuleProcessingState `json:"membershipRuleProcessingState,omitempty"`
 	OnPremisesDomainName          *string                             `json:"onPremisesDomainName,omitempty"`
 	OnPremisesLastSyncDateTime    *time.Time                          `json:"onPremisesLastSyncDateTime,omitempty"`
 	OnPremisesNetBiosName         *string                             `json:"onPremisesNetBiosName,omitempty"`
@@ -847,7 +960,7 @@ func (g *Group) HasTypes(types []GroupType) bool {
 
 type GroupAssignedLabel struct {
 	LabelId     *string `json:"labelId,omitempty"`
-	DisplayName *string `json:"displayNanme,omitempty"`
+	DisplayName *string `json:"displayName,omitempty"`
 }
 
 type GroupAssignedLicense struct {
@@ -860,6 +973,12 @@ type GroupOnPremisesProvisioningError struct {
 	OccurredDateTime     time.Time `json:"occurredDateTime,omitempty"`
 	PropertyCausingError *string   `json:"propertyCausingError,omitempty"`
 	Value                *string   `json:"value,omitempty"`
+}
+
+type Identity struct {
+	DisplayName *string `json:"displayName,omitempty"`
+	Id          *string `json:"id,omitempty"`
+	TenantId    *string `json:"tenantId,omitempty"`
 }
 
 type IdentityProvider struct {
@@ -933,6 +1052,7 @@ type KeyCredential struct {
 	EndDateTime         *time.Time         `json:"endDateTime,omitempty"`
 	KeyId               *string            `json:"keyId,omitempty"`
 	StartDateTime       *time.Time         `json:"startDateTime,omitempty"`
+	Thumbprint          *string            `json:"thumbprint,omitempty"`
 	Type                KeyCredentialType  `json:"type"`
 	Usage               KeyCredentialUsage `json:"usage"`
 	Key                 *string            `json:"key,omitempty"`
@@ -1071,8 +1191,8 @@ type PermissionScope struct {
 }
 
 type PersistentBrowserSessionControl struct {
-	IsEnabled *bool   `json:"isEnabled,omitempty"`
-	Mode      *string `json:"mode,omitempty"`
+	IsEnabled *bool                         `json:"isEnabled,omitempty"`
+	Mode      *PersistentBrowserSessionMode `json:"mode,omitempty"`
 }
 
 type PhoneAuthenticationMethod struct {
@@ -1129,11 +1249,18 @@ func (se SchemaExtensionData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(in)
 }
 
+type ScopedRoleMembership struct {
+	AdministrativeUnitId *string   `json:"administrativeUnitId,omitempty"`
+	Id                   *string   `json:"id,omitempty"`
+	RoleId               *string   `json:"roleId,omitempty"`
+	RoleMemberInfo       *Identity `json:"roleMemberInfo"`
+}
+
 // ServicePrincipal describes a Service Principal object.
 type ServicePrincipal struct {
 	DirectoryObject
-	Owners *Owners `json:"owners@odata.bind,omitempty"`
-
+	Owners                              *Owners                       `json:"owners@odata.bind,omitempty"`
+	ClaimsMappingPolicies               *[]ClaimsMappingPolicy        `json:"claimsmappingpolicies@odata.bind,omitempty"`
 	AccountEnabled                      *bool                         `json:"accountEnabled,omitempty"`
 	AddIns                              *[]AddIn                      `json:"addIns,omitempty"`
 	AlternativeNames                    *[]string                     `json:"alternativeNames,omitempty"`
@@ -1156,6 +1283,7 @@ type ServicePrincipal struct {
 	PasswordCredentials                 *[]PasswordCredential         `json:"passwordCredentials,omitempty"`
 	PasswordSingleSignOnSettings        *PasswordSingleSignOnSettings `json:"passwordSingleSignOnSettings,omitempty"`
 	PreferredSingleSignOnMode           *PreferredSingleSignOnMode    `json:"preferredSingleSignOnMode,omitempty"`
+	PreferredTokenSigningKeyThumbprint  *string                       `json:"preferredTokenSigningKeyThumbprint,omitempty"`
 	PreferredTokenSigningKeyEndDateTime *time.Time                    `json:"preferredTokenSigningKeyEndDateTime,omitempty"`
 	PublishedPermissionScopes           *[]PermissionScope            `json:"publishedPermissionScopes,omitempty"`
 	ReplyUrls                           *[]string                     `json:"replyUrls,omitempty"`
@@ -1247,6 +1375,34 @@ type TemporaryAccessPassAuthenticationMethod struct {
 	IsUsableOnce          *bool                  `json:"isUsableOnce,omitempty"`
 	IsUsable              *bool                  `json:"isUsable,omitempty"`
 	MethodUsabilityReason *MethodUsabilityReason `json:"methodUsabilityReason,omitempty"`
+}
+
+type UnifiedRoleAssignment struct {
+	DirectoryObject
+
+	AppScopeId       *string `json:"appScopeId,omitempty"`
+	DirectoryScopeId *string `json:"directoryScopeId,omitempty"`
+	PrincipalId      *string `json:"principalId,omitempty"`
+	RoleDefinitionId *string `json:"roleDefinitionId,omitempty"`
+}
+
+type UnifiedRoleDefinition struct {
+	DirectoryObject
+
+	Description     *StringNullWhenEmpty     `json:"description,omitempty"`
+	DisplayName     *string                  `json:"displayName,omitempty"`
+	IsBuiltIn       *bool                    `json:"isBuiltIn,omitempty"`
+	IsEnabled       *bool                    `json:"isEnabled,omitempty"`
+	ResourceScopes  *[]string                `json:"resourceScopes,omitempty"`
+	RolePermissions *[]UnifiedRolePermission `json:"rolePermissions,omitempty"`
+	TemplateId      *string                  `json:"templateId,omitempty"`
+	Version         *string                  `json:"version,omitempty"`
+}
+
+type UnifiedRolePermission struct {
+	AllowedResourceActions  *[]string            `json:"allowedResourceActions,omitempty"`
+	Condition               *StringNullWhenEmpty `json:"condition,omitempty"`
+	ExcludedResourceActions *[]string            `json:"excludedResourceActions,omitempty"`
 }
 
 // User describes a User object.
@@ -1404,9 +1560,11 @@ type UserRegistrationMethodSummary struct {
 }
 
 type UserSet struct {
-	IsBackup    *bool   `json:"isBackup,omitempty"`
-	ID          *string `json:"id,omitempty"` // Either user or group ID
-	Description *string `json:"description,omitempty"`
+	ODataType    *odata.Type `json:"@odata.type,omitempty"`
+	IsBackup     *bool       `json:"isBackup,omitempty"`
+	ID           *string     `json:"id,omitempty"` // Either user or group ID
+	Description  *string     `json:"description,omitempty"`
+	ManagerLevel *int32      `json:"managerLevel,omitempty"`
 }
 
 type UserCredentialUsageDetails struct {

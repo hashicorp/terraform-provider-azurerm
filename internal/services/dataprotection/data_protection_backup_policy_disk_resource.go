@@ -123,6 +123,7 @@ func resourceDataProtectionBackupPolicyDisk() *schema.Resource {
 		},
 	}
 }
+
 func resourceDataProtectionBackupPolicyDiskCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupPolicyClient

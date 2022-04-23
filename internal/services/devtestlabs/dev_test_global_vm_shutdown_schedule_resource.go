@@ -107,20 +107,21 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 	defer cancel()
 
 	vmID := d.Get("virtual_machine_id").(string)
-	id, err := computeParse.VirtualMachineID(vmID)
+	vmId, err := computeParse.VirtualMachineID(vmID)
 	if err != nil {
 		return err
 	}
 
 	// Can't find any official documentation on this, but the API returns a 400 for any other name.
 	// The best example I could find is here: https://social.msdn.microsoft.com/Forums/en-US/25a02403-dba9-4bcb-bdcc-1f4afcba5b65/powershell-script-to-autoshutdown-azure-virtual-machine?forum=WAVirtualMachinesforWindows
-	name := "shutdown-computevm-" + id.Name
+	name := "shutdown-computevm-" + vmId.Name
+	id := parse.NewScheduleID(vmId.SubscriptionId, vmId.ResourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Schedule %q (Resource Group %q): %s", name, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
@@ -165,16 +166,7 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	read, err := client.Get(ctx, id.ResourceGroup, name, "")
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Dev Test Global Schedule %s (resource group %s) ID", name, id.ResourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceDevTestGlobalVMShutdownScheduleRead(d, meta)
 }

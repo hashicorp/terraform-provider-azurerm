@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -121,7 +121,7 @@ func resourceAutomationDscConfigurationCreateUpdate(d *pluginsdk.ResourceData, m
 			LogVerbose:  utils.Bool(logVerbose),
 			Description: utils.String(description),
 			Source: &automation.ContentSource{
-				Type:  automation.EmbeddedContent,
+				Type:  automation.ContentSourceTypeEmbeddedContent,
 				Value: utils.String(contentEmbedded),
 			},
 		},

@@ -1,6 +1,7 @@
 package network
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -8,12 +9,17 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	msiParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -102,9 +108,9 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 
 func resourceApplicationGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApplicationGatewayCreateUpdate,
+		Create: resourceApplicationGatewayCreate,
 		Read:   resourceApplicationGatewayRead,
-		Update: resourceApplicationGatewayCreateUpdate,
+		Update: resourceApplicationGatewayUpdate,
 		Delete: resourceApplicationGatewayDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ApplicationGatewayID(id)
@@ -125,46 +131,28 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"zones": azure.SchemaZones(),
+			"zones": func() *schema.Schema {
+				if !features.ThreePointOhBeta() {
+					return azure.SchemaZones()
+				}
 
-			"resource_group_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(network.ResourceIdentityTypeUserAssigned),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.ResourceIdentityTypeUserAssigned),
-							}, false),
-						},
-						"identity_ids": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.NoZeroValues,
-							},
-						},
-					},
-				},
-			},
+				return commonschema.ZonesMultipleOptionalForceNew()
+			}(),
 
-			// Required
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"identity": commonschema.UserAssignedIdentityOptional(),
+
+			//lintignore:S016,S023
 			"backend_address_pool": {
-				Type:     pluginsdk.TypeList,
+				Type: func() pluginsdk.ValueType {
+					if features.ThreePointOhBeta() {
+						return pluginsdk.TypeSet
+					}
+					return pluginsdk.TypeList
+				}(),
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -174,7 +162,12 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"fqdns": {
-							Type:     pluginsdk.TypeList,
+							Type: func() pluginsdk.ValueType {
+								if features.ThreePointOhBeta() {
+									return pluginsdk.TypeSet
+								}
+								return pluginsdk.TypeList
+							}(),
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -183,7 +176,12 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"ip_addresses": {
-							Type:     pluginsdk.TypeList,
+							Type: func() pluginsdk.ValueType {
+								if features.ThreePointOhBeta() {
+									return pluginsdk.TypeSet
+								}
+								return pluginsdk.TypeList
+							}(),
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -197,10 +195,22 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 					},
 				},
+				Set: func() pluginsdk.SchemaSetFunc {
+					if features.ThreePointOhBeta() {
+						return applicationGatewayBackendAddressPool
+					}
+					return nil
+				}(),
 			},
 
+			//lintignore:S016,S017,S023
 			"backend_http_settings": {
-				Type:     pluginsdk.TypeList,
+				Type: func() pluginsdk.ValueType {
+					if features.ThreePointOhBeta() {
+						return pluginsdk.TypeSet
+					}
+					return pluginsdk.TypeList
+				}(),
 				Required: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -224,21 +234,21 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"protocol": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ProtocolHTTP),
 								string(network.ProtocolHTTPS),
-							}, true),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"cookie_based_affinity": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ApplicationGatewayCookieBasedAffinityEnabled),
 								string(network.ApplicationGatewayCookieBasedAffinityDisabled),
-							}, true),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"affinity_cookie_name": {
@@ -327,6 +337,12 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 					},
 				},
+				Set: func() pluginsdk.SchemaSetFunc {
+					if features.ThreePointOhBeta() {
+						return applicationGatewayBackendSettingsHash
+					}
+					return nil
+				}(),
 			},
 
 			"frontend_ip_configuration": {
@@ -343,30 +359,27 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"subnet_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 
 						"public_ip_address_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 
 						"private_ip_address_allocation": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							Computed:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							Default:          string(network.IPAllocationMethodDynamic),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IPAllocationMethodDynamic),
 								string(network.IPAllocationMethodStatic),
-							}, true),
+							}, false),
 						},
 
 						"private_link_configuration_name": {
@@ -436,8 +449,14 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
+			//lintignore:S016,S023
 			"http_listener": {
-				Type:     pluginsdk.TypeList,
+				Type: func() pluginsdk.ValueType {
+					if features.ThreePointOhBeta() {
+						return pluginsdk.TypeSet
+					}
+					return pluginsdk.TypeList
+				}(),
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -459,11 +478,11 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"protocol": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ProtocolHTTP),
 								string(network.ProtocolHTTPS),
-							}, true),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"host_name": {
@@ -553,6 +572,12 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 					},
 				},
+				Set: func() pluginsdk.SchemaSetFunc {
+					if features.ThreePointOhBeta() {
+						return applicationGatewayHttpListnerHash
+					}
+					return nil
+				}(),
 			},
 
 			"fips_enabled": {
@@ -617,7 +642,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											string(network.IPAllocationMethodDynamic),
 											string(network.IPAllocationMethodStatic),
-										}, true),
+										}, !features.ThreePointOhBeta()),
+										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 									},
 
 									"primary": {
@@ -817,7 +843,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"name": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ApplicationGatewaySkuNameStandardSmall),
 								string(network.ApplicationGatewaySkuNameStandardMedium),
@@ -826,19 +852,19 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 								string(network.ApplicationGatewaySkuNameWAFLarge),
 								string(network.ApplicationGatewaySkuNameWAFMedium),
 								string(network.ApplicationGatewaySkuNameWAFV2),
-							}, true),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"tier": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ApplicationGatewayTierStandard),
 								string(network.ApplicationGatewayTierStandardV2),
 								string(network.ApplicationGatewayTierWAF),
 								string(network.ApplicationGatewayTierWAFV2),
-							}, true),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"capacity": {
@@ -911,6 +937,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			//lintignore:XS003
 			"ssl_policy": sslProfileSchema(true),
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_http2": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -921,8 +948,14 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			//lintignore:S016,S023
 			"probe": {
-				Type:     pluginsdk.TypeList,
+				Type: func() pluginsdk.ValueType {
+					if features.ThreePointOhBeta() {
+						return pluginsdk.TypeSet
+					}
+					return pluginsdk.TypeList
+				}(),
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -934,11 +967,11 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"protocol": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ProtocolHTTP),
 								string(network.ProtocolHTTPS),
-							}, true),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"path": {
@@ -985,28 +1018,53 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						//lintignore:XS003
-						"match": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"body": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-									},
+						"match": func() *pluginsdk.Schema {
+							if features.ThreePointOhBeta() {
+								return &pluginsdk.Schema{
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"body": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+											},
 
-									"status_code": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
+											"status_code": {
+												Type:     pluginsdk.TypeList,
+												Required: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+												},
+											},
+										},
+									},
+								}
+							}
+							return &pluginsdk.Schema{
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								Computed: true,
+								MaxItems: 1,
+								Elem: &pluginsdk.Resource{
+									Schema: map[string]*pluginsdk.Schema{
+										"body": {
+											Type:     pluginsdk.TypeString,
+											Optional: true,
+										},
+
+										"status_code": {
+											Type:     pluginsdk.TypeList,
+											Optional: true,
+											Elem: &pluginsdk.Schema{
+												Type: pluginsdk.TypeString,
+											},
 										},
 									},
 								},
-							},
-						},
+							}
+						}(),
 
 						"id": {
 							Type:     pluginsdk.TypeString,
@@ -1014,6 +1072,12 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 					},
 				},
+				Set: func() pluginsdk.SchemaSetFunc {
+					if features.ThreePointOhBeta() {
+						return applicationGatewayProbeHash
+					}
+					return nil
+				}(),
 			},
 
 			"rewrite_rule_set": {
@@ -1139,9 +1203,14 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
+			//lintignore:S016,S023
 			"ssl_certificate": {
-				// TODO: should this become a Set?
-				Type:     pluginsdk.TypeList,
+				Type: func() pluginsdk.ValueType {
+					if features.ThreePointOhBeta() {
+						return pluginsdk.TypeSet
+					}
+					return pluginsdk.TypeList
+				}(),
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -1180,6 +1249,12 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 					},
 				},
+				Set: func() pluginsdk.SchemaSetFunc {
+					if features.ThreePointOhBeta() {
+						return applicationGatewaySSLCertificate
+					}
+					return nil
+				}(),
 			},
 
 			"trusted_client_certificate": {
@@ -1391,11 +1466,11 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"firewall_mode": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ApplicationGatewayFirewallModeDetection),
 								string(network.ApplicationGatewayFirewallModePrevention),
-							}, true),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"rule_set_type": {
@@ -1527,7 +1602,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -1600,9 +1675,7 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	gateway := network.ApplicationGateway{
 		Location: utils.String(location),
-		Zones:    azure.ExpandZones(d.Get("zones").([]interface{})),
-
-		Tags: tags.Expand(t),
+		Tags:     tags.Expand(t),
 		ApplicationGatewayPropertiesFormat: &network.ApplicationGatewayPropertiesFormat{
 			AutoscaleConfiguration:        expandApplicationGatewayAutoscaleConfiguration(d),
 			AuthenticationCertificates:    expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{})),
@@ -1630,6 +1703,15 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
+	if features.ThreePointOhBeta() {
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			gateway.Zones = &zones
+		}
+	} else {
+		gateway.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
+	}
+
 	if v, ok := d.GetOk("fips_enabled"); ok {
 		gateway.ApplicationGatewayPropertiesFormat.EnableFips = utils.Bool(v.(bool))
 	}
@@ -1639,7 +1721,12 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		gateway.Identity = expandAzureRmApplicationGatewayIdentity(d)
+		expandedIdentity, err := expandApplicationGatewayIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		gateway.Identity = expandedIdentity
 	}
 
 	// validation (todo these should probably be moved into their respective expand functions, which would then return an error?)
@@ -1702,11 +1789,270 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, gateway)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
+		return fmt.Errorf("waiting for create of %s: %+v", id, err)
+	}
+
+	if stopApplicationGateway {
+		future, err := client.Start(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("starting %s: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for %s to start: %+v", id, err)
+		}
+	}
+
+	d.SetId(id.ID())
+	return resourceApplicationGatewayRead(d, meta)
+}
+
+func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ApplicationGatewayID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	applicationGateway, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if d.HasChange("tags") {
+		applicationGateway.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if applicationGateway.ApplicationGatewayPropertiesFormat == nil {
+		applicationGateway.ApplicationGatewayPropertiesFormat = &network.ApplicationGatewayPropertiesFormat{}
+	}
+
+	if d.HasChange("enable_http2") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.EnableHTTP2 = utils.Bool(d.Get("enable_http2").(bool))
+	}
+
+	if d.HasChange("trusted_root_certificate") {
+		trustedRootCertificates, err := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `trusted_root_certificate`: %+v", err)
+		}
+		applicationGateway.ApplicationGatewayPropertiesFormat.TrustedRootCertificates = trustedRootCertificates
+	}
+
+	if d.HasChange("request_routing_rule") {
+		requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, id.ID())
+		if err != nil {
+			return fmt.Errorf("expanding `request_routing_rule`: %+v", err)
+		}
+		applicationGateway.ApplicationGatewayPropertiesFormat.RequestRoutingRules = requestRoutingRules
+	}
+
+	if d.HasChange("url_path_map") {
+		urlPathMaps, err := expandApplicationGatewayURLPathMaps(d, id.ID())
+		if err != nil {
+			return fmt.Errorf("expanding `url_path_map`: %+v", err)
+		}
+
+		applicationGateway.ApplicationGatewayPropertiesFormat.URLPathMaps = urlPathMaps
+	}
+
+	if d.HasChange("redirect_configuration") {
+		redirectConfigurations, err := expandApplicationGatewayRedirectConfigurations(d, id.ID())
+		if err != nil {
+			return fmt.Errorf("expanding `redirect_configuration`: %+v", err)
+		}
+
+		applicationGateway.ApplicationGatewayPropertiesFormat.RedirectConfigurations = redirectConfigurations
+	}
+
+	if d.HasChange("ssl_certificate") {
+		sslCertificates, err := expandApplicationGatewaySslCertificates(d)
+		if err != nil {
+			return fmt.Errorf("expanding `ssl_certificate`: %+v", err)
+		}
+
+		applicationGateway.ApplicationGatewayPropertiesFormat.SslCertificates = sslCertificates
+	}
+
+	if d.HasChange("trusted_client_certificate") {
+		trustedClientCertificates, err := expandApplicationGatewayTrustedClientCertificates(d)
+		if err != nil {
+			return fmt.Errorf("expanding `trusted_client_certificate`: %+v", err)
+		}
+
+		applicationGateway.ApplicationGatewayPropertiesFormat.TrustedClientCertificates = trustedClientCertificates
+	}
+
+	if d.HasChange("ssl_profile") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.SslProfiles = expandApplicationGatewaySslProfiles(d, id.ID())
+	}
+
+	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
+	if d.HasChange("gateway_ip_configuration") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.GatewayIPConfigurations = gatewayIPConfigurations
+	}
+
+	if d.HasChange("http_listener") {
+		httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
+		if err != nil {
+			return fmt.Errorf("fail to expand `http_listener`: %+v", err)
+		}
+
+		applicationGateway.ApplicationGatewayPropertiesFormat.HTTPListeners = httpListeners
+	}
+
+	if d.HasChange("rewrite_rule_set") {
+		rewriteRuleSets, err := expandApplicationGatewayRewriteRuleSets(d)
+		if err != nil {
+			return fmt.Errorf("expanding `rewrite_rule_set`: %v", err)
+		}
+
+		applicationGateway.ApplicationGatewayPropertiesFormat.RewriteRuleSets = rewriteRuleSets
+	}
+
+	if d.HasChange("autoscale_configuration") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.AutoscaleConfiguration = expandApplicationGatewayAutoscaleConfiguration(d)
+	}
+
+	if d.HasChange("authentication_certificate") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.AuthenticationCertificates = expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{}))
+	}
+
+	if d.HasChange("custom_error_configuration") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.CustomErrorConfigurations = expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
+	}
+
+	if d.HasChange("backend_address_pool") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.BackendAddressPools = expandApplicationGatewayBackendAddressPools(d)
+	}
+
+	if d.HasChange("backend_http_settings") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.BackendHTTPSettingsCollection = expandApplicationGatewayBackendHTTPSettings(d, id.ID())
+	}
+
+	if d.HasChange("frontend_ip_configuration") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.FrontendIPConfigurations = expandApplicationGatewayFrontendIPConfigurations(d, id.ID())
+	}
+
+	if d.HasChange("frontend_port") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.FrontendPorts = expandApplicationGatewayFrontendPorts(d)
+	}
+
+	if d.HasChange("private_link_configuration") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.PrivateLinkConfigurations = expandApplicationGatewayPrivateLinkConfigurations(d)
+	}
+
+	if d.HasChange("probe") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.Probes = expandApplicationGatewayProbes(d)
+	}
+
+	if d.HasChange("sku") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.Sku = expandApplicationGatewaySku(d)
+	}
+
+	if d.HasChange("ssl_policy") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.SslPolicy = expandApplicationGatewaySslPolicy(d.Get("ssl_policy").([]interface{}))
+	}
+
+	if d.HasChange("zones") {
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			applicationGateway.Zones = &zones
+		}
+	}
+
+	if d.HasChange("fips_enabled") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.EnableFips = utils.Bool(d.Get("fips_enabled").(bool))
+	}
+
+	if d.HasChange("force_firewall_policy_association") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.ForceFirewallPolicyAssociation = utils.Bool(d.Get("force_firewall_policy_association").(bool))
+	}
+
+	if d.HasChange("identity") {
+		expandedIdentity, err := expandApplicationGatewayIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		applicationGateway.Identity = expandedIdentity
+	}
+
+	// validation (todo these should probably be moved into their respective expand functions, which would then return an error?)
+	if applicationGateway.ApplicationGatewayPropertiesFormat != nil && applicationGateway.ApplicationGatewayPropertiesFormat.BackendHTTPSettingsCollection != nil {
+		for _, backendHttpSettings := range *applicationGateway.ApplicationGatewayPropertiesFormat.BackendHTTPSettingsCollection {
+			if props := backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
+				if props.HostName == nil || props.PickHostNameFromBackendAddress == nil {
+					continue
+				}
+
+				if *props.HostName != "" && *props.PickHostNameFromBackendAddress {
+					return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
+				}
+			}
+		}
+	}
+
+	if applicationGateway.ApplicationGatewayPropertiesFormat != nil && applicationGateway.ApplicationGatewayPropertiesFormat.Probes != nil {
+		for _, probe := range *applicationGateway.ApplicationGatewayPropertiesFormat.Probes {
+			if props := probe.ApplicationGatewayProbePropertiesFormat; props != nil {
+				if props.Host == nil || props.PickHostNameFromBackendHTTPSettings == nil {
+					continue
+				}
+
+				if *props.Host == "" && !*props.PickHostNameFromBackendHTTPSettings {
+					return fmt.Errorf("One of `host` or `pick_host_name_from_backend_http_settings` must be set")
+				}
+
+				if *props.Host != "" && *props.PickHostNameFromBackendHTTPSettings {
+					return fmt.Errorf("Only one of `host` or `pick_host_name_from_backend_http_settings` can be set")
+				}
+			}
+		}
+	}
+
+	if d.HasChange("waf_configuration") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
+	}
+
+	appGWSkuTier := d.Get("sku.0.tier").(string)
+	wafFileUploadLimit := d.Get("waf_configuration.0.file_upload_limit_mb").(int)
+
+	if appGWSkuTier != string(network.ApplicationGatewayTierWAFV2) && wafFileUploadLimit > 500 {
+		return fmt.Errorf("Only SKU `%s` allows `file_upload_limit_mb` to exceed 500MB", network.ApplicationGatewayTierWAFV2)
+	}
+
+	if d.HasChange("firewall_policy_id") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
+			ID: utils.String(d.Get("firewall_policy_id").(string)),
+		}
+	}
+
+	if stopApplicationGateway {
+		future, err := client.Stop(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("stopping %s: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for %s to stop: %+v", id, err)
+		}
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, applicationGateway)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	if stopApplicationGateway {
@@ -1745,14 +2091,13 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", applicationGateway.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := applicationGateway.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	d.Set("zones", applicationGateway.Zones)
 
-	identity, err := flattenRmApplicationGatewayIdentity(applicationGateway.Identity)
+	d.Set("location", location.NormalizeNilable(applicationGateway.Location))
+	d.Set("zones", zones.Flatten(applicationGateway.Zones))
+
+	identity, err := flattenApplicationGatewayIdentity(applicationGateway.Identity)
 	if err != nil {
 		return err
 	}
@@ -1916,52 +2261,45 @@ func resourceApplicationGatewayDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandAzureRmApplicationGatewayIdentity(d *pluginsdk.ResourceData) *network.ManagedServiceIdentity {
-	v := d.Get("identity")
-	identities := v.([]interface{})
-	identity := identities[0].(map[string]interface{})
-	identityType := network.ResourceIdentityType(identity["type"].(string))
-
-	identityIds := make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
-	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds[id.(string)] = &network.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+func expandApplicationGatewayIdentity(input []interface{}) (*network.ManagedServiceIdentity, error) {
+	expanded, err := identity.ExpandUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	appGatewayIdentity := network.ManagedServiceIdentity{
-		Type: identityType,
+	out := network.ManagedServiceIdentity{
+		Type: network.ResourceIdentityType(string(expanded.Type)),
 	}
 
-	if identityType == network.ResourceIdentityTypeUserAssigned {
-		appGatewayIdentity.UserAssignedIdentities = identityIds
-	}
-
-	return &appGatewayIdentity
-}
-
-func flattenRmApplicationGatewayIdentity(identity *network.ManagedServiceIdentity) ([]interface{}, error) {
-	if identity == nil {
-		return make([]interface{}, 0), nil
-	}
-
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-	if result["type"] == "userAssigned" {
-		result["type"] = "UserAssigned"
-	}
-
-	identityIds := make([]string, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiParse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
+	if expanded.Type == identity.TypeUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &network.ManagedServiceIdentityUserAssignedIdentitiesValue{}
 		}
 	}
-	result["identity_ids"] = identityIds
 
-	return []interface{}{result}, nil
+	return &out, nil
+}
+
+func flattenApplicationGatewayIdentity(input *network.ManagedServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.UserAssignedMap
+
+	if input != nil {
+		transform = &identity.UserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.UserAssignedIdentities != nil {
+			for k, v := range input.UserAssignedIdentities {
+				transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+					ClientId:    v.ClientID,
+					PrincipalId: v.PrincipalID,
+				}
+			}
+		}
+	}
+
+	return identity.FlattenUserAssignedMap(transform)
 }
 
 func expandApplicationGatewayAuthenticationCertificates(certs []interface{}) *[]network.ApplicationGatewayAuthenticationCertificate {
@@ -2104,22 +2442,45 @@ func flattenApplicationGatewayTrustedRootCertificates(certs *[]network.Applicati
 }
 
 func expandApplicationGatewayBackendAddressPools(d *pluginsdk.ResourceData) *[]network.ApplicationGatewayBackendAddressPool {
-	vs := d.Get("backend_address_pool").([]interface{})
+	var vs []interface{}
+
+	if features.ThreePointOhBeta() {
+		vs = d.Get("backend_address_pool").(*schema.Set).List()
+	} else {
+		vs = d.Get("backend_address_pool").([]interface{})
+	}
 	results := make([]network.ApplicationGatewayBackendAddressPool, 0)
 
 	for _, raw := range vs {
 		v := raw.(map[string]interface{})
 		backendAddresses := make([]network.ApplicationGatewayBackendAddress, 0)
 
-		for _, ip := range v["fqdns"].([]interface{}) {
-			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
-				Fqdn: utils.String(ip.(string)),
-			})
+		if fqdnsConfig, ok := v["fqdns"]; ok {
+			var fqdns []interface{}
+			if features.ThreePointOhBeta() {
+				fqdns = fqdnsConfig.(*schema.Set).List()
+			} else {
+				fqdns = fqdnsConfig.([]interface{})
+			}
+			for _, ip := range fqdns {
+				backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
+					Fqdn: utils.String(ip.(string)),
+				})
+			}
 		}
-		for _, ip := range v["ip_addresses"].([]interface{}) {
-			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
-				IPAddress: utils.String(ip.(string)),
-			})
+
+		if ipAddressesConfig, ok := v["ip_addresses"]; ok {
+			var ipAddresses []interface{}
+			if features.ThreePointOhBeta() {
+				ipAddresses = ipAddressesConfig.(*schema.Set).List()
+			} else {
+				ipAddresses = ipAddressesConfig.([]interface{})
+			}
+			for _, ip := range ipAddresses {
+				backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
+					IPAddress: utils.String(ip.(string)),
+				})
+			}
 		}
 
 		name := v["name"].(string)
@@ -2179,7 +2540,13 @@ func flattenApplicationGatewayBackendAddressPools(input *[]network.ApplicationGa
 
 func expandApplicationGatewayBackendHTTPSettings(d *pluginsdk.ResourceData, gatewayID string) *[]network.ApplicationGatewayBackendHTTPSettings {
 	results := make([]network.ApplicationGatewayBackendHTTPSettings, 0)
-	vs := d.Get("backend_http_settings").([]interface{})
+	var vs []interface{}
+
+	if features.ThreePointOhBeta() {
+		vs = d.Get("backend_http_settings").(*schema.Set).List()
+	} else {
+		vs = d.Get("backend_http_settings").([]interface{})
+	}
 
 	for _, raw := range vs {
 		v := raw.(map[string]interface{})
@@ -2475,7 +2842,14 @@ func flattenApplicationGatewaySslPolicy(input *network.ApplicationGatewaySslPoli
 }
 
 func expandApplicationGatewayHTTPListeners(d *pluginsdk.ResourceData, gatewayID string) (*[]network.ApplicationGatewayHTTPListener, error) {
-	vs := d.Get("http_listener").([]interface{})
+	var vs []interface{}
+
+	if features.ThreePointOhBeta() {
+		vs = d.Get("http_listener").(*schema.Set).List()
+	} else {
+		vs = d.Get("http_listener").([]interface{})
+	}
+
 	results := make([]network.ApplicationGatewayHTTPListener, 0)
 
 	for _, raw := range vs {
@@ -2872,7 +3246,12 @@ func flattenApplicationGatewayFrontendIPConfigurations(input *[]network.Applicat
 }
 
 func expandApplicationGatewayProbes(d *pluginsdk.ResourceData) *[]network.ApplicationGatewayProbe {
-	vs := d.Get("probe").([]interface{})
+	var vs []interface{}
+	if features.ThreePointOhBeta() {
+		vs = d.Get("probe").(*schema.Set).List()
+	} else {
+		vs = d.Get("probe").([]interface{})
+	}
 	results := make([]network.ApplicationGatewayProbe, 0)
 
 	for _, raw := range vs {
@@ -3690,7 +4069,12 @@ func flattenApplicationGatewaySku(input *network.ApplicationGatewaySku) []interf
 }
 
 func expandApplicationGatewaySslCertificates(d *pluginsdk.ResourceData) (*[]network.ApplicationGatewaySslCertificate, error) {
-	vs := d.Get("ssl_certificate").([]interface{})
+	var vs []interface{}
+	if features.ThreePointOhBeta() {
+		vs = d.Get("ssl_certificate").(*schema.Set).List()
+	} else {
+		vs = d.Get("ssl_certificate").([]interface{})
+	}
 	results := make([]network.ApplicationGatewaySslCertificate, 0)
 
 	for _, raw := range vs {
@@ -3765,7 +4149,12 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 
 		// since the certificate data isn't returned we have to load it from the same index
 		if existing, ok := d.GetOk("ssl_certificate"); ok && existing != nil {
-			existingVals := existing.([]interface{})
+			var existingVals []interface{}
+			if features.ThreePointOhBeta() {
+				existingVals = existing.(*schema.Set).List()
+			} else {
+				existingVals = existing.([]interface{})
+			}
 			for _, existingVal := range existingVals {
 				existingCerts := existingVal.(map[string]interface{})
 				existingName := existingCerts["name"].(string)
@@ -4459,4 +4848,175 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 	}
 
 	return nil
+}
+
+func applicationGatewayHttpListnerHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(m["name"].(string))
+		buf.WriteString(m["frontend_ip_configuration_name"].(string))
+		buf.WriteString(m["frontend_port_name"].(string))
+		buf.WriteString(m["protocol"].(string))
+		if v, ok := m["host_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if hostNames, ok := m["host_names"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", hostNames.(*pluginsdk.Set).List()))
+		}
+		if v, ok := m["ssl_certificate_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["require_sni"]; ok {
+			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+		}
+		if v, ok := m["firewall_policy_id"]; ok {
+			buf.WriteString(strings.ToLower(v.(string)))
+		}
+		if v, ok := m["ssl_profile_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if customErrorConfiguration, ok := m["custom_error_configuration"].([]interface{}); ok {
+			for _, customErrorAttrs := range customErrorConfiguration {
+				customError := customErrorAttrs.(map[string]interface{})
+				if statusCode, ok := customError["status_code"]; ok {
+					buf.WriteString(statusCode.(string))
+				}
+				if pageUrl, ok := customError["custom_error_page_url"]; ok {
+					buf.WriteString(fmt.Sprintf(pageUrl.(string)))
+				}
+			}
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func applicationGatewayBackendSettingsHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(m["name"].(string))
+		buf.WriteString(fmt.Sprintf("%d", m["port"].(int)))
+		buf.WriteString(m["protocol"].(string))
+		buf.WriteString(m["cookie_based_affinity"].(string))
+
+		if v, ok := m["path"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["affinity_cookie_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["host_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["probe_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["pick_host_name_from_backend_address"]; ok {
+			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+		}
+		if v, ok := m["request_timeout"]; ok {
+			buf.WriteString(fmt.Sprintf("%d", v.(int)))
+		}
+		if authCert, ok := m["authentication_certificate"].([]interface{}); ok {
+			for _, ac := range authCert {
+				config := ac.(map[string]interface{})
+				buf.WriteString(config["name"].(string))
+			}
+		}
+		if connectionDraining, ok := m["connection_draining"].([]interface{}); ok {
+			for _, ac := range connectionDraining {
+				config := ac.(map[string]interface{})
+				buf.WriteString(fmt.Sprintf("%t", config["enabled"].(bool)))
+				buf.WriteString(fmt.Sprintf("%d", config["drain_timeout_sec"].(int)))
+
+			}
+		}
+		if trustedRootCertificateNames, ok := m["trusted_root_certificate_names"]; ok {
+			buf.WriteString(fmt.Sprintf("%s", trustedRootCertificateNames.([]interface{})))
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func applicationGatewaySSLCertificate(v interface{}) int {
+	var buf bytes.Buffer
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(m["name"].(string))
+
+		if v, ok := m["data"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["password"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["key_vault_secret_id"]; ok {
+			buf.WriteString(strings.ToLower(v.(string)))
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func applicationGatewayBackendAddressPool(v interface{}) int {
+	var buf bytes.Buffer
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(m["name"].(string))
+
+		if fqdns, ok := m["fqdns"]; ok {
+			if features.ThreePointOhBeta() {
+				buf.WriteString(fmt.Sprintf("%s", fqdns.(*pluginsdk.Set).List()))
+			} else {
+				buf.WriteString(fmt.Sprintf("%s", fqdns.([]interface{})))
+			}
+		}
+		if ips, ok := m["ip_addresses"]; ok {
+			if features.ThreePointOhBeta() {
+				buf.WriteString(fmt.Sprintf("%s", ips.(*pluginsdk.Set).List()))
+			} else {
+				buf.WriteString(fmt.Sprintf("%s", ips.([]interface{})))
+			}
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func applicationGatewayProbeHash(v interface{}) int {
+	var buf bytes.Buffer
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(m["name"].(string))
+		buf.WriteString(m["protocol"].(string))
+		buf.WriteString(m["path"].(string))
+		buf.WriteString(fmt.Sprintf("%d", m["interval"].(int)))
+		buf.WriteString(fmt.Sprintf("%d", m["timeout"].(int)))
+		buf.WriteString(fmt.Sprintf("%d", m["unhealthy_threshold"].(int)))
+
+		if v, ok := m["host"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["port"]; ok {
+			buf.WriteString(fmt.Sprintf("%d", v.(int)))
+		}
+		if v, ok := m["pick_host_name_from_backend_http_settings"]; ok {
+			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+		}
+		if v, ok := m["minimum_servers"]; ok {
+			buf.WriteString(fmt.Sprintf("%d", v.(int)))
+		}
+		if features.ThreePointOhBeta() {
+			if match, ok := m["match"]; ok {
+				if attrs := match.([]interface{}); len(attrs) == 1 {
+					attr := attrs[0].(map[string]interface{})
+					if attr["body"].(string) != "" || len(attr["status_code"].([]interface{})) != 0 {
+						buf.WriteString(fmt.Sprintf("%s-%+v", attr["body"].(string), attr["status_code"].([]interface{})))
+					}
+				}
+			}
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
 }

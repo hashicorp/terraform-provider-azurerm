@@ -1,10 +1,17 @@
 package cosmos
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/cosmosdb"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -43,6 +50,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_cosmosdb_sql_container":        resourceCosmosDbSQLContainer(),
 		"azurerm_cosmosdb_sql_database":         resourceCosmosDbSQLDatabase(),
 		"azurerm_cosmosdb_sql_function":         resourceCosmosDbSQLFunction(),
+		"azurerm_cosmosdb_sql_role_assignment":  resourceCosmosDbSQLRoleAssignment(),
+		"azurerm_cosmosdb_sql_role_definition":  resourceCosmosDbSQLRoleDefinition(),
 		"azurerm_cosmosdb_sql_stored_procedure": resourceCosmosDbSQLStoredProcedure(),
 		"azurerm_cosmosdb_sql_trigger":          resourceCosmosDbSQLTrigger(),
 		"azurerm_cosmosdb_table":                resourceCosmosDbTable(),

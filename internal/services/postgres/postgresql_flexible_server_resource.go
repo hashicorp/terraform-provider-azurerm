@@ -8,10 +8,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
@@ -102,15 +103,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"zone": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"1",
-					"2",
-					"3",
-				}, false),
-			},
+			"zone": commonschema.ZoneSingleOptional(),
 
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
@@ -212,23 +205,9 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"standby_availability_zone": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"1",
-								"2",
-								"3",
-							}, false),
-						},
+						"standby_availability_zone": commonschema.ZoneSingleOptional(),
 					},
 				},
-			},
-
-			"cmk_enabled": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Deprecated: "This attribute has been removed from the API and will be removed in version 3.0 of the provider.",
 			},
 
 			"fqdn": {
@@ -395,10 +374,6 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	// `cmk_enabled` has been removed from API since 2021-06-01
-	// and should be removed in version 3.0 of the provider.
-	d.Set("cmk_enabled", "")
-
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("zone", props.AvailabilityZone)
@@ -455,32 +430,45 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	var requireFailover bool
-	// failover is only supported when `zone` and `high_availability.0.standby_availability_zone` is exchanged
-	switch {
-	case d.HasChange("zone") && d.HasChange("high_availability.0.standby_availability_zone"):
+	// failover is only supported when `zone` and `high_availability.0.standby_availability_zone` are exchanged with each other
+	if d.HasChanges("zone", "high_availability") {
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return err
 		}
+		props := resp.ServerProperties
 
-		if props := resp.ServerProperties; props != nil {
-			zone := d.Get("zone").(string)
-			standbyZone := d.Get("high_availability.0.standby_availability_zone").(string)
+		if d.HasChange("zone") {
 
-			if props.AvailabilityZone != nil && props.HighAvailability != nil && props.HighAvailability.StandbyAvailabilityZone != nil {
-				if zone == *props.HighAvailability.StandbyAvailabilityZone && standbyZone == *props.AvailabilityZone {
-					requireFailover = true
-				} else {
-					return fmt.Errorf("failover only supports exchange between `zone` and `high_availability.0.standby_availability_zone`")
-				}
+			if !d.HasChange("high_availability.0.standby_availability_zone") {
+				return fmt.Errorf("`zone` can only be changed when exchanged with the zone specified in `high_availability.0.standby_availability_zone`")
 			} else {
-				return fmt.Errorf("`high_availability.0.standby_availability_zone` cannot be added after PostgreSQL Flexible Server is created")
+
+				// zone can only be changed when it is swapped for an existing high_availability.0.standby_availability_zone - a failover is triggered to make it the new primary availability zone
+				// compare current values of zone and high_availability.0.standby_availability_zone with new values and only allow update/failover if the values of zone and an existing high_availability.0.standby_availability_zone have been swapped
+				var newZone, newHAStandbyZone string
+				newZone = d.Get("zone").(string)
+				newHAStandbyZone = d.Get("high_availability.0.standby_availability_zone").(string)
+				if props != nil && props.AvailabilityZone != nil && props.HighAvailability != nil && props.HighAvailability.StandbyAvailabilityZone != nil {
+					if newZone == *props.HighAvailability.StandbyAvailabilityZone && newHAStandbyZone == *props.AvailabilityZone {
+						requireFailover = true
+					} else {
+						return fmt.Errorf("`zone` can only be changed when exchanged with the zone specified in `high_availability.0.standby_availability_zone`")
+					}
+				}
+			}
+
+			// changes can occur in high_availability.0.standby_availability_zone when zone has not changed in the case where a high_availability block has been newly added or a high_availability block is removed, meaning HA is now disabled
+		} else if d.HasChange("high_availability.0.standby_availability_zone") {
+			if props != nil && props.HighAvailability != nil {
+				// if HA Mode is currently "ZoneRedundant" and is still set to "ZoneRedundant", high_availability.0.standby_availability_zone cannot be changed
+				if props.HighAvailability.Mode == postgresqlflexibleservers.HighAvailabilityModeZoneRedundant && !d.HasChange("high_availability.0.mode") {
+					return fmt.Errorf("an existing `high_availability.0.standby_availability_zone` can only be changed when exchanged with the zone specified in `zone`")
+				}
+				// if high_availability.0.mode changes from "ZoneRedundant", an existing high_availability block has been removed as this is a required field
+				// if high_availability.0.mode is not currently "ZoneRedundant", this must be a newly added block
 			}
 		}
-	case !d.HasChange("zone") && !d.HasChange("high_availability.0.standby_availability_zone"):
-		requireFailover = false
-	default:
-		return fmt.Errorf("`zone` and `high_availability.0.standby_availability_zone` should only be either exchanged with each other or unchanged")
 	}
 
 	if d.HasChange("administrator_password") {

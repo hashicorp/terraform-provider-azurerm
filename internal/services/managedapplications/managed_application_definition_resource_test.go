@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ManagedApplicationDefinitionResource struct {
-}
+type ManagedApplicationDefinitionResource struct{}
 
 func TestAccManagedApplicationDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application_definition", "test")

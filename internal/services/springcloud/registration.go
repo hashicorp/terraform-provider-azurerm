@@ -1,10 +1,17 @@
 package springcloud
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/spring"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -36,7 +43,9 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_spring_cloud_app_redis_association":    resourceSpringCloudAppRedisAssociation(),
 		"azurerm_spring_cloud_certificate":              resourceSpringCloudCertificate(),
 		"azurerm_spring_cloud_custom_domain":            resourceSpringCloudCustomDomain(),
+		"azurerm_spring_cloud_container_deployment":     resourceSpringCloudContainerDeployment(),
 		"azurerm_spring_cloud_java_deployment":          resourceSpringCloudJavaDeployment(),
 		"azurerm_spring_cloud_service":                  resourceSpringCloudService(),
+		"azurerm_spring_cloud_storage":                  resourceSpringCloudStorage(),
 	}
 }

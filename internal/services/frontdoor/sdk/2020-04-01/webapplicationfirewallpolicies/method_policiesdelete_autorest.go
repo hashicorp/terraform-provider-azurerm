@@ -53,6 +53,7 @@ func (c WebApplicationFirewallPoliciesClient) preparerForPoliciesDelete(ctx cont
 	}
 
 	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsDelete(),
 		autorest.WithBaseURL(c.baseUri),
 		autorest.WithPath(id.ID()),

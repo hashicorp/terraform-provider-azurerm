@@ -7,7 +7,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,6 +33,8 @@ func resourceAppServiceSourceControlToken() *pluginsdk.Resource {
 
 			return nil
 		}),
+
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_app_service_source_control_token` resource has been superseded by the `azurerm_source_control_token` resource. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider."),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -70,12 +74,12 @@ func resourceAppServiceSourceControlTokenCreateUpdate(d *pluginsdk.ResourceData,
 
 	log.Printf("[INFO] preparing arguments for App Service Source Control Token creation.")
 
-	scmType := d.Get("type").(string)
 	token := d.Get("token").(string)
 	tokenSecret := d.Get("token_secret").(string)
+	id := parse.NewAppServiceSourceControlTokenID(d.Get("type").(string))
 
-	locks.ByName(scmType, appServiceSourceControlTokenResourceName)
-	defer locks.UnlockByName(scmType, appServiceSourceControlTokenResourceName)
+	locks.ByName(id.Type, appServiceSourceControlTokenResourceName)
+	defer locks.UnlockByName(id.Type, appServiceSourceControlTokenResourceName)
 
 	properties := web.SourceControl{
 		SourceControlProperties: &web.SourceControlProperties{
@@ -84,19 +88,11 @@ func resourceAppServiceSourceControlTokenCreateUpdate(d *pluginsdk.ResourceData,
 		},
 	}
 
-	if _, err := client.UpdateSourceControl(ctx, scmType, properties); err != nil {
-		return fmt.Errorf("updating App Service Source Control Token (Type %q): %s", scmType, err)
+	if _, err := client.UpdateSourceControl(ctx, id.Type, properties); err != nil {
+		return fmt.Errorf("updating %s: %s", id, err)
 	}
 
-	read, err := client.GetSourceControl(ctx, scmType)
-	if err != nil {
-		return fmt.Errorf("retrieving App Service Source Control Token (Type %q): %s", scmType, err)
-	}
-	if read.Name == nil {
-		return fmt.Errorf("Cannot read App Service Source Control Token (Type %q)", scmType)
-	}
-
-	d.SetId(*read.Name)
+	d.SetId(id.Type)
 
 	return resourceAppServiceSourceControlTokenRead(d, meta)
 }

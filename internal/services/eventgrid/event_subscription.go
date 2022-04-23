@@ -22,12 +22,8 @@ type EventSubscriptionEndpointType string
 const (
 	// AzureFunctionEndpoint ...
 	AzureFunctionEndpoint EventSubscriptionEndpointType = "azure_function_endpoint"
-	// EventHubEndpoint ...
-	EventHubEndpoint EventSubscriptionEndpointType = "eventhub_endpoint"
 	// EventHubEndpointID ...
 	EventHubEndpointID EventSubscriptionEndpointType = "eventhub_endpoint_id"
-	// HybridConnectionEndpoint ...
-	HybridConnectionEndpoint EventSubscriptionEndpointType = "hybrid_connection_endpoint"
 	// HybridConnectionEndpointID ...
 	HybridConnectionEndpointID EventSubscriptionEndpointType = "hybrid_connection_endpoint_id"
 	// ServiceBusQueueEndpointID ...
@@ -175,28 +171,6 @@ func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsd
 	}
 }
 
-func eventSubscriptionSchemaEventHubEndpoint(conflictsWith []string) *pluginsdk.Schema {
-	//lintignore:XS003
-	return &pluginsdk.Schema{
-		Type:          pluginsdk.TypeList,
-		MaxItems:      1,
-		Deprecated:    "Deprecated in favour of `" + "eventhub_endpoint_id" + "`",
-		Optional:      true,
-		Computed:      true,
-		ConflictsWith: conflictsWith,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"eventhub_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: azure.ValidateResourceID,
-				},
-			},
-		},
-	}
-}
-
 func eventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeString,
@@ -204,28 +178,6 @@ func eventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *
 		Computed:      true,
 		ConflictsWith: conflictsWith,
 		ValidateFunc:  azure.ValidateResourceID,
-	}
-}
-
-func eventSubscriptionSchemaHybridEndpoint(conflictsWith []string) *pluginsdk.Schema {
-	//lintignore:XS003
-	return &pluginsdk.Schema{
-		Type:          pluginsdk.TypeList,
-		MaxItems:      1,
-		Deprecated:    "Deprecated in favour of `" + "hybrid_connection_endpoint_id" + "`",
-		Optional:      true,
-		Computed:      true,
-		ConflictsWith: conflictsWith,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"hybrid_connection_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: azure.ValidateResourceID,
-				},
-			},
-		},
 	}
 }
 
@@ -362,7 +314,8 @@ func eventSubscriptionSchemaSubjectFilter() *pluginsdk.Schema {
 }
 
 func eventSubscriptionSchemaAdvancedFilter() *pluginsdk.Schema {
-	atLeastOneOf := []string{"advanced_filter.0.bool_equals", "advanced_filter.0.number_greater_than", "advanced_filter.0.number_greater_than_or_equals", "advanced_filter.0.number_less_than",
+	atLeastOneOf := []string{
+		"advanced_filter.0.bool_equals", "advanced_filter.0.number_greater_than", "advanced_filter.0.number_greater_than_or_equals", "advanced_filter.0.number_less_than",
 		"advanced_filter.0.number_less_than_or_equals", "advanced_filter.0.number_in", "advanced_filter.0.number_not_in", "advanced_filter.0.string_begins_with", "advanced_filter.0.string_not_begins_with",
 		"advanced_filter.0.string_ends_with", "advanced_filter.0.string_not_ends_with", "advanced_filter.0.string_contains", "advanced_filter.0.string_not_contains", "advanced_filter.0.string_in",
 		"advanced_filter.0.string_not_in", "advanced_filter.0.is_not_null", "advanced_filter.0.is_null_or_undefined", "advanced_filter.0.number_in_range", "advanced_filter.0.number_not_in_range",
@@ -1277,19 +1230,6 @@ func expandEventGridEventSubscriptionIdentity(input []interface{}) (*eventgrid.E
 	return &eventgridIdentity, nil
 }
 
-func flattenEventGridEventSubscriptionEventhubEndpoint(input *eventgrid.EventHubEventSubscriptionDestination) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.ResourceID != nil {
-		result["eventhub_id"] = *input.ResourceID
-	}
-
-	return []interface{}{result}
-}
-
 func flattenDeliveryProperties(d *pluginsdk.ResourceData, input *[]eventgrid.BasicDeliveryAttributeMapping) []interface{} {
 	if input == nil {
 		return nil
@@ -1339,23 +1279,6 @@ func flattenDeliveryProperties(d *pluginsdk.ResourceData, input *[]eventgrid.Bas
 	}
 
 	return deliveryProperties
-}
-
-func flattenEventGridEventSubscriptionHybridConnectionEndpoint(input *eventgrid.HybridConnectionEventSubscriptionDestination) []interface{} {
-	if input == nil {
-		return nil
-	}
-
-	hybridConnectionId := ""
-	if input.ResourceID != nil {
-		hybridConnectionId = *input.ResourceID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"hybrid_connection_id": hybridConnectionId,
-		},
-	}
 }
 
 func flattenEventGridEventSubscriptionStorageQueueEndpoint(input *eventgrid.StorageQueueEventSubscriptionDestination) []interface{} {

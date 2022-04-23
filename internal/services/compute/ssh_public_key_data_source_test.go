@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type SSHPublicKeyDataSource struct {
-}
+type SSHPublicKeyDataSource struct{}
 
 func TestAccDataSourceAzureSshPublicKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_ssh_public_key", "test")

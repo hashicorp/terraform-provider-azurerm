@@ -6,13 +6,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/privateclouds"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -46,9 +45,9 @@ func resourceVmwarePrivateCloud() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
@@ -186,7 +185,7 @@ func resourceVmwarePrivateCloud() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -227,7 +226,7 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 			NsxtPassword:    utils.String(d.Get("nsxt_password").(string)),
 			VcenterPassword: utils.String(d.Get("vcenter_password").(string)),
 		},
-		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, privateCloud); err != nil {
@@ -290,7 +289,7 @@ func resourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{})
 
 		d.Set("sku_name", model.Sku.Name)
 
-		if err := tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}
@@ -331,7 +330,7 @@ func resourceVmwarePrivateCloudUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("tags") {
-		privateCloudUpdate.Tags = tagsHelper.Expand(d.Get("tags").(map[string]interface{}))
+		privateCloudUpdate.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, privateCloudUpdate); err != nil {

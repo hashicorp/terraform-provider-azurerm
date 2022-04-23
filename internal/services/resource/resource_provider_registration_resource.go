@@ -19,8 +19,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.Resource = ResourceProviderRegistrationResource{}
-var _ sdk.ResourceWithCustomImporter = ResourceProviderRegistrationResource{}
+var (
+	_ sdk.Resource                   = ResourceProviderRegistrationResource{}
+	_ sdk.ResourceWithCustomImporter = ResourceProviderRegistrationResource{}
+)
 
 type ResourceProviderRegistrationResource struct{}
 

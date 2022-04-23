@@ -7,6 +7,9 @@ import (
 	"github.com/manicminer/hamilton/odata"
 )
 
+// NullableString returns a pointer to a StringNullWhenEmpty for use in model structs
+func NullableString(s StringNullWhenEmpty) *StringNullWhenEmpty { return &s }
+
 // StringNullWhenEmpty is a string type that marshals its JSON representation as null when set to its zero value.
 // Can be used with a pointer reference with the `omitempty` tag to omit a field when the pointer is nil, but send a
 // JSON null value when the string is empty.
@@ -19,10 +22,18 @@ func (s StringNullWhenEmpty) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(s))
 }
 
+type AccessPackageCatalogState = string
+
+const (
+	AccessPackageCatalogStatePublished   AccessPackageCatalogState = "published"
+	AccessPackageCatalogStateUnpublished AccessPackageCatalogState = "unpublished"
+)
+
 type AccessPackageCatalogStatus = string
 
 const (
-	AccessPackageCatalogStatusPublished AccessPackageCatalogStatus = "Published"
+	AccessPackageCatalogStatusPublished   AccessPackageCatalogStatus = "Published"
+	AccessPackageCatalogStatusUnpublished AccessPackageCatalogState  = "Unpublished"
 )
 
 type AccessPackageCatalogType = string
@@ -50,7 +61,7 @@ type AccessPackageResourceRequestType = string
 
 const (
 	AccessPackageResourceRequestTypeAdminAdd     AccessPackageResourceRequestType = "AdminAdd"
-	AccessPackageResourceRequestTypeAdmminRemove AccessPackageResourceRequestType = "AdminRemove"
+	AccessPackageResourceRequestTypeAdminRemove AccessPackageResourceRequestType = "AdminRemove"
 )
 
 type AccessPackageResourceType = string
@@ -58,6 +69,38 @@ type AccessPackageResourceType = string
 const (
 	AccessPackageResourceTypeApplication          AccessPackageResourceType = "Application"
 	AccessPackageResourceTypeSharePointOnlineSite AccessPackageResourceType = "SharePoint Online Site"
+)
+
+type AccessReviewTimeoutBehaviorType = string
+
+const (
+	AccessReviewTimeoutBehaviorTypeAcceptAccessRecommendation AccessReviewTimeoutBehaviorType = "acceptAccessRecommendation"
+	AccessReviewTimeoutBehaviorTypeKeepAccess                 AccessReviewTimeoutBehaviorType = "keepAccess"
+	AccessReviewTimeoutBehaviorTypeRemoveAccess               AccessReviewTimeoutBehaviorType = "removeAccess"
+)
+
+type AccessReviewReviewerType = string
+
+const (
+	AccessReviewReviewerTypeSelf      AccessReviewReviewerType = "Self"
+	AccessReviewReviewerTypeReviewers AccessReviewReviewerType = "Reviewers"
+)
+
+type AccessReviewRecurranceType = string
+
+const (
+	AccessReviewRecurranceTypeWeekly     AccessReviewRecurranceType = "weekly"
+	AccessReviewRecurranceTypeMonthly    AccessReviewRecurranceType = "monthly"
+	AccessReviewRecurranceTypeQuarterly  AccessReviewRecurranceType = "quarterly"
+	AccessReviewRecurranceTypeHalfYearly AccessReviewRecurranceType = "halfyearly"
+	AccessReviewRecurranceTypeAnnual     AccessReviewRecurranceType = "annual"
+)
+
+type AdministrativeUnitVisibility = string
+
+const (
+	AdministrativeUnitVisibilityHiddenMembership AdministrativeUnitVisibility = "HiddenMembership"
+	AdministrativeUnitVisibilityPublic           AdministrativeUnitVisibility = "Public"
 )
 
 type AgeGroup = StringNullWhenEmpty
@@ -191,12 +234,95 @@ const (
 	CredentialUsageSummaryPeriod1  CredentialUsageSummaryPeriod = "D1"
 )
 
+type ConditionalAccessClientAppType = string
+
+const (
+	ConditionalAccessClientAppTypeAll                         ConditionalAccessClientAppType = "all"
+	ConditionalAccessClientAppTypeBrowser                     ConditionalAccessClientAppType = "browser"
+	ConditionalAccessClientAppTypeEasSupported                ConditionalAccessClientAppType = "easSupported"
+	ConditionalAccessClientAppTypeExchangeActiveSync          ConditionalAccessClientAppType = "exchangeActiveSync"
+	ConditionalAccessClientAppTypeMobileAppsAndDesktopClients ConditionalAccessClientAppType = "mobileAppsAndDesktopClients"
+	ConditionalAccessClientAppTypeOther                       ConditionalAccessClientAppType = "other"
+)
+
+type ConditionalAccessCloudAppSecuritySessionControlType = string
+
+const (
+	ConditionalAccessCloudAppSecuritySessionControlTypeBlockDownloads     ConditionalAccessCloudAppSecuritySessionControlType = "blockDownloads"
+	ConditionalAccessCloudAppSecuritySessionControlTypeMcasConfigured     ConditionalAccessCloudAppSecuritySessionControlType = "mcasConfigured"
+	ConditionalAccessCloudAppSecuritySessionControlTypeMonitorOnly        ConditionalAccessCloudAppSecuritySessionControlType = "monitorOnly"
+	ConditionalAccessCloudAppSecuritySessionControlTypeUnknownFutureValue ConditionalAccessCloudAppSecuritySessionControlType = "unknownFutureValue"
+)
+
+type ConditionalAccessDevicePlatform = string
+
+const (
+	ConditionalAccessDevicePlatformAll                ConditionalAccessDevicePlatform = "all"
+	ConditionalAccessDevicePlatformAndroid            ConditionalAccessDevicePlatform = "android"
+	ConditionalAccessDevicePlatformIos                ConditionalAccessDevicePlatform = "iOS"
+	ConditionalAccessDevicePlatformMacOs              ConditionalAccessDevicePlatform = "macOS"
+	ConditionalAccessDevicePlatformUnknownFutureValue ConditionalAccessDevicePlatform = "unknownFutureValue"
+	ConditionalAccessDevicePlatformWindows            ConditionalAccessDevicePlatform = "windows"
+	ConditionalAccessDevicePlatformWindowsPhone       ConditionalAccessDevicePlatform = "windowsPhone"
+)
+
+type ConditionalAccessDeviceStatesInclude = string
+
+const (
+	ConditionalAccessDeviceStatesIncludeAll ConditionalAccessDeviceStatesInclude = "All"
+)
+
+type ConditionalAccessDeviceStatesExclude = string
+
+const (
+	ConditionalAccessDeviceStatesExcludeCompliant    ConditionalAccessDeviceStatesExclude = "Compliant"
+	ConditionalAccessDeviceStatesExcludeDomainJoined ConditionalAccessDeviceStatesExclude = "DomainJoined"
+)
+
+type ConditionalAccessFilterMode = string
+
+const (
+	ConditionalAccessFilterModeExclude ConditionalAccessFilterMode = "exclude"
+	ConditionalAccessFilterModeInclude ConditionalAccessFilterMode = "include"
+)
+
+type ConditionalAccessGrantControl = string
+
+const (
+	ConditionalAccessGrantControlApprovedApplication  ConditionalAccessGrantControl = "approvedApplication"
+	ConditionalAccessGrantControlBlock                ConditionalAccessGrantControl = "block"
+	ConditionalAccessGrantControlCompliantApplication ConditionalAccessGrantControl = "compliantApplication"
+	ConditionalAccessGrantControlCompliantDevice      ConditionalAccessGrantControl = "compliantDevice"
+	ConditionalAccessGrantControlDomainJoinedDevice   ConditionalAccessGrantControl = "domainJoinedDevice"
+	ConditionalAccessGrantControlMfa                  ConditionalAccessGrantControl = "mfa"
+	ConditionalAccessGrantControlPasswordChange       ConditionalAccessGrantControl = "passwordChange"
+	ConditionalAccessGrantControlUnknownFutureValue   ConditionalAccessGrantControl = "unknownFutureValue"
+)
+
 type ConditionalAccessPolicyState = string
 
 const (
 	ConditionalAccessPolicyStateEnabled                           ConditionalAccessPolicyState = "enabled"
 	ConditionalAccessPolicyStateDisabled                          ConditionalAccessPolicyState = "disabled"
 	ConditionalAccessPolicyStateEnabledForReportingButNotEnforced ConditionalAccessPolicyState = "enabledForReportingButNotEnforced"
+)
+
+type ConditionalAccessRiskLevel = string
+
+const (
+	ConditionalAccessRiskLevelHidden             ConditionalAccessRiskLevel = "hidden"
+	ConditionalAccessRiskLevelHigh               ConditionalAccessRiskLevel = "high"
+	ConditionalAccessRiskLevelLow                ConditionalAccessRiskLevel = "low"
+	ConditionalAccessRiskLevelMedium             ConditionalAccessRiskLevel = "medium"
+	ConditionalAccessRiskLevelNone               ConditionalAccessRiskLevel = "none"
+	ConditionalAccessRiskLevelUnknownFutureValue ConditionalAccessRiskLevel = "unknownFutureValue"
+)
+
+type DelegatedPermissionGrantConsentType = string
+
+const (
+	DelegatedPermissionGrantConsentTypeAllPrincipals DelegatedPermissionGrantConsentType = "AllPrincipals"
+	DelegatedPermissionGrantConsentTypePrincipal     DelegatedPermissionGrantConsentType = "Principal"
 )
 
 type ExtensionSchemaTargetType = string
@@ -231,10 +357,18 @@ const (
 	FeatureTypeUnknownFutureValue FeatureType = "unknownFutureValue"
 )
 
+type GroupMembershipRuleProcessingState = string
+
+const (
+	GroupMembershipRuleProcessingStateOn     GroupMembershipRuleProcessingState = "On"
+	GroupMembershipRuleProcessingStatePaused GroupMembershipRuleProcessingState = "Paused"
+)
+
 type GroupType = string
 
 const (
-	GroupTypeUnified GroupType = "Unified"
+	GroupTypeDynamicMembership GroupType = "DynamicMembership"
+	GroupTypeUnified           GroupType = "Unified"
 )
 
 type GroupMembershipClaim = string
@@ -367,6 +501,13 @@ type PermissionScopeType = string
 const (
 	PermissionScopeTypeAdmin PermissionScopeType = "Admin"
 	PermissionScopeTypeUser  PermissionScopeType = "User"
+)
+
+type PersistentBrowserSessionMode = string
+
+const (
+	PersistentBrowserSessionModeAlways PersistentBrowserSessionMode = "always"
+	PersistentBrowserSessionModeNever  PersistentBrowserSessionMode = "never"
 )
 
 type PreferredSingleSignOnMode = StringNullWhenEmpty

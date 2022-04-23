@@ -1,6 +1,7 @@
 package cosmos
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -27,8 +28,10 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 		Update: resourceCosmosDbSQLContainerUpdate,
 		Delete: resourceCosmosDbSQLContainerDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.SqlContainerID(id)
+			return err
+		}),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -124,28 +127,33 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			},
 			"indexing_policy": common.CosmosDbIndexingPolicySchema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// The analytical_storage_ttl cannot be changed back once enabled on an existing container. -> we need ForceNew
+			pluginsdk.ForceNewIfChange("analytical_storage_ttl", func(ctx context.Context, old, new, _ interface{}) bool {
+				return (old.(int) == -1 || old.(int) > 0) && new.(int) == 0
+			}),
+		),
 	}
 }
 
 func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.SqlClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	database := d.Get("database_name").(string)
-	account := d.Get("account_name").(string)
+	id := parse.NewSqlContainerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 	partitionkeypaths := d.Get("partition_key_path").(string)
 
-	existing, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
+	existing, err := client.GetSQLContainer(ctx, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of creating Cosmos SQL Container %q (Account: %q, Database: %q): %+v", name, account, database, err)
+			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
 	} else {
 		if existing.ID == nil && *existing.ID == "" {
-			return fmt.Errorf("generating import ID for Cosmos SQL Container %q (Account: %q, Database: %q)", name, account, database)
+			return fmt.Errorf("generating import ID for %s", id)
 		}
 
 		return tf.ImportAsExistsError("azurerm_cosmosdb_sql_container", *existing.ID)
@@ -154,13 +162,13 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 	indexingPolicy := common.ExpandAzureRmCosmosDbIndexingPolicy(d)
 	err = common.ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy)
 	if err != nil {
-		return fmt.Errorf("generating indexing policy for Cosmos SQL Container %q (Account: %q, Database: %q)", name, account, database)
+		return fmt.Errorf("generating indexing policy for %s", id)
 	}
 
 	db := documentdb.SQLContainerCreateUpdateParameters{
 		SQLContainerCreateUpdateProperties: &documentdb.SQLContainerCreateUpdateProperties{
 			Resource: &documentdb.SQLContainerResource{
-				ID:                       &name,
+				ID:                       &id.ContainerName,
 				IndexingPolicy:           indexingPolicy,
 				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]interface{})),
 			},
@@ -203,25 +211,16 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 		db.SQLContainerCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
-	future, err := client.CreateUpdateSQLContainer(ctx, resourceGroup, account, database, name, db)
+	future, err := client.CreateUpdateSQLContainer(ctx, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName, db)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for Cosmos SQL Container %q (Account: %q, Database: %q): %+v", name, account, database, err)
+		return fmt.Errorf("issuing create/update request for %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for Cosmos SQL Container %q (Account: %q, Database: %q): %+v", name, account, database, err)
+		return fmt.Errorf("waiting on create/update future for %s: %+v", id, err)
 	}
 
-	resp, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
-	if err != nil {
-		return fmt.Errorf("making get request for Cosmos SQL Container %q (Account: %q, Database: %q): %+v", name, account, database, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("getting ID from Cosmos SQL Container %q (Account: %q, Database: %q)", name, account, database)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceCosmosDbSQLContainerRead(d, meta)
 }

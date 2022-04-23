@@ -32,11 +32,21 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Static Web App should exist. Changing this forces a new Static Web App to be created.
 
-* `sku_tier` - (Optional) Specifies the sku tier of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
+* `sku_tier` - (Optional) Specifies the SKU tier of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
 
-* `sku_size` - (Optional) Specifies the sku size of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
+* `sku_size` - (Optional) Specifies the SKU size of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
+
+* `identitiy` - (Optional) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The Type of Managed Identity assigned to this Static Site resource. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+
+* `identity_ids` - (Optional) A list of Managed Identity ID's which should be assigned to this Static Site resource.
 
 ## Attributes Reference
 

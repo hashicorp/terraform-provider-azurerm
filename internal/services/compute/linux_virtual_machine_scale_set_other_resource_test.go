@@ -111,18 +111,14 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password", "custom_data"),
 		{
 			Config: r.otherCustomData(data, "/bin/zsh"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password", "custom_data"),
 		{
 			// removed
 			Config: r.authPassword(data),
@@ -130,9 +126,22 @@ func TestAccLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"admin_password",
-		),
+		data.ImportStep("admin_password", "custom_data"),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_otherEdgeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherEdgeZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -916,9 +925,16 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger, customData)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherUserData(data acceptance.TestData, userData string) string {
+func (r LinuxVirtualMachineScaleSetResource) otherEdgeZone(data acceptance.TestData) string {
+	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
+	data.Locations.Primary = "westus"
+
 	return fmt.Sprintf(`
-%s
+%[1]s
+
+data "azurerm_extended_locations" "test" {
+  location = azurerm_resource_group.test.location
+}
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
@@ -928,19 +944,19 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
-  user_data           = base64encode(%q)
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
 
   disable_password_authentication = false
 
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
   os_disk {
-    storage_account_type = "Standard_LRS"
+    storage_account_type = "Premium_LRS"
     caching              = "ReadWrite"
   }
 
@@ -955,7 +971,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, userData)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherForceDelete(data acceptance.TestData) string {
@@ -1342,23 +1358,23 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "update",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Update",
     ]
 
     key_permissions = [
-      "create",
+      "Create",
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
 
     storage_permissions = [
-      "set",
+      "Set",
     ]
   }
 }
@@ -1548,6 +1564,48 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r LinuxVirtualMachineScaleSetResource) otherUserData(data acceptance.TestData, userData string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  user_data           = base64encode(%q)
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, userData)
+}
+
 func (r LinuxVirtualMachineScaleSetResource) otherVMAgent(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -1615,9 +1673,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_nat_pool" "test" {
@@ -1632,19 +1689,17 @@ resource "azurerm_lb_nat_pool" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "acctest-lb-probe"
-  port                = 22
-  protocol            = "Tcp"
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "acctest-lb-probe"
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "test" {
   name                           = "AccTestLBRule"
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = "internal"
   protocol                       = "Tcp"
   frontend_port                  = 22
@@ -1726,9 +1781,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_nat_pool" "test" {
@@ -1743,19 +1797,17 @@ resource "azurerm_lb_nat_pool" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "acctest-lb-probe"
-  port                = 22
-  protocol            = "Tcp"
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "acctest-lb-probe"
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "test" {
   name                           = "AccTestLBRule"
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = "internal"
   protocol                       = "Tcp"
   frontend_port                  = 22
@@ -1926,9 +1978,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_nat_pool" "test" {
@@ -1943,19 +1994,17 @@ resource "azurerm_lb_nat_pool" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "acctest-lb-probe"
-  port                = 22
-  protocol            = "Tcp"
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "acctest-lb-probe"
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "test" {
   name                           = "AccTestLBRule"
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = "internal"
   protocol                       = "Tcp"
   frontend_port                  = 22
@@ -2227,24 +2276,21 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "backend"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "backend"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_probe" "test" {
-  name                = "ssh-running-probe"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  port                = 22
-  protocol            = "Tcp"
+  name            = "ssh-running-probe"
+  loadbalancer_id = azurerm_lb.test.id
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = local.frontend_ip_configuration_name
   name                           = "LBRule"
   protocol                       = "Tcp"
@@ -2329,32 +2375,28 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "backend"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "backend"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_probe" "test" {
-  name                = "ssh-running-probe"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  port                = 22
-  protocol            = "Tcp"
+  name            = "ssh-running-probe"
+  loadbalancer_id = azurerm_lb.test.id
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_probe" "test2" {
-  name                = "ssh-running-probe2"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  port                = 22
-  protocol            = "Tcp"
+  name            = "ssh-running-probe2"
+  loadbalancer_id = azurerm_lb.test.id
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = local.frontend_ip_configuration_name
   name                           = "LBRule"
   protocol                       = "Tcp"
@@ -2432,32 +2474,28 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "backend"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "backend"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_probe" "test" {
-  name                = "ssh-running-probe"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  port                = 22
-  protocol            = "Tcp"
+  name            = "ssh-running-probe"
+  loadbalancer_id = azurerm_lb.test.id
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_probe" "test2" {
-  name                = "ssh-running-probe2"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  port                = 22
-  protocol            = "Tcp"
+  name            = "ssh-running-probe2"
+  loadbalancer_id = azurerm_lb.test.id
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test2.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = local.frontend_ip_configuration_name
   name                           = "LBRule"
   protocol                       = "Tcp"

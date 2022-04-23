@@ -41,7 +41,7 @@ resource "azurerm_subnet" "example" {
   }
 }
 
-resource "azurerm_storage_disks_pool" "example" {
+resource "azurerm_disk_pool" "example" {
   name                = "example-disk-pool"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -61,9 +61,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Disk Pool should exist. Changing this forces a new Disk Pool to be created.
 
-* `zones` - (Required) A list of Zones where this Disk Pool should be deployed. Changing this forces a new Disk Pool to be created.
+* `zones` - (Required) Specifies a list of Availability Zones in which this Disk Pool should be located. Changing this forces a new Disk Pool to be created.
 
-* `sku_name` - (Required) The Sku of the Disk Pool. Possible values are `Basic_B1`, `Standard_S1` and `Premium_P1`. Changing this forces a new Disk Pool to be created.
+* `sku_name` - (Required) The SKU of the Disk Pool. Possible values are `Basic_B1`, `Standard_S1` and `Premium_P1`. Changing this forces a new Disk Pool to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet where the Disk Pool should be created. Changing this forces a new Disk Pool to be created.
 
@@ -91,5 +91,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Disk Pools can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_disks_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/diskPool1
+terraform import azurerm_disk_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.StoragePool/diskPools/diskPool1
 ```

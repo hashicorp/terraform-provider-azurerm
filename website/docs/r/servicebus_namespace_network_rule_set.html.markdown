@@ -51,7 +51,8 @@ resource "azurerm_subnet" "example" {
 resource "azurerm_servicebus_namespace_network_rule_set" "example" {
   namespace_id = azurerm_servicebus_namespace.example.id
 
-  default_action = "Deny"
+  default_action                = "Deny"
+  public_network_access_enabled = true
 
   network_rules {
     subnet_id                            = azurerm_subnet.example.id
@@ -71,6 +72,8 @@ The following arguments are supported:
 ~> **NOTE:** The ServiceBus Namespace must be `Premium` in order to attach a ServiceBus Namespace Network Rule Set.
 
 * `default_action` - (Optional) Specifies the default action for the ServiceBus Namespace Network Rule Set. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+
+* `public_network_access_enabled` - (Optional) Whether to allow traffic over public network. Possible values are `true` and `false`. Defaults to `true`.
 
 * `trusted_services_allowed` - (Optional) If True, then Azure Services that are known and trusted for this resource type are allowed to bypass firewall configuration. See [Trusted Microsoft Services](https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/service-bus-messaging/includes/service-bus-trusted-services.md)  
 

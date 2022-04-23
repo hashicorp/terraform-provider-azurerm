@@ -7,6 +7,12 @@ import (
 
 type Registration struct{}
 
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/sentinel"
+}
+
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "Sentinel"
@@ -53,5 +59,6 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		WatchlistResource{},
+		WatchlistItemResource{},
 	}
 }

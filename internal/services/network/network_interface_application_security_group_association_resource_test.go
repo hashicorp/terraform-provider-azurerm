@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetworkInterfaceApplicationSecurityGroupAssociationResource struct {
-}
+type NetworkInterfaceApplicationSecurityGroupAssociationResource struct{}
 
 func TestAccNetworkInterfaceApplicationSecurityGroupAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_application_security_group_association", "test")
@@ -255,7 +254,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration2"
     private_ip_address_version    = "IPv6"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -288,7 +287,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_application_security_group" "test" {

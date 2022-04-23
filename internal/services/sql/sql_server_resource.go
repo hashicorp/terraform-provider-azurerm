@@ -9,11 +9,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,8 +32,12 @@ func resourceSqlServer() *pluginsdk.Resource {
 		Update: resourceSqlServerCreateUpdate,
 		Delete: resourceSqlServerDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_sql_server` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_server` resource instead."),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ServerID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -59,7 +65,7 @@ func resourceSqlServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"2.0",
 					"12.0",
-				}, true),
+				}, false),
 			},
 
 			"administrator_login": {
@@ -85,32 +91,7 @@ func resourceSqlServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"fully_qualified_domain_name": {
 				Type:     pluginsdk.TypeString,
@@ -136,7 +117,8 @@ func resourceSqlServer() *pluginsdk.Resource {
 									"Access_Anomaly",
 									"Data_Exfiltration",
 									"Unsafe_Action",
-								}, true),
+								}, !features.ThreePointOhBeta()),
+								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							},
 						},
 
@@ -165,13 +147,13 @@ func resourceSqlServer() *pluginsdk.Resource {
 						"state": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							Default:          string(sql.SecurityAlertPolicyStateDisabled),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sql.SecurityAlertPolicyStateDisabled),
 								string(sql.SecurityAlertPolicyStateEnabled),
-								string(sql.SecurityAlertPolicyStateNew), // Only kept for backward compatibility - TODO 3.0 should we change this to enabled and a boolean?
-							}, true),
+								string(sql.SecurityAlertPolicyStateNew), // Only kept for backward compatibility - TODO investigate if we can remove this in 4.0
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"storage_account_access_key": {
@@ -216,7 +198,6 @@ func resourceSqlServer() *pluginsdk.Resource {
 func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).Sql.ServerConnectionPoliciesClient
 	secPolicyClient := meta.(*clients.Client).Sql.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -251,7 +232,11 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		sqlServerIdentity := expandAzureRmSqlServerIdentity(d)
+		sqlServerIdentity, err := expandAzureRmSqlServerIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
 		parameters.Identity = sqlServerIdentity
 	}
 
@@ -284,17 +269,6 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("creating/updating Connection Policy for %s: %+v", id, err)
 	}
 
-	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{})),
-	}
-	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
-	if err != nil {
-		return fmt.Errorf("creating/updating Auditing Policy for %s: %+v", id, err)
-	}
-	if err := auditingFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Auditing Policy for %s: %+v", id, err)
-	}
-
 	policyInput := expandSqlServerThreatDetectionPolicy(d)
 	policyFuture, err := secPolicyClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, policyInput)
 	if err != nil {
@@ -309,7 +283,6 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 func resourceSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
-	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).Sql.ServerConnectionPoliciesClient
 	secPolicyClient := meta.(*clients.Client).Sql.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -334,11 +307,6 @@ func resourceSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	connection, err := connectionClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("retrieving Blob Connection Policy for %s: %+v", *id, err)
-	}
-
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving Blob Auditing Policy for %s: %v ", *id, err)
 	}
 
 	secPolicy, err := secPolicyClient.Get(ctx, id.ResourceGroup, id.Name)
@@ -368,10 +336,6 @@ func resourceSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("connection_policy", string(props.ConnectionType))
 	}
 
-	if err := d.Set("extended_auditing_policy", helper.FlattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp, d)); err != nil {
-		return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
-	}
-
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -397,32 +361,38 @@ func resourceSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func expandAzureRmSqlServerIdentity(d *pluginsdk.ResourceData) *sql.ResourceIdentity {
-	identities := d.Get("identity").([]interface{})
-	if len(identities) == 0 {
-		return &sql.ResourceIdentity{}
+func expandAzureRmSqlServerIdentity(input []interface{}) (*sql.ResourceIdentity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
-	identity := identities[0].(map[string]interface{})
-	identityType := sql.IdentityType(identity["type"].(string))
+
+	if expanded.Type == identity.TypeNone {
+		return &sql.ResourceIdentity{}, nil
+	}
+
 	return &sql.ResourceIdentity{
-		Type: identityType,
-	}
+		Type: sql.IdentityType(string(expanded.Type)),
+	}, nil
 }
 
-func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface{} {
-	if identity == nil {
-		return []interface{}{}
-	}
-	result := make(map[string]interface{})
-	result["type"] = identity.Type
-	if identity.PrincipalID != nil {
-		result["principal_id"] = identity.PrincipalID.String()
-	}
-	if identity.TenantID != nil {
-		result["tenant_id"] = identity.TenantID.String()
+func flattenAzureRmSqlServerIdentity(input *sql.ResourceIdentity) []interface{} {
+	var transform *identity.SystemAssigned
+
+	if input != nil {
+		transform = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+
+		if input.PrincipalID != nil {
+			transform.PrincipalId = input.PrincipalID.String()
+		}
+		if input.TenantID != nil {
+			transform.TenantId = input.TenantID.String()
+		}
 	}
 
-	return []interface{}{result}
+	return identity.FlattenSystemAssigned(transform)
 }
 
 func flattenSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy sql.ServerSecurityAlertPolicy) []interface{} {

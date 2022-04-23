@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataShareDataSetDataLakeGen2Resource struct {
-}
+type DataShareDataSetDataLakeGen2Resource struct{}
 
 func TestAccDataShareDataSetDataLakeGen2_basicFile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen2", "test")

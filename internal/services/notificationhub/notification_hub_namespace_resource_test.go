@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NotificationHubNamespaceResource struct {
-}
+type NotificationHubNamespaceResource struct{}
 
 func TestAccNotificationHubNamespace_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
@@ -26,7 +25,7 @@ func TestAccNotificationHubNamespace_free(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("namespace_type"),
 	})
 }
 
@@ -57,7 +56,7 @@ func TestAccNotificationHubNamespace_updateTag(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("namespace_type"),
 	})
 }
 

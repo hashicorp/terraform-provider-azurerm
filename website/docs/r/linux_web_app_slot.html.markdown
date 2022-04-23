@@ -10,8 +10,6 @@ description: |-
 
 Manages a Linux Web App Slot.
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -25,15 +23,15 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_service_plan" "example" {
-  name                = "example"
+  name                = "example-plan"
   resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
   os_type             = "Linux"
-  sku_name            = "P1V2"
+  sku_name            = "P1v2"
 }
 
 resource "azurerm_linux_web_app" "example" {
-  name                = "example"
+  name                = "example-linux-web-app"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_service_plan.example.location
   service_plan_id     = azurerm_service_plan.example.id
@@ -42,11 +40,8 @@ resource "azurerm_linux_web_app" "example" {
 }
 
 resource "azurerm_linux_web_app_slot" "example" {
-  name                = "example"
-  app_service_name    = azurerm_linux_web_app.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_service_plan.example.location
-  service_plan_id     = azurerm_service_plan.example.id
+  name           = "example-slot"
+  app_service_id = azurerm_linux_web_app.example.id
 
   site_config {}
 }
@@ -61,13 +56,7 @@ The following arguments are supported:
 
 * ~> **NOTE:** Terraform will perform a name availability check as part of the creation progress, if this Web App is part of an App Service Environment terraform will require Read permission on the ASE for this to complete reliably.
 
-* `location` - (Required) The Azure Region where the Linux Web App should exist. Changing this forces a new Linux Web App to be created.
-
-* `app_service_name` - (Required) The name of the Linux Web App this Deployment Slot will be part of.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Linux Web App should exist. Changing this forces a new Linux Web App to be created.
-
-* `service_plan_id` - (Required) The ID of the Service Plan that this Linux App Service will be created in.
+* `app_service_id` - (Required) The ID of the Linux Web App this Deployment Slot will be part of. Changing this forces a new Linux Web App to be created.
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
@@ -93,7 +82,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
 * `logs` - (Optional) A `logs` block as defined below.
 
@@ -133,35 +122,35 @@ A `application_logs` block supports the following:
 
 ---
 
-A `application_stack` block supports the following:
+An `application_stack` block supports the following:
 
-* `docker_image` - (Optional) The Docker image reference, including repository host as needed. 
+* `docker_image` - (Optional) The Docker image reference, including repository host as needed.
 
-* `docker_image_tag` - (Optional) The image Tag to use. e.g. `latest`
+* `docker_image_tag` - (Optional) The image Tag to use. e.g. `latest`.
 
-* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `2.1`, `3.1`, and `5.0`.
+* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1`, `5.0`, and `6.0`.
 
 * `java_server` - (Optional) The java server type. Possible values include `JAVA`, `TOMCAT`, and `JBOSSEAP`.
 
-~> **NOTE:** `JBOSSEAP` requires a Premium Service Plan SKU to be a valid option. 
+~> **NOTE:** `JBOSSEAP` requires a Premium Service Plan SKU to be a valid option.
 
 * `java_server_version` - (Optional) The Version of the `java_server` to use.
 
 * `java_version` - (Optional) The Version of Java to use. Supported versions of Java vary depending on the `java_server` and `java_server_version`, as well as security and fixes to major versions. Please see Azure documentation for the latest information.
 
-~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from command line via `az webapp list-runtimes --linux`. 
+~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from command line via `az webapp list-runtimes --linux`.
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `10.1`, `10.6`, `10.4`, `10-lts`, `12-lts`, and `14-lts`. This property conflicts with `java_version`.
+* `node_version` - (Optional) The version of Node to run. Possible values include `12-lts`, `14-lts`, and `16-lts`. This property conflicts with `java_version`.
 
-~> **NOTE:** 10.x versions have been / are being deprecated so may cease to work for new resources in future and may be removed from the provider. 
+~> **NOTE:** 10.x versions have been / are being deprecated so may cease to work for new resources in future and may be removed from the provider.
 
-* `php_version` - (Optional) The version of PHP to run. Possible values include `5.6`, `7.2`, `7.3`, and `7.4`.
+* `php_version` - (Optional) The version of PHP to run. Possible values include `7.4`, and `8.0`.
 
 ~> **NOTE:** versions `5.6` and `7.2` are deprecated and will be removed from the provider in a future version.
 
-* `python_version` - (Optional) The version of Python to run. Possible values include `2.7`, `3.6`, `3.7`, and `3.8`. 
+* `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, and `3.9`.
 
-* `ruby_version` - (Optional) Te version of Ruby to run. Possible values include `2.5` and `2.6`.
+* `ruby_version` - (Optional) Te version of Ruby to run. Possible values include `2.6` and `2.7`.
 
 ---
 
@@ -233,7 +222,7 @@ A `backup` block supports the following:
 
 A `connection_string` block supports the following:
 
-* `type` - (Required) Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.
+* `type` - (Required) Type of database. Possible values include: `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 
 * `value` - (Required) The connection string value.
 
@@ -313,11 +302,13 @@ A `http_logs` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Linux Web App Slot. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of Identity IDs.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Linux Web App Slot.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -567,11 +558,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 -> You can access the Principal ID via `azurerm_linux_web_app.example.identity.0.principal_id` and the Tenant ID via `azurerm_linux_web_app.example.identity.0.tenant_id`
 

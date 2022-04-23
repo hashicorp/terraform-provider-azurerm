@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsDataSourceWindowsPerformanceCounterResource struct {
-}
+type LogAnalyticsDataSourceWindowsPerformanceCounterResource struct{}
 
 func TestAccLogAnalyticsDataSourceWindowsPerformanceCounter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_performance_counter", "test")

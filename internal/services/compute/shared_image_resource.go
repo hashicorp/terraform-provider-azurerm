@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -160,6 +161,12 @@ func resourceSharedImage() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"accelerated_network_support_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -167,25 +174,23 @@ func resourceSharedImage() *pluginsdk.Resource {
 
 func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Shared Image creation.")
-
-	name := d.Get("name").(string)
-	galleryName := d.Get("gallery_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewSharedImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, galleryName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_shared_image", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_shared_image", id.ID())
 		}
 	}
 
@@ -194,6 +199,12 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		features = append(features, compute.GalleryImageFeature{
 			Name:  utils.String("SecurityType"),
 			Value: utils.String("TrustedLaunch"),
+		})
+	}
+	if d.Get("accelerated_network_support_enabled").(bool) {
+		features = append(features, compute.GalleryImageFeature{
+			Name:  utils.String("IsAcceleratedNetworkSupported"),
+			Value: utils.String("true"),
 		})
 	}
 
@@ -219,25 +230,16 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		image.GalleryImageProperties.OsState = compute.OperatingSystemStateTypesGeneralized
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, galleryName, name, image)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, image)
 	if err != nil {
-		return fmt.Errorf("creating/updating Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, galleryName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Shared Image %q (Gallery %q / Resource Group %q) ID", name, galleryName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceSharedImageRead(d, meta)
 }
@@ -287,15 +289,25 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("setting `purchase_plan`: %+v", err)
 		}
 
-		trusted_launch_enabled := false
-		if props.Features != nil {
-			for _, feature := range *props.Features {
-				if feature.Name != nil && feature.Value != nil && *feature.Name == "SecurityType" && *feature.Value == "TrustedLaunch" {
-					trusted_launch_enabled = true
+		trustedLaunchEnabled := false
+		acceleratedNetworkSupportEnabled := false
+		if features := props.Features; features != nil {
+			for _, feature := range *features {
+				if feature.Name == nil || feature.Value == nil {
+					continue
+				}
+
+				if strings.EqualFold(*feature.Name, "SecurityType") {
+					trustedLaunchEnabled = strings.EqualFold(*feature.Value, "TrustedLaunch")
+				}
+
+				if strings.EqualFold(*feature.Name, "IsAcceleratedNetworkSupported") {
+					acceleratedNetworkSupportEnabled = strings.EqualFold(*feature.Value, "true")
 				}
 			}
 		}
-		d.Set("trusted_launch_enabled", trusted_launch_enabled)
+		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+		d.Set("accelerated_network_support_enabled", acceleratedNetworkSupportEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

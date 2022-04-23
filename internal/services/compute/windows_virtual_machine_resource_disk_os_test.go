@@ -201,6 +201,36 @@ func TestAccWindowsVirtualMachine_diskOSStorageTypePremiumLRS(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_diskOSStorageTypeStandardSSDZRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSStorageAccountType(data, "StandardSSD_ZRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachine_diskOSStorageTypePremiumZRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSStorageAccountType(data, "Premium_ZRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachine_diskOSStorageTypeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
@@ -397,8 +427,9 @@ func (WindowsVirtualMachineResource) diskOSDiskDiskEncryptionSetDependencies(dat
 provider "azurerm" {
   features {
     key_vault {
-      recover_soft_deleted_key_vaults = false
-      purge_soft_delete_on_destroy    = false
+      recover_soft_deleted_key_vaults    = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -421,7 +452,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
-  soft_delete_enabled         = true
   purge_protection_enabled    = true
   enabled_for_disk_encryption = true
 }
@@ -432,17 +462,17 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create",
-    "delete",
-    "get",
-    "purge",
-    "update",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Update",
   ]
 
   secret_permissions = [
-    "get",
-    "delete",
-    "set",
+    "Get",
+    "Delete",
+    "Set",
   ]
 }
 
@@ -475,7 +505,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -511,9 +541,9 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
   key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
-    "get",
-    "wrapkey",
-    "unwrapkey",
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
   ]
 
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id

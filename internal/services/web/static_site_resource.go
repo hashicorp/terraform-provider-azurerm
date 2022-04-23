@@ -7,10 +7,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -53,20 +55,20 @@ func resourceStaticSite() *pluginsdk.Resource {
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "Free",
+				Default:  string(web.SkuNameFree),
 				ValidateFunc: validation.StringInSlice([]string{
-					"Free",
-					"Standard",
+					string(web.SkuNameStandard),
+					string(web.SkuNameFree),
 				}, false),
 			},
 
 			"sku_size": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "Free",
+				Default:  string(web.SkuNameFree),
 				ValidateFunc: validation.StringInSlice([]string{
-					"Free",
-					"Standard",
+					string(web.SkuNameStandard),
+					string(web.SkuNameFree),
 				}, false),
 			},
 
@@ -74,6 +76,8 @@ func resourceStaticSite() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"api_key": {
 				Type:     pluginsdk.TypeString,
@@ -110,13 +114,26 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	loc := location.Normalize(d.Get("location").(string))
 
+	skuName := d.Get("sku_size").(string)
+
+	identity, err := expandStaticSiteIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	// See: https://github.com/Azure/azure-rest-api-specs/issues/17525
+	if skuName == string(web.SkuNameFree) && identity != nil {
+		return fmt.Errorf("a Managed Identity cannot be used when tier is set to `Free`")
+	}
+
 	siteEnvelope := web.StaticSiteARMResource{
 		Sku: &web.SkuDescription{
-			Name: utils.String(d.Get("sku_size").(string)),
+			Name: &skuName,
 			Tier: utils.String(d.Get("sku_tier").(string)),
 		},
 		StaticSite: &web.StaticSite{},
 		Location:   &loc,
+		Identity:   identity,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -150,6 +167,12 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+
+	identity, err := flattenStaticSiteIdentity(resp.Identity)
+	if err != nil {
+		return err
+	}
+	d.Set("identity", identity)
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
@@ -209,4 +232,54 @@ func resourceStaticSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	return nil
+}
+
+func expandStaticSiteIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
+	config, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if config.Type == identity.TypeNone {
+		return nil, nil
+	}
+
+	out := web.ManagedServiceIdentity{
+		Type: web.ManagedServiceIdentityType(config.Type),
+	}
+
+	if len(config.IdentityIds) != 0 {
+		out.UserAssignedIdentities = make(map[string]*web.UserAssignedIdentity)
+		for id := range config.IdentityIds {
+			out.UserAssignedIdentities[id] = &web.UserAssignedIdentity{}
+		}
+	}
+
+	return &out, nil
+}
+
+func flattenStaticSiteIdentity(input *web.ManagedServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
+	}
+
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,6 +24,21 @@ func TestAccPurviewAccount_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPurviewAccount_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
+	r := PurviewAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -81,7 +98,12 @@ func (r PurviewAccountResource) Exists(ctx context.Context, client *clients.Clie
 
 func (r PurviewAccountResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
-	return fmt.Sprintf(`
+	if !features.ThreePointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_purview_account" "test" {
@@ -90,11 +112,77 @@ resource "azurerm_purview_account" "test" {
   location            = azurerm_resource_group.test.location
 }
 `, template, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_purview_account" "test" {
+  name                = "acctestsw%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r PurviewAccountResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	if !features.ThreePointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_purview_account" "test" {
+  name                   = "acctestsw%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  public_network_enabled = false
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, template, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_purview_account" "test" {
+  name                   = "acctestsw%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  public_network_enabled = false
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (r PurviewAccountResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
-	return fmt.Sprintf(`
+	if !features.ThreePointOhBeta() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_purview_account" "import" {
@@ -103,31 +191,65 @@ resource "azurerm_purview_account" "import" {
   location            = azurerm_purview_account.test.location
 }
 `, template)
-}
-
-func (r PurviewAccountResource) template(data acceptance.TestData) string {
+	}
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-purview-%d"
-  location = "%s"
+resource "azurerm_purview_account" "import" {
+  name                = azurerm_purview_account.test.name
+  resource_group_name = azurerm_purview_account.test.resource_group_name
+  location            = azurerm_purview_account.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, template)
 }
 
 func (r PurviewAccountResource) withManagedResourceGroupName(data acceptance.TestData, managedResourceGroupName string) string {
 	template := r.template(data)
-	return fmt.Sprintf(`
+	if !features.ThreePointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_purview_account" "test" {
   name                        = "acctestsw%d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  managed_resource_group_name = "%s"
+  managed_resource_group_name = %q
 }
 `, template, data.RandomInteger, managedResourceGroupName)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_purview_account" "test" {
+  name                        = "acctestsw%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  managed_resource_group_name = %q
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger, managedResourceGroupName)
+}
+
+func (r PurviewAccountResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-purview-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

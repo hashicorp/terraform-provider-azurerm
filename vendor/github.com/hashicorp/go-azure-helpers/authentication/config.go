@@ -8,6 +8,8 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
+	authWrapper "github.com/manicminer/hamilton-autorest/auth"
+	"github.com/manicminer/hamilton/auth"
 	"github.com/manicminer/hamilton/environments"
 )
 
@@ -100,9 +102,9 @@ func (c Config) BuildOAuthConfig(activeDirectoryEndpoint string) (*OAuthConfig, 
 	return &multiAuth, nil
 }
 
-// BearerAuthorizerCallback returns a BearerAuthorizer valid only for the Primary Tenant
+// ADALBearerAuthorizerCallback returns a BearerAuthorizer valid only for the Primary Tenant
 // this signs a request using the AccessToken returned from the primary Resource Manager authorizer
-func (c Config) BearerAuthorizerCallback(ctx context.Context, sender autorest.Sender, oauthConfig *OAuthConfig) *autorest.BearerAuthorizerCallback {
+func (c Config) ADALBearerAuthorizerCallback(ctx context.Context, sender autorest.Sender, oauthConfig *OAuthConfig) *autorest.BearerAuthorizerCallback {
 	return autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
 		// a BearerAuthorizer is only valid for the primary tenant
 		newAuthConfig := &OAuthConfig{
@@ -121,6 +123,33 @@ func (c Config) BearerAuthorizerCallback(ctx context.Context, sender autorest.Se
 
 		return cast, nil
 	})
+}
+
+// MSALBearerAuthorizerCallback returns a BearerAuthorizer valid only for the Primary Tenant
+// this signs a request using the AccessToken returned from the primary Resource Manager authorizer
+func (c Config) MSALBearerAuthorizerCallback(ctx context.Context, api environments.Api, sender autorest.Sender, oauthConfig *OAuthConfig, endpoint string) *autorest.BearerAuthorizerCallback {
+	authorizer, err := c.GetMSALToken(ctx, api, sender, oauthConfig, endpoint)
+	if err != nil {
+		return autorest.NewBearerAuthorizerCallback(nil, func(_, _ string) (*autorest.BearerAuthorizer, error) {
+			return nil, fmt.Errorf("failed to acquire MSAL token for %s", api.Endpoint)
+		})
+	}
+
+	// For compatibility with Azure CLI which still uses ADAL, first check if we got an autorest.BearerAuthorizer
+	if cast, ok := authorizer.(*autorest.BearerAuthorizer); ok {
+		return autorest.NewBearerAuthorizerCallback(sender, func(_, _ string) (*autorest.BearerAuthorizer, error) {
+			return cast, nil
+		})
+	}
+
+	cast, ok := authorizer.(auth.Authorizer)
+	if !ok {
+		return autorest.NewBearerAuthorizerCallback(nil, func(_, _ string) (*autorest.BearerAuthorizer, error) {
+			return nil, fmt.Errorf("authorizer was not an auth.Authorizer for %s", api.Endpoint)
+		})
+	}
+
+	return (&authWrapper.Authorizer{Authorizer: cast}).BearerAuthorizerCallback()
 }
 
 // GetADALToken returns an autorest.Authorizer using an ADAL token via the authentication method defined in the Config

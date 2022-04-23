@@ -10,8 +10,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ pluginsdk.StateUpgrade = RegistryV0ToV1{}
-var _ pluginsdk.StateUpgrade = RegistryV1ToV2{}
+var (
+	_ pluginsdk.StateUpgrade = RegistryV0ToV1{}
+	_ pluginsdk.StateUpgrade = RegistryV1ToV2{}
+)
 
 type RegistryV0ToV1 struct{}
 
@@ -99,7 +101,7 @@ func registrySchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		// lintignore:S018
+		//lintignore:S018
 		"storage_account": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,

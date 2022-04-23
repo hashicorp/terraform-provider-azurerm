@@ -52,6 +52,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 resource "azurerm_network_watcher_flow_log" "test" {
   network_watcher_name = azurerm_network_watcher.test.name
   resource_group_name  = azurerm_resource_group.test.name
+  name                 = "example-log"
 
   network_security_group_id = azurerm_network_security_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
@@ -76,6 +77,8 @@ resource "azurerm_network_watcher_flow_log" "test" {
 
 The following arguments are supported:
 
+* `name` - (Required) The name of the Network Watcher Flow Log. Changing this forces a new resource to be created.
+
 * `network_watcher_name` - (Required) The name of the Network Watcher. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which the Network Watcher was deployed. Changing this forces a new resource to be created.
@@ -87,7 +90,7 @@ The following arguments are supported:
 * `enabled` - (Required) Should Network Flow Logging be Enabled?
 
 * `retention_policy` - (Required) A `retention_policy` block as documented below.
- 
+
 * `location` - (Optional) The location where the Network Watcher Flow Log resides. Changing this forces a new resource to be created. Defaults to the `location` of the Network Watcher.
 
 * `traffic_analytics` - (Optional) A `traffic_analytics` block as documented below.
@@ -133,5 +136,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Network Watcher Flow Logs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_network_watcher_flow_log.watcher1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkWatchers/watcher1/networkSecurityGroupId/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkSecurityGroups/group1
+terraform import azurerm_network_watcher_flow_log.watcher1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkWatchers/watcher1/flowLogs/log1
 ```

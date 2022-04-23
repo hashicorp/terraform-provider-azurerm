@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -151,7 +152,7 @@ func flattenCosmosDBIndexingPolicyCompositeIndex(input []documentdb.CompositePat
 
 		block := make(map[string]interface{})
 		block["path"] = path
-		block["order"] = strings.Title(string(v.Order))
+		block["order"] = string(v.Order)
 		indexPairs = append(indexPairs, block)
 	}
 
@@ -232,7 +233,7 @@ func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *documentdb.IndexingPol
 	}
 
 	result := make(map[string]interface{})
-	result["indexing_mode"] = strings.Title(string(indexingPolicy.IndexingMode))
+	result["indexing_mode"] = string(indexingPolicy.IndexingMode)
 	result["included_path"] = flattenCosmosDBIndexingPolicyIncludedPaths(indexingPolicy.IncludedPaths)
 	result["excluded_path"] = flattenCosmosDBIndexingPolicyExcludedPaths(indexingPolicy.ExcludedPaths)
 	result["composite_index"] = FlattenCosmosDBIndexingPolicyCompositeIndexes(indexingPolicy.CompositeIndexes)
@@ -250,11 +251,11 @@ func ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy *documentdb.IndexingPo
 	// Ensure includedPaths or excludedPaths are not set if indexingMode is "None".
 	if indexingPolicy.IndexingMode == documentdb.IndexingModeNone {
 		if indexingPolicy.IncludedPaths != nil {
-			return fmt.Errorf("included_path must not be set if indexing_mode is %q", strings.Title(string(documentdb.IndexingModeNone)))
+			return fmt.Errorf("included_path must not be set if indexing_mode is %q", azure.TitleCase(string(documentdb.IndexingModeNone)))
 		}
 
 		if indexingPolicy.ExcludedPaths != nil {
-			return fmt.Errorf("excluded_path must not be set if indexing_mode is %q", strings.Title(string(documentdb.IndexingModeNone)))
+			return fmt.Errorf("excluded_path must not be set if indexing_mode is %q", azure.TitleCase(string(documentdb.IndexingModeNone)))
 		}
 	}
 

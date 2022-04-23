@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PostgreSQLDatabaseResource struct {
-}
+type PostgreSQLDatabaseResource struct{}
 
 func TestAccPostgreSQLDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_database", "test")
@@ -124,11 +123,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
@@ -178,11 +175,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
@@ -218,11 +213,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
@@ -258,11 +251,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"

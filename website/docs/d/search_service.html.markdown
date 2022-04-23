@@ -54,9 +54,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `identity` block supports the following:
+An `identity` block exports the following:
 
-* `type` - The Type of Managed Identity which is used for the Search Service.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+* `type` - The identity type of this Managed Service Identity.
 
 ---
 

@@ -60,6 +60,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sqlvirtualmachine.PAYG),
 					string(sqlvirtualmachine.AHUB),
+					string(sqlvirtualmachine.DR),
 				}, false),
 			},
 
@@ -322,11 +323,11 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vmId := d.Get("virtual_machine_id").(string)
-	id, err := parseCompute.VirtualMachineID(vmId)
+	vmId, err := parseCompute.VirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return err
 	}
+	id := parse.NewSqlVirtualMachineID(vmId.SubscriptionId, vmId.ResourceGroup, vmId.Name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "*")
@@ -335,8 +336,8 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 				return fmt.Errorf("checking for present of existing Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mssql_virtual_machine", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_mssql_virtual_machine", id.ID())
 		}
 	}
 
@@ -391,7 +392,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("Cannot read Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q) ID", id.Name, id.ResourceGroup)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	// Wait for the auto backup settings to take effect
 	// See: https://github.com/Azure/azure-rest-api-specs/issues/12818

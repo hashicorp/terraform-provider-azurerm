@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this API Management Redis Cache. Changing this forces a new API Management Redis Cache to be created.
 
-* `api_management_id` - (Required) The resource ID of the Api Management Service from which to create this external cache. Changing this forces a new API Management Redis Cache to be created.
+* `api_management_id` - (Required) The resource ID of the API Management Service from which to create this external cache. Changing this forces a new API Management Redis Cache to be created.
 
 * `connection_string` - (Required) The connection string to the Cache for Redis.
 

@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) Specifies the SKU Name for this Cognitive Service Account. Possible values are `F0`, `F1`, `S`, `S0`, `S1`, `S2`, `S3`, `S4`, `S5`, `S6`, `P0`, `P1`, and `P2`.
 
-* `custom_subdomain_name` - (Optional) The subdomain name used for token-based authentication. Changing this forces a new resource to be created.
+* `custom_subdomain_name` - (Required) The subdomain name used for token-based authentication. Changing this forces a new resource to be created.
 
 * `fqdns` - (Optional) List of FQDNs allowed for the Cognitive Account.
 
@@ -70,11 +70,15 @@ The following arguments are supported:
 
 * `network_acls` - (Optional) A `network_acls` block as defined below.
 
-* `outbound_network_access_restrited` - (Optional) Whether outbound network access is restricted for the Cognitive Account. Defaults to `false`.
+* `outbound_network_access_restricted` - (Optional) Whether outbound network access is restricted for the Cognitive Account. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the Cognitive Account. Defaults to `true`.
 
 * `qna_runtime_endpoint` - (Optional) A URL to link a QnAMaker cognitive account to a QnA runtime.
+
+* `custom_question_answering_search_service_id` - If `kind` is `TextAnalytics` this specifies the ID of the Search service.
+
+-> **NOTE:** `custom_question_answering_search_service_id` is used for [Custom Question Answering, the renamed version of QnA Maker](https://docs.microsoft.com/azure/cognitive-services/qnamaker/custom-question-answering), while `qna_runtime_endpoint` is used for [the old version of QnA Maker](https://docs.microsoft.com/azure/cognitive-services/qnamaker/overview/overview)
 
 * `storage` - (Optional) A `storage` block as defined below.
 
@@ -84,7 +88,7 @@ The following arguments are supported:
 
 A `network_acls` block supports the following:
 
-* `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_subnet_ids`. Possible values are `Allow` and `Deny`.
+* `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_rules`. Possible values are `Allow` and `Deny`.
 
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Cognitive Account.
 
@@ -100,9 +104,9 @@ A `virtual_network_rules` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on the Cognitive Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cognitive Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Cognitive Account.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
@@ -122,9 +126,19 @@ The following attributes are exported:
 
 * `endpoint` - The endpoint used to connect to the Cognitive Service Account.
 
+* `identity` - An `identity` block as defined below.
+
 * `primary_access_key` - A primary access key which can be used to connect to the Cognitive Service Account.
 
 * `secondary_access_key` - The secondary access key which can be used to connect to the Cognitive Service Account.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 

@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type PolicyVirtualMachineConfigurationAssignmentDataSource struct {
-}
+type PolicyVirtualMachineConfigurationAssignmentDataSource struct{}
 
 func TestAccPolicyVirtualMachineConfigurationAssignmentDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_virtual_machine_configuration_assignment", "test")
@@ -52,7 +51,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {

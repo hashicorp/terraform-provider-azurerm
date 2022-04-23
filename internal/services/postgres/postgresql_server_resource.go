@@ -8,10 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -126,65 +127,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 					string(postgresql.OneOne),
 					string(postgresql.OneZero),
 					string(postgresql.OneZeroFullStopZero),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference, // TODO: make case sensitive in 3.0
-			},
-
-			"storage_profile": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				Deprecated: "all storage_profile properties have been move to the top level. This block will be removed in version 3.0 of the provider.",
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"storage_mb": {
-							Type:          pluginsdk.TypeInt,
-							Optional:      true,
-							ConflictsWith: []string{"storage_mb"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc: validation.All(
-								validation.IntBetween(5120, 4194304),
-								validation.IntDivisibleBy(1024),
-							),
-						},
-
-						"backup_retention_days": {
-							Type:          pluginsdk.TypeInt,
-							Optional:      true,
-							Default:       7,
-							ConflictsWith: []string{"backup_retention_days"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc:  validation.IntBetween(7, 35),
-						},
-
-						"auto_grow": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ConflictsWith: []string{"auto_grow_enabled"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc: validation.StringInSlice([]string{
-								string(postgresql.StorageAutogrowEnabled),
-								string(postgresql.StorageAutogrowDisabled),
-							}, false),
-						},
-
-						"geo_redundant_backup": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ForceNew:      true,
-							ConflictsWith: []string{"geo_redundant_backup_enabled"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc: validation.StringInSlice([]string{
-								"Enabled",
-								"Disabled",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-					},
-				},
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"administrator_login": {
@@ -202,26 +146,35 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			},
 
 			"auto_grow_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				Computed:      true, // TODO: remove in 3.0 and default to true
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.auto_grow"},
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default: func() interface{} {
+					if features.ThreePointOhBeta() {
+						return true
+					}
+					return nil
+				}(),
+				Computed: !features.ThreePointOhBeta(),
 			},
 
 			"backup_retention_days": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.backup_retention_days"},
-				ValidateFunc:  validation.IntBetween(7, 35),
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
 			"geo_redundant_backup_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true, // TODO: remove in 2.0 and default to false
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Computed: !features.ThreePointOhBeta(),
+				Default: func() interface{} {
+					if !features.ThreePointOhBeta() {
+						return nil
+					}
+					return false
+				}(),
 			},
 
 			"create_mode": {
@@ -242,32 +195,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				ValidateFunc: validate.ServerID,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(postgresql.SystemAssigned),
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"infrastructure_encryption_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -288,10 +216,9 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			},
 
 			"storage_mb": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.storage_mb"},
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.All(
 					validation.IntBetween(5120, 16777216),
 					validation.IntDivisibleBy(1024),
@@ -302,7 +229,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default: func() interface{} {
-					if features.ThreePointOh() {
+					if features.ThreePointOhBeta() {
 						return string(postgresql.TLS12)
 					}
 					return string(postgresql.TLSEnforcementDisabled)
@@ -316,22 +243,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			},
 
 			"ssl_enforcement_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true, // required in 3.0
-				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
-			},
-
-			"ssl_enforcement": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				Deprecated:   "this has been renamed to the boolean `ssl_enforcement_enabled` and will be removed in version 3.0 of the provider.",
-				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
-				ValidateFunc: validation.StringInSlice([]string{
-					string(postgresql.SslEnforcementEnumDisabled),
-					string(postgresql.SslEnforcementEnumEnabled),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     pluginsdk.TypeBool,
+				Required: true,
 			},
 
 			"threat_detection_policy": {
@@ -343,7 +256,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 						"enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -363,7 +277,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 									"Unsafe_Action",
 								}, false),
 							},
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -372,7 +287,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 						"email_account_admins": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -386,7 +302,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 								// todo email validation in code
 							},
 							Set: pluginsdk.HashString,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -396,7 +313,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -407,7 +325,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -417,7 +336,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -483,7 +403,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	mode := postgresql.CreateMode(d.Get("create_mode").(string))
-	tlsMin := postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
 	source := d.Get("creation_source_server_id").(string)
 	version := postgresql.ServerVersion(d.Get("version").(string))
 
@@ -505,6 +424,11 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	ssl := postgresql.SslEnforcementEnumEnabled
 	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
 		ssl = postgresql.SslEnforcementEnumDisabled
+	}
+
+	tlsMin := postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
+	if ssl == postgresql.SslEnforcementEnumDisabled && tlsMin != postgresql.TLSEnforcementDisabled {
+		return fmt.Errorf("`ssl_minimal_tls_version_enforced` must be set to `TLSEnforcementDisabled` if `ssl_enforcement_enabled` is set to `false`")
 	}
 
 	storage := expandPostgreSQLStorageProfile(d)
@@ -580,8 +504,12 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	expandedIdentity, err := expandServerIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 	server := postgresql.ServerForCreate{
-		Identity:   expandServerIdentity(d.Get("identity").([]interface{})),
+		Identity:   expandedIdentity,
 		Location:   utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: props,
 		Sku:        sku,
@@ -733,8 +661,17 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	tlsMin := postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
 
+	if ssl == postgresql.SslEnforcementEnumDisabled && tlsMin != postgresql.TLSEnforcementDisabled {
+		return fmt.Errorf("`ssl_minimal_tls_version_enforced` must be set to `TLSEnforcementDisabled` if `ssl_enforcement_enabled` is set to `false`")
+	}
+
+	expandedIdentity, err := expandServerIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	properties := postgresql.ServerUpdateParameters{
-		Identity: expandServerIdentity(d.Get("identity").([]interface{})),
+		Identity: expandedIdentity,
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
 			PublicNetworkAccess: publicAccess,
 			SslEnforcement:      ssl,
@@ -833,17 +770,12 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("ssl_enforcement", string(props.SslEnforcement))
 		d.Set("ssl_minimal_tls_version_enforced", props.MinimalTLSVersion)
 		d.Set("version", string(props.Version))
 
 		d.Set("infrastructure_encryption_enabled", props.InfrastructureEncryption == postgresql.InfrastructureEncryptionEnabled)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == postgresql.PublicNetworkAccessEnumEnabled)
 		d.Set("ssl_enforcement_enabled", props.SslEnforcement == postgresql.SslEnforcementEnumEnabled)
-
-		if err := d.Set("storage_profile", flattenPostgreSQLStorageProfile(props.StorageProfile)); err != nil {
-			return fmt.Errorf("setting `storage_profile`: %+v", err)
-		}
 
 		if storage := props.StorageProfile; storage != nil {
 			d.Set("storage_mb", storage.StorageMB)
@@ -938,14 +870,6 @@ func expandServerSkuName(skuName string) (*postgresql.Sku, error) {
 
 func expandPostgreSQLStorageProfile(d *pluginsdk.ResourceData) *postgresql.StorageProfile {
 	storage := postgresql.StorageProfile{}
-	if v, ok := d.GetOk("storage_profile"); ok {
-		storageprofile := v.([]interface{})[0].(map[string]interface{})
-
-		storage.BackupRetentionDays = utils.Int32(int32(storageprofile["backup_retention_days"].(int)))
-		storage.StorageMB = utils.Int32(int32(storageprofile["storage_mb"].(int)))
-		storage.StorageAutogrow = postgresql.StorageAutogrow(storageprofile["auto_grow"].(string))
-		storage.GeoRedundantBackup = postgresql.GeoRedundantBackup(storageprofile["geo_redundant_backup"].(string))
-	}
 
 	// now override whatever we may have from the block with the top level properties
 	if v, ok := d.GetOk("auto_grow_enabled"); ok {
@@ -971,25 +895,6 @@ func expandPostgreSQLStorageProfile(d *pluginsdk.ResourceData) *postgresql.Stora
 	}
 
 	return &storage
-}
-
-func flattenPostgreSQLStorageProfile(resp *postgresql.StorageProfile) []interface{} {
-	values := map[string]interface{}{}
-
-	values["storage_mb"] = nil
-	if storageMB := resp.StorageMB; storageMB != nil {
-		values["storage_mb"] = *storageMB
-	}
-
-	values["backup_retention_days"] = nil
-	if backupRetentionDays := resp.BackupRetentionDays; backupRetentionDays != nil {
-		values["backup_retention_days"] = *backupRetentionDays
-	}
-
-	values["auto_grow"] = string(resp.StorageAutogrow)
-	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
-
-	return []interface{}{values}
 }
 
 func expandSecurityAlertPolicy(i interface{}) *postgresql.ServerSecurityAlertPolicy {
@@ -1076,39 +981,37 @@ func flattenSecurityAlertPolicy(props *postgresql.SecurityAlertPolicyProperties,
 	return []interface{}{block}
 }
 
-func expandServerIdentity(input []interface{}) *postgresql.ResourceIdentity {
-	if len(input) == 0 {
-		return nil
+func expandServerIdentity(input []interface{}) (*postgresql.ResourceIdentity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
 
-	v := input[0].(map[string]interface{})
-	return &postgresql.ResourceIdentity{
-		Type: postgresql.IdentityType(v["type"].(string)),
+	if expanded.Type == identity.TypeNone {
+		return nil, nil
 	}
+
+	return &postgresql.ResourceIdentity{
+		Type: postgresql.IdentityType(string(expanded.Type)),
+	}, nil
 }
 
 func flattenServerIdentity(input *postgresql.ResourceIdentity) []interface{} {
-	if input == nil {
-		return []interface{}{}
+	var transition *identity.SystemAssigned
+
+	if input != nil {
+		transition = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transition.PrincipalId = input.PrincipalID.String()
+		}
+		if input.TenantID != nil {
+			transition.TenantId = input.TenantID.String()
+		}
 	}
 
-	principalID := ""
-	if input.PrincipalID != nil {
-		principalID = input.PrincipalID.String()
-	}
-
-	tenantID := ""
-	if input.TenantID != nil {
-		tenantID = input.TenantID.String()
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"principal_id": principalID,
-			"tenant_id":    tenantID,
-		},
-	}
+	return identity.FlattenSystemAssigned(transition)
 }
 
 func flattenSecurityAlertPolicySet(input *[]string) []interface{} {

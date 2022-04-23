@@ -8,16 +8,18 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/sdk/2017-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -80,6 +82,7 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_power_bi_service": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -110,10 +113,14 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			},
 
 			"querypool_connection_mode": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validate.QueryPoolConnectionMode(),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servers.ConnectionModeAll),
+					string(servers.ConnectionModeReadOnly),
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"backup_blob_container_uri": {
@@ -128,7 +135,7 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -162,7 +169,7 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 			Name: d.Get("sku").(string),
 		},
 		Properties: serverProperties,
-		Tags:       tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateThenPoll(ctx, id, analysisServicesServer); err != nil {
@@ -225,7 +232,7 @@ func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interfac
 			}
 		}
 
-		if err := tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}
@@ -278,7 +285,7 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 		Sku: &servers.ResourceSku{
 			Name: sku,
 		},
-		Tags:       tagsHelper.Expand(t),
+		Tags:       tags.Expand(t),
 		Properties: serverProperties,
 	}
 

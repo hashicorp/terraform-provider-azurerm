@@ -12,12 +12,12 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -46,8 +46,10 @@ func resourceKeyVault() *pluginsdk.Resource {
 		Update: resourceKeyVaultUpdate,
 		Delete: resourceKeyVaultDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.VaultID(id)
+			return err
+		}),
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -136,6 +138,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 					Optional: true,
 				},
 
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_rbac_authorization": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -228,7 +231,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 				},
 			}
 
-			if !features.ThreePointOh() {
+			if !features.ThreePointOhBeta() {
 				rSchema["soft_delete_enabled"] = &pluginsdk.Schema{
 					Type:       pluginsdk.TypeBool,
 					Optional:   true,
@@ -355,8 +358,12 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
@@ -650,8 +657,7 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	d.Set("soft_delete_retention_days", softDeleteRetentionDays)
 
-	// TODO: remove in 3.0
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		d.Set("soft_delete_enabled", true)
 	}
 

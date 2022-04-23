@@ -10,12 +10,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -29,6 +34,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+var CosmosDbAccountResourceName = "azurerm_cosmosdb_account"
 
 // If the consistency policy of the Cosmos DB Database Account is not bounded staleness,
 // any changes to the configuration for bounded staleness should be suppressed.
@@ -59,6 +66,8 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				caps := diff.Get("capabilities")
 				mongo34found := false
 				enableMongo := false
+				isMongo := strings.EqualFold(diff.Get("kind").(string), string(documentdb.DatabaseAccountKindMongoDB))
+
 				for _, cap := range caps.(*pluginsdk.Set).List() {
 					m := cap.(map[string]interface{})
 					if v, ok := m["name"].(string); ok {
@@ -70,15 +79,17 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 					}
 				}
 
-				if mongo34found && !enableMongo {
+				if isMongo && (mongo34found && !enableMongo) {
 					return fmt.Errorf("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
 				}
 				return nil
 			}),
 		),
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.DatabaseAccountID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
@@ -106,10 +117,10 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"offer_type": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.DatabaseAccountOfferTypeStandard),
-				}, true),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"analytical_storage": {
@@ -176,23 +187,36 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          string(documentdb.DatabaseAccountKindGlobalDocumentDB),
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.DatabaseAccountKindGlobalDocumentDB),
 					string(documentdb.DatabaseAccountKindMongoDB),
 					string(documentdb.DatabaseAccountKindParse),
-				}, true),
+				}, !features.ThreePointOhBeta()),
 			},
 
-			"ip_range_filter": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/([1-2][0-9]|3[0-2]))?\b[,]?)*$`),
-					"Cosmos DB ip_range_filter must be a set of CIDR IP addresses separated by commas with no spaces: '10.0.0.1,10.0.0.2,10.20.0.0/16'",
-				),
-			},
+			"ip_range_filter": func() *schema.Schema {
+				if features.FourPointOhBeta() {
+					return &schema.Schema{
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.IsCIDR,
+						},
+					}
+				}
+				return &schema.Schema{
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/([1-2][0-9]|3[0-2]))?\b[,]?)*$`),
+						"Cosmos DB ip_range_filter must be a set of CIDR IP addresses separated by commas with no spaces: '10.0.0.1,10.0.0.2,10.20.0.0/16'",
+					),
+				}
+			}(),
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_free_tier": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -213,6 +237,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_automatic_failover": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -236,14 +261,14 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						"consistency_level": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(documentdb.DefaultConsistencyLevelBoundedStaleness),
 								string(documentdb.DefaultConsistencyLevelConsistentPrefix),
 								string(documentdb.DefaultConsistencyLevelEventual),
 								string(documentdb.DefaultConsistencyLevelSession),
 								string(documentdb.DefaultConsistencyLevelStrong),
-							}, true),
+							}, !features.ThreePointOhBeta()),
 						},
 
 						"max_interval_in_seconds": {
@@ -270,22 +295,12 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"prefix": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-								"Cosmos DB location prefix (ID) must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
-							),
-							Deprecated: "This is deprecated because the service no longer accepts this as an input since Apr 25, 2019",
-						},
-
 						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
-						"location": location.SchemaWithoutForceNew(),
+						"location": commonschema.LocationWithoutForceNew(),
 
 						"failover_priority": {
 							Type:         pluginsdk.TypeInt,
@@ -313,21 +328,25 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						"name": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								"EnableAggregationPipeline",
-								"EnableCassandra",
-								"EnableGremlin",
-								"EnableTable",
-								"EnableServerless",
-								"EnableMongo",
-								"MongoDBv3.4",
-								"mongoEnableDocLevelTTL",
-								"DisableRateLimitingResponses",
-								"AllowSelfServeUpgradeToMongo36",
-								// TODO: Remove in 3.0 - doesn't do anything
-								"EnableAnalyticalStorage",
-							}, true),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+								out := []string{
+									"EnableAggregationPipeline",
+									"EnableCassandra",
+									"EnableGremlin",
+									"EnableTable",
+									"EnableServerless",
+									"EnableMongo",
+									"MongoDBv3.4",
+									"mongoEnableDocLevelTTL",
+									"DisableRateLimitingResponses",
+									"AllowSelfServeUpgradeToMongo36",
+								}
+								if !features.ThreePointOhBeta() {
+									out = append(out, "EnableAnalyticalStorage")
+								}
+								return validation.StringInSlice(out, !features.ThreePointOhBeta())
+							}(),
 						},
 					},
 				},
@@ -360,6 +379,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_multiple_write_locations": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -447,33 +467,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						// only system assigned identity is supported
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(documentdb.ResourceIdentityTypeSystemAssigned),
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"cors_rule": common.SchemaCorsRule(),
 
@@ -572,34 +566,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"primary_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `primary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"secondary_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `secondary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"primary_readonly_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `primary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
-			"secondary_readonly_master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `secondary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
-
 			"connection_strings": {
 				Type:      pluginsdk.TypeList,
 				Computed:  true,
@@ -617,23 +583,23 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 
 func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDatabaseAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing CosmosDB Account %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_cosmosdb_account", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_cosmosdb_account", id.ID())
 		}
 	}
 
@@ -641,7 +607,12 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	t := d.Get("tags").(map[string]interface{})
 	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)
-	ipRangeFilter := d.Get("ip_range_filter").(string)
+	var ipRangeFilter *[]documentdb.IPAddressOrRange
+	if features.FourPointOhBeta() {
+		ipRangeFilter = common.CosmosDBIpRangeFilterToIpRules(*utils.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List()))
+	} else {
+		ipRangeFilter = common.CosmosDBIpRangeFilterToIpRulesThreePointOh(d.Get("ip_range_filter").(string))
+	}
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
@@ -649,20 +620,20 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
 	disableLocalAuthentication := d.Get("local_authentication_disabled").(bool)
 
-	r, err := client.CheckNameExists(ctx, name)
+	r, err := client.CheckNameExists(ctx, id.Name)
 	if err != nil {
 		// todo remove when https://github.com/Azure/azure-sdk-for-go/issues/9891 is fixed
 		if !utils.ResponseWasStatusCode(r, http.StatusInternalServerError) {
-			return fmt.Errorf("checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking if CosmosDB Account %s: %+v", id, err)
 		}
 	} else {
 		if !utils.ResponseWasNotFound(r) {
-			return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
+			return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", id.Name)
 		}
 	}
 	geoLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
-		return fmt.Errorf("expanding CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
+		return fmt.Errorf("expanding %s geo locations: %+v", id, err)
 	}
 
 	publicNetworkAccess := documentdb.PublicNetworkAccessEnabled
@@ -675,13 +646,18 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		networkByPass = documentdb.NetworkACLBypassAzureServices
 	}
 
+	expandedIdentity, err := expandAccountIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
-		Identity: expandCosmosdbAccountIdentity(d.Get("identity").([]interface{})),
+		Identity: expandedIdentity,
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           utils.String(offerType),
-			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
+			IPRules:                            ipRangeFilter,
 			IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableFreeTier:                     utils.Bool(enableFreeTier),
 			EnableAutomaticFailover:            utils.Bool(enableAutomaticFailover),
@@ -755,36 +731,35 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	resp, err := resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
+	err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d)
 	if err != nil {
-		return fmt.Errorf("creating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	id := resp.ID
-	if id == nil {
-		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*id)
+	d.SetId(id.ID())
 
 	return resourceCosmosDbAccountRead(d, meta)
 }
 
 func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account update.")
 
-	// move to function
-	name := d.Get("name").(string)
+	id := parse.NewDatabaseAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := d.Get("location").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)
-	ipRangeFilter := d.Get("ip_range_filter").(string)
+	var ipRangeFilter *[]documentdb.IPAddressOrRange
+	if features.FourPointOhBeta() {
+		ipRangeFilter = common.CosmosDBIpRangeFilterToIpRules(*utils.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List()))
+	} else {
+		ipRangeFilter = common.CosmosDBIpRangeFilterToIpRulesThreePointOh(d.Get("ip_range_filter").(string))
+	}
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
@@ -794,14 +769,13 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
-		return fmt.Errorf("expanding CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
+		return fmt.Errorf("expanding %s geo locations: %+v", id, err)
 	}
 
 	// get existing locations (if exists)
-	resp, err := client.Get(ctx, resourceGroup, name)
-
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM CosmosDB Account '%s': %s", name, err)
+		return fmt.Errorf("making Read request on %s: %s", id, err)
 	}
 
 	oldLocations := make([]documentdb.Location, 0)
@@ -828,15 +802,20 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		networkByPass = documentdb.NetworkACLBypassAzureServices
 	}
 
+	expandedIdentity, err := expandAccountIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	// cannot update properties and add/remove replication locations or updating enabling of multiple
 	// write locations at the same time. so first just update any changed properties
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
-		Identity: expandCosmosdbAccountIdentity(d.Get("identity").([]interface{})),
+		Identity: expandedIdentity,
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           utils.String(offerType),
-			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
+			IPRules:                            ipRangeFilter,
 			IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableFreeTier:                     utils.Bool(enableFreeTier),
 			EnableAutomaticFailover:            utils.Bool(enableAutomaticFailover),
@@ -899,15 +878,15 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
 	}
 
-	if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
-		return fmt.Errorf("updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
+	if err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	// Update the property independently after the initial upsert as no other properties may change at the same time.
 	account.DatabaseAccountCreateUpdateProperties.EnableMultipleWriteLocations = utils.Bool(enableMultipleWriteLocations)
 	if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
-		if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
-			return fmt.Errorf("updating CosmosDB Account %q EnableMultipleWriteLocations (Resource Group %q): %+v", name, resourceGroup, err)
+		if err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d); err != nil {
+			return fmt.Errorf("updating %s EnableMultipleWriteLocations: %+v", id, err)
 		}
 	}
 
@@ -917,7 +896,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		if ol, ok := oldLocationsMap[*l.LocationName]; ok {
 			if *l.FailoverPriority != *ol.FailoverPriority {
 				if *l.FailoverPriority == 0 {
-					return fmt.Errorf("Cannot change the failover priority of primary Cosmos DB account %q location %s to %d (Resource Group %q)", name, *l.LocationName, *l.FailoverPriority, resourceGroup)
+					return fmt.Errorf("cannot change the failover priority of %s location %s to %d", id, *l.LocationName, *l.FailoverPriority)
 				}
 				delete(oldLocationsMap, *l.LocationName)
 				removedOne = true
@@ -933,23 +912,19 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		account.DatabaseAccountCreateUpdateProperties.Locations = &locationsUnchanged
-		if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
-			return fmt.Errorf("removing CosmosDB Account %q renamed locations (Resource Group %q): %+v", name, resourceGroup, err)
+		if err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d); err != nil {
+			return fmt.Errorf("removing %s renamed locations: %+v", id, err)
 		}
 	}
 
 	// add any new/renamed locations
 	account.DatabaseAccountCreateUpdateProperties.Locations = &newLocations
-	upsertResponse, err := resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
+	err = resourceCosmosDbAccountApiUpsert(client, ctx, id.ResourceGroup, id.Name, account, d)
 	if err != nil {
-		return fmt.Errorf("updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("updating %s locations: %+v", id, err)
 	}
 
-	if upsertResponse.ID == nil {
-		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*upsertResponse.ID)
+	d.SetId(id.ID())
 
 	return resourceCosmosDbAccountRead(d, meta)
 }
@@ -982,14 +957,18 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 	d.Set("kind", string(resp.Kind))
 
 	if v := resp.Identity; v != nil {
-		if err := d.Set("identity", flattenAzureRmdocumentdbMachineIdentity(v)); err != nil {
+		if err := d.Set("identity", flattenAccountIdentity(v)); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 	}
 
 	if props := resp.DatabaseAccountGetProperties; props != nil {
 		d.Set("offer_type", string(props.DatabaseAccountOfferType))
-		d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(props.IPRules))
+		if features.FourPointOhBeta() {
+			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(props.IPRules))
+		} else {
+			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilterThreePointOh(props.IPRules))
+		}
 		d.Set("endpoint", props.DocumentEndpoint)
 
 		d.Set("enable_free_tier", props.EnableFreeTier)
@@ -1110,8 +1089,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	d.Set("primary_key", keys.PrimaryMasterKey)
 	d.Set("secondary_key", keys.SecondaryMasterKey)
-	d.Set("primary_master_key", keys.PrimaryMasterKey)
-	d.Set("secondary_master_key", keys.SecondaryMasterKey)
 
 	readonlyKeys, err := client.ListReadOnlyKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
@@ -1125,8 +1102,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	d.Set("primary_readonly_key", readonlyKeys.PrimaryReadonlyMasterKey)
 	d.Set("secondary_readonly_key", readonlyKeys.SecondaryReadonlyMasterKey)
-	d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
-	d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
 
 	connStringResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
@@ -1161,8 +1136,13 @@ func resourceCosmosDbAccountDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
 		return fmt.Errorf("deleting CosmosDB Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
 	// the SDK now will return a `WasNotFound` response even when still deleting
@@ -1191,14 +1171,14 @@ func resourceCosmosDbAccountDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters, d *pluginsdk.ResourceData) (*documentdb.DatabaseAccountGetResults, error) {
+func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters, d *pluginsdk.ResourceData) error {
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, account)
 	if err != nil {
-		return nil, fmt.Errorf("creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return nil, fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to finish creating/updating: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to finish creating/updating: %+v", name, resourceGroup, err)
 	}
 
 	// if a replication location is added or removed it can take some time to provision
@@ -1214,7 +1194,16 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 			}
 			status := "Succeeded"
 			if props := resp.DatabaseAccountGetProperties; props != nil {
-				locations := append(*props.ReadLocations, *props.WriteLocations...)
+
+				var locations []documentdb.Location
+
+				if props.ReadLocations != nil {
+					locations = append(locations, *props.ReadLocations...)
+				}
+				if props.WriteLocations != nil {
+					locations = append(locations, *props.WriteLocations...)
+				}
+
 				for _, l := range locations {
 					if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting" {
 						break // return the first non successful status.
@@ -1244,13 +1233,12 @@ func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient,
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	resp, err := stateConf.WaitForStateContext(ctx)
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to provision: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to provision: %+v", name, resourceGroup, err)
 	}
 
-	r := resp.(documentdb.DatabaseAccountGetResults)
-	return &r, nil
+	return nil
 }
 
 func expandAzureRmCosmosDBAccountConsistencyPolicy(d *pluginsdk.ResourceData) *documentdb.ConsistencyPolicy {
@@ -1567,40 +1555,33 @@ func flattenCosmosdbAccountBackup(input documentdb.BasicBackupPolicy) ([]interfa
 	}
 }
 
-func expandCosmosdbAccountIdentity(vs []interface{}) *documentdb.ManagedServiceIdentity {
-	if len(vs) == 0 || vs[0] == nil {
-		return &documentdb.ManagedServiceIdentity{
-			Type: documentdb.ResourceIdentityTypeNone,
+func expandAccountIdentity(input []interface{}) (*documentdb.ManagedServiceIdentity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
+	}
+
+	return &documentdb.ManagedServiceIdentity{
+		Type: documentdb.ResourceIdentityType(string(expanded.Type)),
+	}, nil
+}
+
+func flattenAccountIdentity(input *documentdb.ManagedServiceIdentity) []interface{} {
+	var transform *identity.SystemAssigned
+
+	if input != nil {
+		transform = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
 		}
 	}
 
-	v := vs[0].(map[string]interface{})
-
-	return &documentdb.ManagedServiceIdentity{
-		Type: documentdb.ResourceIdentityType(v["type"].(string)),
-	}
-}
-
-func flattenAzureRmdocumentdbMachineIdentity(identity *documentdb.ManagedServiceIdentity) []interface{} {
-	if identity == nil || identity.Type == documentdb.ResourceIdentityTypeNone {
-		return make([]interface{}, 0)
-	}
-
-	var principalID, tenantID string
-	if identity.PrincipalID != nil {
-		principalID = *identity.PrincipalID
-	}
-
-	if identity.TenantID != nil {
-		tenantID = *identity.TenantID
-	}
-
-	return []interface{}{map[string]interface{}{
-		"type":         string(identity.Type),
-		"principal_id": principalID,
-		"tenant_id":    tenantID,
-	},
-	}
+	return identity.FlattenSystemAssigned(transform)
 }
 
 func expandCosmosDBAccountAnalyticalStorageConfiguration(input []interface{}) *documentdb.AnalyticalStorageConfiguration {

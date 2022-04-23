@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SubnetServiceEndpointPolicyStorageResource struct {
-}
+type SubnetServiceEndpointPolicyStorageResource struct{}
 
 func TestAccSubnetServiceEndpointStoragePolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_service_endpoint_storage_policy", "test")

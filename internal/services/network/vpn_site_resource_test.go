@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VPNSiteResource struct {
-}
+type VPNSiteResource struct{}
 
 func TestAccVpnSite_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_site", "test")
@@ -113,6 +112,7 @@ resource "azurerm_vpn_site" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_cidrs       = ["10.0.0.0/24"]
   link {
     name       = "link1"
     ip_address = "10.0.0.1"
@@ -149,6 +149,9 @@ resource "azurerm_vpn_site" "test" {
   link {
     name = "link2"
     fqdn = "foo.com"
+  }
+  tags = {
+    ENV = "Test"
   }
 }
 `, r.template(data), data.RandomInteger)

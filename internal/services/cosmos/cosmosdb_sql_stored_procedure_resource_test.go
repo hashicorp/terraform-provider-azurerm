@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosSqlStoredProcedureResource struct {
-}
+type CosmosSqlStoredProcedureResource struct{}
 
 func TestAccCosmosDbSqlStoredProcedure_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_stored_procedure", "test")
@@ -38,7 +37,6 @@ func TestAccCosmosDbSqlStoredProcedure_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -46,7 +44,6 @@ func TestAccCosmosDbSqlStoredProcedure_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-
 			Config: r.update(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

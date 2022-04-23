@@ -191,7 +191,30 @@ func TestAccStorageShare_nfsProtocol(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.nfsProtocol(data),
+			Config: r.protocol(data, "NFS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// TestAccStorageShare_protocolUpdate is to ensure destroy-then-create of the storage share can tolerant the "ShareBeingDeleted" issue.
+func TestAccStorageShare_protocolUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.protocol(data, "NFS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.protocol(data, "SMB"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -258,6 +281,7 @@ func (r StorageShareResource) basic(data acceptance.TestData) string {
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 }
 `, template, data.RandomString)
 }
@@ -270,6 +294,7 @@ func (r StorageShareResource) metaData(data acceptance.TestData) string {
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 
   metadata = {
     hello = "world"
@@ -286,6 +311,7 @@ func (r StorageShareResource) metaDataUpdated(data acceptance.TestData) string {
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 
   metadata = {
     hello = "world"
@@ -303,6 +329,7 @@ func (r StorageShareResource) acl(data acceptance.TestData) string {
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 
   acl {
     id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
@@ -325,6 +352,7 @@ func (r StorageShareResource) aclGhostedRecall(data acceptance.TestData) string 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 
   acl {
     id = "GhostedRecall"
@@ -344,6 +372,7 @@ func (r StorageShareResource) aclUpdated(data acceptance.TestData) string {
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 
   acl {
     id = "AAAANDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
@@ -375,6 +404,7 @@ func (r StorageShareResource) requiresImport(data acceptance.TestData) string {
 resource "azurerm_storage_share" "import" {
   name                 = azurerm_storage_share.test.name
   storage_account_name = azurerm_storage_share.test.storage_account_name
+  quota                = 1
 }
 `, template)
 }
@@ -456,7 +486,7 @@ resource "azurerm_storage_share" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func (r StorageShareResource) nfsProtocol(data acceptance.TestData) string {
+func (r StorageShareResource) protocol(data acceptance.TestData, protocol string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -479,9 +509,10 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
-  enabled_protocol     = "NFS"
+  enabled_protocol     = "%s"
+  quota                = 1
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, protocol)
 }
 
 func (r StorageShareResource) template(data acceptance.TestData) string {

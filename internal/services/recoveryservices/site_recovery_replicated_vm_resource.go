@@ -8,11 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -47,6 +49,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"recovery_vault_name": {
@@ -68,6 +71,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+
 			"target_recovery_fabric_id": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
@@ -75,6 +79,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+
 			"recovery_replication_policy_id": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
@@ -82,12 +87,14 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+
 			"source_recovery_protection_container_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
 			"target_recovery_protection_container_id": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
@@ -95,6 +102,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+
 			"target_resource_group_id": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
@@ -102,12 +110,19 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+
 			"target_availability_set_id": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
+				ConflictsWith: []string{
+					"target_zone",
+				},
 			},
+
+			"target_zone": commonschema.ZoneSingleOptionalForceNew(),
+
 			"target_network_id": {
 				Type:         pluginsdk.TypeString,
 				Computed:     true,
@@ -152,8 +167,8 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 								string(compute.DiskStorageAccountTypesPremiumLRS),
 								string(compute.DiskStorageAccountTypesStandardSSDLRS),
 								string(compute.DiskStorageAccountTypesUltraSSDLRS),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOhBeta()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 						"target_replica_disk_type": {
 							Type:     pluginsdk.TypeString,
@@ -164,8 +179,8 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 								string(compute.DiskStorageAccountTypesPremiumLRS),
 								string(compute.DiskStorageAccountTypesStandardSSDLRS),
 								string(compute.DiskStorageAccountTypesUltraSSDLRS),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOhBeta()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 						"target_disk_encryption_set_id": {
 							Type:             pluginsdk.TypeString,
@@ -238,6 +253,13 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		targetAvailabilitySetID = nil
 	}
 
+	var targetAvailabilityZone *string
+	if zone, isSet := d.GetOk("target_zone"); isSet {
+		targetAvailabilityZone = utils.String(zone.(string))
+	} else {
+		targetAvailabilityZone = nil
+	}
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -283,6 +305,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 				RecoveryContainerID:       &targetProtectionContainerId,
 				RecoveryResourceGroupID:   &targetResourceGroupId,
 				RecoveryAvailabilitySetID: targetAvailabilitySetID,
+				RecoveryAvailabilityZone:  targetAvailabilityZone,
 				VMManagedDisks:            &managedDisks,
 			},
 		},
@@ -304,16 +327,19 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 
 	// We are not allowed to configure the NIC on the initial setup, and the VM has to be replicated before
 	// we can reconfigure. Hence this call to update when we create.
-	return resourceSiteRecoveryReplicatedItemUpdate(d, meta)
+	return resourceSiteRecoveryReplicatedItemUpdateInternal(ctx, d, meta)
 }
 
 func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+	return resourceSiteRecoveryReplicatedItemUpdateInternal(ctx, d, meta)
+}
+
+func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
-
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
 	// We are only allowed to update the configuration once the VM is fully protected
 	state, err := waitForReplicationToBeHealthy(ctx, d, meta)
@@ -450,6 +476,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("source_vm_id", a2aDetails.FabricObjectID)
 		d.Set("target_resource_group_id", a2aDetails.RecoveryAzureResourceGroupID)
 		d.Set("target_availability_set_id", a2aDetails.RecoveryAvailabilitySet)
+		d.Set("target_zone", a2aDetails.RecoveryAvailabilityZone)
 		d.Set("target_network_id", a2aDetails.SelectedRecoveryAzureNetworkID)
 		if a2aDetails.ProtectedManagedDisks != nil {
 			disksOutput := make([]interface{}, 0)
@@ -569,7 +596,11 @@ func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceDat
 		PollInterval: time.Minute,
 	}
 
-	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return nil, fmt.Errorf("context had no deadline")
+	}
+	stateConf.Timeout = time.Until(deadline)
 
 	result, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {

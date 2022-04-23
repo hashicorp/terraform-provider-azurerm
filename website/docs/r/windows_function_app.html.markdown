@@ -10,8 +10,6 @@ description: |-
 
 Manages a Windows Function App.
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -66,8 +64,6 @@ The following arguments are supported:
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App.
-
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
@@ -84,11 +80,11 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
+* `content_share_force_disabled` - (Optional) Should Content Share Settings be disabled. Defaults to `false`.
+
 * `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
 
 * `enabled` - (Optional) Is the Function App enabled?
-
-* `force_disable_content_share` - (Optional) Should the settings for linking the Function App to storage be suppressed. 
 
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App. Defaults to `~4`.
 
@@ -96,11 +92,21 @@ The following arguments are supported:
 
 * `identity` - (Optional) A `identity` block as defined below.
 
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
+
 * `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`. 
+
+* `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App.
 
 * `storage_uses_managed_identity` - (Optional) Should the Function App use Managed Identity to access the storage account. Conflicts with `storage_account_access_key`.
 
-~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified.
+~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
+
+* `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account for this Function App.
+
+~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name`.
+
+~> **NOTE:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Windows Function App.
 
@@ -124,9 +130,11 @@ A `application_stack` block supports the following:
 
 * `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1` and `6`.
 
+* `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
+
 * `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, and `11`.
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `12`, and `14`.
+* `node_version` - (Optional) The version of Node to run. Possible values include `~12`, `~14`, and `~16`.
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`.
 
@@ -146,13 +154,13 @@ An `app_service_logs` block supports the following:
 
 An `auth_settings` block supports the following:
 
-* `enabled` - (Required) Should the Authentication / Authorization feature be enabled for the Windows Web App?
+* `enabled` - (Required) Should the Authentication / Authorization feature be enabled for the Windows Function App?
 
 * `active_directory` - (Optional) An `active_directory` block as defined above.
 
 * `additional_login_params` - (Optional) Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
 
-* `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.
+* `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Function App.
 
 * `default_provider` - (Optional) The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`
 
@@ -164,17 +172,17 @@ An `auth_settings` block supports the following:
 
 * `google` - (Optional) A `google` block as defined below.
 
-* `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens for this Windows Web App.
+* `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity which issues access tokens for this Windows Function App.
 
 ~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/.
 
 * `microsoft` - (Optional) A `microsoft` block as defined below.
 
-* `runtime_version` - (Optional) The RuntimeVersion of the Authentication / Authorization feature in use for the Windows Web App.
+* `runtime_version` - (Optional) The Runtime Version of the Authentication / Authorization feature in use for the Windows Function App.
 
 * `token_refresh_extension_hours` - (Optional) The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.
 
-* `token_store_enabled` - (Optional) Should the Windows Web App durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.
+* `token_store_enabled` - (Optional) Should the Windows Function App durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.
 
 * `twitter` - (Optional) A `twitter` block as defined below.
 
@@ -198,7 +206,7 @@ A `connection_string` block supports the following:
 
 * `name` - (Required) The name which should be used for this Connection.
 
-* `type` - (Required) Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.
+* `type` - (Required) Type of database. Possible values include: `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 
 * `value` - (Required) The connection string value.
 
@@ -263,11 +271,13 @@ A `headers` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Windows Function App. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Identity IDs.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Windows Function App.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -341,7 +351,7 @@ A `scm_ip_restriction` block supports the following:
 
 A `site_config` block supports the following:
 
-* `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `false`.
+* `always_on` - (Optional) If this Windows Function App is Always On enabled. Defaults to `false`.
 
 * `api_definition_url` - (Optional) The URL of the API definition that describes this Windows Function App.
 
@@ -357,19 +367,19 @@ A `site_config` block supports the following:
 
 * `application_stack` - (Optional) An `application_stack` block as defined above.
 
-* `app_service_logs` - (Optional) An `app_service_logs` block as defined above.
+~> **Note:** If this is set, there must not be an application setting `FUNCTIONS_WORKER_RUNTIME`.
 
-* `auto_swap_slot_name` - (Optional) The Windows Function App Slot Name to automatically swap to when deployment to that slot is successfully completed.
+* `app_service_logs` - (Optional) An `app_service_logs` block as defined above.
 
 * `cors` - (Optional) A `cors` block as defined above.
 
-* `default_documents` - (Optional) Specifies a list of Default Documents for the Windows Web App.
+* `default_documents` - (Optional) Specifies a list of Default Documents for the Windows Function App.
 
 * `elastic_instance_minimum` - (Optional) The number of minimum instances for this Windows Function App. Only affects apps on Elastic Premium plans.
 
-* `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.
+* `ftps_state` - (Optional) State of FTP / FTPS service for this Windows Function App. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.
 
-* `health_check_path` - (Optional) The path to be checked for this function app health.
+* `health_check_path` - (Optional) The path to be checked for this Windows Function App health.
 
 * `health_check_eviction_time_in_min` - (Optional) The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`.
 
@@ -381,9 +391,9 @@ A `site_config` block supports the following:
 
 * `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.
 
-* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
+* `minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
 
-* `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.
+* `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this Windows Function App. Only affects apps on an Elastic Premium plan.
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
@@ -393,11 +403,11 @@ A `site_config` block supports the following:
 
 * `scm_ip_restriction` - (Optional) One or more `scm_ip_restriction` blocks as defined above.
 
-* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
+* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site. Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Windows Function App `ip_restriction` configuration be used for the SCM also.
 
-* `use_32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker process. Defaults to `true`.
+* `use_32_bit_worker` - (Optional) Should the Windows Function App use a 32-bit worker process. Defaults to `true`.
 
 * `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
@@ -425,6 +435,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Windows Function App.
 
+* `identity` - An `identity` block as defined below.
+
 * `kind` - The Kind value for this Windows Function App.
 
 * `outbound_ip_address_list` - A list of outbound IP addresses. For example `["52.23.25.3", "52.143.43.12"]`
@@ -439,6 +451,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+---
+
 A `site_credential` block exports the following:
 
 * `name` - The Site Credentials Username used for publishing.
@@ -450,7 +470,7 @@ A `site_credential` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Windows Function App.
-* `read` - (Defaults to 25 minutes) Used when retrieving the Windows Function App.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Windows Function App.
 * `update` - (Defaults to 30 minutes) Used when updating the Windows Function App.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Windows Function App.
 

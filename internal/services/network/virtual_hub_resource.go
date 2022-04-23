@@ -78,6 +78,19 @@ func resourceVirtualHub() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"virtual_router_asn": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"virtual_router_ips": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"route": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -132,8 +145,8 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_hub", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_virtual_hub", id.ID())
 		}
 	}
 
@@ -186,16 +199,12 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		ContinuousTargetOccurence: 3,
 		Timeout:                   time.Until(timeout),
 	}
-	respRaw, err := stateConf.WaitForStateContext(ctx)
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return fmt.Errorf("waiting for %s provisioning route: %+v", id, err)
 	}
 
-	resp := respRaw.(network.VirtualHub)
-	if resp.ID == nil {
-		return fmt.Errorf("cannot read %s ID", id)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceVirtualHubRead(d, meta)
 }
@@ -238,6 +247,18 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			virtualWanId = props.VirtualWan.ID
 		}
 		d.Set("virtual_wan_id", virtualWanId)
+
+		var virtualRouterAsn *int64
+		if props.VirtualRouterAsn != nil {
+			virtualRouterAsn = props.VirtualRouterAsn
+		}
+		d.Set("virtual_router_asn", virtualRouterAsn)
+
+		var virtualRouterIps *[]string
+		if props.VirtualRouterIps != nil {
+			virtualRouterIps = props.VirtualRouterIps
+		}
+		d.Set("virtual_router_ips", virtualRouterIps)
 	}
 
 	defaultRouteTable := parse.NewHubRouteTableID(id.SubscriptionId, id.ResourceGroup, id.Name, "defaultRouteTable")

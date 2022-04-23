@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -37,314 +38,7 @@ func resourceHPCCache() *pluginsdk.Resource {
 			return err
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			"cache_size_in_gb": {
-				Type:     pluginsdk.TypeInt,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.IntInSlice([]int{
-					3072,
-					6144,
-					12288,
-					21623,
-					24576,
-					43246,
-					49152,
-					86491,
-				}),
-			},
-
-			"subnet_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
-			},
-
-			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Standard_2G",
-					"Standard_4G",
-					"Standard_8G",
-					"Standard_L4_5G",
-					"Standard_L9G",
-					"Standard_L16G",
-				}, false),
-			},
-
-			"mtu": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      1500,
-				ValidateFunc: validation.IntBetween(576, 1500),
-			},
-
-			"ntp_server": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      "time.windows.com",
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"dns": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"servers": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							MaxItems: 3,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.IsIPAddress,
-							},
-						},
-
-						"search_domain": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-
-			"directory_active_directory": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"dns_primary_ip": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsIPAddress,
-						},
-						"domain_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"cache_netbios_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-0-9a-zA-Z]{1,15}$`), ""),
-						},
-						"domain_netbios_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-0-9a-zA-Z]{1,15}$`), ""),
-						},
-						"username": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"password": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							Sensitive:    true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"dns_secondary_ip": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsIPAddress,
-						},
-					},
-				},
-				ConflictsWith: []string{"directory_flat_file", "directory_ldap"},
-			},
-
-			"directory_flat_file": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"group_file_uri": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"password_file_uri": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-				ConflictsWith: []string{"directory_active_directory", "directory_ldap"},
-			},
-
-			"directory_ldap": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"server": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"base_dn": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"encrypted": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-
-						"certificate_validation_uri": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"download_certificate_automatically": {
-							Type:         pluginsdk.TypeBool,
-							Optional:     true,
-							RequiredWith: []string{"directory_ldap.0.certificate_validation_uri"},
-						},
-
-						"bind": {
-							Type:     pluginsdk.TypeList,
-							MaxItems: 1,
-							Optional: true,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"dn": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"password": {
-										Type:         pluginsdk.TypeString,
-										Sensitive:    true,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
-							},
-						},
-					},
-				},
-				ConflictsWith: []string{"directory_active_directory", "directory_flat_file"},
-			},
-
-			// TODO 3.0: remove this property
-			"root_squash_enabled": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This property is not functional and will be deprecated in favor of `default_access_policy.0.access_rule.x.root_squash_enabled`, where the scope of access_rule is `default`.",
-			},
-
-			"default_access_policy": {
-				Type:     pluginsdk.TypeList,
-				MinItems: 1,
-				MaxItems: 1,
-				Optional: true,
-				// This is computed because there is always a "default" policy in the cache. It is created together with the cache, and users can't remove it.
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"access_rule": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							MinItems: 1,
-							MaxItems: 3,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"scope": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(storagecache.NfsAccessRuleScopeDefault),
-											string(storagecache.NfsAccessRuleScopeNetwork),
-											string(storagecache.NfsAccessRuleScopeHost),
-										}, false),
-									},
-
-									"access": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(storagecache.NfsAccessRuleAccessRw),
-											string(storagecache.NfsAccessRuleAccessRo),
-											string(storagecache.NfsAccessRuleAccessNo),
-										}, false),
-									},
-
-									"filter": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"suid_enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-									},
-
-									"submount_access_enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-									},
-
-									"root_squash_enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-									},
-
-									"anonymous_uid": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntAtLeast(0),
-									},
-
-									"anonymous_gid": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntAtLeast(0),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-
-			"mount_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceHPCCacheSchema(),
 	}
 }
 
@@ -550,10 +244,11 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						return fmt.Errorf("setting `default_access_policy`: %v", err)
 					}
 
-					// Set the "root_squash_enabled" for whatever is set in the config, to make any existing .tf that has specified this property
-					// not encounter plan diff.
-					// TODO 3.0 - remove this part.
-					d.Set("root_squash_enabled", d.Get("root_squash_enabled"))
+					if !features.ThreePointOhBeta() {
+						// Set the "root_squash_enabled" for whatever is set in the config, to make any existing .tf that has specified this property
+						// not encounter plan diff.
+						d.Set("root_squash_enabled", d.Get("root_squash_enabled"))
+					}
 				}
 			}
 		}
@@ -934,4 +629,317 @@ func expandStorageCacheDirectoryLdapBind(input []interface{}) *storagecache.Cach
 		BindDn:       utils.String(b["dn"].(string)),
 		BindPassword: utils.String(b["password"].(string)),
 	}
+}
+
+func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"location": azure.SchemaLocation(),
+
+		"cache_size_in_gb": {
+			Type:     pluginsdk.TypeInt,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.IntInSlice([]int{
+				3072,
+				6144,
+				12288,
+				21623,
+				24576,
+				43246,
+				49152,
+				86491,
+			}),
+		},
+
+		"subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: azure.ValidateResourceIDOrEmpty,
+		},
+
+		"sku_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"Standard_2G",
+				"Standard_4G",
+				"Standard_8G",
+				"Standard_L4_5G",
+				"Standard_L9G",
+				"Standard_L16G",
+			}, false),
+		},
+
+		"mtu": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      1500,
+			ValidateFunc: validation.IntBetween(576, 1500),
+		},
+
+		"ntp_server": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "time.windows.com",
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"dns": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"servers": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 3,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.IsIPAddress,
+						},
+					},
+
+					"search_domain": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
+		"directory_active_directory": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"dns_primary_ip": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsIPAddress,
+					},
+					"domain_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"cache_netbios_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-0-9a-zA-Z]{1,15}$`), ""),
+					},
+					"domain_netbios_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-0-9a-zA-Z]{1,15}$`), ""),
+					},
+					"username": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"password": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"dns_secondary_ip": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.IsIPAddress,
+					},
+				},
+			},
+			ConflictsWith: []string{"directory_flat_file", "directory_ldap"},
+		},
+
+		"directory_flat_file": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"group_file_uri": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"password_file_uri": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+			ConflictsWith: []string{"directory_active_directory", "directory_ldap"},
+		},
+
+		"directory_ldap": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"server": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"base_dn": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"encrypted": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
+					"certificate_validation_uri": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"download_certificate_automatically": {
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						RequiredWith: []string{"directory_ldap.0.certificate_validation_uri"},
+					},
+
+					"bind": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Optional: true,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"dn": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"password": {
+									Type:         pluginsdk.TypeString,
+									Sensitive:    true,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+					},
+				},
+			},
+			ConflictsWith: []string{"directory_active_directory", "directory_flat_file"},
+		},
+
+		"default_access_policy": {
+			Type:     pluginsdk.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Optional: true,
+			// This is computed because there is always a "default" policy in the cache. It is created together with the cache, and users can't remove it.
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"access_rule": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						MinItems: 1,
+						MaxItems: 3,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"scope": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(storagecache.NfsAccessRuleScopeDefault),
+										string(storagecache.NfsAccessRuleScopeNetwork),
+										string(storagecache.NfsAccessRuleScopeHost),
+									}, false),
+								},
+
+								"access": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(storagecache.NfsAccessRuleAccessRw),
+										string(storagecache.NfsAccessRuleAccessRo),
+										string(storagecache.NfsAccessRuleAccessNo),
+									}, false),
+								},
+
+								"filter": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+
+								"suid_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+								},
+
+								"submount_access_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+								},
+
+								"root_squash_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+								},
+
+								"anonymous_uid": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntAtLeast(0),
+								},
+
+								"anonymous_gid": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntAtLeast(0),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"mount_addresses": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+		},
+
+		"tags": tags.Schema(),
+	}
+	if !features.ThreePointOhBeta() {
+		out["root_squash_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "This property is not functional and will be deprecated in favor of `default_access_policy.0.access_rule.x.root_squash_enabled`, where the scope of access_rule is `default`.",
+		}
+	}
+
+	return out
 }

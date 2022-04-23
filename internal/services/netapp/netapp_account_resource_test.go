@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetAppAccountResource struct {
-}
+type NetAppAccountResource struct{}
 
 func TestAccNetAppAccount(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests since

@@ -27,11 +27,11 @@ resource "azurerm_aadb2c_directory" "example" {
 
 The following arguments are supported:
 
-* `country_code` - (Required) Country code of the B2C tenant. The `country_code` should be valid for the specified `data_residency_location`. See [official docs](https://aka.ms/B2CDataResidency) for valid country codes. Changing this forces a new AAD B2C Directory to be created.
+* `country_code` - (Optional) Country code of the B2C tenant. The `country_code` should be valid for the specified `data_residency_location`. See [official docs](https://aka.ms/B2CDataResidency) for valid country codes. Required when creating a new resource. Changing this forces a new AAD B2C Directory to be created.
 
 * `data_residency_location` - (Required) Location in which the B2C tenant is hosted and data resides. The `data_residency_location` should be valid for the specified `country_code`. See [official docs](https://aka.ms/B2CDataResidenc) for more information. Changing this forces a new AAD B2C Directory to be created.
 
-* `display_name` - (Required) The initial display name of the B2C tenant. Changing this forces a new AAD B2C Directory to be created.
+* `display_name` - (Optional) The initial display name of the B2C tenant. Required when creating a new resource. Changing this forces a new AAD B2C Directory to be created.
 
 * `domain_name` - (Required) Domain name of the B2C tenant, including the `.onmicrosoft.com` suffix. Changing this forces a new AAD B2C Directory to be created.
 

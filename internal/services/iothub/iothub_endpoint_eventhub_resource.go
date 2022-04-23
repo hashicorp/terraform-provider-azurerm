@@ -6,14 +6,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -37,52 +41,98 @@ func resourceIotHubEndpointEventHub() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.IoTHubEndpointName,
+		Schema: resourceIothubEndpointEventHubSchema(),
+	}
+}
+
+func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: iothubValidate.IoTHubEndpointName,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		//lintignore: S013
+		"iothub_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     features.ThreePointOhBeta(),
+			Optional:     !features.ThreePointOhBeta(),
+			ForceNew:     true,
+			Computed:     !features.ThreePointOhBeta(),
+			ValidateFunc: iothubValidate.IotHubID,
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"iothub_name"}
+				}
+				return []string{}
+			}(),
+		},
+
+		"authentication_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(devices.AuthenticationTypeKeyBased),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(devices.AuthenticationTypeKeyBased),
+				string(devices.AuthenticationTypeIdentityBased),
+			}, false),
+		},
+
+		"identity_id": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  msivalidate.UserAssignedIdentityID,
+			ConflictsWith: []string{"connection_string"},
+		},
+
+		"endpoint_uri": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"entity_path"},
+			ExactlyOneOf: []string{"endpoint_uri", "connection_string"},
+		},
+
+		"entity_path": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.ValidateEventHubName(),
+			RequiredWith: []string{"endpoint_uri"},
+		},
+
+		"connection_string": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				sharedAccessKeyRegex := regexp.MustCompile("SharedAccessKey=[^;]+")
+				sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
+
+				maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
+				maskedNew = sharedAccessKeyRegex.ReplaceAllString(maskedNew, "SharedAccessKey=****")
+				return (new == d.Get(k).(string)) && (maskedNew == old)
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			// TODO remove in 3.0
-			"iothub_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				ValidateFunc:  validate.IoTHubName,
-				Deprecated:    "Deprecated in favour of `iothub_id`",
-				ConflictsWith: []string{"iothub_id"},
-			},
-
-			"iothub_id": {
-				Type: pluginsdk.TypeString,
-				// TODO add Required: true in 3.0
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				ValidateFunc:  validate.IotHubID,
-				ConflictsWith: []string{"iothub_name"},
-			},
-
-			"connection_string": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-					sharedAccessKeyRegex := regexp.MustCompile("SharedAccessKey=[^;]+")
-					sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
-
-					maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
-					maskedNew = sharedAccessKeyRegex.ReplaceAllString(maskedNew, "SharedAccessKey=****")
-					return (new == d.Get(k).(string)) && (maskedNew == old)
-				},
-				Sensitive: true,
-			},
+			Sensitive:     true,
+			ConflictsWith: []string{"identity_id"},
+			ExactlyOneOf:  []string{"endpoint_uri", "connection_string"},
 		},
 	}
+	if !features.ThreePointOhBeta() {
+		out["iothub_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			Computed:      true,
+			ValidateFunc:  iothubValidate.IoTHubName,
+			Deprecated:    "Deprecated in favour of `iothub_id`",
+			ConflictsWith: []string{"iothub_id"},
+		}
+	}
+
+	return out
 }
 
 func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -92,9 +142,12 @@ func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta 
 	defer cancel()
 
 	endpointRG := d.Get("resource_group_name").(string)
-	iotHubName := d.Get("iothub_name").(string)
 	iotHubRG := endpointRG
 
+	var iotHubName string
+	if !features.ThreePointOhBeta() {
+		iotHubName = d.Get("iothub_name").(string)
+	}
 	if iotHubName == "" {
 		id, err := parse.IotHubID(d.Get("iothub_id").(string))
 		if err != nil {
@@ -118,11 +171,34 @@ func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iotHubName, iotHubRG, err)
 	}
 
+	authenticationType := devices.AuthenticationType(d.Get("authentication_type").(string))
+
 	eventhubEndpoint := devices.RoutingEventHubProperties{
-		ConnectionString: utils.String(d.Get("connection_string").(string)),
-		Name:             utils.String(id.EndpointName),
-		SubscriptionID:   utils.String(meta.(*clients.Client).Account.SubscriptionId),
-		ResourceGroup:    utils.String(endpointRG),
+		AuthenticationType: authenticationType,
+		Name:               utils.String(id.EndpointName),
+		SubscriptionID:     utils.String(meta.(*clients.Client).Account.SubscriptionId),
+		ResourceGroup:      utils.String(endpointRG),
+	}
+
+	if authenticationType == devices.AuthenticationTypeKeyBased {
+		if v, ok := d.GetOk("connection_string"); ok {
+			eventhubEndpoint.ConnectionString = utils.String(v.(string))
+		} else {
+			return fmt.Errorf("`connection_string` must be specified when `authentication_type` is `keyBased`")
+		}
+	} else {
+		if v, ok := d.GetOk("endpoint_uri"); ok {
+			eventhubEndpoint.EndpointURI = utils.String(v.(string))
+			eventhubEndpoint.EntityPath = utils.String(d.Get("entity_path").(string))
+		} else {
+			return fmt.Errorf("`endpoint_uri` and `entity_path` must be specified when `authentication_type` is `identityBased`")
+		}
+
+		if v, ok := d.GetOk("identity_id"); ok {
+			eventhubEndpoint.Identity = &devices.ManagedIdentity{
+				UserAssignedIdentity: utils.String(v.(string)),
+			}
+		}
 	}
 
 	routing := iothub.Properties.Routing
@@ -192,8 +268,10 @@ func resourceIotHubEndpointEventHubRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.Set("name", id.EndpointName)
-	d.Set("iothub_name", id.IotHubName)
+	if !features.ThreePointOhBeta() {
+		d.Set("iothub_name", id.IotHubName)
 
+	}
 	iotHubId := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
 	d.Set("iothub_id", iotHubId.ID())
 
@@ -205,8 +283,37 @@ func resourceIotHubEndpointEventHubRead(d *pluginsdk.ResourceData, meta interfac
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
-					d.Set("connection_string", endpoint.ConnectionString)
 					d.Set("resource_group_name", endpoint.ResourceGroup)
+
+					authenticationType := string(devices.AuthenticationTypeKeyBased)
+					if string(endpoint.AuthenticationType) != "" {
+						authenticationType = string(endpoint.AuthenticationType)
+					}
+					d.Set("authentication_type", authenticationType)
+
+					connectionStr := ""
+					if endpoint.ConnectionString != nil {
+						connectionStr = *endpoint.ConnectionString
+					}
+					d.Set("connection_string", connectionStr)
+
+					endpointUri := ""
+					if endpoint.EndpointURI != nil {
+						endpointUri = *endpoint.EndpointURI
+					}
+					d.Set("endpoint_uri", endpointUri)
+
+					entityPath := ""
+					if endpoint.EntityPath != nil {
+						entityPath = *endpoint.EntityPath
+					}
+					d.Set("entity_path", entityPath)
+
+					identityId := ""
+					if endpoint.Identity != nil && endpoint.Identity.UserAssignedIdentity != nil {
+						identityId = *endpoint.Identity.UserAssignedIdentity
+					}
+					d.Set("identity_id", identityId)
 				}
 			}
 		}

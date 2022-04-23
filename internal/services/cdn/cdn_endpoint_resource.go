@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -167,8 +168,8 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cdn.ActionTypeAllow),
 								string(cdn.ActionTypeBlock),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, !features.ThreePointOhBeta()),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 						"country_codes": {
 							Type:     pluginsdk.TypeList,
@@ -190,11 +191,11 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 					string(cdn.OptimizationTypeGeneralWebDelivery),
 					string(cdn.OptimizationTypeLargeFileDownload),
 					string(cdn.OptimizationTypeVideoOnDemandMediaStreaming),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
-			"host_name": {
+			"fqdn": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -431,7 +432,7 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.EndpointProperties; props != nil {
-		d.Set("host_name", props.HostName)
+		d.Set("fqdn", props.HostName)
 		d.Set("is_http_allowed", props.IsHTTPAllowed)
 		d.Set("is_https_allowed", props.IsHTTPSAllowed)
 		d.Set("querystring_caching_behaviour", props.QueryStringCachingBehavior)
@@ -441,10 +442,8 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("optimization_type", string(props.OptimizationType))
 
 		compressionEnabled := false
-		if _, ok := d.GetOk("is_compression_enabled"); ok {
-			if v := props.IsCompressionEnabled; v != nil {
-				compressionEnabled = *v
-			}
+		if v := props.IsCompressionEnabled; v != nil {
+			compressionEnabled = *v
 		}
 		d.Set("is_compression_enabled", compressionEnabled)
 
@@ -513,8 +512,10 @@ func expandCdnEndpointGeoFilters(d *pluginsdk.ResourceData) *[]cdn.GeoFilter {
 		countryCodes := make([]string, 0)
 
 		for _, v := range inputCountryCodes {
-			countryCode := v.(string)
-			countryCodes = append(countryCodes, countryCode)
+			if v != nil {
+				countryCode := v.(string)
+				countryCodes = append(countryCodes, countryCode)
+			}
 		}
 
 		filter := cdn.GeoFilter{
@@ -624,8 +625,8 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 			}
 
 			hostName := ""
-			httpPort := 0
-			httpsPort := 0
+			httpPort := 80
+			httpsPort := 443
 			if props := i.DeepCreatedOriginProperties; props != nil {
 				if props.HostName != nil {
 					hostName = *props.HostName

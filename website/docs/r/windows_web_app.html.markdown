@@ -10,8 +10,6 @@ description: |-
 
 Manages a Windows Web App.
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -28,7 +26,7 @@ resource "azurerm_service_plan" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
-  sku_name            = "P1V2"
+  sku_name            = "P1v2"
 }
 
 resource "azurerm_windows_web_app" "example" {
@@ -77,6 +75,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
+
 * `logs` - (Optional) A `logs` block as defined below.
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
@@ -117,11 +117,13 @@ A `application_logs` block supports the following:
 
 ---
 
-A `application_stack` block supports the following:
+An `application_stack` block supports the following:
 
-* `current_stack` - (Optional) The Application Stack for the Windows Web App. Possible values include `dotnet`, `node`, `python`, `php`, and `java`.
+* `current_stack` - (Optional) The Application Stack for the Windows Web App. Possible values include `dotnet`, `dotnetcore`, `node`, `python`, `php`, and `java`.
 
 ~> **NOTE:** Whilst this property is Optional omitting it can cause unexpected behaviour, in particular for display of settings in the Azure Portal.
+
+~> **NOTE:** The value of `dotnetcore` is for use in combination with `dotnet_version` set to `v3.0` only.
 
 * `docker_container_name` - (Optional) The name of the Docker Container. For example `azure-app-service/samples/aspnethelloworld`
 
@@ -129,7 +131,7 @@ A `application_stack` block supports the following:
 
 * `docker_container_tag` - (Optional) The Image Tag of the specified Docker Container to use. For example `latest`
 
-* `dotnet_version` - (Optional) The version of .Net to use when `current_stack` is set to `dotnet`. Possible values include `v2.0`, `v3.0`, `v4.0`, and `v5.0`.
+* `dotnet_version` - (Optional) The version of .Net to use when `current_stack` is set to `dotnet`. Possible values include `v3.0`, `v4.0`, `v5.0`, and `v6.0`.
 
 * `java_container` - (Optional) The Java container type to use when `current_stack` is set to `java`. Possible values include `JAVA`, `JETTY`, and `TOMCAT`. Required with `java_version` and `java_container_version`.
 
@@ -139,11 +141,11 @@ A `application_stack` block supports the following:
 
 ~> **NOTE:** For compatible combinations of `java_version`, `java_container` and `java_container_version` users can use `az webapp list-runtimes` from command line.
 
-* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`.
+* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values include `12-LTS`, `14-LTS`, and `16-LTS`.
 
 ~> **NOTE:** This property conflicts with `java_version`.
 
-* `php_version` - (Optional) The version of PHP to use when `current_stack` is set to `php`. Possible values include `v5.6`, `v7.3`, and `v7.4`.
+* `php_version` - (Optional) The version of PHP to use when `current_stack` is set to `php`. Possible values include `v7.4`.
 
 * `python_version` - (Optional) The version of Python to use when `current_stack` is set to `python`. Possible values include `2.7` and `3.4.0`.
 
@@ -159,7 +161,7 @@ A `auth_settings` block supports the following:
 
 * `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.
 
-* `default_provider` - (Optional) The default authentication provider to use when multiple providers are configured. Possible values include: `BuiltInAuthenticationProviderAzureActiveDirectory`, `BuiltInAuthenticationProviderFacebook`, `BuiltInAuthenticationProviderGoogle`, `BuiltInAuthenticationProviderMicrosoftAccount`, `BuiltInAuthenticationProviderTwitter`, `BuiltInAuthenticationProviderGithub`
+* `default_provider` - (Optional) The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`
 
 ~> **NOTE:** This setting is only needed if multiple providers are configured, and the `unauthenticated_client_action` is set to "RedirectToLoginPage".
 
@@ -217,7 +219,9 @@ A `backup` block supports the following:
 
 A `connection_string` block supports the following:
 
-* `type` - (Required) Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.
+* `name` - (Required) The name of the Connection String.
+
+* `type` - (Required) Type of database. Possible values include: `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 
 * `value` - (Required) The connection string value.
 
@@ -305,11 +309,13 @@ A `http_logs` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `ManagedServiceIdentityTypeSystemAssigned`, `ManagedServiceIdentityTypeUserAssigned`, and `ManagedServiceIdentityTypeSystemAssignedUserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Windows Web App. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of Identity IDs.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Windows Web App.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -405,7 +411,7 @@ A `site_config` block supports the following:
 
 * `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `false`.
 
-* `api_management_config_id` - (Optional) The ID of the APIM configuration for this Windows Web App.
+* `api_management_api_id` - (Optional) The API Management API ID this Windows Web App Slot is associated with.
 
 * `app_command_line` - (Optional) The App command line to launch.
 
@@ -415,7 +421,9 @@ A `site_config` block supports the following:
 
 * `auto_heal_setting` - (Optional) A `auto_heal_setting` block as defined above. Required with `auto_heal`.
 
-* `auto_swap_slot_name` - (Optional) The Windows Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
+* `container_registry_managed_identity_client_id` - (Optional) The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.
+
+* `container_registry_use_managed_identity` - (Optional) Should connections for Azure Container Registry use Managed Identity.
 
 * `cors` - (Optional) A `cors` block as defined above.
 
@@ -451,11 +459,11 @@ A `site_config` block supports the following:
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Windows Web App `ip_restriction` configuration be used for the SCM also.
 
-* `32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker.
+* `use_32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker.
 
 * `virtual_application` - (Optional) One or more `virtual_application` blocks as defined below.
 
-* `websockets` - (Optional) Should Web Sockets be enabled. Defaults to `false`. 
+* `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`. 
 
 * `worker_count` - (Optional) The number of Workers for this Windows App Service.
 
@@ -555,6 +563,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Windows Web App.
 
+* `identity` - An `identity` block as defined below.
+
 * `kind` - The Kind value for this Windows Web App. 
 
 * `outbound_ip_address_list` - A list of outbound IP addresses - such as `["52.23.25.3", "52.143.43.12"]`
@@ -566,6 +576,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
 * `site_credential` - A `site_credential` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 

@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type DiskEncryptionSetDataSource struct {
-}
+type DiskEncryptionSetDataSource struct{}
 
 func TestAccDataSourceDiskEncryptionSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_disk_encryption_set", "test")

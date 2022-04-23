@@ -5,9 +5,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,8 +31,8 @@ func dataSourceBatchAccount() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: validate.AccountName,
 			},
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-			"location":            azure.SchemaLocationForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+			"location":            commonschema.LocationComputed(),
 			"storage_account_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -68,6 +71,22 @@ func dataSourceBatchAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+			"encryption": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				MaxItems:   1,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemId,
+						},
+					},
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -75,29 +94,27 @@ func dataSourceBatchAccount() *pluginsdk.Resource {
 
 func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.AccountClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Batch account %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making Read request on AzureRM Batch account %q: %+v", name, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.BatchAccountName)
+	d.Set("resource_group_name", id.ResourceGroup)
+
 	d.Set("account_endpoint", resp.AccountEndpoint)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.AccountProperties; props != nil {
 		if autoStorage := props.AutoStorage; autoStorage != nil {
@@ -106,10 +123,14 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("pool_allocation_mode", props.PoolAllocationMode)
 		poolAllocationMode := d.Get("pool_allocation_mode").(string)
 
+		if encryption := props.Encryption; encryption != nil {
+			d.Set("encryption", flattenEncryption(encryption))
+		}
+
 		if poolAllocationMode == string(batch.PoolAllocationModeBatchService) {
-			keys, err := client.GetKeys(ctx, resourceGroup, name)
+			keys, err := client.GetKeys(ctx, id.ResourceGroup, id.BatchAccountName)
 			if err != nil {
-				return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", name, resourceGroup, err)
+				return fmt.Errorf("cannot read keys for %s: %v", id, err)
 			}
 
 			d.Set("primary_access_key", keys.Primary)

@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementEmailTemplateResource struct {
-}
+type ApiManagementEmailTemplateResource struct{}
 
 func TestAccApiManagementEmailTemplate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_email_template", "test")

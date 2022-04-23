@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,9 +28,9 @@ func dataSourceMsSqlServer() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"version": {
 				Type:     pluginsdk.TypeString,
@@ -47,34 +47,7 @@ func dataSourceMsSqlServer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"user_assigned_identity_ids": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: msivalidate.UserAssignedIdentityID,
-							},
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 			"restorable_dropped_database_ids": {
 				Type:     pluginsdk.TypeList,
@@ -91,26 +64,23 @@ func dataSourceMsSqlServer() *pluginsdk.Resource {
 
 func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("sql Server %q was not found in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving Sql Server %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %s", id, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("reading Ms Sql Server %q (Resource Group %q) ID is empty or nil", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.ServerProperties; props != nil {
@@ -128,9 +98,9 @@ func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	restorableListPage, err := restorableDroppedDatabasesClient.ListByServerComplete(ctx, resourceGroup, name)
+	restorableListPage, err := restorableDroppedDatabasesClient.ListByServerComplete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", name, err)
+		return fmt.Errorf("listing %s Restorable Dropped Databases: %v", id, err)
 	}
 	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableListPage.Response())); err != nil {
 		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VideoAnalyzerResource struct {
-}
+type VideoAnalyzerResource struct{}
 
 func TestAccVideoAnalyzer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_video_analyzer", "test")

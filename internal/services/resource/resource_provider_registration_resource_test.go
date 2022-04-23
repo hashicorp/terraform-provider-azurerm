@@ -15,8 +15,7 @@ import (
 
 // NOTE: this can be moved up a level when all the others are
 
-type ResourceProviderRegistrationResource struct {
-}
+type ResourceProviderRegistrationResource struct{}
 
 func TestAccResourceProviderRegistration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_provider_registration", "test")

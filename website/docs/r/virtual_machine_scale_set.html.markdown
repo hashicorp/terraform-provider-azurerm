@@ -12,7 +12,7 @@ Manages a virtual machine scale set.
 
 ## Disclaimers
 
--> **Note:** The `azurerm_virtual_machine_scale_set` resource has been superseded by the [`azurerm_linux_virtual_machine_scale_set`](linux_virtual_machine_scale_set.html) and [`azurerm_windows_virtual_machine_scale_set`](windows_virtual_machine_scale_set.html) resources. The existing `azurerm_virtual_machine_scale_set` resource will continue to be available throughout the 2.x releases however is in a feature-frozen state to maintain compatibility - new functionality will instead be added to the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources.
+!> **Note:** The `azurerm_virtual_machine_scale_set` resource has been deprecated in favour of the [`azurerm_linux_virtual_machine_scale_set`](linux_virtual_machine_scale_set.html) and [`azurerm_windows_virtual_machine_scale_set`](windows_virtual_machine_scale_set.html) resources. Whilst this will continue to be available throughout the 2.x and 3.x releases however is in a feature-frozen state to maintain compatibility - new functionality will instead be added to the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources and the `azurerm_virtual_machine_scale_set` resource will be removed in the future.
 
 ~> **NOTE:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
@@ -279,7 +279,7 @@ The following arguments are supported:
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
-* `sku` - (Required) A sku block as documented below.
+* `sku` - (Required) A SKU block as documented below.
 
 * `storage_profile_os_disk` - (Required) A storage profile os disk block as documented below
 
@@ -431,7 +431,7 @@ output "principal_id" {
 
 `dns_settings` supports the following:
 
-* `dns_servers` - (Required) Specifies an array of dns servers.
+* `dns_servers` - (Required) Specifies an array of DNS servers.
 
 `ip_configuration` supports the following:
 
@@ -442,7 +442,7 @@ output "principal_id" {
 
 -> **NOTE:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a `depends_on` between this resource and the Load Balancer Rule.
 
-* `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT pools for load balancers. A scale set can reference inbound nat pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
+* `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT pools for load balancers. A scale set can reference inbound NAT pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
 
 -> **NOTE:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a `depends_on` between this resource and the Load Balancer Rule.
 
@@ -452,9 +452,9 @@ output "principal_id" {
 
 `public_ip_address_configuration` supports the following:
 
-* `name` - (Required) The name of the public ip address configuration
+* `name` - (Required) The name of the public IP address configuration
 * `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 30.
-* `domain_name_label` - (Required) The domain name label for the dns settings.
+* `domain_name_label` - (Required) The domain name label for the DNS settings.
 
 `storage_profile_os_disk` supports the following:
 

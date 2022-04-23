@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AutomationVariableStringResource struct {
-}
+type AutomationVariableStringResource struct{}
 
 func TestAccAutomationVariableString_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_string", "test")
@@ -65,6 +64,50 @@ func TestAccAutomationVariableString_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAutomationVariableString_encrypted(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_string", "test")
+	r := AutomationVariableStringResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encrypted(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("value"),
+	})
+}
+
+func TestAccAutomationVariableString_encryptedUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_string", "test")
+	r := AutomationVariableStringResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.encrypted(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("value"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -130,6 +173,35 @@ resource "azurerm_automation_variable_string" "test" {
   automation_account_name = azurerm_automation_account.test.name
   description             = "This variable is created by Terraform acceptance test."
   value                   = "Hello, Terraform Complete Test."
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (AutomationVariableStringResource) encrypted(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctestAutoAcct-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_variable_string" "test" {
+  name                    = "acctestAutoVar-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  description             = "This variable is created by Terraform acceptance test."
+  value                   = "Hello, Terraform Complete Test."
+  encrypted               = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

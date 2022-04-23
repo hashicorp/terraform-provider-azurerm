@@ -12,5 +12,5 @@ resource "azurerm_app_service_certificate_order" "test" {
   location            = "global"
   resource_group_name = azurerm_resource_group.example.name
   distinguished_name  = "CN=example.com"
-  product_type        = "standard"
+  product_type        = "Standard"
 }

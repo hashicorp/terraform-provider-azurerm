@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -46,8 +47,8 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{2,16}$`),
-					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 2 and 16 characters in length."),
+					regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{3,24}$`),
+					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 3 and 24 characters in length."),
 			},
 
 			"machine_learning_workspace_id": {
@@ -75,20 +76,23 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"assign_to_user": {Type: pluginsdk.TypeList,
+			"assign_to_user": {
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
 						},
 
 						"object_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -100,7 +104,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"identity": SystemAssignedUserAssigned{}.Schema(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew(),
 
 			"local_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -167,9 +171,9 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	identity, err := SystemAssignedUserAssigned{}.Expand(d.Get("identity").([]interface{}))
+	identity, err := expandIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
-		return err
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	var subnet *machinelearningservices.ResourceID
@@ -239,11 +243,13 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	identity, err := SystemAssignedUserAssigned{}.Flatten(resp.Identity)
+	identity, err := flattenIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
-	d.Set("identity", identity)
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
 
 	if props, ok := resp.Properties.AsComputeInstance(); ok && props != nil {
 		if props.DisableLocalAuth != nil {
@@ -287,7 +293,7 @@ func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func expandComputePersonalComputeInstanceSetting(input []interface{}) *machinelearningservices.PersonalComputeInstanceSettings {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	value := input[0].(map[string]interface{})
@@ -295,7 +301,8 @@ func expandComputePersonalComputeInstanceSetting(input []interface{}) *machinele
 		AssignedUser: &machinelearningservices.AssignedUser{
 			ObjectID: utils.String(value["object_id"].(string)),
 			TenantID: utils.String(value["tenant_id"].(string)),
-		}}
+		},
+	}
 }
 
 func expandComputeSSHSetting(input []interface{}) *machinelearningservices.ComputeInstanceSSHSettings {

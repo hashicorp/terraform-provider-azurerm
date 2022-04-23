@@ -6,11 +6,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -52,8 +56,6 @@ func resourceManagedDisk() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"zones": azure.SchemaSingleZone(),
-
 			"storage_account_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -81,13 +83,16 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 			"logical_sector_size": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.IntInSlice([]int{
 					512,
-					4096}),
+					4096,
+				}),
 				Computed: true,
 			},
 
@@ -132,7 +137,8 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.OperatingSystemTypesWindows),
 					string(compute.OperatingSystemTypesLinux),
-				}, true),
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"disk_size_gb": {
@@ -239,6 +245,8 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"zone": commonschema.ZoneSingleOptionalForceNew(),
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -276,7 +284,6 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	maxShares := d.Get("max_shares").(int)
 
 	t := d.Get("tags").(map[string]interface{})
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 	skuName := compute.DiskStorageAccountTypes(storageAccountType)
 
 	props := &compute.DiskProperties{
@@ -451,14 +458,24 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	createDisk := compute.Disk{
-		Name:           &name,
-		Location:       &location,
-		DiskProperties: props,
+		Name:             &name,
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         &location,
+		DiskProperties:   props,
 		Sku: &compute.DiskSku{
 			Name: skuName,
 		},
-		Tags:  tags.Expand(t),
-		Zones: zones,
+		Tags: tags.Expand(t),
+	}
+
+	if features.ThreePointOhBeta() {
+		if zone, ok := d.GetOk("zone"); ok {
+			createDisk.Zones = &[]string{
+				zone.(string),
+			}
+		}
+	} else {
+		createDisk.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, createDisk)
@@ -672,8 +689,8 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		// check instanceView State
 		vmClient := meta.(*clients.Client).Compute.VMClient
 
-		locks.ByName(name, virtualMachineResourceName)
-		defer locks.UnlockByName(name, virtualMachineResourceName)
+		locks.ByName(name, VirtualMachineResourceName)
+		defer locks.UnlockByName(name, VirtualMachineResourceName)
 
 		instanceView, err := vmClient.InstanceView(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
 		if err != nil {
@@ -801,10 +818,18 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if features.ThreePointOhBeta() {
+		zone := ""
+		if resp.Zones != nil && len(*resp.Zones) > 0 {
+			z := *resp.Zones
+			zone = z[0]
+		}
+		d.Set("zone", zone)
+	} else {
+		d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 	}
 
 	if sku := resp.Sku; sku != nil {

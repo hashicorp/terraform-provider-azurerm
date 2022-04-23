@@ -58,12 +58,6 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 				ValidateFunc: validate.LoggerID,
 			},
 
-			"enabled": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
-			},
-
 			"sampling_percentage": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
@@ -142,8 +136,8 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_diagnostic", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_diagnostic", id.ID())
 		}
 	}
 

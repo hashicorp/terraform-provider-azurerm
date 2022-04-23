@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PowerBIEmbeddedResource struct {
-}
+type PowerBIEmbeddedResource struct{}
 
 func TestAccPowerBIEmbedded_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")

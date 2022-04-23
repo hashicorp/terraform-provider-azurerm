@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-10-31/digitaltwins"
+	"github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-12-01/digitaltwins"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/parse"
@@ -76,6 +76,7 @@ func resourceDigitalTwinsEndpointEventGrid() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
@@ -104,11 +105,12 @@ func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *pluginsdk.ResourceData
 
 	properties := digitaltwins.EndpointResource{
 		Properties: &digitaltwins.EventGrid{
-			EndpointType:     digitaltwins.EndpointTypeEventGrid,
-			TopicEndpoint:    utils.String(d.Get("eventgrid_topic_endpoint").(string)),
-			AccessKey1:       utils.String(d.Get("eventgrid_topic_primary_access_key").(string)),
-			AccessKey2:       utils.String(d.Get("eventgrid_topic_secondary_access_key").(string)),
-			DeadLetterSecret: utils.String(d.Get("dead_letter_storage_secret").(string)),
+			EndpointType:       digitaltwins.EndpointTypeEventGrid,
+			AuthenticationType: digitaltwins.KeyBased,
+			TopicEndpoint:      utils.String(d.Get("eventgrid_topic_endpoint").(string)),
+			AccessKey1:         utils.String(d.Get("eventgrid_topic_primary_access_key").(string)),
+			AccessKey2:         utils.String(d.Get("eventgrid_topic_secondary_access_key").(string)),
+			DeadLetterSecret:   utils.String(d.Get("dead_letter_storage_secret").(string)),
 		},
 	}
 

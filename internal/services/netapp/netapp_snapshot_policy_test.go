@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetAppSnapshotPolicyResource struct {
-}
+type NetAppSnapshotPolicyResource struct{}
 
 func TestAccNetAppSnapshotPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot_policy", "test")
@@ -135,6 +134,21 @@ func TestAccNetAppSnapshotPolicy_updateSnapshotPolicy(t *testing.T) {
 				check.That(data.ResourceName).Key("weekly_schedule.0.days_of_week.#").HasValue("3"),
 				check.That(data.ResourceName).Key("monthly_schedule.0.days_of_month.#").HasValue("2"),
 				check.That(data.ResourceName).Key("monthly_schedule.0.minute").HasValue("30"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppSnapshotPolicy_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot_policy", "test")
+	r := NetAppSnapshotPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -376,4 +390,47 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Ternary, data.RandomInteger)
+}
+
+func (NetAppSnapshotPolicyResource) complete(data acceptance.TestData) string {
+	template := NetAppSnapshotPolicyResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_snapshot_policy" "test" {
+  name                = "acctest-NetAppSnapshotPolicy-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  enabled             = true
+
+  hourly_schedule {
+    snapshots_to_keep = 1
+    minute            = 15
+  }
+
+  daily_schedule {
+    snapshots_to_keep = 1
+    hour              = 22
+    minute            = 15
+  }
+
+  weekly_schedule {
+    snapshots_to_keep = 1
+    days_of_week      = ["Monday", "Friday"]
+    hour              = 23
+    minute            = 0
+  }
+
+  monthly_schedule {
+    snapshots_to_keep = 1
+    days_of_month     = [1, 15, 30]
+    hour              = 5
+    minute            = 0
+  }
+  tags = {
+    environment = "test"
+  }
+}
+`, template, data.RandomInteger)
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KustoClusterResource struct {
-}
+type KustoClusterResource struct{}
 
 func TestAccKustoCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
@@ -25,6 +23,21 @@ func TestAccKustoCluster_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKustoCluster_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -42,9 +55,9 @@ func TestAccKustoCluster_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_disk_encryption").HasValue("false"),
-				check.That(data.ResourceName).Key("enable_streaming_ingest").HasValue("false"),
-				check.That(data.ResourceName).Key("enable_purge").HasValue("false"),
+				check.That(data.ResourceName).Key("disk_encryption_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("streaming_ingestion_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("purge_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -52,9 +65,9 @@ func TestAccKustoCluster_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_disk_encryption").HasValue("true"),
-				check.That(data.ResourceName).Key("enable_streaming_ingest").HasValue("true"),
-				check.That(data.ResourceName).Key("enable_purge").HasValue("true"),
+				check.That(data.ResourceName).Key("disk_encryption_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("streaming_ingestion_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("purge_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -62,9 +75,9 @@ func TestAccKustoCluster_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_disk_encryption").HasValue("false"),
-				check.That(data.ResourceName).Key("enable_streaming_ingest").HasValue("false"),
-				check.That(data.ResourceName).Key("enable_purge").HasValue("false"),
+				check.That(data.ResourceName).Key("disk_encryption_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("streaming_ingestion_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("purge_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -162,7 +175,7 @@ func TestAccKustoCluster_identitySystemAssigned(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 			),
 		},
 		data.ImportStep(),
@@ -197,7 +210,7 @@ func TestAccKustoCluster_multipleAssignedIdentity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
-				acceptance.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 			),
 		},
 	})
@@ -300,7 +313,7 @@ func TestAccKustoCluster_engineV3(t *testing.T) {
 }
 
 func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
-	if features.ThreePointOh() {
+	if features.ThreePointOhBeta() {
 		t.Skip("Skipping since 3.0 mode is enabled")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
@@ -339,7 +352,7 @@ func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
 }
 
 func TestAccKustoCluster_trustedExternalTenantsThreePointOh(t *testing.T) {
-	if !features.ThreePointOh() {
+	if !features.ThreePointOhBeta() {
 		t.Skip("Skipping since 3.0 mode is disabled")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
@@ -406,7 +419,30 @@ resource "azurerm_kusto_cluster" "test" {
   name                = "acctestkc%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
 
+func (KustoClusterResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                          = "acctestkc%s"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  public_network_access_enabled = false
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
@@ -588,12 +624,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kusto_cluster" "test" {
-  name                    = "acctestkc%s"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  enable_disk_encryption  = true
-  enable_streaming_ingest = true
-  enable_purge            = true
+  name                        = "acctestkc%s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  auto_stop_enabled           = true
+  disk_encryption_enabled     = true
+  streaming_ingestion_enabled = true
+  purge_enabled               = true
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"

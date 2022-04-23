@@ -6,7 +6,7 @@ description: |-
   Manages a Digital Twins instance.
 ---
 
-# azurerm__digital_twins_instance
+# azurerm_digital_twins_instance
 
 Manages a Digital Twins instance.
 
@@ -51,7 +51,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Digital Twins instance.
 
-* `host_name` - The Api endpoint to work with this Digital Twins instance.
+* `host_name` - The API endpoint to work with this Digital Twins instance.
 
 ## Timeouts
 

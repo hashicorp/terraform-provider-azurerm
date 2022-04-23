@@ -12,13 +12,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosDBAccountResource struct {
-}
+type CosmosDBAccountResource struct{}
 
 func TestAccCosmosDBAccount_basic_global_boundedStaleness(t *testing.T) {
 	testAccCosmosDBAccount_basicWith(t, documentdb.DatabaseAccountKindGlobalDocumentDB, documentdb.DefaultConsistencyLevelBoundedStaleness)
@@ -337,6 +337,18 @@ func testAccCosmosDBAccount_completeWith(t *testing.T, kind documentdb.DatabaseA
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, documentdb.DefaultConsistencyLevelEventual, 3),
 			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_complete_tags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeTags(data, documentdb.DatabaseAccountKindParse, documentdb.DefaultConsistencyLevelEventual),
 		},
 		data.ImportStep(),
 	})
@@ -726,12 +738,36 @@ func TestAccCosmosDBAccount_updateCapacity(t *testing.T) {
 }
 
 func TestAccCosmosDBAccount_vNetFilters(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("this test requires 4.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.vNetFilters(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("is_virtual_network_filter_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("virtual_network_rule.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// todo remove for 4.0
+func TestAccCosmosDBAccount_vNetFiltersThreePointOh(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("this test requires 3.0 mode")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetFiltersThreePointOh(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("is_virtual_network_filter_enabled").HasValue("true"),
@@ -1008,6 +1044,71 @@ func TestAccCosmosDBAccount_restoreCreateMode(t *testing.T) {
 	})
 }
 
+// todo remove for 4.0
+func TestAccCosmosDBAccount_ipRangeFiltersThreePointOh(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("this test requires 3.0 mode")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipRangeFiltersThreePointOh(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipRangeFiltersUpdatedThreePointOh(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetFiltersThreePointOh(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_ipRangeFilters(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skip("this test requires 4.0 mode")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipRangeFilters(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipRangeFiltersUpdated(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetFilters(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CosmosDBAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DatabaseAccountID(state.ID)
 	if err != nil {
@@ -1199,7 +1300,7 @@ resource "azurerm_subnet" "subnet1" {
   name                 = "acctest-SN1-%[1]d-1"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
   service_endpoints    = ["Microsoft.AzureCosmosDB"]
 }
 
@@ -1207,7 +1308,7 @@ resource "azurerm_subnet" "subnet2" {
   name                 = "acctest-SN2-%[1]d-2"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.AzureCosmosDB"]
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -1267,6 +1368,67 @@ resource "azurerm_cosmosdb_account" "test" {
 
   access_key_metadata_writes_enabled    = false
   network_acl_bypass_for_azure_services = true
+}
+`, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
+}
+
+func (r CosmosDBAccountResource) completeTags(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%[3]s"
+
+  consistency_policy {
+    consistency_level       = "%[4]s"
+    max_interval_in_seconds = 300
+    max_staleness_prefix    = 170000
+  }
+
+  is_virtual_network_filter_enabled = true
+
+  virtual_network_rule {
+    id = azurerm_subnet.subnet1.id
+  }
+
+  virtual_network_rule {
+    id = azurerm_subnet.subnet2.id
+  }
+
+  enable_multiple_write_locations = true
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  geo_location {
+    location          = "%[5]s"
+    failover_priority = 1
+  }
+
+  geo_location {
+    location          = "%[6]s"
+    failover_priority = 2
+  }
+
+  cors_rule {
+    allowed_origins    = ["http://www.example.com"]
+    exposed_headers    = ["x-tempo-*"]
+    allowed_headers    = ["x-tempo-*"]
+    allowed_methods    = ["GET", "PUT"]
+    max_age_in_seconds = "500"
+  }
+  access_key_metadata_writes_enabled    = false
+  network_acl_bypass_for_azure_services = true
+
+  tags = {
+    ENV = "Test"
+  }
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
@@ -1770,6 +1932,47 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   is_virtual_network_filter_enabled = true
+  ip_range_filter                   = []
+
+  virtual_network_rule {
+    id                                   = azurerm_subnet.subnet1.id
+    ignore_missing_vnet_service_endpoint = true
+  }
+
+  virtual_network_rule {
+    id                                   = azurerm_subnet.subnet2.id
+    ignore_missing_vnet_service_endpoint = false
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, r.vNetFiltersPreReqs(data), data.RandomInteger)
+}
+
+func (r CosmosDBAccountResource) vNetFiltersThreePointOh(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  enable_multiple_write_locations = false
+  enable_automatic_failover       = false
+
+  consistency_policy {
+    consistency_level       = "Eventual"
+    max_interval_in_seconds = 5
+    max_staleness_prefix    = 100
+  }
+
+  is_virtual_network_filter_enabled = true
   ip_range_filter                   = ""
 
   virtual_network_rule {
@@ -1944,11 +2147,17 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (CosmosDBAccountResource) key_vault_uri(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	var softDelete string
+	if !features.ThreePointOhBeta() {
+		softDelete = "soft_delete_enabled        = true"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -1973,8 +2182,8 @@ resource "azurerm_key_vault" "test" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 
-  purge_protection_enabled   = true
-  soft_delete_enabled        = true
+  purge_protection_enabled = true
+  %s
   soft_delete_retention_days = 7
 
   access_policy {
@@ -1982,18 +2191,18 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "purge",
-      "update",
+      "List",
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Update",
     ]
 
     secret_permissions = [
-      "get",
-      "delete",
-      "set",
+      "Get",
+      "Delete",
+      "Set",
     ]
   }
 
@@ -2002,19 +2211,19 @@ resource "azurerm_key_vault" "test" {
     object_id = data.azuread_service_principal.cosmosdb.id
 
     key_permissions = [
-      "list",
-      "create",
-      "delete",
-      "get",
-      "update",
-      "unwrapKey",
-      "wrapKey",
+      "List",
+      "Create",
+      "Delete",
+      "Get",
+      "Update",
+      "UnwrapKey",
+      "WrapKey",
     ]
 
     secret_permissions = [
-      "get",
-      "delete",
-      "set",
+      "Get",
+      "Delete",
+      "Set",
     ]
   }
 }
@@ -2056,7 +2265,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, softDelete, data.RandomString, data.RandomInteger, string(kind), string(consistency))
 }
 
 func (CosmosDBAccountResource) systemAssignedIdentity(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
@@ -2237,6 +2446,10 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -2713,4 +2926,168 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (r CosmosDBAccountResource) ipRangeFilters(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  enable_multiple_write_locations = false
+  enable_automatic_failover       = false
+
+  consistency_policy {
+    consistency_level       = "Eventual"
+    max_interval_in_seconds = 5
+    max_staleness_prefix    = 100
+  }
+
+  is_virtual_network_filter_enabled = true
+  ip_range_filter                   = ["55.0.1.0/24"]
+
+  virtual_network_rule {
+    id                                   = azurerm_subnet.subnet1.id
+    ignore_missing_vnet_service_endpoint = true
+  }
+
+  virtual_network_rule {
+    id                                   = azurerm_subnet.subnet2.id
+    ignore_missing_vnet_service_endpoint = false
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, r.vNetFiltersPreReqs(data), data.RandomInteger)
+}
+
+func (r CosmosDBAccountResource) ipRangeFiltersUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  enable_multiple_write_locations = false
+  enable_automatic_failover       = false
+
+  consistency_policy {
+    consistency_level       = "Eventual"
+    max_interval_in_seconds = 5
+    max_staleness_prefix    = 100
+  }
+
+  is_virtual_network_filter_enabled = true
+  ip_range_filter                   = ["55.0.1.0/24", "55.0.2.0/24"]
+
+  virtual_network_rule {
+    id                                   = azurerm_subnet.subnet1.id
+    ignore_missing_vnet_service_endpoint = true
+  }
+
+  virtual_network_rule {
+    id                                   = azurerm_subnet.subnet2.id
+    ignore_missing_vnet_service_endpoint = false
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, r.vNetFiltersPreReqs(data), data.RandomInteger)
+}
+
+func (r CosmosDBAccountResource) ipRangeFiltersThreePointOh(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  enable_multiple_write_locations = false
+  enable_automatic_failover       = false
+
+  consistency_policy {
+    consistency_level       = "Eventual"
+    max_interval_in_seconds = 5
+    max_staleness_prefix    = 100
+  }
+
+  is_virtual_network_filter_enabled = true
+  ip_range_filter                   = "55.0.1.0/24"
+
+  virtual_network_rule {
+    id                                   = azurerm_subnet.subnet1.id
+    ignore_missing_vnet_service_endpoint = true
+  }
+
+  virtual_network_rule {
+    id                                   = azurerm_subnet.subnet2.id
+    ignore_missing_vnet_service_endpoint = false
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, r.vNetFiltersPreReqs(data), data.RandomInteger)
+}
+
+func (r CosmosDBAccountResource) ipRangeFiltersUpdatedThreePointOh(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  enable_multiple_write_locations = false
+  enable_automatic_failover       = false
+
+  consistency_policy {
+    consistency_level       = "Eventual"
+    max_interval_in_seconds = 5
+    max_staleness_prefix    = 100
+  }
+
+  is_virtual_network_filter_enabled = true
+  ip_range_filter                   = "55.0.1.0/24,55.0.2.0/24"
+
+  virtual_network_rule {
+    id                                   = azurerm_subnet.subnet1.id
+    ignore_missing_vnet_service_endpoint = true
+  }
+
+  virtual_network_rule {
+    id                                   = azurerm_subnet.subnet2.id
+    ignore_missing_vnet_service_endpoint = false
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, r.vNetFiltersPreReqs(data), data.RandomInteger)
 }

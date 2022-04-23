@@ -113,17 +113,17 @@ A `action` block defines where the data will be exported and sent to, it support
 
 A `source` block defines the source data in Security Center to be exported, supports the following:
 
-* `event_source` - (Required) Type of data that will trigger this automation. Must be one of `Alerts`, `Assessments`, `SecureScoreControls`, `SecureScores` or `SubAssessments`. Note. assessments are also referred to as recommendations 
+* `event_source` - (Required) Type of data that will trigger this automation. Must be one of `Alerts`, `Assessments`, `AssessmentsSnapshot`, `RegulatoryComplianceAssessment`, `RegulatoryComplianceAssessmentSnapshot`, `SecureScoreControls`, `SecureScoreControlsSnapshot`, `SecureScores`, `SecureScoresSnapshot`, `SubAssessments` or `SubAssessmentsSnapshot`. Note. assessments are also referred to as recommendations
 
 * `rule_set` - (Optional) A set of rules which evaluate upon event and data interception. This is defined in one or more `rule_set` blocks as defined below.
-  
+
 ~> **NOTE:** When multiple `rule_set` block are provided, a logical 'OR' is applied to the evaluation of them.
 
 ---
 
 A `rule_set` block supports the following:
 
-* `rule` - (Required) One or more `rule` blocks as defined below. 
+* `rule` - (Required) One or more `rule` blocks as defined below.
 
 ~> **NOTE:** This automation will trigger when all of the `rule`s in this `rule_set` are evaluated as 'true'. This is equivalent to a logical 'AND'.
 
@@ -144,7 +144,7 @@ A `rule` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Security Center Automation.
 

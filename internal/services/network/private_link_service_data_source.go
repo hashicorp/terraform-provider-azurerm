@@ -5,8 +5,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,9 +31,9 @@ func dataSourcePrivateLinkService() *pluginsdk.Resource {
 				ValidateFunc: validate.PrivateLinkName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"auto_approval_subscription_ids": {
 				Type:     pluginsdk.TypeList,
@@ -39,6 +41,7 @@ func dataSourcePrivateLinkService() *pluginsdk.Resource {
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_proxy_protocol": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -97,26 +100,24 @@ func dataSourcePrivateLinkService() *pluginsdk.Resource {
 
 func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewPrivateLinkServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Private Link Service %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Private Link Service %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", azure.NormalizeLocation(*resp.Location))
+	d.Set("resource_group_name", id.ResourceGroup)
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
 		d.Set("alias", props.Alias)
@@ -145,10 +146,7 @@ func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

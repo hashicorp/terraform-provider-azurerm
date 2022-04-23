@@ -48,7 +48,7 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 					strings.ToLower(string(operationalinsights.Query)),
 					strings.ToLower(string(operationalinsights.Alerts)),
 					// Value removed from enum in 2020-08-01, but effectively still works
-					"Ingestion",
+					"ingestion",
 				}, false),
 			},
 
@@ -79,22 +79,21 @@ func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	dataSourceType := operationalinsights.DataSourceType(d.Get("data_source_type").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
 	workspace, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_resource_id").(string))
 	if err != nil {
 		return fmt.Errorf("%v", err)
 	}
+	id := parse.NewLogAnalyticsLinkedStorageAccountID(workspace.SubscriptionId, d.Get("resource_group_name").(string), workspace.WorkspaceName, d.Get("data_source_type").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, workspace.WorkspaceName, dataSourceType)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, operationalinsights.DataSourceType(id.LinkedStorageAccountName))
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.WorkspaceName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_linked_storage_account", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_log_analytics_linked_storage_account", id.ID())
 		}
 	}
 
@@ -103,20 +102,11 @@ func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceD
 			StorageAccountIds: utils.ExpandStringSlice(d.Get("storage_account_ids").(*pluginsdk.Set).List()),
 		},
 	}
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.WorkspaceName, dataSourceType, parameters); err != nil {
-		return fmt.Errorf("creating/updating Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.WorkspaceName, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, operationalinsights.DataSourceType(id.LinkedStorageAccountName), parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, workspace.WorkspaceName, dataSourceType)
-	if err != nil {
-		return fmt.Errorf("retrieving Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.WorkspaceName, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q) ID", dataSourceType, resourceGroup, workspace.WorkspaceName)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	return resourceLogAnalyticsLinkedStorageAccountRead(d, meta)
 }
 
@@ -141,10 +131,10 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", id.LinkedStorageAccountName, id.ResourceGroup, id.WorkspaceName, err)
 	}
 
-	d.Set("data_source_type", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("workspace_resource_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 	if props := resp.LinkedStorageAccountsProperties; props != nil {
+		d.Set("data_source_type", string(props.DataSourceType))
 		d.Set("storage_account_ids", utils.FlattenStringSlice(props.StorageAccountIds))
 	}
 

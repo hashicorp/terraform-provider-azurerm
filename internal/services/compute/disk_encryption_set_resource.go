@@ -6,7 +6,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -76,33 +78,10 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"identity": {
-				Type: pluginsdk.TypeList,
-				// whilst the API Documentation shows optional - attempting to send nothing returns:
-				// `Required parameter 'ResourceIdentity' is missing (null)`
-				// hence this is required
-				Required: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.DiskEncryptionSetIdentityTypeSystemAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			// whilst the API Documentation shows optional - attempting to send nothing returns:
+			// `Required parameter 'ResourceIdentity' is missing (null)`
+			// hence this is required
+			"identity": commonschema.SystemAssignedIdentityRequired(),
 
 			"tags": tags.Schema(),
 		},
@@ -113,20 +92,20 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	resourcesClient := meta.(*clients.Client).Resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewDiskEncryptionSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_disk_encryption_set", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_disk_encryption_set", id.ID())
 	}
 
 	keyVaultKeyId := d.Get("key_vault_key_id").(string)
@@ -144,8 +123,12 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	rotationToLatestKeyVersionEnabled := d.Get("auto_key_rotation_enabled").(bool)
 	encryptionType := d.Get("encryption_type").(string)
-	identityRaw := d.Get("identity").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
+
+	expandedIdentity, err := expandDiskEncryptionSetIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 
 	params := compute.DiskEncryptionSet{
 		Location: utils.String(location),
@@ -159,26 +142,19 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 			RotationToLatestKeyVersionEnabled: utils.Bool(rotationToLatestKeyVersionEnabled),
 			EncryptionType:                    compute.DiskEncryptionSetType(encryptionType),
 		},
-		Identity: expandDiskEncryptionSetIdentity(identityRaw),
+		Identity: expandedIdentity,
 		Tags:     tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, params)
 	if err != nil {
-		return fmt.Errorf("creating Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Disk Encryption Set %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceDiskEncryptionSetRead(d, meta)
 }
@@ -311,35 +287,33 @@ func resourceDiskEncryptionSetDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandDiskEncryptionSetIdentity(input []interface{}) *compute.EncryptionSetIdentity {
-	val := input[0].(map[string]interface{})
-	return &compute.EncryptionSetIdentity{
-		Type: compute.DiskEncryptionSetIdentityType(val["type"].(string)),
+func expandDiskEncryptionSetIdentity(input []interface{}) (*compute.EncryptionSetIdentity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
+
+	return &compute.EncryptionSetIdentity{
+		Type: compute.DiskEncryptionSetIdentityType(string(expanded.Type)),
+	}, nil
 }
 
 func flattenDiskEncryptionSetIdentity(input *compute.EncryptionSetIdentity) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
+	var transform *identity.SystemAssigned
+
+	if input != nil {
+		transform = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
 	}
 
-	identityType := string(input.Type)
-	principalId := ""
-	if input.PrincipalID != nil {
-		principalId = *input.PrincipalID
-	}
-	tenantId := ""
-	if input.TenantID != nil {
-		tenantId = *input.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         identityType,
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-		},
-	}
+	return identity.FlattenSystemAssigned(transform)
 }
 
 type diskEncryptionSetKeyVault struct {

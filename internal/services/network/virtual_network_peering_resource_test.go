@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualNetworkPeeringResource struct {
-}
+type VirtualNetworkPeeringResource struct{}
 
 func TestAccVirtualNetworkPeering_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")

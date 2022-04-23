@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type MonitorActionGroupDataSource struct {
-}
+type MonitorActionGroupDataSource struct{}
 
 func TestAccDataSourceMonitorActionGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_action_group", "test")

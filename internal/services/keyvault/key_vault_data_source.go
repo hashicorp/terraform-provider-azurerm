@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -33,9 +34,9 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 					ValidateFunc: validate.VaultName,
 				},
 
-				"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+				"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-				"location": azure.SchemaLocationForDataSource(),
+				"location": commonschema.LocationComputed(),
 
 				"sku_name": {
 					Type:     pluginsdk.TypeString,
@@ -116,6 +117,7 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 					Computed: true,
 				},
 
+				// TODO 4.0: change this from enable_* to *_enabled
 				"enable_rbac_authorization": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -157,7 +159,7 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 
 				"tags": tags.SchemaDataSource(),
 			}
-			if !features.ThreePointOh() {
+			if !features.ThreePointOhBeta() {
 				dsSchema["soft_delete_enabled"] = &pluginsdk.Schema{
 					Type:       pluginsdk.TypeBool,
 					Computed:   true,
@@ -189,9 +191,8 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
 		d.Set("tenant_id", props.TenantID.String())
@@ -202,8 +203,7 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
 
-		// TODO: remove in 3.0
-		if !features.ThreePointOh() {
+		if !features.ThreePointOhBeta() {
 			d.Set("soft_delete_enabled", true)
 		}
 

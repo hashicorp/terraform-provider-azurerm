@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MaintenanceAssignmentVirtualMachineResource struct {
-}
+type MaintenanceAssignmentVirtualMachineResource struct{}
 
 func TestAccMaintenanceAssignmentVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_virtual_machine", "test")
@@ -114,7 +113,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {

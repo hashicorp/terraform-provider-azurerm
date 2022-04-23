@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PostgreSQLVirtualNetworkRuleResource struct {
-}
+type PostgreSQLVirtualNetworkRuleResource struct{}
 
 func TestAccPostgreSQLVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
@@ -163,7 +162,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-SN-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/29"
+  address_prefixes     = ["10.7.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -178,11 +177,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 }
 
 resource "azurerm_postgresql_virtual_network_rule" "test" {
@@ -229,7 +226,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "acctest-SN1-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/25"
+  address_prefixes     = ["10.7.29.0/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -237,7 +234,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "acctest-SN2-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.128/25"
+  address_prefixes     = ["10.7.29.128/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -252,11 +249,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 }
 
 resource "azurerm_postgresql_virtual_network_rule" "test" {
@@ -290,7 +285,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "acctest-SN1-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/25"
+  address_prefixes     = ["10.7.29.0/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -298,7 +293,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "acctest-SN2-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.128/25"
+  address_prefixes     = ["10.7.29.128/25"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -313,11 +308,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 }
 
 resource "azurerm_postgresql_virtual_network_rule" "test" {
@@ -358,7 +351,7 @@ resource "azurerm_subnet" "vnet1_subnet1" {
   name                 = "acctestsubnet1%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.vnet1.name
-  address_prefix       = "10.7.29.0/29"
+  address_prefixes     = ["10.7.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -366,7 +359,7 @@ resource "azurerm_subnet" "vnet1_subnet2" {
   name                 = "acctestsubnet2%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.vnet1.name
-  address_prefix       = "10.7.29.128/29"
+  address_prefixes     = ["10.7.29.128/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -374,7 +367,7 @@ resource "azurerm_subnet" "vnet2_subnet1" {
   name                 = "acctestsubnet3%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.vnet2.name
-  address_prefix       = "10.1.29.0/29"
+  address_prefixes     = ["10.1.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -389,11 +382,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 }
 
 resource "azurerm_postgresql_virtual_network_rule" "rule1" {
@@ -444,7 +435,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-SN-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/29"
+  address_prefixes     = ["10.7.29.0/29"]
   service_endpoints    = ["Microsoft.Storage"]
 }
 
@@ -455,11 +446,9 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"

@@ -96,16 +96,18 @@ The following arguments are supported:
 
 * `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
 
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Storage Account should exist. Changing this forces a new Storage Account to be created.
+
 * `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
     for more information. Defaults to `true`.
 
-* `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. Possible values are `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLS1_0` for new storage accounts.
+* `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. Possible values are `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLS1_2` for new storage accounts.
 
 -> **NOTE:** At this time `min_tls_version` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
-* `allow_blob_public_access` - Allow or disallow public access to all blobs or containers in the storage account. Defaults to `false`.
+* `allow_nested_items_to_be_public` - Allow or disallow nested items within this Account to opt into being public. Defaults to `true`.
 
--> **NOTE:** At this time `allow_blob_public_access` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
+-> **NOTE:** At this time `allow_nested_items_to_be_public` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
 * `shared_access_key_enabled` - Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). The default value is `true`.
 
@@ -120,6 +122,8 @@ The following arguments are supported:
 -> **NOTE:** This can only be `true` when `account_tier` is `Standard` and `account_kind` is `StorageV2`, or `account_tier` is `Premium` and `account_kind` is `BlockBlobStorage`. Additionally, the `is_hns_enabled` is `true`, and `enable_https_traffic_only` is `false`.
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
+
+* `customer_managed_key` (Optional) A `customer_managed_key` block as documented below.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -144,7 +148,11 @@ The following arguments are supported:
 * `queue_encryption_key_type` - (Optional) The encryption type of the queue service. Possible values are `Service` and `Account`. Changing this forces a new resource to be created. Default value is `Service`. 
 * `table_encryption_key_type` - (Optional) The encryption type of the table service. Possible values are `Service` and `Account`. Changing this forces a new resource to be created. Default value is `Service`. 
 
-~> **NOTE:** For  the `queue_encryption_key_type` and `table_encryption_key_type`, the `Account` key type is only allowed when the `account_kind` is set to `StorageV2`
+~> **NOTE:** For the `queue_encryption_key_type` and `table_encryption_key_type`, the `Account` key type is only allowed when the `account_kind` is set to `StorageV2`
+
+* `infrastructure_encryption_enabled` - (Optional) Is infrastructure encryption enabled? Changing this forces a new resource to be created. Defaults to `false`.
+
+-> **NOTE:** This can only be `true` when `account_kind` is `StorageV2` or when `account_tier` is `Premium` *and* `account_kind` is `BlockBlobStorage`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -186,7 +194,18 @@ A `cors_rule` block supports the following:
 A `custom_domain` block supports the following:
 
 * `name` - (Required) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
+
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
+
+---
+
+A `customer_managed_key` block supports the following:
+
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key, supplying a version-less key ID will enable auto-rotation of this key.
+
+* `user_assigned_identity_id` - (Required) The ID of a user assigned identity.
+
+~> **NOTE:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` and the identity type is `UserAssigned`.
 
 ---
 
@@ -214,15 +233,15 @@ A `hour_metrics` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Storage Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned,UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Storage Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
-
-* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Storage Account.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
 
 ---
 
@@ -257,7 +276,7 @@ A `network_rules` block supports the following:
 * `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
 * `bypass` - (Optional)  Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are
 any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
-* `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
+* `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPv4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 
 * `private_link_access` - (Optional) One or More `private_link_access` block as defined below.
@@ -308,7 +327,7 @@ A `routing` block supports the following:
 
 * `publish_internet_endpoints` - (Optional) Should internet routing storage endpoints be published? Defaults to `false`.
 
-* `publish_microsoft_endpoints` - (Optional) Should microsoft routing storage endpoints be published? Defaults to `false`.
+* `publish_microsoft_endpoints` - (Optional) Should Microsoft routing storage endpoints be published? Defaults to `false`.
 
 * `choice` - (Optional) Specifies the kind of network routing opted by the user. Possible values are `InternetRouting` and `MicrosoftRouting`. Defaults to `MicrosoftRouting`.
 
@@ -432,13 +451,13 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `secondary_blob_connection_string` - The connection string associated with the secondary blob location.
 
-~> **NOTE:** If there's a Write Lock on the Storage Account, or the account doesn't have permission then these fields will have an empty value [due to a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/6363)
+~> **NOTE:** If there's a write lock on the Storage Account, or the account doesn't have permission then these fields will have an empty value [due to a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/6363)
 
-* `identity` - An `identity` block as defined below, which contains the Identity information for this Storage Account.
+* `identity` - An `identity` block as defined below..
 
 ---
 
-`identity` exports the following:
+An `identity` exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Storage Account.
 

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MediaContentKeyPolicyResource struct {
-}
+type MediaContentKeyPolicyResource struct{}
 
 func TestAccMediaContentKeyPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_content_key_policy", "test")

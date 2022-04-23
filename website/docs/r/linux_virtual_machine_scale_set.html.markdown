@@ -12,6 +12,8 @@ Manages a Linux Virtual Machine Scale Set.
 
 ## Disclaimers
 
+~> **NOTE:** As of the **v2.86.0** (November 19, 2021) release of the provider this resource will only create Virtual Machine Scale Sets with the **Uniform** Orchestration Mode.
+
 ~> **NOTE:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 -> **NOTE:** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured [using the `features` setting within the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features).
@@ -142,6 +144,8 @@ The following arguments are supported:
 
 * `do_not_run_extensions_on_overprovisioned_machines` - (Optional) Should Virtual Machine Extensions be run on Overprovisioned Virtual Machines in the Scale Set? Defaults to `false`.
 
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Linux Virtual Machine Scale Set should exist. Changing this forces a new Linux Virtual Machine Scale Set to be created.
+
 * `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
 
 * `extension` - (Optional) One or more `extension` blocks as defined below
@@ -208,7 +212,7 @@ The following arguments are supported:
 
 -> **NOTE:** This can only be set to `true` when one or more `zones` are configured.
 
-* `zones` - (Optional) A list of Availability Zones in which the Virtual Machines in this Scale Set should be created in. Changing this forces a new resource to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Linux Virtual Machine Scale Set should be located. Changing this forces a new Linux Virtual Machine Scale Set to be created.
 
 ---
 
@@ -330,13 +334,13 @@ An `extension` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Identity which should be assigned to the Linux Virtual Machine Scale Set. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Linux Virtual Machine Scale Set. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Linux Virtual Machine Scale Set.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Linux Virtual Machine Scale Set.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`.
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -504,15 +508,18 @@ In addition to all arguments above, the following attributes are exported:
 
 An `identity` block exports the following:
 
-* `principal_id` - The ID of the System Managed Service Principal.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Linux Virtual Machine Scale Set.
+* `create` - (Defaults to 60 minutes) Used when creating the Linux Virtual Machine Scale Set.
+* `read` - (Defaults to 5 minutes) Used when reading the Linux Virtual Machine Scale Set.
 * `update` - (Defaults to 60 minutes) Used when updating (and rolling the instances of) the Linux Virtual Machine Scale Set (e.g. when changing SKU).
-* `delete` - (Defaults to 30 minutes) Used when deleting the Linux Virtual Machine Scale Set.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Linux Virtual Machine Scale Set.
 
 ## Import
 

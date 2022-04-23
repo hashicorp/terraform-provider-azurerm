@@ -6,13 +6,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -40,90 +42,129 @@ func resourceIotHubEndpointStorageContainer() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: iothubValidate.IoTHubEndpointName,
+		Schema: resourceIothubEndpointStorageContainerSchema(),
+	}
+}
+
+func resourceIothubEndpointStorageContainerSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: iothubValidate.IoTHubEndpointName,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		//lintignore: S013
+		"iothub_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     features.ThreePointOhBeta(),
+			Optional:     !features.ThreePointOhBeta(),
+			ForceNew:     true,
+			Computed:     !features.ThreePointOhBeta(),
+			ValidateFunc: iothubValidate.IotHubID,
+			ConflictsWith: func() []string {
+				if !features.ThreePointOhBeta() {
+					return []string{"iothub_name"}
+				}
+				return []string{}
+			}(),
+		},
+
+		"container_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.StorageContainerName,
+		},
+
+		"file_name_format": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}",
+			ValidateFunc: iothubValidate.FileNameFormat,
+		},
+
+		"batch_frequency_in_seconds": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      300,
+			ValidateFunc: validation.IntBetween(60, 720),
+		},
+
+		"max_chunk_size_in_bytes": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      314572800,
+			ValidateFunc: validation.IntBetween(10485760, 524288000),
+		},
+
+		"authentication_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(devices.AuthenticationTypeKeyBased),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(devices.AuthenticationTypeKeyBased),
+				string(devices.AuthenticationTypeIdentityBased),
+			}, false),
+		},
+
+		"identity_id": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  msivalidate.UserAssignedIdentityID,
+			ConflictsWith: []string{"connection_string"},
+		},
+
+		"endpoint_uri": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			ExactlyOneOf: []string{"endpoint_uri", "connection_string"},
+		},
+
+		"connection_string": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				accountKeyRegex := regexp.MustCompile("AccountKey=[^;]+")
+
+				maskedNew := accountKeyRegex.ReplaceAllString(new, "AccountKey=****")
+				return (new == d.Get(k).(string)) && (maskedNew == old)
 			},
+			Sensitive:     true,
+			ConflictsWith: []string{"identity_id"},
+			ExactlyOneOf:  []string{"endpoint_uri", "connection_string"},
+		},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			// TODO remove in 3.0
-			"iothub_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				ValidateFunc:  iothubValidate.IoTHubName,
-				Deprecated:    "Deprecated in favour of `iothub_id`",
-				ConflictsWith: []string{"iothub_id"},
-			},
-
-			"iothub_id": {
-				Type: pluginsdk.TypeString,
-				// TODO add Required: true in 3.0
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				ValidateFunc:  iothubValidate.IotHubID,
-				ConflictsWith: []string{"iothub_name"},
-			},
-
-			"container_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validate.StorageContainerName,
-			},
-
-			"file_name_format": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      "{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}",
-				ValidateFunc: iothubValidate.FileNameFormat,
-			},
-
-			"batch_frequency_in_seconds": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      300,
-				ValidateFunc: validation.IntBetween(60, 720),
-			},
-
-			"max_chunk_size_in_bytes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      314572800,
-				ValidateFunc: validation.IntBetween(10485760, 524288000),
-			},
-
-			"connection_string": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-					accountKeyRegex := regexp.MustCompile("AccountKey=[^;]+")
-
-					maskedNew := accountKeyRegex.ReplaceAllString(new, "AccountKey=****")
-					return (new == d.Get(k).(string)) && (maskedNew == old)
-				},
-				Sensitive: true,
-			},
-
-			"encoding": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				Default:          string(devices.EncodingAvro),
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(devices.EncodingAvro),
-					string(devices.EncodingAvroDeflate),
-					string(devices.EncodingJSON),
-				}, true),
-			},
+		"encoding": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ForceNew:         true,
+			Default:          string(devices.EncodingAvro),
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(devices.EncodingAvro),
+				string(devices.EncodingAvroDeflate),
+				string(devices.EncodingJSON),
+			}, true),
 		},
 	}
+
+	if !features.ThreePointOhBeta() {
+		out["iothub_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			Computed:      true,
+			ValidateFunc:  iothubValidate.IoTHubName,
+			Deprecated:    "Deprecated in favour of `iothub_id`",
+			ConflictsWith: []string{"iothub_id"},
+		}
+	}
+
+	return out
 }
 
 func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -134,9 +175,12 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
 	endpointRG := d.Get("resource_group_name").(string)
-	iotHubName := d.Get("iothub_name").(string)
 	iotHubRG := endpointRG
 
+	var iotHubName string
+	if !features.ThreePointOhBeta() {
+		iotHubName = d.Get("iothub_name").(string)
+	}
 	if iotHubName == "" {
 		id, err := parse.IotHubID(d.Get("iothub_id").(string))
 		if err != nil {
@@ -160,7 +204,7 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iotHubName, iotHubRG, err)
 	}
 
-	connectionStr := d.Get("connection_string").(string)
+	authenticationType := devices.AuthenticationType(d.Get("authentication_type").(string))
 	containerName := d.Get("container_name").(string)
 	fileNameFormat := d.Get("file_name_format").(string)
 	batchFrequencyInSeconds := int32(d.Get("batch_frequency_in_seconds").(int))
@@ -168,7 +212,7 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 	encoding := d.Get("encoding").(string)
 
 	storageContainerEndpoint := devices.RoutingStorageContainerProperties{
-		ConnectionString:        &connectionStr,
+		AuthenticationType:      authenticationType,
 		Name:                    &id.EndpointName,
 		SubscriptionID:          &subscriptionID,
 		ResourceGroup:           &endpointRG,
@@ -177,6 +221,26 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 		BatchFrequencyInSeconds: &batchFrequencyInSeconds,
 		MaxChunkSizeInBytes:     &maxChunkSizeInBytes,
 		Encoding:                devices.Encoding(encoding),
+	}
+
+	if authenticationType == devices.AuthenticationTypeKeyBased {
+		if v, ok := d.GetOk("connection_string"); ok {
+			storageContainerEndpoint.ConnectionString = utils.String(v.(string))
+		} else {
+			return fmt.Errorf("`connection_string` must be specified when `authentication_type` is `keyBased`")
+		}
+	} else {
+		if v, ok := d.GetOk("endpoint_uri"); ok {
+			storageContainerEndpoint.EndpointURI = utils.String(v.(string))
+		} else {
+			return fmt.Errorf("`endpoint_uri` must be specified when `authentication_type` is `identityBased`")
+		}
+
+		if v, ok := d.GetOk("identity_id"); ok {
+			storageContainerEndpoint.Identity = &devices.ManagedIdentity{
+				UserAssignedIdentity: utils.String(v.(string)),
+			}
+		}
 	}
 
 	routing := iothub.Properties.Routing
@@ -248,7 +312,9 @@ func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.Set("name", id.EndpointName)
-	d.Set("iothub_name", id.IotHubName)
+	if !features.ThreePointOhBeta() {
+		d.Set("iothub_name", id.IotHubName)
+	}
 
 	iotHubId := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
 	d.Set("iothub_id", iotHubId.ID())
@@ -261,13 +327,36 @@ func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta 
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
-					d.Set("connection_string", endpoint.ConnectionString)
 					d.Set("container_name", endpoint.ContainerName)
 					d.Set("file_name_format", endpoint.FileNameFormat)
 					d.Set("batch_frequency_in_seconds", endpoint.BatchFrequencyInSeconds)
 					d.Set("max_chunk_size_in_bytes", endpoint.MaxChunkSizeInBytes)
 					d.Set("encoding", endpoint.Encoding)
 					d.Set("resource_group_name", endpoint.ResourceGroup)
+
+					authenticationType := string(devices.AuthenticationTypeKeyBased)
+					if string(endpoint.AuthenticationType) != "" {
+						authenticationType = string(endpoint.AuthenticationType)
+					}
+					d.Set("authentication_type", authenticationType)
+
+					connectionStr := ""
+					if endpoint.ConnectionString != nil {
+						connectionStr = *endpoint.ConnectionString
+					}
+					d.Set("connection_string", connectionStr)
+
+					endpointUri := ""
+					if endpoint.EndpointURI != nil {
+						endpointUri = *endpoint.EndpointURI
+					}
+					d.Set("endpoint_uri", endpointUri)
+
+					identityId := ""
+					if endpoint.Identity != nil && endpoint.Identity.UserAssignedIdentity != nil {
+						identityId = *endpoint.Identity.UserAssignedIdentity
+					}
+					d.Set("identity_id", identityId)
 				}
 			}
 		}

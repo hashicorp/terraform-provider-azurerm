@@ -28,16 +28,13 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 
 resource "azurerm_servicebus_topic" "example" {
-  name                = "exampleTopic"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_servicebus_namespace.example.name
+  name         = "exampleTopic"
+  namespace_id = azurerm_servicebus_namespace.example.id
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "example" {
-  name                = "exampleRule"
-  namespace_name      = azurerm_servicebus_namespace.example.name
-  topic_name          = azurerm_servicebus_topic.example.name
-  resource_group_name = azurerm_resource_group.example.name
+  name     = "exampleRule"
+  topic_id = azurerm_servicebus_topic.example.id
 
   listen = false
   send   = true
@@ -61,7 +58,7 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_endpoint_servicebus_topic" "example" {
   resource_group_name = azurerm_resource_group.example.name
-  iothub_name         = azurerm_iothub.example.name
+  iothub_id           = azurerm_iothub.example.id
   name                = "example"
 
   connection_string = azurerm_servicebus_topic_authorization_rule.example.primary_connection_string
@@ -76,13 +73,19 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group under which the Service Bus Topic has been created. Changing this forces a new resource to be created.
 
-* `connection_string` - (Required) The connection string for the endpoint.
+* `authentication_type` - (Optional) Type used to authenticate against the Service Bus Topic endpoint. Possible values are `keyBased` and `identityBased`. Defaults to `keyBased`.
 
-* `iothub_name` - (Optional) The IoTHub name for the endpoint.
+* `identity_id` - (Optional) ID of the User Managed Identity used to authenticate against the Service Bus Topic endpoint.
 
-~> **NOTE:** The `iothub_name` property is deprecated, use `iothub_id` instead.
+-> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the Iot Hub. If not specified when `authentication_type` is `identityBased`, System Assigned Managed Identity of the Iot Hub will be used.
 
-* `iothub_id` - (Optional) The IoTHub ID for the endpoint.
+* `endpoint_uri` - (Optional) URI of the Service Bus endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased`.
+
+* `entity_path` - (Optional) Name of the Service Bus Topic. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased`.
+
+* `connection_string` - (Optional) The connection string for the endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `keyBased`.
+
+* `iothub_id` - (Required) The IoTHub ID for the endpoint.
 
 ## Attributes Reference
 

@@ -16,7 +16,6 @@ import (
 	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
 	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -234,7 +233,7 @@ func resourceMonitorAADDiagnosticSettingRead(d *pluginsdk.ResourceData, meta int
 	d.Set("eventhub_name", resp.EventHubName)
 	eventhubAuthorizationRuleId := ""
 	if resp.EventHubAuthorizationRuleID != nil && *resp.EventHubAuthorizationRuleID != "" {
-		parsedId, err := namespaces.ParseAuthorizationRuleIDInsensitively(*resp.EventHubAuthorizationRuleID)
+		parsedId, err := authRuleParse.ParseAuthorizationRuleID(*resp.EventHubAuthorizationRuleID)
 		if err != nil {
 			return err
 		}

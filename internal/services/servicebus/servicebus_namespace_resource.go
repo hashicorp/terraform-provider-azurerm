@@ -1,6 +1,7 @@
 package servicebus
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -8,10 +9,16 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -62,9 +69,11 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				ValidateFunc: validate.NamespaceName,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
@@ -74,8 +83,8 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 					string(servicebus.SkuNameBasic),
 					string(servicebus.SkuNameStandard),
 					string(servicebus.SkuNamePremium),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, !features.ThreePointOhBeta()),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"capacity": {
@@ -83,6 +92,39 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				Optional:     true,
 				Default:      0,
 				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4, 8, 16}),
+			},
+
+			"customer_managed_key": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+						},
+
+						"identity_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: msiValidate.UserAssignedIdentityID,
+						},
+
+						"infrastructure_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+						},
+					},
+				},
+			},
+
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"default_primary_connection_string": {
@@ -117,6 +159,14 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			oldCustomerManagedKey, newCustomerManagedKey := diff.GetChange("customer_managed_key")
+			if len(oldCustomerManagedKey.([]interface{})) != 0 && len(newCustomerManagedKey.([]interface{})) == 0 {
+				diff.ForceNew("customer_managed_key")
+			}
+			return nil
+		}),
 	}
 }
 
@@ -146,14 +196,22 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
+	identity, err := expandServiceBusNamespaceIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	parameters := servicebus.SBNamespace{
 		Location: &location,
+		Identity: identity,
 		Sku: &servicebus.SBSku{
 			Name: servicebus.SkuName(sku),
 			Tier: servicebus.SkuTier(sku),
 		},
 		SBNamespaceProperties: &servicebus.SBNamespaceProperties{
-			ZoneRedundant: utils.Bool(d.Get("zone_redundant").(bool)),
+			ZoneRedundant:    utils.Bool(d.Get("zone_redundant").(bool)),
+			Encryption:       expandServiceBusNamespaceEncryption(d.Get("customer_managed_key").([]interface{})),
+			DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -205,13 +263,36 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
+	identity, err := flattenServiceBusNamespaceIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	if sku := resp.Sku; sku != nil {
-		d.Set("sku", strings.ToLower(string(sku.Name)))
+		skuName := ""
+		// the Azure API is inconsistent here, so rewrite this into the casing we expect
+		for _, v := range servicebus.PossibleSkuNameValues() {
+			if strings.EqualFold(string(v), string(sku.Name)) {
+				skuName = string(v)
+			}
+		}
+		d.Set("sku", skuName)
 		d.Set("capacity", sku.Capacity)
 	}
 
 	if properties := resp.SBNamespaceProperties; properties != nil {
 		d.Set("zone_redundant", properties.ZoneRedundant)
+		if customerManagedKey, err := flattenServiceBusNamespaceEncryption(properties.Encryption); err == nil {
+			d.Set("customer_managed_key", customerManagedKey)
+		}
+		localAuthEnabled := true
+		if properties.DisableLocalAuth != nil {
+			localAuthEnabled = !*properties.DisableLocalAuth
+		}
+		d.Set("local_auth_enabled", localAuthEnabled)
 	}
 
 	keys, err := clientStable.ListKeys(ctx, id.ResourceGroup, id.Name, serviceBusNamespaceDefaultAuthorizationRule)
@@ -249,4 +330,100 @@ func resourceServiceBusNamespaceDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func expandServiceBusNamespaceIdentity(input []interface{}) (*servicebus.Identity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	out := servicebus.Identity{
+		Type: servicebus.ManagedServiceIdentityType(string(expanded.Type)),
+	}
+
+	if len(expanded.IdentityIds) > 0 {
+		out.UserAssignedIdentities = map[string]*servicebus.UserAssignedIdentity{}
+		for id := range expanded.IdentityIds {
+			out.UserAssignedIdentities[id] = &servicebus.UserAssignedIdentity{
+				// intentionally empty
+			}
+		}
+	}
+	return &out, nil
+}
+
+func expandServiceBusNamespaceEncryption(input []interface{}) *servicebus.Encryption {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	keyId, _ := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
+	return &servicebus.Encryption{
+		KeyVaultProperties: &[]servicebus.KeyVaultProperties{
+			{
+				KeyName:     utils.String(keyId.Name),
+				KeyVersion:  utils.String(keyId.Version),
+				KeyVaultURI: utils.String(keyId.KeyVaultBaseUrl),
+				Identity: &servicebus.UserAssignedIdentityProperties{
+					UserAssignedIdentity: utils.String(v["identity_id"].(string)),
+				},
+			},
+		},
+		KeySource:                       servicebus.KeySourceMicrosoftKeyVault,
+		RequireInfrastructureEncryption: utils.Bool(v["infrastructure_encryption_enabled"].(bool)),
+	}
+}
+
+func flattenServiceBusNamespaceIdentity(input *servicebus.Identity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
+	}
+
+	return identity.FlattenSystemAndUserAssignedMap(transform)
+}
+
+func flattenServiceBusNamespaceEncryption(encryption *servicebus.Encryption) ([]interface{}, error) {
+	if encryption == nil {
+		return []interface{}{}, nil
+	}
+
+	var keyId string
+	var identityId string
+	if keyVaultProperties := encryption.KeyVaultProperties; keyVaultProperties != nil && len(*keyVaultProperties) != 0 {
+		props := (*keyVaultProperties)[0]
+		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultURI, "keys", *props.KeyName, *props.KeyVersion)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
+		}
+		keyId = keyVaultKeyId.ID()
+		if props.Identity != nil && props.Identity.UserAssignedIdentity != nil {
+			identityId = *props.Identity.UserAssignedIdentity
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"infrastructure_encryption_enabled": encryption.RequireInfrastructureEncryption,
+			"key_vault_key_id":                  keyId,
+			"identity_id":                       identityId,
+		},
+	}, nil
 }
