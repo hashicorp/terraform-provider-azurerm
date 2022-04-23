@@ -126,7 +126,7 @@ A `key_vault_sas_token` block supports the following:
 
 * `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
 
-* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores the sas token.
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores the SAS token.
 
 ---
 
