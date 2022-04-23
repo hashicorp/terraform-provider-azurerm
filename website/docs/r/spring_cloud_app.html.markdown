@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `is_public` - (Optional) Does the Spring Cloud Application have public endpoint? Defaults to `false`.
 
-* `https_only` - (Optional) Is only https allowed? Defaults to `false`.
+* `https_only` - (Optional) Is only HTTPS allowed? Defaults to `false`.
 
 * `persistent_disk` - (Optional) An `persistent_disk` block as defined below.
 

@@ -380,7 +380,7 @@ A `ip_restriction` block supports the following:
 
 * `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.  
 
-* `headers` - (Optional) The headers for this specific `ip_restriction` as defined below. The http header filters are evaluated after the rule itself and both conditions must be true for the rule to apply.
+* `headers` - (Optional) The headers for this specific `ip_restriction` as defined below. The HTTP header filters are evaluated after the rule itself and both conditions must be true for the rule to apply.
 
 ---
 
@@ -459,7 +459,7 @@ A `file_system` block supports the following:
 
 * `retention_in_days` - (Required) The number of days to retain logs for.
 
-* `retention_in_mb` - (Required) The maximum size in megabytes that http log files can use before being removed.
+* `retention_in_mb` - (Required) The maximum size in megabytes that HTTP log files can use before being removed.
 
 ---
 

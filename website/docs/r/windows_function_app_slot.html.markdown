@@ -221,7 +221,7 @@ A `site_config` block supports the following:
 
 * `health_check_path` - (Optional) The path to be checked for this function app health.
 
-* `http2_enabled` - (Optional) Specifies if the http2 protocol should be enabled. Defaults to `false`.
+* `http2_enabled` - (Optional) Specifies if the HTTP2 protocol should be enabled. Defaults to `false`.
 
 * `ip_restriction` - (Optional) an `ip_restriction` block as detailed below.
 

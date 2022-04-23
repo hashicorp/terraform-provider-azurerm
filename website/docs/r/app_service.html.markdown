@@ -183,7 +183,7 @@ A `file_system` block supports the following:
 
 * `retention_in_days` - (Required) The number of days to retain logs for.
 
-* `retention_in_mb` - (Required) The maximum size in megabytes that http log files can use before being removed.
+* `retention_in_mb` - (Required) The maximum size in megabytes that HTTP log files can use before being removed.
 
 ---
 

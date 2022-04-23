@@ -373,7 +373,7 @@ A `site_config` block exports the following:
 
 * `health_check_eviction_time_in_min` - The amount of time in minutes that a node can be unhealthy before being removed from the load balancer.
 
-* `http2_enabled` - Is the http2 protocol enabled?
+* `http2_enabled` - Is the HTTP2 protocol enabled?
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 

@@ -8,9 +8,9 @@ description: |-
 
 # azurerm_frontdoor_custom_https_configuration
 
-Manages the Custom Https Configuration for an Azure Front Door Frontend Endpoint..
+Manages the Custom HTTPS Configuration for an Azure Front Door Frontend Endpoint..
 
--> **NOTE:** Defining custom https configurations using a separate `azurerm_frontdoor_custom_https_configuration` resource allows for parallel creation/update.
+-> **NOTE:** Defining custom HTTPS configurations using a separate `azurerm_frontdoor_custom_https_configuration` resource allows for parallel creation/update.
 
 !> **BREAKING CHANGE:** In order to address the ordering issue we have changed the design on how to retrieve existing sub resources such as frontend endpoints. Existing design will be deprecated and will result in an incorrect configuration. Please refer to the updated documentation below for more information.
 
@@ -123,7 +123,7 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ## Attributes Reference
 
-* `id` - The ID of the Azure Front Door Custom Https Configuration.
+* `id` - The ID of the Azure Front Door Custom HTTPS Configuration.
 
 * `custom_https_configuration` - A `custom_https_configuration` block as defined below.
 
@@ -135,14 +135,14 @@ The `custom_https_configuration` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 6 hours) Used when creating a Custom Https Configuration.
-* `update` - (Defaults to 6 hours) Used when updating a Custom Https Configuration.
-* `read` - (Defaults to 5 minutes) Used when retrieving a Custom Https Configuration.
-* `delete` - (Defaults to 6 hours) Used when deleting a Custom Https Configuration.
+* `create` - (Defaults to 6 hours) Used when creating a Custom HTTPS Configuration.
+* `update` - (Defaults to 6 hours) Used when updating a Custom HTTPS Configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving a Custom HTTPS Configuration.
+* `delete` - (Defaults to 6 hours) Used when deleting a Custom HTTPS Configuration.
 
 ## Import
 
-Front Door Custom Https Configurations can be imported using the `resource id` of the Front Door Custom Https Configuration, e.g.
+Front Door Custom HTTPS Configurations can be imported using the `resource id` of the Front Door Custom HTTPS Configuration, e.g.
 
 ```shell
 terraform import azurerm_frontdoor_custom_https_configuration.example_custom_https_1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/frontDoors/frontdoor1/customHttpsConfiguration/endpoint1
