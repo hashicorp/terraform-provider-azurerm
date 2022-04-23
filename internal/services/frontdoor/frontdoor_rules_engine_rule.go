@@ -3,7 +3,6 @@ package frontdoor
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -68,7 +67,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 100,
 				Optional: true,
-				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -86,13 +84,11 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 100,
 							Optional: true,
-							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"variable": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Computed: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"IsMobile",
 											"RemoteAddr",
@@ -112,7 +108,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 									"selector": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										Computed:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
@@ -137,7 +132,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 									"transform": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Computed: true,
 										MaxItems: 6,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
@@ -161,7 +155,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 									"value": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Computed: true,
 										MaxItems: 25,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -176,14 +169,12 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 1,
 							Optional: true,
-							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"request_header": {
 										Type:     pluginsdk.TypeList,
 										MaxItems: 100,
 										Optional: true,
-										Computed: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"header_action_type": {
@@ -194,21 +185,18 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 														string(frontdoors.HeaderActionTypeOverwrite),
 													}, false),
 													Optional: true,
-													Computed: true,
 												},
 
 												"header_name": {
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validation.StringIsNotEmpty,
 													Optional:     true,
-													Computed:     true,
 												},
 
 												"value": {
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validation.StringIsNotEmpty,
 													Optional:     true,
-													Computed:     true,
 												},
 											},
 										},
@@ -218,7 +206,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeList,
 										MaxItems: 100,
 										Optional: true,
-										Computed: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"header_action_type": {
@@ -229,60 +216,50 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 														string(frontdoors.HeaderActionTypeOverwrite),
 													}, false),
 													Optional: true,
-													Computed: true,
 												},
 
 												"header_name": {
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validation.StringIsNotEmpty,
 													Optional:     true,
-													Computed:     true,
 												},
 
 												"value": {
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validation.StringIsNotEmpty,
 													Optional:     true,
-													Computed:     true,
 												},
 											},
 										},
 									},
-
 									"routing_rule_override": {
 										Type:     pluginsdk.TypeList,
 										MaxItems: 1,
 										Optional: true,
-										Computed: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 
 												"redirect_configuration": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
-													Computed: true,
 													MaxItems: 1,
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
 															"custom_fragment": {
 																Type:     pluginsdk.TypeString,
 																Optional: true,
-																Computed: true,
 															},
 															"custom_host": {
 																Type:     pluginsdk.TypeString,
 																Optional: true,
-																Computed: true,
 															},
 															"custom_path": {
 																Type:     pluginsdk.TypeString,
 																Optional: true,
-																Computed: true,
 															},
 															"custom_query_string": {
 																Type:     pluginsdk.TypeString,
 																Optional: true,
-																Computed: true,
 															},
 															"redirect_protocol": {
 																Type:     pluginsdk.TypeString,
@@ -309,7 +286,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 												"forwarding_configuration": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
-													Computed: true,
 													MaxItems: 1,
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
@@ -342,7 +318,6 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 															"cache_query_parameters": {
 																Type:     pluginsdk.TypeList,
 																Optional: true,
-																Computed: true,
 																MaxItems: 25,
 																Elem: &pluginsdk.Schema{
 																	Type:         pluginsdk.TypeString,
@@ -352,13 +327,11 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 															"cache_duration": {
 																Type:         pluginsdk.TypeString,
 																Optional:     true,
-																Computed:     true,
 																ValidateFunc: validate.ISO8601DurationBetween("PT1S", "P365D"),
 															},
 															"custom_forwarding_path": {
 																Type:     pluginsdk.TypeString,
 																Optional: true,
-																Computed: true,
 															},
 															"forwarding_protocol": {
 																Type:     pluginsdk.TypeString,
@@ -383,22 +356,22 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 				},
 			},
 
-			// Computed values _ Test
-			"explicit_resource_order": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"engine_rule_ids": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-						},
-					},
-				},
-			},
+			// Computed values --> Produces this error 'testcase.go:110: Step 1/2 error: After applying this test step, the plan was not empty.'
+			// "explicit_resource_order": {
+			// 	Type:     pluginsdk.TypeList,
+			// 	Computed: true,
+			// 	Elem: &pluginsdk.Resource{
+			// 		Schema: map[string]*pluginsdk.Schema{
+			// 			"engine_rule_ids": {
+			// 				Type:     pluginsdk.TypeList,
+			// 				Computed: true,
+			// 				Elem: &pluginsdk.Schema{
+			// 					Type: pluginsdk.TypeString,
+			// 				},
+			// 			},
+			// 		},
+			// 	},
+			// },
 		},
 	}
 }
@@ -413,7 +386,9 @@ func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta in
 	resourceGroup := d.Get("resource_group_name").(string)
 	frontDoorId := frontdoors.NewFrontDoorID(subscriptionId, resourceGroup, frontDoorName)
 	rulesEngineName := d.Get("name").(string)
+
 	rules := d.Get("rule").([]interface{})
+
 	id := frontdoors.NewRulesEngineID(subscriptionId, resourceGroup, frontDoorName, rulesEngineName)
 
 	frontdoorRulesEngineProperties := frontdoors.RulesEngineProperties{
@@ -429,94 +404,9 @@ func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.Set("explicit_resource_order", flattenExplicitResourceFrontDoorRulesEngineOrder(rules, id, frontDoorId))
-
+	// d.Set("explicit_resource_order", flattenExplicitResourceFrontDoorRulesEngineOrder(rules, id, frontDoorId))
 	d.SetId(id.ID())
 	return resourceFrontDoorRulesEngineRead(d, meta)
-}
-
-func resourceFrontDoorRulesEngineRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := frontdoors.ParseRulesEngineIDInsensitively(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resp, err := client.RulesEnginesGet(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[INFO] %s does not exist - removing from state", *id)
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
-	}
-
-	d.Set("name", id.RulesEngineName)
-	d.Set("frontdoor_name", id.FrontDoorName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			explicitResourceOrder := d.Get("explicit_resource_order").([]interface{})
-
-			var flattenedRoutingRules *[]interface{}
-			flattenedRoutingRules, err = flattenFrontDoorRulesEngineRule(props.Rules, d.Get("routing_rule_override"), *id, explicitResourceOrder)
-			if err != nil {
-				return fmt.Errorf("flattening `routing_rule_override`: %+v", err)
-			}
-			if err := d.Set("rule", flattenedRoutingRules); err != nil {
-				return fmt.Errorf("setting `routing_rule_override`: %+v", err)
-			}
-		}
-	}
-
-	return nil
-}
-
-func resourceFrontDoorRulesEngineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := frontdoors.ParseRulesEngineIDInsensitively(d.Id())
-	if err != nil {
-		return err
-	}
-
-	if err := client.RulesEnginesDeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	return nil
-}
-
-func flattenExplicitResourceFrontDoorRulesEngineOrder(rules []interface{}, frontDoorRulesEngineId frontdoors.RulesEngineId, frontDoorId frontdoors.FrontDoorId) *[]interface{} {
-	output := make([]interface{}, 0)
-	var rulesEngineRulesOrder []string
-
-	if len(rules) > 0 {
-		var oldBlocks interface{}
-		flattenFrontDoorRulesEngineRules, err := flattenFrontDoorRulesEngineRule(expandFrontDoorRulesEngineRules(frontDoorId, rules), oldBlocks, frontDoorRulesEngineId, make([]interface{}, 0))
-		if err == nil {
-			for _, ids := range *flattenFrontDoorRulesEngineRules {
-				if ids != nil {
-					rulesEngineRule := ids.(map[string]interface{})
-					rulesEngineRuleId := "/subscriptions/" + frontDoorId.SubscriptionId + "/resourceGroups/" + frontDoorId.ResourceGroupName + "/providers/Microsoft.Network/frontdoors/" + frontDoorId.FrontDoorName + "/rulesengines/" + rulesEngineRule["name"].(string)
-					rulesEngineRulesOrder = append(rulesEngineRulesOrder, rulesEngineRuleId)
-				}
-			}
-		}
-	}
-
-	output = append(output, map[string]interface{}{
-		"engine_rule_ids": rulesEngineRulesOrder,
-	})
-
-	return &output
 }
 
 func expandFrontDoorRulesEngineAction(frontDoorId frontdoors.FrontDoorId, input []interface{}) frontdoors.RulesEngineAction {
@@ -649,135 +539,41 @@ func expandFrontDoorRulesEngineMatchConditionTransform(input []interface{}) *[]f
 	return &output
 }
 
-func flattenFrontDoorRulesEngineRule(input *[]frontdoors.RulesEngineRule, oldBlocks interface{}, frontDoorRulesEngineId frontdoors.RulesEngineId, explicitOrder []interface{}) (*[]interface{}, error) {
-	if input == nil {
-		return &[]interface{}{}, nil
-	}
+func resourceFrontDoorRulesEngineRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
-	output := make([]interface{}, 0)
-
-	if len(explicitOrder) > 0 {
-		orderedRule := explicitOrder[0].(map[string]interface{})
-		orderedRulesEngineRuleIds := orderedRule["engine_rule_ids"].([]interface{})
-		combinedRulesEngineRule, err := combineRulesEngineRule(*input, oldBlocks, orderedRulesEngineRuleIds, frontDoorRulesEngineId)
-		if err != nil {
-			return nil, err
-		}
-		output = combinedRulesEngineRule
-	} else {
-		for _, v := range *input {
-			rulesEngineRule, err := flattenSingleFrontDoorRulesEngineRule(v, oldBlocks, frontDoorRulesEngineId)
-			if err == nil {
-				output = append(output, rulesEngineRule)
-			} else {
-				return nil, err
-			}
-		}
-	}
-
-	return &output, nil
-}
-
-func flattenSingleFrontDoorRulesEngineRule(input frontdoors.RulesEngineRule, oldBlocks interface{}, frontDoorRulesEngineId frontdoors.RulesEngineId) (map[string]interface{}, error) {
-
-	name := ""
-	if input.Name != "" {
-		// rewrite the ID to ensure it's consistent
-		name = input.Name
-	}
-
-	action, err := flattenSingleFrontDooRulesEngineRuleAction(input.Action, oldBlocks)
+	id, err := frontdoors.ParseRulesEngineIDInsensitively(d.Id())
 	if err != nil {
-		return nil, fmt.Errorf("flattening `action`: %+v", err)
+		return err
 	}
 
-	output := map[string]interface{}{
-		"name":     name,
-		"priority": input.Priority,
-		"action":   action,
-	}
-
-	return output, nil
-}
-
-func flattenSingleFrontDooRulesEngineRuleAction(input frontdoors.RulesEngineAction, oldBlocks interface{}) ([]interface{}, error) {
-	forwardingConfiguration := make([]interface{}, 0)
-	redirectConfiguration := make([]interface{}, 0)
-	output := make([]interface{}, 0)
-
-	forwardConfiguration, err := flattenRoutingRuleForwardingConfiguration(input.RouteConfigurationOverride, oldBlocks)
+	resp, err := client.RulesEnginesGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("flattening `forward_configuration`: %+v", err)
-	}
-	forwardingConfiguration = *forwardConfiguration
-	redirectConfiguration = flattenRoutingRuleRedirectConfiguration(input.RouteConfigurationOverride)
-
-	overrides := make([]interface{}, 0)
-
-	if forwardingConfiguration != nil {
-		override := map[string]interface{}{
-			"forwarding_configuration": forwardingConfiguration,
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
+			d.SetId("")
+			return nil
 		}
-		overrides = append(overrides, override)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if redirectConfiguration != nil {
-		override := map[string]interface{}{
-			"redirect_configuration": redirectConfiguration,
-		}
-		overrides = append(overrides, override)
-	}
-
-	if forwardingConfiguration != nil || redirectConfiguration != nil {
-		block := map[string]interface{}{
-			"routing_rule_override": overrides,
-		}
-		output = append(output, block)
-	}
-
-	return output, nil
+	return nil
 }
 
-func combineRulesEngineRule(allRulesEngineRule []frontdoors.RulesEngineRule, oldBlocks interface{}, orderedIds []interface{}, frontDoorRulesEngineId frontdoors.RulesEngineId) ([]interface{}, error) {
-	output := make([]interface{}, 0)
-	found := false
+func resourceFrontDoorRulesEngineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
-	// first find all of the ones in the ordered mapping list and add them in the correct order
-	for _, v := range orderedIds {
-		for _, ruleEngineRule := range allRulesEngineRule {
-
-			// TO LOWER Each in
-
-			if strings.Contains(strings.ToLower(v.(string)), strings.ToLower(*&ruleEngineRule.Name)) {
-				orderedRoutingRule, err := flattenSingleFrontDoorRulesEngineRule(ruleEngineRule, oldBlocks, frontDoorRulesEngineId)
-				if err == nil {
-					output = append(output, orderedRoutingRule)
-					break
-				} else {
-					return nil, err
-				}
-			}
-		}
+	id, err := frontdoors.ParseRulesEngineIDInsensitively(d.Id())
+	if err != nil {
+		return err
 	}
 
-	// Now check to see if items were added to the resource via the portal and add them to the state file
-	for _, ruleEngineRule := range allRulesEngineRule {
-		found = false
-		for _, orderedId := range orderedIds {
-			if strings.Contains(strings.ToLower(orderedId.(string)), strings.ToLower(ruleEngineRule.Name)) {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			newRuleEngineRule, err := flattenSingleFrontDoorRulesEngineRule(ruleEngineRule, oldBlocks, frontDoorRulesEngineId)
-			if err == nil {
-				output = append(output, newRuleEngineRule)
-			} else {
-				return nil, err
-			}
-		}
+	if err := client.RulesEnginesDeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	return output, nil
+	return nil
 }

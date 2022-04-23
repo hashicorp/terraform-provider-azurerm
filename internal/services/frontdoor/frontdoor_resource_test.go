@@ -1061,8 +1061,6 @@ resource "azurerm_frontdoor_rules_engine" "sample_engine_config" {
         }
       }
     }
-
-
   }
 
   rule {
