@@ -125,7 +125,7 @@ An `application_stack` block exports the following:
 
 * `dotnet_version` - The version of .Net in use.
 
-* `java_server` - The java server type.
+* `java_server` - The Java server type.
 
 * `java_server_version` - The Version of the `java_server` in use.
 

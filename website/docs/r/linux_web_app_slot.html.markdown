@@ -130,7 +130,7 @@ An `application_stack` block supports the following:
 
 * `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1`, `5.0`, and `6.0`.
 
-* `java_server` - (Optional) The java server type. Possible values include `JAVA`, `TOMCAT`, and `JBOSSEAP`.
+* `java_server` - (Optional) The Java server type. Possible values include `JAVA`, `TOMCAT`, and `JBOSSEAP`.
 
 ~> **NOTE:** `JBOSSEAP` requires a Premium Service Plan SKU to be a valid option.
 
