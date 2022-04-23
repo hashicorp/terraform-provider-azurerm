@@ -91,7 +91,7 @@ A `virtual_network_rule` block supports the following:
 
 A `ip_rule` block supports the following:
 
-* `ip_mask` - (Required) The ip mask to match on.
+* `ip_mask` - (Required) The IP mask to match on.
 
 * `action` - (Optional) The action to take when the rule is matched. Possible values are `Allow`.
 

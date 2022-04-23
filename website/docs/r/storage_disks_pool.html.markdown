@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Disks Pool should exist. Changing this forces a new Disk Pool to be created.
 
-* `sku_name` - (Required) The sku name of the Disk Pool. Possible values are `Basic_B1`, `Standard_S1` and `Premium_P1`. Changing this forces a new Disk Pool to be created.
+* `sku_name` - (Required) The SKU name of the Disk Pool. Possible values are `Basic_B1`, `Standard_S1` and `Premium_P1`. Changing this forces a new Disk Pool to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet for the Disk Pool. Changing this forces a new Disks Pool to be created.
 

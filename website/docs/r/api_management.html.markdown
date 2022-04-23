@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `certificate` - (Optional) One or more (up to 10) `certificate` blocks as defined below.
 
-* `client_certificate_enabled` - (Optional) Enforce a client certificate to be presented on each request to the gateway? This is only supported when sku type is `Consumption`.
+* `client_certificate_enabled` - (Optional) Enforce a client certificate to be presented on each request to the gateway? This is only supported when SKU type is `Consumption`.
 
 * `gateway_disabled` - (Optional) Disable the gateway in main region? This is only supported when `additional_location` is set.
 
@@ -318,7 +318,7 @@ A `sign_up` block supports the following:
 
 A `tenant_access` block supports the following:
 
-* `enabled` - (Required) Should the access to the management api be enabled?
+* `enabled` - (Required) Should the access to the management API be enabled?
 
 ---
 

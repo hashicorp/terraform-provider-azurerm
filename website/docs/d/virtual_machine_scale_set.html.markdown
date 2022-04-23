@@ -67,7 +67,7 @@ An `identity` block exports the following:
 
 `dns_settings` exports the following:
 
-* `dns_servers` - The dns servers in use.
+* `dns_servers` - The DNS servers in use.
 
 `ip_configuration` exports the following:
 
@@ -82,9 +82,9 @@ An `identity` block exports the following:
 
 `public_ip_address_configuration` exports the following:
 
-* `name` - The name of the public ip address configuration
+* `name` - The name of the public IP address configuration
 * `idle_timeout` - The idle timeout in minutes.
-* `domain_name_label` - The domain name label for the dns settings.
+* `domain_name_label` - The domain name label for the DNS settings.
 
 
 ## Timeouts

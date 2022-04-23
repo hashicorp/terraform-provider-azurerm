@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `maintenance_window` - A `maintenance_window` block for this MySQL Flexible Server as defined below.
 
-* `private_dns_zone_id` - The ID of the private dns zone of the MySQL Flexible Server.
+* `private_dns_zone_id` - The ID of the Private DNS zone of the MySQL Flexible Server.
 
 * `replication_role` - The replication role of the MySQL Flexible Server.
 

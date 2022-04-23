@@ -236,7 +236,7 @@ A `site_config` block supports the following:
 
 * `http2_enabled` - (Optional) Is HTTP2 Enabled on this App Service? Defaults to `false`.
 
-* `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
+* `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing IP restrictions as defined below.
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
@@ -244,7 +244,7 @@ A `site_config` block supports the following:
 
 -> **NOTE** Any `scm_ip_restriction` blocks configured are ignored by the service when `scm_use_main_ip_restriction` is set to `true`. Any scm restrictions will become active if this is subsequently set to `false` or removed.  
 
-* `scm_ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
+* `scm_ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing IP restrictions as defined below.
 
 -> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 

@@ -105,7 +105,7 @@ The following arguments are supported:
 
 * `point_in_time_restore_time_in_utc` - (Optional) The point in time to restore from `creation_source_server_id` when `create_mode` is `PointInTimeRestore`. Changing this forces a new MySQL Flexible Server to be created.
 
-* `private_dns_zone_id` - (Optional) The ID of the private dns zone to create the MySQL Flexible Server. Changing this forces a new MySQL Flexible Server to be created.
+* `private_dns_zone_id` - (Optional) The ID of the private DNS zone to create the MySQL Flexible Server. Changing this forces a new MySQL Flexible Server to be created.
 
 ~> **NOTE:** The `private_dns_zone_id` is required when setting a `delegated_subnet_id`. The `azurerm_private_dns_zone` should end with suffix `.mysql.database.azure.com`.
 
@@ -115,7 +115,7 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) The SKU Name for the MySQL Flexible Server.
 
--> **NOTE:** `sku_name` should start with sku tier `B (Burstable)`, `GP (General Purpose)`, `MO (Memory Optimized)` like `B_Standard_B1s`.
+-> **NOTE:** `sku_name` should start with SKU tier `B (Burstable)`, `GP (General Purpose)`, `MO (Memory Optimized)` like `B_Standard_B1s`.
 
 * `source_server_id` - (Optional)The resource ID of the source MySQL Flexible Server to be restored. Required when `create_mode` is `PointInTimeRestore`, `GeoRestore`, and `Replica`. Changing this forces a new MySQL Flexible Server to be created.
 

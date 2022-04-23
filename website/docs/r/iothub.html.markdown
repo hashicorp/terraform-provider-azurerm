@@ -236,9 +236,9 @@ A `network_rule_set` block supports the following:
 
 A `ip_rule` block supports the following:
 
-* `name` - (Required) The name of the ip rule.
+* `name` - (Required) The name of the IP rule.
 
-* `ip_mask` - (Required) The IP address range in CIDR notation for the ip rule.
+* `ip_mask` - (Required) The IP address range in CIDR notation for the IP rule.
 
 * `action` - (Optional) The desired action for requests captured by this rule. Possible values are `Allow`. Defaults to `Allow`.
 
