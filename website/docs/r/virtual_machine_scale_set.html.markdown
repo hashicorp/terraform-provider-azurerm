@@ -279,7 +279,7 @@ The following arguments are supported:
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
-* `sku` - (Required) A sku block as documented below.
+* `sku` - (Required) A SKU block as documented below.
 
 * `storage_profile_os_disk` - (Required) A storage profile os disk block as documented below
 
@@ -431,7 +431,7 @@ output "principal_id" {
 
 `dns_settings` supports the following:
 
-* `dns_servers` - (Required) Specifies an array of dns servers.
+* `dns_servers` - (Required) Specifies an array of DNS servers.
 
 `ip_configuration` supports the following:
 
@@ -442,7 +442,7 @@ output "principal_id" {
 
 -> **NOTE:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a `depends_on` between this resource and the Load Balancer Rule.
 
-* `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT pools for load balancers. A scale set can reference inbound nat pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
+* `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT pools for load balancers. A scale set can reference inbound NAT pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
 
 -> **NOTE:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a `depends_on` between this resource and the Load Balancer Rule.
 
@@ -452,9 +452,9 @@ output "principal_id" {
 
 `public_ip_address_configuration` supports the following:
 
-* `name` - (Required) The name of the public ip address configuration
+* `name` - (Required) The name of the public IP address configuration
 * `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 30.
-* `domain_name_label` - (Required) The domain name label for the dns settings.
+* `domain_name_label` - (Required) The domain name label for the DNS settings.
 
 `storage_profile_os_disk` supports the following:
 

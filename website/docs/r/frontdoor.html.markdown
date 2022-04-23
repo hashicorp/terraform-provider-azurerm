@@ -160,7 +160,7 @@ The `backend_pool_health_probe` block supports the following:
 
 * `name` - (Required) Specifies the name of the Health Probe.
 
-* `enabled` - (Optional) Is this health probe enabled? Dafaults to `true`.
+* `enabled` - (Optional) Is this health probe enabled? Defaults to `true`.
 
 * `path` - (Optional) The path to use for the Health Probe. Default is `/`.
 

@@ -115,9 +115,9 @@ A `vpn_link` block supports the following:
 
 * `name` - (Required) The name which should be used for this VPN Link Connection.
 
-* `egress_nat_rule_ids` - (Optional) A list of the egress Nat Rule Ids.
+* `egress_nat_rule_ids` - (Optional) A list of the egress NAT Rule Ids.
 
-* `ingress_nat_rule_ids` - (Optional) A list of the ingress Nat Rule Ids.
+* `ingress_nat_rule_ids` - (Optional) A list of the ingress NAT Rule Ids.
 
 * `vpn_site_link_id` - (Required) The ID of the connected VPN Site Link. Changing this forces a new VPN Gateway Connection to be created.
 
@@ -137,7 +137,7 @@ A `vpn_link` block supports the following:
 
 * `shared_key` - (Optional) SharedKey for this VPN Link Connection.
 
-* `local_azure_ip_address_enabled` - (Optional) Whether to use local azure ip to initiate connection? Defaults to `false`.
+* `local_azure_ip_address_enabled` - (Optional) Whether to use local Azure IP to initiate connection? Defaults to `false`.
 
 * `policy_based_traffic_selector_enabled` - (Optional) Whether to enable policy-based traffic selectors? Defaults to `false`.
 
