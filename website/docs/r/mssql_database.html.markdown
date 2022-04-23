@@ -70,9 +70,9 @@ resource "azurerm_mssql_database" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Ms SQL Database. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the MS SQL Database. Changing this forces a new resource to be created.
 
-* `server_id` - (Required) The id of the Ms SQL Server on which to create the database. Changing this forces a new resource to be created.
+* `server_id` - (Required) The id of the MS SQL Server on which to create the database. Changing this forces a new resource to be created.
 
 ~> **Note:** This setting is still required for "Serverless" SKU's
 

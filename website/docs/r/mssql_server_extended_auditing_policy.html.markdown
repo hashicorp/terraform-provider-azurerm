@@ -189,7 +189,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Ms SQL Server Extended Auditing Policy.
+* `create` - (Defaults to 30 minutes) Used when creating the MS SQL Server Extended Auditing Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MS SQL Server Extended Auditing Policy.
 * `update` - (Defaults to 30 minutes) Used when updating the MS SQL Server Extended Auditing Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the MS SQL Server Extended Auditing Policy.

@@ -113,7 +113,7 @@ A `application_stack` block exports the following:
 
 * `docker` -  One or more `docker` blocks as defined below.
 
-* `dotnet_version` -  The version of .Net used.
+* `dotnet_version` -  The version of .NET used.
 
 * `java_version` - The Version of Java used.
 

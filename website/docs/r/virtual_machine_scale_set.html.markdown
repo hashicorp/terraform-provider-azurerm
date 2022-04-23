@@ -275,7 +275,7 @@ The following arguments are supported:
 
 * `os_profile_windows_config` - (Required, when a windows machine) A Windows config block as documented below.
 
-* `os_profile_linux_config` - (Required, when a linux machine) A Linux config block as documented below.
+* `os_profile_linux_config` - (Required, when a Linux machine) A Linux config block as documented below.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
@@ -377,10 +377,10 @@ output "principal_id" {
 
 `os_profile` supports the following:
 
-* `computer_name_prefix` - (Required) Specifies the computer name prefix for all of the virtual machines in the scale set. Computer name prefixes must be 1 to 9 characters long for windows images and 1 - 58 for linux. Changing this forces a new resource to be created.
+* `computer_name_prefix` - (Required) Specifies the computer name prefix for all of the virtual machines in the scale set. Computer name prefixes must be 1 to 9 characters long for windows images and 1 - 58 for Linux. Changing this forces a new resource to be created.
 * `admin_username` - (Required) Specifies the administrator account name to use for all the instances of virtual machines in the scale set.
 * `admin_password` - (Required) Specifies the administrator password to use for all the instances of virtual machines in a scale set.
-* `custom_data` - (Optional) Specifies custom data to supply to the machine. On linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes.
+* `custom_data` - (Optional) Specifies custom data to supply to the machine. On Linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes.
 
 `os_profile_secrets` supports the following:
 
@@ -466,7 +466,7 @@ output "principal_id" {
 * `image` - (Optional) Specifies the blob uri for user image. A virtual machine scale set creates an os disk in the same container as the user image.
                        Updating the osDisk image causes the existing disk to be deleted and a new one created with the new image. If the VM scale set is in Manual upgrade mode then the virtual machines are not updated until they have manualUpgrade applied to them.
                        When setting this field `os_type` needs to be specified. Cannot be used when `vhd_containers`, `managed_disk_type` or `storage_profile_image_reference` are specified.
-* `os_type` - (Optional) Specifies the operating system Type, valid values are windows, linux.
+* `os_type` - (Optional) Specifies the operating system Type, valid values are windows, Linux.
 
 `storage_profile_data_disk` supports the following:
 

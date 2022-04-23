@@ -128,7 +128,7 @@ An `active_directory` block supports the following:
 
 A `application_stack` block supports the following:
 
-* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1` and `6`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1` and `6`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
