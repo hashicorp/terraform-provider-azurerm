@@ -386,7 +386,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 				},
 			},
 
-			// Computed values
+			// Computed values _ Test
 			"explicit_resource_order": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
