@@ -228,9 +228,9 @@ The following arguments are supported:
 
 `aad_auth` supports the following:.
 
-* `object_id` - (Required) The webhook application object Id for aad auth.
-* `identifier_uri` - (Optional) The identifier uri for aad auth.
-* `tenant_id` - (Optional) The tenant id for aad auth.
+* `object_id` - (Required) The webhook application object Id for AAD auth.
+* `identifier_uri` - (Optional) The identifier URI for AAD auth.
+* `tenant_id` - (Optional) The tenant id for AAD auth.
 
 ## Attributes Reference
 
