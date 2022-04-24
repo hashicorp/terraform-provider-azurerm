@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
@@ -23,8 +22,7 @@ var _ sdk.ResourceWithCustomImporter = OutputPowerBIResource{}
 
 type OutputPowerBIResourceModel struct {
 	Name               string `tfschema:"name"`
-	StreamAnalyticsJob string `tfschema:"stream_analytics_job_name"`
-	ResourceGroup      string `tfschema:"resource_group_name"`
+	StreamAnalyticsJob string `tfschema:"stream_analytics_job_id"`
 	DataSet            string `tfschema:"dataset"`
 	Table              string `tfschema:"table"`
 	GroupID            string `tfschema:"group_id"`
@@ -40,14 +38,12 @@ func (r OutputPowerBIResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"stream_analytics_job_name": {
+		"stream_analytics_job_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.StreamingJobID,
 		},
-
-		"resource_group_name": azure.SchemaResourceGroupName(),
 
 		"dataset": {
 			Type:         pluginsdk.TypeString,
@@ -99,7 +95,11 @@ func (r OutputPowerBIResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.StreamAnalytics.OutputsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := parse.NewOutputID(subscriptionId, model.ResourceGroup, model.StreamAnalyticsJob, model.Name)
+			streamingJobStruct, err := parse.StreamingJobID(model.StreamAnalyticsJob)
+			if err != nil {
+				return err
+			}
+			id := parse.NewOutputID(subscriptionId, streamingJobStruct.ResourceGroup, streamingJobStruct.Name, model.Name)
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.Name)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
@@ -122,7 +122,7 @@ func (r OutputPowerBIResource) Create() sdk.ResourceFunc {
 				Name: utils.String(model.Name),
 				OutputProperties: &streamanalytics.OutputProperties{
 					Datasource: &streamanalytics.PowerBIOutputDataSource{
-						Type:                              streamanalytics.TypePowerBI,
+						Type:                              streamanalytics.TypeBasicOutputDataSourceTypePowerBI,
 						PowerBIOutputDataSourceProperties: powerbiOutputProps,
 					},
 				},
@@ -183,7 +183,7 @@ func (r OutputPowerBIResource) Update() sdk.ResourceFunc {
 			}
 
 			updateDataSource := streamanalytics.PowerBIOutputDataSource{
-				Type:                              streamanalytics.TypePowerBI,
+				Type:                              streamanalytics.TypeBasicOutputDataSourceTypePowerBI,
 				PowerBIOutputDataSourceProperties: &dataSourceProps,
 			}
 
@@ -228,8 +228,7 @@ func (r OutputPowerBIResource) Read() sdk.ResourceFunc {
 
 				state := OutputPowerBIResourceModel{
 					Name:               id.Name,
-					StreamAnalyticsJob: id.StreamingjobName,
-					ResourceGroup:      id.ResourceGroup,
+					StreamAnalyticsJob: id.StreamingJobID(),
 				}
 
 				if v.Dataset != nil {
@@ -296,7 +295,7 @@ func (r OutputPowerBIResource) CustomImporter() sdk.ResourceRunFunc {
 
 		props := resp.OutputProperties
 		if _, ok := props.Datasource.AsPowerBIOutputDataSource(); !ok {
-			return fmt.Errorf("specified output is not of type %s", streamanalytics.TypePowerBI)
+			return fmt.Errorf("specified output is not of type %s", streamanalytics.TypeBasicOutputDataSourceTypePowerBI)
 		}
 		return nil
 	}

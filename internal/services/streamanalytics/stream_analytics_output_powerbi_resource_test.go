@@ -74,13 +74,11 @@ func (r StreamAnalyticsOutputPowerBIResource) basic(data acceptance.TestData) st
 
 resource "azurerm_stream_analytics_output_powerbi" "test" {
   name                      = "acctestoutput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  stream_analytics_job_id = azurerm_stream_analytics_job.test.id
   dataset                   = "foo"
   table                     = "bar"
   group_id                  = "85b3dbca-5974-4067-9669-67a141095a76"
   group_name                = "some-test-group-name"
-  authentication_mode       = "Msi"
 }
 `, template, data.RandomInteger)
 }
@@ -92,13 +90,11 @@ func (r StreamAnalyticsOutputPowerBIResource) updated(data acceptance.TestData) 
 
 resource "azurerm_stream_analytics_output_powerbi" "test" {
   name                      = "acctestoutput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  stream_analytics_job_id = azurerm_stream_analytics_job.test.id
   dataset                   = "updated-dataset"
   table                     = "updated-table"
   group_id                  = "e18ff5df-fb66-4f6d-8f27-88c4dcbfc002"
   group_name                = "some-updated-group-id"
-  authentication_mode       = "Msi"
 }
 `, template, data.RandomInteger)
 }
