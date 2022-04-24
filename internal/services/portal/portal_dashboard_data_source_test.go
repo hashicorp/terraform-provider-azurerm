@@ -89,9 +89,6 @@ data "azurerm_portal_dashboard" "test" {
 
 func (PortalDashboardDataSource) displayName(data acceptance.TestData) string {
 	resourceName := "azurerm_portal_dashboard"
-	if !features.ThreePointOhBeta() {
-		resourceName = "azurerm_dashboard"
-	}
 	return fmt.Sprintf(`
 
 %s
