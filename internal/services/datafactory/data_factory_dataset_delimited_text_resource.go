@@ -125,6 +125,11 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"dynamic_container_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
