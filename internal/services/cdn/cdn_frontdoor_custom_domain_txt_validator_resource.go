@@ -186,16 +186,17 @@ func cdnFrontdoorCustomDomainTxtRefreshFunc(ctx context.Context, client *track1.
 		}
 
 		if state == track1.DomainValidationStateRejected || state == track1.DomainValidationStateTimedOut || state == track1.DomainValidationStateInternalError {
-			log.Printf("[DEBUG] CDN Frontdoor Custom Domain %q (Resource Group: %q) returned Domain Validation State: %q", id.CustomDomainName, id.ResourceGroup, state)
-			return nil, string(state), nil
+			log.Printf("[DEBUG] CDN Frontdoor Custom Domain %q (Resource Group: %q) returned a fatal Domain Validation State: %q", id.CustomDomainName, id.ResourceGroup, state)
+			return nil, string(state), fmt.Errorf("the Domain Validation State returned a fatal validation state(%q)", string(state))
 		}
 
-		// not sure what to do here since they regenerated the DNS TXT record value... I think it is safe to ignore and keep polling...
+		// not sure what to do here since they regenerated the DNS TXT record value or the cert expired (e.g. PendingRevalidation)...
 		if state == track1.DomainValidationStateRefreshingValidationToken || state == track1.DomainValidationStatePendingRevalidation {
-			log.Printf("[DEBUG] CDN Frontdoor Custom Domain %q (Resource Group: %q) returned Domain Validation State: %q", id.CustomDomainName, id.ResourceGroup, state)
-			return resp, string(state), nil
+			log.Printf("[DEBUG] CDN Frontdoor Custom Domain %q (Resource Group: %q) validation token has changed (Domain Validation State: %q)", id.CustomDomainName, id.ResourceGroup, string(state))
+			return nil, string(state), fmt.Errorf("the Domain Validation State returned a unrecoverable validation state(%q)", string(state))
 		}
 
+		// We should be Submitting, Pending or Approved at this point...
 		return resp, string(state), nil
 	}
 }

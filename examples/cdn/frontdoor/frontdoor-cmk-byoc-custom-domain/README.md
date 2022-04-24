@@ -1,4 +1,4 @@
-## Example CDN Frontdoor: Frontdoor Managed TLS/SSL Certificate with Multiple Custom Domains
+## Example CDN Frontdoor: Frontdoor CMK(Customer Managed Key)/BYOC(Bring Your Own Certificate) TLS/SSL Certificate with Custom Domain
 
 !>**IMPORTANT:** CDN Frontdoor is a **GLOBAL** resource. So make sure that your `${var.prefix}` value is sufficiently random else your resources may have naming collisions and cause unexpected errors when running this example and cause it to fail when applied(e.g. `foo`, `bar` or `example` would not be a good choice for the `${var.prefix}` argument as those values would have a high probability of collision).
 
@@ -20,7 +20,19 @@ resource "azurerm_dns_zone" "example" {
 }
 ```
 
-Once you have created your `Azure DNS Zone` and delegated your domain provider's DNS to the `Azure DNS Zone` you will need to import the `Resource Group` and the `Azure DNS Zone` into the Terraform state file by running the following import commands:
+## Key Vault Permissions:
+
+**TODO:** More explanation here around the Object IDs, Key Vault and Key Vault Certificate aspects of this example.
+
+The following Key Vault permission are granted by this example, but you will need to update the `object_id` fields in the `main.tf` file of this example for your tenant to run this example:
+
+| Object ID                                | Key Permissions | Secret Permissions   | Certificate Permissions                       |
+|:-----------------------------------------|:---------------:|:--------------------:|:---------------------------------------------:|
+| `Microsoft.AzureFrontDoor-Cdn` Object ID | -               | **Get**              | -                                             |
+| Your Personal AAD Object ID              | -               | **Get** and **List** | **Get**, **List**, **Purge** and **Recover**  |
+| Terraform Service Principal              | -               | **Get**              | **Get**, **Import**, **Delete** and **Purge** |
+
+Once you have created your `Azure DNS Zone`, delegated your domain provider's DNS to the `Azure DNS Zone` you will need to import the `Resource Group` and the `Azure DNS Zone` into the Terraform state file by running the following import commands:
 
 * terraform import azurerm_resource_group.example /subscriptions/{subscription}/resourceGroups/`${var.prefix}-cdn-frontdoor-managed-ssl-example`
 * terraform import azurerm_dns_zone.example /subscriptions/{subscription}/resourceGroups/`${var.prefix}-cdn-frontdoor-managed-ssl-example`/providers/Microsoft.Network/dnszones/`dnsZoneName`

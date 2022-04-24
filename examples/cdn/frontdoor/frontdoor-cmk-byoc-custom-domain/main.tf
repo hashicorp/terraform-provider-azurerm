@@ -2,9 +2,86 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "example" {
-  name     = "${var.prefix}-cdn-frontdoor-managed-ssl-example"
+  name     = "${var.prefix}-cdn-frontdoor-byoc-example"
   location = "westeurope"
+}
+
+resource "azurerm_key_vault" "example" {
+  name                       = "${var.prefix}-keyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_retention_days = 7
+
+  network_acls {
+    default_action = "Deny"
+    bypass         = "AzureServices"
+    ip_rules       = ["10.0.1.0/24"] # <- this should be the CIDR for your clients IP to allow it through the Key Vault Firewall Policy
+  }
+
+  # Grant access to the Frontdoor Enterprise Application(e.g. Microsoft.AzureFrontDoor-Cdn) to the Key Vaults Certificates
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id for the Microsoft.AzureFrontDoor-Cdn Enterprise Application. You will need to look this up because it is different in every tenant
+
+    secret_permissions = [
+      "Get",
+    ]
+  }
+
+  # Grant your Personal account access to view the Key Vaults Certificates in the portal UI...
+  # *** This access_policy maybe remove if you do not want to view the Frontdoor Secret(s) in the Portal ***
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id for your personal AAD account
+
+    certificate_permissions = [
+      "Get",
+      "List",
+      "Purge",
+      "Recover"
+    ]
+
+    secret_permissions = [
+      "Get",
+      "List"
+    ]
+  }
+
+  # Grant the Terraform Service Principal access to the Key Vaults Certificates
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id of the Service Principal that Terraform is running as
+
+    certificate_permissions = [
+      "Get",
+      "Import",
+      "Delete",
+      "Purge"
+    ]
+
+    secret_permissions = [
+      "Get",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "example" {
+  name         = "${var.prefix}-cert"
+  key_vault_id = azurerm_key_vault.example.id
+
+  certificate {
+    contents = filebase64("my-custom-certificate.pfx") # <- this should be the pfx file for your SSL/TSL certificate
+  }
+}
+
+resource "azurerm_dns_zone" "example" {
+  name                = "example.com" # change this to be your domain name
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_cdn_frontdoor_profile" "example" {
@@ -17,13 +94,6 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
   tags = {
     environment = "example"
   }
-}
-
-# For this example you will have to redirect your domain hosting
-# services DNS NS to use this Azure DNS Zone
-resource "azurerm_dns_zone" "example" {
-  name                = "example.com" # change this to be your domain name
-  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
@@ -46,6 +116,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
     type                           = "MatchRule"
     action                         = "Block"
 
+    # NOTE: Managed rules are only supported with the Premium_AzureFrontDoor SKU
     match_condition {
       match_variable     = "RemoteAddr"
       operator           = "IPMatch"
@@ -54,7 +125,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
     }
   }
 
-  # NOTE: Managed rules are only supported with the Premium_AzureFrontDoor SKU
   managed_rule {
     type    = "DefaultRuleSet"
     version = "preview-0.1"
@@ -76,29 +146,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   }
 }
 
-resource "azurerm_cdn_frontdoor_security_policy" "example" {
-  name                     = "${var.prefix}SecurityPolicy"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
-
-  security_policies {
-    firewall {
-      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.example.id
-
-      association {
-        domain {
-          cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
-        }
-
-        domain {
-          cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.fabrikam.id
-        }
-
-        patterns_to_match = ["/*"]
-      }
-    }
-  }
-}
-
 resource "azurerm_cdn_frontdoor_endpoint" "example" {
   name                     = "${var.prefix}-endpoint"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
@@ -108,9 +155,6 @@ resource "azurerm_cdn_frontdoor_endpoint" "example" {
 resource "azurerm_cdn_frontdoor_origin_group" "example" {
   name                     = "${var.prefix}-origin-group"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
-  session_affinity_enabled = true
-
-  restore_traffic_or_new_endpoints_after_minutes = 10
 
   health_probe {
     interval_in_seconds = 240
@@ -124,6 +168,9 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
     sample_count                       = 16
     successful_samples_required        = 3
   }
+
+  session_affinity_enabled                       = true
+  restore_traffic_or_new_endpoints_after_minutes = 10
 }
 
 resource "azurerm_cdn_frontdoor_origin" "example" {
@@ -166,7 +213,7 @@ resource "azurerm_cdn_frontdoor_rule" "example" {
       redirect_protocol    = "MatchRequest"
       query_string         = "clientIp={client_ip}"
       destination_path     = "/exampleredirection"
-      destination_hostname = "example.com"
+      destination_hostname = "contoso.example.com"
       destination_fragment = "UrlRedirect"
     }
   }
@@ -207,49 +254,48 @@ resource "azurerm_cdn_frontdoor_rule" "example" {
   }
 }
 
-resource "azurerm_cdn_frontdoor_route" "example" {
-  name                            = "${var.prefix}-route"
-  cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.example.id
-  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.example.id
-  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.example.id]
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id, azurerm_cdn_frontdoor_custom_domain.fabrikam.id]
-  enabled                         = true
+resource "azurerm_cdn_frontdoor_secret" "example" {
+  depends_on = [azurerm_key_vault.example]
 
-  forwarding_protocol        = "MatchRequest"
-  https_redirect_enabled     = true
-  patterns_to_match          = ["/*"]
-  supported_protocols        = ["Http", "Https"]
-  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.example.id]
+  name                     = "${var.prefix}-secret-customer-managed"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 
-  cache {
-    compression_enabled           = true
-    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
-    query_strings                 = ["account", "settings"]
-    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
+  secret_parameters {
+    customer_certificate {
+      key_vault_certificate_id = azurerm_key_vault_certificate.example.versionless_id # <- using the versionless_id will always use the latest certificate
+    }
+  }
+}
+
+resource "azurerm_cdn_frontdoor_security_policy" "example" {
+  name                     = "${var.prefix}SecurityPolicy"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+
+  security_policies {
+    firewall {
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.example.id
+
+      association {
+        domain {
+          cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
+        }
+
+        patterns_to_match = ["/*"]
+      }
+    }
   }
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "contoso" {
-  name                     = "${var.prefix}-contoso-custom-domain"
+  name                     = "${var.prefix}-custom-domain"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
   dns_zone_id              = azurerm_dns_zone.example.id
   host_name                = join(".", ["contoso", azurerm_dns_zone.example.name])
 
   tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
-  }
-}
-
-resource "azurerm_cdn_frontdoor_custom_domain" "fabrikam" {
-  name                     = "${var.prefix}-fabrikam-custom-domain"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
-  dns_zone_id              = azurerm_dns_zone.example.id
-  host_name                = join(".", ["fabrikam", azurerm_dns_zone.example.name])
-
-  tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
+    certificate_type        = "CustomerCertificate"
+    minimum_tls_version     = "TLS12"
+    cdn_frontdoor_secret_id = azurerm_cdn_frontdoor_secret.example.id
   }
 }
 
@@ -264,31 +310,39 @@ resource "azurerm_dns_txt_record" "contoso" {
   }
 }
 
-resource "azurerm_dns_txt_record" "fabrikam" {
-  name                = join(".", ["_dnsauth", "fabrikam"])
-  zone_name           = azurerm_dns_zone.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  ttl                 = 3600
-
-  record {
-    value = azurerm_cdn_frontdoor_custom_domain.fabrikam.validation_properties.0.validation_token
-  }
-}
-
 resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "contoso" {
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
   dns_txt_record_id              = azurerm_dns_txt_record.contoso.id
 }
 
-resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "fabrikam" {
-  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.fabrikam.id
-  dns_txt_record_id              = azurerm_dns_txt_record.fabrikam.id
+resource "azurerm_cdn_frontdoor_route" "example" {
+  name                            = "${var.prefix}-route"
+  cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.example.id
+  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.example.id
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.example.id]
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.contoso.id]
+  enabled                         = true
+
+  link_to_default_domain_enabled = false
+  https_redirect_enabled         = true
+  forwarding_protocol            = "HttpsOnly"
+
+  patterns_to_match          = ["/*"]
+  supported_protocols        = ["Http", "Https"]
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.example.id]
+
+  cache {
+    compression_enabled           = true
+    content_types_to_compress     = ["text/html", "text/javascript", "text/xml"]
+    query_strings                 = ["account", "settings", "foo", "bar"]
+    query_string_caching_behavior = "IgnoreSpecifiedQueryStrings"
+  }
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain_secret_validator" "example" {
   cdn_frontdoor_route_id                        = azurerm_cdn_frontdoor_route.example.id
-  cdn_frontdoor_custom_domain_ids               = [azurerm_cdn_frontdoor_custom_domain.contoso.id, azurerm_cdn_frontdoor_custom_domain.fabrikam.id]
-  cdn_frontdoor_custom_domain_txt_validator_ids = [azurerm_cdn_frontdoor_custom_domain_txt_validator.contoso.id, azurerm_cdn_frontdoor_custom_domain_txt_validator.fabrikam.id]
+  cdn_frontdoor_custom_domain_ids               = [azurerm_cdn_frontdoor_custom_domain.contoso.id]
+  cdn_frontdoor_custom_domain_txt_validator_ids = [azurerm_cdn_frontdoor_custom_domain_txt_validator.contoso.id]
 }
 
 resource "azurerm_dns_cname_record" "contoso" {
@@ -301,12 +355,3 @@ resource "azurerm_dns_cname_record" "contoso" {
   record              = azurerm_cdn_frontdoor_endpoint.example.host_name
 }
 
-resource "azurerm_dns_cname_record" "fabrikam" {
-  depends_on = [azurerm_cdn_frontdoor_custom_domain_secret_validator.example]
-
-  name                = "fabrikam"
-  zone_name           = azurerm_dns_zone.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  ttl                 = 3600
-  record              = azurerm_cdn_frontdoor_endpoint.example.host_name
-}
