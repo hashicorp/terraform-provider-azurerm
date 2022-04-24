@@ -1,12 +1,12 @@
 ---
 subcategory: "Compute"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_disk_export"
+page_title: "Azure Resource Manager: azurerm_managed_disk_sas_token"
 description: |-
   Manages a Disk Export.
 ---
 
-# azurerm_disk_export
+# azurerm_managed_disk_sas_token
 
 Manages a Disk Export.
 
@@ -31,10 +31,10 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "1"
 }
-resource "azurerm_disk_export" "test" {
+resource "azurerm_managed_disk_sas_token" "test" {
   managed_disk_id     = azurerm_managed_disk.test.id
   duration_in_seconds = 300
-  access              = "Read"
+  access_level        = "Read"
 }
 ```
 
@@ -44,9 +44,9 @@ The following arguments are supported:
 
 * `managed_disk_id` - (Required) The ID of an existing Managed Disk which should be exported. Changing this forces a new resource to be created.
 
-* `duration_in_seconds` - (Required) The duration for which the export should be allowed. Should be greater than 30 seconds.
+* `duration_in_seconds` - (Required) The duration for which the export should be allowed. Should be between 30 & 4294967295 seconds.
 
-* `access` - (Optional) The level of access required on the disk. Supported are Read, Write. Defaults to Read. 
+* `access_level` - (Required) The level of access required on the disk. Supported are Read, Write.
 
 Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/en-us/rest/api/compute/disks/grant-access)
 for additional details on the fields above.
@@ -65,5 +65,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Disk.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Disk.
-* `update` - (Defaults to 30 minutes) Used when updating the Disk.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Disk.
