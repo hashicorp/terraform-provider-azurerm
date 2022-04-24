@@ -281,9 +281,6 @@ resource "azurerm_servicebus_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   local_auth_enabled  = false
-  tags = {
-    ENV = "Test"
-  }
 }`, data.RandomInteger, data.Locations.Primary)
 }
 
