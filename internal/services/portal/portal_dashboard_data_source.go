@@ -118,7 +118,7 @@ func dataSourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("portal Dashboard name is empty in Resource Group %s", resourceGroup)
 	}
 
-	id := parse.NewDashboardID(subscriptionId, resourceGroup, name)
+	id := parse.NewDashboardID(subscriptionId, resourceGroup, *dashboard.Name)
 
 	d.SetId(id.ID())
 
