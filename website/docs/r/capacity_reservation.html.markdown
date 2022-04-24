@@ -52,9 +52,9 @@ The following arguments are supported:
 
 An `sku` block exports the following:
 
-* `name` - (Required) Name of the sku.Changing this forces a new resource to be created.
+* `name` - (Required) Name of the sku, such as `Standard_F2`. Changing this forces a new resource to be created.
 
-* `capacity` - (Required) Specifies the number of instances to be reserved.
+* `capacity` - (Required) Specifies the number of instances to be reserved. It must be a positive `integer` and not exceed the quota in the subscription.
 
 ## Attributes Reference
 
