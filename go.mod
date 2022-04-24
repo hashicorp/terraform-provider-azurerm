@@ -91,4 +91,6 @@ require (
 	google.golang.org/protobuf v1.27.1 // indirect
 )
 
+replace github.com/hashicorp/go-azure-helpers => ../go-azure-helpers
+
 go 1.18

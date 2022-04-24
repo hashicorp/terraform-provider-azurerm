@@ -92,3 +92,56 @@ func FlattenUserAssignedMap(input *UserAssignedMap) (*[]interface{}, error) {
 		},
 	}, nil
 }
+
+// ExpandUserAssignedMapFromModel expands the typed schema input into a UserAssignedMap struct
+func ExpandUserAssignedMapFromModel(input []ModelUserAssigned) (*UserAssignedMap, error) {
+	if len(input) == 0 {
+		return &UserAssignedMap{
+			Type:        TypeNone,
+			IdentityIds: map[string]UserAssignedIdentityDetails{},
+		}, nil
+	}
+
+	identity := input[0]
+
+	identityIds := make(map[string]UserAssignedIdentityDetails, 0)
+	for _, v := range identity.IdentityIds {
+		identityIds[v] = UserAssignedIdentityDetails{
+			// intentionally empty since the expand shouldn't send these values
+		}
+	}
+
+	return &UserAssignedMap{
+		Type:        identity.Type,
+		IdentityIds: identityIds,
+	}, nil
+}
+
+// FlattenUserAssignedMapToModel turns a UserAssignedMap into a typed schema model
+func FlattenUserAssignedMapToModel(input *UserAssignedMap) (*[]ModelUserAssigned, error) {
+	if input == nil {
+		return &[]ModelUserAssigned{}, nil
+	}
+
+	input.Type = normalizeType(input.Type)
+
+	if input.Type != TypeUserAssigned {
+		return &[]ModelUserAssigned{}, nil
+	}
+
+	identityIds := make([]string, 0)
+	for raw := range input.IdentityIds {
+		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)
+		}
+		identityIds = append(identityIds, id.ID())
+	}
+
+	return &[]ModelUserAssigned{
+		{
+			Type:        input.Type,
+			IdentityIds: identityIds,
+		},
+	}, nil
+}

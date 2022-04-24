@@ -102,3 +102,54 @@ func FlattenSystemAssignedOrUserAssignedList(input *SystemOrUserAssignedList) (*
 		},
 	}, nil
 }
+
+// ExpandSystemOrUserAssignedListFromModel expands the typed schema input into a SystemOrUserAssignedList struct
+func ExpandSystemOrUserAssignedListFromModel(input []ModelSystemAssignedUserAssigned) (*SystemOrUserAssignedList, error) {
+	if len(input) == 0 {
+		return &SystemOrUserAssignedList{
+			Type:        TypeNone,
+			IdentityIds: []string{},
+		}, nil
+	}
+
+	identity := input[0]
+
+	if len(identity.IdentityIds) > 0 && identity.Type != TypeUserAssigned {
+		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` is set to %q", TypeUserAssigned)
+	}
+
+	return &SystemOrUserAssignedList{
+		Type:        identity.Type,
+		IdentityIds: identity.IdentityIds,
+	}, nil
+}
+
+// FlattenSystemAssignedOrUserAssignedListToModel turns a SystemOrUserAssignedList into a typed schema model
+func FlattenSystemAssignedOrUserAssignedListToModel(input *SystemOrUserAssignedList) (*[]ModelSystemAssignedUserAssigned, error) {
+	if input == nil {
+		return &[]ModelSystemAssignedUserAssigned{}, nil
+	}
+
+	input.Type = normalizeType(input.Type)
+	if input.Type != TypeSystemAssigned && input.Type != TypeUserAssigned {
+		return &[]ModelSystemAssignedUserAssigned{}, nil
+	}
+
+	identityIds := make([]string, 0)
+	for _, raw := range input.IdentityIds {
+		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)
+		}
+		identityIds = append(identityIds, id.ID())
+	}
+
+	return &[]ModelSystemAssignedUserAssigned{
+		{
+			Type:        input.Type,
+			IdentityIds: identityIds,
+			PrincipalId: input.PrincipalId,
+			TenantId:    input.TenantId,
+		},
+	}, nil
+}
