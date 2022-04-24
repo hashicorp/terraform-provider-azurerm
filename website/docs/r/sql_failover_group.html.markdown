@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `mode` - Failover policy for the read-only endpoint. Possible values are `Enabled`, and `Disabled`
 
-## Attribute Reference
+## Attributes Reference
 
 The following attributes are exported:
 
