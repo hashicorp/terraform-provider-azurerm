@@ -20,11 +20,23 @@ resource "azurerm_dns_zone" "example" {
 }
 ```
 
+## Looking up Object IDs in Azure Portal:
+
+For this example you will need to look up the object IDs of the Frontdoor service, your personal user account, if you want to view your secrets in the Portal UI, and your service principal that Terraform is running as. To look up the required object IDs you will need to open [Portal](https://portal.azure.com/) and follow the below steps:
+
+* From the left hand menu select `Azure Active Directory`.
+
+* In the search filter box, near the top of the page, type `Microsoft.AzureFrontDoor-Cdn`.
+
+* Click on the `Microsoft.AzureFrontDoor-Cdn` entry in the `Enterprise Applications` results view.
+
+* This will open the `Enterprise Applications Properties`, copy the `Object ID` and paste it into the examples `main.tf` file where is says `<- Object Id for the Microsoft.AzureFrontDoor-Cdn Enterprise Application.`.
+
+Repeat the above steps for all of the object IDs needed for this example.
+
 ## Key Vault Permissions:
 
-**TODO:** More explanation here around the Object IDs, Key Vault and Key Vault Certificate aspects of this example.
-
-The following Key Vault permission are granted by this example, but you will need to update the `object_id` fields in the `main.tf` file of this example for your tenant to run this example:
+The following Key Vault permission are granted by this example:
 
 | Object ID                                | Key Permissions | Secret Permissions   | Certificate Permissions                       |
 |:-----------------------------------------|:---------------:|:--------------------:|:---------------------------------------------:|
@@ -32,9 +44,9 @@ The following Key Vault permission are granted by this example, but you will nee
 | Your Personal AAD Object ID              | -               | **Get** and **List** | **Get**, **List**, **Purge** and **Recover**  |
 | Terraform Service Principal              | -               | **Get**              | **Get**, **Import**, **Delete** and **Purge** |
 
-Once you have created your `Azure DNS Zone`, delegated your domain provider's DNS to the `Azure DNS Zone` you will need to import the `Resource Group` and the `Azure DNS Zone` into the Terraform state file by running the following import commands:
+Once you have created your `Azure DNS Zone` and delegated your domain provider's DNS to the `Azure DNS Zone` you will need to import the `Resource Group` and the `Azure DNS Zone` into the Terraform state file by running the following import commands:
 
 * terraform import azurerm_resource_group.example /subscriptions/{subscription}/resourceGroups/`${var.prefix}-cdn-frontdoor-managed-ssl-example`
 * terraform import azurerm_dns_zone.example /subscriptions/{subscription}/resourceGroups/`${var.prefix}-cdn-frontdoor-managed-ssl-example`/providers/Microsoft.Network/dnszones/`dnsZoneName`
 
-Now that the Prerequisites have been completed and your state file contains your `Resource Group` and `Azure DNS Zone` you can simply run `terraform apply` to create a `CDN Frontdoor` with two Frontdoor managed TLS/SSL certificate custom domains.
+Now that the Prerequisites have been completed and your state file contains your `Resource Group` and `Azure DNS Zone` you can simply run `terraform apply` to create a `CDN Frontdoor` with a BYOC TLS/SSL custom domain.

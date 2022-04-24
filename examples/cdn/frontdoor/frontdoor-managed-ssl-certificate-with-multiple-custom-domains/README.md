@@ -4,7 +4,7 @@
 
 !>**IMPORTANT:** If you don't already have a custom domain, you must first purchase one with a domain provider. For example, see [buy a custom domain name](https://docs.microsoft.com/azure/app-service/manage-custom-dns-buy-domain).
 
-To successfully complete this example you will need to create an `Azure DNS Zone` and delegate your domain provider's domain name system (DNS) to the `Azure DNS Zone`. For more information on how to delegate your domain provider's DNS to the `Azure DNS Zone` please see the [delegate a domain to Azure DNS](https://docs.microsoft.com/azure/dns/dns-delegate-domain-azure-dns) product documentation. You may create the `Azure DNS Zone` via Portal or with Terraform by using the below `Example Azure DNS Zone` HCL. However, if you use Portal to create your `Azure DNS Zone` pay close attention to follow the naming convention of this example for your `Resource Group` name (e.g. `${var.prefix}-cdn-frontdoor-managed-ssl-example`).
+To successfully complete this example you will need to create an `Azure DNS Zone` and delegate your domain provider's domain name system (DNS) to the `Azure DNS Zone`. For more information on how to delegate your domain provider's DNS to the `Azure DNS Zone` please see the [delegate a domain to Azure DNS](https://docs.microsoft.com/azure/dns/dns-delegate-domain-azure-dns) product documentation. You may create the `Azure DNS Zone` via [Portal](https://portal.azure.com/) or with Terraform by using the `Example Azure DNS Zone` HCL below. However, if you use Portal to create your `Azure DNS Zone` pay close attention to follow the naming convention of this example for your `Resource Group` name (e.g. `${var.prefix}-cdn-frontdoor-managed-ssl-example`).
 
 ## Example Azure DNS Zone:
 

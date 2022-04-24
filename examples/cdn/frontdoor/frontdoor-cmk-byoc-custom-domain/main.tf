@@ -26,7 +26,7 @@ resource "azurerm_key_vault" "example" {
   # Grant access to the Frontdoor Enterprise Application(e.g. Microsoft.AzureFrontDoor-Cdn) to the Key Vaults Certificates
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id for the Microsoft.AzureFrontDoor-Cdn Enterprise Application. You will need to look this up because it is different in every tenant
+    object_id = "00000000-0000-0000-0000-000000000000" # <- Object Id for the Microsoft.AzureFrontDoor-Cdn Enterprise Application.
 
     secret_permissions = [
       "Get",
