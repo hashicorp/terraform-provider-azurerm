@@ -113,7 +113,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
   restore_traffic_or_new_endpoints_after_minutes = 10
 
   health_probe {
-    interval_in_seconds = 240
+    interval_in_seconds = 100
     path                = "/"
     protocol            = "Http"
     request_type        = "HEAD"

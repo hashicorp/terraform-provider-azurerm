@@ -157,7 +157,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 
   health_probe {
-    interval_in_seconds = 240
+    interval_in_seconds = 100
     path                = "/"
     protocol            = "Http"
     request_type        = "HEAD"

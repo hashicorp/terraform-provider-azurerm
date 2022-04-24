@@ -99,6 +99,11 @@ A `user_managed_https` block supports the following:
  
 * `tls_version` - (Optional) The TLS protocol version that is used for HTTPS. Possible values are `TLS10` (representing TLS 1.0/1.1) and `TLS12` (representing TLS 1.2). Defaults to `TLS12`.
 
+## Example HCL Configurations
+
+* [Multiple Custom Domains with CDN Frontdoor Managed TLS/SSL Certificate](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/cdn/frontdoor/frontdoor-managed-ssl-certificate-with-multiple-custom-domains)
+* [Custom Domain with TLS/SSL CMK/BYOC Certificate](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/cdn/frontdoor/frontdoor-cmk-byoc-custom-domain)
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

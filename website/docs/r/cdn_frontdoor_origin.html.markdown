@@ -146,6 +146,13 @@ A `private_link` block supports the following:
 
 ---
 
+## Example HCL Configurations
+
+* [Private Link Origin with Storage Account Blob](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/cdn-frontdoor/storage-account-blob)
+* [Private Link Origin with Storage Account Static Web Site](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/cdn-frontdoor/storage-account-static-site)
+* [Private Link Origin with Linux Web Application](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/cdn-frontdoor/linux-web-app)
+* [Private Link Origin with Internal Load Balancer](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-link-service/cdn-frontdoor/load-balancer)
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

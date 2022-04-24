@@ -14,11 +14,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontdoorOriginResource struct{}
+type CdnFrontdoorOriginResource struct {
+	RunAccTest bool
+}
 
 func TestAccCdnFrontdoorOrigin_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontdoorOriginResource{}
+	r := CdnFrontdoorOriginResource{RunAccTest: true}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -32,7 +34,9 @@ func TestAccCdnFrontdoorOrigin_basic(t *testing.T) {
 
 func TestAccCdnFrontdoorOrigin_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontdoorOriginResource{}
+	r := CdnFrontdoorOriginResource{RunAccTest: true}
+	r.preCheck(t)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -46,7 +50,9 @@ func TestAccCdnFrontdoorOrigin_requiresImport(t *testing.T) {
 
 func TestAccCdnFrontdoorOrigin_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontdoorOriginResource{}
+	r := CdnFrontdoorOriginResource{RunAccTest: true}
+	r.preCheck(t)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -60,7 +66,9 @@ func TestAccCdnFrontdoorOrigin_complete(t *testing.T) {
 
 func TestAccCdnFrontdoorOrigin_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontdoorOriginResource{}
+	r := CdnFrontdoorOriginResource{RunAccTest: true}
+	r.preCheck(t)
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -81,7 +89,8 @@ func TestAccCdnFrontdoorOrigin_update(t *testing.T) {
 
 func TestAccCdnFrontdoorOrigin_privateLinkBlobPrimary(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontdoorOriginResource{}
+	r := CdnFrontdoorOriginResource{RunAccTest: true}
+	r.preCheck(t)
 
 	// NOTE: The Private Link will not be approved at this point but it will
 	// be created. There is currently no way to automate the approval process.
@@ -98,7 +107,8 @@ func TestAccCdnFrontdoorOrigin_privateLinkBlobPrimary(t *testing.T) {
 
 func TestAccCdnFrontdoorOrigin_privateLinkStorageStaticWebSite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontdoorOriginResource{}
+	r := CdnFrontdoorOriginResource{RunAccTest: true}
+	r.preCheck(t)
 
 	// NOTE: The Private Link will not be approved at this point but it will
 	// be created. There is currently no way to automate the approval process.
@@ -117,6 +127,13 @@ func TestAccCdnFrontdoorOrigin_privateLinkAppServices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
 	r := CdnFrontdoorOriginResource{}
 
+	if strings.HasPrefix(strings.ToLower(data.Client().SubscriptionID), "85b3dbca") {
+		r = CdnFrontdoorOriginResource{RunAccTest: true}
+	} else {
+		r = CdnFrontdoorOriginResource{RunAccTest: false}
+	}
+	r.preCheck(t)
+
 	// NOTE: The Private Link will not be approved at this point but it will
 	// be created. There is currently no way to automate the approval process.
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -132,7 +149,8 @@ func TestAccCdnFrontdoorOrigin_privateLinkAppServices(t *testing.T) {
 
 func TestAccCdnFrontdoorOrigin_privateLinkLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontdoorOriginResource{}
+	r := CdnFrontdoorOriginResource{RunAccTest: true}
+	r.preCheck(t)
 
 	// NOTE: The Private Link will not be approved at this point but it will
 	// be created. There is currently no way to automate the approval process.
@@ -163,6 +181,12 @@ func (r CdnFrontdoorOriginResource) Exists(ctx context.Context, clients *clients
 	}
 
 	return utils.Bool(true), nil
+}
+
+func (r CdnFrontdoorOriginResource) preCheck(t *testing.T) {
+	if !r.RunAccTest {
+		t.Skipf("Skipping test because 'this region has a quota of 0 instances for your subscription'")
+	}
 }
 
 func (r CdnFrontdoorOriginResource) template(data acceptance.TestData, profileSku string, isLoadBalancer bool) string {
