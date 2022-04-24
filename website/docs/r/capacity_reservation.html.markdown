@@ -25,10 +25,8 @@ resource "azurerm_capacity_reservation_group" "example" {
 }
 
 resource "azurerm_capacity_reservation" "example" {
-  name                            = "example-capacity-reservation"
-  resource_group_name             = azurerm_resource_group.example.name
-  location                        = azurerm_resource_group.example.location
-  capacity_reservation_group_name = azurerm_capacity_reservation_group.example.name
+  name                          = "example-capacity-reservation"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.example.id
   sku {
     name     = "Standard_D2s_v3"
     capacity = 1
@@ -42,15 +40,11 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of this Capacity Reservation. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group the Capacity Reservation is located in. Changing this forces a new resource to be created.
-
-* `location` - (Required) The Azure location where the Capacity Reservation exists. Changing this forces a new resource to be created.
-
-* `capacity_reservation_group_name` - (Required) The name of the Capacity Reservation Group where the Capacity Reservation exists. Changing this forces a new resource to be created.
+* `capacity_reservation_group_id` - (Required) The ID of the Capacity Reservation Group where the Capacity Reservation exists. Changing this forces a new resource to be created.
 
 * `sku` - (Required) A `sku` block as defined below.
 
-* `zone` - (Optional) Specifies a list of Availability Zone which this Capacity Reservation reserves. Changing this forces a new resource to be created.
+* `zone` - (Optional) Specifies the Availability Zone for this Capacity Reservation. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure location where the Capacity Reservation Group exists. Changing this forces a new resource to be created.
 
-* `zones` - (Optional) Specifies a list of Availability Zones which this Capacity Reservation Group can reserve. Changing this forces a new resource to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones for this Capacity Reservation Group. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

@@ -141,10 +141,8 @@ func (r CapacityReservationResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_capacity_reservation" "test" {
-  name                            = "acctest-ccr-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  capacity_reservation_group_name = azurerm_capacity_reservation_group.test.name
+  name                          = "acctest-ccr-%d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   sku {
     name     = "Standard_D2s_v3"
     capacity = 2
@@ -159,10 +157,8 @@ func (r CapacityReservationResource) requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_capacity_reservation" "import" {
-  name                            = azurerm_capacity_reservation.test.name
-  resource_group_name             = azurerm_capacity_reservation.test.resource_group_name
-  location                        = azurerm_capacity_reservation.test.location
-  capacity_reservation_group_name = azurerm_capacity_reservation.test.capacity_reservation_group_name
+  name                          = azurerm_capacity_reservation.test.name
+  capacity_reservation_group_id = azurerm_capacity_reservation.test.capacity_reservation_group_id
   sku {
     name     = "Standard_D2s_v3"
     capacity = 2
@@ -190,11 +186,9 @@ resource "azurerm_capacity_reservation_group" "test" {
 }
 
 resource "azurerm_capacity_reservation" "test" {
-  name                            = "acctest-ccr-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  capacity_reservation_group_name = azurerm_capacity_reservation_group.test.name
-  zone                            = "2"
+  name                          = "acctest-ccr-%d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+  zone                          = "2"
   sku {
     name     = "Standard_D2s_v3"
     capacity = 2
@@ -209,10 +203,8 @@ func (r CapacityReservationResource) skuCapacity(data acceptance.TestData) strin
 %s
 
 resource "azurerm_capacity_reservation" "test" {
-  name                            = "acctest-ccr-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  capacity_reservation_group_name = azurerm_capacity_reservation_group.test.name
+  name                          = "acctest-ccr-%d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   sku {
     name     = "Standard_D2s_v3"
     capacity = 2
@@ -227,10 +219,8 @@ func (r CapacityReservationResource) skuCapacityUpdated(data acceptance.TestData
 %s
 
 resource "azurerm_capacity_reservation" "test" {
-  name                            = "acctest-ccr-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  capacity_reservation_group_name = azurerm_capacity_reservation_group.test.name
+  name                          = "acctest-ccr-%d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   sku {
     name     = "Standard_D2s_v3"
     capacity = 1
@@ -245,10 +235,8 @@ func (r CapacityReservationResource) tags(data acceptance.TestData) string {
 %s
 
 resource "azurerm_capacity_reservation" "test" {
-  name                            = "acctest-ccr-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  capacity_reservation_group_name = azurerm_capacity_reservation_group.test.name
+  name                          = "acctest-ccr-%d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   sku {
     name     = "Standard_D2s_v3"
     capacity = 2
@@ -266,10 +254,8 @@ func (r CapacityReservationResource) tagsUpdated(data acceptance.TestData) strin
 %s
 
 resource "azurerm_capacity_reservation" "test" {
-  name                            = "acctest-ccr-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  capacity_reservation_group_name = azurerm_capacity_reservation_group.test.name
+  name                          = "acctest-ccr-%d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   sku {
     name     = "Standard_D2s_v3"
     capacity = 2
