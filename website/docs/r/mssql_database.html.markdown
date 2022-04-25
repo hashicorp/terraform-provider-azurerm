@@ -70,9 +70,9 @@ resource "azurerm_mssql_database" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Ms SQL Database. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the MS SQL Database. Changing this forces a new resource to be created.
 
-* `server_id` - (Required) The id of the Ms SQL Server on which to create the database. Changing this forces a new resource to be created.
+* `server_id` - (Required) The id of the MS SQL Server on which to create the database. Changing this forces a new resource to be created.
 
 ~> **Note:** This setting is still required for "Serverless" SKU's
 
@@ -151,7 +151,7 @@ A `extended_auditing_policy` block supports the following:
 * `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
 * `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
 * `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
-* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable audit events to Log Analytics, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_log_analytics` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/sql_auditing_log_analytics). To enable audit events to Eventhub, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_eventhub` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/sql_auditing_eventhub). 
+* `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable audit events to Log Analytics, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_log_analytics` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/sql_auditing_log_analytics). To enable audit events to Eventhub, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_eventhub` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/sql_auditing_eventhub). 
 
 ---
 

@@ -18,7 +18,7 @@ Manages a Virtual Machine.
 
 ## Example Usage (from an Azure Platform Image)
 
-This example provisions a Virtual Machine with Managed Disks. Other examples of the `azurerm_virtual_machine` resource can be found in [the `./examples/virtual-machines` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines)
+This example provisions a Virtual Machine with Managed Disks. Other examples of the `azurerm_virtual_machine` resource can be found in [the `./examples/virtual-machines` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines)
 
 ```hcl
 variable "prefix" {
@@ -300,7 +300,7 @@ To provision a Custom Image, the following fields are applicable:
 
 * `id` - (Required) Specifies the ID of the Custom Image which the Virtual Machine should be created from. Changing this forces a new resource to be created.
 
--> **NOTE:** An example of how to use this is available within [the `./examples/virtual-machines/virtual_machine/managed-disks/from-custom-image` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/virtual_machine/managed-disks/from-custom-image)
+-> **NOTE:** An example of how to use this is available within [the `./examples/virtual-machines/virtual_machine/managed-disks/from-custom-image` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/virtual_machine/managed-disks/from-custom-image)
 
 ---
 
@@ -346,7 +346,7 @@ A `storage_os_disk` block supports the following:
 
 * `disk_size_gb` - (Optional) Specifies the size of the OS Disk in gigabytes.
 
-* `image_uri` - (Optional) Specifies the Image URI in the format `publisherName:offer:skus:version`. This field can also specify the [VHD uri](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-linux-cli-deploy-templates/#create-a-custom-vm-image) of a custom VM image to clone. When cloning a Custom (Unmanaged) Disk Image the `os_type` field must be set.
+* `image_uri` - (Optional) Specifies the Image URI in the format `publisherName:offer:skus:version`. This field can also specify the [VHD URI](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-linux-cli-deploy-templates/#create-a-custom-vm-image) of a custom VM image to clone. When cloning a Custom (Unmanaged) Disk Image the `os_type` field must be set.
 
 * `os_type` - (Optional) Specifies the Operating System on the OS Disk. Possible values are `Linux` and `Windows`.
 

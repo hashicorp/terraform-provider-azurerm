@@ -130,7 +130,7 @@ A `application_stack` block supports the following:
 
 * `docker` - (Optional) One or more `docker` blocks as defined below.
 
-* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1` and `6.0`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1` and `6.0`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
@@ -411,7 +411,7 @@ A `site_config` block supports the following:
 
 * `health_check_eviction_time_in_min` - (Optional) The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`.
 
-* `http2_enabled` - (Optional) Specifies if the http2 protocol should be enabled. Defaults to `false`.
+* `http2_enabled` - (Optional) Specifies if the HTTP2 protocol should be enabled. Defaults to `false`.
 
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
 

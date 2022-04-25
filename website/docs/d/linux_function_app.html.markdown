@@ -113,7 +113,7 @@ A `application_stack` block exports the following:
 
 * `docker` -  One or more `docker` blocks as defined below.
 
-* `dotnet_version` -  The version of .Net used.
+* `dotnet_version` -  The version of .NET used.
 
 * `java_version` - The Version of Java used.
 
@@ -373,7 +373,7 @@ A `site_config` block exports the following:
 
 * `health_check_eviction_time_in_min` - The amount of time in minutes that a node can be unhealthy before being removed from the load balancer.
 
-* `http2_enabled` - Is the http2 protocol enabled?
+* `http2_enabled` - Is the HTTP2 protocol enabled?
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 

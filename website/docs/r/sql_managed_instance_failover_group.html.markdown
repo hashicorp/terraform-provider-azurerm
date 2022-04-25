@@ -14,7 +14,7 @@ Manages a SQL Instance Failover Group.
 
 -> **Note:** The `azurerm_sql_managed_instance_failover_group` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_managed_instance_failover_group`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_managed_instance_failover_group) resource instead.
 
-~> **Note:** For a more complete example, see the [the `examples/sql-azure/managed_instance_failover_group` directory](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/managed_instance_failover_group) within the Github Repository.
+~> **Note:** For a more complete example, see the [the `examples/sql-azure/managed_instance_failover_group` directory](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/managed_instance_failover_group) within the GitHub Repository.
 
 ```hcl
 resource "azurerm_sql_managed_instance" "primary" {

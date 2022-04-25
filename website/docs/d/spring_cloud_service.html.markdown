@@ -89,9 +89,9 @@ The `repository` block contains the following:
 
 The `http_basic_auth` block supports the following:
 
-* `username` - The username used to access the Http Basic Authentication Git repository server.
+* `username` - The username used to access the HTTP Basic Authentication Git repository server.
 
-* `password` - The password used to access the Http Basic Authentication Git repository server.
+* `password` - The password used to access the HTTP Basic Authentication Git repository server.
 
 ---
 

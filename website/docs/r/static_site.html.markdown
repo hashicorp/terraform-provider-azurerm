@@ -54,7 +54,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Static Web App.
 
-* `api_key` - The API key of this Static Web App, which is used for later interacting with this Static Web App from other clients, e.g. Github Action.
+* `api_key` - The API key of this Static Web App, which is used for later interacting with this Static Web App from other clients, e.g. GitHub Action.
   
 * `default_host_name` - The default host name of the Static Web App.
 

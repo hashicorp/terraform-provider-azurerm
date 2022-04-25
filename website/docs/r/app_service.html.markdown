@@ -17,7 +17,7 @@ Manages an App Service (within an App Service Plan).
 
 ## Example Usage
 
-This example provisions a Windows App Service. Other examples of the `azurerm_app_service` resource can be found in [the `./examples/app-service` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service)
+This example provisions a Windows App Service. Other examples of the `azurerm_app_service` resource can be found in [the `./examples/app-service` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -183,7 +183,7 @@ A `file_system` block supports the following:
 
 * `retention_in_days` - (Required) The number of days to retain logs for.
 
-* `retention_in_mb` - (Required) The maximum size in megabytes that http log files can use before being removed.
+* `retention_in_mb` - (Required) The maximum size in megabytes that HTTP log files can use before being removed.
 
 ---
 
@@ -205,7 +205,7 @@ A `site_config` block supports the following:
 
 * `default_documents` - (Optional) The ordering of default documents to load, if an address isn't specified.
 
-* `dotnet_framework_version` - (Optional) The version of the .net framework's CLR used in this App Service. Possible values are `v2.0` (which will use the latest version of the .net framework for the .net CLR v2 - currently `.net 3.5`), `v4.0` (which corresponds to the latest version of the .net CLR v4 - which at the time of writing is `.net 4.7.1`), `v5.0` and `v6.0`. [For more information on which .net CLR version to use based on the .net framework you're targeting - please see this table](https://en.wikipedia.org/wiki/.NET_Framework_version_history#Overview). Defaults to `v4.0`.
+* `dotnet_framework_version` - (Optional) The version of the .NET framework's CLR used in this App Service. Possible values are `v2.0` (which will use the latest version of the .NET framework for the .NET CLR v2 - currently `.net 3.5`), `v4.0` (which corresponds to the latest version of the .NET CLR v4 - which at the time of writing is `.net 4.7.1`), `v5.0` and `v6.0`. [For more information on which .NET CLR version to use based on the .NET framework you're targeting - please see this table](https://en.wikipedia.org/wiki/.NET_Framework_version_history#Overview). Defaults to `v4.0`.
 
 * `ftps_state` - (Optional) State of FTP / FTPS service for this App Service. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
 
@@ -243,7 +243,7 @@ A `site_config` block supports the following:
 
 * `windows_fx_version` - (Optional) The Windows Docker container image (`DOCKER|<user/image:tag>`)
 
-Additional examples of how to run Containers via the `azurerm_app_service` resource can be found in [the `./examples/app-service` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service).
+Additional examples of how to run Containers via the `azurerm_app_service` resource can be found in [the `./examples/app-service` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service).
 
 * `managed_pipeline_mode` - (Optional) The Managed Pipeline Mode. Possible values are `Integrated` and `Classic`. Defaults to `Integrated`.
 

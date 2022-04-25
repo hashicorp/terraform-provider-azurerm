@@ -303,7 +303,7 @@ A `site_config` block exports the following:
 
 * `health_check_path` - The path to be checked for this Windows Function App health.
 
-* `http2_enabled` - Is the http2 protocol enabled?
+* `http2_enabled` - Is the HTTP2 protocol enabled?
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 
