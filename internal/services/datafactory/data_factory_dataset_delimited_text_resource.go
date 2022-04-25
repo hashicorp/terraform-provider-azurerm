@@ -115,6 +115,11 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
+						"dynamic_container_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,

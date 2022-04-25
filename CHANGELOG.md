@@ -8,6 +8,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_datafactory_dataset_x` - Fix crash around `azure_blob_storage_location.0.dynamic_container_enabled` [GH-16514]
 * `azurerm_resource_policy_remediation` - will no longer try to cancel a completed remediation task during deletion [GH-16478]
 
 ## 3.3.0 (April 21, 2022)

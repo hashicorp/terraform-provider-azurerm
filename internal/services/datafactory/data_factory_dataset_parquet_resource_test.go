@@ -79,27 +79,13 @@ func TestAccDataFactoryDatasetParquet_blob(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryDatasetParquet_blobDynamicContainer(t *testing.T) {
+func TestAccDataFactoryDatasetParquet_blob_dynamics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_parquet", "test")
 	r := DatasetParquetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.blob(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.blobDynamicContainer(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.blob(data),
+			Config: r.blob_dynamics(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -342,7 +328,7 @@ resource "azurerm_data_factory_dataset_parquet" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetParquetResource) blobDynamicContainer(data acceptance.TestData) string {
+func (DatasetParquetResource) blob_dynamics(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -386,10 +372,12 @@ resource "azurerm_data_factory_dataset_parquet" "test" {
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
   azure_blob_storage_location {
-    container                 = azurerm_storage_container.test.name
+    container                 = "@concat(azurerm_storage_container.test.name, '')"
     dynamic_container_enabled = true
     path                      = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
     dynamic_path_enabled      = true
+    filename                  = "@concat('foo', '.txt')"
+    dynamic_filename_enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)

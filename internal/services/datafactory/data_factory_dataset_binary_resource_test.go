@@ -30,6 +30,21 @@ func TestAccDataFactoryDatasetBinary_blob(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryDatasetBinary_blob_dynamics(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_binary", "test")
+	r := DatasetBinaryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blob_dynamics(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataFactoryDatasetBinary_blob_with_filepath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_binary", "test")
 	r := DatasetBinaryResource{}
@@ -178,6 +193,61 @@ resource "azurerm_data_factory_dataset_binary" "test" {
 
   azure_blob_storage_location {
     container = azurerm_storage_container.test.name
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (DatasetBinaryResource) blob_dynamics(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestdf%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "content"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name              = "acctestlsblob%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = azurerm_storage_account.test.primary_connection_string
+}
+
+resource "azurerm_data_factory_dataset_binary" "test" {
+  name                = "acctestds%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
+
+  azure_blob_storage_location {
+    container                 = "@concat(azurerm_storage_container.test.name, '')"
+    dynamic_container_enabled = true
+    path                      = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
+    dynamic_path_enabled      = true
+    filename                  = "@concat('foo', '.txt')"
+    dynamic_filename_enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)

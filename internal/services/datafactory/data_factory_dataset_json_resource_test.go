@@ -77,27 +77,13 @@ func TestAccDataFactoryDatasetJSON_blob(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryDatasetJSON_blobDynamicContainer(t *testing.T) {
+func TestAccDataFactoryDatasetJSON_blob_dynamics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
 	r := DatasetJSONResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.blob(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.blobDynamicContainer(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.blob(data),
+			Config: r.blob_dynamics(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -345,7 +331,7 @@ resource "azurerm_data_factory_dataset_json" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetJSONResource) blobDynamicContainer(data acceptance.TestData) string {
+func (DatasetJSONResource) blob_dynamics(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -389,13 +375,16 @@ resource "azurerm_data_factory_dataset_json" "test" {
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
   azure_blob_storage_location {
-    container                 = azurerm_storage_container.test.name
+    container                 = "@concat(azurerm_storage_container.test.name, '')"
     dynamic_container_enabled = true
     path                      = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
     dynamic_path_enabled      = true
-    filename                  = "foo.json"
-    dynamic_filename_enabled  = false
+    filename                  = "@concat('foo', '.txt')"
+    dynamic_filename_enabled  = true
   }
+
+  encoding = "UTF-8"
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
