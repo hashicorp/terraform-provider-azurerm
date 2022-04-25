@@ -134,6 +134,35 @@ func TestAccDataFactoryDatasetDelimitedText_blobFS(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryDatasetDelimitedText_blobDynamicContainer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
+	r := DatasetDelimitedTextResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blob(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.blobDynamicContainer(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.blob(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t DatasetDelimitedTextResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
@@ -591,4 +620,55 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   null_value          = "NULL"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (DatasetDelimitedTextResource) blobDynamicContainer(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestdf%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "content"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name              = "acctestlsblob%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = azurerm_storage_account.test.primary_connection_string
+}
+
+resource "azurerm_data_factory_dataset_delimited_text" "test" {
+  name                = "acctestds%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
+
+  azure_blob_storage_location {
+    container                 = azurerm_storage_container.test.name
+    dynamic_container_enabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
