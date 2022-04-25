@@ -388,6 +388,8 @@ resource "azurerm_data_factory_dataset_parquet" "test" {
   azure_blob_storage_location {
     container                 = azurerm_storage_container.test.name
     dynamic_container_enabled = true
+    path                 = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
+    dynamic_path_enabled = true
   }
 
   column_delimiter    = ","
