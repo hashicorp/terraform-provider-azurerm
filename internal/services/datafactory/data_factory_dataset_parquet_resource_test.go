@@ -388,17 +388,9 @@ resource "azurerm_data_factory_dataset_parquet" "test" {
   azure_blob_storage_location {
     container                 = azurerm_storage_container.test.name
     dynamic_container_enabled = true
-    path                 = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
-    dynamic_path_enabled = true
+    path                      = "@concat('foo/bar/',formatDateTime(convertTimeZone(utcnow(),'UTC','W. Europe Standard Time'),'yyyy-MM-dd'))"
+    dynamic_path_enabled      = true
   }
-
-  column_delimiter    = ","
-  row_delimiter       = "NEW"
-  encoding            = "UTF-8"
-  quote_character     = "x"
-  escape_character    = "f"
-  first_row_as_header = true
-  null_value          = "NULL"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
