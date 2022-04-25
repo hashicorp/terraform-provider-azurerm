@@ -161,7 +161,7 @@ The following arguments are supported:
 
 ~> **NOTE:** In order to use customer managed keys, the identity of the MSSQL server must have the following permissions on the key vault: 'get', 'wrapKey' and 'unwrapKey' 
 
-~> **NOTE:** If `server_id` denotes a secondary server deployed for DR purposes, then the `key_vault_key_id` should be the same key used for its primary server TDE. Both primary and secondary servers should be encrypted with same key material.
+~> **NOTE:** If `server_id` denotes a secondary server deployed for Disaster Recovery purposes, then the `key_vault_key_id` should be the same key used for its primary server TDE(Transparent data encryption). Both primary and secondary servers should be encrypted with same key material.
 
 ## Attributes Reference
 
