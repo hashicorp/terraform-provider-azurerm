@@ -57,7 +57,7 @@ The `device_properties` block exports the following:
 
 * `culture` - The Data Box Edge/Gateway device culture.
 
-* `hcs_version` - The device software version number of the device (eg: 1.2.18105.6).
+* `hcs_version` - The device software version number of the device (e.g. 1.2.18105.6).
 
 * `capacity` - The Data Box Edge/Gateway device local capacity in MB.
 
