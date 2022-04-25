@@ -1573,6 +1573,32 @@ func StickySettingsSchema() *pluginsdk.Schema {
 	}
 }
 
+func StickySettingsComputedSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"app_setting_names": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"connection_string_names": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
 func ExpandStickySettings(input []StickySettings) *web.SlotConfigNames {
 	if len(input) == 0 {
 		return nil

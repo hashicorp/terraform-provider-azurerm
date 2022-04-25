@@ -1282,6 +1282,11 @@ resource "azurerm_linux_web_app" "test" {
     }
   }
 
+  sticky_settings {
+    app_setting_names       = ["foo"]
+    connection_string_names = ["First", "Third"]
+  }
+
   storage_account {
     name         = "files"
     type         = "AzureFiles"

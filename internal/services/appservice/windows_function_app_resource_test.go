@@ -1745,6 +1745,11 @@ resource "azurerm_windows_function_app" "test" {
     vnet_route_all_enabled = true
   }
 
+  sticky_settings {
+    app_setting_names       = ["foo", "secret"]
+    connection_string_names = ["First"]
+  }
+
   tags = {
     terraform = "true"
     Env       = "AccTest"
