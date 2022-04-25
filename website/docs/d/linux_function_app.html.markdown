@@ -141,7 +141,7 @@ An `auth_settings` block exports the following:
 
 * `active_directory` - An `active_directory` block as defined above.
 
-* `additional_login_params` -A map of Login Parameters sent to the OpenID Connect authorization endpoint when a user logs in.
+* `additional_login_parameters` - A map of Login Parameters sent to the OpenID Connect authorization endpoint when a user logs in.
 
 * `allowed_external_redirect_urls` - A list of External URLs that can be redirected to as part of logging in or logging out of the Linux Web App.
 
