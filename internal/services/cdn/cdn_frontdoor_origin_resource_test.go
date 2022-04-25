@@ -190,17 +190,17 @@ func (r CdnFrontdoorOriginResource) preCheck(t *testing.T) {
 }
 
 func (r CdnFrontdoorOriginResource) template(data acceptance.TestData, profileSku string, isLoadBalancer bool) string {
-	var skuConfig string // default will result in an empty string which is Standard_AzureFrontDoor
-	if !strings.EqualFold(profileSku, "default") {
-		skuConfig = fmt.Sprintf(`  sku_name            = "%s"`, profileSku)
-	}
-
 	// NOTE: This is a hack for what I believe is a bug in the CDN Frontdoor API. I am currently speaking with the service
 	// team about how to correctly fix this issue, but in the meantime this is what we need to do to get this scenario to
 	// work.
 	var loadBalancerDependsOn string
 	if isLoadBalancer {
-		loadBalancerDependsOn = "  depends_on = [azurerm_private_link_service.test]"
+		loadBalancerDependsOn = "depends_on = [azurerm_private_link_service.test]"
+	}
+
+	var skuConfig string // default will result in an empty string which is Standard_AzureFrontDoor
+	if !strings.EqualFold(profileSku, "default") {
+		skuConfig = fmt.Sprintf(`sku_name            = "%s"`, profileSku)
 	}
 
 	return fmt.Sprintf(`
@@ -218,10 +218,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-%s
+  %s
   name                = "accTestProfile-%d"
   resource_group_name = azurerm_resource_group.test.name
-	%s
+  %s
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "test" {
@@ -241,7 +241,7 @@ func (r CdnFrontdoorOriginResource) templatePrivateLinkStorage(data acceptance.T
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
 
-	%s
+%s
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
@@ -267,7 +267,7 @@ func (r CdnFrontdoorOriginResource) templatePrivateLinkStorageStaticWebSite(data
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
 
-	%s
+%s
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
@@ -300,7 +300,7 @@ func (r CdnFrontdoorOriginResource) templatePrivateLinkLoadBalancer(data accepta
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
-	%s
+%s
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvn-%[2]d"
@@ -360,7 +360,7 @@ func (r CdnFrontdoorOriginResource) templatePrivateLinkWebApp(data acceptance.Te
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
 
-	%s
+%s
 
 resource "azurerm_service_plan" "test" {
   name                = "acctestASP-%[2]d"
@@ -438,7 +438,7 @@ resource "azurerm_linux_web_app" "test" {
 func (r CdnFrontdoorOriginResource) basic(data acceptance.TestData) string {
 	template := r.template(data, "default", false)
 	return fmt.Sprintf(`
-				%s
+%s
 
 resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "accTestOrigin-%d"
@@ -459,7 +459,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 func (r CdnFrontdoorOriginResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_cdn_frontdoor_origin" "import" {
   name                          = azurerm_cdn_frontdoor_origin.test.name
@@ -480,7 +480,7 @@ resource "azurerm_cdn_frontdoor_origin" "import" {
 func (r CdnFrontdoorOriginResource) complete(data acceptance.TestData) string {
 	template := r.template(data, "default", false)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "accTestOrigin-%d"
@@ -501,7 +501,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 func (r CdnFrontdoorOriginResource) update(data acceptance.TestData) string {
 	template := r.template(data, "default", false)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "accTestOrigin-%d"
