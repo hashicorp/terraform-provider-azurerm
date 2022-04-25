@@ -659,21 +659,28 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			stickySettings := helpers.ExpandStickySettings(state.StickySettings)
-			stickySettingsUpdate := web.SlotConfigNamesResource{
-				SlotConfigNames: &web.SlotConfigNames{
-					AppSettingNames:       &[]string{},
-					ConnectionStringNames: &[]string{},
-				},
-			}
+			if metadata.ResourceData.HasChange("sticky_settings") {
+				emptySlice := make([]string, 0)
+				stickySettings := helpers.ExpandStickySettings(state.StickySettings)
+				stickySettingsUpdate := web.SlotConfigNamesResource{
+					SlotConfigNames: &web.SlotConfigNames{
+						AppSettingNames:       &emptySlice,
+						ConnectionStringNames: &emptySlice,
+					},
+				}
 
-			if stickySettings != nil {
-				stickySettingsUpdate.SlotConfigNames = stickySettings
-			}
+				if stickySettings != nil {
+					if stickySettings.AppSettingNames != nil {
+						stickySettingsUpdate.SlotConfigNames.AppSettingNames = stickySettings.AppSettingNames
+					}
+					if stickySettings.ConnectionStringNames != nil {
+						stickySettingsUpdate.SlotConfigNames.ConnectionStringNames = stickySettings.ConnectionStringNames
+					}
+				}
 
-			// TODO - This doesn't remove them when the block is empty, need to figure out the correct way to do so...
-			if _, err := client.UpdateSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName, stickySettingsUpdate); err != nil {
-				return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
+				if _, err := client.UpdateSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("auth_settings") {

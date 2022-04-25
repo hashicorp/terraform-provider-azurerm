@@ -1546,7 +1546,6 @@ func StickySettingsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1586,16 +1585,16 @@ func ExpandStickySettings(input []StickySettings) *web.SlotConfigNames {
 }
 
 func FlattenStickySettings(input *web.SlotConfigNames) []StickySettings {
-	if input == nil || (input.AppSettingNames == nil && input.ConnectionStringNames == nil) {
-		return nil
-	}
 	result := StickySettings{}
+	if input == nil || (input.AppSettingNames == nil && input.ConnectionStringNames == nil) || (len(*input.AppSettingNames) == 0 && len(*input.ConnectionStringNames) == 0) {
+		return []StickySettings{}
+	}
 
-	if input.AppSettingNames != nil {
+	if input.AppSettingNames != nil && len(*input.AppSettingNames) > 0 {
 		result.AppSettingNames = *input.AppSettingNames
 	}
 
-	if input.ConnectionStringNames != nil {
+	if input.ConnectionStringNames != nil && len(*input.ConnectionStringNames) > 0 {
 		result.ConnectionStringNames = *input.ConnectionStringNames
 	}
 

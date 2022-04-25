@@ -645,14 +645,27 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("sticky_settings") {
+				emptySlice := make([]string, 0)
 				stickySettings := helpers.ExpandStickySettings(state.StickySettings)
 				stickySettingsUpdate := web.SlotConfigNamesResource{
-					SlotConfigNames: stickySettings,
+					SlotConfigNames: &web.SlotConfigNames{
+						AppSettingNames:       &emptySlice,
+						ConnectionStringNames: &emptySlice,
+					},
 				}
+
+				if stickySettings != nil {
+					if stickySettings.AppSettingNames != nil {
+						stickySettingsUpdate.SlotConfigNames.AppSettingNames = stickySettings.AppSettingNames
+					}
+					if stickySettings.ConnectionStringNames != nil {
+						stickySettingsUpdate.SlotConfigNames.ConnectionStringNames = stickySettings.ConnectionStringNames
+					}
+				}
+
 				if _, err := client.UpdateSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName, stickySettingsUpdate); err != nil {
 					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
 				}
-
 			}
 
 			if metadata.ResourceData.HasChange("auth_settings") {
