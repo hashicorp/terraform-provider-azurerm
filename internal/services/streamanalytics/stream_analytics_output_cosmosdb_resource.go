@@ -23,12 +23,12 @@ type OutputCosmosDBResource struct{}
 var _ sdk.ResourceWithCustomImporter = OutputCosmosDBResource{}
 
 type OutputCosmosDBResourceModel struct {
-	Name                  string `tfschema:"name"`
-	StreamAnalyticsJob    string `tfschema:"stream_analytics_job_id"`
-	AccountKey            string `tfschema:"cosmosdb_account_key"`
-	Database              string `tfschema:"cosmosdb_sql_database_id"`
-	CollectionNamePattern string `tfschema:"container_name"`
-	DocumentID            string `tfschema:"document_id"`
+	Name               string `tfschema:"name"`
+	StreamAnalyticsJob string `tfschema:"stream_analytics_job_id"`
+	AccountKey         string `tfschema:"cosmosdb_account_key"`
+	Database           string `tfschema:"cosmosdb_sql_database_id"`
+	ContainerName      string `tfschema:"container_name"`
+	DocumentID         string `tfschema:"document_id"`
 }
 
 func (r OutputCosmosDBResource) Arguments() map[string]*pluginsdk.Schema {
@@ -122,7 +122,7 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 				AccountID:             utils.String(databaseId.DatabaseAccountName),
 				AccountKey:            utils.String(model.AccountKey),
 				Database:              utils.String(databaseId.Name),
-				CollectionNamePattern: utils.String(model.CollectionNamePattern),
+				CollectionNamePattern: utils.String(model.ContainerName),
 				DocumentID:            utils.String(model.DocumentID),
 			}
 
@@ -183,7 +183,7 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 				state.Database = databaseId.ID()
 
 				if v.CollectionNamePattern != nil {
-					state.CollectionNamePattern = *v.CollectionNamePattern
+					state.ContainerName = *v.CollectionNamePattern
 				}
 
 				if v.DocumentID != nil {
@@ -251,7 +251,7 @@ func (r OutputCosmosDBResource) Update() sdk.ResourceFunc {
 							DocumentDbOutputDataSourceProperties: &streamanalytics.DocumentDbOutputDataSourceProperties{
 								AccountKey:            &state.AccountKey,
 								Database:              &databaseId.Name,
-								CollectionNamePattern: &state.CollectionNamePattern,
+								CollectionNamePattern: &state.ContainerName,
 								DocumentID:            &state.DocumentID,
 							},
 						},
