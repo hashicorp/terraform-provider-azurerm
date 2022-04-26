@@ -36,7 +36,7 @@ At this point the newly created Azure Active Directory application should be vis
 
 At the top of this page, you'll need to take note of the "Application (client) ID" and the "Directory (tenant) ID", which you can use for the values of `client_id` and `tenant_id` respectively.
 
-### Configure Azure Active Directory Application to Trust a GitHub Respository
+### Configure Azure Active Directory Application to Trust a GitHub Repository
 
 An application will need a federated credential specified for each GitHub Environment, Branch Name, Pull Request, or Tag based on your use case. For this example, we'll give permission to `main` branch workflow runs.
 
