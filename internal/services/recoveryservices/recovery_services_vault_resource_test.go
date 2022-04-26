@@ -139,13 +139,93 @@ func TestAccRecoveryServicesVault_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccRecoveryServicesVault_basicWithIdentity(t *testing.T) {
+func TestAccRecoveryServicesVault_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWithIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRecoveryServicesVault_softDelete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.softDeleteDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.softDeleteDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRecoveryServicesVault_storageModeType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageModeTypeDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.storageModeTypeUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRecoveryServicesVault_crossRegionRestore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.crossRegionRestoreDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.crossRegionRestoreEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -507,6 +587,132 @@ resource "azurerm_recovery_services_vault" "test" {
 
   soft_delete_enabled = false
   storage_mode_type   = "ZoneRedundant"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) softDeleteDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) softDeleteDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  soft_delete_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) crossRegionRestoreDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) crossRegionRestoreEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  cross_region_restore_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) storageModeTypeDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) storageModeTypeUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  storage_mode_type = "ZoneRedundant"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
