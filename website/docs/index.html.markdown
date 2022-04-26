@@ -129,6 +129,16 @@ More information on [how to configure a Service Principal using a Client Secret 
 
 ---
 
+When authenticating as a Service Principal using Open ID Connect, the following fields can be set:
+
+* `id_token_request_token` - (Optional) The ID Token Request Token which should be used. This can also be sourced from the `ARM_ID_TOKEN_REQUEST_TOKEN` Environment Variable.
+
+* `id_token_request_token` - (Optional) The ID Token Request URL which should be used. This can also be sourced from the `ARM_ID_TOKEN_REQUEST_URL` Environment Variable.
+
+More information on [how to configure a Service Principal using Open ID Connect can be found in this guide](guides/service_principal_oidc.html).
+
+---
+
 When authenticating using Managed Service Identity, the following fields can be set:
 
 * `msi_endpoint` - (Optional) The path to a custom endpoint for Managed Service Identity - in most circumstances, this should be detected automatically. This can also, be sourced from the `ARM_MSI_ENDPOINT` Environment Variable.
