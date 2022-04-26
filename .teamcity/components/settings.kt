@@ -24,11 +24,14 @@ var runNightly = mapOf(
 
 // specifies a list of services which should be run with a custom test configuration
 var serviceTestConfigurationOverrides = mapOf(
-        // these tests all conflict with one another
-        "authorization" to testConfiguration(parallelism = 1),
-
         // Server is only available in certain locations
         "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
+
+        // App Service Plans for Linux are currently unavailable in WestUS2
+        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus", "eastus2", true)),
+
+        // these tests all conflict with one another
+        "authorization" to testConfiguration(parallelism = 1),
 
         // HCICluster is only available in certain locations
         "azurestackhci" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
