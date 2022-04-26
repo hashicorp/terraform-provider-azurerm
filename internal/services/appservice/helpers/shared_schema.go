@@ -1557,6 +1557,10 @@ func StickySettingsSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: appserviceValidate.AppSettingName,
 					},
+					AtLeastOneOf: []string{
+						"sticky_settings.0.app_setting_names",
+						"sticky_settings.0.connection_string_names",
+					},
 				},
 
 				"connection_string_names": {
@@ -1566,6 +1570,10 @@ func StickySettingsSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: appserviceValidate.AppSettingName,
+					},
+					AtLeastOneOf: []string{
+						"sticky_settings.0.app_setting_names",
+						"sticky_settings.0.connection_string_names",
 					},
 				},
 			},

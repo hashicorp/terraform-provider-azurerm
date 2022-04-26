@@ -1042,8 +1042,6 @@ func TestAccLinuxWebApp_stickySettingsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("3"),
-				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
 		data.ImportStep(),
@@ -1726,8 +1724,7 @@ resource "azurerm_linux_web_app" "test" {
   }
 
   sticky_settings {
-    app_setting_names       = ["foo", "secret", "third"]
-    connection_string_names = ["First", "Second", "Third"]
+    app_setting_names = ["foo", "secret", "third"]
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)
