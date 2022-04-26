@@ -452,7 +452,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotification(t *testing.
 	})
 }
 
-// TODO remove TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration in 3.0
+// TODO remove TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration in 4.0
 func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
@@ -1936,7 +1936,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-// TODO remove otherTerminateNotification in 3.0
+// TODO remove otherTerminateNotification in 4.0
 func (r LinuxVirtualMachineScaleSetResource) otherTerminateNotification(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s

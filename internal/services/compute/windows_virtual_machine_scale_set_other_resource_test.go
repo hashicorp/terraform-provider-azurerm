@@ -571,7 +571,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherTerminationNotification(t *testin
 	})
 }
 
-// TODO remove TestAccWindowsVirtualMachineScaleSet_otherTerminationNotificationMigration in 3.0
+// TODO remove TestAccWindowsVirtualMachineScaleSet_otherTerminationNotificationMigration in 4.0
 func TestAccWindowsVirtualMachineScaleSet_otherTerminationNotificationMigration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -2371,7 +2371,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data))
 }
 
-// TODO remove otherTerminateNotification in 3.0
+// TODO remove otherTerminateNotification in 4.0
 func (r WindowsVirtualMachineScaleSetResource) otherTerminateNotification(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s

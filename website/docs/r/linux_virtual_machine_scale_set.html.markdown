@@ -202,7 +202,7 @@ The following arguments are supported:
 
 * `terminate_notification` - (Optional) A `terminate_notification` block as defined below.
 
-~> **Note:** This property has been deprecated in favour of the `termination_notification` property and will be removed in version 3.0 of the provider.
+~> **Note:** This property has been deprecated in favour of the `termination_notification` property and will be removed in version 4.0 of the provider.
 
 * `termination_notification` - (Optional) A `termination_notification` block as defined below.
 
