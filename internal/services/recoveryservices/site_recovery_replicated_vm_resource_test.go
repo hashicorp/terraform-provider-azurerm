@@ -197,7 +197,7 @@ resource "azurerm_virtual_machine" "test" {
 
   vm_size = "Standard_B1s"
 
-  delete_os_disk_on_termination    = true
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     publisher = "OpenLogic"
@@ -810,7 +810,7 @@ resource "azurerm_virtual_machine" "test" {
 
   vm_size = "Standard_B1s"
 
-  delete_os_disk_on_termination    = true
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     publisher = "OpenLogic"
