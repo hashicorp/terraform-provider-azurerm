@@ -85,6 +85,8 @@ The following arguments are supported:
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Web App.
 
 ---
@@ -484,6 +486,15 @@ A `status_code` block supports the following:
 * `sub_status` - (Optional) The Request Sub Status of the Status Code.
 
 * `win32_status` - (Optional) The Win32 Status Code of the Request.
+
+---
+
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - (Optional) A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - (Optional) A list of `connection_string` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+
 
 ---
 

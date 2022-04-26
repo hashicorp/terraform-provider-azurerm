@@ -71,6 +71,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `storage_account_access_key` -  The access key used to access the backend storage account for the Function App. 
 
 * `storage_key_vault_secret_id` - The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.
@@ -332,6 +334,14 @@ A `scm_ip_restriction` block exports the following:
 * `service_tag` - The Service Tag used for this IP Restriction.
 
 * `virtual_network_subnet_id` - The Virtual Network Subnet ID used for this IP Restriction.
+
+---
+
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - A list of `app_setting` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - A list of `connection_string` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
 
 ---
 
