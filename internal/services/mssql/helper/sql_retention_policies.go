@@ -74,6 +74,7 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntInSlice([]int{12, 24}),
+					Default:      12,
 				},
 			},
 		},
