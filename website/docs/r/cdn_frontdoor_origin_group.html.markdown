@@ -87,12 +87,6 @@ A `load_balancing` block supports the following:
 
 ---
 
-A `http_error_ranges` block supports the following:
-
-* `begin` - (Optional) The inclusive start of the http status code range. Possible values are between `100` and `999`(inclusive). Defaults to `300`.
-
-* `end` - (Optional) The inclusive end of the http status code range. Possible values are between `100` and `999`(inclusive). Defaults to `599`.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
