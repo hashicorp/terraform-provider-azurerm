@@ -999,9 +999,9 @@ func TestAccLinuxWebApp_stickySettings(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
-				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("3"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
