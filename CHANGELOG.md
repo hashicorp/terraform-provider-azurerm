@@ -1,5 +1,9 @@
 ## 3.4.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_stream_analytics_output_cosmosdb` [GH-16441]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v63.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-16283]
