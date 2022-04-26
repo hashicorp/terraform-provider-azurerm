@@ -155,12 +155,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = %q
-  run_command_enabled = %v
+  run_command_enabled = %t
 
   default_node_pool {
-    name                   = "default"
-    node_count             = 1
-    vm_size                = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   identity {
