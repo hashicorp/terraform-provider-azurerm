@@ -36,7 +36,6 @@ resource "azurerm_cosmosdb_account" "example" {
   }
 
   geo_location {
-    prefix            = "prefix-customid"
     location          = azurerm_resource_group.example.location
     failover_priority = 0
   }
@@ -58,13 +57,12 @@ resource "azurerm_cosmosdb_sql_container" "example" {
 }
 
 resource "azurerm_stream_analytics_output_cosmosdb" "example" {
-  name                      = "output-to-cosmosdb"
-  stream_analytics_job_name = azurerm_stream_analytics_job.example.name
-  resource_group_name       = azurerm_stream_analytics_job.example.resource_group_name
-  account_id                = azurerm_cosmosdb_account.example.name
-  account_key               = azurerm_cosmosdb_account.example.primary_access_key
-  database                  = azurerm_cosmosdb_sql_database.example.name
-  collection_name_pattern   = azurerm_cosmosdb_sql_container.example.id
+  name                     = "output-to-cosmosdb"
+  stream_analytics_job_id  = azurerm_stream_analytics_job.example.id
+  cosmosdb_account_key     = azurerm_cosmosdb_account.example.primary_key
+  cosmosdb_sql_database_id = azurerm_cosmosdb_sql_database.example.id
+  container_name           = azurerm_cosmosdb_sql_container.example.name
+  document_id              = "exampledocumentid"
 }
 ```
 
@@ -76,17 +74,13 @@ The following arguments are supported:
 
 * `stream_analytics_job_id` - (Required) The ID of the Stream Analytics Job. Changing this forces a new resource to be created.
 
-* `account_name` - (Required) The name of the CosmosDB account.
-
-* `account_key` - (Required) The account key for the CosmosDB database.
+* `cosmosdb_account_key` - (Required) The account key for the CosmosDB database.
 
 * `cosmosdb_sql_database_id` - (Required) The ID of the CosmosDB database.
 
-* `collection_name_pattern` - (Required) The collection name pattern for the collection to be used. It can be the name of the container, or a collection name format which contains an optional {partition} token.
+* `container_name` - (Required) The name of the CosmosDB container.
 
 * `document_id` - (Optional) The name of the field in output events used to specify the primary key which insert or update operations are based on.
-
-* `partition_key` - (Optional) The name of the field in output events used to specify the key for partitioning output across collections. If 'collection_name_pattern' contains the {partition} token, this property is required to be specified.
 
 ## Attributes Reference
 
