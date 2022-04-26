@@ -167,6 +167,20 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
+			// OIDC specifc fields
+			"id_token_request_token": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_ID_TOKEN_REQUEST_TOKEN", ""),
+				Description: "The ID Token Request Token which should be used. For use When authenticating as a Service Principal using OpenID Connect.",
+			},
+			"id_token_request_url": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_ID_TOKEN_REQUEST_URL", ""),
+				Description: "The ID Token Request URL which should be used. For use When authenticating as a Service Principal using OpenID Connect.",
+			},
+
 			// Managed Service Identity specific fields
 			"use_msi": {
 				Type:        schema.TypeBool,
@@ -255,20 +269,23 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		}
 
 		builder := &authentication.Builder{
-			SubscriptionID:     d.Get("subscription_id").(string),
-			ClientID:           d.Get("client_id").(string),
-			ClientSecret:       d.Get("client_secret").(string),
-			TenantID:           d.Get("tenant_id").(string),
-			AuxiliaryTenantIDs: auxTenants,
-			Environment:        d.Get("environment").(string),
-			MetadataHost:       metadataHost,
-			MsiEndpoint:        d.Get("msi_endpoint").(string),
-			ClientCertPassword: d.Get("client_certificate_password").(string),
-			ClientCertPath:     d.Get("client_certificate_path").(string),
+			SubscriptionID:      d.Get("subscription_id").(string),
+			ClientID:            d.Get("client_id").(string),
+			ClientSecret:        d.Get("client_secret").(string),
+			TenantID:            d.Get("tenant_id").(string),
+			AuxiliaryTenantIDs:  auxTenants,
+			Environment:         d.Get("environment").(string),
+			MetadataHost:        metadataHost,
+			MsiEndpoint:         d.Get("msi_endpoint").(string),
+			ClientCertPassword:  d.Get("client_certificate_password").(string),
+			ClientCertPath:      d.Get("client_certificate_path").(string),
+			IDTokenRequestToken: d.Get("id_token_request_token").(string),
+			IDTokenRequestURL:   d.Get("id_token_request_url").(string),
 
 			// Feature Toggles
 			SupportsClientCertAuth:         true,
 			SupportsClientSecretAuth:       true,
+			SupportsOIDCAuth:               true,
 			SupportsManagedServiceIdentity: d.Get("use_msi").(bool),
 			SupportsAzureCliToken:          true,
 			SupportsAuxiliaryTenants:       len(auxTenants) > 0,
