@@ -1019,6 +1019,16 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("expanding `default_node_pool`: %+v", err)
 	}
 
+	// the AKS API will create the default node pool with the same version as the control plane regardless of what is
+	// supplied by the user which will result in a diff in some cases, so if versions have been supplied check that they
+	// are identical
+	agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
+	if nodePoolVersion := agentProfile.ManagedClusterAgentPoolProfileProperties.OrchestratorVersion; nodePoolVersion != nil {
+		if kubernetesVersion != "" && kubernetesVersion != *nodePoolVersion {
+			return fmt.Errorf("version mismatch between the control plane running %s and default node pool running %s, they must use the same kubernetes versions", kubernetesVersion, *nodePoolVersion)
+		}
+	}
+
 	var addonProfiles *map[string]*containerservice.ManagedClusterAddonProfile
 	addOns := collectKubernetesAddons(d)
 	addonProfiles, err = expandKubernetesAddOns(d, addOns, env)
@@ -1613,7 +1623,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		// if a users specified a version - confirm that version is supported on the cluster
 		if nodePoolVersion := agentProfile.ManagedClusterAgentPoolProfileProperties.OrchestratorVersion; nodePoolVersion != nil {
-			if err := validateNodePoolSupportsVersion(ctx, containersClient, defaultNodePoolId, *nodePoolVersion); err != nil {
+			existingNodePool, err := nodePoolsClient.Get(ctx, defaultNodePoolId.ResourceGroup, defaultNodePoolId.ManagedClusterName, defaultNodePoolId.AgentPoolName)
+			if err != nil {
+				return fmt.Errorf("retrieving Default Node Pool %s: %+v", defaultNodePoolId, err)
+			}
+			currentNodePoolVersion := ""
+			if v := existingNodePool.OrchestratorVersion; v != nil {
+				currentNodePoolVersion = *v
+			}
+
+			if err := validateNodePoolSupportsVersion(ctx, containersClient, currentNodePoolVersion, defaultNodePoolId, *nodePoolVersion); err != nil {
 				return err
 			}
 		}
