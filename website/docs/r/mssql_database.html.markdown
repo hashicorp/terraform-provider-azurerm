@@ -167,6 +167,7 @@ A `long_term_retention_policy` block supports the following:
 A `short_term_retention_policy` block supports the following:
 
 * `retention_days` - (Required) Point In Time Restore configuration. Value has to be between `7` and `35`.
+* `backup_interval_in_hours` - (Optional) The hours between each differential backup. This is only applicable to live databases but not dropped databases. Value has to be `12` or `24`. Defaults to `12` hours.
 
 ## Attributes Reference
 
