@@ -77,6 +77,7 @@ func resourceElasticsearch() *pluginsdk.Resource {
 			"logs": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -173,7 +174,7 @@ func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_elastic_monitor", id.ID())
+		return tf.ImportAsExistsError("azurerm_elasticsearch", id.ID())
 	}
 
 	monitoringStatus := monitorsresource.MonitoringStatusDisabled
@@ -308,19 +309,13 @@ func resourceElasticsearchUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		client := meta.(*clients.Client).Elastic.TagRuleClient
 		tagRuleId := rules.NewTagRuleID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName, "default")
 		tagRule := expandTagRule(d.Get("logs").([]interface{}))
-		if tagRule != nil {
-			body := rules.MonitoringTagRules{
-				Properties: &rules.MonitoringTagRulesProperties{
-					LogRules: tagRule,
-				},
-			}
-			if _, err := client.TagRulesCreateOrUpdate(ctx, tagRuleId, body); err != nil {
-				return fmt.Errorf("updating `logs` from %s: %+v", *id, err)
-			}
-		} else {
-			if err := client.TagRulesDeleteThenPoll(ctx, tagRuleId); err != nil {
-				return fmt.Errorf("removing `logs` from %s: %+v", *id, err)
-			}
+		body := rules.MonitoringTagRules{
+			Properties: &rules.MonitoringTagRulesProperties{
+				LogRules: tagRule,
+			},
+		}
+		if _, err := client.TagRulesCreateOrUpdate(ctx, tagRuleId, body); err != nil {
+			return fmt.Errorf("updating `logs` from %s: %+v", *id, err)
 		}
 	}
 
