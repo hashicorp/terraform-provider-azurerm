@@ -138,7 +138,7 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"restore_traffic_or_new_endpoints_after_minutes": {
+			"restore_traffic_time_to_healed_or_new_endpoint_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      10,
@@ -178,7 +178,7 @@ func resourceCdnFrontdoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 			HealthProbeSettings:   expandCdnFrontdoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
 			LoadBalancingSettings: expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
 			SessionAffinityState:  ConvertBoolToEnabledState(d.Get("session_affinity_enabled").(bool)),
-			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int32(int32(d.Get("restore_traffic_or_new_endpoints_after_minutes").(int))),
+			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int32(int32(d.Get("restore_traffic_time_to_healed_or_new_endpoint_in_minutes").(int))),
 		},
 	}
 
@@ -229,7 +229,7 @@ func resourceCdnFrontdoorOriginGroupRead(d *pluginsdk.ResourceData, meta interfa
 		// BUG: API does not return the profile name, pull it form the ID
 		d.Set("cdn_frontdoor_profile_name", id.ProfileName)
 		d.Set("session_affinity_enabled", ConvertEnabledStateToBool(&props.SessionAffinityState))
-		d.Set("restore_traffic_or_new_endpoints_after_minutes", props.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes)
+		d.Set("restore_traffic_time_to_healed_or_new_endpoint_in_minutes", props.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes)
 	}
 
 	return nil
@@ -250,7 +250,7 @@ func resourceCdnFrontdoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 			HealthProbeSettings:   expandCdnFrontdoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
 			LoadBalancingSettings: expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
 			SessionAffinityState:  ConvertBoolToEnabledState(d.Get("session_affinity_enabled").(bool)),
-			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int32(int32(d.Get("restore_traffic_or_new_endpoints_after_minutes").(int))),
+			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int32(int32(d.Get("restore_traffic_time_to_healed_or_new_endpoint_in_minutes").(int))),
 		},
 	}
 

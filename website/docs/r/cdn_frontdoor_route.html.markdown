@@ -33,6 +33,21 @@ resource "frontdoor_origin_group" "example" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
 }
 
+resource "azurerm_cdn_frontdoor_origin" "example" {
+  name                                  = "example-origin"
+  cdn_frontdoor_profile_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+
+  health_probes_enabled          = true
+  certificate_name_check_enabled = false
+
+  host_name          = "contoso.com"
+  http_port          = 80
+  https_port         = 443
+  origin_host_header = "www.contoso.com"
+  priority           = 1
+  weight             = 1
+}
+
 resource "azurerm_frontdoor_endpoint" "example" {
   name                     = "example-endpoint"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id

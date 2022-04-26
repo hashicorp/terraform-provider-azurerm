@@ -108,11 +108,11 @@ The following arguments are supported:
 
 * `cdn_frontdoor_origin_group_id` - (Required) The ID of the Frontdoor Origin Group. Changing this forces a new Frontdoor Origin Group to be created.
 
-* `host_name` - (Required) The address of the origin. Domain names, IPv4 addresses, and IPv6 addresses are supported. This should be unique across all Frontdoor Origins in an Frontdoor Endpoints.
+* `host_name` - (Required) The address of the origin. Domain names, IPv4 addresses, and IPv6 addresses are supported. This should be unique across all Frontdoor Origins in a Frontdoor Endpoint.
 
 * `cdn_frontdoor_origin_id` - (Optional) Resource ID.
 
-* `health_probes_enabled` - (Optional) Are health probes enabled against backends defined under the backendPools? Health probes can only be disabled if there is a single enabled backend in single enabled backend pool. Possible values are `true` or `false`. Defaults to `true`.
+* `health_probes_enabled` - (Optional) Are health probes enabled against origins defined under the origin group? Health probes can only be disabled if there is a single enabled origin in single enabled origin group. Possible values are `true` or `false`. Defaults to `true`.
 
 * `certificate_name_check_enabled` - (Optional) Whether to enable certificate name check at origin level. Possible values are `true` or `false`. Defaults to `false`.
 
@@ -124,9 +124,11 @@ The following arguments are supported:
 
 * `https_port` - (Optional) The value of the HTTPS port. Must be between `1` and `65535`. Defaults to `443`.
 
-* `origin_host_header` - (Optional) The host header value sent to the origin with each request. Possible values include an `IPv4` IP address, `IPv6` IP address or a valid `domain name`. If you leave field undefined, the requests hostname determines this value. Azure Frontdoor Origins, such as Web Apps, Blob Storage, and Cloud Services require this host header value to match the origins hostname. This fields value overrides the host header defined in the Frontdoor Endpoint. For more information on how to properly set the origin host header value please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/origin?pivots=front-door-standard-premium#origin-host-header).
+* `origin_host_header` - (Optional) The host header value sent to the origin with each request. Possible values include an `IPv4` IP address, `IPv6` IP address or a valid `domain name`. If you leave field undefined, the request's hostname determines this value. Azure Frontdoor Origins, such as Web Apps, Blob Storage, and Cloud Services require this host header value to match the origin's hostname. This field's value overrides the host header defined in the Frontdoor Endpoint. For more information on how to properly set the origin host header value please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/origin?pivots=front-door-standard-premium#origin-host-header).
 
-* `priority` - (Optional) Priority of origin in given origin group for load balancing. Higher priorities will not be used for load balancing if any lower priority origin is healthy.Must be between `1` and `5`(inclusive). Defaults to `1`.
+* `priority` - (Optional) Priority of origin in given origin group for load balancing. Higher priorities will not be used for load balancing if any lower priority origin is healthy. Must be between `1` and `5`(inclusive). Defaults to `1`.
+
+* `weight` - (Optional) The weight of the origin in a given origin group for load balancing. Must be between `1` and `1000`. Defaults to `500`.
 
 ---
 

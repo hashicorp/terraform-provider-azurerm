@@ -28,7 +28,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
   cdn_cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
   session_affinity_enabled     = true
 
-  restore_traffic_or_new_endpoints_after_minutes = 10
+  restore_traffic_time_to_healed_or_new_endpoint_in_minutes = 10
 
   health_probe {
     interval_in_seconds = 240
@@ -59,9 +59,9 @@ The following arguments are supported:
 
 * `session_affinity_enabled` - (Optional) Whether to allow session affinity on this host. Possible values are `true` or `false`. Defaults to `true`.
 
-* `restore_traffic_or_new_endpoints_after_minutes` - (Optional) Time in minutes to shift the traffic to another endpoint when an healthy endpoint becomes unhealthy or a new endpoint is added. Default is `10` minutes.
+* `restore_traffic_time_to_healed_or_new_endpoint_in_minutes` - (Optional) Time in minutes to shift the traffic to the endpoint gradually when an unhealthy endpoint becomes healthy or a new endpoint is added. Default is `10` minutes.
 
-~> **NOTE:** This property is currently not used, but will be in the near future.
+~> **NOTE:** This property is currently not supported.
 
 ---
 
