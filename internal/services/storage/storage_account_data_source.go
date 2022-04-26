@@ -8,7 +8,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -33,9 +34,9 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				ValidateFunc: validate.StorageAccountName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"account_kind": {
 				Type:     pluginsdk.TypeString,
@@ -81,12 +82,17 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"allow_blob_public_access": {
+			"allow_nested_items_to_be_public": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
 			"is_hns_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"nfsv3_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -320,10 +326,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	accountKeys := keys.Keys
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("account_kind", resp.Kind)
 
 	if sku := resp.Sku; sku != nil {
@@ -336,7 +339,8 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("min_tls_version", string(props.MinimumTLSVersion))
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
-		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
+		d.Set("nfsv3_enabled", props.EnableNfsV3)
+		d.Set("allow_nested_items_to_be_public", props.AllowBlobPublicAccess)
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
@@ -348,7 +352,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("primary_location", props.PrimaryLocation)
 		d.Set("secondary_location", props.SecondaryLocation)
 
-		if accessKeys := accountKeys; accessKeys != nil {
+		if accessKeys := keys.Keys; accessKeys != nil {
 			storageAccessKeys := *accessKeys
 			if len(storageAccessKeys) > 0 {
 				pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccessKeys[0].Value, endpointSuffix)
@@ -365,7 +369,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
-		if accessKeys := accountKeys; accessKeys != nil {
+		if accessKeys := keys.Keys; accessKeys != nil {
 			var primaryBlobConnectStr string
 			if v := props.PrimaryEndpoints; v != nil {
 				primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, (*accessKeys)[0].Value)
@@ -377,7 +381,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting secondary endpoints and hosts for blob, queue, table: %+v", err)
 		}
 
-		if accessKeys := accountKeys; accessKeys != nil {
+		if accessKeys := keys.Keys; accessKeys != nil {
 			var secondaryBlobConnectStr string
 			if v := props.SecondaryEndpoints; v != nil {
 				secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, (*accessKeys)[1].Value)
@@ -402,14 +406,14 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("table_encryption_key_type", tableEncryptionKeyType)
 		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
 
-		infrastructure_encryption := false
+		infrastructureEncryption := false
 		if encryption := props.Encryption; encryption != nil && encryption.RequireInfrastructureEncryption != nil {
-			infrastructure_encryption = *encryption.RequireInfrastructureEncryption
+			infrastructureEncryption = *encryption.RequireInfrastructureEncryption
 		}
-		d.Set("infrastructure_encryption_enabled", infrastructure_encryption)
+		d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
 	}
 
-	if accessKeys := accountKeys; accessKeys != nil {
+	if accessKeys := keys.Keys; accessKeys != nil {
 		storageAccountKeys := *accessKeys
 		d.Set("primary_access_key", storageAccountKeys[0].Value)
 		d.Set("secondary_access_key", storageAccountKeys[1].Value)

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
@@ -65,7 +65,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*plugi
 			ValidateFunc: validate.ValidateMsSqlFailoverGroupName,
 		},
 
-		"location": location.Schema(),
+		"location": commonschema.Location(),
 
 		"managed_instance_id": {
 			Type:         pluginsdk.TypeString,
@@ -120,7 +120,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Attributes() map[string]*plug
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"location": location.SchemaComputed(),
+					"location": commonschema.LocationComputed(),
 
 					"role": {
 						Type:     pluginsdk.TypeString,

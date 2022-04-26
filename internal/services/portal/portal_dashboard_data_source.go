@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
@@ -29,8 +30,8 @@ func dataSourcePortalDashboard() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: validate.DashboardName,
 			},
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-			"location":            azure.SchemaLocationForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+			"location":            commonschema.LocationComputed(),
 			"dashboard_properties": {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
@@ -63,9 +64,7 @@ func dataSourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	props, jsonErr := json.Marshal(resp.DashboardProperties)
 	if jsonErr != nil {

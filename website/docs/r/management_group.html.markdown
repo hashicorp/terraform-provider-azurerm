@@ -43,8 +43,6 @@ The following arguments are supported:
 
 * `name` - (Optional) The name or UUID for this Management Group, which needs to be unique across your tenant. A new UUID will be generated if not provided. Changing this forces a new resource to be created.
 
-* `group_id` - (Optional) The name or UUID for this Management Group, which needs to be unique across your tenant. A new UUID will be generated if not provided. Changing this forces a new resource to be created.
-
 * `display_name` - (Optional) A friendly name for this Management Group. If not specified, this will be the same as the `name`.
 
 * `parent_management_group_id` - (Optional) The ID of the Parent Management Group. Changing this forces a new resource to be created.

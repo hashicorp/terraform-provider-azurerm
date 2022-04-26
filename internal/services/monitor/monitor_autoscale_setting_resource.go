@@ -143,7 +143,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 														string(insights.MetricStatisticTypeMax),
 														string(insights.MetricStatisticTypeMin),
 														string(insights.MetricStatisticTypeSum),
-													}, !features.ThreePointOh()),
+													}, !features.ThreePointOhBeta()),
 													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 												},
 												"time_window": {
@@ -161,7 +161,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 														string(insights.TimeAggregationTypeMinimum),
 														string(insights.TimeAggregationTypeTotal),
 														string(insights.TimeAggregationTypeLast),
-													}, !features.ThreePointOh()),
+													}, !features.ThreePointOhBeta()),
 													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 												},
 												"operator": {
@@ -174,7 +174,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 														string(insights.ComparisonOperationTypeLessThan),
 														string(insights.ComparisonOperationTypeLessThanOrEqual),
 														string(insights.ComparisonOperationTypeNotEquals),
-													}, !features.ThreePointOh()),
+													}, !features.ThreePointOhBeta()),
 													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 												},
 												"threshold": {
@@ -239,7 +239,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.ScaleDirectionDecrease),
 														string(insights.ScaleDirectionIncrease),
-													}, !features.ThreePointOh()),
+													}, !features.ThreePointOhBeta()),
 													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 												},
 												"type": {
@@ -250,7 +250,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 														string(insights.ScaleTypeExactCount),
 														string(insights.ScaleTypePercentChangeCount),
 														string(insights.ScaleTypeServiceAllowedNextValue),
-													}, !features.ThreePointOh()),
+													}, !features.ThreePointOhBeta()),
 													DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 												},
 												"value": {
@@ -319,7 +319,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 												"Friday",
 												"Saturday",
 												"Sunday",
-											}, !features.ThreePointOh()),
+											}, !features.ThreePointOhBeta()),
 											DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 										},
 									},

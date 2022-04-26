@@ -37,22 +37,17 @@ resource "azurerm_servicebus_namespace" "test" {
   sku                 = "Standard"
 }
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name         = "acctestservicebustopic-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 resource "azurerm_servicebus_subscription" "test" {
-  name                = "acctestservicebussubscription-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  max_delivery_count  = 10
+  name               = "acctestservicebussubscription-%d"
+  topic_id           = azurerm_servicebus_topic.test.id
+  max_delivery_count = 10
 }
 data "azurerm_servicebus_subscription" "test" {
-  name                = azurerm_servicebus_subscription.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  topic_name          = azurerm_servicebus_topic.test.name
+  name     = azurerm_servicebus_subscription.test.name
+  topic_id = azurerm_servicebus_topic.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

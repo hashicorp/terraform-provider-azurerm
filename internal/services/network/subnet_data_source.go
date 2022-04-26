@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -34,7 +34,7 @@ func dataSourceSubnet() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"address_prefix": {
 				Type:     pluginsdk.TypeString,
@@ -125,7 +125,8 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		d.Set("route_table_id", routeTableId)
 
-		if err := d.Set("service_endpoints", flattenSubnetServiceEndpoints(props.ServiceEndpoints)); err != nil {
+		serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
+		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
 			return fmt.Errorf("setting `service_endpoints`: %+v", err)
 		}
 	}

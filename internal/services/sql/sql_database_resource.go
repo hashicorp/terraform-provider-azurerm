@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,6 +30,8 @@ func resourceSqlDatabase() *pluginsdk.Resource {
 		Read:   resourceSqlDatabaseRead,
 		Update: resourceSqlDatabaseCreateUpdate,
 		Delete: resourceSqlDatabaseDelete,
+
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_sql_database` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_database` resource instead."),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DatabaseID(id)
@@ -87,11 +88,7 @@ func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
 	createMode := sql.CreateMode(d.Get("create_mode").(string))
-	if createMode == sql.CreateModeOnlineSecondary && len(auditingPolicies) > 0 {
-		return fmt.Errorf("auditing policies are not supported on an online secondary for %s", id)
-	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
@@ -209,16 +206,6 @@ func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("setting database threat detection policy: %+v", err)
 	}
 
-	if createMode != sql.CreateModeOnlineSecondary {
-		auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
-		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{
-			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlDBBlobAuditingPolicies(auditingPolicies),
-		}
-		if _, err = auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, auditingProps); err != nil {
-			return fmt.Errorf("setting Blob Auditing Policies for %s: %+v", id, err)
-		}
-	}
-
 	return resourceSqlDatabaseRead(d, meta)
 }
 
@@ -249,12 +236,6 @@ func resourceSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if err := d.Set("threat_detection_policy", flattenArmSqlServerThreatDetectionPolicy(d, threat)); err != nil {
 			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
 		}
-	}
-
-	auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -295,11 +276,6 @@ func resourceSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("encryption", flattenEncryptionStatus(props.TransparentDataEncryption))
 		d.Set("read_scale", props.ReadScale == sql.ReadScaleEnabled)
 		d.Set("zone_redundant", props.ZoneRedundant)
-	}
-
-	flattenBlobAuditing := helper.FlattenAzureRmSqlDBBlobAuditingPolicies(&auditingResp, d)
-	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
-		return fmt.Errorf("failure in setting `extended_auditing_policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -498,7 +474,7 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 				string(sql.CreateModeRecovery),
 				string(sql.CreateModeRestore),
 				string(sql.CreateModeRestoreLongTermRetentionBackup),
-			}, !features.ThreePointOh()),
+			}, !features.ThreePointOhBeta()),
 		},
 
 		"import": {
@@ -523,7 +499,7 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice([]string{
 							"StorageAccessKey",
 							"SharedAccessKey",
-						}, !features.ThreePointOh()),
+						}, !features.ThreePointOhBeta()),
 					},
 					"administrator_login": {
 						Type:     pluginsdk.TypeString,
@@ -541,7 +517,7 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice([]string{
 							"ADPassword",
 							"SQL",
-						}, !features.ThreePointOh()),
+						}, !features.ThreePointOhBeta()),
 					},
 					"operation_mode": {
 						Type:             pluginsdk.TypeString,
@@ -550,7 +526,7 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Import",
-						}, !features.ThreePointOh()),
+						}, !features.ThreePointOhBeta()),
 					},
 				},
 			},
@@ -589,7 +565,7 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 				string(sql.System),
 				string(sql.System2),
 				string(sql.Web),
-			}, !features.ThreePointOh()),
+			}, !features.ThreePointOhBeta()),
 		},
 
 		"collation": {
@@ -674,7 +650,7 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 								"Sql_Injection",
 								"Sql_Injection_Vulnerability",
 								"Access_Anomaly",
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 					},
@@ -687,7 +663,7 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice([]string{
 							string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
 							string(sql.SecurityAlertPolicyEmailAccountAdminsEnabled),
-						}, !features.ThreePointOh()),
+						}, !features.ThreePointOhBeta()),
 					},
 
 					"email_addresses": {
@@ -714,7 +690,7 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 							string(sql.SecurityAlertPolicyStateDisabled),
 							string(sql.SecurityAlertPolicyStateEnabled),
 							string(sql.SecurityAlertPolicyStateNew),
-						}, !features.ThreePointOh()),
+						}, !features.ThreePointOhBeta()),
 					},
 
 					"storage_account_access_key": {
@@ -744,8 +720,6 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"extended_auditing_policy": helper.ExtendedAuditingSchema(),
-
 		"tags": tags.Schema(),
 	}
 
@@ -759,7 +733,7 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
 				string(sql.SecurityAlertPolicyUseServerDefaultEnabled),
-			}, !features.ThreePointOh()),
+			}, !features.ThreePointOhBeta()),
 			Deprecated: "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
 		}
 	}

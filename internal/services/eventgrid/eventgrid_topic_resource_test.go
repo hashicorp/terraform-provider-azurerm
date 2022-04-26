@@ -195,9 +195,6 @@ func (EventGridTopicResource) Exists(ctx context.Context, clients *clients.Clien
 }
 
 func (EventGridTopicResource) basic(data acceptance.TestData) string {
-	// TODO: confirm if this is still the case
-	// currently only supported in "West Central US" & "West US 2"
-	location := "westus2"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -213,7 +210,7 @@ resource "azurerm_eventgrid_topic" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, location, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (EventGridTopicResource) update(data acceptance.TestData) string {
@@ -224,7 +221,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  location = "westus2"
+  location = "%s"
 }
 
 resource "azurerm_eventgrid_topic" "test" {
@@ -233,7 +230,7 @@ resource "azurerm_eventgrid_topic" "test" {
   resource_group_name = azurerm_resource_group.test.name
   local_auth_enabled  = false
 }
-`, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (EventGridTopicResource) requiresImport(data acceptance.TestData) string {
@@ -254,10 +251,12 @@ func (EventGridTopicResource) mapping(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_eventgrid_topic" "test" {
   name                = "acctesteg-%d"
   location            = azurerm_resource_group.test.location

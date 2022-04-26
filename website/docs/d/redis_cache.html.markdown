@@ -34,7 +34,7 @@ output "hostname" {
 
 * `resource_group_name` - The name of the resource group the Redis cache instance is located in.
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The Cache ID.
 
@@ -69,6 +69,8 @@ output "hostname" {
 * `secondary_connection_string` - The secondary connection string of the Redis Instance.
 
 * `redis_configuration` - A `redis_configuration` block as defined below.
+
+* `zones` - A list of Availability Zones in which this Redis Cache is located.
 
 ---
 

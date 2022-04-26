@@ -542,6 +542,10 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				existing.Identity = expandedIdentity
 			}
 
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				existing.KeyVaultReferenceIdentity = utils.String(state.KeyVaultReferenceIdentityID)
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}

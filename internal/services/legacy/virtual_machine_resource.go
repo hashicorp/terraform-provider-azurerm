@@ -11,7 +11,7 @@ import (
 
 	compute2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -34,7 +34,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// TODO move into internal/tf/suppress/base64.go
 func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	return userDataStateFunc(old) == new
 }
@@ -174,7 +173,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"Windows_Client",
 					"Windows_Server",
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"vm_size": {
@@ -240,7 +239,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.OperatingSystemTypesLinux),
 								string(compute.OperatingSystemTypesWindows),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
@@ -276,7 +275,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 								string(compute.StorageAccountTypesPremiumLRS),
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
@@ -351,7 +350,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
 								string(compute.StorageAccountTypesUltraSSDLRS),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
@@ -476,7 +475,6 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
-						// TODO 4.0: change this from enable_* to *_enabled
 						"enable_automatic_upgrades": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -500,7 +498,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											"HTTP",
 											"HTTPS",
-										}, !features.ThreePointOh()),
+										}, !features.ThreePointOhBeta()),
 										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 									},
 									"certificate_url": {
@@ -515,7 +513,6 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									// TODO: should we make `pass` and `component` Optional + Defaulted?
 									"pass": {
 										Type:     pluginsdk.TypeString,
 										Required: true,

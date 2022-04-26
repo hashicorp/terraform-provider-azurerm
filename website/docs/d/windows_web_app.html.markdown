@@ -10,8 +10,6 @@ description: |-
 
 Use this data source to access information about an existing Windows Web App.
 
-!> **Note:** This Data Source is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -129,7 +127,7 @@ An `application_stack` block exports the following:
 
 * `docker_container_tag` - The Docker Container Tag of the Container in use.
 
-* `dotnet_version` - The version of .Net in use.
+* `dotnet_version` - The version of .NET in use.
 
 * `java_container` - The Java Container in use.
 

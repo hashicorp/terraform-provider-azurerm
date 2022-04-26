@@ -25,9 +25,8 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_id     = azurerm_data_factory.example.id
+  name            = "example"
+  data_factory_id = azurerm_data_factory.example.id
 }
 ```
 
@@ -35,17 +34,9 @@ resource "azurerm_data_factory_integration_runtime_self_hosted" "example" {
 
 The following arguments are supported:
 
-* `data_factory_id` - (Optional) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
-
-* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
-
--> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
-
--> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `name` - (Required) The name which should be used for this Data Factory. Changing this forces a new Data Factory Self-hosted Integration Runtime to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Data Factory should exist. Changing this forces a new Data Factory Self-hosted Integration Runtime to be created.
 
 ---
 
@@ -69,9 +60,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Data Factory.
 
-* `auth_key_1` - The primary integration runtime authentication key.
+* `primary_authorization_key` - The primary integration runtime authentication key.
 
-* `auth_key_2` - The secondary integration runtime authentication key.
+* `secondary_authorization_key` - The secondary integration runtime authentication key.
 
 ## Timeouts
 

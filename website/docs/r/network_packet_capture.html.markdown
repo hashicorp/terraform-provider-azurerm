@@ -146,7 +146,7 @@ The following arguments are supported:
 
 A `storage_location` block contains:
 
-* `file_path` - (Optional) A valid local path on the targeting VM. Must include the name of the capture file (*.cap). For linux virtual machine it must start with `/var/captures`.
+* `file_path` - (Optional) A valid local path on the targeting VM. Must include the name of the capture file (*.cap). For Linux virtual machine it must start with `/var/captures`.
 
 * `storage_account_id` - (Optional) The ID of the storage account to save the packet capture session
 

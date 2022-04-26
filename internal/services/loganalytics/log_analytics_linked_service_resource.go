@@ -144,7 +144,6 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 	resourceGroup := d.Get("resource_group_name").(string)
 	readAccess := d.Get("read_access_id").(string)
 	writeAccess := d.Get("write_access_id").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	if !features.ThreePointOhBeta() {
 		if resourceId := d.Get("resource_id").(string); resourceId != "" {
@@ -199,7 +198,6 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 
 	parameters := operationalinsights.LinkedService{
 		LinkedServiceProperties: &operationalinsights.LinkedServiceProperties{},
-		Tags:                    tags.Expand(t),
 	}
 
 	if id.LinkedServiceName == "Automation" {
@@ -267,7 +265,7 @@ func resourceLogAnalyticsLinkedServiceRead(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceLogAnalyticsLinkedServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -345,8 +343,6 @@ func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
-		"tags": tags.Schema(),
 	}
 
 	if !features.ThreePointOhBeta() {
@@ -395,6 +391,7 @@ func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
 			Deprecated: "This field has been deprecated and will be removed in a future version of the provider",
 		}
 
+		out["tags"] = tags.SchemaDeprecatedUnsupported()
 	} else {
 		out["workspace_id"] = &pluginsdk.Schema{
 			Type:             pluginsdk.TypeString,

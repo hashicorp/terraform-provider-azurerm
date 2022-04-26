@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,9 +30,9 @@ func dataSourceExpressRouteCircuit() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"peerings": {
 				Type:     pluginsdk.TypeList,
@@ -140,9 +141,7 @@ func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface
 
 	d.SetId(id.ID())
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if properties := resp.ExpressRouteCircuitPropertiesFormat; properties != nil {
 		peerings := flattenExpressRouteCircuitPeerings(properties.Peerings)
@@ -160,11 +159,9 @@ func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if resp.Sku != nil {
-		sku := flattenExpressRouteCircuitSku(resp.Sku)
-		if err := d.Set("sku", sku); err != nil {
-			return fmt.Errorf("setting `sku`: %+v", err)
-		}
+	sku := flattenExpressRouteCircuitSku(resp.Sku)
+	if err := d.Set("sku", sku); err != nil {
+		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
 	return nil

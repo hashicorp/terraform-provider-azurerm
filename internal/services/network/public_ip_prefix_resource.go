@@ -7,13 +7,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -81,7 +81,7 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(network.IPVersionIPv4),
 						string(network.IPVersionIPv6),
-					}, !features.ThreePointOh()),
+					}, !features.ThreePointOhBeta()),
 				},
 
 				"ip_prefix": {
@@ -112,7 +112,6 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 						"Zone-Redundant",
 					}, false),
 				}
-				// TODO - 3.0 make Computed only
 				s["zones"] = &pluginsdk.Schema{
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -182,7 +181,6 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	} else {
 		zones := &[]string{"1", "2"}
-		// TODO - Remove in 3.0
 		if deprecatedZonesRaw, ok := d.GetOk("zones"); ok {
 			deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
 			if deprecatedZones != nil {

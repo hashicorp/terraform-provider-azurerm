@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `geo_redundant_backup_enabled` - The geo redundant backup setting for this MySQL Server.
 
-* `identity` - An `identity` block for this MySQL server as defined below. 
+* `identity` - An `identity` block as defined below. 
 
 * `infrastructure_encryption_enabled` - Whether or not infrastructure is encrypted for this MySQL Server.
 
@@ -70,12 +70,12 @@ The following arguments are supported:
 ---
 
 An `identity` block exports the following:
-   
-* `type` -  The Type of Identity used for this MySQL Server.
 
-* `principal_id` - The Client ID of the Service Principal assigned to this MySQL Server.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+* `type` - The identity type of this Managed Service Identity.
 ---
 
 A `threat_detection_policy` block exports the following:

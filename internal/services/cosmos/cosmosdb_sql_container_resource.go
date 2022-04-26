@@ -1,6 +1,7 @@
 package cosmos
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -27,8 +28,10 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 		Update: resourceCosmosDbSQLContainerUpdate,
 		Delete: resourceCosmosDbSQLContainerDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.SqlContainerID(id)
+			return err
+		}),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -124,6 +127,13 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			},
 			"indexing_policy": common.CosmosDbIndexingPolicySchema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// The analytical_storage_ttl cannot be changed back once enabled on an existing container. -> we need ForceNew
+			pluginsdk.ForceNewIfChange("analytical_storage_ttl", func(ctx context.Context, old, new, _ interface{}) bool {
+				return (old.(int) == -1 || old.(int) > 0) && new.(int) == 0
+			}),
+		),
 	}
 }
 

@@ -8,7 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -30,6 +29,8 @@ func resourceAppService() *pluginsdk.Resource {
 		Read:   resourceAppServiceRead,
 		Update: resourceAppServiceUpdate,
 		Delete: resourceAppServiceDelete,
+
+		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_app_service` resource has been superseded by the `azurerm_linux_web_app` and `azurerm_windows_web_app` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider."),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AppServiceID(id)
@@ -122,8 +123,8 @@ func resourceAppService() *pluginsdk.Resource {
 								string(web.ConnectionStringTypeServiceBus),
 								string(web.ConnectionStringTypeSQLAzure),
 								string(web.ConnectionStringTypeSQLServer),
-							}, !features.ThreePointOh()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"value": {
@@ -141,13 +142,7 @@ func resourceAppService() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"identity": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return schemaAppServiceIdentity()
-				}
-
-				return commonschema.SystemAssignedUserAssignedIdentityOptional()
-			}(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"https_only": {
 				Type:     pluginsdk.TypeBool,
@@ -602,7 +597,7 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		siteEnvelope.Identity = appServiceIdentity
+		site.Identity = appServiceIdentity
 		site.SiteConfig = siteConfig
 
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, site)

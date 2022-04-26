@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `authorization` - (Optional) One or more `authorization` block defined below.
 
-* `create_ui_definition` - (Optional) Specifies the `createUiDefinition` json for the backing template with `Microsoft.Solutions/applications` resource.
+* `create_ui_definition` - (Optional) Specifies the `createUiDefinition` JSON for the backing template with `Microsoft.Solutions/applications` resource.
 
 * `display_name` - (Optional) Specifies the managed application definition display name.
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `package_enabled` - (Optional) Is the package enabled? Defaults to `true`.
 
-* `main_template` - (Optional) Specifies the inline main template json which has resources to be provisioned.
+* `main_template` - (Optional) Specifies the inline main template JSON which has resources to be provisioned.
 
 * `package_file_uri` - (Optional) Specifies the managed application definition package file Uri.
 

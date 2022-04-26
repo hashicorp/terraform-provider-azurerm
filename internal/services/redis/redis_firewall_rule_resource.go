@@ -106,8 +106,6 @@ func resourceRedisFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("creating Firewall Rule %q (Redis Cache %q / Resource Group %q): %+v", resourceId.Name, resourceId.RediName, resourceId.ResourceGroup, err)
 	}
 
-	// TODO: confirm if we need to re-add the poller here
-
 	d.SetId(resourceId.ID())
 	return resourceRedisFirewallRuleRead(d, meta)
 }

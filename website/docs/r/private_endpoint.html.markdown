@@ -175,7 +175,7 @@ A `private_service_connection` supports the following:
 | Resource Type                 | SubResource Name | Secondary SubResource Name |
 | ----------------------------- | ---------------- | -------------------------- |
 | Data Lake File System Gen2    | dfs              | dfs_secondary              |
-| Sql Database / Data Warehouse | sqlServer        |                            |
+| SQL Database / Data Warehouse | sqlServer        |                            |
 | SQL Managed Instance          | managedInstance  |                            |
 | Storage Account               | blob             | blob_secondary             |
 | Storage Account               | file             | file_secondary             |

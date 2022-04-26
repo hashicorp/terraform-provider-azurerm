@@ -70,7 +70,7 @@ func resourceArmLoadBalancerNatPool() *pluginsdk.Resource {
 					string(network.TransportProtocolAll),
 					string(network.TransportProtocolTCP),
 					string(network.TransportProtocolUDP),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 			},
 
 			"frontend_port_start": {

@@ -86,7 +86,7 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(media.StorageAuthenticationSystem),
 					string(media.StorageAuthenticationManagedIdentity),
-				}, !features.ThreePointOh()),
+				}, !features.ThreePointOhBeta()),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -103,7 +103,7 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(media.DefaultActionDeny),
 								string(media.DefaultActionAllow),
-							}, !features.ThreePointOh()),
+							}, !features.ThreePointOhBeta()),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 

@@ -38,9 +38,9 @@ The following attributes are exported:
 
 * `location` - The Azure location where the Azure Firewall exists.
 
-* `sku_name` - The sku name of the Azure Firewall.
+* `sku_name` - The SKU name of the Azure Firewall.
 
-* `sku_tier` - The sku tier of the Azure Firewall.
+* `sku_tier` - The SKU tier of the Azure Firewall.
 
 * `firewall_policy_id` - The ID of the Firewall Policy applied to the Azure Firewall.
 
@@ -54,7 +54,7 @@ The following attributes are exported:
 
 * `virtual_hub` - A `virtual_hub` block as defined below.
 
-* `zones` - The availability zones in which the Azure Firewall is created.
+* `zones` - A list of Availability Zones in which this Azure Firewall is located.
 
 * `tags` - A mapping of tags assigned to the Azure Firewall.
 

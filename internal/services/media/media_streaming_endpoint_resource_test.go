@@ -76,6 +76,21 @@ func TestAccMediaStreamingEndpoint_shouldStopWhenStarted(t *testing.T) {
 	})
 }
 
+func TestAccMediaStreamingEndpoint_standard(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
+	r := MediaStreamingEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standard(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("scale_units").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r MediaStreamingEndpointResource) Start(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	id, err := parse.StreamingEndpointID(state.ID)
 	if err != nil {
@@ -171,6 +186,19 @@ resource "azurerm_media_streaming_endpoint" "test" {
   }
   max_cache_age_seconds = 60
 
+}
+`, r.template(data))
+}
+
+func (r MediaStreamingEndpointResource) standard(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_media_streaming_endpoint" "test" {
+  name                        = "endpoint1"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  media_services_account_name = azurerm_media_services_account.test.name
+  scale_units                 = 0
 }
 `, r.template(data))
 }
