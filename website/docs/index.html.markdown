@@ -23,7 +23,8 @@ Terraform supports a number of different methods for authenticating to Azure:
 * [Authenticating to Azure using Managed Service Identity](guides/managed_service_identity.html)
 * [Authenticating to Azure using a Service Principal and a Client Certificate](guides/service_principal_client_certificate.html)
 * [Authenticating to Azure using a Service Principal and a Client Secret](guides/service_principal_client_secret.html)
-* [Authenticating to Azure using Open ID Connect](guides/service_principal_oidc.html)
+* [Authenticating to Azure using OpenID Connect](guides/service_principal_oidc.html)
+
 ---
 
 We recommend using either a Service Principal or Managed Service Identity when running Terraform non-interactively (such as when running Terraform in a CI server) - and authenticating using the Azure CLI when running Terraform locally.
@@ -131,11 +132,11 @@ More information on [how to configure a Service Principal using a Client Secret 
 
 When authenticating as a Service Principal using Open ID Connect, the following fields can be set:
 
-* `id_token_request_token` - (Optional) The ID Token Request Token which should be used. This can also be sourced from the `ARM_ID_TOKEN_REQUEST_TOKEN` Environment Variable.
+* `oidc_request_token` - (Optional) The bearer token for the request to the OIDC provider. This can also be sourced from the `ARM_OIDC_REQUEST_TOKEN` or `ACTIONS_ID_TOKEN_REQUEST_TOKEN` Environment Variables.
 
-* `id_token_request_token` - (Optional) The ID Token Request URL which should be used. This can also be sourced from the `ARM_ID_TOKEN_REQUEST_URL` Environment Variable.
+* `oidc_request_token` - (Optional) The URL for the OIDC provider from which to request an ID token. This can also be sourced from the `ARM_OIDC_REQUEST_URL` or `ACTIONS_ID_TOKEN_REQUEST_TOKEN` Environment Variables.
 
-More information on [how to configure a Service Principal using Open ID Connect can be found in this guide](guides/service_principal_oidc.html).
+More information on [how to configure a Service Principal using OpenID Connect can be found in this guide](guides/service_principal_oidc.html).
 
 ---
 

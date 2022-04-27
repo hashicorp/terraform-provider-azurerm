@@ -1,8 +1,8 @@
 ---
 layout: "azurerm"
-page_title: "Azure Provider: Authenticating via a Service Principal and Open ID Connect"
+page_title: "Azure Provider: Authenticating via a Service Principal and OpenID Connect"
 description: |-
-  This guide will cover how to use a Service Principal (Shared Account) with Open ID Connect as authentication for the Azure Provider.
+  This guide will cover how to use a Service Principal (Shared Account) with OpenID Connect as authentication for the Azure Provider.
 ---
 
 # Azure Provider: Authenticating using a Service Principal with Open ID Connect
@@ -13,16 +13,17 @@ Terraform supports a number of different methods for authenticating to Azure:
 * [Authenticating to Azure using Managed Service Identity](managed_service_identity.html)
 * [Authenticating to Azure using a Service Principal and a Client Certificate](service_principal_client_certificate.html)
 * [Authenticating to Azure using a Service Principal and a Client Secret](service_principal_client_secret.html)
-* Authenticating to Azure using a Service Principal and Open ID Connect (which is covered in this guide)
+* Authenticating to Azure using a Service Principal and OpenID Connect (which is covered in this guide)
+
 ---
 
 We recommend using either a Service Principal or Managed Service Identity when running Terraform non-interactively (such as when running Terraform in a CI server) - and authenticating using the Azure CLI when running Terraform locally.
 
 ## Setting up an Application and Service Principal
 
-A Service Principal is a security principal within Azure Active Directory which can be granted access to resources within Azure Subscriptions. To authenticate with a Service Principal, you will need to create an Application object within Azure Active Directory, which you will use as a means of authentication, either [using a Client Secret](service_principal_client_secret.html), [a Client Certificate](service_principal_client_certificate.html), or Open ID Connect (which is documented in this guide). This can be done using the Azure Portal.
+A Service Principal is a security principal within Azure Active Directory which can be granted access to resources within Azure Subscriptions. To authenticate with a Service Principal, you will need to create an Application object within Azure Active Directory, which you will use as a means of authentication, either [using a Client Secret](service_principal_client_secret.html), [a Client Certificate](service_principal_client_certificate.html), or OpenID Connect (which is documented in this guide). This can be done using the Azure Portal.
 
-This guide will cover how to create an Application and linked Service Principal, and then how to assign federated credentials to the Application so that it can be used for authentication via Open ID Connect. Once that's done finally we're going to grant the Service Principal permission to manage resources in the Subscription - to do this we're going to assign `Contributor` rights to the Subscription - however, [it's possible to assign other permissions](https://azure.microsoft.com/en-gb/documentation/articles/role-based-access-built-in-roles/) depending on your configuration.
+This guide will cover how to create an Application and linked Service Principal, and then how to assign federated identity credentials to the Application so that it can be used for authentication via OpenID Connect. Once that's done finally we're going to grant the Service Principal permission to manage resources in the Subscription - to do this we're going to assign `Contributor` rights to the Subscription - however, [it's possible to assign other permissions](https://azure.microsoft.com/en-gb/documentation/articles/role-based-access-built-in-roles/) depending on your configuration.
 
 ### Creating the Application and Service Principal
 
@@ -39,6 +40,8 @@ At the top of this page, you'll need to take note of the "Application (client) I
 ### Configure Azure Active Directory Application to Trust a GitHub Repository
 
 An application will need a federated credential specified for each GitHub Environment, Branch Name, Pull Request, or Tag based on your use case. For this example, we'll give permission to `main` branch workflow runs.
+
+-> **Tip:** You can also configure the Application using the [azuread_application](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/application) and [azuread_application_federated_identity_credential](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/application_federated_identity_credential) resources in the AzureAD Terraform Provider.
 
 #### Via the Portal
 
@@ -73,7 +76,7 @@ Where the body is:
 }
 ```
 
-You can read more on the setup [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/workload-identity-federation-create-trust-github?tabs=azure-portal)
+See the [official documentation](https://docs.microsoft.com/en-us/azure/active-directory/develop/workload-identity-federation-create-trust-github) for more details.
 
 ### Granting the Application access to manage resources in your Azure Subscription
 
@@ -91,17 +94,13 @@ When storing the credentials as Environment Variables, for example:
 
 ```bash
 $ export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
-$ export ARM_ID_TOKEN_REQUEST_TOKEN="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-$ export ARM_ID_TOKEN_REQUEST_URL="https://xxxxxxxx"
 $ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
 $ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
-The `ARM_ID_TOKEN_REQUEST_TOKEN` and `ARM_ID_TOKEN_REQUEST_URL` will vary based on the platform requestring access.
+The provider will detect the `ACTIONS_ID_TOKEN_REQUEST_URL` and `ACTIONS_ID_TOKEN_REQUEST_TOKEN` environment variables set by GitHub. You can also specify the `ARM_OIDC_REQUEST_TOKEN` and `ARM_OIDC_REQUEST_URL` environment variables.
 
-For GitHub Actions workflows, You can take the environment variables `ACTIONS_ID_TOKEN_REQUEST_TOKEN` and `ACTIONS_ID_TOKEN_REQUEST_URL` set during a GitHub Actions workflow run and assign their values to `ARM_ID_TOKEN_REQUEST_TOKEN` and `ARM_ID_TOKEN_REQUEST_URL` respectifully.
-
-Additionally, for GitHub Actions workflows, you'll need to ensure the workflow has `write` permissions for the `id-token`.
+For GitHub Actions workflows, you'll need to ensure the workflow has `write` permissions for the `id-token`.
 
 ```yaml
 permissions:
@@ -109,9 +108,9 @@ permissions:
   contents: read
 ```
 
-For more about OIDC in GitHub Actions, you can read more [here](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-cloud-providers).
+For more information about OIDC in GitHub Actions, see [official documentation](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-cloud-providers).
 
-The following Terraform and Provider blocks can be specified - where `3.0.0` is the version of the Azure Provider that you'd like to use:
+The following Terraform and Provider blocks can be specified - where `3.6.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
 # We strongly recommend using the required_providers block to set the
@@ -120,7 +119,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=3.6.0"
     }
   }
 }
@@ -131,19 +130,21 @@ provider "azurerm" {
 }
 ```
 
+-> **Note:** Support for OpenID Connect was added in version 3.6.0 of the Terraform AzureRM provider.
+
 More information on [the fields supported in the Provider block can be found here](../index.html#argument-reference).
 
 At this point running either `terraform plan` or `terraform apply` should allow Terraform to run using the Service Principal to authenticate.
 
 ---
 
-It's also possible to configure these variables either in-line or from using variables in Terraform (as the `id_token_request_token` and `id_token_request_url` are in this example), like so:
+It's also possible to configure these variables either in-line or from using variables in Terraform (as the `oidc_request_token` and `oidc_request_url` are in this example), like so:
 
 ~> **NOTE:** We'd recommend not defining these variables in-line since they could easily be checked into Source Control.
 
 ```hcl
-variable "id_token_request_token" {}
-variable "id_token_request_url" {}
+variable "oidc_request_token" {}
+variable "oidc_request_url" {}
 
 # We strongly recommend using the required_providers block to set the
 # Azure Provider source and version being used
@@ -151,7 +152,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=3.6.0"
     }
   }
 }
@@ -162,8 +163,8 @@ provider "azurerm" {
 
   subscription_id        = "00000000-0000-0000-0000-000000000000"
   client_id              = "00000000-0000-0000-0000-000000000000"
-  id_token_request_token = var.id_token_request_token
-  id_token_request_url   = var.id_token_request_url
+  oidc_request_token = var.oidc_request_token
+  oidc_request_url   = var.oidc_request_url
   tenant_id              = "00000000-0000-0000-0000-000000000000"
 }
 ```
