@@ -181,7 +181,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "The URL for the OIDC provider from which to request an ID token. For use When authenticating as a Service Principal using OpenID Connect.",
 			},
 
- 			"use_oidc": {
+			"use_oidc": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_OIDC", false),
