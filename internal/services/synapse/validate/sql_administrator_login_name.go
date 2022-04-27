@@ -16,7 +16,6 @@ func SqlAdministratorLoginName(i interface{}, k string) (warnings []string, erro
 	// 1. can contain only letters, numbers, or dashes.
 	// 2. must start with letter
 	// 3. The value must be between 1 and 128 characters long
-	
 
 	if !regexp.MustCompile(`^[a-zA-Z][a-zA-Z\d-]{0,127}$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%s can contain only letters, numbers, or dashes, must start with a letter, The value must be between 1 and 128 characters long", k))
