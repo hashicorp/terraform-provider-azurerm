@@ -161,11 +161,11 @@ terraform {
 provider "azurerm" {
   features {}
 
-  subscription_id        = "00000000-0000-0000-0000-000000000000"
-  client_id              = "00000000-0000-0000-0000-000000000000"
+  subscription_id    = "00000000-0000-0000-0000-000000000000"
+  client_id          = "00000000-0000-0000-0000-000000000000"
   oidc_request_token = var.oidc_request_token
   oidc_request_url   = var.oidc_request_url
-  tenant_id              = "00000000-0000-0000-0000-000000000000"
+  tenant_id          = "00000000-0000-0000-0000-000000000000"
 }
 ```
 
