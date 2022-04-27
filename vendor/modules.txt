@@ -389,7 +389,7 @@ github.com/sergi/go-diff/diffmatchpatch
 # github.com/shopspring/decimal v1.2.0
 ## explicit; go 1.13
 github.com/shopspring/decimal
-# github.com/tombuildsstuff/giovanni v0.19.0
+# github.com/tombuildsstuff/giovanni v0.19.0 => ../giovanni
 ## explicit; go 1.13
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs
@@ -600,3 +600,4 @@ google.golang.org/protobuf/types/known/timestamppb
 # gopkg.in/yaml.v2 v2.3.0
 ## explicit
 gopkg.in/yaml.v2
+# github.com/tombuildsstuff/giovanni => ../giovanni

@@ -469,6 +469,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"logging": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -500,6 +501,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"hour_metrics": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -527,6 +529,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"minute_metrics": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -2461,10 +2464,27 @@ func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties
 			CorsRule: []queues.CorsRule{},
 		},
 		HourMetrics: &queues.MetricsConfig{
+			Version: "1.0",
 			Enabled: false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
 		},
 		MinuteMetrics: &queues.MetricsConfig{
+			Version: "1.0",
 			Enabled: false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
+		},
+		Logging: &queues.LoggingConfig{
+			Version: "1.0",
+			Delete:  false,
+			Read:    false,
+			Write:   false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
 		},
 	}
 	if len(input) == 0 {
@@ -2489,7 +2509,13 @@ func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties
 
 func expandQueuePropertiesMetrics(input []interface{}) (*queues.MetricsConfig, error) {
 	if len(input) == 0 {
-		return &queues.MetricsConfig{}, nil
+		return &queues.MetricsConfig{
+			Version: "1.0",
+			Enabled: false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
+		}, nil
 	}
 
 	metricsAttr := input[0].(map[string]interface{})
@@ -2522,7 +2548,15 @@ func expandQueuePropertiesMetrics(input []interface{}) (*queues.MetricsConfig, e
 
 func expandQueuePropertiesLogging(input []interface{}) *queues.LoggingConfig {
 	if len(input) == 0 {
-		return &queues.LoggingConfig{}
+		return &queues.LoggingConfig{
+			Version: "1.0",
+			Delete:  false,
+			Read:    false,
+			Write:   false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
+		}
 	}
 
 	loggingAttr := input[0].(map[string]interface{})

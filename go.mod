@@ -91,4 +91,6 @@ require (
 	google.golang.org/protobuf v1.27.1 // indirect
 )
 
+replace github.com/tombuildsstuff/giovanni => ../giovanni
+
 go 1.18
