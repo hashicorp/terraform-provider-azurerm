@@ -3,8 +3,8 @@ package client
 import (
 	cdnSdk "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
 	cdnFrontDoorSdk "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	legacyfrontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/legacysdk/2020-11-01"
 )
 
 type Client struct {
@@ -18,7 +18,7 @@ type Client struct {
 	FrontdoorProfileClient          *cdnFrontDoorSdk.ProfilesClient
 	FrontdoorSecretsClient          *cdnFrontDoorSdk.SecretsClient
 	FrontdoorRuleSetsClient         *cdnFrontDoorSdk.RuleSetsClient
-	FrontdoorLegacyPoliciesClient   *legacyfrontdoor.PoliciesClient
+	FrontdoorLegacyPoliciesClient   *frontdoor.PoliciesClient
 	CustomDomainsClient             *cdnSdk.CustomDomainsClient
 	EndpointsClient                 *cdnSdk.EndpointsClient
 	ProfilesClient                  *cdnSdk.ProfilesClient
@@ -40,7 +40,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	frontdoorPolicySecurityPoliciesClient := cdnFrontDoorSdk.NewSecurityPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontdoorPolicySecurityPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	frontdoorLegacyPoliciesClient := legacyfrontdoor.NewPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	frontdoorLegacyPoliciesClient := frontdoor.NewPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontdoorLegacyPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	frontdoorRoutesClient := cdnFrontDoorSdk.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

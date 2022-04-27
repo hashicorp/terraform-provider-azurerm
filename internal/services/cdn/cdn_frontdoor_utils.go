@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	legacyfrontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/legacysdk/2020-11-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -112,7 +112,7 @@ func flattenResourceReference(input *cdn.ResourceReference) string {
 	return result
 }
 
-func flattenTransformSlice(input *[]legacyfrontdoor.TransformType) []interface{} {
+func flattenTransformSlice(input *[]frontdoor.TransformType) []interface{} {
 	result := make([]interface{}, 0)
 
 	if input != nil {
@@ -123,7 +123,7 @@ func flattenTransformSlice(input *[]legacyfrontdoor.TransformType) []interface{}
 	return result
 }
 
-func flattenFrontendEndpointLinkSlice(input *[]legacyfrontdoor.FrontendEndpointLink) []interface{} {
+func flattenFrontendEndpointLinkSlice(input *[]frontdoor.FrontendEndpointLink) []interface{} {
 	result := make([]interface{}, 0)
 
 	if input != nil {
