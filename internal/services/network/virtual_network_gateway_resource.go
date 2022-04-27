@@ -659,13 +659,11 @@ func expandVirtualNetworkGatewayBgpSettings(id parse.VirtualNetworkGatewayId, d 
 		return nil, err
 	}
 
-	bgpSettings := &network.BgpSettings{
+	return &network.BgpSettings{
 		Asn:                 &asn,
 		PeerWeight:          &peerWeight,
 		BgpPeeringAddresses: peeringAddresses,
-	}
-
-	return bgpSettings, nil
+	}, nil
 }
 
 func expandVirtualNetworkGatewayBgpPeeringAddresses(id parse.VirtualNetworkGatewayId, ipConfig, input []interface{}) (*[]network.IPConfigurationBgpPeeringAddress, error) {
