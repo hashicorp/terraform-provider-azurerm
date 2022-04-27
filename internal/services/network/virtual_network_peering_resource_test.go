@@ -223,9 +223,9 @@ resource "azurerm_virtual_network_peering" "test1" {
   virtual_network_name         = azurerm_virtual_network.test1.name
   remote_virtual_network_id    = azurerm_virtual_network.test2.id
   allow_virtual_network_access = true
-	triggers = {
-		remote_address_space = join(",", azurerm_virtual_network.test2.address_space)
-	}
+  triggers = {
+    remote_address_space = join(",", azurerm_virtual_network.test2.address_space)
+  }
 }
 
 resource "azurerm_virtual_network_peering" "test2" {
@@ -234,9 +234,9 @@ resource "azurerm_virtual_network_peering" "test2" {
   virtual_network_name         = azurerm_virtual_network.test2.name
   remote_virtual_network_id    = azurerm_virtual_network.test1.id
   allow_virtual_network_access = true
-	triggers = {
-		remote_address_space = join(",", azurerm_virtual_network.test1.address_space)
-	}
+  triggers = {
+    remote_address_space = join(",", azurerm_virtual_network.test1.address_space)
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
