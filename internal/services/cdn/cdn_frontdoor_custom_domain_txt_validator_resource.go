@@ -6,10 +6,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	dnsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/parse"
 	dnsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/validate"
@@ -160,7 +160,7 @@ func resourceCdnFrontdoorCustomDomainTxtValidatorDelete(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func cdnFrontdoorCustomDomainTxtRefreshFunc(ctx context.Context, client *track1.AFDCustomDomainsClient, id *parse.FrontdoorCustomDomainId) pluginsdk.StateRefreshFunc {
+func cdnFrontdoorCustomDomainTxtRefreshFunc(ctx context.Context, client *cdn.AFDCustomDomainsClient, id *parse.FrontdoorCustomDomainId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if CDN Frontdoor Custom Domain %q (Resource Group: %q) is available...", id.CustomDomainName, id.ResourceGroup)
 
@@ -174,7 +174,7 @@ func cdnFrontdoorCustomDomainTxtRefreshFunc(ctx context.Context, client *track1.
 			return nil, "", fmt.Errorf("polling for the Domain Validation State of the CDN Frontdoor Custom Domain %q (Resource Group: %q): %+v", id.CustomDomainName, id.ResourceGroup, err)
 		}
 
-		state := track1.DomainValidationStateUnknown
+		state := cdn.DomainValidationStateUnknown
 		if props := resp.AFDDomainProperties; props != nil {
 			// 'DomainValidationStateUnknown', 'DomainValidationStateSubmitting', 'DomainValidationStatePending',
 			// 'DomainValidationStateRejected', 'DomainValidationStateTimedOut', '',
@@ -185,13 +185,13 @@ func cdnFrontdoorCustomDomainTxtRefreshFunc(ctx context.Context, client *track1.
 			}
 		}
 
-		if state == track1.DomainValidationStateRejected || state == track1.DomainValidationStateTimedOut || state == track1.DomainValidationStateInternalError {
+		if state == cdn.DomainValidationStateRejected || state == cdn.DomainValidationStateTimedOut || state == cdn.DomainValidationStateInternalError {
 			log.Printf("[DEBUG] CDN Frontdoor Custom Domain %q (Resource Group: %q) returned a fatal Domain Validation State: %q", id.CustomDomainName, id.ResourceGroup, state)
 			return nil, string(state), fmt.Errorf("the Domain Validation State returned a fatal validation state(%q)", string(state))
 		}
 
 		// not sure what to do here since they regenerated the DNS TXT record value or the cert expired (e.g. PendingRevalidation)...
-		if state == track1.DomainValidationStateRefreshingValidationToken || state == track1.DomainValidationStatePendingRevalidation {
+		if state == cdn.DomainValidationStateRefreshingValidationToken || state == cdn.DomainValidationStatePendingRevalidation {
 			log.Printf("[DEBUG] CDN Frontdoor Custom Domain %q (Resource Group: %q) validation token has changed (Domain Validation State: %q)", id.CustomDomainName, id.ResourceGroup, string(state))
 			return nil, string(state), fmt.Errorf("the Domain Validation State returned a unrecoverable validation state(%q)", string(state))
 		}

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	legacyfrontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/legacysdk/2020-11-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -43,30 +43,30 @@ func ConvertCdnFrontdoorTagsToTagsFlatten(tagMap map[string]*string) *map[string
 	return &t
 }
 
-func ConvertBoolToEnabledState(isEnabled bool) track1.EnabledState {
-	out := track1.EnabledStateDisabled
+func ConvertBoolToEnabledState(isEnabled bool) cdn.EnabledState {
+	out := cdn.EnabledStateDisabled
 
 	if isEnabled {
-		out = track1.EnabledStateEnabled
+		out = cdn.EnabledStateEnabled
 	}
 
 	return out
 }
 
-func ConvertEnabledStateToBool(enabledState *track1.EnabledState) bool {
+func ConvertEnabledStateToBool(enabledState *cdn.EnabledState) bool {
 	if enabledState == nil {
 		return false
 	}
 
-	return (*enabledState == track1.EnabledStateEnabled)
+	return (*enabledState == cdn.EnabledStateEnabled)
 }
 
-func expandResourceReference(input string) *track1.ResourceReference {
+func expandResourceReference(input string) *cdn.ResourceReference {
 	if len(input) == 0 {
 		return nil
 	}
 
-	return &track1.ResourceReference{
+	return &cdn.ResourceReference{
 		ID: utils.String(input),
 	}
 }
@@ -99,7 +99,7 @@ func FlattenCsvToStringSlice(input *string) []interface{} {
 	return results
 }
 
-func flattenResourceReference(input *track1.ResourceReference) string {
+func flattenResourceReference(input *cdn.ResourceReference) string {
 	result := ""
 	if input == nil {
 		return result
@@ -138,40 +138,40 @@ func flattenFrontendEndpointLinkSlice(input *[]legacyfrontdoor.FrontendEndpointL
 	return result
 }
 
-func ConvertBoolToRouteHttpsRedirect(isEnabled bool) track1.HTTPSRedirect {
-	out := track1.HTTPSRedirectDisabled
+func ConvertBoolToRouteHttpsRedirect(isEnabled bool) cdn.HTTPSRedirect {
+	out := cdn.HTTPSRedirectDisabled
 
 	if isEnabled {
-		out = track1.HTTPSRedirectEnabled
+		out = cdn.HTTPSRedirectEnabled
 	}
 
 	return out
 }
 
-func ConvertRouteHttpsRedirectToBool(httpsRedirect *track1.HTTPSRedirect) bool {
+func ConvertRouteHttpsRedirectToBool(httpsRedirect *cdn.HTTPSRedirect) bool {
 	if httpsRedirect == nil {
 		return false
 	}
 
-	return (*httpsRedirect == track1.HTTPSRedirectEnabled)
+	return (*httpsRedirect == cdn.HTTPSRedirectEnabled)
 }
 
-func ConvertBoolToRouteLinkToDefaultDomain(isLinked bool) track1.LinkToDefaultDomain {
-	out := track1.LinkToDefaultDomainDisabled
+func ConvertBoolToRouteLinkToDefaultDomain(isLinked bool) cdn.LinkToDefaultDomain {
+	out := cdn.LinkToDefaultDomainDisabled
 
 	if isLinked {
-		out = track1.LinkToDefaultDomainEnabled
+		out = cdn.LinkToDefaultDomainEnabled
 	}
 
 	return out
 }
 
-func ConvertRouteLinkToDefaultDomainToBool(linkToDefaultDomain *track1.LinkToDefaultDomain) bool {
+func ConvertRouteLinkToDefaultDomainToBool(linkToDefaultDomain *cdn.LinkToDefaultDomain) bool {
 	if linkToDefaultDomain == nil {
 		return false
 	}
 
-	return (*linkToDefaultDomain == track1.LinkToDefaultDomainEnabled)
+	return (*linkToDefaultDomain == cdn.LinkToDefaultDomainEnabled)
 }
 
 func IsValidDomain(i interface{}, k string) (warnings []string, errors []error) {
@@ -367,7 +367,7 @@ func validCdnFrontdoorContentTypes() []string {
 	}
 }
 
-func validateActionsBlock(actions []track1.BasicDeliveryRuleAction) error {
+func validateActionsBlock(actions []cdn.BasicDeliveryRuleAction) error {
 	routeConfigurationOverride := false
 	responseHeader := false
 	requestHeader := false
@@ -424,16 +424,16 @@ func SchemaCdnFrontdoorOperator() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeString,
 		Required: true,
 		ValidateFunc: validation.StringInSlice([]string{
-			string(track1.OperatorAny),
-			string(track1.OperatorEqual),
-			string(track1.OperatorContains),
-			string(track1.OperatorBeginsWith),
-			string(track1.OperatorEndsWith),
-			string(track1.OperatorLessThan),
-			string(track1.OperatorLessThanOrEqual),
-			string(track1.OperatorGreaterThan),
-			string(track1.OperatorGreaterThanOrEqual),
-			string(track1.OperatorRegEx),
+			string(cdn.OperatorAny),
+			string(cdn.OperatorEqual),
+			string(cdn.OperatorContains),
+			string(cdn.OperatorBeginsWith),
+			string(cdn.OperatorEndsWith),
+			string(cdn.OperatorLessThan),
+			string(cdn.OperatorLessThanOrEqual),
+			string(cdn.OperatorGreaterThan),
+			string(cdn.OperatorGreaterThanOrEqual),
+			string(cdn.OperatorRegEx),
 		}, false),
 	}
 }
@@ -442,9 +442,9 @@ func SchemaCdnFrontdoorOperatorEqualOnly() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
-		Default:  string(track1.OperatorEqual),
+		Default:  string(cdn.OperatorEqual),
 		ValidateFunc: validation.StringInSlice([]string{
-			string(track1.OperatorEqual),
+			string(cdn.OperatorEqual),
 		}, false),
 	}
 }
@@ -453,11 +453,11 @@ func SchemaCdnFrontdoorOperatorRemoteAddress() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
-		Default:  string(track1.OperatorIPMatch),
+		Default:  string(cdn.OperatorIPMatch),
 		ValidateFunc: validation.StringInSlice([]string{
-			string(track1.OperatorAny),
-			string(track1.OperatorIPMatch),
-			string(track1.OperatorGeoMatch),
+			string(cdn.OperatorAny),
+			string(cdn.OperatorIPMatch),
+			string(cdn.OperatorGeoMatch),
 		}, false),
 	}
 }
@@ -466,10 +466,10 @@ func SchemaCdnFrontdoorOperatorSocketAddress() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
-		Default:  string(track1.OperatorIPMatch),
+		Default:  string(cdn.OperatorIPMatch),
 		ValidateFunc: validation.StringInSlice([]string{
-			string(track1.OperatorAny),
-			string(track1.OperatorIPMatch),
+			string(cdn.OperatorAny),
+			string(cdn.OperatorIPMatch),
 		}, false),
 	}
 }
@@ -521,11 +521,11 @@ func SchemaCdnFrontdoorSslProtocolMatchValues() *pluginsdk.Schema {
 
 		Elem: &pluginsdk.Schema{
 			Type:    pluginsdk.TypeString,
-			Default: string(track1.SslProtocolTLSv12),
+			Default: string(cdn.SslProtocolTLSv12),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(track1.SslProtocolTLSv1),
-				string(track1.SslProtocolTLSv11),
-				string(track1.SslProtocolTLSv12),
+				string(cdn.SslProtocolTLSv1),
+				string(cdn.SslProtocolTLSv11),
+				string(cdn.SslProtocolTLSv12),
 			}, false),
 		},
 	}
@@ -638,14 +638,14 @@ func SchemaCdnFrontdoorRuleTransforms() *pluginsdk.Schema {
 
 		Elem: &pluginsdk.Schema{
 			Type:    pluginsdk.TypeString,
-			Default: string(track1.TransformLowercase),
+			Default: string(cdn.TransformLowercase),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(track1.TransformLowercase),
-				string(track1.TransformRemoveNulls),
-				string(track1.TransformTrim),
-				string(track1.TransformUppercase),
-				string(track1.TransformURLDecode),
-				string(track1.TransformURLEncode),
+				string(cdn.TransformLowercase),
+				string(cdn.TransformRemoveNulls),
+				string(cdn.TransformTrim),
+				string(cdn.TransformUppercase),
+				string(cdn.TransformURLDecode),
+				string(cdn.TransformURLEncode),
 			}, false),
 		},
 	}

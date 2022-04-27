@@ -9,13 +9,12 @@ package cdn
 import (
 	"context"
 	"encoding/json"
-	"net/http"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
+	"net/http"
 )
 
 // The package's fully qualified name.
@@ -11044,9 +11043,9 @@ type RouteProperties struct {
 // MarshalJSON is the custom marshaler for RouteProperties.
 func (rp RouteProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-
-	objectMap["customDomains"] = rp.CustomDomains
-
+	if rp.CustomDomains != nil {
+		objectMap["customDomains"] = rp.CustomDomains
+	}
 	if rp.OriginGroup != nil {
 		objectMap["originGroup"] = rp.OriginGroup
 	}
@@ -11062,9 +11061,9 @@ func (rp RouteProperties) MarshalJSON() ([]byte, error) {
 	if rp.PatternsToMatch != nil {
 		objectMap["patternsToMatch"] = rp.PatternsToMatch
 	}
-
-	objectMap["cacheConfiguration"] = rp.CacheConfiguration
-
+	if rp.CacheConfiguration != nil {
+		objectMap["cacheConfiguration"] = rp.CacheConfiguration
+	}
 	if rp.ForwardingProtocol != "" {
 		objectMap["forwardingProtocol"] = rp.ForwardingProtocol
 	}
@@ -11269,9 +11268,9 @@ type RouteUpdatePropertiesParameters struct {
 // MarshalJSON is the custom marshaler for RouteUpdatePropertiesParameters.
 func (rupp RouteUpdatePropertiesParameters) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-
-	objectMap["customDomains"] = rupp.CustomDomains
-
+	if rupp.CustomDomains != nil {
+		objectMap["customDomains"] = rupp.CustomDomains
+	}
 	if rupp.OriginGroup != nil {
 		objectMap["originGroup"] = rupp.OriginGroup
 	}
@@ -11287,9 +11286,9 @@ func (rupp RouteUpdatePropertiesParameters) MarshalJSON() ([]byte, error) {
 	if rupp.PatternsToMatch != nil {
 		objectMap["patternsToMatch"] = rupp.PatternsToMatch
 	}
-
-	objectMap["cacheConfiguration"] = rupp.CacheConfiguration
-
+	if rupp.CacheConfiguration != nil {
+		objectMap["cacheConfiguration"] = rupp.CacheConfiguration
+	}
 	if rupp.ForwardingProtocol != "" {
 		objectMap["forwardingProtocol"] = rupp.ForwardingProtocol
 	}

@@ -2,14 +2,14 @@ package cdn
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -91,12 +91,12 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 						"query_string_caching_behavior": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(track1.AfdQueryStringCachingBehaviorIgnoreQueryString),
+							Default:  string(cdn.AfdQueryStringCachingBehaviorIgnoreQueryString),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(track1.AfdQueryStringCachingBehaviorIgnoreQueryString),
-								string(track1.AfdQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings),
-								string(track1.AfdQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
-								string(track1.AfdQueryStringCachingBehaviorUseQueryString),
+								string(cdn.AfdQueryStringCachingBehaviorIgnoreQueryString),
+								string(cdn.AfdQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings),
+								string(cdn.AfdQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
+								string(cdn.AfdQueryStringCachingBehaviorUseQueryString),
 							}, false),
 						},
 
@@ -128,11 +128,11 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 			"forwarding_protocol": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(track1.ForwardingProtocolMatchRequest),
+				Default:  string(cdn.ForwardingProtocolMatchRequest),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(track1.ForwardingProtocolHTTPOnly),
-					string(track1.ForwardingProtocolHTTPSOnly),
-					string(track1.ForwardingProtocolMatchRequest),
+					string(cdn.ForwardingProtocolHTTPOnly),
+					string(cdn.ForwardingProtocolHTTPSOnly),
+					string(cdn.ForwardingProtocolMatchRequest),
 				}, false),
 			},
 
@@ -189,8 +189,8 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(track1.AFDEndpointProtocolsHTTP),
-						string(track1.AFDEndpointProtocolsHTTPS),
+						string(cdn.AFDEndpointProtocolsHTTP),
+						string(cdn.AFDEndpointProtocolsHTTPS),
 					}, false),
 				},
 			},
@@ -235,7 +235,7 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := parse.NewFrontdoorRouteID(afdEndpointId.SubscriptionId, afdEndpointId.ResourceGroup, afdEndpointId.ProfileName, afdEndpointId.AfdEndpointName, d.Get("name").(string))
 
-	var existing track1.Route
+	var existing cdn.Route
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
@@ -262,17 +262,17 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	isLinked := d.Get("link_to_default_domain_enabled").(bool)
 
-	var customDomains *[]track1.ActivatedResourceReference
+	var customDomains *[]cdn.ActivatedResourceReference
 	if routeProps := existing.RouteProperties; routeProps != nil {
 		customDomains = routeProps.CustomDomains
 	}
 
-	props := track1.Route{
-		RouteProperties: &track1.RouteProperties{
+	props := cdn.Route{
+		RouteProperties: &cdn.RouteProperties{
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}), customDomains),
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
-			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
+			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect_enabled").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(isLinked),
 			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
@@ -389,17 +389,17 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving existing %s during update: %+v", id, err)
 	}
 
-	var customDomains *[]track1.ActivatedResourceReference
+	var customDomains *[]cdn.ActivatedResourceReference
 	if routeProps := existing.RouteProperties; routeProps != nil {
 		customDomains = routeProps.CustomDomains
 	}
 
-	props := track1.RouteUpdateParameters{
-		RouteUpdatePropertiesParameters: &track1.RouteUpdatePropertiesParameters{
+	props := azuresdkhacks.RouteUpdateParameters{
+		RouteUpdatePropertiesParameters: &azuresdkhacks.RouteUpdatePropertiesParameters{
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}), customDomains),
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache").([]interface{})),
 			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
-			ForwardingProtocol:  track1.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
+			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect_enabled").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain_enabled").(bool)),
 			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
@@ -450,25 +450,25 @@ func resourceCdnFrontdoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandRouteAFDEndpointProtocolsArray(input []interface{}) *[]track1.AFDEndpointProtocols {
-	results := make([]track1.AFDEndpointProtocols, 0)
+func expandRouteAFDEndpointProtocolsArray(input []interface{}) *[]cdn.AFDEndpointProtocols {
+	results := make([]cdn.AFDEndpointProtocols, 0)
 
 	for _, item := range input {
-		results = append(results, track1.AFDEndpointProtocols(item.(string)))
+		results = append(results, cdn.AFDEndpointProtocols(item.(string)))
 	}
 
 	return &results
 }
 
-func expandRouteResourceReferenceArray(input []interface{}) *[]track1.ResourceReference {
+func expandRouteResourceReferenceArray(input []interface{}) *[]cdn.ResourceReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	results := make([]track1.ResourceReference, 0)
+	results := make([]cdn.ResourceReference, 0)
 
 	for _, item := range input {
-		results = append(results, track1.ResourceReference{
+		results = append(results, cdn.ResourceReference{
 			ID: utils.String(item.(string)),
 		})
 	}
@@ -476,22 +476,22 @@ func expandRouteResourceReferenceArray(input []interface{}) *[]track1.ResourceRe
 	return &results
 }
 
-func expandRouteAfdRouteCacheConfiguration(input []interface{}) *track1.AfdRouteCacheConfiguration {
+func expandRouteAfdRouteCacheConfiguration(input []interface{}) *cdn.AfdRouteCacheConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
 
-	queryStringCachingBehaviorValue := track1.AfdQueryStringCachingBehavior(v["query_string_caching_behavior"].(string))
+	queryStringCachingBehaviorValue := cdn.AfdQueryStringCachingBehavior(v["query_string_caching_behavior"].(string))
 	comprssionEnabled := v["compression_enabled"].(bool)
 
-	cacheConfiguration := &track1.AfdRouteCacheConfiguration{
+	cacheConfiguration := &cdn.AfdRouteCacheConfiguration{
 		QueryParameters:            ExpandStringSliceToCsvFormat(v["query_strings"].([]interface{})),
 		QueryStringCachingBehavior: queryStringCachingBehaviorValue,
 	}
 
-	compressionSettings := &track1.CompressionSettings{}
+	compressionSettings := &cdn.CompressionSettings{}
 	compressionSettings.IsCompressionEnabled = utils.Bool(comprssionEnabled)
 
 	if contentTypes := v["content_types_to_compress"].([]interface{}); len(contentTypes) > 0 {
@@ -503,8 +503,8 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *track1.AfdRoute
 	return cacheConfiguration
 }
 
-func expandRouteActivatedResourceReferenceArray(input []interface{}, customDomains *[]track1.ActivatedResourceReference) *[]track1.ActivatedResourceReference {
-	results := make([]track1.ActivatedResourceReference, 0)
+func expandRouteActivatedResourceReferenceArray(input []interface{}, customDomains *[]cdn.ActivatedResourceReference) *[]cdn.ActivatedResourceReference {
+	results := make([]cdn.ActivatedResourceReference, 0)
 	if len(input) == 0 {
 		// I had to modify the SDK to allow for nil which in the API means disassociate the custom domains
 		return nil
@@ -518,7 +518,7 @@ func expandRouteActivatedResourceReferenceArray(input []interface{}, customDomai
 			for _, item := range *customDomains {
 				if strings.EqualFold(*item.ID, id) {
 					inRoute = true
-					results = append(results, track1.ActivatedResourceReference{
+					results = append(results, cdn.ActivatedResourceReference{
 						ID: utils.String(id),
 					})
 				}
@@ -527,7 +527,7 @@ func expandRouteActivatedResourceReferenceArray(input []interface{}, customDomai
 
 		// Adding the custom domain association
 		if !inRoute {
-			results = append(results, track1.ActivatedResourceReference{
+			results = append(results, cdn.ActivatedResourceReference{
 				ID: utils.String(id),
 			})
 		}
@@ -536,7 +536,7 @@ func expandRouteActivatedResourceReferenceArray(input []interface{}, customDomai
 	return &results
 }
 
-func flattenRouteActivatedResourceReferenceArray(input []interface{}, inputs *[]track1.ActivatedResourceReference) ([]interface{}, []interface{}) {
+func flattenRouteActivatedResourceReferenceArray(input []interface{}, inputs *[]cdn.ActivatedResourceReference) ([]interface{}, []interface{}) {
 	computeResults := make([]interface{}, 0)
 	fieldResults := make([]interface{}, 0)
 
@@ -560,7 +560,7 @@ func flattenRouteActivatedResourceReferenceArray(input []interface{}, inputs *[]
 	return fieldResults, computeResults
 }
 
-func flattenRouteResourceReferenceArry(input *[]track1.ResourceReference) []interface{} {
+func flattenRouteResourceReferenceArry(input *[]cdn.ResourceReference) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -575,7 +575,7 @@ func flattenRouteResourceReferenceArry(input *[]track1.ResourceReference) []inte
 	return results
 }
 
-func flattenRouteAFDEndpointProtocolsArray(input *[]track1.AFDEndpointProtocols) []interface{} {
+func flattenRouteAFDEndpointProtocolsArray(input *[]cdn.AFDEndpointProtocols) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -588,7 +588,7 @@ func flattenRouteAFDEndpointProtocolsArray(input *[]track1.AFDEndpointProtocols)
 	return results
 }
 
-func flattenFrontdoorRouteCacheConfiguration(input *track1.AfdRouteCacheConfiguration) []interface{} {
+func flattenFrontdoorRouteCacheConfiguration(input *cdn.AfdRouteCacheConfiguration) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

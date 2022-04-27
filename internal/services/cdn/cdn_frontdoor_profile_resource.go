@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -63,10 +62,10 @@ func resourceCdnFrontdoorProfile() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				ForceNew: true,
 				Optional: true,
-				Default:  string(track1.SkuNameStandardAzureFrontDoor),
+				Default:  string(cdn.SkuNameStandardAzureFrontDoor),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(track1.SkuNamePremiumAzureFrontDoor),
-					string(track1.SkuNameStandardAzureFrontDoor),
+					string(cdn.SkuNamePremiumAzureFrontDoor),
+					string(cdn.SkuNameStandardAzureFrontDoor),
 				}, false),
 			},
 
@@ -99,9 +98,9 @@ func resourceCdnFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 	// Can only be Global for all Frontdoors
 	location := azure.NormalizeLocation("global")
 
-	props := track1.Profile{
+	props := cdn.Profile{
 		Location: utils.String(location),
-		ProfileProperties: &track1.ProfileProperties{
+		ProfileProperties: &cdn.ProfileProperties{
 			OriginResponseTimeoutSeconds: utils.Int32(int32(d.Get("response_timeout_seconds").(int))),
 		},
 		Sku:  expandProfileSku(d.Get("sku_name").(string)),
@@ -170,7 +169,7 @@ func resourceCdnFrontdoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	props := track1.ProfileUpdateParameters{
+	props := cdn.ProfileUpdateParameters{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -208,17 +207,17 @@ func resourceCdnFrontdoorProfileDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandProfileSku(input string) *track1.Sku {
+func expandProfileSku(input string) *cdn.Sku {
 	if len(input) == 0 || input == "" {
 		return nil
 	}
 
-	return &track1.Sku{
-		Name: track1.SkuName(input),
+	return &cdn.Sku{
+		Name: cdn.SkuName(input),
 	}
 }
 
-func flattenProfileSku(input *track1.Sku) string {
+func flattenProfileSku(input *cdn.Sku) string {
 	result := ""
 	if input == nil {
 		return result

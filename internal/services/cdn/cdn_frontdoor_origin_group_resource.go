@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -73,22 +73,22 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 						"protocol": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(track1.ProbeProtocolHTTP),
+							Default:  string(cdn.ProbeProtocolHTTP),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(track1.ProbeProtocolHTTP),
-								string(track1.ProbeProtocolHTTPS),
-								string(track1.ProbeProtocolNotSet),
+								string(cdn.ProbeProtocolHTTP),
+								string(cdn.ProbeProtocolHTTPS),
+								string(cdn.ProbeProtocolNotSet),
 							}, false),
 						},
 
 						"request_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(track1.HealthProbeRequestTypeHEAD),
+							Default:  string(cdn.HealthProbeRequestTypeHEAD),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(track1.HealthProbeRequestTypeGET),
-								string(track1.HealthProbeRequestTypeHEAD),
-								string(track1.HealthProbeRequestTypeNotSet),
+								string(cdn.HealthProbeRequestTypeGET),
+								string(cdn.HealthProbeRequestTypeHEAD),
+								string(cdn.HealthProbeRequestTypeNotSet),
 							}, false),
 						},
 					},
@@ -173,8 +173,8 @@ func resourceCdnFrontdoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
-	props := track1.AFDOriginGroup{
-		AFDOriginGroupProperties: &track1.AFDOriginGroupProperties{
+	props := cdn.AFDOriginGroup{
+		AFDOriginGroupProperties: &cdn.AFDOriginGroupProperties{
 			HealthProbeSettings:   expandCdnFrontdoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
 			LoadBalancingSettings: expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
 			SessionAffinityState:  ConvertBoolToEnabledState(d.Get("session_affinity_enabled").(bool)),
@@ -245,8 +245,8 @@ func resourceCdnFrontdoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	props := track1.AFDOriginGroupUpdateParameters{
-		AFDOriginGroupUpdatePropertiesParameters: &track1.AFDOriginGroupUpdatePropertiesParameters{
+	props := cdn.AFDOriginGroupUpdateParameters{
+		AFDOriginGroupUpdatePropertiesParameters: &cdn.AFDOriginGroupUpdatePropertiesParameters{
 			HealthProbeSettings:   expandCdnFrontdoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
 			LoadBalancingSettings: expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
 			SessionAffinityState:  ConvertBoolToEnabledState(d.Get("session_affinity_enabled").(bool)),
@@ -287,16 +287,16 @@ func resourceCdnFrontdoorOriginGroupDelete(d *pluginsdk.ResourceData, meta inter
 	return err
 }
 
-func expandCdnFrontdoorOriginGroupHealthProbeParameters(input []interface{}) *track1.HealthProbeParameters {
+func expandCdnFrontdoorOriginGroupHealthProbeParameters(input []interface{}) *cdn.HealthProbeParameters {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
 
-	probeProtocolValue := track1.ProbeProtocol(v["protocol"].(string))
-	probeRequestTypeValue := track1.HealthProbeRequestType(v["request_type"].(string))
-	return &track1.HealthProbeParameters{
+	probeProtocolValue := cdn.ProbeProtocol(v["protocol"].(string))
+	probeRequestTypeValue := cdn.HealthProbeRequestType(v["request_type"].(string))
+	return &cdn.HealthProbeParameters{
 		ProbeIntervalInSeconds: utils.Int32(int32(v["interval_in_seconds"].(int))),
 		ProbePath:              utils.String(v["path"].(string)),
 		ProbeProtocol:          probeProtocolValue,
@@ -304,21 +304,21 @@ func expandCdnFrontdoorOriginGroupHealthProbeParameters(input []interface{}) *tr
 	}
 }
 
-func expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input []interface{}) *track1.LoadBalancingSettingsParameters {
+func expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input []interface{}) *cdn.LoadBalancingSettingsParameters {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
 
-	return &track1.LoadBalancingSettingsParameters{
+	return &cdn.LoadBalancingSettingsParameters{
 		AdditionalLatencyInMilliseconds: utils.Int32(int32(v["additional_latency_in_milliseconds"].(int))),
 		SampleSize:                      utils.Int32(int32(v["sample_count"].(int))),
 		SuccessfulSamplesRequired:       utils.Int32(int32(v["successful_samples_required"].(int))),
 	}
 }
 
-func flattenCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input *track1.LoadBalancingSettingsParameters) []interface{} {
+func flattenCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input *cdn.LoadBalancingSettingsParameters) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -340,7 +340,7 @@ func flattenCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input *track1
 	return append(results, result)
 }
 
-func flattenCdnFrontdoorOriginGroupHealthProbeParameters(input *track1.HealthProbeParameters) []interface{} {
+func flattenCdnFrontdoorOriginGroupHealthProbeParameters(input *cdn.HealthProbeParameters) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

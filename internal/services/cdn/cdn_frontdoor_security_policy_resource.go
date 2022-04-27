@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	cdnfrontdoorsecurityparams "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorsecurityparams"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -172,7 +172,7 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 		standardSku = false
 	}
 
-	params := track1.BasicSecurityPolicyPropertiesParameters(nil)
+	params := cdn.BasicSecurityPolicyPropertiesParameters(nil)
 
 	if secPol, ok := d.GetOk("security_policies"); ok {
 		params, err = expandCdnFrontdoorSecurityPoliciesParameters(secPol.([]interface{}), standardSku)
@@ -181,8 +181,8 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	props := track1.SecurityPolicy{
-		SecurityPolicyProperties: &track1.SecurityPolicyProperties{
+	props := cdn.SecurityPolicy{
+		SecurityPolicyProperties: &cdn.SecurityPolicyProperties{
 			Parameters: params,
 		},
 	}
@@ -257,7 +257,7 @@ func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func expandCdnFrontdoorSecurityPoliciesParameters(input []interface{}, isStandardSku bool) (track1.BasicSecurityPolicyPropertiesParameters, error) {
+func expandCdnFrontdoorSecurityPoliciesParameters(input []interface{}, isStandardSku bool) (cdn.BasicSecurityPolicyPropertiesParameters, error) {
 	results, err := cdnfrontdoorsecurityparams.ExpandCdnFrontdoorFirewallPolicyParameters(input, isStandardSku)
 	if err != nil {
 		return results, err
@@ -270,7 +270,7 @@ func expandCdnFrontdoorSecurityPoliciesParameters(input []interface{}, isStandar
 	return nil, nil
 }
 
-func flattenCdnFrontdoorSecurityPoliciesParameters(input track1.BasicSecurityPolicyPropertiesParameters) (*[]interface{}, error) {
+func flattenCdnFrontdoorSecurityPoliciesParameters(input cdn.BasicSecurityPolicyPropertiesParameters) (*[]interface{}, error) {
 	results, err := cdnfrontdoorsecurityparams.FlattenCdnFrontdoorFirewallPolicyParameters(input)
 	if err != nil {
 		return nil, err

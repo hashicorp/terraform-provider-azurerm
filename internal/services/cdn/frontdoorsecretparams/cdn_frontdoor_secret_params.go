@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	frontdoorParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontdoorSecretParameters struct {
-	TypeName   track1.TypeBasicSecretParameters
+	TypeName   cdn.TypeBasicSecretParameters
 	ConfigName string
 }
 
@@ -27,29 +27,29 @@ func InitializeCdnFrontdoorSecretMappings() *CdnFrontdoorSecretMappings {
 	m := new(CdnFrontdoorSecretMappings)
 
 	m.UrlSigningKey = CdnFrontdoorSecretParameters{
-		TypeName:   track1.TypeBasicSecretParametersTypeURLSigningKey,
+		TypeName:   cdn.TypeBasicSecretParametersTypeURLSigningKey,
 		ConfigName: "url_signing_key",
 	}
 
 	m.ManagedCertificate = CdnFrontdoorSecretParameters{
-		TypeName:   track1.TypeBasicSecretParametersTypeManagedCertificate,
+		TypeName:   cdn.TypeBasicSecretParametersTypeManagedCertificate,
 		ConfigName: "managed_certificate",
 	}
 
 	m.CustomerCertificate = CdnFrontdoorSecretParameters{
-		TypeName:   track1.TypeBasicSecretParametersTypeCustomerCertificate,
+		TypeName:   cdn.TypeBasicSecretParametersTypeCustomerCertificate,
 		ConfigName: "customer_certificate",
 	}
 
 	m.AzureFirstPartyManagedCertificate = CdnFrontdoorSecretParameters{
-		TypeName:   track1.TypeBasicSecretParametersTypeAzureFirstPartyManagedCertificate,
+		TypeName:   cdn.TypeBasicSecretParametersTypeAzureFirstPartyManagedCertificate,
 		ConfigName: "azure_first_party_managed_certificate",
 	}
 
 	return m
 }
 
-func ExpandCdnFrontdoorCustomerCertificateParameters(ctx context.Context, input []interface{}, clients *clients.Client) (*track1.BasicSecretParameters, error) {
+func ExpandCdnFrontdoorCustomerCertificateParameters(ctx context.Context, input []interface{}, clients *clients.Client) (*cdn.BasicSecretParameters, error) {
 	m := InitializeCdnFrontdoorSecretMappings()
 	item := input[0].(map[string]interface{})
 
@@ -81,9 +81,9 @@ func ExpandCdnFrontdoorCustomerCertificateParameters(ctx context.Context, input 
 
 	secretSource := frontdoorParse.NewFrontdoorKeyVaultSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, certificateId.Name)
 
-	customerCertificate := &track1.CustomerCertificateParameters{
+	customerCertificate := &cdn.CustomerCertificateParameters{
 		Type: m.CustomerCertificate.TypeName,
-		SecretSource: &track1.ResourceReference{
+		SecretSource: &cdn.ResourceReference{
 			ID: utils.String(secretSource.ID()),
 		},
 		UseLatestVersion: utils.Bool(useLatest),
@@ -93,7 +93,7 @@ func ExpandCdnFrontdoorCustomerCertificateParameters(ctx context.Context, input 
 		customerCertificate.SecretVersion = utils.String(certificateId.Version)
 	}
 
-	if secretParameter := track1.BasicSecretParameters(customerCertificate); secretParameter != nil {
+	if secretParameter := cdn.BasicSecretParameters(customerCertificate); secretParameter != nil {
 		return &secretParameter, nil
 	}
 

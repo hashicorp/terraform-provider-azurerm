@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -270,7 +270,7 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorDelete(d *pluginsdk.Resource
 	return nil
 }
 
-func cdnFrontdoorCustomDomainTLSSettingsRefreshFunc(ctx context.Context, client *track1.AFDCustomDomainsClient, id *parse.FrontdoorCustomDomainId) pluginsdk.StateRefreshFunc {
+func cdnFrontdoorCustomDomainTLSSettingsRefreshFunc(ctx context.Context, client *cdn.AFDCustomDomainsClient, id *parse.FrontdoorCustomDomainId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if CDN Frontdoor TLS Settings %q (Resource Group: %q) are available...", id.CustomDomainName, id.ResourceGroup)
 
@@ -290,7 +290,7 @@ func cdnFrontdoorCustomDomainTLSSettingsRefreshFunc(ctx context.Context, client 
 			validationState := props.DomainValidationState
 
 			// First lets check the validation state of the custom domain
-			if validationState == track1.DomainValidationStateApproved {
+			if validationState == cdn.DomainValidationStateApproved {
 				// Are the Domains TLS Settings available yet?
 				if props.TLSSettings != nil && props.TLSSettings.Secret != nil && props.TLSSettings.Secret.ID != nil {
 					return resp, "Succeeded", nil
@@ -298,7 +298,7 @@ func cdnFrontdoorCustomDomainTLSSettingsRefreshFunc(ctx context.Context, client 
 					// Nope.
 					return resp, "Pending", nil
 				}
-			} else if validationState == track1.DomainValidationStatePending || validationState == track1.DomainValidationStateSubmitting {
+			} else if validationState == cdn.DomainValidationStatePending || validationState == cdn.DomainValidationStateSubmitting {
 				return resp, "Pending", nil
 			}
 
@@ -311,7 +311,7 @@ func cdnFrontdoorCustomDomainTLSSettingsRefreshFunc(ctx context.Context, client 
 	}
 }
 
-func cdnFrontdoorCustomDomainSecretRefreshFunc(ctx context.Context, client *track1.SecretsClient, id *parse.FrontdoorSecretId) pluginsdk.StateRefreshFunc {
+func cdnFrontdoorCustomDomainSecretRefreshFunc(ctx context.Context, client *cdn.SecretsClient, id *parse.FrontdoorSecretId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if CDN Frontdoor Secret %q (Resource Group: %q) is available...", id.SecretName, id.ResourceGroup)
 
@@ -328,8 +328,8 @@ func cdnFrontdoorCustomDomainSecretRefreshFunc(ctx context.Context, client *trac
 		}
 
 		var out string
-		provisioningState := track1.AfdProvisioningStateFailed
-		deploymentState := track1.DeploymentStatusFailed
+		provisioningState := cdn.AfdProvisioningStateFailed
+		deploymentState := cdn.DeploymentStatusFailed
 		if props := resp.SecretProperties; props != nil {
 			if props.ProvisioningState != "" {
 				provisioningState = props.ProvisioningState
@@ -344,7 +344,7 @@ func cdnFrontdoorCustomDomainSecretRefreshFunc(ctx context.Context, client *trac
 		// correct field once it goes live. But, for now ProvisioningState is all we
 		// have to go with.
 
-		if deploymentState == track1.DeploymentStatusNotStarted {
+		if deploymentState == cdn.DeploymentStatusNotStarted {
 			out = string(provisioningState)
 		} else {
 			out = string(deploymentState)

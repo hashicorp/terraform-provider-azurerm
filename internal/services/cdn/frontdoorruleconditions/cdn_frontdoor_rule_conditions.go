@@ -5,13 +5,13 @@ import (
 	"net"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontdoorConditionParameters struct {
-	Name       track1.Name
+	Name       cdn.Name
 	TypeName   string
 	ConfigName string
 }
@@ -48,122 +48,122 @@ type normalizedCondition struct {
 	operator        string
 	negateCondition *bool
 	matchValues     *[]string
-	transforms      *[]track1.Transform
+	transforms      *[]cdn.Transform
 }
 
 func InitializeCdnFrontdoorConditionMappings() *CdnFrontdoorCondtionsMappings {
 	m := new(CdnFrontdoorCondtionsMappings)
 
 	m.ClientPort = CdnFrontdoorConditionParameters{
-		Name:       track1.NameClientPort,
+		Name:       cdn.NameClientPort,
 		TypeName:   "DeliveryRuleClientPortConditionParameters",
 		ConfigName: "client_port_condition",
 	}
 
 	m.Cookies = CdnFrontdoorConditionParameters{
-		Name:       track1.NameCookies,
+		Name:       cdn.NameCookies,
 		TypeName:   "DeliveryRuleCookiesConditionParameters",
 		ConfigName: "cookies_condition",
 	}
 
 	m.HostName = CdnFrontdoorConditionParameters{
-		Name:       track1.NameHostName,
+		Name:       cdn.NameHostName,
 		TypeName:   "DeliveryRuleHostNameConditionParameters",
 		ConfigName: "host_name_condition",
 	}
 
 	m.HttpVersion = CdnFrontdoorConditionParameters{
-		Name:       track1.NameHTTPVersion,
+		Name:       cdn.NameHTTPVersion,
 		TypeName:   "DeliveryRuleHttpVersionConditionParameters",
 		ConfigName: "http_version_condition",
 	}
 
 	m.IsDevice = CdnFrontdoorConditionParameters{
-		Name:       track1.NameIsDevice,
+		Name:       cdn.NameIsDevice,
 		TypeName:   "DeliveryRuleIsDeviceConditionParameters",
 		ConfigName: "is_device_condition",
 	}
 
 	m.PostArgs = CdnFrontdoorConditionParameters{
-		Name:       track1.NamePostArgs,
+		Name:       cdn.NamePostArgs,
 		TypeName:   "DeliveryRulePostArgsConditionParameters",
 		ConfigName: "post_args_condition",
 	}
 
 	m.QueryString = CdnFrontdoorConditionParameters{
-		Name:       track1.NameQueryString,
+		Name:       cdn.NameQueryString,
 		TypeName:   "DeliveryRuleQueryStringConditionParameters",
 		ConfigName: "query_string_condition",
 	}
 
 	m.RemoteAddress = CdnFrontdoorConditionParameters{
-		Name:       track1.NameRemoteAddress,
+		Name:       cdn.NameRemoteAddress,
 		TypeName:   "DeliveryRuleRemoteAddressConditionParameters",
 		ConfigName: "remote_address_condition",
 	}
 
 	m.RequestBody = CdnFrontdoorConditionParameters{
-		Name:       track1.NameRequestBody,
+		Name:       cdn.NameRequestBody,
 		TypeName:   "DeliveryRuleRequestBodyConditionParameters",
 		ConfigName: "request_body_condition",
 	}
 
 	m.RequestHeader = CdnFrontdoorConditionParameters{
-		Name:       track1.NameRequestHeader,
+		Name:       cdn.NameRequestHeader,
 		TypeName:   "DeliveryRuleRequestHeaderConditionParameters",
 		ConfigName: "request_header_condition",
 	}
 
 	m.RequestMethod = CdnFrontdoorConditionParameters{
-		Name:       track1.NameRequestMethod,
+		Name:       cdn.NameRequestMethod,
 		TypeName:   "DeliveryRuleRequestMethodConditionParameters",
 		ConfigName: "request_method_condition",
 	}
 
 	m.RequestScheme = CdnFrontdoorConditionParameters{
-		Name:       track1.NameRequestScheme,
+		Name:       cdn.NameRequestScheme,
 		TypeName:   "DeliveryRuleRequestSchemeConditionParameters",
 		ConfigName: "request_scheme_condition",
 	}
 
 	m.RequestUri = CdnFrontdoorConditionParameters{
-		Name:       track1.NameRequestURI,
+		Name:       cdn.NameRequestURI,
 		TypeName:   "DeliveryRuleRequestUriConditionParameters",
 		ConfigName: "request_uri_condition",
 	}
 
 	m.ServerPort = CdnFrontdoorConditionParameters{
-		Name:       track1.NameServerPort,
+		Name:       cdn.NameServerPort,
 		TypeName:   "DeliveryRuleServerPortConditionParameters",
 		ConfigName: "server_port_condition",
 	}
 
 	m.SocketAddress = CdnFrontdoorConditionParameters{
-		Name:       track1.NameSocketAddr,
+		Name:       cdn.NameSocketAddr,
 		TypeName:   "DeliveryRuleSocketAddrConditionParameters",
 		ConfigName: "socket_address_condition",
 	}
 
 	m.SslProtocol = CdnFrontdoorConditionParameters{
-		Name:       track1.NameSslProtocol,
+		Name:       cdn.NameSslProtocol,
 		TypeName:   "DeliveryRuleSslProtocolConditionParameters",
 		ConfigName: "ssl_protocol_condition",
 	}
 
 	m.UrlFileExtension = CdnFrontdoorConditionParameters{
-		Name:       track1.NameURLFileExtension,
+		Name:       cdn.NameURLFileExtension,
 		TypeName:   "DeliveryRuleUrlFileExtensionMatchConditionParameters",
 		ConfigName: "url_file_extension_condition",
 	}
 
 	m.UrlFilename = CdnFrontdoorConditionParameters{
-		Name:       track1.NameURLFileName,
+		Name:       cdn.NameURLFileName,
 		TypeName:   "DeliveryRuleUrlFilenameConditionParameters",
 		ConfigName: "url_filename_condition",
 	}
 
 	m.UrlPath = CdnFrontdoorConditionParameters{
-		Name:       track1.NameURLPath,
+		Name:       cdn.NameURLPath,
 		TypeName:   "DeliveryRuleUrlPathMatchConditionParameters",
 		ConfigName: "url_path_condition",
 	}
@@ -318,14 +318,14 @@ func validateCIDROverlap(sourceCIDR string, checkCIDR string) (bool, error) {
 	return true, nil
 }
 
-func expandNormalizeCdnFrontdoorTransforms(input []interface{}) []track1.Transform {
-	transforms := make([]track1.Transform, 0)
+func expandNormalizeCdnFrontdoorTransforms(input []interface{}) []cdn.Transform {
+	transforms := make([]cdn.Transform, 0)
 	if len(input) == 0 {
 		return transforms
 	}
 
 	for _, t := range input {
-		transforms = append(transforms, track1.Transform(t.(string)))
+		transforms = append(transforms, cdn.Transform(t.(string)))
 	}
 
 	return transforms
@@ -375,41 +375,41 @@ func validateCdnFrontdoorExpandConditionOperatorValues(operator string, matchVal
 		return fmt.Errorf("%q is invalid: no %q value has been set, got %q", m.ConfigName, "operator", operator)
 	}
 
-	if operator == string(track1.OperatorAny) && len(*matchValues) > 0 {
-		return fmt.Errorf("%q is invalid: the %q field must not be set if the conditions %q is set to %q", m.ConfigName, "match_values", "operator", track1.OperatorAny)
+	if operator == string(cdn.OperatorAny) && len(*matchValues) > 0 {
+		return fmt.Errorf("%q is invalid: the %q field must not be set if the conditions %q is set to %q", m.ConfigName, "match_values", "operator", cdn.OperatorAny)
 	}
 
 	return nil
 }
 
-func ExpandCdnFrontdoorRemoteAddressCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorRemoteAddressCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.RemoteAddress
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleRemoteAddressCondition{
+		condition := cdn.DeliveryRuleRemoteAddressCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.RemoteAddressMatchConditionParameters{
+			Parameters: &cdn.RemoteAddressMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
-				Operator:        track1.RemoteAddressOperator(item["operator"].(string)),
+				Operator:        cdn.RemoteAddressOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
-		if condition.Parameters.Operator == track1.RemoteAddressOperatorGeoMatch {
+		if condition.Parameters.Operator == cdn.RemoteAddressOperatorGeoMatch {
 			for _, matchValue := range item["match_values"].([]interface{}) {
 				if matchValue != nil {
 					if ok, _ := validate.RegExHelper(matchValue, "match_values", `^[A-Z]{2}$`); !ok {
-						return nil, fmt.Errorf("%q is invalid: when the %q is set to %q the value must be a valid country code consisting of 2 uppercase characters, got %q", conditionMapping.ConfigName, "operator", track1.RemoteAddressOperatorGeoMatch, matchValue)
+						return nil, fmt.Errorf("%q is invalid: when the %q is set to %q the value must be a valid country code consisting of 2 uppercase characters, got %q", conditionMapping.ConfigName, "operator", cdn.RemoteAddressOperatorGeoMatch, matchValue)
 					}
 				}
 			}
 		}
 
-		if condition.Parameters.Operator == track1.RemoteAddressOperatorIPMatch {
+		if condition.Parameters.Operator == cdn.RemoteAddressOperatorIPMatch {
 			for _, matchValue := range item["match_values"].([]interface{}) {
 				address := ""
 				if matchValue != nil {
@@ -417,7 +417,7 @@ func ExpandCdnFrontdoorRemoteAddressCondition(input []interface{}) (*[]track1.Ba
 				}
 
 				if !isValidCidr(address) {
-					return nil, fmt.Errorf("%q is invalid: when the %q is set to %q the value must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, "operator", track1.RemoteAddressOperatorIPMatch, address)
+					return nil, fmt.Errorf("%q is invalid: when the %q is set to %q the value must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, "operator", cdn.RemoteAddressOperatorIPMatch, address)
 				}
 			}
 
@@ -438,16 +438,16 @@ func ExpandCdnFrontdoorRemoteAddressCondition(input []interface{}) (*[]track1.Ba
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorRequestMethodCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorRequestMethodCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.RequestMethod
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleRequestMethodCondition{
+		condition := cdn.DeliveryRuleRequestMethodCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.RequestMethodMatchConditionParameters{
+			Parameters: &cdn.RequestMethodMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
 				Operator:        utils.String(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
@@ -465,18 +465,18 @@ func ExpandCdnFrontdoorRequestMethodCondition(input []interface{}) (*[]track1.Ba
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorQueryStringCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorQueryStringCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.QueryString
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleQueryStringCondition{
+		condition := cdn.DeliveryRuleQueryStringCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.QueryStringMatchConditionParameters{
+			Parameters: &cdn.QueryStringMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
-				Operator:        track1.QueryStringOperator(item["operator"].(string)),
+				Operator:        cdn.QueryStringOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
@@ -497,19 +497,19 @@ func ExpandCdnFrontdoorQueryStringCondition(input []interface{}) (*[]track1.Basi
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorPostArgsCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorPostArgsCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.PostArgs
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRulePostArgsCondition{
+		condition := cdn.DeliveryRulePostArgsCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.PostArgsMatchConditionParameters{
+			Parameters: &cdn.PostArgsMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
 				Selector:        utils.String(item["post_args_name"].(string)),
-				Operator:        track1.PostArgsOperator(item["operator"].(string)),
+				Operator:        cdn.PostArgsOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
@@ -530,18 +530,18 @@ func ExpandCdnFrontdoorPostArgsCondition(input []interface{}) (*[]track1.BasicDe
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorRequestUriCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorRequestUriCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.RequestUri
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleRequestURICondition{
+		condition := cdn.DeliveryRuleRequestURICondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.RequestURIMatchConditionParameters{
+			Parameters: &cdn.RequestURIMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
-				Operator:        track1.RequestURIOperator(item["operator"].(string)),
+				Operator:        cdn.RequestURIOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
@@ -562,19 +562,19 @@ func ExpandCdnFrontdoorRequestUriCondition(input []interface{}) (*[]track1.Basic
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorRequestHeaderCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorRequestHeaderCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.RequestHeader
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleRequestHeaderCondition{
+		condition := cdn.DeliveryRuleRequestHeaderCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.RequestHeaderMatchConditionParameters{
+			Parameters: &cdn.RequestHeaderMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
 				Selector:        utils.String(item["header_name"].(string)),
-				Operator:        track1.RequestHeaderOperator(item["operator"].(string)),
+				Operator:        cdn.RequestHeaderOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
@@ -595,18 +595,18 @@ func ExpandCdnFrontdoorRequestHeaderCondition(input []interface{}) (*[]track1.Ba
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorRequestBodyCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorRequestBodyCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.RequestBody
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleRequestBodyCondition{
+		condition := cdn.DeliveryRuleRequestBodyCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.RequestBodyMatchConditionParameters{
+			Parameters: &cdn.RequestBodyMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
-				Operator:        track1.RequestBodyOperator(item["operator"].(string)),
+				Operator:        cdn.RequestBodyOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
@@ -627,16 +627,16 @@ func ExpandCdnFrontdoorRequestBodyCondition(input []interface{}) (*[]track1.Basi
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorRequestSchemeCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorRequestSchemeCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.RequestScheme
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleRequestSchemeCondition{
+		condition := cdn.DeliveryRuleRequestSchemeCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.RequestSchemeMatchConditionParameters{
+			Parameters: &cdn.RequestSchemeMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
 				Operator:        utils.String(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
@@ -654,18 +654,18 @@ func ExpandCdnFrontdoorRequestSchemeCondition(input []interface{}) (*[]track1.Ba
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorUrlPathCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorUrlPathCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.UrlPath
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleURLPathCondition{
+		condition := cdn.DeliveryRuleURLPathCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.URLPathMatchConditionParameters{
+			Parameters: &cdn.URLPathMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
-				Operator:        track1.URLPathOperator(item["operator"].(string)),
+				Operator:        cdn.URLPathOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
@@ -686,18 +686,18 @@ func ExpandCdnFrontdoorUrlPathCondition(input []interface{}) (*[]track1.BasicDel
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorUrlFileExtensionCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorUrlFileExtensionCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.UrlFileExtension
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleURLFileExtensionCondition{
+		condition := cdn.DeliveryRuleURLFileExtensionCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.URLFileExtensionMatchConditionParameters{
+			Parameters: &cdn.URLFileExtensionMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
-				Operator:        track1.URLFileExtensionOperator(item["operator"].(string)),
+				Operator:        cdn.URLFileExtensionOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
@@ -718,18 +718,18 @@ func ExpandCdnFrontdoorUrlFileExtensionCondition(input []interface{}) (*[]track1
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorUrlFileNameCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorUrlFileNameCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.UrlFilename
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleURLFileNameCondition{
+		condition := cdn.DeliveryRuleURLFileNameCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.URLFileNameMatchConditionParameters{
+			Parameters: &cdn.URLFileNameMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
-				Operator:        track1.URLFileNameOperator(item["operator"].(string)),
+				Operator:        cdn.URLFileNameOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
@@ -750,16 +750,16 @@ func ExpandCdnFrontdoorUrlFileNameCondition(input []interface{}) (*[]track1.Basi
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorHttpVersionCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorHttpVersionCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.HttpVersion
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleHTTPVersionCondition{
+		condition := cdn.DeliveryRuleHTTPVersionCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.HTTPVersionMatchConditionParameters{
+			Parameters: &cdn.HTTPVersionMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
 				Operator:        utils.String(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
@@ -777,28 +777,28 @@ func ExpandCdnFrontdoorHttpVersionCondition(input []interface{}) (*[]track1.Basi
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorCookiesCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorCookiesCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.Cookies
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleCookiesCondition{
+		condition := cdn.DeliveryRuleCookiesCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.CookiesMatchConditionParameters{
+			Parameters: &cdn.CookiesMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
 				Selector:        utils.String(item["cookie_name"].(string)),
-				Operator:        track1.CookiesOperator(item["operator"].(string)),
+				Operator:        cdn.CookiesOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
 		if tt := item["transforms"].([]interface{}); len(tt) != 0 {
-			transforms := make([]track1.Transform, 0)
+			transforms := make([]cdn.Transform, 0)
 			for _, t := range tt {
-				transforms = append(transforms, track1.Transform(t.(string)))
+				transforms = append(transforms, cdn.Transform(t.(string)))
 			}
 			condition.Parameters.Transforms = &transforms
 		}
@@ -813,16 +813,16 @@ func ExpandCdnFrontdoorCookiesCondition(input []interface{}) (*[]track1.BasicDel
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorIsDeviceCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorIsDeviceCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.IsDevice
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleIsDeviceCondition{
+		condition := cdn.DeliveryRuleIsDeviceCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.IsDeviceMatchConditionParameters{
+			Parameters: &cdn.IsDeviceMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
 				Operator:        utils.String(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
@@ -840,24 +840,24 @@ func ExpandCdnFrontdoorIsDeviceCondition(input []interface{}) (*[]track1.BasicDe
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorSocketAddressCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorSocketAddressCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.SocketAddress
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleSocketAddrCondition{
+		condition := cdn.DeliveryRuleSocketAddrCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.SocketAddrMatchConditionParameters{
+			Parameters: &cdn.SocketAddrMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
-				Operator:        track1.SocketAddrOperator(item["operator"].(string)),
+				Operator:        cdn.SocketAddrOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
-		if condition.Parameters.Operator == track1.SocketAddrOperatorIPMatch {
+		if condition.Parameters.Operator == cdn.SocketAddrOperatorIPMatch {
 			for _, matchValue := range item["match_values"].([]interface{}) {
 				address := ""
 				if matchValue != nil {
@@ -865,7 +865,7 @@ func ExpandCdnFrontdoorSocketAddressCondition(input []interface{}) (*[]track1.Ba
 				}
 
 				if !isValidCidr(address) {
-					return nil, fmt.Errorf("%q is invalid: when the %q is set to %q the %q must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, "operator", track1.SocketAddrOperatorIPMatch, "match_values", address)
+					return nil, fmt.Errorf("%q is invalid: when the %q is set to %q the %q must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, "operator", cdn.SocketAddrOperatorIPMatch, "match_values", address)
 				}
 			}
 
@@ -886,18 +886,18 @@ func ExpandCdnFrontdoorSocketAddressCondition(input []interface{}) (*[]track1.Ba
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorClientPortCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorClientPortCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.ClientPort
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleClientPortCondition{
+		condition := cdn.DeliveryRuleClientPortCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.ClientPortMatchConditionParameters{
+			Parameters: &cdn.ClientPortMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
-				Operator:        track1.ClientPortOperator(item["operator"].(string)),
+				Operator:        cdn.ClientPortOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
@@ -913,18 +913,18 @@ func ExpandCdnFrontdoorClientPortCondition(input []interface{}) (*[]track1.Basic
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorServerPortCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorServerPortCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.ServerPort
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleServerPortCondition{
+		condition := cdn.DeliveryRuleServerPortCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.ServerPortMatchConditionParameters{
+			Parameters: &cdn.ServerPortMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
-				Operator:        track1.ServerPortOperator(item["operator"].(string)),
+				Operator:        cdn.ServerPortOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
@@ -940,18 +940,18 @@ func ExpandCdnFrontdoorServerPortCondition(input []interface{}) (*[]track1.Basic
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorHostNameCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorHostNameCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.HostName
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		condition := track1.DeliveryRuleHostNameCondition{
+		condition := cdn.DeliveryRuleHostNameCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.HostNameMatchConditionParameters{
+			Parameters: &cdn.HostNameMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
-				Operator:        track1.HostNameOperator(item["operator"].(string)),
+				Operator:        cdn.HostNameOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
@@ -972,24 +972,24 @@ func ExpandCdnFrontdoorHostNameCondition(input []interface{}) (*[]track1.BasicDe
 	return &output, nil
 }
 
-func ExpandCdnFrontdoorSslProtocolCondition(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error) {
-	output := make([]track1.BasicDeliveryRuleCondition, 0)
+func ExpandCdnFrontdoorSslProtocolCondition(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error) {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	m := InitializeCdnFrontdoorConditionMappings()
 	conditionMapping := m.SslProtocol
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
-		matchValues := make([]track1.SslProtocol, 0)
+		matchValues := make([]cdn.SslProtocol, 0)
 		validationMatchValues := make([]string, 0)
 		for _, value := range item["match_values"].([]interface{}) {
-			matchValues = append(matchValues, track1.SslProtocol(value.(string)))
+			matchValues = append(matchValues, cdn.SslProtocol(value.(string)))
 			validationMatchValues = append(validationMatchValues, value.(string))
 		}
 
-		condition := track1.DeliveryRuleSslProtocolCondition{
+		condition := cdn.DeliveryRuleSslProtocolCondition{
 			Name: conditionMapping.Name,
-			Parameters: &track1.SslProtocolMatchConditionParameters{
+			Parameters: &cdn.SslProtocolMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
 				Operator:        utils.String(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
@@ -1007,7 +1007,7 @@ func ExpandCdnFrontdoorSslProtocolCondition(input []interface{}) (*[]track1.Basi
 	return &output, nil
 }
 
-func FlattenFrontdoorRemoteAddressCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorRemoteAddressCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleRemoteAddressCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule remote address condition")
@@ -1028,7 +1028,7 @@ func FlattenFrontdoorRemoteAddressCondition(input track1.BasicDeliveryRuleCondit
 	return nil, nil
 }
 
-func FlattenFrontdoorRequestMethodCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorRequestMethodCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleRequestMethodCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request method condition")
@@ -1049,7 +1049,7 @@ func FlattenFrontdoorRequestMethodCondition(input track1.BasicDeliveryRuleCondit
 	return nil, nil
 }
 
-func FlattenFrontdoorQueryStringCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorQueryStringCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleQueryStringCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule query string condition")
@@ -1070,7 +1070,7 @@ func FlattenFrontdoorQueryStringCondition(input track1.BasicDeliveryRuleConditio
 	return nil, nil
 }
 
-func FlattenFrontdoorPostArgsCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorPostArgsCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRulePostArgsCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule post args condition")
@@ -1091,7 +1091,7 @@ func FlattenFrontdoorPostArgsCondition(input track1.BasicDeliveryRuleCondition, 
 	return nil, nil
 }
 
-func FlattenFrontdoorRequestUriCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorRequestUriCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleRequestURICondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request URI condition")
@@ -1112,7 +1112,7 @@ func FlattenFrontdoorRequestUriCondition(input track1.BasicDeliveryRuleCondition
 	return nil, nil
 }
 
-func FlattenFrontdoorRequestHeaderCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorRequestHeaderCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleRequestHeaderCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request header condition")
@@ -1133,7 +1133,7 @@ func FlattenFrontdoorRequestHeaderCondition(input track1.BasicDeliveryRuleCondit
 	return nil, nil
 }
 
-func FlattenFrontdoorRequestBodyCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorRequestBodyCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleRequestBodyCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request body condition")
@@ -1154,7 +1154,7 @@ func FlattenFrontdoorRequestBodyCondition(input track1.BasicDeliveryRuleConditio
 	return nil, nil
 }
 
-func FlattenFrontdoorRequestSchemeCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorRequestSchemeCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleRequestSchemeCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request scheme condition")
@@ -1175,7 +1175,7 @@ func FlattenFrontdoorRequestSchemeCondition(input track1.BasicDeliveryRuleCondit
 	return nil, nil
 }
 
-func FlattenFrontdoorUrlPathCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorUrlPathCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleURLPathCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule url path condition")
@@ -1196,7 +1196,7 @@ func FlattenFrontdoorUrlPathCondition(input track1.BasicDeliveryRuleCondition, m
 	return nil, nil
 }
 
-func FlattenFrontdoorUrlFileExtensionCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorUrlFileExtensionCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleURLFileExtensionCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule url file extension condition")
@@ -1217,7 +1217,7 @@ func FlattenFrontdoorUrlFileExtensionCondition(input track1.BasicDeliveryRuleCon
 	return nil, nil
 }
 
-func FlattenFrontdoorUrlFileNameCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorUrlFileNameCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleURLFileNameCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule url file name condition")
@@ -1238,7 +1238,7 @@ func FlattenFrontdoorUrlFileNameCondition(input track1.BasicDeliveryRuleConditio
 	return nil, nil
 }
 
-func FlattenFrontdoorHttpVersionCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorHttpVersionCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleHTTPVersionCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule http version condition")
@@ -1259,7 +1259,7 @@ func FlattenFrontdoorHttpVersionCondition(input track1.BasicDeliveryRuleConditio
 	return nil, nil
 }
 
-func FlattenFrontdoorCookiesCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorCookiesCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleCookiesCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule cookie condition")
@@ -1280,7 +1280,7 @@ func FlattenFrontdoorCookiesCondition(input track1.BasicDeliveryRuleCondition, m
 	return nil, nil
 }
 
-func FlattenFrontdoorIsDeviceCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorIsDeviceCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleIsDeviceCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule is device condition")
@@ -1301,7 +1301,7 @@ func FlattenFrontdoorIsDeviceCondition(input track1.BasicDeliveryRuleCondition, 
 	return nil, nil
 }
 
-func FlattenFrontdoorSocketAddressCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorSocketAddressCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleSocketAddrCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule socket address condition")
@@ -1322,7 +1322,7 @@ func FlattenFrontdoorSocketAddressCondition(input track1.BasicDeliveryRuleCondit
 	return nil, nil
 }
 
-func FlattenFrontdoorClientPortCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorClientPortCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleClientPortCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule client port condition")
@@ -1343,7 +1343,7 @@ func FlattenFrontdoorClientPortCondition(input track1.BasicDeliveryRuleCondition
 	return nil, nil
 }
 
-func FlattenFrontdoorServerPortCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorServerPortCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleServerPortCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule server port condition")
@@ -1364,7 +1364,7 @@ func FlattenFrontdoorServerPortCondition(input track1.BasicDeliveryRuleCondition
 	return nil, nil
 }
 
-func FlattenFrontdoorHostNameCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorHostNameCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleHostNameCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule host name condition")
@@ -1385,7 +1385,7 @@ func FlattenFrontdoorHostNameCondition(input track1.BasicDeliveryRuleCondition, 
 	return nil, nil
 }
 
-func FlattenFrontdoorSslProtocolCondition(input track1.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
+func FlattenFrontdoorSslProtocolCondition(input cdn.BasicDeliveryRuleCondition, m CdnFrontdoorConditionParameters) (map[string]interface{}, error) {
 	condition, ok := input.AsDeliveryRuleSslProtocolCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule ssl protocol condition")

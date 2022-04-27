@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -104,10 +104,10 @@ func resourceCdnFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 
 	location := azure.NormalizeLocation("global")
 
-	props := track1.AFDEndpoint{
+	props := cdn.AFDEndpoint{
 		Name:     utils.String(d.Get("name").(string)),
 		Location: &location,
-		AFDEndpointProperties: &track1.AFDEndpointProperties{
+		AFDEndpointProperties: &cdn.AFDEndpointProperties{
 			EnabledState: ConvertBoolToEnabledState(d.Get("enabled").(bool)),
 			// OriginResponseTimeoutSeconds: d.Get("origin_response_timeout_seconds").(int),
 		},
@@ -189,8 +189,8 @@ func resourceCdnFrontdoorEndpointUpdate(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	props := track1.AFDEndpointUpdateParameters{
-		AFDEndpointPropertiesUpdateParameters: &track1.AFDEndpointPropertiesUpdateParameters{
+	props := cdn.AFDEndpointUpdateParameters{
+		AFDEndpointPropertiesUpdateParameters: &cdn.AFDEndpointPropertiesUpdateParameters{
 			EnabledState: ConvertBoolToEnabledState(d.Get("enabled").(bool)),
 			ProfileName:  utils.String(profileId.ProfileName),
 			// OriginResponseTimeoutSeconds: utils.Int64(int64(d.Get("origin_response_timeout_seconds").(int))),

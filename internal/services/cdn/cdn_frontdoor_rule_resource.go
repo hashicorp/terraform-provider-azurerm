@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	cdn "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	cdnfrontdoorruleactions "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleactions"
 	cdnfrontdoorruleconditions "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleconditions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -55,10 +55,10 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 			"behavior_on_match": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(track1.MatchProcessingBehaviorContinue),
+				Default:  string(cdn.MatchProcessingBehaviorContinue),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(track1.MatchProcessingBehaviorContinue),
-					string(track1.MatchProcessingBehaviorStop),
+					string(cdn.MatchProcessingBehaviorContinue),
+					string(cdn.MatchProcessingBehaviorStop),
 				}, false),
 			},
 
@@ -89,21 +89,21 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.RedirectTypeMoved),
-											string(track1.RedirectTypeFound),
-											string(track1.RedirectTypeTemporaryRedirect),
-											string(track1.RedirectTypePermanentRedirect),
+											string(cdn.RedirectTypeMoved),
+											string(cdn.RedirectTypeFound),
+											string(cdn.RedirectTypeTemporaryRedirect),
+											string(cdn.RedirectTypePermanentRedirect),
 										}, false),
 									},
 
 									"redirect_protocol": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(track1.DestinationProtocolMatchRequest),
+										Default:  string(cdn.DestinationProtocolMatchRequest),
 										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.DestinationProtocolMatchRequest),
-											string(track1.DestinationProtocolHTTP),
-											string(track1.DestinationProtocolHTTPS),
+											string(cdn.DestinationProtocolMatchRequest),
+											string(cdn.DestinationProtocolHTTP),
+											string(cdn.DestinationProtocolHTTPS),
 										}, false),
 									},
 
@@ -178,9 +178,9 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.HeaderActionAppend),
-											string(track1.HeaderActionOverwrite),
-											string(track1.HeaderActionDelete),
+											string(cdn.HeaderActionAppend),
+											string(cdn.HeaderActionOverwrite),
+											string(cdn.HeaderActionDelete),
 										}, false),
 									},
 
@@ -212,9 +212,9 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.HeaderActionAppend),
-											string(track1.HeaderActionOverwrite),
-											string(track1.HeaderActionDelete),
+											string(cdn.HeaderActionAppend),
+											string(cdn.HeaderActionOverwrite),
+											string(cdn.HeaderActionDelete),
 										}, false),
 									},
 
@@ -255,23 +255,23 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 									"forwarding_protocol": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(track1.ForwardingProtocolMatchRequest),
+										Default:  string(cdn.ForwardingProtocolMatchRequest),
 										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.ForwardingProtocolHTTPOnly),
-											string(track1.ForwardingProtocolHTTPSOnly),
-											string(track1.ForwardingProtocolMatchRequest),
+											string(cdn.ForwardingProtocolHTTPOnly),
+											string(cdn.ForwardingProtocolHTTPSOnly),
+											string(cdn.ForwardingProtocolMatchRequest),
 										}, false),
 									},
 
 									"query_string_caching_behavior": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(track1.RuleQueryStringCachingBehaviorIgnoreQueryString),
+										Default:  string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString),
 										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.RuleQueryStringCachingBehaviorIgnoreQueryString),
-											string(track1.RuleQueryStringCachingBehaviorUseQueryString),
-											string(track1.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings),
-											string(track1.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
+											string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString),
+											string(cdn.RuleQueryStringCachingBehaviorUseQueryString),
+											string(cdn.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings),
+											string(cdn.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
 										}, false),
 									},
 
@@ -297,11 +297,11 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 									"cache_behavior": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(track1.RuleCacheBehaviorHonorOrigin),
+										Default:  string(cdn.RuleCacheBehaviorHonorOrigin),
 										ValidateFunc: validation.StringInSlice([]string{
-											string(track1.RuleCacheBehaviorHonorOrigin),
-											string(track1.RuleCacheBehaviorOverrideAlways),
-											string(track1.RuleCacheBehaviorOverrideIfOriginMissing),
+											string(cdn.RuleCacheBehaviorHonorOrigin),
+											string(cdn.RuleCacheBehaviorOverrideAlways),
+											string(cdn.RuleCacheBehaviorOverrideIfOriginMissing),
 										}, false),
 									},
 
@@ -651,7 +651,7 @@ func resourceCdnFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("behavior_on_match").(string))
+	matchProcessingBehaviorValue := cdn.MatchProcessingBehavior(d.Get("behavior_on_match").(string))
 	order := d.Get("order").(int)
 
 	actions, err := expandFrontdoorDeliveryRuleActions(d.Get("actions").([]interface{}))
@@ -664,8 +664,8 @@ func resourceCdnFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("expanding %q: %+v", "conditions", err)
 	}
 
-	props := track1.Rule{
-		RuleProperties: &track1.RuleProperties{
+	props := cdn.Rule{
+		RuleProperties: &cdn.RuleProperties{
 			Actions:                 &actions,
 			Conditions:              &conditions,
 			MatchProcessingBehavior: matchProcessingBehaviorValue,
@@ -746,7 +746,7 @@ func resourceCdnFrontdoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	matchProcessingBehaviorValue := track1.MatchProcessingBehavior(d.Get("behavior_on_match").(string))
+	matchProcessingBehaviorValue := cdn.MatchProcessingBehavior(d.Get("behavior_on_match").(string))
 	order := d.Get("order").(int)
 
 	actions, err := expandFrontdoorDeliveryRuleActions(d.Get("actions").([]interface{}))
@@ -763,8 +763,8 @@ func resourceCdnFrontdoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("expanding %q: configuration file exceeds the maximum of 10 match conditions, got %d", "conditions", len(conditions))
 	}
 
-	props := track1.RuleUpdateParameters{
-		RuleUpdatePropertiesParameters: &track1.RuleUpdatePropertiesParameters{
+	props := cdn.RuleUpdateParameters{
+		RuleUpdatePropertiesParameters: &cdn.RuleUpdatePropertiesParameters{
 			Actions:                 &actions,
 			Conditions:              &conditions,
 			MatchProcessingBehavior: matchProcessingBehaviorValue,
@@ -805,13 +805,13 @@ func resourceCdnFrontdoorRuleDelete(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]track1.BasicDeliveryRuleAction, error) {
-	results := make([]track1.BasicDeliveryRuleAction, 0)
+func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliveryRuleAction, error) {
+	results := make([]cdn.BasicDeliveryRuleAction, 0)
 	if len(input) == 0 {
 		return results, nil
 	}
 
-	type expandfunc func(input []interface{}) (*[]track1.BasicDeliveryRuleAction, error)
+	type expandfunc func(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error)
 
 	m := *cdnfrontdoorruleactions.InitializeCdnFrontdoorActionMappings()
 
@@ -861,13 +861,13 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]track1.BasicDeli
 	return results, nil
 }
 
-func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]track1.BasicDeliveryRuleCondition, error) {
-	results := make([]track1.BasicDeliveryRuleCondition, 0)
+func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]cdn.BasicDeliveryRuleCondition, error) {
+	results := make([]cdn.BasicDeliveryRuleCondition, 0)
 	if len(input) == 0 {
 		return results, nil
 	}
 
-	type expandfunc func(input []interface{}) (*[]track1.BasicDeliveryRuleCondition, error)
+	type expandfunc func(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error)
 	m := cdnfrontdoorruleconditions.InitializeCdnFrontdoorConditionMappings()
 
 	// TODO: Add validation for this error once I figure out what that validation should be
@@ -919,7 +919,7 @@ func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]track1.BasicD
 	return results, nil
 }
 
-func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCondition) ([]interface{}, error) {
+func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondition) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results, nil
@@ -1308,7 +1308,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]track1.BasicDeliveryRuleCon
 	return results, nil
 }
 
-func flattenFrontdoorDeliveryRuleActions(input *[]track1.BasicDeliveryRuleAction) ([]interface{}, error) {
+func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results, nil

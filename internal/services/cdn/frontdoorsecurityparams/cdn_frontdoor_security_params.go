@@ -3,12 +3,12 @@ package cdnfrontdoorsecurityparams
 import (
 	"fmt"
 
-	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontdoorSecurityParameters struct {
-	TypeName   track1.Type
+	TypeName   cdn.Type
 	ConfigName string
 }
 
@@ -20,21 +20,21 @@ func InitializeCdnFrontdoorSecurityMappings() *CdnFrontdoorSecurityMappings {
 	m := new(CdnFrontdoorSecurityMappings)
 
 	m.Firewall = CdnFrontdoorSecurityParameters{
-		TypeName:   track1.TypeWebApplicationFirewall,
+		TypeName:   cdn.TypeWebApplicationFirewall,
 		ConfigName: "firewall",
 	}
 
 	return m
 }
 
-func ExpandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardSku bool) (track1.SecurityPolicyWebApplicationFirewallParameters, error) {
-	results := track1.SecurityPolicyWebApplicationFirewallParameters{}
+func ExpandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardSku bool) (cdn.SecurityPolicyWebApplicationFirewallParameters, error) {
+	results := cdn.SecurityPolicyWebApplicationFirewallParameters{}
 	if len(input) == 0 {
 		return results, nil
 	}
 
 	m := InitializeCdnFrontdoorSecurityMappings()
-	associations := make([]track1.SecurityPolicyWebApplicationFirewallAssociation, 0)
+	associations := make([]cdn.SecurityPolicyWebApplicationFirewallAssociation, 0)
 
 	// pull off only the firewall policy from the security_policies list
 	policyType := input[0].(map[string]interface{})
@@ -42,7 +42,7 @@ func ExpandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 	v := firewallPolicy[0].(map[string]interface{})
 
 	if id := v["cdn_frontdoor_firewall_policy_id"].(string); id != "" {
-		results.WafPolicy = &track1.ResourceReference{
+		results.WafPolicy = &cdn.ResourceReference{
 			ID: utils.String(id),
 		}
 	}
@@ -55,15 +55,15 @@ func ExpandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 
 		if isStandardSku {
 			if len(*domains) > 100 {
-				return results, fmt.Errorf("the %q sku is only allowed to have 100 or less domains associated with the firewall policy, got %d", track1.SkuNameStandardAzureFrontDoor, len(*domains))
+				return results, fmt.Errorf("the %q sku is only allowed to have 100 or less domains associated with the firewall policy, got %d", cdn.SkuNameStandardAzureFrontDoor, len(*domains))
 			}
 		} else {
 			if len(*domains) > 500 {
-				return results, fmt.Errorf("the %q sku is only allowed to have 500 or less domains associated with the firewall policy, got %d", track1.SkuNamePremiumAzureFrontDoor, len(*domains))
+				return results, fmt.Errorf("the %q sku is only allowed to have 500 or less domains associated with the firewall policy, got %d", cdn.SkuNamePremiumAzureFrontDoor, len(*domains))
 			}
 		}
 
-		association := track1.SecurityPolicyWebApplicationFirewallAssociation{
+		association := cdn.SecurityPolicyWebApplicationFirewallAssociation{
 			Domains:         domains,
 			PatternsToMatch: utils.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
 		}
@@ -77,15 +77,15 @@ func ExpandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 	return results, nil
 }
 
-func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]track1.ActivatedResourceReference {
-	results := make([]track1.ActivatedResourceReference, 0)
+func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]cdn.ActivatedResourceReference {
+	results := make([]cdn.ActivatedResourceReference, 0)
 	if len(input) == 0 {
 		return &results
 	}
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		activatedResourceReference := track1.ActivatedResourceReference{}
+		activatedResourceReference := cdn.ActivatedResourceReference{}
 
 		if id := v["cdn_frontdoor_custom_domain_id"].(string); id != "" {
 			activatedResourceReference.ID = utils.String(id)
@@ -104,7 +104,7 @@ func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]tr
 	return &results
 }
 
-func FlattenCdnFrontdoorFirewallPolicyParameters(input track1.BasicSecurityPolicyPropertiesParameters) ([]interface{}, error) {
+func FlattenCdnFrontdoorFirewallPolicyParameters(input cdn.BasicSecurityPolicyPropertiesParameters) ([]interface{}, error) {
 	waf, ok := input.AsSecurityPolicyWebApplicationFirewallParameters()
 	if !ok {
 		return nil, fmt.Errorf("expected security policy web application firewall parameters")
@@ -135,7 +135,7 @@ func FlattenCdnFrontdoorFirewallPolicyParameters(input track1.BasicSecurityPolic
 	return securityPolicy, nil
 }
 
-func flattenSecurityPoliciesActivatedResourceReference(input *[]track1.ActivatedResourceReference) []interface{} {
+func flattenSecurityPoliciesActivatedResourceReference(input *[]cdn.ActivatedResourceReference) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

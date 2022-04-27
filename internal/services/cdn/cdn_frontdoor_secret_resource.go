@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	cdnfrontdoorsecretparams "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorsecretparams"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	keyValutValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -124,8 +124,8 @@ func resourceCdnFrontdoorSecretCreate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("expanding %q: %+v", "secret_parameters", err)
 	}
 
-	props := track1.Secret{
-		SecretProperties: &track1.SecretProperties{
+	props := cdn.Secret{
+		SecretProperties: &cdn.SecretProperties{
 			Parameters: secretParams,
 		},
 	}
@@ -203,7 +203,7 @@ func resourceCdnFrontdoorSecretDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandCdnFrontdoorBasicSecretParameters(ctx context.Context, input []interface{}, clients *clients.Client) (track1.BasicSecretParameters, error) {
+func expandCdnFrontdoorBasicSecretParameters(ctx context.Context, input []interface{}, clients *clients.Client) (cdn.BasicSecretParameters, error) {
 	if len(input) == 0 {
 		return nil, fmt.Errorf("%[1]q is invalid, expected to receive a %q, got %d", "secret_parameter", "Customer Certificate Parameter", len(input))
 	}
@@ -224,7 +224,7 @@ func expandCdnFrontdoorBasicSecretParameters(ctx context.Context, input []interf
 	return nil, fmt.Errorf("unknown secret parameter type encountered")
 }
 
-func flattenSecretSecretParameters(input track1.BasicSecretParameters) ([]interface{}, error) {
+func flattenSecretSecretParameters(input cdn.BasicSecretParameters) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results, nil

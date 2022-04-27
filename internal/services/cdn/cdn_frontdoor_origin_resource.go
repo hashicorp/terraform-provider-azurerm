@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	track1 "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/sdk/2021-06-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	privateLinkServiceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -206,8 +206,8 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	originHostHeader := d.Get("origin_host_header").(string)
 	enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
 
-	props := track1.AFDOrigin{
-		AFDOriginProperties: &track1.AFDOriginProperties{
+	props := cdn.AFDOrigin{
+		AFDOriginProperties: &cdn.AFDOriginProperties{
 			// AzureOrigin is currently not used, service team asked me to temporarily remove it from the resource
 			// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
 			EnabledState:                ConvertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
@@ -226,7 +226,7 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 
 	privateLinkSettings := d.Get("private_link").([]interface{})
 	if len(privateLinkSettings) > 0 {
-		if sku == string(track1.SkuNamePremiumAzureFrontDoor) {
+		if sku == string(cdn.SkuNamePremiumAzureFrontDoor) {
 			if !enableCertNameCheck {
 				return fmt.Errorf("%q requires that the %q field be set to %q, got %q", "private_link", "certificate_name_check_enabled", "true", "false")
 			} else {
@@ -243,7 +243,7 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 				props.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLinkSettings)
 			}
 		} else {
-			return fmt.Errorf("the %q field is only valid if the %q SKU is set to %q, got %q", "private_link", "Frontdoor Profile", track1.SkuNamePremiumAzureFrontDoor, sku)
+			return fmt.Errorf("the %q field is only valid if the %q SKU is set to %q, got %q", "private_link", "Frontdoor Profile", cdn.SkuNamePremiumAzureFrontDoor, sku)
 		}
 	}
 
@@ -341,8 +341,8 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	originHostHeader := d.Get("origin_host_header").(string)
 	enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
 
-	props := track1.AFDOriginUpdateParameters{
-		AFDOriginUpdatePropertiesParameters: &track1.AFDOriginUpdatePropertiesParameters{
+	props := cdn.AFDOriginUpdateParameters{
+		AFDOriginUpdatePropertiesParameters: &cdn.AFDOriginUpdatePropertiesParameters{
 			// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
 			EnabledState:                ConvertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
@@ -357,7 +357,7 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	if d.HasChange("private_link") {
 		privateLinkSettings := d.Get("private_link").([]interface{})
 		if len(privateLinkSettings) > 0 {
-			if sku == string(track1.SkuNamePremiumAzureFrontDoor) {
+			if sku == string(cdn.SkuNamePremiumAzureFrontDoor) {
 				if !enableCertNameCheck {
 					return fmt.Errorf("%q requires that the %q field be set to %q, got %q", "private_link", "certificate_name_check_enabled", "true", "false")
 				} else {
@@ -374,7 +374,7 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 					props.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLinkSettings)
 				}
 			} else {
-				return fmt.Errorf("the %q field is only valid if the %q SKU is set to %q, got %q", "private_link", "Frontdoor Profile", track1.SkuNamePremiumAzureFrontDoor, sku)
+				return fmt.Errorf("the %q field is only valid if the %q SKU is set to %q, got %q", "private_link", "Frontdoor Profile", cdn.SkuNamePremiumAzureFrontDoor, sku)
 			}
 		}
 	}
@@ -423,9 +423,9 @@ func resourceCdnFrontdoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandPrivateLinkSettings(input []interface{}) *track1.SharedPrivateLinkResourceProperties {
+func expandPrivateLinkSettings(input []interface{}) *cdn.SharedPrivateLinkResourceProperties {
 	if len(input) == 0 {
-		return &track1.SharedPrivateLinkResourceProperties{}
+		return &cdn.SharedPrivateLinkResourceProperties{}
 	}
 
 	config := input[0].(map[string]interface{})
@@ -435,8 +435,8 @@ func expandPrivateLinkSettings(input []interface{}) *track1.SharedPrivateLinkRes
 	groupId := config["target_type"].(string)
 	requestMessage := config["request_message"].(string)
 
-	privateLinkResource := track1.SharedPrivateLinkResourceProperties{
-		PrivateLink: &track1.ResourceReference{
+	privateLinkResource := cdn.SharedPrivateLinkResourceProperties{
+		PrivateLink: &cdn.ResourceReference{
 			ID: utils.String(resourceId),
 		},
 		GroupID:             utils.String(groupId),
@@ -447,7 +447,7 @@ func expandPrivateLinkSettings(input []interface{}) *track1.SharedPrivateLinkRes
 	return &privateLinkResource
 }
 
-func flattenPrivateLinkSettings(input *track1.SharedPrivateLinkResourceProperties) []interface{} {
+func flattenPrivateLinkSettings(input *cdn.SharedPrivateLinkResourceProperties) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
