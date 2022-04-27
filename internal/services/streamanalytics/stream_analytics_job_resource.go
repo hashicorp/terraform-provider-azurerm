@@ -102,7 +102,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				Default: string(streamanalytics.EventsOutOfOrderPolicyAdjust),
 			},
 
-			"job_type": {
+			"type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -178,7 +178,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	eventsLateArrivalMaxDelayInSeconds := d.Get("events_late_arrival_max_delay_in_seconds").(int)
 	eventsOutOfOrderMaxDelayInSeconds := d.Get("events_out_of_order_max_delay_in_seconds").(int)
 	eventsOutOfOrderPolicy := d.Get("events_out_of_order_policy").(string)
-	jobType := d.Get("job_type").(string)
+	jobType := d.Get("type").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	outputErrorPolicy := d.Get("output_error_policy").(string)
 	transformationQuery := d.Get("transformation_query").(string)
@@ -200,7 +200,7 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		if v, ok := d.GetOk("streaming_units"); ok {
 			transformation.TransformationProperties.StreamingUnits = utils.Int32(int32(v.(int)))
 		} else {
-			return fmt.Errorf("`streaming_units` must be set when `job_type` is `Cloud`")
+			return fmt.Errorf("`streaming_units` must be set when `type` is `Cloud`")
 		}
 	}
 
@@ -326,7 +326,7 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		d.Set("events_out_of_order_policy", string(props.EventsOutOfOrderPolicy))
 		d.Set("output_error_policy", string(props.OutputErrorPolicy))
-		d.Set("job_type", string(props.JobType))
+		d.Set("type", string(props.JobType))
 
 		// Computed
 		d.Set("job_id", props.JobID)

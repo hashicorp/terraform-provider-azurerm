@@ -325,7 +325,7 @@ resource "azurerm_stream_analytics_job" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   streaming_units     = 3
-  job_type            = "Cloud"
+  type                = "Cloud"
 
   transformation_query = <<QUERY
     SELECT *
@@ -351,7 +351,7 @@ resource "azurerm_stream_analytics_job" "test" {
   name                = "acctestjob-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  job_type            = "Edge"
+  type                = "Edge"
 
   transformation_query = <<QUERY
     SELECT *
