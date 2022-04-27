@@ -65,7 +65,7 @@ resource "azurerm_storage_account_network_rules" "example" {
 
 The following arguments are supported:
 
-* `storage_account_id` - (Optional) Specifies the ID of the storage account. Changing this forces a new resource to be created.
+* `storage_account_id` - (Required) Specifies the ID of the storage account. Changing this forces a new resource to be created.
 
 * `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
 
