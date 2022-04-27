@@ -59,7 +59,7 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 						"interval_in_seconds": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Default:      240,
+							Default:      100,
 							ValidateFunc: validation.IntBetween(5, 31536000),
 						},
 
@@ -73,7 +73,7 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 						"protocol": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(track1.ProbeProtocolHTTPS),
+							Default:  string(track1.ProbeProtocolHTTP),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(track1.ProbeProtocolHTTP),
 								string(track1.ProbeProtocolHTTPS),
@@ -84,7 +84,7 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 						"request_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(track1.HealthProbeRequestTypeGET),
+							Default:  string(track1.HealthProbeRequestTypeHEAD),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(track1.HealthProbeRequestTypeGET),
 								string(track1.HealthProbeRequestTypeHEAD),
@@ -106,14 +106,14 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 						"additional_latency_in_milliseconds": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Default:      0,
+							Default:      50,
 							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 
 						"sample_count": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Default:      16,
+							Default:      4,
 							ValidateFunc: validation.IntBetween(0, 255),
 						},
 

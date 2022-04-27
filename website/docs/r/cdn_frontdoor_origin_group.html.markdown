@@ -67,21 +67,21 @@ The following arguments are supported:
 
 A `health_probe` block supports the following:
 
-* `interval_in_seconds` - (Optional) The number of seconds between health probes. Default is `240` seconds. Possible values are between `5` and `31536000` seconds(inclusive).
+* `interval_in_seconds` - (Optional) The number of seconds between health probes. Default is `100` seconds. Possible values are between `5` and `31536000` seconds(inclusive).
 
 * `path` - (Optional) The path relative to the origin that is used to determine the health of the origin. Defaults to `/`.
 
-* `protocol` - (Optional) Protocol to use for health probe. Possible values are `Http`, `Https` or `NotSet`. Defaults to `Https`.
+* `protocol` - (Optional) Protocol to use for health probe. Possible values are `Http`, `Https` or `NotSet`. Defaults to `Http`.
 
-* `request_type` - (Optional) The type of health probe request that is made. Possible values are `GET`, `HEAD` or `NotSet`. Defaults to `GET`.
+* `request_type` - (Optional) The type of health probe request that is made. Possible values are `GET`, `HEAD` or `NotSet`. Defaults to `HEAD`.
 
 ---
 
 A `load_balancing` block supports the following:
 
-* `additional_latency_in_milliseconds` - (Optional) The additional latency in milliseconds for probes to fall into the lowest latency bucket. Possible values are between `0` and `1000` seconds(inclusive). Defaults to `0`.
+* `additional_latency_in_milliseconds` - (Optional) The additional latency in milliseconds for probes to fall into the lowest latency bucket. Possible values are between `0` and `1000` seconds(inclusive). Defaults to `50`.
 
-* `sample_count` - (Optional) The number of samples to consider for load balancing decisions. Possible values are between `0` and `255`(inclusive). Defaults to `16`.
+* `sample_count` - (Optional) The number of samples to consider for load balancing decisions. Possible values are between `0` and `255`(inclusive). Defaults to `4`.
 
 * `successful_samples_required` - (Optional) The number of samples within the sample period that must succeed. Possible values are between `0` and `255`(inclusive). Defaults to `3`.
 
