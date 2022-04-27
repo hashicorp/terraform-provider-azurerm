@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
 	"github.com/gofrs/uuid"
@@ -18,12 +19,48 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2021-11-01-preview/sqlvirtualmachine"
 
 // AdditionalFeaturesServerConfigurations additional SQL Server feature settings.
 type AdditionalFeaturesServerConfigurations struct {
 	// IsRServicesEnabled - Enable or disable R services (SQL 2016 onwards).
 	IsRServicesEnabled *bool `json:"isRServicesEnabled,omitempty"`
+}
+
+// AgConfiguration availability group configuration.
+type AgConfiguration struct {
+	// Replicas - READ-ONLY; Replica configurations.
+	Replicas *[]AgReplica `json:"replicas,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AgConfiguration.
+func (ac AgConfiguration) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// AgReplica availability group replica configuration.
+type AgReplica struct {
+	// SQLVirtualMachineInstanceID - Sql VirtualMachine Instance Id.
+	SQLVirtualMachineInstanceID *string `json:"sqlVirtualMachineInstanceId,omitempty"`
+	// Role - Replica Role in availability group. Possible values include: 'RolePRIMARY', 'RoleSECONDARY'
+	Role Role `json:"role,omitempty"`
+	// Commit - Replica commit mode in availability group. Possible values include: 'CommitSYNCHRONOUSCOMMIT', 'CommitASYNCHRONOUSCOMMIT'
+	Commit Commit `json:"commit,omitempty"`
+	// Failover - Replica failover mode in availability group. Possible values include: 'FailoverAUTOMATIC', 'FailoverMANUAL'
+	Failover Failover `json:"failover,omitempty"`
+	// ReadableSecondary - Replica readable secondary mode in availability group. Possible values include: 'ReadableSecondaryNO', 'ReadableSecondaryALL', 'ReadableSecondaryREADONLY'
+	ReadableSecondary ReadableSecondary `json:"readableSecondary,omitempty"`
+}
+
+// AssessmentSettings configure assessment for databases in your SQL virtual machine.
+type AssessmentSettings struct {
+	// Enable - Enable or disable assessment feature on SQL virtual machine.
+	Enable *bool `json:"enable,omitempty"`
+	// RunImmediately - Run assessment immediately on SQL virtual machine.
+	RunImmediately *bool `json:"runImmediately,omitempty"`
+	// Schedule - Schedule for Assessment.
+	Schedule *Schedule `json:"schedule,omitempty"`
 }
 
 // AutoBackupSettings configure backups for databases in your SQL virtual machine.
@@ -32,20 +69,24 @@ type AutoBackupSettings struct {
 	Enable *bool `json:"enable,omitempty"`
 	// EnableEncryption - Enable or disable encryption for backup on SQL virtual machine.
 	EnableEncryption *bool `json:"enableEncryption,omitempty"`
-	// RetentionPeriod - Retention period of backup: 1-30 days.
+	// RetentionPeriod - Retention period of backup: 1-90 days.
 	RetentionPeriod *int32 `json:"retentionPeriod,omitempty"`
 	// StorageAccountURL - Storage account url where backup will be taken to.
 	StorageAccountURL *string `json:"storageAccountUrl,omitempty"`
+	// StorageContainerName - Storage container name where backup will be taken to.
+	StorageContainerName *string `json:"storageContainerName,omitempty"`
 	// StorageAccessKey - Storage account key where backup will be taken to.
 	StorageAccessKey *string `json:"storageAccessKey,omitempty"`
 	// Password - Password for encryption on backup.
 	Password *string `json:"password,omitempty"`
 	// BackupSystemDbs - Include or exclude system databases from auto backup.
 	BackupSystemDbs *bool `json:"backupSystemDbs,omitempty"`
-	// BackupScheduleType - Backup schedule type. Possible values include: 'Manual', 'Automated'
+	// BackupScheduleType - Backup schedule type. Possible values include: 'BackupScheduleTypeManual', 'BackupScheduleTypeAutomated'
 	BackupScheduleType BackupScheduleType `json:"backupScheduleType,omitempty"`
-	// FullBackupFrequency - Frequency of full backups. In both cases, full backups begin during the next scheduled time window. Possible values include: 'Daily', 'Weekly'
+	// FullBackupFrequency - Frequency of full backups. In both cases, full backups begin during the next scheduled time window. Possible values include: 'FullBackupFrequencyTypeDaily', 'FullBackupFrequencyTypeWeekly'
 	FullBackupFrequency FullBackupFrequencyType `json:"fullBackupFrequency,omitempty"`
+	// DaysOfWeek - Days of the week for the backups when FullBackupFrequency is set to Weekly.
+	DaysOfWeek *[]DaysOfWeek `json:"daysOfWeek,omitempty"`
 	// FullBackupStartTime - Start time of a given day during which full backups can take place. 0-23 hours.
 	FullBackupStartTime *int32 `json:"fullBackupStartTime,omitempty"`
 	// FullBackupWindowHours - Duration of the time window of a given day during which full backups can take place. 1-23 hours.
@@ -58,7 +99,7 @@ type AutoBackupSettings struct {
 type AutoPatchingSettings struct {
 	// Enable - Enable or disable autopatching on SQL virtual machine.
 	Enable *bool `json:"enable,omitempty"`
-	// DayOfWeek - Day of week to apply the patch on. Possible values include: 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+	// DayOfWeek - Day of week to apply the patch on. Possible values include: 'DayOfWeekMonday', 'DayOfWeekTuesday', 'DayOfWeekWednesday', 'DayOfWeekThursday', 'DayOfWeekFriday', 'DayOfWeekSaturday', 'DayOfWeekSunday'
 	DayOfWeek DayOfWeek `json:"dayOfWeek,omitempty"`
 	// MaintenanceWindowStartingHour - Hour of the day when patching is initiated. Local VM time.
 	MaintenanceWindowStartingHour *int32 `json:"maintenanceWindowStartingHour,omitempty"`
@@ -71,6 +112,8 @@ type AvailabilityGroupListener struct {
 	autorest.Response `json:"-"`
 	// AvailabilityGroupListenerProperties - Resource properties.
 	*AvailabilityGroupListenerProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name.
@@ -105,6 +148,15 @@ func (agl *AvailabilityGroupListener) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				agl.AvailabilityGroupListenerProperties = &availabilityGroupListenerProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				agl.SystemData = &systemData
 			}
 		case "id":
 			if v != nil {
@@ -317,6 +369,8 @@ type AvailabilityGroupListenerProperties struct {
 	CreateDefaultAvailabilityGroupIfNotExist *bool `json:"createDefaultAvailabilityGroupIfNotExist,omitempty"`
 	// Port - Listener port.
 	Port *int32 `json:"port,omitempty"`
+	// AvailabilityGroupConfiguration - Availability Group configuration.
+	AvailabilityGroupConfiguration *AgConfiguration `json:"availabilityGroupConfiguration,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AvailabilityGroupListenerProperties.
@@ -333,6 +387,9 @@ func (aglp AvailabilityGroupListenerProperties) MarshalJSON() ([]byte, error) {
 	}
 	if aglp.Port != nil {
 		objectMap["port"] = aglp.Port
+	}
+	if aglp.AvailabilityGroupConfiguration != nil {
+		objectMap["availabilityGroupConfiguration"] = aglp.AvailabilityGroupConfiguration
 	}
 	return json.Marshal(objectMap)
 }
@@ -422,6 +479,8 @@ type Group struct {
 	autorest.Response `json:"-"`
 	// GroupProperties - Resource properties.
 	*GroupProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// Location - Resource location.
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
@@ -466,6 +525,15 @@ func (g *Group) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				g.GroupProperties = &groupProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				g.SystemData = &systemData
 			}
 		case "location":
 			if v != nil {
@@ -691,11 +759,11 @@ type GroupProperties struct {
 	SQLImageOffer *string `json:"sqlImageOffer,omitempty"`
 	// SQLImageSku - SQL image sku. Possible values include: 'SQLVMGroupImageSkuDeveloper', 'SQLVMGroupImageSkuEnterprise'
 	SQLImageSku SQLVMGroupImageSku `json:"sqlImageSku,omitempty"`
-	// ScaleType - READ-ONLY; Scale type. Possible values include: 'HA'
+	// ScaleType - READ-ONLY; Scale type. Possible values include: 'ScaleTypeHA'
 	ScaleType ScaleType `json:"scaleType,omitempty"`
-	// ClusterManagerType - READ-ONLY; Type of cluster manager: Windows Server Failover Cluster (WSFC), implied by the scale type of the group and the OS type. Possible values include: 'WSFC'
+	// ClusterManagerType - READ-ONLY; Type of cluster manager: Windows Server Failover Cluster (WSFC), implied by the scale type of the group and the OS type. Possible values include: 'ClusterManagerTypeWSFC'
 	ClusterManagerType ClusterManagerType `json:"clusterManagerType,omitempty"`
-	// ClusterConfiguration - READ-ONLY; Cluster type. Possible values include: 'Domainful'
+	// ClusterConfiguration - READ-ONLY; Cluster type. Possible values include: 'ClusterConfigurationDomainful'
 	ClusterConfiguration ClusterConfiguration `json:"clusterConfiguration,omitempty"`
 	// WsfcDomainProfile - Cluster Active Directory domain profile.
 	WsfcDomainProfile *WsfcDomainProfile `json:"wsfcDomainProfile,omitempty"`
@@ -1052,7 +1120,7 @@ type Operation struct {
 	Name *string `json:"name,omitempty"`
 	// Display - READ-ONLY; The localized display information for this particular operation / action.
 	Display *OperationDisplay `json:"display,omitempty"`
-	// Origin - READ-ONLY; The intended executor of the operation. Possible values include: 'User', 'System'
+	// Origin - READ-ONLY; The intended executor of the operation. Possible values include: 'OperationOriginUser', 'OperationOriginSystem'
 	Origin OperationOrigin `json:"origin,omitempty"`
 	// Properties - READ-ONLY; Additional descriptions for the operation.
 	Properties map[string]interface{} `json:"properties"`
@@ -1263,11 +1331,11 @@ type Properties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// SQLImageOffer - SQL image offer. Examples include SQL2016-WS2016, SQL2017-WS2016.
 	SQLImageOffer *string `json:"sqlImageOffer,omitempty"`
-	// SQLServerLicenseType - SQL Server license type. Possible values include: 'PAYG', 'AHUB', 'DR'
+	// SQLServerLicenseType - SQL Server license type. Possible values include: 'SQLServerLicenseTypePAYG', 'SQLServerLicenseTypeAHUB', 'SQLServerLicenseTypeDR'
 	SQLServerLicenseType SQLServerLicenseType `json:"sqlServerLicenseType,omitempty"`
-	// SQLManagement - SQL Server Management type. Possible values include: 'Full', 'LightWeight', 'NoAgent'
+	// SQLManagement - SQL Server Management type. Possible values include: 'SQLManagementModeFull', 'SQLManagementModeLightWeight', 'SQLManagementModeNoAgent'
 	SQLManagement SQLManagementMode `json:"sqlManagement,omitempty"`
-	// SQLImageSku - SQL Server edition type. Possible values include: 'Developer', 'Express', 'Standard', 'Enterprise', 'Web'
+	// SQLImageSku - SQL Server edition type. Possible values include: 'SQLImageSkuDeveloper', 'SQLImageSkuExpress', 'SQLImageSkuStandard', 'SQLImageSkuEnterprise', 'SQLImageSkuWeb'
 	SQLImageSku SQLImageSku `json:"sqlImageSku,omitempty"`
 	// SQLVirtualMachineGroupResourceID - ARM resource id of the SQL virtual machine group this SQL virtual machine is or will be part of.
 	SQLVirtualMachineGroupResourceID *string `json:"sqlVirtualMachineGroupResourceId,omitempty"`
@@ -1283,6 +1351,8 @@ type Properties struct {
 	ServerConfigurationsManagementSettings *ServerConfigurationsManagementSettings `json:"serverConfigurationsManagementSettings,omitempty"`
 	// StorageConfigurationSettings - Storage Configuration Settings.
 	StorageConfigurationSettings *StorageConfigurationSettings `json:"storageConfigurationSettings,omitempty"`
+	// AssessmentSettings - Assessment Settings.
+	AssessmentSettings *AssessmentSettings `json:"assessmentSettings,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Properties.
@@ -1324,6 +1394,9 @@ func (p Properties) MarshalJSON() ([]byte, error) {
 	if p.StorageConfigurationSettings != nil {
 		objectMap["storageConfigurationSettings"] = p.StorageConfigurationSettings
 	}
+	if p.AssessmentSettings != nil {
+		objectMap["assessmentSettings"] = p.AssessmentSettings
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -1363,7 +1436,7 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 type ResourceIdentity struct {
 	// PrincipalID - READ-ONLY; The Azure Active Directory principal id.
 	PrincipalID *uuid.UUID `json:"principalId,omitempty"`
-	// Type - The identity type. Set this to 'SystemAssigned' in order to automatically create and assign an Azure Active Directory principal for the resource. Possible values include: 'SystemAssigned'
+	// Type - The identity type. Set this to 'SystemAssigned' in order to automatically create and assign an Azure Active Directory principal for the resource. Possible values include: 'IdentityTypeNone', 'IdentityTypeSystemAssigned'
 	Type IdentityType `json:"type,omitempty"`
 	// TenantID - READ-ONLY; The Azure Active Directory tenant id.
 	TenantID *uuid.UUID `json:"tenantId,omitempty"`
@@ -1378,6 +1451,20 @@ func (ri ResourceIdentity) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// Schedule ...
+type Schedule struct {
+	// Enable - Enable or disable assessment schedule on SQL virtual machine.
+	Enable *bool `json:"enable,omitempty"`
+	// WeeklyInterval - Number of weeks to schedule between 2 assessment runs. Takes value from 1-6
+	WeeklyInterval *int32 `json:"weeklyInterval,omitempty"`
+	// MonthlyOccurrence - Occurrence of the DayOfWeek day within a month to schedule assessment. Takes values: 1,2,3,4 and -1. Use -1 for last DayOfWeek day of the month
+	MonthlyOccurrence *int32 `json:"monthlyOccurrence,omitempty"`
+	// DayOfWeek - Day of the week to run assessment. Possible values include: 'DayOfWeekMonday', 'DayOfWeekTuesday', 'DayOfWeekWednesday', 'DayOfWeekThursday', 'DayOfWeekFriday', 'DayOfWeekSaturday', 'DayOfWeekSunday'
+	DayOfWeek DayOfWeek `json:"dayOfWeek,omitempty"`
+	// StartTime - Time of the day in HH:mm format. Eg. 17:30
+	StartTime *string `json:"startTime,omitempty"`
+}
+
 // ServerConfigurationsManagementSettings set the connectivity, storage and workload settings.
 type ServerConfigurationsManagementSettings struct {
 	// SQLConnectivityUpdateSettings - SQL connectivity type settings.
@@ -1388,11 +1475,13 @@ type ServerConfigurationsManagementSettings struct {
 	SQLStorageUpdateSettings *SQLStorageUpdateSettings `json:"sqlStorageUpdateSettings,omitempty"`
 	// AdditionalFeaturesServerConfigurations - Additional SQL feature settings.
 	AdditionalFeaturesServerConfigurations *AdditionalFeaturesServerConfigurations `json:"additionalFeaturesServerConfigurations,omitempty"`
+	// SQLInstanceSettings - SQL Instance settings.
+	SQLInstanceSettings *SQLInstanceSettings `json:"sqlInstanceSettings,omitempty"`
 }
 
 // SQLConnectivityUpdateSettings set the access level and network port settings for SQL Server.
 type SQLConnectivityUpdateSettings struct {
-	// ConnectivityType - SQL Server connectivity option. Possible values include: 'LOCAL', 'PRIVATE', 'PUBLIC'
+	// ConnectivityType - SQL Server connectivity option. Possible values include: 'ConnectivityTypeLOCAL', 'ConnectivityTypePRIVATE', 'ConnectivityTypePUBLIC'
 	ConnectivityType ConnectivityType `json:"connectivityType,omitempty"`
 	// Port - SQL Server port.
 	Port *int32 `json:"port,omitempty"`
@@ -1400,6 +1489,20 @@ type SQLConnectivityUpdateSettings struct {
 	SQLAuthUpdateUserName *string `json:"sqlAuthUpdateUserName,omitempty"`
 	// SQLAuthUpdatePassword - SQL Server sysadmin login password.
 	SQLAuthUpdatePassword *string `json:"sqlAuthUpdatePassword,omitempty"`
+}
+
+// SQLInstanceSettings set the server/instance-level settings for SQL Server.
+type SQLInstanceSettings struct {
+	// Collation - SQL Server Collation.
+	Collation *string `json:"collation,omitempty"`
+	// MaxDop - SQL Server MAXDOP.
+	MaxDop *int32 `json:"maxDop,omitempty"`
+	// IsOptimizeForAdHocWorkloadsEnabled - SQL Server Optimize for Adhoc workloads.
+	IsOptimizeForAdHocWorkloadsEnabled *bool `json:"isOptimizeForAdHocWorkloadsEnabled,omitempty"`
+	// MinServerMemoryMB - SQL Server minimum memory.
+	MinServerMemoryMB *int32 `json:"minServerMemoryMB,omitempty"`
+	// MaxServerMemoryMB - SQL Server maximum memory.
+	MaxServerMemoryMB *int32 `json:"maxServerMemoryMB,omitempty"`
 }
 
 // SQLStorageSettings set disk storage settings for SQL Server.
@@ -1416,8 +1519,26 @@ type SQLStorageUpdateSettings struct {
 	DiskCount *int32 `json:"diskCount,omitempty"`
 	// StartingDeviceID - Device id of the first disk to be updated.
 	StartingDeviceID *int32 `json:"startingDeviceId,omitempty"`
-	// DiskConfigurationType - Disk configuration to apply to SQL Server. Possible values include: 'NEW', 'EXTEND', 'ADD'
+	// DiskConfigurationType - Disk configuration to apply to SQL Server. Possible values include: 'DiskConfigurationTypeNEW', 'DiskConfigurationTypeEXTEND', 'DiskConfigurationTypeADD'
 	DiskConfigurationType DiskConfigurationType `json:"diskConfigurationType,omitempty"`
+}
+
+// SQLTempDbSettings ...
+type SQLTempDbSettings struct {
+	// DataFileSize - SQL Server default file size
+	DataFileSize *int32 `json:"dataFileSize,omitempty"`
+	// DataGrowth - SQL Server default file autoGrowth size
+	DataGrowth *int32 `json:"dataGrowth,omitempty"`
+	// LogFileSize - SQL Server default file size
+	LogFileSize *int32 `json:"logFileSize,omitempty"`
+	// LogGrowth - SQL Server default file autoGrowth size
+	LogGrowth *int32 `json:"logGrowth,omitempty"`
+	// DataFileCount - SQL Server default file count
+	DataFileCount *int32 `json:"dataFileCount,omitempty"`
+	// Luns - Logical Unit Numbers for the disks.
+	Luns *[]int32 `json:"luns,omitempty"`
+	// DefaultFilePath - SQL Server default file path
+	DefaultFilePath *string `json:"defaultFilePath,omitempty"`
 }
 
 // SQLVirtualMachine a SQL virtual machine.
@@ -1427,6 +1548,8 @@ type SQLVirtualMachine struct {
 	Identity *ResourceIdentity `json:"identity,omitempty"`
 	// Properties - Resource properties.
 	*Properties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// Location - Resource location.
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
@@ -1483,6 +1606,15 @@ func (svm *SQLVirtualMachine) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				svm.Properties = &properties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				svm.SystemData = &systemData
 			}
 		case "location":
 			if v != nil {
@@ -1615,6 +1747,80 @@ func (future *SQLVirtualMachinesDeleteFutureType) result(client SQLVirtualMachin
 	return
 }
 
+// SQLVirtualMachinesRedeployFutureType an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type SQLVirtualMachinesRedeployFutureType struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SQLVirtualMachinesClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *SQLVirtualMachinesRedeployFutureType) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for SQLVirtualMachinesRedeployFutureType.Result.
+func (future *SQLVirtualMachinesRedeployFutureType) result(client SQLVirtualMachinesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesRedeployFutureType", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.SQLVirtualMachinesRedeployFutureType")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// SQLVirtualMachinesStartAssessmentFutureType an abstraction for monitoring and retrieving the results of
+// a long-running operation.
+type SQLVirtualMachinesStartAssessmentFutureType struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SQLVirtualMachinesClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *SQLVirtualMachinesStartAssessmentFutureType) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for SQLVirtualMachinesStartAssessmentFutureType.Result.
+func (future *SQLVirtualMachinesStartAssessmentFutureType) result(client SQLVirtualMachinesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.SQLVirtualMachinesStartAssessmentFutureType", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("sqlvirtualmachine.SQLVirtualMachinesStartAssessmentFutureType")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // SQLVirtualMachinesUpdateFutureType an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type SQLVirtualMachinesUpdateFutureType struct {
@@ -1660,7 +1866,7 @@ func (future *SQLVirtualMachinesUpdateFutureType) result(client SQLVirtualMachin
 
 // SQLWorkloadTypeUpdateSettings set workload type to optimize storage for SQL Server.
 type SQLWorkloadTypeUpdateSettings struct {
-	// SQLWorkloadType - SQL Server workload type. Possible values include: 'GENERAL', 'OLTP', 'DW'
+	// SQLWorkloadType - SQL Server workload type. Possible values include: 'SQLWorkloadTypeGENERAL', 'SQLWorkloadTypeOLTP', 'SQLWorkloadTypeDW'
 	SQLWorkloadType SQLWorkloadType `json:"sqlWorkloadType,omitempty"`
 }
 
@@ -1671,11 +1877,29 @@ type StorageConfigurationSettings struct {
 	// SQLLogSettings - SQL Server Log Storage Settings.
 	SQLLogSettings *SQLStorageSettings `json:"sqlLogSettings,omitempty"`
 	// SQLTempDbSettings - SQL Server TempDb Storage Settings.
-	SQLTempDbSettings *SQLStorageSettings `json:"sqlTempDbSettings,omitempty"`
-	// DiskConfigurationType - Disk configuration to apply to SQL Server. Possible values include: 'NEW', 'EXTEND', 'ADD'
+	SQLTempDbSettings *SQLTempDbSettings `json:"sqlTempDbSettings,omitempty"`
+	// SQLSystemDbOnDataDisk - SQL Server SystemDb Storage on DataPool if true.
+	SQLSystemDbOnDataDisk *bool `json:"sqlSystemDbOnDataDisk,omitempty"`
+	// DiskConfigurationType - Disk configuration to apply to SQL Server. Possible values include: 'DiskConfigurationTypeNEW', 'DiskConfigurationTypeEXTEND', 'DiskConfigurationTypeADD'
 	DiskConfigurationType DiskConfigurationType `json:"diskConfigurationType,omitempty"`
 	// StorageWorkloadType - Storage workload type. Possible values include: 'StorageWorkloadTypeGENERAL', 'StorageWorkloadTypeOLTP', 'StorageWorkloadTypeDW'
 	StorageWorkloadType StorageWorkloadType `json:"storageWorkloadType,omitempty"`
+}
+
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
 }
 
 // TrackedResource ARM tracked top level resource.
