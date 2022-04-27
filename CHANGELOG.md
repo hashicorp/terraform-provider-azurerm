@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v63.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-16283]
 * dependencies: updating to `v0.11.26` of `github.com/Azure/go-autorest` [GH-16458]
 * dependencies: upgrading to `v0.30.0` of `github.com/hashicorp/go-azure-helpers` [GH-16504]
+* dependencies: upgrade `sqlvirtualmachine` to `2021-11-01-preview` [GH-15835]
 * `azurerm_kubernetes_cluster` - support for the `run_command_enabled` property [GH-15029]
 * `azurerm_monitor_aad_diagnostic_setting` - remove validation on `log.category` to allow for new log categories that are available in Azure [GH-16534]
 * `azurerm_mssql_database` - Support for `short_term_retention_policy.0.backup_interval_in_hours` [GH-16528]
