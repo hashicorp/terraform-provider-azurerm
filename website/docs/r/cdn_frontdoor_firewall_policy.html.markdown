@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_cdn_Frontdoor_profile" "example" {
+resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.example.name
   sku_name            = "Premium_AzureFrontDoor"
@@ -27,8 +27,8 @@ resource "azurerm_cdn_Frontdoor_profile" "example" {
 resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   name                              = "examplecdnfdwafpolicy"
   resource_group_name               = azurerm_resource_group.example.name
-  cdn_frontdoor_profile_id          = azurerm_cdn_Frontdoor_profile.example.id
-  sku_name                          = "Premium_AzureFrontdoor"
+  cdn_frontdoor_profile_id          = azurerm_cdn_frontdoor_profile.example.id
+  sku_name                          = azurerm_cdn_frontdoor_profile.example.sku_name
   enabled                           = true
   mode                              = "Prevention"
   redirect_url                      = "https://www.contoso.com"
@@ -48,7 +48,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
       match_variable     = "RemoteAddr"
       operator           = "IPMatch"
       negation_condition = false
-      match_values       = ["192.168.1.0/24", "10.0.0.0/24"]
+      match_values       = ["10.0.1.0/24", "10.0.0.0/24"]
     }
   }
 
@@ -135,11 +135,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
 
-* `cdn_frontdoor_profile_id` - (Required) The resource ID of the Cdn Frontdoor Profile this firewall policy will belong. Changing this forces a new resource to be created.
+* `cdn_frontdoor_profile_id` - (Required) The resource ID of the Cdn Frontdoor Profile this Cdn Frontdoor firewall policy will belong to. Changing this forces a new resource to be created.
 
-* `enabled` - (Optional) Is the policy a enabled state or disabled state. Defaults to `true`.
+* `enabled` - (Optional) Is the Cdn Frontdoor firewall policy enabled? Defaults to `true`.
 
-* `mode` - (Optional) The firewall policy mode. Possible values are `Detection`, `Prevention` and defaults to `Prevention`.
+* `mode` - (Optional) The Cdn Frontdoor firewall policy mode. Possible values are `Detection`, `Prevention`. Defaults to `Prevention`.
+
+->**NOTE:** When run in `Detection` mode, the Cdn Frontdoor firewall policy doesn't take any other actions other than monitoring and loging the request and its matched Cdn Frontdoor rule to the Web Application Firewall logs.
 
 * `redirect_url` - (Optional) If action type is redirect, this field represents redirect URL for the client.
 
@@ -151,11 +153,11 @@ The following arguments are supported:
 
 * `managed_rule` - (Optional) One or more `managed_rule` blocks as defined below.
 
-* `sku_name` - (Optional) The sku's pricing tier for this Cdn Frontdoor firewall policy. Possible values include`Standard_AzureFrontdoor` or `Premium_AzureFrontdoor`. Defaluts to `Standard_AzureFrontdoor`.
+* `sku_name` - (Optional) The sku's pricing tier for this Cdn Frontdoor firewall policy. Possible values include`Standard_AzureFrontDoor` or `Premium_AzureFrontDoor`. Defaults to `Standard_AzureFrontDoor`.
 
-->**NOTE:** The `Standard_AzureFrontdoor` firewall policy sku may contain `custom` rules only. The `Premium_AzureFrontdoor` Firewall policy skus may contain both `custom` and `managed` rules.
+->**NOTE:** The `Standard_AzureFrontDoor` Cdn Frontdoor firewall policy sku may contain `custom` rules only. The `Premium_AzureFrontDoor` Cdn Frontdoor firewall policy skus may contain both `custom` and `managed` rules.
 
-* `tags` - (Optional) A mapping of tags to assign to the Web Application Firewall Policy.
+* `tags` - (Optional) A mapping of tags to assign to the Cdn Frontdoor firewall policy.
 
 ---
 
@@ -241,25 +243,25 @@ A `exclusion` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The ID of the Frontdoor Firewall Policy.
+* `id` - The ID of the Cdn Frontdoor Firewall Policy.
 
-* `location` - The Azure Region where this Frontdoor Firewall Policy exists.
+* `location` - The Azure Region where this Cdn Frontdoor Firewall Policy exists.
 
-* `frontend_endpoint_ids` - The Frontend Endpoints associated with this Front Door Firewall policy.
+* `frontend_endpoint_ids` - The Cdn Frontend Endpoints associated with this Cdn Frontdoor Firewall policy.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Frontdoor Firewall Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the Frontdoor Firewall Policy.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Frontdoor Firewall Policy.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Frontdoor Firewall Policy.
+* `create` - (Defaults to 30 minutes) Used when creating the Cdn Frontdoor Firewall Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Cdn Frontdoor Firewall Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Cdn Frontdoor Firewall Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Cdn Frontdoor Firewall Policy.
 
 ## Import
 
 Frontdoor Firewall Policy can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_cdn_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/FrontdoorWebApplicationFirewallPolicies/examplefdwafpolicy
+$ terraform import azurerm_cdn_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/FrontdoorWebApplicationFirewallPolicies/firewallPolicy1
 ```
