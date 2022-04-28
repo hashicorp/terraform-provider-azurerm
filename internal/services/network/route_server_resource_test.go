@@ -87,26 +87,18 @@ func (r RouteServerResource) Exists(ctx context.Context, clients *clients.Client
 
 	resp, err := clients.Network.VirtualHubClient.Get(ctx, routeServerId.ResourceGroup, routeServerId.Name)
 	if err != nil {
-		return nil, fmt.Errorf("Reading Route Server %s: %+v", routeServerId, err)
+		return nil, fmt.Errorf("reading Route Server %s: %+v", routeServerId, err)
 	}
 
 	ipConfig, err := clients.Network.VirtualHubIPClient.List(ctx, routeServerId.ResourceGroup, routeServerId.Name)
 	if err != nil {
-		return nil, fmt.Errorf("Retrieving Ip Config for Route Server %s: %+v", routeServerId, err)
+		return nil, fmt.Errorf("retrieving Ip Config for Route Server %s: %+v", routeServerId, err)
 	}
 	if ipConfig.Values() == nil {
-		return nil, fmt.Errorf("No IP Config is set for the Route Server %s: %+v", routeServerId, err)
+		return nil, fmt.Errorf("no IP Config is set for the Route Server %s: %+v", routeServerId, err)
 	}
 
-	var ipName string
-	for _, setting := range ipConfig.Values() {
-		if setting.Name != nil {
-			ipName = *setting.Name
-		}
-	}
-	ipConfigResp, err := clients.Network.VirtualHubIPClient.Get(ctx, routeServerId.ResourceGroup, routeServerId.Name, ipName)
-
-	return utils.Bool(resp.ID != nil && ipConfigResp.ID != nil), nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
 func (r RouteServerResource) basic(data acceptance.TestData) string {
@@ -162,7 +154,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -177,7 +169,7 @@ resource "azurerm_subnet" "test" {
   name                 = "RouteServerSubnet"
   virtual_network_name = azurerm_virtual_network.test.name
   resource_group_name  = azurerm_resource_group.test.name
-  address_prefixes       = ["10.0.0.0/24"]
+  address_prefixes     = ["10.0.0.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {

@@ -173,7 +173,7 @@ func resourceRouteServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	future, err := ipClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, ipConfigName, ipConfigs)
 
-	if err := future.WaitForCompletionRef(ctx, ipClient.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, ipClient.Client); err != nil {
 		return fmt.Errorf("waiting on creation/update for IP Configuration %q of Route Server %q (Resource Group Name %q): %+v", ipConfigName, id.Name, id.ResourceGroup, err)
 	}
 	d.SetId(id.ID())

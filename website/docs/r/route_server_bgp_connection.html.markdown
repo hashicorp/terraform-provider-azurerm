@@ -14,10 +14,10 @@ Manages a Bgp Connection for a Route Server
 
 ```hcl
 resource "azurerm_route_server_bgp_connection" "example" {
-  name           = "example-rs-bgpconnection"
+  name            = "example-rs-bgpconnection"
   route_server_id = azurerm_route_server.example.id
-  peer_asn       = 65501
-  peer_ip        = "169.254.21.5"
+  peer_asn        = 65501
+  peer_ip         = "169.254.21.5"
 }
 ```
 
