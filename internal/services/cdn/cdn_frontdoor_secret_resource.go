@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -217,11 +219,7 @@ func expandCdnFrontdoorBasicSecretParameters(ctx context.Context, input []interf
 		return nil, err
 	}
 
-	if customerCertificate != nil {
-		return *customerCertificate, nil
-	}
-
-	return nil, fmt.Errorf("unknown secret parameter type encountered")
+	return customerCertificate, nil
 }
 
 func flattenSecretSecretParameters(input cdn.BasicSecretParameters) ([]interface{}, error) {
@@ -239,11 +237,11 @@ func flattenSecretSecretParameters(input cdn.BasicSecretParameters) ([]interface
 	}
 
 	// Secret Source ID is what comes back from Frontdoor, now I need to build the URL from that...
-	// secretSourceId: /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​/providers/Microsoft.KeyVault/vaults/keyVaultName1​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​/secrets/certificateName​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​1
+	// secretSourceId: /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.KeyVault/vaults/keyVaultName1/secrets/certificateName1
 	// id            : "https://[vaultName].vault.azure.net/certificates/[certificateName]/[certificateVersion]"
 	// versionless id: "https://[vaultName].vault.azure.net/certificates/[certificateName]"
 
-	secretSourceId, err := parse.FrontdoorKeyVaultSecretID(*customerCertificate.SecretSource.ID)
+	secretSourceId, err := keyVaultParse.ResourceManagerSecretID(*customerCertificate.SecretSource.ID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse the %q field of the %q, got %q", "Secret Source", "Customer Certificate", *customerCertificate.SecretSource.ID)
 	}

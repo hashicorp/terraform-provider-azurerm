@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type FrontdoorKeyVaultSecretId struct {
+type ResourceManagerSecretId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	VaultName      string
 	SecretName     string
 }
 
-func NewFrontdoorKeyVaultSecretID(subscriptionId, resourceGroup, vaultName, secretName string) FrontdoorKeyVaultSecretId {
-	return FrontdoorKeyVaultSecretId{
+func NewResourceManagerSecretID(subscriptionId, resourceGroup, vaultName, secretName string) ResourceManagerSecretId {
+	return ResourceManagerSecretId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		VaultName:      vaultName,
@@ -25,29 +25,29 @@ func NewFrontdoorKeyVaultSecretID(subscriptionId, resourceGroup, vaultName, secr
 	}
 }
 
-func (id FrontdoorKeyVaultSecretId) String() string {
+func (id ResourceManagerSecretId) String() string {
 	segments := []string{
 		fmt.Sprintf("Secret Name %q", id.SecretName),
 		fmt.Sprintf("Vault Name %q", id.VaultName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Frontdoor Key Vault Secret", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Resource Manager Secret", segmentsStr)
 }
 
-func (id FrontdoorKeyVaultSecretId) ID() string {
+func (id ResourceManagerSecretId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/secrets/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VaultName, id.SecretName)
 }
 
-// FrontdoorKeyVaultSecretID parses a FrontdoorKeyVaultSecret ID into an FrontdoorKeyVaultSecretId struct
-func FrontdoorKeyVaultSecretID(input string) (*FrontdoorKeyVaultSecretId, error) {
+// ResourceManagerSecretID parses a ResourceManagerSecret ID into an ResourceManagerSecretId struct
+func ResourceManagerSecretID(input string) (*ResourceManagerSecretId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := FrontdoorKeyVaultSecretId{
+	resourceId := ResourceManagerSecretId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -74,19 +74,19 @@ func FrontdoorKeyVaultSecretID(input string) (*FrontdoorKeyVaultSecretId, error)
 	return &resourceId, nil
 }
 
-// FrontdoorKeyVaultSecretIDInsensitively parses an FrontdoorKeyVaultSecret ID into an FrontdoorKeyVaultSecretId struct, insensitively
-// This should only be used to parse an ID for rewriting, the FrontdoorKeyVaultSecretID
+// ResourceManagerSecretIDInsensitively parses an ResourceManagerSecret ID into an ResourceManagerSecretId struct, insensitively
+// This should only be used to parse an ID for rewriting, the ResourceManagerSecretID
 // method should be used instead for validation etc.
 //
 // Whilst this may seem strange, this enables Terraform have consistent casing
 // which works around issues in Core, whilst handling broken API responses.
-func FrontdoorKeyVaultSecretIDInsensitively(input string) (*FrontdoorKeyVaultSecretId, error) {
+func ResourceManagerSecretIDInsensitively(input string) (*ResourceManagerSecretId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := FrontdoorKeyVaultSecretId{
+	resourceId := ResourceManagerSecretId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}

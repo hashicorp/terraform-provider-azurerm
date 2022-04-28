@@ -6,7 +6,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	frontdoorParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -49,7 +48,7 @@ func InitializeCdnFrontdoorSecretMappings() *CdnFrontdoorSecretMappings {
 	return m
 }
 
-func ExpandCdnFrontdoorCustomerCertificateParameters(ctx context.Context, input []interface{}, clients *clients.Client) (*cdn.BasicSecretParameters, error) {
+func ExpandCdnFrontdoorCustomerCertificateParameters(ctx context.Context, input []interface{}, clients *clients.Client) (cdn.BasicSecretParameters, error) {
 	m := InitializeCdnFrontdoorSecretMappings()
 	item := input[0].(map[string]interface{})
 
@@ -79,7 +78,7 @@ func ExpandCdnFrontdoorCustomerCertificateParameters(ctx context.Context, input 
 		return nil, err
 	}
 
-	secretSource := frontdoorParse.NewFrontdoorKeyVaultSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, certificateId.Name)
+	secretSource := keyVaultParse.NewResourceManagerSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, certificateId.Name)
 
 	customerCertificate := &cdn.CustomerCertificateParameters{
 		Type: m.CustomerCertificate.TypeName,
@@ -93,9 +92,5 @@ func ExpandCdnFrontdoorCustomerCertificateParameters(ctx context.Context, input 
 		customerCertificate.SecretVersion = utils.String(certificateId.Version)
 	}
 
-	if secretParameter := cdn.BasicSecretParameters(customerCertificate); secretParameter != nil {
-		return &secretParameter, nil
-	}
-
-	return nil, fmt.Errorf("unexpected %q Customer Certificate received from the Key Vault Certificate Base URL %q", "nil", certificateId.KeyVaultBaseUrl)
+	return customerCertificate, nil
 }
