@@ -2,9 +2,9 @@ package validate
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
 // RedisEnterpriseClusterLocation - validates that the passed interface contains a valid Redis Enterprist Cluster location or not
@@ -24,7 +24,7 @@ func RedisEnterpriseClusterLocation(input interface{}, key string) (warnings []s
 		}
 	}
 
-	errors = append(errors, fmt.Errorf("%q does not currently support Redis Enterprise Clusters. Locations which currently support Redis Enterprise Clusters are [%s]", v, azure.QuotedStringSlice(friendlyValidRedisEnterpriseClusterLocations())))
+	errors = append(errors, fmt.Errorf("%q does not currently support Redis Enterprise Clusters. Locations which currently support Redis Enterprise Clusters are: [%s]", v, strings.Join(friendlyValidRedisEnterpriseClusterLocations(), ", ")))
 	return warnings, errors
 }
 

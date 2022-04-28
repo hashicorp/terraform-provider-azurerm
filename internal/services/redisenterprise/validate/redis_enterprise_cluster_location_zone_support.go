@@ -2,9 +2,9 @@ package validate
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
 // RedisEnterpriseClusterLocationZoneSupport - validates that the passed location supports zones or not
@@ -14,7 +14,7 @@ func RedisEnterpriseClusterLocationZoneSupport(input string) error {
 
 	for _, str := range invalidLocations {
 		if location == str {
-			return fmt.Errorf("'Zones' are not currently supported in the %s regions, got %q", azure.QuotedStringSlice(friendlyInvalidRedisEnterpriseClusterZoneLocations()), location)
+			return fmt.Errorf("'Zones' are not currently supported in the %s regions, got %q", strings.Join(friendlyInvalidRedisEnterpriseClusterZoneLocations(), ", "), location)
 		}
 	}
 
