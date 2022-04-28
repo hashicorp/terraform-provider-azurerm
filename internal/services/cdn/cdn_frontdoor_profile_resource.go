@@ -75,7 +75,7 @@ func resourceCdnFrontdoorProfile() *pluginsdk.Resource {
 }
 
 func resourceCdnFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorProfileClient
+	client := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -122,7 +122,7 @@ func resourceCdnFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceCdnFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorProfileClient
+	client := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -160,7 +160,7 @@ func resourceCdnFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceCdnFrontdoorProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorProfileClient
+	client := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -186,7 +186,7 @@ func resourceCdnFrontdoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceCdnFrontdoorProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorProfileClient
+	client := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

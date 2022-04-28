@@ -95,7 +95,7 @@ func resourceCdnFrontdoorCustomDomainSecretValidator() *pluginsdk.Resource {
 
 func resourceCdnFrontdoorCustomDomainSecretValidatorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	customDomainClient := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
-	client := meta.(*clients.Client).Cdn.FrontdoorSecretsClient
+	client := meta.(*clients.Client).Cdn.FrontDoorSecretsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -192,7 +192,7 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorCreate(d *pluginsdk.Resource
 
 func resourceCdnFrontdoorCustomDomainSecretValidatorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
-	secretsClient := meta.(*clients.Client).Cdn.FrontdoorSecretsClient
+	secretsClient := meta.(*clients.Client).Cdn.FrontDoorSecretsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

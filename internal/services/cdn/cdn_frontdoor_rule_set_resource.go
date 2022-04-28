@@ -56,7 +56,7 @@ func resourceCdnFrontdoorRuleSet() *pluginsdk.Resource {
 }
 
 func resourceCdnFrontdoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorRuleSetsClient
+	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -90,7 +90,7 @@ func resourceCdnFrontdoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceCdnFrontdoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorRuleSetsClient
+	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -119,7 +119,7 @@ func resourceCdnFrontdoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceCdnFrontdoorRuleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorRuleSetsClient
+	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

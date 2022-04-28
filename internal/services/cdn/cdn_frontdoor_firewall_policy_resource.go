@@ -440,7 +440,7 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 }
 
 func resourceCdnFrontdoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorLegacyPoliciesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorLegacyPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -531,7 +531,7 @@ func resourceCdnFrontdoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 }
 
 func resourceCdnFrontdoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorLegacyPoliciesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorLegacyPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -595,7 +595,7 @@ func resourceCdnFrontdoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceCdnFrontdoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorLegacyPoliciesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorLegacyPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

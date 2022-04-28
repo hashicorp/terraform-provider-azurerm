@@ -135,7 +135,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 }
 
 func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorSecurityPoliciesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorSecurityPoliciesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -161,7 +161,7 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	standardSku := true
-	profileClient := meta.(*clients.Client).Cdn.FrontdoorProfileClient
+	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve the %q from the linked %q: %+v", "sku_name", "azurerm_cdn_frontdoor_profile", err)
@@ -201,7 +201,7 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorSecurityPoliciesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorSecurityPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -236,7 +236,7 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorSecurityPoliciesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorSecurityPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

@@ -159,7 +159,7 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 
 func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
-	profileClient := meta.(*clients.Client).Cdn.FrontdoorProfileClient
+	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -309,7 +309,7 @@ func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 
 func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
-	profileClient := meta.(*clients.Client).Cdn.FrontdoorProfileClient
+	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

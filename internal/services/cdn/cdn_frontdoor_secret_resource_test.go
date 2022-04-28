@@ -71,7 +71,7 @@ func (r CdnFrontdoorSecretResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	client := clients.Cdn.FrontdoorSecretsClient
+	client := clients.Cdn.FrontDoorSecretsClient
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecretName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {

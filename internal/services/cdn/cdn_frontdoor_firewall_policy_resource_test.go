@@ -99,7 +99,7 @@ func (CdnFrontdoorFirewallPolicyResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.Cdn.FrontdoorLegacyPoliciesClient.Get(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
+	resp, err := clients.Cdn.FrontDoorLegacyPoliciesClient.Get(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

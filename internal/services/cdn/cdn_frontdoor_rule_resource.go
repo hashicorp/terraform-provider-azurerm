@@ -627,7 +627,7 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 }
 
 func resourceCdnFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorRulesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorRulesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -689,7 +689,7 @@ func resourceCdnFrontdoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceCdnFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorRulesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -737,7 +737,7 @@ func resourceCdnFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceCdnFrontdoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorRulesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorRulesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -784,7 +784,7 @@ func resourceCdnFrontdoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceCdnFrontdoorRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorRulesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

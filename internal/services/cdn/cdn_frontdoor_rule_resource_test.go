@@ -110,7 +110,7 @@ func (r CdnFrontdoorRuleResource) Exists(ctx context.Context, clients *clients.C
 		return nil, err
 	}
 
-	client := clients.Cdn.FrontdoorRulesClient
+	client := clients.Cdn.FrontDoorRulesClient
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {

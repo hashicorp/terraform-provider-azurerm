@@ -224,7 +224,7 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 }
 
 func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorRoutesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -304,7 +304,7 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorRoutesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -370,7 +370,7 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorRoutesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 	workaroundsClient := azuresdkhacks.NewCdnFrontDoorRoutesWorkaroundClient(client)
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -429,7 +429,7 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceCdnFrontdoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorRoutesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

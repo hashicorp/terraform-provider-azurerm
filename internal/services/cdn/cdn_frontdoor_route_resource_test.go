@@ -104,7 +104,7 @@ func (r CdnFrontdoorRouteResource) Exists(ctx context.Context, clients *clients.
 		return nil, err
 	}
 
-	client := clients.Cdn.FrontdoorRoutesClient
+	client := clients.Cdn.FrontDoorRoutesClient
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {

@@ -63,7 +63,7 @@ func (r CdnFrontdoorSecurityPolicyResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	client := clients.Cdn.FrontdoorSecurityPoliciesClient
+	client := clients.Cdn.FrontDoorSecurityPoliciesClient
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecurityPolicyName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {

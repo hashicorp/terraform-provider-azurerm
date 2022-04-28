@@ -95,7 +95,7 @@ func resourceCdnFrontdoorSecret() *pluginsdk.Resource {
 }
 
 func resourceCdnFrontdoorSecretCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorSecretsClient
+	client := meta.(*clients.Client).Cdn.FrontDoorSecretsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -144,7 +144,7 @@ func resourceCdnFrontdoorSecretCreate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceCdnFrontdoorSecretRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorSecretsClient
+	client := meta.(*clients.Client).Cdn.FrontDoorSecretsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -182,7 +182,7 @@ func resourceCdnFrontdoorSecretRead(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceCdnFrontdoorSecretDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontdoorSecretsClient
+	client := meta.(*clients.Client).Cdn.FrontDoorSecretsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
