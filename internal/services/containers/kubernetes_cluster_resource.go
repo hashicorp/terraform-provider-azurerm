@@ -403,6 +403,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"namespace_resources_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"network_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -470,12 +476,32 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validate.CIDR,
 						},
 
+						"pod_cidrs": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.CIDR,
+							},
+						},
+
 						"service_cidr": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.CIDR,
+						},
+
+						"service_cidrs": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.CIDR,
+							},
 						},
 
 						"load_balancer_sku": {
@@ -595,6 +621,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								},
 							},
 						},
+
 						"ip_versions": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -677,6 +704,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 				ForceNew: true,
+			},
+
+			"run_command_disabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"azure_active_directory_role_based_access_control": {
@@ -1098,23 +1131,24 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			Tier: containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string)),
 		},
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
-			APIServerAccessProfile: &apiAccessProfile,
-			AadProfile:             azureADProfile,
-			AddonProfiles:          *addonProfiles,
-			AgentPoolProfiles:      agentProfiles,
-			AutoScalerProfile:      autoScalerProfile,
-			DNSPrefix:              utils.String(dnsPrefix),
-			EnableRBAC:             utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
-			KubernetesVersion:      utils.String(kubernetesVersion),
-			LinuxProfile:           linuxProfile,
-			WindowsProfile:         windowsProfile,
-			NetworkProfile:         networkProfile,
-			NodeResourceGroup:      utils.String(nodeResourceGroup),
-			PublicNetworkAccess:    publicNetworkAccess,
-			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
-			HTTPProxyConfig:        httpProxyConfig,
-			OidcIssuerProfile:      oidcIssuerProfile,
-			SecurityProfile:        microsoftDefender,
+			APIServerAccessProfile:   &apiAccessProfile,
+			AadProfile:               azureADProfile,
+			AddonProfiles:            *addonProfiles,
+			AgentPoolProfiles:        agentProfiles,
+			AutoScalerProfile:        autoScalerProfile,
+			DNSPrefix:                utils.String(dnsPrefix),
+			EnableRBAC:               utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
+			KubernetesVersion:        utils.String(kubernetesVersion),
+			LinuxProfile:             linuxProfile,
+			WindowsProfile:           windowsProfile,
+			NetworkProfile:           networkProfile,
+			EnableNamespaceResources: utils.Bool(d.Get("namespace_resources_enabled").(bool)),
+			NodeResourceGroup:        utils.String(nodeResourceGroup),
+			PublicNetworkAccess:      publicNetworkAccess,
+			DisableLocalAccounts:     utils.Bool(d.Get("local_account_disabled").(bool)),
+			HTTPProxyConfig:          httpProxyConfig,
+			OidcIssuerProfile:        oidcIssuerProfile,
+			SecurityProfile:          microsoftDefender,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1372,6 +1406,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("local_account_disabled") {
 		updateCluster = true
 		existing.ManagedClusterProperties.DisableLocalAccounts = utils.Bool(d.Get("local_account_disabled").(bool))
+	}
+
+	if d.HasChange("namespace_resources_enabled") {
+		updateCluster = true
+		existing.ManagedClusterProperties.EnableNamespaceResources = utils.Bool(d.Get("namespace_resources_enabled").(bool))
 	}
 
 	if d.HasChange("network_profile") {
@@ -1698,6 +1737,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 		d.Set("local_account_disabled", props.DisableLocalAccounts)
+		d.Set("namespace_resources_enabled", props.EnableNamespaceResources)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess != containerservice.PublicNetworkAccessDisabled)
 
 		upgradeChannel := ""
@@ -1714,6 +1754,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_cluster_public_fqdn_enabled", accessProfile.EnablePrivateClusterPublicFQDN)
+
 			switch {
 			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
 				d.Set("private_dns_zone_id", "System")
@@ -2134,6 +2175,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 		networkProfile.PodCidr = utils.String(podCidr)
 	}
 
+	if v, ok := config["pod_cidrs"]; ok {
+		networkProfile.PodCidrs = utils.ExpandStringSlice(v.([]interface{}))
+	}
+
 	if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
 		dockerBridgeCidr := v.(string)
 		networkProfile.DockerBridgeCidr = utils.String(dockerBridgeCidr)
@@ -2142,6 +2187,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	if v, ok := config["service_cidr"]; ok && v.(string) != "" {
 		serviceCidr := v.(string)
 		networkProfile.ServiceCidr = utils.String(serviceCidr)
+	}
+
+	if v, ok := config["service_cidrs"]; ok {
+		networkProfile.ServiceCidrs = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
 	return &networkProfile, nil
@@ -2364,7 +2413,9 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 			"network_mode":          string(profile.NetworkMode),
 			"network_policy":        string(profile.NetworkPolicy),
 			"pod_cidr":              podCidr,
+			"pod_cidrs":             utils.FlattenStringSlice(profile.PodCidrs),
 			"service_cidr":          serviceCidr,
+			"service_cidrs":         utils.FlattenStringSlice(profile.ServiceCidrs),
 			"outbound_type":         string(profile.OutboundType),
 		},
 	}
