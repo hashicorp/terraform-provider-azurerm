@@ -2,6 +2,7 @@ package cdn
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
@@ -210,7 +211,7 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 		AFDOriginProperties: &cdn.AFDOriginProperties{
 			// AzureOrigin is currently not used, service team asked me to temporarily remove it from the resource
 			// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
-			EnabledState:                ConvertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
+			EnabledState:                convertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
 			HostName:                    utils.String(d.Get("host_name").(string)),
 			HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
@@ -238,7 +239,7 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 				_, err := privateLinkServiceParse.PrivateLinkServiceID(settings["private_link_target_id"].(string))
 				if err != nil && targetType == "" {
 					// It is not a Load Balancer and the Target Type is empty, which is invalid...
-					return fmt.Errorf("the %[1]q block requires that you define the %[2]q field if the %[1]q is not a Load Balancer, expected %[3]s got %[4]q", "private_link", "target_type", azure.QuotedStringSlice(ValidPrivateLinkTargetTypes()), targetType)
+					return fmt.Errorf("the %[1]q block requires that you define the %[2]q field if the %[1]q is not a Load Balancer, expected %[3]s got %[4]q", "private_link", "target_type", strings.Join(ValidPrivateLinkTargetTypes(), ", "), targetType)
 				}
 				props.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLinkSettings)
 			}
@@ -292,7 +293,7 @@ func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("private_link", flattenPrivateLinkSettings(props.SharedPrivateLinkResource))
 		}
 
-		d.Set("health_probes_enabled", ConvertEnabledStateToBool(&props.EnabledState))
+		d.Set("health_probes_enabled", convertEnabledStateToBool(&props.EnabledState))
 		d.Set("certificate_name_check_enabled", props.EnforceCertificateNameCheck)
 		d.Set("host_name", props.HostName)
 		d.Set("http_port", props.HTTPPort)
@@ -344,7 +345,7 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	props := cdn.AFDOriginUpdateParameters{
 		AFDOriginUpdatePropertiesParameters: &cdn.AFDOriginUpdatePropertiesParameters{
 			// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
-			EnabledState:                ConvertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
+			EnabledState:                convertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
 			HostName:                    utils.String(d.Get("host_name").(string)),
 			HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
@@ -369,7 +370,7 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 					_, err := privateLinkServiceParse.PrivateLinkServiceID(settings["private_link_target_id"].(string))
 					if err != nil && targetType == "" {
 						// It is not a Load Balancer and the Target Type is empty, which is invalid...
-						return fmt.Errorf("the %[1]q block requires that you define the %[2]q field if the %[1]q is not a Load Balancer, expected %[3]s got %[4]q", "private_link", "target_type", azure.QuotedStringSlice(ValidPrivateLinkTargetTypes()), targetType)
+						return fmt.Errorf("the %[1]q block requires that you define the %[2]q field if the %[1]q is not a Load Balancer, expected %[3]s got %[4]q", "private_link", "target_type", strings.Join(ValidPrivateLinkTargetTypes(), ", "), targetType)
 					}
 					props.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLinkSettings)
 				}

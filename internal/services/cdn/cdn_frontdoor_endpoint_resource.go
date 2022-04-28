@@ -108,7 +108,7 @@ func resourceCdnFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 		Name:     utils.String(d.Get("name").(string)),
 		Location: &location,
 		AFDEndpointProperties: &cdn.AFDEndpointProperties{
-			EnabledState: ConvertBoolToEnabledState(d.Get("enabled").(bool)),
+			EnabledState: convertBoolToEnabledState(d.Get("enabled").(bool)),
 			// OriginResponseTimeoutSeconds: d.Get("origin_response_timeout_seconds").(int),
 		},
 
@@ -154,7 +154,7 @@ func resourceCdnFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("cdn_frontdoor_profile_id", profileId.ID())
 
 	if props := resp.AFDEndpointProperties; props != nil {
-		d.Set("enabled", ConvertEnabledStateToBool(&props.EnabledState))
+		d.Set("enabled", convertEnabledStateToBool(&props.EnabledState))
 		d.Set("host_name", props.HostName)
 
 		// BUG: Profile Name is not being returned by the API pull it from the ID
@@ -191,7 +191,7 @@ func resourceCdnFrontdoorEndpointUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	props := cdn.AFDEndpointUpdateParameters{
 		AFDEndpointPropertiesUpdateParameters: &cdn.AFDEndpointPropertiesUpdateParameters{
-			EnabledState: ConvertBoolToEnabledState(d.Get("enabled").(bool)),
+			EnabledState: convertBoolToEnabledState(d.Get("enabled").(bool)),
 			ProfileName:  utils.String(profileId.ProfileName),
 			// OriginResponseTimeoutSeconds: utils.Int64(int64(d.Get("origin_response_timeout_seconds").(int))),
 		},

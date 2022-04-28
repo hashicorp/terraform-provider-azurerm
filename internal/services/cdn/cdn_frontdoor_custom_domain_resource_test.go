@@ -3,6 +3,7 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -14,12 +15,11 @@ import (
 )
 
 type CdnFrontdoorCustomDomainResource struct {
-	DoNotRunFrontdooCustomDomainTests bool
 }
 
 func TestAccCdnFrontdoorCustomDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontdoorCustomDomainResource{DoNotRunFrontdooCustomDomainTests: true}
+	r := CdnFrontdoorCustomDomainResource{}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -35,7 +35,7 @@ func TestAccCdnFrontdoorCustomDomain_basic(t *testing.T) {
 
 func TestAccCdnFrontdoorCustomDomain_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontdoorCustomDomainResource{DoNotRunFrontdooCustomDomainTests: true}
+	r := CdnFrontdoorCustomDomainResource{}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -51,7 +51,7 @@ func TestAccCdnFrontdoorCustomDomain_requiresImport(t *testing.T) {
 
 func TestAccCdnFrontdoorCustomDomain_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontdoorCustomDomainResource{DoNotRunFrontdooCustomDomainTests: true}
+	r := CdnFrontdoorCustomDomainResource{}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -86,45 +86,25 @@ func (r CdnFrontdoorCustomDomainResource) Exists(ctx context.Context, clients *c
 }
 
 func (r CdnFrontdoorCustomDomainResource) preCheck(t *testing.T) {
-	if r.DoNotRunFrontdooCustomDomainTests {
-		t.Skipf("`azurerm_cdn_frontdoor_custom_domain` currently is not testable due to service requirements")
+	if v := os.Getenv("TF_RUN_CDN_CUSTOM_DOMAIN"); v == "" {
+		t.Skipf("skipping tests since `TF_RUN_CDN_CUSTOM_DOMAIN` isn't set")
 	}
-}
-
-func (r CdnFrontdoorCustomDomainResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cdn-afdx-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%[1]d.com"
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "accTestProfile-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-}
-`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r CdnFrontdoorCustomDomainResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_custom_domain" "test" {
-  name                     = "accTestCustomDomain-%d"
+  name                     = "acctestcustomdomain-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-
-  dns_zone_id = azurerm_dns_zone.test.id
-  host_name   = join(".", ["fabrikam", azurerm_dns_zone.test.name])
+  dns_zone_id              = azurerm_dns_zone.test.id
+  host_name                = join(".", ["fabrikam", azurerm_dns_zone.test.name])
 
   tls {
     certificate_type    = "ManagedCertificate"
@@ -137,30 +117,33 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 func (r CdnFrontdoorCustomDomainResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_cdn_frontdoor_custom_domain" "import" {
-  name                     = "accTestCustomDomain-%d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-
-  dns_zone_id = azurerm_dns_zone.test.id
-  host_name   = join(".", ["fabrikam", azurerm_dns_zone.test.name])
+  name                     = azurerm_cdn_frontdoor_custom_domain.test.name
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_custom_domain.test.cdn_frontdoor_profile_id
+  dns_zone_id              = azurerm_cdn_frontdoor_custom_domain.test.dns_zone_id
+  host_name                = azurerm_cdn_frontdoor_custom_domain.test.host_name
 
   tls {
     certificate_type    = "ManagedCertificate"
     minimum_tls_version = "TLS12"
   }
 }
-`, config, data.RandomInteger)
+`, config)
 }
 
 func (r CdnFrontdoorCustomDomainResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_custom_domain" "test" {
-  name                     = "accTestCustomDomain-%d"
+  name                     = "acctestcustomdomain-%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
   dns_zone_id = azurerm_dns_zone.test.id
@@ -176,3 +159,22 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
 // TODO: Add test case that uses pre_validated_custom_domain_resource_id
 // TODO: Add test case that uses CMK
+
+func (r CdnFrontdoorCustomDomainResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-afdx-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%[1]d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestcdnfdprofile-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary)
+}

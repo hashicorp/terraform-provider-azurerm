@@ -43,7 +43,7 @@ func ConvertCdnFrontdoorTagsToTagsFlatten(tagMap map[string]*string) *map[string
 	return &t
 }
 
-func ConvertBoolToEnabledState(isEnabled bool) cdn.EnabledState {
+func convertBoolToEnabledState(isEnabled bool) cdn.EnabledState {
 	out := cdn.EnabledStateDisabled
 
 	if isEnabled {
@@ -53,7 +53,7 @@ func ConvertBoolToEnabledState(isEnabled bool) cdn.EnabledState {
 	return out
 }
 
-func ConvertEnabledStateToBool(enabledState *cdn.EnabledState) bool {
+func convertEnabledStateToBool(enabledState *cdn.EnabledState) bool {
 	if enabledState == nil {
 		return false
 	}
@@ -72,7 +72,7 @@ func expandResourceReference(input string) *cdn.ResourceReference {
 }
 
 // Takes a Slice of strings and transforms it into a CSV formatted string.
-func ExpandStringSliceToCsvFormat(input []interface{}) *string {
+func expandStringSliceToCsvFormat(input []interface{}) *string {
 	if len(input) == 0 {
 		return nil
 	}
@@ -84,7 +84,7 @@ func ExpandStringSliceToCsvFormat(input []interface{}) *string {
 }
 
 // Takes a CSV formatted string and transforms it into a Slice of strings.
-func FlattenCsvToStringSlice(input *string) []interface{} {
+func flattenCsvToStringSlice(input *string) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

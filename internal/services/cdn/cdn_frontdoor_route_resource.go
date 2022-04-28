@@ -271,7 +271,7 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		RouteProperties: &cdn.RouteProperties{
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}), customDomains),
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache").([]interface{})),
-			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
+			EnabledState:        convertBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect_enabled").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(isLinked),
@@ -335,7 +335,7 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := resp.RouteProperties; props != nil {
 		domainField, domainCompute := flattenRouteActivatedResourceReferenceArray(domainIds, props.CustomDomains)
 		d.Set("cdn_frontdoor_custom_domain_ids", domainField)
-		d.Set("enabled", ConvertEnabledStateToBool(&props.EnabledState))
+		d.Set("enabled", convertEnabledStateToBool(&props.EnabledState))
 		d.Set("forwarding_protocol", props.ForwardingProtocol)
 		d.Set("https_redirect_enabled", ConvertRouteHttpsRedirectToBool(&props.HTTPSRedirect))
 		d.Set("link_to_default_domain_enabled", ConvertRouteLinkToDefaultDomainToBool(&props.LinkToDefaultDomain))
@@ -398,7 +398,7 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		RouteUpdatePropertiesParameters: &azuresdkhacks.RouteUpdatePropertiesParameters{
 			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}), customDomains),
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache").([]interface{})),
-			EnabledState:        ConvertBoolToEnabledState(d.Get("enabled").(bool)),
+			EnabledState:        convertBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect_enabled").(bool)),
 			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain_enabled").(bool)),
@@ -487,7 +487,7 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *cdn.AfdRouteCac
 	comprssionEnabled := v["compression_enabled"].(bool)
 
 	cacheConfiguration := &cdn.AfdRouteCacheConfiguration{
-		QueryParameters:            ExpandStringSliceToCsvFormat(v["query_strings"].([]interface{})),
+		QueryParameters:            expandStringSliceToCsvFormat(v["query_strings"].([]interface{})),
 		QueryStringCachingBehavior: queryStringCachingBehaviorValue,
 	}
 
@@ -597,7 +597,7 @@ func flattenFrontdoorRouteCacheConfiguration(input *cdn.AfdRouteCacheConfigurati
 	result := make(map[string]interface{})
 
 	if input.QueryParameters != nil {
-		result["query_strings"] = FlattenCsvToStringSlice(input.QueryParameters)
+		result["query_strings"] = flattenCsvToStringSlice(input.QueryParameters)
 	}
 
 	if input.QueryStringCachingBehavior != "" {

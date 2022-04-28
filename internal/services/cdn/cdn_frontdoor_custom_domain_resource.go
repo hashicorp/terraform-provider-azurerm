@@ -25,6 +25,7 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 		Delete: resourceCdnFrontdoorCustomDomainDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
+			// TODO: these timeouts need adjusting..?
 			Create: pluginsdk.DefaultTimeout(12 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(24 * time.Hour),
@@ -41,6 +42,7 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				// TODO: missing validation
 			},
 
 			"cdn_frontdoor_profile_id": {
@@ -51,8 +53,9 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 			},
 
 			"dns_zone_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// TODO: this should be validating the DNS Zone ID - if this could be both Public or Private we can validate that
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -111,6 +114,7 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO: can this be removed?
 			"cdn_frontdoor_profile_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -122,7 +126,7 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
+						// TODO: we should probably make these top-levle fields
 						"expiration_date": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -204,24 +208,14 @@ func resourceCdnFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	profileId := parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
 
 	d.Set("name", id.CustomDomainName)
-	d.Set("cdn_frontdoor_profile_id", profileId.ID())
-
-	resp, err = client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("making Read request on Azure CDN Profile %q (Resource Group %q): %+v", id.ProfileName, id.ResourceGroup, err)
-	}
+	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.AFDDomainProperties; props != nil {
 		d.Set("domain_validation_state", props.DomainValidationState)
 		d.Set("host_name", props.HostName)
-		d.Set("cdn_frontdoor_profile_name", profileId.ProfileName)
+		d.Set("cdn_frontdoor_profile_name", id.ProfileName) // TODO: this either needs to be returned from the API or removed
 
 		if err := d.Set("dns_zone_id", flattenResourceReference(props.AzureDNSZone)); err != nil {
 			return fmt.Errorf("setting `dns_zone_id`: %+v", err)
@@ -292,53 +286,55 @@ func resourceCdnFrontdoorCustomDomainDelete(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
-	return err
+	return nil
 }
 
 func expandCustomDomainAFDDomainHttpsParameters(input []interface{}) *track1.AFDDomainHTTPSParameters {
 	if len(input) == 0 || input[0] == nil {
+		// TODO: why is this returning nil and not an empty object?
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
 
-	certificateTypeValue := track1.AfdCertificateType(v["certificate_type"].(string))
-	minimumTlsVersionValue := track1.AfdMinimumTLSVersion(v["minimum_tls_version"].(string))
 	return &track1.AFDDomainHTTPSParameters{
-		CertificateType:   certificateTypeValue,
-		MinimumTLSVersion: minimumTlsVersionValue,
+		CertificateType:   track1.AfdCertificateType(v["certificate_type"].(string)),
+		MinimumTLSVersion: track1.AfdMinimumTLSVersion(v["minimum_tls_version"].(string)),
 		Secret:            expandResourceReference(v["cdn_frontdoor_secret_id"].(string)),
 	}
 }
 
 func flattenCustomDomainAFDDomainHttpsParameters(input *track1.AFDDomainHTTPSParameters) []interface{} {
-	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return []interface{}{}
 	}
 
-	result := make(map[string]interface{})
-	result["certificate_type"] = input.CertificateType
-	result["minimum_tls_version"] = input.MinimumTLSVersion
-
-	result["cdn_frontdoor_secret_id"] = flattenResourceReference(input.Secret)
-	return append(results, result)
+	return []interface{}{
+		map[string]interface{}{
+			"cdn_frontdoor_secret_id": flattenResourceReference(input.Secret),
+			"certificate_type":        string(input.CertificateType),
+			"minimum_tls_version":     string(input.MinimumTLSVersion),
+		},
+	}
 }
 
 func flattenCustomDomainDomainValidationProperties(input *track1.DomainValidationProperties) []interface{} {
-	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return []interface{}{}
 	}
 
-	result := make(map[string]interface{})
-
+	expirationDate := ""
 	if input.ExpirationDate != nil {
-		result["expiration_date"] = *input.ExpirationDate
+		expirationDate = *input.ExpirationDate
 	}
-
+	validationToken := ""
 	if input.ValidationToken != nil {
-		result["validation_token"] = *input.ValidationToken
+		validationToken = *input.ValidationToken
 	}
-	return append(results, result)
+	return []interface{}{
+		map[string]interface{}{
+			"expiration_date":  expirationDate,
+			"validation_token": validationToken,
+		},
+	}
 }
