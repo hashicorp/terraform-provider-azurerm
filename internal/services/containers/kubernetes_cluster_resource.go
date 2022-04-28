@@ -1750,7 +1750,6 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_cluster_public_fqdn_enabled", accessProfile.EnablePrivateClusterPublicFQDN)
-
 			switch {
 			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
 				d.Set("private_dns_zone_id", "System")
