@@ -630,7 +630,21 @@ func TestAccKubernetesCluster_namespace(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.namespaceEnabled(data),
+			Config: r.namespaceEnabled(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.namespaceEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.namespaceEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -639,7 +653,7 @@ func TestAccKubernetesCluster_namespace(t *testing.T) {
 	})
 }
 
-func (KubernetesClusterResource) namespaceEnabled(data acceptance.TestData) string {
+func (KubernetesClusterResource) namespaceEnabled(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
@@ -651,7 +665,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   dns_prefix                  = "acctestaks%d"
-  namespace_resources_enabled = true
+  namespace_resources_enabled = "%t"
 
   default_node_pool {
     name       = "default"
@@ -663,7 +677,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
 }
 
 func (KubernetesClusterResource) basicAvailabilitySetConfig(data acceptance.TestData) string {
