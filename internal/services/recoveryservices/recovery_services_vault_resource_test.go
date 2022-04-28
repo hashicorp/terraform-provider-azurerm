@@ -234,6 +234,55 @@ func TestAccRecoveryServicesVault_crossRegionRestore(t *testing.T) {
 	})
 }
 
+func TestAccRecoveryServicesVault_sku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.skuStandard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.skuRS0(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// This step is to ensure `sku` and `encryption` can be updated together when `encryption` was not specified in the existing resource
+			Config: r.skuWithEncryption(data, "Standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRecoveryServicesVault_updateSkuWithExistingEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.skuWithEncryption(data, "Standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.skuWithEncryption(data, "RS0"),
+			ExpectError: regexp.MustCompile("`sku` cannot be changed when encryption with your own key has been enabled"),
+		},
+	})
+}
+
 func (t RecoveryServicesVaultResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VaultID(state.ID)
 	if err != nil {
@@ -715,4 +764,129 @@ resource "azurerm_recovery_services_vault" "test" {
   storage_mode_type = "ZoneRedundant"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) skuStandard(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) skuRS0(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "RS0"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) skuWithEncryption(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = true
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%[1]d"
+  location = "%[2]s"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "acctest-key-vault-%[3]s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Decrypt",
+      "Encrypt",
+      "Delete",
+      "Get",
+      "List",
+      "Purge",
+      "UnwrapKey",
+      "WrapKey",
+      "Verify",
+    ]
+    secret_permissions = [
+      "Set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctest-key-vault-key"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "%[4]s"
+
+  encryption {
+    key_id                            = azurerm_key_vault_key.test.id
+    infrastructure_encryption_enabled = false
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, sku)
 }

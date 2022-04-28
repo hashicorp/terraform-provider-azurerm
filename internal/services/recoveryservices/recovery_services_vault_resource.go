@@ -99,7 +99,6 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			"sku": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(recoveryservices.SkuNameRS0),
@@ -169,14 +168,19 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
+	sku := d.Get("sku").(string)
 	vault := recoveryservices.Vault{
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
 		Identity: expandedIdentity,
 		Sku: &recoveryservices.Sku{
-			Name: recoveryservices.SkuName(d.Get("sku").(string)),
+			Name: recoveryservices.SkuName(sku),
 		},
 		Properties: &recoveryservices.VaultProperties{},
+	}
+
+	if recoveryservices.SkuName(sku) == recoveryservices.SkuNameRS0 {
+		vault.Sku.Tier = utils.String("Standard")
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vault)
@@ -308,6 +312,12 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		if encryption.InfrastructureEncryption != existing.Properties.Encryption.InfrastructureEncryption {
 			return fmt.Errorf("once `infrastructure_encryption_enabled` has been set it's not possible to change it")
 		}
+		if d.HasChange("sku") {
+			// Once encryption has been enabled, calling `CreateOrUpdate` without it is not allowed.
+			// But `sku` can only be updated by `CreateOrUpdate` and the support for `encryption` in `CreateOrUpdate` is still under preview (https://docs.microsoft.com/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-encryption-using-customer-managed-keys-at-vault-creation-in-preview).
+			// TODO remove this restriction and add `encryption` to below `sku` update block when `encryption` in `CreateOrUpdate` is GA
+			return fmt.Errorf("`sku` cannot be changed when encryption with your own key has been enabled")
+		}
 	}
 
 	storageMode := d.Get("storage_mode_type").(string)
@@ -404,6 +414,31 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		})
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+	}
+
+	// `sku` can only be updated by `CreateOrUpdate` but not `Update`, so use `CreateOrUpdate` with required and unchangeable properties
+	if d.HasChange("sku") {
+		sku := d.Get("sku").(string)
+		vault := recoveryservices.Vault{
+			Location: utils.String(d.Get("location").(string)),
+			Identity: expandedIdentity,
+			Sku: &recoveryservices.Sku{
+				Name: recoveryservices.SkuName(sku),
+			},
+			Properties: &recoveryservices.VaultProperties{},
+		}
+
+		if recoveryservices.SkuName(sku) == recoveryservices.SkuNameRS0 {
+			vault.Sku.Tier = utils.String("Standard")
+		}
+
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, vault)
+		if err != nil {
+			return fmt.Errorf("updating Recovery Service %s: %+v", id.String(), err)
+		}
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for update of %q: %+v", id, err)
 		}
 	}
 
