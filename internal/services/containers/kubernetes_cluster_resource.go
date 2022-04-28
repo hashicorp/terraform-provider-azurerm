@@ -406,7 +406,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"namespace_resources_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
 			},
 
 			"network_profile": {
