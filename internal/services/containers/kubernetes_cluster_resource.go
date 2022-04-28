@@ -706,12 +706,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"run_command_disabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			"azure_active_directory_role_based_access_control": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
