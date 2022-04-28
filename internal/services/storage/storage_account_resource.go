@@ -2,7 +2,9 @@ package storage
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -1160,6 +1162,21 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for Azure Storage Account %q to be created: %+v", id.Name, err)
+	}
+
+	// Following is an additional check on false creation success, it can be removed once https://github.com/Azure/azure-rest-api-specs/issues/18844 is resolved.
+	b, err := io.ReadAll(future.Response().Body)
+	if err != nil {
+		return fmt.Errorf("reading the response body of creation of Azure Storage Account %q: %+v", id.Name, err)
+	}
+	var lroResp map[string]interface{}
+	if err := json.Unmarshal(b, &lroResp); err != nil {
+		return fmt.Errorf("unmarshalling the response body of creation of %q: %+v", id, err)
+	}
+	if raw, ok := lroResp["status"]; ok {
+		if v, ok := raw.(string); ok && v == "Failed" {
+			return fmt.Errorf("creating Azure Storage Account %q: %+v", id.Name, lroResp)
+		}
 	}
 
 	d.SetId(id.ID())
