@@ -24,7 +24,7 @@ func TestAccLogzSubAccount_basic(t *testing.T) {
 	r := LogzSubAccountResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
 	email := uuid.New().String()
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, effectiveDate, email),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -40,7 +40,7 @@ func TestAccLogzSubAccount_requiresImport(t *testing.T) {
 	r := LogzSubAccountResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
 	email := uuid.New().String()
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, effectiveDate, email),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -59,7 +59,7 @@ func TestAccLogzSubAccount_complete(t *testing.T) {
 	r := LogzSubAccountResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
 	email := uuid.New().String()
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, effectiveDate, email),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -75,7 +75,7 @@ func TestAccLogzSubAccount_update(t *testing.T) {
 	r := LogzSubAccountResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
 	email := uuid.New().String()
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, effectiveDate, email),
 			Check: acceptance.ComposeTestCheckFunc(
