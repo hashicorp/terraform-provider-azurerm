@@ -11,9 +11,17 @@ ENHANCEMENTS:
 * dependencies: upgrading to `v0.30.0` of `github.com/hashicorp/go-azure-helpers` [GH-16504]
 * dependencies: upgrade `sqlvirtualmachine` to `2021-11-01-preview` [GH-15835]
 * `azurerm_kubernetes_cluster` - support for the `run_command_enabled` property [GH-15029]
+* `azurerm_linux_function_app` - add support for `sticky_settings` [GH-16546]
+* Data Source: `azurerm_linux_function_app` - add support for `sticky_settings` [GH-16546]
+* `azurerm_linux_web_app` - add support for `sticky_settings` [GH-16546]
+* Data Source: `azurerm_linux_web_app` - add support for `sticky_settings` [GH-16546]
 * `azurerm_monitor_aad_diagnostic_setting` - remove validation on `log.category` to allow for new log categories that are available in Azure [GH-16534]
 * `azurerm_mssql_database` - Support for `short_term_retention_policy.0.backup_interval_in_hours` [GH-16528]
 * `azurerm_stream_analytics_job` - support for the `type` property [GH-16548]
+* `azurerm_windows_function_app` - add support for `sticky_settings` [GH-16546]
+* Data Source: `azurerm_windows_function_app` - add support for `sticky_settings` [GH-16546]
+* `azurerm_windows_web_app` - add support for `sticky_settings` [GH-16546]
+* Data Source: `azurerm_windows_web_app` - add support for `sticky_settings` [GH-16546]
 
 BUG FIXES:
 
