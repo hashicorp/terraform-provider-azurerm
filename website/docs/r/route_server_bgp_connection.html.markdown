@@ -3,7 +3,7 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_route_server_bgp_connection"
 description: |-
-  Manages a Bgp Connection for a Route Server.
+  Manages a BGP Connection for a Route Server.
 ---
 
 # azurerm_route_server_bgp_connection
@@ -13,9 +13,9 @@ Manages a Bgp Connection for a Route Server
 ## Example Usage
 
 ```hcl
-resource "azurerm_virtual_hub_bgp_connection" "example" {
-  name           = "example-vhub-bgpconnection"
-  virtual_hub_id = azurerm_route_server.example.id
+resource "azurerm_route_server_bgp_connection" "example" {
+  name           = "example-rs-bgpconnection"
+  route_server_id = azurerm_route_server.example.id
   peer_asn       = 65501
   peer_ip        = "169.254.21.5"
 }
@@ -52,5 +52,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Route Server Bgp Connections can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_virtual_hub_bgp_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/virtualHub1/bgpConnections/connection1
+terraform import azurerm_route_server_bgp_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/routeServer1/bgpConnections/connection1
 ```
