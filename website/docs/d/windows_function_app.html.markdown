@@ -85,6 +85,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `site_credential` - A `site_credential` block as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `storage_account_access_key` - The access key which is used to access the backend storage account for the Function App.
 
 * `storage_account_name` - The backend storage account name which is used by this Function App.
@@ -346,6 +348,14 @@ A `site_credential` block exports the following:
 * `name` - The Site Credentials Username used for publishing.
 
 * `password` - The Site Credentials Password used for publishing.
+
+---
+
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - A list of `app_setting` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - A list of `connection_string` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
 
 ---
 

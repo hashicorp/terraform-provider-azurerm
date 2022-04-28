@@ -81,6 +81,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `site_credential` - A `site_credential` block as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `storage_account` - A `storage_account` block as defined below.
 
 * `tags` - A mapping of tags assigned to the Windows Web App.
@@ -446,6 +448,14 @@ A `status_code` block exports the following:
 * `sub_status` - The Request Sub Status of the Status Code.
 
 * `win32_status` - The Win32 Status Code of the Request.
+
+---
+
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - A list of `connection_string` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
 
 ---
 
