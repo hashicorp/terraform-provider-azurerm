@@ -7,7 +7,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -205,27 +204,6 @@ func ValidateCdnFrontdoorName(i interface{}, k string) (_ []string, errors []err
 	return nil, nil
 }
 
-func ValidateCdnFrontdoorEndpointName(i interface{}, k string) (_ []string, errors []error) {
-	if m, regexErrs := validate.RegExHelper(i, k, `(^[\da-zA-Z])([-\da-zA-Z]{0,44})([\da-zA-Z]$)`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be between 2 and 46 characters in length and begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens`, k))
-	}
-	return nil, nil
-}
-
-func ValidateFrontdoorCustomDomainIDInsensitively(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
-	}
-
-	if _, err := parse.FrontdoorCustomDomainIDInsensitively(v); err != nil {
-		errors = append(errors, err)
-	}
-
-	return
-}
-
 func ValidateCdnFrontdoorUrlRedirectActionDestinationPath(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
@@ -260,19 +238,6 @@ func ValidateCdnFrontdoorUrlRedirectActionQueryString(i interface{}, k string) (
 		}
 	} else {
 		return nil, []error{fmt.Errorf("%q is invalid: %q must not be empty, got %q", "url_redirect_action", k, v)}
-	}
-
-	return nil, nil
-}
-
-func ValidateCdnFrontdoorRuleSetName(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	if m, _ := validate.RegExHelper(i, k, `(^[a-zA-Z])([\da-zA-Z]{1,88})([a-zA-Z]$)`); !m {
-		return nil, []error{fmt.Errorf(`%q must be between 1 and 90 characters in length and begin with a letter, end with a letter and may contain only letters and numbers, got %q`, v, k)}
 	}
 
 	return nil, nil

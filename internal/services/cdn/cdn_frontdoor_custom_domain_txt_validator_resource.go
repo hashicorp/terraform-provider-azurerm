@@ -18,6 +18,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+// TODO: this needs discussing
+
 func resourceCdnFrontdoorCustomDomainTxtValidator() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCdnFrontdoorCustomDomainTxtValidatorCreate,

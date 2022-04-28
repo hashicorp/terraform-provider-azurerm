@@ -17,6 +17,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+// TODO: this needs discussing
+
 func resourceCdnFrontdoorCustomDomainSecretValidator() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCdnFrontdoorCustomDomainSecretValidatorCreate,
@@ -266,7 +268,7 @@ func resourceCdnFrontdoorCustomDomainSecretValidatorRead(d *pluginsdk.ResourceDa
 }
 
 func resourceCdnFrontdoorCustomDomainSecretValidatorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	d.SetId("")
+
 	return nil
 }
 

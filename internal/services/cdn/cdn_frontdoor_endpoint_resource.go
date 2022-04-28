@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
@@ -40,7 +41,7 @@ func resourceCdnFrontdoorEndpoint() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateCdnFrontdoorEndpointName,
+				ValidateFunc: validate.CdnFrontdoorEndpointName,
 			},
 
 			"cdn_frontdoor_profile_id": {
@@ -67,6 +68,7 @@ func resourceCdnFrontdoorEndpoint() *pluginsdk.Resource {
 			// 	Default:  60,
 			// },
 
+			// TODO: why are we exposing this? it's available from the FrontDoorProfile (which users will be referencing, above) so seems unnecessary?
 			"cdn_frontdoor_profile_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -89,24 +91,20 @@ func resourceCdnFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := parse.NewFrontdoorEndpointID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_endpoint", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
-	location := azure.NormalizeLocation("global")
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_endpoint", id.ID())
+	}
 
 	props := cdn.AFDEndpoint{
 		Name:     utils.String(d.Get("name").(string)),
-		Location: &location,
+		Location: utils.String(location.Normalize("global")),
 		AFDEndpointProperties: &cdn.AFDEndpointProperties{
 			EnabledState: convertBoolToEnabledState(d.Get("enabled").(bool)),
 			// OriginResponseTimeoutSeconds: d.Get("origin_response_timeout_seconds").(int),
@@ -125,7 +123,6 @@ func resourceCdnFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
-
 	return resourceCdnFrontdoorEndpointRead(d, meta)
 }
 
@@ -139,8 +136,6 @@ func resourceCdnFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	profileId := parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
-
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -151,7 +146,7 @@ func resourceCdnFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.AfdEndpointName)
-	d.Set("cdn_frontdoor_profile_id", profileId.ID())
+	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.AFDEndpointProperties; props != nil {
 		d.Set("enabled", convertEnabledStateToBool(&props.EnabledState))
@@ -169,8 +164,6 @@ func resourceCdnFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	d.SetId(id.ID())
-
 	return nil
 }
 
@@ -179,23 +172,23 @@ func resourceCdnFrontdoorEndpointUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontdoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
-	if err != nil {
-		return err
-	}
-
 	id, err := parse.FrontdoorEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	props := cdn.AFDEndpointUpdateParameters{
-		AFDEndpointPropertiesUpdateParameters: &cdn.AFDEndpointPropertiesUpdateParameters{
+	props := cdn.AFDEndpointUpdateParameters{}
+
+	if d.HasChange("enabled") {
+		props.AFDEndpointPropertiesUpdateParameters = &cdn.AFDEndpointPropertiesUpdateParameters{
 			EnabledState: convertBoolToEnabledState(d.Get("enabled").(bool)),
-			ProfileName:  utils.String(profileId.ProfileName),
+			// TODO: support `origin_response_timeout_seconds` in time
 			// OriginResponseTimeoutSeconds: utils.Int64(int64(d.Get("origin_response_timeout_seconds").(int))),
-		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		}
+	}
+
+	if d.HasChange("tags") {
+		props.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, props)
@@ -228,5 +221,5 @@ func resourceCdnFrontdoorEndpointDelete(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
-	return err
+	return nil
 }

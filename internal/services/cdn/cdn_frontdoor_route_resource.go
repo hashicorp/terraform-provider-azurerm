@@ -2,7 +2,6 @@ package cdn
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
@@ -50,6 +49,7 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				ValidateFunc: validate.FrontdoorEndpointID,
 			},
 
+			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
 			"cdn_frontdoor_origin_group_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -57,7 +57,9 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				ValidateFunc: validate.FrontdoorOriginGroupID,
 			},
 
+			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
 			"cdn_frontdoor_origin_ids": {
+				// TODO: BLOCKER - these are sent to the API so must be returned
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				ForceNew: true,
@@ -76,7 +78,6 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						// NOTE: CSV string to API
 						"query_strings": {
 							Type:     pluginsdk.TypeList,
@@ -142,13 +143,14 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
 			"cdn_frontdoor_custom_domain_ids": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: ValidateFrontdoorCustomDomainIDInsensitively,
+					ValidateFunc: validate.FrontdoorCustomDomainID,
 				},
 			},
 
@@ -158,6 +160,7 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
 			"cdn_frontdoor_origin_path": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -172,6 +175,7 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
 			"cdn_frontdoor_rule_set_ids": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -182,6 +186,7 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 			},
 
 			"supported_protocols": {
+				// TODO: does this need to be a Set?
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 2,
@@ -195,18 +200,19 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
 			"cdn_frontdoor_endpoint_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
+			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
 			"cdn_frontdoor_custom_domains_active_status": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -228,53 +234,32 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	afdEndpointId, err := parse.FrontdoorEndpointID(d.Get("cdn_frontdoor_endpoint_id").(string))
+	endpointId, err := parse.FrontdoorEndpointID(d.Get("cdn_frontdoor_endpoint_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontdoorRouteID(afdEndpointId.SubscriptionId, afdEndpointId.ResourceGroup, afdEndpointId.ProfileName, afdEndpointId.AfdEndpointName, d.Get("name").(string))
+	id := parse.NewFrontdoorRouteID(endpointId.SubscriptionId, endpointId.ResourceGroup, endpointId.ProfileName, endpointId.AfdEndpointName, d.Get("name").(string))
 
-	var existing cdn.Route
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_route", id.ID())
-		}
-	} else {
-		// I need to do a GET here to get the current list of custom domains in the Azure Route
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
-		if err != nil {
-			if utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-
-			return fmt.Errorf("retrieving %s: %+v", id, err)
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
-	isLinked := d.Get("link_to_default_domain_enabled").(bool)
-
-	var customDomains *[]cdn.ActivatedResourceReference
-	if routeProps := existing.RouteProperties; routeProps != nil {
-		customDomains = routeProps.CustomDomains
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_route", id.ID())
 	}
 
 	props := cdn.Route{
 		RouteProperties: &cdn.RouteProperties{
-			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}), customDomains),
+			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})),
 			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache").([]interface{})),
 			EnabledState:        convertBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect_enabled").(bool)),
-			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(isLinked),
+			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain_enabled").(bool)),
 			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),
@@ -296,9 +281,11 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.SetId(id.ID())
-	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
-		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
-	}
+
+	//// TODO: this needs to be removed in favour of the API returning the data (as per the ARM guidelines)
+	//if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
+	//	d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
+	//}
 
 	return resourceCdnFrontdoorRouteRead(d, meta)
 }
@@ -323,17 +310,18 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	domainIds := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
-
-	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
-		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
-	}
+	// TODO: BLOCKER - these need to be returned from the API
+	//domainIds := d.Get("cdn_frontdoor_custom_domain_ids").([]interface{})
+	//if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
+	//	d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
+	//}
 
 	d.Set("name", id.RouteName)
 	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontdoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
 
 	if props := resp.RouteProperties; props != nil {
-		domainField, domainCompute := flattenRouteActivatedResourceReferenceArray(domainIds, props.CustomDomains)
+		// TODO: sort this?!?!?!?!?
+		domainField, domainCompute := flattenRouteActivatedResourceReferenceArray(props.CustomDomains)
 		d.Set("cdn_frontdoor_custom_domain_ids", domainField)
 		d.Set("enabled", convertEnabledStateToBool(&props.EnabledState))
 		d.Set("forwarding_protocol", props.ForwardingProtocol)
@@ -342,7 +330,7 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("cdn_frontdoor_origin_path", props.OriginPath)
 		d.Set("patterns_to_match", props.PatternsToMatch)
 
-		// BUG: Endpoint name is not being returned by the API
+		// TODO: BLOCKER - BUG: Endpoint name is not being returned by the API
 		d.Set("cdn_frontdoor_endpoint_name", id.AfdEndpointName)
 
 		if err := d.Set("cdn_frontdoor_custom_domains_active_status", domainCompute); err != nil {
@@ -382,38 +370,65 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 	if err != nil {
-		if utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing %s during update: %+v", id, err)
-		}
-
-		return fmt.Errorf("retrieving existing %s during update: %+v", id, err)
+		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+	}
+	if existing.RouteProperties == nil {
+		return fmt.Errorf("retrieving existing %s: `properties` was nil", *id)
 	}
 
-	var customDomains *[]cdn.ActivatedResourceReference
-	if routeProps := existing.RouteProperties; routeProps != nil {
-		customDomains = routeProps.CustomDomains
+	props := azuresdkhacks.RouteUpdatePropertiesParameters{
+		CustomDomains: existing.RouteProperties.CustomDomains,
 	}
 
-	props := azuresdkhacks.RouteUpdateParameters{
-		RouteUpdatePropertiesParameters: &azuresdkhacks.RouteUpdatePropertiesParameters{
-			CustomDomains:       expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}), customDomains),
-			CacheConfiguration:  expandRouteAfdRouteCacheConfiguration(d.Get("cache").([]interface{})),
-			EnabledState:        convertBoolToEnabledState(d.Get("enabled").(bool)),
-			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
-			HTTPSRedirect:       ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect_enabled").(bool)),
-			LinkToDefaultDomain: ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain_enabled").(bool)),
-			OriginGroup:         expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
-			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
-			RuleSets:            expandRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{})),
-			SupportedProtocols:  expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{})),
-		},
+	if d.HasChange("cdn_frontdoor_custom_domain_ids") {
+		props.CustomDomains = expandRouteActivatedResourceReferenceArray(d.Get("cdn_frontdoor_custom_domain_ids").([]interface{}))
 	}
 
-	if originPath := d.Get("cdn_frontdoor_origin_path").(string); originPath != "" {
-		props.RouteUpdatePropertiesParameters.OriginPath = &originPath
+	if d.HasChange("cache") {
+		props.CacheConfiguration = expandRouteAfdRouteCacheConfiguration(d.Get("cache").([]interface{}))
 	}
 
-	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, props)
+	if d.HasChange("enabled") {
+		props.EnabledState = convertBoolToEnabledState(d.Get("enabled").(bool))
+	}
+
+	if d.HasChange("forwarding_protocol") {
+		props.ForwardingProtocol = cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string))
+	}
+
+	if d.HasChange("https_redirect_enabled") {
+		props.HTTPSRedirect = ConvertBoolToRouteHttpsRedirect(d.Get("https_redirect_enabled").(bool))
+	}
+
+	if d.HasChange("link_to_default_domain_enabled") {
+		props.LinkToDefaultDomain = ConvertBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain_enabled").(bool))
+	}
+
+	if d.HasChange("cdn_frontdoor_origin_group_id") {
+		props.OriginGroup = expandResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string))
+	}
+
+	if d.HasChange("cdn_frontdoor_origin_path") {
+		props.OriginPath = utils.String(d.Get("cdn_frontdoor_origin_path").(string))
+	}
+
+	if d.HasChange("patterns_to_match") {
+		props.PatternsToMatch = utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{}))
+	}
+
+	if d.HasChange("cdn_frontdoor_rule_set_ids") {
+		props.RuleSets = expandRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{}))
+	}
+
+	if d.HasChange("supported_protocols") {
+		props.SupportedProtocols = expandRouteAFDEndpointProtocolsArray(d.Get("supported_protocols").([]interface{}))
+	}
+
+	payload := azuresdkhacks.RouteUpdateParameters{
+		RouteUpdatePropertiesParameters: &props,
+	}
+
+	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, payload)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -421,9 +436,10 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
-	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
-		d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
-	}
+	// TODO: BLOCKER - this'll need to be returned from the API and set in the Read
+	//if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
+	//	d.Set("cdn_frontdoor_origin_ids", utils.ExpandStringSlice(originIds))
+	//}
 
 	return resourceCdnFrontdoorRouteRead(d, meta)
 }
@@ -484,7 +500,7 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *cdn.AfdRouteCac
 	v := input[0].(map[string]interface{})
 
 	queryStringCachingBehaviorValue := cdn.AfdQueryStringCachingBehavior(v["query_string_caching_behavior"].(string))
-	comprssionEnabled := v["compression_enabled"].(bool)
+	compressionEnabled := v["compression_enabled"].(bool)
 
 	cacheConfiguration := &cdn.AfdRouteCacheConfiguration{
 		QueryParameters:            expandStringSliceToCsvFormat(v["query_strings"].([]interface{})),
@@ -492,7 +508,7 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *cdn.AfdRouteCac
 	}
 
 	compressionSettings := &cdn.CompressionSettings{}
-	compressionSettings.IsCompressionEnabled = utils.Bool(comprssionEnabled)
+	compressionSettings.IsCompressionEnabled = utils.Bool(compressionEnabled)
 
 	if contentTypes := v["content_types_to_compress"].([]interface{}); len(contentTypes) > 0 {
 		compressionSettings.ContentTypesToCompress = utils.ExpandStringSlice(contentTypes)
@@ -503,40 +519,26 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *cdn.AfdRouteCac
 	return cacheConfiguration
 }
 
-func expandRouteActivatedResourceReferenceArray(input []interface{}, customDomains *[]cdn.ActivatedResourceReference) *[]cdn.ActivatedResourceReference {
+func expandRouteActivatedResourceReferenceArray(input []interface{}) *[]cdn.ActivatedResourceReference {
 	results := make([]cdn.ActivatedResourceReference, 0)
 	if len(input) == 0 {
+		// TODO: confirm if sending an empty list means we can remove the hack
+
 		// I had to modify the SDK to allow for nil which in the API means disassociate the custom domains
 		return nil
 	}
 
 	for _, customDomain := range input {
 		id := customDomain.(string)
-		inRoute := false
-
-		if customDomains != nil {
-			for _, item := range *customDomains {
-				if strings.EqualFold(*item.ID, id) {
-					inRoute = true
-					results = append(results, cdn.ActivatedResourceReference{
-						ID: utils.String(id),
-					})
-				}
-			}
-		}
-
-		// Adding the custom domain association
-		if !inRoute {
-			results = append(results, cdn.ActivatedResourceReference{
-				ID: utils.String(id),
-			})
-		}
+		results = append(results, cdn.ActivatedResourceReference{
+			ID: utils.String(id),
+		})
 	}
 
 	return &results
 }
 
-func flattenRouteActivatedResourceReferenceArray(input []interface{}, inputs *[]cdn.ActivatedResourceReference) ([]interface{}, []interface{}) {
+func flattenRouteActivatedResourceReferenceArray(inputs *[]cdn.ActivatedResourceReference) ([]interface{}, []interface{}) {
 	computeResults := make([]interface{}, 0)
 	fieldResults := make([]interface{}, 0)
 
@@ -544,17 +546,12 @@ func flattenRouteActivatedResourceReferenceArray(input []interface{}, inputs *[]
 		return nil, nil
 	}
 
-	for _, customDomainIds := range input {
-		id := customDomainIds.(string)
-		for _, customDomain := range *inputs {
-			if strings.EqualFold(*customDomain.ID, id) {
-				result := make(map[string]interface{})
-				result["id"] = customDomain.ID
-				result["active"] = customDomain.IsActive
-				fieldResults = append(fieldResults, customDomain.ID)
-				computeResults = append(computeResults, result)
-			}
-		}
+	for _, customDomain := range *inputs {
+		result := make(map[string]interface{})
+		result["id"] = customDomain.ID
+		result["active"] = customDomain.IsActive
+		fieldResults = append(fieldResults, customDomain.ID)
+		computeResults = append(computeResults, result)
 	}
 
 	return fieldResults, computeResults
