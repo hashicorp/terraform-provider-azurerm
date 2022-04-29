@@ -1,36 +1,36 @@
-## 3.4.0 (Unreleased)
+## 3.4.0 (April 28, 2022)
 
 FEATURES:
 
-* **New Resource**: `azurerm_stream_analytics_output_cosmosdb` [GH-16441]
+* **New Resource**: `azurerm_stream_analytics_output_cosmosdb` ([#16441](https://github.com/hashicorp/terraform-provider-azurerm/issues/16441))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v63.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-16283]
-* dependencies: updating to `v0.11.26` of `github.com/Azure/go-autorest` [GH-16458]
-* dependencies: upgrading to `v0.30.0` of `github.com/hashicorp/go-azure-helpers` [GH-16504]
-* dependencies: upgrade `sqlvirtualmachine` to `2021-11-01-preview` [GH-15835]
-* Data Source: `azurerm_linux_function_app` - add support for `sticky_settings` [GH-16546]
-* Data Source: `azurerm_linux_web_app` - add support for `sticky_settings` [GH-16546]
-* Data Source: `azurerm_windows_function_app` - add support for `sticky_settings` [GH-16546]
-* Data Source: `azurerm_windows_web_app` - add support for `sticky_settings` [GH-16546]
-* `azurerm_kubernetes_cluster` - support for the `run_command_enabled` property [GH-15029]
-* `azurerm_linux_function_app` - add support for `sticky_settings` [GH-16546]
-* `azurerm_linux_web_app` - add support for `sticky_settings` [GH-16546]
-* `azurerm_monitor_aad_diagnostic_setting` - remove validation on `log.category` to allow for new log categories that are available in Azure [GH-16534]
-* `azurerm_mssql_database` - Support for `short_term_retention_policy.0.backup_interval_in_hours` [GH-16528]
-* `azurerm_postgresql_server` - add validation for `public_network_access_enabled` [GH-16516]
-* `azurerm_stream_analytics_job` - support for the `type` property [GH-16548]
-* `azurerm_windows_function_app` - add support for `sticky_settings` [GH-16546]
-* `azurerm_windows_web_app` - add support for `sticky_settings` [GH-16546]
-* `azurerm_linux_virtual_machine_scale_set` -  the `terminate_notification` property has been renamed to `termination_notification` [GH-15570]
-* `azurerm_windows_virtual_machine_scale_set` -  the `terminate_notification` property has been renamed to `termination_notification` [GH-15570]
+* dependencies: updating to `v63.1.0` of `github.com/Azure/azure-sdk-for-go` ([#16283](https://github.com/hashicorp/terraform-provider-azurerm/issues/16283))
+* dependencies: updating to `v0.11.26` of `github.com/Azure/go-autorest` ([#16458](https://github.com/hashicorp/terraform-provider-azurerm/issues/16458))
+* dependencies: upgrading to `v0.30.0` of `github.com/hashicorp/go-azure-helpers` ([#16504](https://github.com/hashicorp/terraform-provider-azurerm/issues/16504))
+* dependencies: upgrade `sqlvirtualmachine` to `2021-11-01-preview` ([#15835](https://github.com/hashicorp/terraform-provider-azurerm/issues/15835))
+* Data Source: `azurerm_linux_function_app` - add support for `sticky_settings` ([#16546](https://github.com/hashicorp/terraform-provider-azurerm/issues/16546))
+* Data Source: `azurerm_linux_web_app` - add support for `sticky_settings` ([#16546](https://github.com/hashicorp/terraform-provider-azurerm/issues/16546))
+* Data Source: `azurerm_windows_function_app` - add support for `sticky_settings` ([#16546](https://github.com/hashicorp/terraform-provider-azurerm/issues/16546))
+* Data Source: `azurerm_windows_web_app` - add support for `sticky_settings` ([#16546](https://github.com/hashicorp/terraform-provider-azurerm/issues/16546))
+* `azurerm_kubernetes_cluster` - support for the `run_command_enabled` property ([#15029](https://github.com/hashicorp/terraform-provider-azurerm/issues/15029))
+* `azurerm_linux_function_app` - add support for `sticky_settings` ([#16546](https://github.com/hashicorp/terraform-provider-azurerm/issues/16546))
+* `azurerm_linux_web_app` - add support for `sticky_settings` ([#16546](https://github.com/hashicorp/terraform-provider-azurerm/issues/16546))
+* `azurerm_monitor_aad_diagnostic_setting` - remove validation on `log.category` to allow for new log categories that are available in Azure ([#16534](https://github.com/hashicorp/terraform-provider-azurerm/issues/16534))
+* `azurerm_mssql_database` - Support for `short_term_retention_policy.0.backup_interval_in_hours` ([#16528](https://github.com/hashicorp/terraform-provider-azurerm/issues/16528))
+* `azurerm_postgresql_server` - add validation for `public_network_access_enabled` ([#16516](https://github.com/hashicorp/terraform-provider-azurerm/issues/16516))
+* `azurerm_stream_analytics_job` - support for the `type` property ([#16548](https://github.com/hashicorp/terraform-provider-azurerm/issues/16548))
+* `azurerm_windows_function_app` - add support for `sticky_settings` ([#16546](https://github.com/hashicorp/terraform-provider-azurerm/issues/16546))
+* `azurerm_windows_web_app` - add support for `sticky_settings` ([#16546](https://github.com/hashicorp/terraform-provider-azurerm/issues/16546))
+* `azurerm_linux_virtual_machine_scale_set` -  the `terminate_notification` property has been renamed to `termination_notification` ([#15570](https://github.com/hashicorp/terraform-provider-azurerm/issues/15570))
+* `azurerm_windows_virtual_machine_scale_set` -  the `terminate_notification` property has been renamed to `termination_notification` ([#15570](https://github.com/hashicorp/terraform-provider-azurerm/issues/15570))
 
 BUG FIXES:
 
-* `azurerm_datafactory_dataset_x` - Fix crash around `azure_blob_storage_location.0.dynamic_container_enabled` [GH-16514]
-* `azurerm_kubernetes_cluster` - allow updates to a cluster running a deprecated version of kubernetes [GH-16551]
-* `azurerm_resource_policy_remediation` - will no longer try to cancel a completed remediation task during deletion [GH-16478]
+* `azurerm_datafactory_dataset_x` - Fix crash around `azure_blob_storage_location.0.dynamic_container_enabled` ([#16514](https://github.com/hashicorp/terraform-provider-azurerm/issues/16514))
+* `azurerm_kubernetes_cluster` - allow updates to a cluster running a deprecated version of kubernetes ([#16551](https://github.com/hashicorp/terraform-provider-azurerm/issues/16551))
+* `azurerm_resource_policy_remediation` - will no longer try to cancel a completed remediation task during deletion ([#16478](https://github.com/hashicorp/terraform-provider-azurerm/issues/16478))
 
 ## 3.3.0 (April 21, 2022)
 
