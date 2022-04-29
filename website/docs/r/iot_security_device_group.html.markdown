@@ -71,13 +71,13 @@ The following arguments are supported:
 
 An `allow_rule` block supports the following:
 
-* `connection_from_ips_not_allowed` - (optional) Specifies which IP is not allowed to be connected to in current device group for inbound connection.
+* `connection_from_ips_not_allowed` - (Optional) Specifies which IP is not allowed to be connected to in current device group for inbound connection.
 
-* `connection_to_ips_not_allowed` - (optional) Specifies which IP is not allowed to be connected to in current device group for outbound connection.
+* `connection_to_ips_not_allowed` - (Optional) Specifies which IP is not allowed to be connected to in current device group for outbound connection.
 
-* `local_users_not_allowed` - (optional) Specifies which local user is not allowed to Login in current device group.
+* `local_users_not_allowed` - (Optional) Specifies which local user is not allowed to Login in current device group.
 
-* `processes_not_allowed` - (optional) Specifies which process is not allowed to be executed in current device group.
+* `processes_not_allowed` - (Optional) Specifies which process is not allowed to be executed in current device group.
 
 ---
 

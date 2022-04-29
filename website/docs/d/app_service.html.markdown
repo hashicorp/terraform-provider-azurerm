@@ -134,7 +134,7 @@ A `site_config` block exports the following:
 
 * `default_documents` - The ordering of default documents to load, if an address isn't specified.
 
-* `dotnet_framework_version` - The version of the .net framework's CLR used in this App Service.
+* `dotnet_framework_version` - The version of the .NET framework's CLR used in this App Service.
 
 * `http2_enabled` - Is HTTP2 Enabled on this App Service?
 

@@ -16,9 +16,6 @@ type ResourceManagerAccount struct {
 	SkipResourceProviderRegistration bool
 	SubscriptionId                   string
 	TenantId                         string
-
-	// TODO: remove in v3.0
-	UseMSAL bool
 }
 
 func NewResourceManagerAccount(ctx context.Context, config authentication.Config, env azure.Environment, skipResourceProviderRegistration bool) (*ResourceManagerAccount, error) {
@@ -41,7 +38,6 @@ func NewResourceManagerAccount(ctx context.Context, config authentication.Config
 		TenantId:                         config.TenantID,
 		SkipResourceProviderRegistration: skipResourceProviderRegistration,
 		SubscriptionId:                   config.SubscriptionID,
-		UseMSAL:                          config.UseMicrosoftGraph,
 	}
 	return &account, nil
 }

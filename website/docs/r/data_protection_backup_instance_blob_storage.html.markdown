@@ -39,7 +39,7 @@ resource "azurerm_data_protection_backup_vault" "example" {
 
 resource "azurerm_role_assignment" "example" {
   scope                = azurerm_storage_account.example.id
-  role_definition_name = "Storage Account Backup Contributor Role"
+  role_definition_name = "Storage Account Backup Contributor"
   principal_id         = azurerm_data_protection_backup_vault.example.identity[0].principal_id
 }
 

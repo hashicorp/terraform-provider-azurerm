@@ -50,7 +50,7 @@ resource "azuread_user" "admin" {
 
 resource "azurerm_mssql_managed_instance_active_directory_administrator" "example" {
   managed_instance_id = azurerm_mssql_managed_instance.example.id
-  login               = "msadmin"
+  login_username      = "msadmin"
   object_id           = azuread_user.admin.object_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
 }
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `managed_instance_id` - (Required) The ID of the Azure SQL Managed Instance for which to set the administrator. Changing this forces a new resource to be created.
 
-* `login` - (Required) The login name of the principal to set as the Managed Instance Administrator.
+* `login_username` - (Required) The login name of the principal to set as the Managed Instance Administrator.
 
 * `object_id` - (Required) The Object ID of the principal to set as the Managed Instance Administrator.
 

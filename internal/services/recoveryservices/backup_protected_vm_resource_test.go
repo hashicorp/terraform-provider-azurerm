@@ -234,6 +234,9 @@ resource "azurerm_virtual_machine" "test" {
   vm_size               = "Standard_D1_v2"
   network_interface_ids = [azurerm_network_interface.test.id]
 
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
+
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"

@@ -33,7 +33,7 @@ output "maps_account_id" {
 
 * `id` - The ID of the Maps Account.
 
-* `sku_name` - The sku of the Azure Maps Account.
+* `sku_name` - The SKU of the Azure Maps Account.
 
 * `primary_access_key` - The primary key used to authenticate and authorize access to the Maps REST APIs.
 

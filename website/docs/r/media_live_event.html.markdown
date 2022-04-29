@@ -159,7 +159,7 @@ A `preview` block supports the following:
 
 * `ip_access_control_allow` - (Optional) One or more `ip_access_control_allow` blocks as defined above.
 
-* `preview_locator` - (Optional) The identifier of the preview locator in Guid format. Specifying this at creation time allows the caller to know the preview locator url before the event is created. If omitted, the service will generate a random identifier. Changing this forces a new resource to be created.
+* `preview_locator` - (Optional) The identifier of the preview locator in GUID format. Specifying this at creation time allows the caller to know the preview locator url before the event is created. If omitted, the service will generate a random identifier. Changing this forces a new resource to be created.
 
 * `streaming_policy_name` - (Optional) The name of streaming policy used for the live event preview. Changing this forces a new resource to be created.
 

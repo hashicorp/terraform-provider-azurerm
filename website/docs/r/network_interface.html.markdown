@@ -84,7 +84,7 @@ The `ip_configuration` block supports the following:
 
 * `name` - (Required) A name used for this IP Configuration.
 
-* `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway Sku Load Balancer.
+* `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway SKU Load Balancer.
 
 * `subnet_id` - (Optional) The ID of the Subnet where this Network Interface should be located in.
 

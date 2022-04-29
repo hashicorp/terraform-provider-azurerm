@@ -442,10 +442,8 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("optimization_type", string(props.OptimizationType))
 
 		compressionEnabled := false
-		if _, ok := d.GetOk("is_compression_enabled"); ok {
-			if v := props.IsCompressionEnabled; v != nil {
-				compressionEnabled = *v
-			}
+		if v := props.IsCompressionEnabled; v != nil {
+			compressionEnabled = *v
 		}
 		d.Set("is_compression_enabled", compressionEnabled)
 
@@ -627,8 +625,8 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 			}
 
 			hostName := ""
-			httpPort := 0
-			httpsPort := 0
+			httpPort := 80
+			httpsPort := 443
 			if props := i.DeepCreatedOriginProperties; props != nil {
 				if props.HostName != nil {
 					hostName = *props.HostName

@@ -34,7 +34,7 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the Resource Group in which the SQL Managed Instance exists.
 
 
-## Attribues Reference
+## Attributes Reference
 
 * `id` - The SQL Managed Instance ID.
 
