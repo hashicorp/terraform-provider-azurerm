@@ -160,18 +160,17 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	standardSku := true
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
 	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve the %q from the linked %q: %+v", "sku_name", "azurerm_cdn_frontdoor_profile", err)
 	}
 
-	skuName := flattenProfileSku(profile.Sku)
-	if strings.HasPrefix(skuName, "Premium") {
-		standardSku = false
+	if profile.Sku == nil {
+		return fmt.Errorf("retreving the parent %q: `sku` was nil", *profileId)
 	}
 
+	standardSku := strings.HasPrefix(strings.ToLower(string(profile.Sku.Name)), "standard")
 	params := cdn.BasicSecurityPolicyPropertiesParameters(nil)
 
 	if secPol, ok := d.GetOk("security_policies"); ok {

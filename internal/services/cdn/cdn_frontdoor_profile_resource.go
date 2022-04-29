@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -45,6 +47,7 @@ func resourceCdnFrontdoorProfile() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			// TODO: how is this different to the Resource ID?
 			"cdn_frontdoor_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -82,28 +85,25 @@ func resourceCdnFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := parse.NewFrontdoorProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_profile", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
-	// Can only be Global for all Frontdoors
-	location := azure.NormalizeLocation("global")
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_profile", id.ID())
+	}
 
 	props := cdn.Profile{
-		Location: utils.String(location),
+		Location: utils.String(location.Normalize("global")),
 		ProfileProperties: &cdn.ProfileProperties{
 			OriginResponseTimeoutSeconds: utils.Int32(int32(d.Get("response_timeout_seconds").(int))),
 		},
-		Sku:  expandProfileSku(d.Get("sku_name").(string)),
+		Sku: &cdn.Sku{
+			Name: cdn.SkuName(d.Get("sku_name").(string)),
+		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -117,7 +117,6 @@ func resourceCdnFrontdoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.SetId(id.ID())
-
 	return resourceCdnFrontdoorProfileRead(d, meta)
 }
 
@@ -148,9 +147,11 @@ func resourceCdnFrontdoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("response_timeout_seconds", props.OriginResponseTimeoutSeconds)
 	}
 
-	if err := d.Set("sku_name", flattenProfileSku(resp.Sku)); err != nil {
-		return fmt.Errorf("setting `sku_name`: %+v", err)
+	skuName := ""
+	if resp.Sku != nil {
+		skuName = string(resp.Sku.Name)
 	}
+	d.Set("sku_name", skuName)
 
 	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
 		return err
@@ -205,27 +206,4 @@ func resourceCdnFrontdoorProfileDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
-}
-
-func expandProfileSku(input string) *cdn.Sku {
-	if len(input) == 0 || input == "" {
-		return nil
-	}
-
-	return &cdn.Sku{
-		Name: cdn.SkuName(input),
-	}
-}
-
-func flattenProfileSku(input *cdn.Sku) string {
-	result := ""
-	if input == nil {
-		return result
-	}
-
-	if input.Name != "" {
-		result = string(input.Name)
-	}
-
-	return result
 }

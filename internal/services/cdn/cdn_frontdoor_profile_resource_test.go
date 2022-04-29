@@ -97,10 +97,6 @@ func (r CdnFrontdoorProfileResource) Exists(ctx context.Context, clients *client
 
 func (r CdnFrontdoorProfileResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%d"
   location = "%s"
@@ -111,7 +107,11 @@ resource "azurerm_resource_group" "test" {
 func (r CdnFrontdoorProfileResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "accTestProfile-%d"
@@ -129,7 +129,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 func (r CdnFrontdoorProfileResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_cdn_frontdoor_profile" "import" {
   name                = azurerm_cdn_frontdoor_profile.test.name
@@ -147,7 +147,11 @@ resource "azurerm_cdn_frontdoor_profile" "import" {
 func (r CdnFrontdoorProfileResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "accTestProfile-%d"
@@ -166,7 +170,11 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 func (r CdnFrontdoorProfileResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctest-c-%d"
