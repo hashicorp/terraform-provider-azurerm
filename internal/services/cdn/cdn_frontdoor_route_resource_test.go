@@ -25,8 +25,11 @@ func TestAccCdnFrontdoorRoute_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		// TODO: BLOCKER - these need to be returned from the API
 		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
 		{
+			// TODO: this would indicate we need both a depends_on and a lock in the resource? which'd allow us to remove this step
+
 			// You must delete the route first to disassociate the endpoint from the origin and origin group
 			Config: r.destroy(data),
 			Check:  acceptance.ComposeTestCheckFunc(),
@@ -46,6 +49,8 @@ func TestAccCdnFrontdoorRoute_requiresImport(t *testing.T) {
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 		{
+			// TODO: (as above) we should be able to remove this
+
 			// You must delete the route first to disassociate the endpoint from the origin and origin group
 			Config: r.destroy(data),
 			Check:  acceptance.ComposeTestCheckFunc(),
@@ -65,6 +70,8 @@ func TestAccCdnFrontdoorRoute_complete(t *testing.T) {
 		},
 		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
 		{
+			// TODO: (as above) we should be able to remove this
+
 			// You must delete the route first to disassociate the endpoint from the origin and origin group
 			Config: r.destroy(data),
 			Check:  acceptance.ComposeTestCheckFunc(),
@@ -91,6 +98,8 @@ func TestAccCdnFrontdoorRoute_update(t *testing.T) {
 		},
 		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
 		{
+			// TODO: (as above) we should be able to remove this
+
 			// You must delete the route first to disassociate the endpoint from the origin and origin group
 			Config: r.destroy(data),
 			Check:  acceptance.ComposeTestCheckFunc(),
@@ -118,10 +127,6 @@ func (r CdnFrontdoorRouteResource) Exists(ctx context.Context, clients *clients.
 
 func (r CdnFrontdoorRouteResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
   location = "%s"
@@ -225,7 +230,11 @@ resource "azurerm_cdn_frontdoor_rule_set" "test" {
 func (r CdnFrontdoorRouteResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_route" "test" {
   name                          = "accTestRoute-%d"
@@ -243,7 +252,11 @@ resource "azurerm_cdn_frontdoor_route" "test" {
 func (r CdnFrontdoorRouteResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_route" "import" {
   name                          = azurerm_cdn_frontdoor_route.test.name
@@ -261,7 +274,11 @@ resource "azurerm_cdn_frontdoor_route" "import" {
 func (r CdnFrontdoorRouteResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_route" "test" {
   name                          = "accTestRoute-%d"
@@ -288,7 +305,11 @@ resource "azurerm_cdn_frontdoor_route" "test" {
 func (r CdnFrontdoorRouteResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_route" "test" {
   name                          = "accTestRoute-%d"

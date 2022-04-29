@@ -40,6 +40,7 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				// TODO: missing validation
 			},
 
 			"cdn_frontdoor_endpoint_id": {
@@ -320,7 +321,7 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("cdn_frontdoor_endpoint_id", parse.NewFrontdoorEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AfdEndpointName).ID())
 
 	if props := resp.RouteProperties; props != nil {
-		// TODO: sort this?!?!?!?!?
+		// TODO: split this into two separate flatten functions
 		domainField, domainCompute := flattenRouteActivatedResourceReferenceArray(props.CustomDomains)
 		d.Set("cdn_frontdoor_custom_domain_ids", domainField)
 		d.Set("enabled", convertEnabledStateToBool(&props.EnabledState))
@@ -478,6 +479,7 @@ func expandRouteAFDEndpointProtocolsArray(input []interface{}) *[]cdn.AFDEndpoin
 
 func expandRouteResourceReferenceArray(input []interface{}) *[]cdn.ResourceReference {
 	if len(input) == 0 || input[0] == nil {
+		// TODO: shouldn't this be returning an empty slice?
 		return nil
 	}
 
@@ -494,6 +496,7 @@ func expandRouteResourceReferenceArray(input []interface{}) *[]cdn.ResourceRefer
 
 func expandRouteAfdRouteCacheConfiguration(input []interface{}) *cdn.AfdRouteCacheConfiguration {
 	if len(input) == 0 || input[0] == nil {
+		// TODO: shouldn't this be returning an empty slice?
 		return nil
 	}
 
@@ -503,18 +506,16 @@ func expandRouteAfdRouteCacheConfiguration(input []interface{}) *cdn.AfdRouteCac
 	compressionEnabled := v["compression_enabled"].(bool)
 
 	cacheConfiguration := &cdn.AfdRouteCacheConfiguration{
+		CompressionSettings: &cdn.CompressionSettings{
+			IsCompressionEnabled: utils.Bool(compressionEnabled),
+		},
 		QueryParameters:            expandStringSliceToCsvFormat(v["query_strings"].([]interface{})),
 		QueryStringCachingBehavior: queryStringCachingBehaviorValue,
 	}
 
-	compressionSettings := &cdn.CompressionSettings{}
-	compressionSettings.IsCompressionEnabled = utils.Bool(compressionEnabled)
-
 	if contentTypes := v["content_types_to_compress"].([]interface{}); len(contentTypes) > 0 {
-		compressionSettings.ContentTypesToCompress = utils.ExpandStringSlice(contentTypes)
+		cacheConfiguration.CompressionSettings.ContentTypesToCompress = utils.ExpandStringSlice(contentTypes)
 	}
-
-	cacheConfiguration.CompressionSettings = compressionSettings
 
 	return cacheConfiguration
 }
@@ -543,6 +544,7 @@ func flattenRouteActivatedResourceReferenceArray(inputs *[]cdn.ActivatedResource
 	fieldResults := make([]interface{}, 0)
 
 	if inputs == nil {
+		// TODO: this should be split, but this must return an empty slice and not nil
 		return nil, nil
 	}
 
@@ -579,7 +581,7 @@ func flattenRouteAFDEndpointProtocolsArray(input *[]cdn.AFDEndpointProtocols) []
 	}
 
 	for _, item := range *input {
-		results = append(results, item)
+		results = append(results, string(item))
 	}
 
 	return results
@@ -591,24 +593,31 @@ func flattenFrontdoorRouteCacheConfiguration(input *cdn.AfdRouteCacheConfigurati
 		return results
 	}
 
-	result := make(map[string]interface{})
-
+	queryParameters := make([]interface{}, 0)
 	if input.QueryParameters != nil {
-		result["query_strings"] = flattenCsvToStringSlice(input.QueryParameters)
+		queryParameters = flattenCsvToStringSlice(input.QueryParameters)
 	}
 
+	cachingBehaviour := ""
 	if input.QueryStringCachingBehavior != "" {
-		result["query_string_caching_behavior"] = input.QueryStringCachingBehavior
+		cachingBehaviour = string(input.QueryStringCachingBehavior)
 	}
 
-	if input.CompressionSettings != nil {
-		compressionSettings := input.CompressionSettings
-		compressionEnabled := *compressionSettings.IsCompressionEnabled
-		contentTypesToCompress := utils.FlattenStringSlice(compressionSettings.ContentTypesToCompress)
-
-		result["compression_enabled"] = compressionEnabled
-		result["content_types_to_compress"] = contentTypesToCompress
+	compressionEnabled := false
+	contentTypesToCompress := make([]interface{}, 0)
+	if v := input.CompressionSettings; v != nil {
+		if v.IsCompressionEnabled != nil {
+			compressionEnabled = *v.IsCompressionEnabled
+		}
+		contentTypesToCompress = utils.FlattenStringSlice(v.ContentTypesToCompress)
 	}
 
-	return append(results, result)
+	return []interface{}{
+		map[string]interface{}{
+			"compression_enabled":           compressionEnabled,
+			"content_types_to_compress":     contentTypesToCompress,
+			"query_string_caching_behavior": cachingBehaviour,
+			"query_strings":                 queryParameters, // TODO: why isn't this called query_parameters?
+		},
+	}
 }
