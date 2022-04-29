@@ -49,7 +49,7 @@ func TestAccCdnFrontdoorFirewallPolicy_update(t *testing.T) {
 	r := CdnFrontdoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.update(data, false),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("accTestWAF%d", data.RandomInteger)),
@@ -57,7 +57,7 @@ func TestAccCdnFrontdoorFirewallPolicy_update(t *testing.T) {
 			),
 		},
 		{
-			Config: r.update(data, true),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("accTestWAF%d", data.RandomInteger)),
@@ -67,7 +67,7 @@ func TestAccCdnFrontdoorFirewallPolicy_update(t *testing.T) {
 			),
 		},
 		{
-			Config: r.update(data, false),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("custom_rule.1.name").DoesNotExist(),
@@ -84,7 +84,7 @@ func TestAccCdnFrontdoorFirewallPolicy_complete(t *testing.T) {
 	r := CdnFrontdoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.update(data, true),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -112,10 +112,6 @@ func (CdnFrontdoorFirewallPolicyResource) Exists(ctx context.Context, clients *c
 
 func (CdnFrontdoorFirewallPolicyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%d"
   location = "%s"
@@ -132,6 +128,10 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 func (r CdnFrontdoorFirewallPolicyResource) basic(data acceptance.TestData) string {
 	tmp := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
@@ -154,12 +154,13 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "import" {
 `, r.basic(data))
 }
 
-func (r CdnFrontdoorFirewallPolicyResource) update(data acceptance.TestData, update bool) string {
+func (r CdnFrontdoorFirewallPolicyResource) update(data acceptance.TestData) string {
 	tmp := r.template(data)
-	if update {
-		return r.updated(data)
-	}
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
@@ -213,7 +214,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 `, tmp, data.RandomInteger)
 }
 
-func (r CdnFrontdoorFirewallPolicyResource) updated(data acceptance.TestData) string {
+func (r CdnFrontdoorFirewallPolicyResource) complete(data acceptance.TestData) string {
 	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
