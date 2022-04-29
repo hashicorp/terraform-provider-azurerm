@@ -128,6 +128,21 @@ func TestAccStorageDataLakeGen2FileSystem_withOwnerGroup(t *testing.T) {
 	})
 }
 
+func TestAccStorageDataLakeGen2FileSystem_withSuperUsers(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_filesystem", "test")
+	r := StorageDataLakeGen2FileSystemResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSuperUsers(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageDataLakeGen2FileSystemResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := filesystems.ParseResourceID(state.ID)
 	if err != nil {
@@ -337,6 +352,30 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
   storage_account_id = azurerm_storage_account.test.id
   owner              = azuread_service_principal.test.object_id
   group              = azuread_service_principal.test.object_id
+}
+`, template, data.RandomInteger)
+}
+
+func (r StorageDataLakeGen2FileSystemResource) withSuperUsers(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azuread" {}
+
+resource "azuread_application" "test" {
+  display_name = "acctestspa%[2]d"
+}
+
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
+}
+
+resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
+  name               = "acctest-%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  owner              = "$superuser"
+  group              = "$superuser"
 }
 `, template, data.RandomInteger)
 }

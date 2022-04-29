@@ -281,6 +281,7 @@ func (r StorageShareResource) basic(data acceptance.TestData) string {
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 }
 `, template, data.RandomString)
 }
@@ -293,6 +294,7 @@ func (r StorageShareResource) metaData(data acceptance.TestData) string {
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 
   metadata = {
     hello = "world"
@@ -309,6 +311,7 @@ func (r StorageShareResource) metaDataUpdated(data acceptance.TestData) string {
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 
   metadata = {
     hello = "world"
@@ -326,6 +329,7 @@ func (r StorageShareResource) acl(data acceptance.TestData) string {
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 
   acl {
     id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
@@ -348,6 +352,7 @@ func (r StorageShareResource) aclGhostedRecall(data acceptance.TestData) string 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 
   acl {
     id = "GhostedRecall"
@@ -367,6 +372,7 @@ func (r StorageShareResource) aclUpdated(data acceptance.TestData) string {
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
 
   acl {
     id = "AAAANDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
@@ -398,6 +404,7 @@ func (r StorageShareResource) requiresImport(data acceptance.TestData) string {
 resource "azurerm_storage_share" "import" {
   name                 = azurerm_storage_share.test.name
   storage_account_name = azurerm_storage_share.test.storage_account_name
+  quota                = 1
 }
 `, template)
 }
@@ -503,6 +510,7 @@ resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
   enabled_protocol     = "%s"
+  quota                = 1
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, protocol)
 }

@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -179,14 +178,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": func() *schema.Schema {
-				// TODO: update the docs and tests to account for this
-				if features.ThreePointOh() {
-					return commonschema.SystemAssignedIdentityRequired()
-				}
-
-				return commonschema.SystemAssignedIdentityComputed()
-			}(),
+			"identity": commonschema.SystemAssignedIdentityRequired(),
 
 			"managed_resource_group_name": commonschema.ResourceGroupNameOptionalComputed(),
 
@@ -661,8 +653,12 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("sql_identity_control_enabled") {
 		sqlControlSettings := expandIdentityControlSQLSettings(d.Get("sql_identity_control_enabled").(bool))
-		if _, err = identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings); err != nil {
+		future, err := identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings)
+		if err != nil {
 			return fmt.Errorf("Updating workspace identity control for SQL pool: %+v", err)
+		}
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for update workspace identity control for SQL pool of %q: %+v", id, err)
 		}
 	}
 

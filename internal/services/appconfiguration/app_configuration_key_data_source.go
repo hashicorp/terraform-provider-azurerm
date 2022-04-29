@@ -100,6 +100,9 @@ func (k KeyDataSource) Read() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, model.ConfigurationStoreId)
+			if client == nil {
+				return fmt.Errorf("building data plane client: app configuration %q was not found", model.ConfigurationStoreId)
+			}
 			if err != nil {
 				return err
 			}

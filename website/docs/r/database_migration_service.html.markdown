@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the virtual subnet resource to which the database migration service should be joined. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The sku name of the database migration service. Possible values are `Premium_4vCores`, `Standard_1vCores`, `Standard_2vCores` and `Standard_4vCores`. Changing this forces a new resource to be created.
+* `sku_name` - (Required) The SKU name of the database migration service. Possible values are `Premium_4vCores`, `Standard_1vCores`, `Standard_2vCores` and `Standard_4vCores`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assigned to the resource.
 

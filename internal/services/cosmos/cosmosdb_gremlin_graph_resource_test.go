@@ -173,6 +173,21 @@ func TestAccCosmosDbGremlinGraph_partition_key_version(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbGremlinGraph_serverless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
+	r := CosmosGremlinGraphResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serverless(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CosmosGremlinGraphResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.GremlinGraphID(state.ID)
 	if err != nil {
@@ -435,4 +450,18 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   partition_key_version = %[3]d
 }
 `, CosmosGremlinDatabaseResource{}.basic(data), data.RandomInteger, version)
+}
+
+func (CosmosGremlinGraphResource) serverless(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_gremlin_graph" "test" {
+  name                = "acctest-CGRPC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
+}
+`, CosmosGremlinDatabaseResource{}.serverless(data), data.RandomInteger)
 }

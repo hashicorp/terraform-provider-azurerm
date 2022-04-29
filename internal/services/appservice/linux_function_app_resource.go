@@ -39,6 +39,7 @@ type LinuxFunctionAppModel struct {
 	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
 	AppSettings                 map[string]string                    `tfschema:"app_settings"`
+	StickySettings              []helpers.StickySettings             `tfschema:"sticky_settings"`
 	AuthSettings                []helpers.AuthSettings               `tfschema:"auth_settings"`
 	Backup                      []helpers.Backup                     `tfschema:"backup"` // Not supported on Dynamic or Basic plans
 	BuiltinLogging              bool                                 `tfschema:"builtin_logging_enabled"`
@@ -239,6 +240,8 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionApp(),
 
+		"sticky_settings": helpers.StickySettingsSchema(),
+
 		"tags": tags.Schema(),
 	}
 }
@@ -389,6 +392,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionApp.StorageAccountName, functionApp.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
 				}
 			}
+
 			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionApp(functionApp.SiteConfig, nil, metadata, functionApp.FunctionExtensionsVersion, storageString, functionApp.StorageUsesMSI)
 			if err != nil {
 				return fmt.Errorf("expanding site_config for Linux %s: %+v", id, err)
@@ -463,6 +467,17 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for creation of Linux %s: %+v", id, err)
 			}
 
+			stickySettings := helpers.ExpandStickySettings(functionApp.StickySettings)
+
+			if stickySettings != nil {
+				stickySettingsUpdate := web.SlotConfigNamesResource{
+					SlotConfigNames: stickySettings,
+				}
+				if _, err := client.UpdateSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Windows %s: %+v", id, err)
+				}
+			}
+
 			backupConfig := helpers.ExpandBackupConfig(functionApp.Backup)
 			if backupConfig.BackupRequestProperties != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backupConfig); err != nil {
@@ -529,6 +544,11 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
 			}
 
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+			}
+
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for Linux %s: %+v", id, err)
@@ -567,6 +587,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
 				ClientCertMode:              string(functionApp.ClientCertMode),
 				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
+				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                        tags.ToTypedObject(functionApp.Tags),
 				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
@@ -658,6 +679,14 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %v", id, err)
 			}
 
+			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
+			if err != nil {
+				return err
+			}
+
+			// Only send for ElasticPremium
+			sendContentSettings := helpers.PlanIsElastic(planSKU)
+
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("service_plan_id") {
 				existing.SiteProperties.ServerFarmID = utils.String(state.ServicePlanId)
@@ -695,7 +724,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
-			storageString := ""
+			storageString := state.StorageAccountName
 			if !state.StorageUsesMSI {
 				if state.StorageKeyVaultSecretID != "" {
 					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
@@ -704,19 +733,35 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if sendContentSettings {
+				appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+				if err != nil {
+					return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
+				}
+				if state.AppSettings == nil {
+					state.AppSettings = make(map[string]string)
+				}
+				state.AppSettings = helpers.ParseContentSettings(appSettingsResp, state.AppSettings)
+			}
+
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
 			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionApp(state.SiteConfig, existing.SiteConfig, metadata, state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
+			if err != nil {
+				return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
+			}
+
 			if state.BuiltinLogging {
 				if state.AppSettings == nil && !state.StorageUsesMSI {
 					state.AppSettings = make(map[string]string)
 				}
-				state.AppSettings["AzureWebJobsDashboard"] = storageString
+				if !state.StorageUsesMSI {
+					state.AppSettings["AzureWebJobsDashboard"] = storageString
+				} else {
+					state.AppSettings["AzureWebJobsDashboard__accountName"] = state.StorageAccountName
+				}
 			}
 
 			if metadata.ResourceData.HasChange("site_config") {
-				if err != nil {
-					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
-				}
 				existing.SiteConfig = siteConfig
 			}
 
@@ -734,7 +779,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("waiting to update %s: %+v", id, err)
 			}
 
-			if _, err := client.UpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, web.SiteConfigResource{SiteConfig: siteConfig}); err != nil {
+			if _, err := client.UpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, web.SiteConfigResource{SiteConfig: existing.SiteConfig}); err != nil {
 				return fmt.Errorf("updating Site Config for Linux %s: %+v", id, err)
 			}
 
@@ -745,6 +790,30 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStringUpdate); err != nil {
 					return fmt.Errorf("updating Connection Strings for Linux %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("sticky_settings") {
+				emptySlice := make([]string, 0)
+				stickySettings := helpers.ExpandStickySettings(state.StickySettings)
+				stickySettingsUpdate := web.SlotConfigNamesResource{
+					SlotConfigNames: &web.SlotConfigNames{
+						AppSettingNames:       &emptySlice,
+						ConnectionStringNames: &emptySlice,
+					},
+				}
+
+				if stickySettings != nil {
+					if stickySettings.AppSettingNames != nil {
+						stickySettingsUpdate.SlotConfigNames.AppSettingNames = stickySettings.AppSettingNames
+					}
+					if stickySettings.ConnectionStringNames != nil {
+						stickySettingsUpdate.SlotConfigNames.ConnectionStringNames = stickySettings.ConnectionStringNames
+					}
+				}
+
+				if _, err := client.UpdateSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
 				}
 			}
 

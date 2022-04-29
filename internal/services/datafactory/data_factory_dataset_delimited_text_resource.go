@@ -106,10 +106,14 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_container_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"path": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
 						},
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -382,7 +386,6 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	description := d.Get("description").(string)
-	// TODO
 	delimited_textTableset := datafactory.DelimitedTextDataset{
 		DelimitedTextDatasetTypeProperties: &delimited_textDatasetProperties,
 		LinkedServiceName:                  linkedService,

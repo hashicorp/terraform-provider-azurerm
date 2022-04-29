@@ -111,7 +111,7 @@ The following arguments are supported:
 * `traffic_analytics` supports the following:
 
 * `enabled` - (Required) Boolean flag to enable/disable traffic analytics.
-* `workspace_id` - (Required) The resource guid of the attached workspace.
+* `workspace_id` - (Required) The resource GUID of the attached workspace.
 * `workspace_region` - (Required) The location of the attached workspace.
 * `workspace_resource_id` - (Required) The resource ID of the attached workspace.
 * `interval_in_minutes` - (Optional) How frequently service should do flow analytics in minutes.

@@ -25,11 +25,11 @@ output "database_id" {
 
 ## Argument Reference
 
-* `name` - The name of the Ms SQL Database.
+* `name` - The name of the MS SQL Database.
 
-* `server_id` - The id of the Ms SQL Server on which to create the database.
+* `server_id` - The id of the MS SQL Server on which to create the database.
 
-## Attribute Reference
+## Attributes Reference
 
 * `collation` - The collation of the database. 
 
@@ -43,7 +43,7 @@ output "database_id" {
 
 * `read_scale` - If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica.
 
-* `sku_name` - The name of the sku of the database.
+* `sku_name` - The name of the SKU of the database.
 
 * `storage_account_type` - The storage account type used to store backups for this database.
 

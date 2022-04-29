@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?
 
-* `identity` - (Optional) an `identity` block as detailed below.
+* `identity` - (Optional) An `identity` block as detailed below.
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
@@ -178,13 +178,11 @@ A `connection_string` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Linux Function App Slot. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) an `identity_ids` block as detailed below.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Linux Function App Slot.
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity.
-
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity.
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -228,7 +226,7 @@ A `site_config` block supports the following:
 
 * `health_check_path` - (Optional) The path to be checked for this function app health.
 
-* `http2_enabled` - (Optional) Specifies if the http2 protocol should be enabled. Defaults to `false`.
+* `http2_enabled` - (Optional) Specifies if the HTTP2 protocol should be enabled. Defaults to `false`.
 
 * `ip_restriction` - (Optional) an `ip_restriction` block as detailed below.
 
@@ -350,7 +348,7 @@ A `schedule` block supports the following:
 
 * `frequency_interval` - (Required) How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).
 
-~> **NOTE:** Not all intervals are supported on all Linux Function App SKU's. Please refer to the official documentation for appropriate values.
+~> **NOTE:** Not all intervals are supported on all Linux Function App SKUs. Please refer to the official documentation for appropriate values.
 
 * `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day` and `Hour`.
 
@@ -378,9 +376,11 @@ An `application_stack` block supports the following:
 
 * `docker` - (Optional) a `docker` block as detailed below.
 
-* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1` and `6`
+* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1` and `6.0`.
 
-* `java_version` - (Optional) The version of Java to use. Possible values are `8`, and `11`
+* `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
+
+* `java_version` - (Optional) The version of Java to use. Possible values are `8`, and `11`.
 
 * `node_version` - (Optional) The version of Node to use. Possible values include `12`, and `14`
 
@@ -480,6 +480,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Linux Function App Slot.
 
+* `identity` - An `identity` block as defined below.
+
 * `kind` - The Kind value for this Linux Function App Slot.
 
 * `outbound_ip_address_list` - A list of outbound IP addresses. For example `["52.23.25.3", "52.143.43.12"]`
@@ -491,6 +493,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `possible_outbound_ip_addresses` - A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`. For example `["52.23.25.3", "52.143.43.12","52.143.43.17"]`.
 
 * `site_credential` - A `site_credential` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 

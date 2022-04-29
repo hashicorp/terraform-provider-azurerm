@@ -1398,7 +1398,33 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpg
 	}
 }
 
+// TODO remove VirtualMachineScaleSetTerminateNotificationSchema in 4.0
 func VirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:       pluginsdk.TypeList,
+		Optional:   true,
+		Computed:   true,
+		MaxItems:   1,
+		Deprecated: "`terminate_notification` has been renamed to `termination_notification` and will be removed in 4.0.",
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"enabled": {
+					Type:     pluginsdk.TypeBool,
+					Required: true,
+				},
+				"timeout": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: azValidate.ISO8601Duration,
+					Default:      "PT5M",
+				},
+			},
+		},
+		ConflictsWith: []string{"termination_notification"},
+	}
+}
+
+func VirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -1418,6 +1444,8 @@ func VirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
 				},
 			},
 		},
+		// TODO remove ConflictsWith in 4.0
+		ConflictsWith: []string{"terminate_notification"},
 	}
 }
 

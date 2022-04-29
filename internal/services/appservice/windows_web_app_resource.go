@@ -29,6 +29,7 @@ type WindowsWebAppModel struct {
 	Location                      string                      `tfschema:"location"`
 	ServicePlanId                 string                      `tfschema:"service_plan_id"`
 	AppSettings                   map[string]string           `tfschema:"app_settings"`
+	StickySettings                []helpers.StickySettings    `tfschema:"sticky_settings"`
 	AuthSettings                  []helpers.AuthSettings      `tfschema:"auth_settings"`
 	Backup                        []helpers.Backup            `tfschema:"backup"`
 	ClientAffinityEnabled         bool                        `tfschema:"client_affinity_enabled"`
@@ -135,6 +136,8 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"logs": helpers.LogsConfigSchema(),
 
 		"site_config": helpers.SiteConfigSchemaWindows(),
+
+		"sticky_settings": helpers.StickySettingsSchema(),
 
 		"storage_account": helpers.StorageAccountSchemaWindows(),
 
@@ -327,6 +330,17 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			stickySettings := helpers.ExpandStickySettings(webApp.StickySettings)
+
+			if stickySettings != nil {
+				stickySettingsUpdate := web.SlotConfigNamesResource{
+					SlotConfigNames: stickySettings,
+				}
+				if _, err := client.UpdateSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Windows %s: %+v", id, err)
+				}
+			}
+
 			auth := helpers.ExpandAuthSettings(webApp.AuthSettings)
 			if auth.SiteAuthSettingsProperties != nil {
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *auth); err != nil {
@@ -422,6 +436,11 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
 			}
 
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+			}
+
 			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", id, err)
@@ -472,6 +491,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				LogsConfig:                  helpers.FlattenLogsConfig(logsConfig),
 				SiteCredentials:             helpers.FlattenSiteCredentials(siteCredentials),
 				StorageAccounts:             helpers.FlattenStorageAccounts(storageAccounts),
+				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                        tags.ToTypedObject(webApp.Tags),
 			}
 
@@ -636,6 +656,30 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				}
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStringUpdate); err != nil {
 					return fmt.Errorf("updating Connection Strings for Windows %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("sticky_settings") {
+				emptySlice := make([]string, 0)
+				stickySettings := helpers.ExpandStickySettings(state.StickySettings)
+				stickySettingsUpdate := web.SlotConfigNamesResource{
+					SlotConfigNames: &web.SlotConfigNames{
+						AppSettingNames:       &emptySlice,
+						ConnectionStringNames: &emptySlice,
+					},
+				}
+
+				if stickySettings != nil {
+					if stickySettings.AppSettingNames != nil {
+						stickySettingsUpdate.SlotConfigNames.AppSettingNames = stickySettings.AppSettingNames
+					}
+					if stickySettings.ConnectionStringNames != nil {
+						stickySettingsUpdate.SlotConfigNames.ConnectionStringNames = stickySettings.ConnectionStringNames
+					}
+				}
+
+				if _, err := client.UpdateSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
 				}
 			}
 

@@ -16,19 +16,19 @@ func TestCosmosDBIpRulesToIpRangeFilter(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    *[]documentdb.IPAddressOrRange
-		Expected string
+		Expected []string
 	}{
 		{
 			Name:     "Nil",
 			Input:    nil,
-			Expected: "",
+			Expected: []string{},
 		},
 		{
 			Name: "One element",
 			Input: &[]documentdb.IPAddressOrRange{
 				{IPAddressOrRange: &ipAddressOne},
 			},
-			Expected: "127.0.0.1/32",
+			Expected: []string{"127.0.0.1/32"},
 		},
 		{
 			Name: "Multiple elements",
@@ -36,7 +36,7 @@ func TestCosmosDBIpRulesToIpRangeFilter(t *testing.T) {
 				{IPAddressOrRange: &ipAddressOne},
 				{IPAddressOrRange: &ipAddressTwo},
 			},
-			Expected: "127.0.0.1/32,168.63.129.16/32",
+			Expected: []string{"127.0.0.1/32", "168.63.129.16/32"},
 		},
 	}
 
@@ -45,7 +45,7 @@ func TestCosmosDBIpRulesToIpRangeFilter(t *testing.T) {
 
 		actual := CosmosDBIpRulesToIpRangeFilter(v.Input)
 
-		if actual != v.Expected {
+		if !reflect.DeepEqual(actual, v.Expected) {
 			t.Fatalf("Expected %q but got %q", v.Expected, actual)
 		}
 	}
@@ -54,24 +54,24 @@ func TestCosmosDBIpRulesToIpRangeFilter(t *testing.T) {
 func TestCosmosDBIpRangeFilterToIpRules(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    string
+		Input    []string
 		Expected *[]documentdb.IPAddressOrRange
 	}{
 		{
 			Name:     "Empty",
-			Input:    "",
+			Input:    []string{},
 			Expected: &[]documentdb.IPAddressOrRange{},
 		},
 		{
 			Name:  "One element",
-			Input: ipAddressOne,
+			Input: []string{ipAddressOne},
 			Expected: &[]documentdb.IPAddressOrRange{
 				{IPAddressOrRange: &ipAddressOne},
 			},
 		},
 		{
 			Name:  "Multiple elements",
-			Input: "127.0.0.1/32,168.63.129.16/32",
+			Input: []string{ipAddressOne, ipAddressTwo},
 			Expected: &[]documentdb.IPAddressOrRange{
 				{IPAddressOrRange: &ipAddressOne},
 				{IPAddressOrRange: &ipAddressTwo},

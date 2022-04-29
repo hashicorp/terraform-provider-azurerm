@@ -154,10 +154,6 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `ip_filter_rule` - (Optional) One or more `ip_filter_rule` blocks as defined below.
-
-~> **NOTE:** The `ip_filter_rule` property block has been deprecated in favour of the `network_rule_set` block and will be removed in version 3.0 of the provider.
-
 * `network_rule_set` - (Optional) A `network_rule_set` block as defined below.
 
 * `route` - (Optional) A `route` block as defined below.
@@ -218,21 +214,13 @@ An `endpoint` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Identity which should be assigned to the IoT Hub. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this IoT Hub. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the IoT Hub.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this IoT Hub.
 
----
-
-An `ip_filter_rule` block supports the following:
-
-* `name` - (Required) The name of the filter.
-
-* `ip_mask` - (Required) The IP address range in CIDR notation for the rule.
-
-* `action` - (Required) The desired action for requests captured by this rule. Possible values are  `Accept`, `Reject`
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -248,9 +236,9 @@ A `network_rule_set` block supports the following:
 
 A `ip_rule` block supports the following:
 
-* `name` - (Required) The name of the ip rule.
+* `name` - (Required) The name of the IP rule.
 
-* `ip_mask` - (Required) The IP address range in CIDR notation for the ip rule.
+* `ip_mask` - (Required) The IP address range in CIDR notation for the IP rule.
 
 * `action` - (Optional) The desired action for requests captured by this rule. Possible values are `Allow`. Defaults to `Allow`.
 
@@ -360,9 +348,9 @@ The following attributes are exported:
 
 An `identity` block exports the following:
 
-* `principal_id` - The ID of the System Managed Service Principal.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Tenant the System Managed Service Principal is assigned in.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 

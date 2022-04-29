@@ -73,6 +73,10 @@ The following arguments are supported:
 
 * `property_columns` - (Optional) A list of property columns to add to the Service Bus Topic output.
 
+* `system_property_columns` - (Optional) A key-value pair of system property columns that will be attached to the outgoing messages for the Service Bus Topic Output.
+
+-> **NOTE:** The acceptable keys are `ContentType`, `CorrelationId`, `Label`, `MessageId`, `PartitionKey`, `ReplyTo`, `ReplyToSessionId`, `ScheduledEnqueueTimeUtc`, `SessionId`, `TimeToLive` and `To`.
+
 ---
 
 A `serialization` block supports the following:

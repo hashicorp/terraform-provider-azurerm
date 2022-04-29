@@ -44,7 +44,6 @@ resource "azurerm_hdinsight_spark_cluster" "example" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -129,8 +128,6 @@ A `component_version` block supports the following:
 ---
 
 A `gateway` block supports the following:
-
-* `enabled` - (Optional/ **Deprecated) Is the Ambari portal enabled? The HDInsight API doesn't support disabling gateway anymore.
 
 * `password` - (Required) The password used for the Ambari Portal.
 
@@ -217,8 +214,6 @@ A `worker_node` block supports the following:
 * `username` - (Required) The Username of the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Worker Nodes. Changing this forces a new resource to be created.
-
-* `min_instance_count` - (Optional / **Deprecated** ) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
 
 * `password` - (Optional) The Password associated with the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 

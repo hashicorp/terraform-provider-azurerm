@@ -36,13 +36,13 @@ output "network_interface_id" {
 * `enable_accelerated_networking` - Indicates if accelerated networking is set on the specified Network Interface.
 * `enable_ip_forwarding` - Indicate if IP forwarding is set on the specified Network Interface.
 * `dns_servers` - The list of DNS servers used by the specified Network Interface.
-* `internal_dns_name_label` - The internal dns name label of the specified Network Interface.
+* `internal_dns_name_label` - The internal DNS name label of the specified Network Interface.
 * `ip_configuration` - One or more `ip_configuration` blocks as defined below.
 * `location` - The location of the specified Network Interface.
 * `mac_address` - The MAC address used by the specified Network Interface.
 * `network_security_group_id` - The ID of the network security group associated to the specified Network Interface.
-* `private_ip_address` - The primary private ip address associated to the specified Network Interface.
-* `private_ip_addresses` - The list of private ip addresses associates to the specified Network Interface.
+* `private_ip_address` - The primary private IP address associated to the specified Network Interface.
+* `private_ip_addresses` - The list of private IP addresses associates to the specified Network Interface.
 * `tags` - List the tags associated to the specified Network Interface.
 * `virtual_machine_id` - The ID of the virtual machine that the specified Network Interface is attached to.
 
@@ -59,7 +59,7 @@ A `ip_configuration` block contains:
 * `load_balancer_backend_address_pools_ids` - A list of Backend Address Pool ID's within a Load Balancer that this Network Interface is connected to.
 * `load_balancer_inbound_nat_rules_ids` - A list of Inbound NAT Rule ID's within a Load Balancer that this Network Interface is connected to.
 * `primary` - is this the Primary IP Configuration for this Network Interface?
-* `gateway_load_balancer_frontend_ip_configuration_id` - The Frontend IP Configuration ID of a Gateway Sku Load Balancer the Network Interface is consuming.
+* `gateway_load_balancer_frontend_ip_configuration_id` - The Frontend IP Configuration ID of a Gateway SKU Load Balancer the Network Interface is consuming.
 
 ## Timeouts
 

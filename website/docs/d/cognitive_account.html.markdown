@@ -38,11 +38,12 @@ The following attributes are exported:
 
 * `kind` - The kind of the Cognitive Services Account
 
-* `sku_name` - The sku name of the Cognitive Services Account
+* `sku_name` - The SKU name of the Cognitive Services Account
 
 * `endpoint` - The endpoint of the Cognitive Services Account
 
 * `qna_runtime_endpoint` - If `kind` is `QnAMaker` the link to the QNA runtime.
+
 * `primary_access_key` - The primary access key of the Cognitive Services Account
 
 * `secondary_access_key` - The secondary access key of the Cognitive Services Account

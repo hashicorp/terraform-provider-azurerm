@@ -61,9 +61,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Disk Pool should exist. Changing this forces a new Disk Pool to be created.
 
-* `zones` - (Required) A list of Zones where this Disk Pool should be deployed. Changing this forces a new Disk Pool to be created.
+* `zones` - (Required) Specifies a list of Availability Zones in which this Disk Pool should be located. Changing this forces a new Disk Pool to be created.
 
-* `sku_name` - (Required) The Sku of the Disk Pool. Possible values are `Basic_B1`, `Standard_S1` and `Premium_P1`. Changing this forces a new Disk Pool to be created.
+* `sku_name` - (Required) The SKU of the Disk Pool. Possible values are `Basic_B1`, `Standard_S1` and `Premium_P1`. Changing this forces a new Disk Pool to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet where the Disk Pool should be created. Changing this forces a new Disk Pool to be created.
 

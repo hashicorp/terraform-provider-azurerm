@@ -57,25 +57,14 @@ func resourceSubnet() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"address_prefix": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				// TODO Remove this in the next major version release
-				Deprecated:   "Use the `address_prefixes` property instead.",
-				ExactlyOneOf: []string{"address_prefix", "address_prefixes"},
-			},
-
 			"address_prefixes": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				ExactlyOneOf: []string{"address_prefix", "address_prefixes"},
 			},
 
 			"service_endpoints": func() *pluginsdk.Schema {
@@ -227,10 +216,6 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		properties.AddressPrefixes = &addressPrefixes
 	}
-	if value, ok := d.GetOk("address_prefix"); ok {
-		addressPrefix := value.(string)
-		properties.AddressPrefix = &addressPrefix
-	}
 	if properties.AddressPrefixes != nil && len(*properties.AddressPrefixes) == 1 {
 		properties.AddressPrefix = &(*properties.AddressPrefixes)[0]
 		properties.AddressPrefixes = nil
@@ -329,10 +314,6 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	// TODO: locking on the NSG/Route Table if applicable
 
 	props := *existing.SubnetPropertiesFormat
-
-	if d.HasChange("address_prefix") {
-		props.AddressPrefix = utils.String(d.Get("address_prefix").(string))
-	}
 
 	if d.HasChange("address_prefixes") {
 		addressPrefixesRaw := d.Get("address_prefixes").([]interface{})
@@ -447,7 +428,6 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.SubnetPropertiesFormat; props != nil {
-		d.Set("address_prefix", props.AddressPrefix)
 		if props.AddressPrefixes == nil {
 			if props.AddressPrefix != nil && len(*props.AddressPrefix) > 0 {
 				d.Set("address_prefixes", []string{*props.AddressPrefix})

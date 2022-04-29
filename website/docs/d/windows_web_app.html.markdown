@@ -81,6 +81,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `site_credential` - A `site_credential` block as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `storage_account` - A `storage_account` block as defined below.
 
 * `tags` - A mapping of tags assigned to the Windows Web App.
@@ -127,7 +129,7 @@ An `application_stack` block exports the following:
 
 * `docker_container_tag` - The Docker Container Tag of the Container in use.
 
-* `dotnet_version` - The version of .Net in use.
+* `dotnet_version` - The version of .NET in use.
 
 * `java_container` - The Java Container in use.
 
@@ -186,6 +188,8 @@ A `auto_heal_setting` block exports the following:
 ---
 
 A `azure_blob_storage` block exports the following:
+
+* `level` - The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
 * `retention_in_days` - The time in days after which blobs will be removed.
 
@@ -446,6 +450,14 @@ A `status_code` block exports the following:
 * `sub_status` - The Request Sub Status of the Status Code.
 
 * `win32_status` - The Win32 Status Code of the Request.
+
+---
+
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - A list of `connection_string` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
 
 ---
 

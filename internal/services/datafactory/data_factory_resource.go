@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -608,7 +607,7 @@ func flattenDataFactoryGlobalParameters(input map[string]*datafactory.GlobalPara
 	result := make([]interface{}, 0)
 	for name, item := range input {
 		var valueResult string
-		typeResult := strings.Title(string(item.Type))
+		typeResult := azure.TitleCase(string(item.Type))
 
 		if (typeResult == "Array" || typeResult == "Object") && reflect.TypeOf(item.Value).Name() != "string" {
 			j, _ := json.Marshal(item.Value)

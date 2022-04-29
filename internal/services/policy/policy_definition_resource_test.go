@@ -257,7 +257,7 @@ resource "azurerm_policy_definition" "test" {
   policy_type         = "Custom"
   mode                = "All"
   display_name        = "acctestpol-%d"
-  management_group_id = azurerm_management_group.test.group_id
+  management_group_id = azurerm_management_group.test.id
 
   policy_rule = <<POLICY_RULE
 	{
