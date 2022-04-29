@@ -238,6 +238,8 @@ A `ip_rule` block supports the following:
 
 * `name` - (Required) The name of the IP rule.
 
+~> **NOTE:** `name` can only be alphanumeric string up to 128 characters long. Only the ASCII 7-bit alphanumeric characters plus {'-', ':', '.', '+', '%', '_', '#', '*', '?', '!', '(', ')', ',', '=', '@', ';', '''} are accepted.
+
 * `ip_mask` - (Required) The IP address range in CIDR notation for the IP rule.
 
 * `action` - (Optional) The desired action for requests captured by this rule. Possible values are `Allow`. Defaults to `Allow`.
