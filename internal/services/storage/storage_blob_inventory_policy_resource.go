@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -36,120 +37,7 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 			return err
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"storage_account_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountID,
-			},
-
-			// TODO 3.0 - remove below property
-			"storage_container_name": {
-				Type:       pluginsdk.TypeString,
-				Optional:   true,
-				Deprecated: "The policy level destination storage container is deprecated by the service team since API version 2021-04-01, this is not functional and will be removed in v3.0 of the provider. Use the `rules.*.storage_container_name` instead.",
-			},
-
-			"rules": {
-				Type:     pluginsdk.TypeSet,
-				Required: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"storage_container_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validate.StorageContainerName,
-						},
-
-						"format": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(storage.FormatCsv),
-								string(storage.FormatParquet),
-							}, false),
-						},
-
-						"schedule": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(storage.ScheduleDaily),
-								string(storage.ScheduleWeekly),
-							}, false),
-						},
-
-						"scope": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(storage.ObjectTypeBlob),
-								string(storage.ObjectTypeContainer),
-							}, false),
-						},
-
-						"schema_fields": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-
-						"filter": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"blob_types": {
-										Type:     pluginsdk.TypeSet,
-										Required: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"blockBlob",
-												"appendBlob",
-												"pageBlob",
-											}, false),
-										},
-									},
-
-									"include_blob_versions": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  false,
-									},
-
-									"include_snapshots": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  false,
-									},
-
-									"prefix_match": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.StringIsNotEmpty,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
+		Schema: storageBlobInventoryPolicyResourceSchema(),
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 			rules := diff.Get("rules").(*pluginsdk.Set).List()
 			for _, rule := range rules {
@@ -162,6 +50,126 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 			return nil
 		}),
 	}
+}
+
+func storageBlobInventoryPolicyResourceSchema() map[string]*pluginsdk.Schema {
+	s := map[string]*pluginsdk.Schema{
+		"storage_account_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageAccountID,
+		},
+
+		"rules": {
+			Type:     pluginsdk.TypeSet,
+			Required: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"storage_container_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.StorageContainerName,
+					},
+
+					"format": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(storage.FormatCsv),
+							string(storage.FormatParquet),
+						}, false),
+					},
+
+					"schedule": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(storage.ScheduleDaily),
+							string(storage.ScheduleWeekly),
+						}, false),
+					},
+
+					"scope": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(storage.ObjectTypeBlob),
+							string(storage.ObjectTypeContainer),
+						}, false),
+					},
+
+					"schema_fields": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+
+					"filter": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"blob_types": {
+									Type:     pluginsdk.TypeSet,
+									Required: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+										ValidateFunc: validation.StringInSlice([]string{
+											"blockBlob",
+											"appendBlob",
+											"pageBlob",
+										}, false),
+									},
+								},
+
+								"include_blob_versions": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
+								},
+
+								"include_snapshots": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
+								},
+
+								"prefix_match": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if !features.ThreePointOhBeta() {
+		s["storage_container_name"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Deprecated: "The policy level destination storage container is deprecated by the service team since API version 2021-04-01, this is not functional and will be removed in v3.0 of the provider. Use the `rules.*.storage_container_name` instead.",
+		}
+	}
+
+	return s
 }
 
 func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -235,8 +243,9 @@ func resourceStorageBlobInventoryPolicyRead(d *pluginsdk.ResourceData, meta inte
 				return nil
 			}
 
-			// TODO 3.0 - remove below line
-			d.Set("storage_container_name", "")
+			if !features.ThreePointOhBeta() {
+				d.Set("storage_container_name", "")
+			}
 
 			d.Set("rules", flattenBlobInventoryPolicyRules(policy.Rules))
 		}

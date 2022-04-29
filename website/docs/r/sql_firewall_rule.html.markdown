@@ -44,7 +44,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the firewall rule.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
-    create the sql server.
+    create the SQL Server.
 
 * `server_name` - (Required) The name of the SQL Server on which to create the Firewall Rule.
 

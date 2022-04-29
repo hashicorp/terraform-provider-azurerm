@@ -25,7 +25,7 @@ func TestAccNotificationHubNamespace_free(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("namespace_type"),
 	})
 }
 
@@ -56,7 +56,7 @@ func TestAccNotificationHubNamespace_updateTag(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("namespace_type"),
 	})
 }
 

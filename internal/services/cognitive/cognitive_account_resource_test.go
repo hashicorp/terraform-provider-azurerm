@@ -183,6 +183,35 @@ func TestAccCognitiveAccount_qnaRuntimeEndpointUnspecified(t *testing.T) {
 	})
 }
 
+func TestAccCognitiveAccount_customQuestionAnsweringSearchServiceId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customQuestionAnsweringSearchServiceId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customQuestionAnsweringSearchServiceIdUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customQuestionAnsweringSearchServiceIdRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCognitiveAccount_cognitiveServices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
@@ -596,6 +625,106 @@ resource "azurerm_cognitive_account" "test" {
 `, data.RandomInteger, "West US", data.RandomInteger) // QnAMaker only available in West US
 }
 
+func (CognitiveAccountResource) customQuestionAnsweringSearchServiceId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchacc-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                                        = "acctestcogacc-%[1]d"
+  location                                    = azurerm_resource_group.test.location
+  resource_group_name                         = azurerm_resource_group.test.name
+  kind                                        = "TextAnalytics"
+  sku_name                                    = "F0"
+  custom_question_answering_search_service_id = azurerm_search_service.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (CognitiveAccountResource) customQuestionAnsweringSearchServiceIdUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchacc-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+}
+
+resource "azurerm_search_service" "test2" {
+  name                = "acctestsearchacc2-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                                        = "acctestcogacc-%[1]d"
+  location                                    = azurerm_resource_group.test.location
+  resource_group_name                         = azurerm_resource_group.test.name
+  kind                                        = "TextAnalytics"
+  sku_name                                    = "F0"
+  custom_question_answering_search_service_id = azurerm_search_service.test2.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (CognitiveAccountResource) customQuestionAnsweringSearchServiceIdRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchacc-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+}
+
+resource "azurerm_search_service" "test2" {
+  name                = "acctestsearchacc2-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                = "acctestcogacc-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "TextAnalytics"
+  sku_name            = "F0"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 func (CognitiveAccountResource) cognitiveServices(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -683,8 +812,13 @@ resource "azurerm_cognitive_account" "test" {
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
-    default_action             = "Deny"
-    virtual_network_subnet_ids = [azurerm_subnet.test_a.id, azurerm_subnet.test_b.id]
+    default_action = "Deny"
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_a.id
+    }
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_b.id
+    }
   }
 }
 `, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
@@ -702,9 +836,14 @@ resource "azurerm_cognitive_account" "test" {
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
-    default_action             = "Allow"
-    ip_rules                   = ["123.0.0.101"]
-    virtual_network_subnet_ids = [azurerm_subnet.test_a.id]
+    default_action = "Allow"
+    ip_rules       = ["123.0.0.101"]
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_a.id
+    }
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_b.id
+    }
   }
 }
 `, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
@@ -785,7 +924,7 @@ resource "azurerm_subnet" "test_a" {
   name                 = "acctestsubneta%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.CognitiveServices"]
 }
 
@@ -793,7 +932,7 @@ resource "azurerm_subnet" "test_b" {
   name                 = "acctestsubnetb%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.4.0/24"
+  address_prefixes     = ["10.0.4.0/24"]
   service_endpoints    = ["Microsoft.CognitiveServices"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)

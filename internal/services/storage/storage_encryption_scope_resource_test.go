@@ -205,7 +205,8 @@ func (t StorageEncryptionScopeResource) keyVaultKey(data acceptance.TestData) st
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -227,7 +228,8 @@ func (t StorageEncryptionScopeResource) keyVaultKeyVersionless(data acceptance.T
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -249,7 +251,8 @@ func (t StorageEncryptionScopeResource) keyVaultKeyUpdated(data acceptance.TestD
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -284,7 +287,8 @@ func (t StorageEncryptionScopeResource) keyVaultKeyRequireInfrastructureEncrypti
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -307,7 +311,8 @@ func (t StorageEncryptionScopeResource) microsoftManagedKey(data acceptance.Test
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -327,7 +332,8 @@ func (t StorageEncryptionScopeResource) microsoftManagedKeyRequireInfrastructure
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }

@@ -48,13 +48,13 @@ The following attributes are exported:
 
 An `identity` block exports the following:
 
-* `type` - Specifies the type of Managed Service Identity that is configured on this Event Grid System Topic.
+* `type` - The type of Managed Service Identity that is configured on this Event Grid System Topic.
 
-* `principal_id` - Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this Event Grid System Topic.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Event Grid System Topic.
 
-* `tenant_id` - Specifies the Tenant ID of the System Assigned Managed Service Identity that is configured on this Event Grid System Topic.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Event Grid System Topic.
 
-* `identity_ids` - A list of IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Event Grid System Topic.
 
 ---
 

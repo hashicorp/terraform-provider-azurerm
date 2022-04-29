@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `locked` - (Optional) Should this App Configuration Feature be Locked to prevent changes?
 
-* `name` - (Required) The name of the App Configuration Feature. Changing this foces a new resource to be crearted.
+* `name` - (Required) The name of the App Configuration Feature. Changing this forces a new resource to be created.
 
 * `percentage_filter_value` - (Optional) A list of one or more numbers representing the value of the percentage required to enable this feature.
 

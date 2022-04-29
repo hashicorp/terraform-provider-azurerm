@@ -94,15 +94,15 @@ A `storage_account` block supports the following:
 
 * `id` - (Required) Specifies the ID of the Storage Account that will be associated with the Video Analyzer instance.
 
-* `user_assigned_identity_id` - (Required) Specifies the User Assigned Identity ID which should be assigned to a access this Storage Account.
+* `user_assigned_identity_id` - (Required) Specifies the User Assigned Identity ID which should be assigned to access this Storage Account.
 
 ---
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Identity that should be configured on this Video Analyzer. At this time the only possible value is `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Video Analyzer instance. Only possible value is `UserAssigned`.
 
-* `identity_ids` - (Required) A list of User Assigned Identity ID's to be assigned to this Video Analyzer.
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Video Analyzer instance.
 
 ---
 

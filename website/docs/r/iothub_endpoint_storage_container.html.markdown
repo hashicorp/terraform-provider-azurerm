@@ -47,7 +47,7 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_endpoint_storage_container" "example" {
   resource_group_name = azurerm_resource_group.example.name
-  iothub_name         = azurerm_iothub.example.name
+  iothub_id           = azurerm_iothub.example.id
   name                = "acctest"
 
   container_name    = "acctestcont"
@@ -70,11 +70,7 @@ The following arguments are supported:
 
 * `container_name` - (Required) The name of storage container in the storage account.
 
-* `iothub_name` - (Optional) The IoTHub name for the endpoint.
-
-~> **NOTE:** The `iothub_name` property is deprecated, use `iothub_id` instead.
-
-* `iothub_id` - (Optional) The IoTHub ID for the endpoint.
+* `iothub_id` - (Required) The IoTHub ID for the endpoint.
 
 * `authentication_type` - (Optional) Type used to authenticate against the storage endpoint. Possible values are `keyBased` and `identityBased`. Defaults to `keyBased`.
 

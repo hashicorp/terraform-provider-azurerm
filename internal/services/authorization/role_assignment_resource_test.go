@@ -210,13 +210,11 @@ func TestAccRoleAssignment_ServicePrincipalGroup(t *testing.T) {
 // TODO - "real" management group with appropriate required for testing
 func TestAccRoleAssignment_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
-	groupId := uuid.New().String()
-
 	r := RoleAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.managementGroupConfig(groupId),
+			Config: r.managementGroupConfig(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -594,8 +592,8 @@ resource "azurerm_role_assignment" "test" {
 `, rInt, roleAssignmentID)
 }
 
-func (RoleAssignmentResource) managementGroupConfig(groupId string) string {
-	return fmt.Sprintf(`
+func (RoleAssignmentResource) managementGroupConfig() string {
+	return `
 provider "azurerm" {
   features {}
 }
@@ -610,16 +608,14 @@ data "azurerm_role_definition" "test" {
   name = "Monitoring Reader"
 }
 
-resource "azurerm_management_group" "test" {
-  group_id = "%s"
-}
+resource "azurerm_management_group" "test" {}
 
 resource "azurerm_role_assignment" "test" {
   scope              = azurerm_management_group.test.id
   role_definition_id = data.azurerm_role_definition.test.id
   principal_id       = data.azurerm_client_config.test.object_id
 }
-`, groupId)
+`
 }
 
 func (RoleAssignmentResource) condition(groupId string) string {

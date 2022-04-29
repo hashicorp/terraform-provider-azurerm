@@ -8,15 +8,15 @@ import (
 
 func WindowsComputerNameFull(i interface{}, k string) (warnings []string, errors []error) {
 	// Windows computer name cannot be more than 15 characters long
-	return windowsComputerName(i, k, 15)
+	return windowsComputerName(i, k, 15, false)
 }
 
 func WindowsComputerNamePrefix(i interface{}, k string) (warnings []string, errors []error) {
 	// Windows computer name prefix cannot be more than 9 characters long
-	return windowsComputerName(i, k, 9)
+	return windowsComputerName(i, k, 9, true)
 }
 
-func windowsComputerName(i interface{}, k string, maxLength int) (warnings []string, errors []error) {
+func windowsComputerName(i interface{}, k string, maxLength int, allowDashSuffix bool) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string but it wasn't!", k))
@@ -33,7 +33,7 @@ func windowsComputerName(i interface{}, k string, maxLength int) (warnings []str
 		errors = append(errors, fmt.Errorf("%q can be at most %d characters, got %d", k, maxLength, len(v)))
 	}
 
-	if strings.HasSuffix(v, "-") {
+	if !allowDashSuffix && strings.HasSuffix(v, "-") {
 		errors = append(errors, fmt.Errorf("%q cannot end with dash", k))
 	}
 

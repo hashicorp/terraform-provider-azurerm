@@ -661,7 +661,7 @@ resource "azurerm_subnet" "updated" {
   name                 = "acctest-updated-Subnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.updated.name
-  address_prefix       = "10.1.3.0/24"
+  address_prefixes     = ["10.1.3.0/24"]
 
   delegation {
     name = "testdelegation2"
@@ -736,7 +736,7 @@ resource "azurerm_subnet" "test_secondary" {
   name                 = "acctest-Subnet-secondary-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test_secondary.name
-  address_prefix       = "10.6.2.0/24"
+  address_prefixes     = ["10.6.2.0/24"]
 
   delegation {
     name = "testdelegation"
@@ -788,7 +788,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-Subnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.6.2.0/24"
+  address_prefixes     = ["10.6.2.0/24"]
 
   delegation {
     name = "testdelegation"
@@ -839,7 +839,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-Subnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.6.2.0/24"
+  address_prefixes     = ["10.6.2.0/24"]
 
   delegation {
     name = "testdelegation"

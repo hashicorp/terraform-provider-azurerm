@@ -157,6 +157,23 @@ func TestAccWindowsVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_otherEdgeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherEdgeZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"admin_password",
+		),
+	})
+}
+
 func TestAccWindowsVirtualMachineScaleSet_otherUserData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -516,12 +533,51 @@ func TestAccWindowsVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T) {
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_otherTerminateNotification(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherTerminationNotification(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		// turn terminate notification on
+		// turn termination notification on
+		{
+			Config: r.otherTerminationNotification(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("termination_notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("termination_notification.0.enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		// turn termination notification off
+		{
+			Config: r.otherTerminationNotification(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("termination_notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("termination_notification.0.enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		// turn termination notification on again
+		{
+			Config: r.otherTerminationNotification(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("termination_notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("termination_notification.0.enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+// TODO remove TestAccWindowsVirtualMachineScaleSet_otherTerminationNotificationMigration in 4.0
+func TestAccWindowsVirtualMachineScaleSet_otherTerminationNotificationMigration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		// old: terminate_notification
 		{
 			Config: r.otherTerminateNotification(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -531,23 +587,13 @@ func TestAccWindowsVirtualMachineScaleSet_otherTerminateNotification(t *testing.
 			),
 		},
 		data.ImportStep("admin_password"),
-		// turn terminate notification off
+		// new: termination_notification
 		{
-			Config: r.otherTerminateNotification(data, false),
+			Config: r.otherTerminationNotification(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("terminate_notification.#").HasValue("1"),
-				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep("admin_password"),
-		// turn terminate notification on again
-		{
-			Config: r.otherTerminateNotification(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("terminate_notification.#").HasValue("1"),
-				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("termination_notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("termination_notification.0.enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -1079,6 +1125,53 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), customData)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherEdgeZone(data acceptance.TestData) string {
+	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+%[1]s
+
+data "azurerm_extended_locations" "test" {
+  location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Premium_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data))
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherUserData(data acceptance.TestData, userData string) string {
@@ -2067,16 +2160,14 @@ resource "azurerm_lb_nat_pool" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "acctest-lb-probe"
-  port                = 22
-  protocol            = "Tcp"
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "acctest-lb-probe"
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "test" {
   name                           = "AccTestLBRule"
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
@@ -2175,16 +2266,14 @@ resource "azurerm_lb_nat_pool" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "acctest-lb-probe"
-  port                = 22
-  protocol            = "Tcp"
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "acctest-lb-probe"
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "test" {
   name                           = "AccTestLBRule"
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
@@ -2282,6 +2371,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data))
 }
 
+// TODO remove otherTerminateNotification in 4.0
 func (r WindowsVirtualMachineScaleSetResource) otherTerminateNotification(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -2319,6 +2409,49 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   terminate_notification {
+    enabled = %t
+  }
+}
+`, r.template(data), enabled)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) otherTerminationNotification(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  termination_notification {
     enabled = %t
   }
 }
@@ -2366,16 +2499,14 @@ resource "azurerm_lb_nat_pool" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "acctest-lb-probe"
-  port                = 22
-  protocol            = "Tcp"
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "acctest-lb-probe"
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "test" {
   name                           = "AccTestLBRule"
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
@@ -2473,7 +2604,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 
-  terminate_notification {
+  termination_notification {
     enabled = %t
   }
 }
@@ -2725,15 +2856,13 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  name                = "running-probe"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  port                = 3389
-  protocol            = "Tcp"
+  name            = "running-probe"
+  loadbalancer_id = azurerm_lb.test.id
+  port            = 3389
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
@@ -2825,23 +2954,20 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  name                = "ssh-running-probe"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  port                = 3389
-  protocol            = "Tcp"
+  name            = "ssh-running-probe"
+  loadbalancer_id = azurerm_lb.test.id
+  port            = 3389
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_probe" "test2" {
-  name                = "ssh-running-probe2"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  port                = 3389
-  protocol            = "Tcp"
+  name            = "ssh-running-probe2"
+  loadbalancer_id = azurerm_lb.test.id
+  port            = 3389
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
@@ -2925,23 +3051,20 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  name                = "ssh-running-probe"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  port                = 3389
-  protocol            = "Tcp"
+  name            = "ssh-running-probe"
+  loadbalancer_id = azurerm_lb.test.id
+  port            = 3389
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_probe" "test2" {
-  name                = "ssh-running-probe2"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  port                = 3389
-  protocol            = "Tcp"
+  name            = "ssh-running-probe2"
+  loadbalancer_id = azurerm_lb.test.id
+  port            = 3389
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test2.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]

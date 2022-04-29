@@ -145,7 +145,7 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
-* `zones` - (Optional) A collection of availability zones to spread the Application Gateway over.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Application Gateway should be located. Changing this forces a new Application Gateway to be created.
 
 * `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
 
@@ -199,7 +199,7 @@ A `trusted_root_certificate` block supports the following:
 
 * `name` - (Required) The Name of the Trusted Root Certificate to use.
 
-* `data` - (optional) The contents of the Trusted Root Certificate which should be used. Required if `key_vault_secret_id` is not set.
+* `data` - (Optional) The contents of the Trusted Root Certificate which should be used. Required if `key_vault_secret_id` is not set.
 
 * `key_vault_secret_id` - (Optional) The Secret ID of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for the Key Vault to use this feature. Required if `data` is not set.
 
@@ -324,11 +324,11 @@ A `http_listener` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The Managed Service Identity Type of this Application Gateway. The only possible value is `UserAssigned`.
-
-* `identity_ids` - (Required) Specifies a list with a single user managed identity id to be assigned to the Application Gateway.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Application Gateway. Only possible value is `UserAssigned`.
+ 
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Application Gateway.
 
 ---
 
@@ -361,9 +361,9 @@ An `ip_configuration` block supports the following:
 
 A `match` block supports the following:
 
-* `body` - (Optional) A snippet from the Response Body which must be present in the Response..
+* `body` - (Required) A snippet from the Response Body which must be present in the Response.
 
-* `status_code` - (Optional) A list of allowed status codes for this Health Probe.
+* `status_code` - (Required) A list of allowed status codes for this Health Probe.
 
 ---
 
@@ -401,9 +401,9 @@ A `probe` block support the following:
 
 * `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 - 20 seconds.
 
-* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from http settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
+* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from HTTP settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
 
-* `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend http settings. Defaults to `false`.
+* `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend HTTP settings. Defaults to `false`.
 
 * `match` - (Optional) A `match` block as defined above.
 

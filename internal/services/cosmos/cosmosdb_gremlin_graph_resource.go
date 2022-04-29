@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
@@ -113,16 +114,25 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 						},
 
 						// case change in 2021-01-15, issue https://github.com/Azure/azure-rest-api-specs/issues/14051
-						// todo: change to SDK constants and remove translation code in 3.0
 						"indexing_mode": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
-							ValidateFunc: validation.StringInSlice([]string{
-								"Consistent",
-								"Lazy",
-								"None",
-							}, false),
+							DiffSuppressFunc: suppress.CaseDifferenceV2Only, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
+							ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+								keys := []string{
+									string(documentdb.IndexingModeConsistent),
+									string(documentdb.IndexingModeNone),
+									string(documentdb.IndexingModeLazy),
+								}
+								if !features.ThreePointOhBeta() {
+									keys = []string{
+										"Consistent",
+										"Lazy",
+										"None",
+									}
+								}
+								return validation.StringInSlice(keys, false)
+							}(),
 						},
 
 						"included_paths": {
@@ -334,6 +344,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 
 func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
+	accountClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -397,19 +408,27 @@ func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{
 			}
 		}
 	}
-
-	throughputResp, err := client.GetGremlinGraphThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName)
+	accResp, err := accountClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("reading Throughput on Gremlin Graph %q (Account: %q, Database: %q) ID: %v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
-		} else {
-			d.Set("throughput", nil)
-			d.Set("autoscale_settings", nil)
-		}
-	} else {
-		common.SetResourceDataThroughputFromResponse(throughputResp, d)
+		return fmt.Errorf("reading Cosmos Account %q : %+v", id.DatabaseAccountName, err)
+	}
+	if accResp.ID == nil || *accResp.ID == "" {
+		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.DatabaseAccountName, id.ResourceGroup)
 	}
 
+	if !isServerlessCapacityMode(accResp) {
+		throughputResp, err := client.GetGremlinGraphThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(throughputResp.Response) {
+				return fmt.Errorf("reading Throughput on Gremlin Graph %q (Account: %q, Database: %q) ID: %v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
+			} else {
+				d.Set("throughput", nil)
+				d.Set("autoscale_settings", nil)
+			}
+		} else {
+			common.SetResourceDataThroughputFromResponse(throughputResp, d)
+		}
+	}
 	return nil
 }
 
@@ -523,7 +542,7 @@ func flattenAzureRmCosmosDBGremlinGraphIndexingPolicy(input *documentdb.Indexing
 	indexPolicy := make(map[string]interface{})
 
 	indexPolicy["automatic"] = input.Automatic
-	indexPolicy["indexing_mode"] = strings.Title(string(input.IndexingMode))
+	indexPolicy["indexing_mode"] = string(input.IndexingMode)
 	indexPolicy["included_paths"] = pluginsdk.NewSet(pluginsdk.HashString, flattenAzureRmCosmosDBGremlinGraphIncludedPaths(input.IncludedPaths))
 	indexPolicy["excluded_paths"] = pluginsdk.NewSet(pluginsdk.HashString, flattenAzureRmCosmosDBGremlinGraphExcludedPaths(input.ExcludedPaths))
 	indexPolicy["composite_index"] = common.FlattenCosmosDBIndexingPolicyCompositeIndexes(input.CompositeIndexes)

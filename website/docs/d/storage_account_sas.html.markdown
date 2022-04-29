@@ -66,6 +66,8 @@ data "azurerm_storage_account_sas" "example" {
     create  = true
     update  = false
     process = false
+    tag     = false
+    filter  = false
   }
 }
 
@@ -84,6 +86,9 @@ output "sas_url_query_string" {
 * `services` - A `services` block as defined below.
 * `start` - The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
 * `expiry` - The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.
+
+-> **NOTE:** The [ISO-8601 Time offset from UTC](https://en.wikipedia.org/wiki/ISO_8601#Time_offsets_from_UTC) is currently not supported by the service, which will result into 409 error.
+
 * `permissions` - A `permissions` block as defined below.
 
 ---
@@ -122,6 +127,8 @@ A `permissions` block contains:
 * `create` - Should Create permissions be enabled for this SAS?
 * `update` - Should Update permissions be enabled for this SAS?
 * `process` - Should Process permissions be enabled for this SAS?
+* `tag` - Should Get / Set Index Tags permissions be enabled for this SAS?
+* `filter` - Should Filter by Index Tags permissions be enabled for this SAS?
 
 Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/en-us/rest/api/storageservices/constructing-an-account-sas)
 for additional details on the fields above.

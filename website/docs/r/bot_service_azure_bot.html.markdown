@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `sku` - (Required) The SKU of the Azure Bot Service. Accepted values are `F0` or `S1`. Changing this forces a new resource to be created.
 
-* `developer_app_insights_api_key` - (Optional) The Application Insights Api Key to associate with this Azure Bot Service.
+* `developer_app_insights_api_key` - (Optional) The Application Insights API Key to associate with this Azure Bot Service.
 
 * `developer_app_insights_application_id` - (Optional) The resource ID of the Application Insights instance to associate with this Azure Bot Service.
 

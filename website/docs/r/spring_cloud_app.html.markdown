@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `is_public` - (Optional) Does the Spring Cloud Application have public endpoint? Defaults to `false`.
 
-* `https_only` - (Optional) Is only https allowed? Defaults to `false`.
+* `https_only` - (Optional) Is only HTTPS allowed? Defaults to `false`.
 
 * `persistent_disk` - (Optional) An `persistent_disk` block as defined below.
 
@@ -78,7 +78,7 @@ An `custom_persistent_disk` block exports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Spring Cloud Application. Possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cosmos Account. The only possible value is `SystemAssigned`.
 
 ---
 

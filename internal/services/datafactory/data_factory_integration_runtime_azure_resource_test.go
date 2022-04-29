@@ -143,10 +143,9 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
-  name                = "azure-integration-runtime"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name            = "azure-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -169,11 +168,10 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
-  name                = "azure-integration-runtime"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  compute_type        = "ComputeOptimized"
+  name            = "azure-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  compute_type    = "ComputeOptimized"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -196,11 +194,10 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
-  name                = "azure-integration-runtime"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  core_count          = 16
+  name            = "azure-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  core_count      = 16
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -223,11 +220,10 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
-  name                = "azure-integration-runtime"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  time_to_live_min    = 10
+  name             = "azure-integration-runtime"
+  data_factory_id  = azurerm_data_factory.test.id
+  location         = azurerm_resource_group.test.location
+  time_to_live_min = 10
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -250,11 +246,10 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
-  name                = "azure-integration-runtime"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  cleanup_enabled     = %t
+  name            = "azure-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  cleanup_enabled = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
@@ -279,8 +274,7 @@ resource "azurerm_data_factory" "test" {
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
   name                    = "azure-integration-runtime"
-  data_factory_name       = azurerm_data_factory.test.name
-  resource_group_name     = azurerm_resource_group.test.name
+  data_factory_id         = azurerm_data_factory.test.id
   location                = "AutoResolve"
   virtual_network_enabled = true
 }

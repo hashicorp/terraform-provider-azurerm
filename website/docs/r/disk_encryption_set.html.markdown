@@ -28,7 +28,6 @@ resource "azurerm_key_vault" "example" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "premium"
   enabled_for_disk_encryption = true
-  soft_delete_enabled         = true
   purge_protection_enabled    = true
 }
 
@@ -115,9 +114,9 @@ The following arguments are supported:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be used for this Disk Encryption Set. At this time the only possible value is `SystemAssigned`.
+* `type` - (Required) The type of Managed Service Identity that is configured on this Disk Encryption Set. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 

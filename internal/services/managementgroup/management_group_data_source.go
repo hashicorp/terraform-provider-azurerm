@@ -23,20 +23,11 @@ func dataSourceManagementGroup() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"group_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ExactlyOneOf: []string{"name", "group_id", "display_name"},
-				Deprecated:   "Deprecated in favour of `name`",
-				ValidateFunc: validate.ManagementGroupName,
-			},
-
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ExactlyOneOf: []string{"name", "group_id", "display_name"},
+				ExactlyOneOf: []string{"name", "display_name"},
 				ValidateFunc: validate.ManagementGroupName,
 			},
 
@@ -44,7 +35,7 @@ func dataSourceManagementGroup() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ExactlyOneOf: []string{"name", "group_id", "display_name"},
+				ExactlyOneOf: []string{"name", "display_name"},
 			},
 
 			"parent_management_group_id": {
@@ -71,9 +62,6 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if v, ok := d.GetOk("name"); ok {
 		groupName = v.(string)
 	}
-	if v, ok := d.GetOk("group_id"); ok {
-		groupName = v.(string)
-	}
 	displayName := d.Get("display_name").(string)
 
 	// one of displayName and groupName must be non-empty, this is guaranteed by schema
@@ -98,7 +86,6 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 	id := parse.NewManagementGroupId(groupName)
 	d.SetId(id.ID())
 	d.Set("name", groupName)
-	d.Set("group_id", groupName)
 
 	if props := resp.Properties; props != nil {
 		d.Set("display_name", props.DisplayName)

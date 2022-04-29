@@ -35,7 +35,7 @@ var sharedSkus = []string{
 }
 
 var consumptionSkus = []string{
-	"PC2", "PC3", "PC4", "Y1",
+	"Y1",
 }
 
 var elasticSkus = []string{
@@ -65,9 +65,12 @@ func AllKnownServicePlanSkus() []string {
 	return allSkus
 }
 
-func PlanIsConsumption(input string) bool {
+func PlanIsConsumption(input *string) bool {
+	if input == nil {
+		return false
+	}
 	for _, v := range consumptionSkus {
-		if strings.EqualFold(input, v) {
+		if strings.EqualFold(*input, v) {
 			return true
 		}
 	}
@@ -75,9 +78,12 @@ func PlanIsConsumption(input string) bool {
 	return false
 }
 
-func PlanIsElastic(input string) bool {
+func PlanIsElastic(input *string) bool {
+	if input == nil {
+		return false
+	}
 	for _, v := range elasticSkus {
-		if strings.EqualFold(input, v) {
+		if strings.EqualFold(*input, v) {
 			return true
 		}
 	}
@@ -85,9 +91,12 @@ func PlanIsElastic(input string) bool {
 	return false
 }
 
-func PlanIsIsolated(input string) bool {
+func PlanIsIsolated(input *string) bool {
+	if input == nil {
+		return false
+	}
 	for _, v := range isolatedSkus {
-		if strings.EqualFold(input, v) {
+		if strings.EqualFold(*input, v) {
 			return true
 		}
 	}
@@ -95,9 +104,12 @@ func PlanIsIsolated(input string) bool {
 	return false
 }
 
-func PlanIsAppPlan(input string) bool {
+func PlanIsAppPlan(input *string) bool {
+	if input == nil {
+		return false
+	}
 	for _, v := range appServicePlanSkus {
-		if strings.EqualFold(input, v) {
+		if strings.EqualFold(*input, v) {
 			return true
 		}
 	}
@@ -106,19 +118,19 @@ func PlanIsAppPlan(input string) bool {
 }
 
 func PlanTypeFromSku(input string) string {
-	if PlanIsConsumption(input) {
+	if PlanIsConsumption(&input) {
 		return ServicePlanTypeConsumption
 	}
 
-	if PlanIsElastic(input) {
+	if PlanIsElastic(&input) {
 		return ServicePlanTypeElastic
 	}
 
-	if PlanIsIsolated(input) {
+	if PlanIsIsolated(&input) {
 		return ServicePlanTypeIsolated
 	}
 
-	if PlanIsAppPlan(input) {
+	if PlanIsAppPlan(&input) {
 		return ServicePlanTypeAppPlan
 	}
 
@@ -131,12 +143,17 @@ func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, i
 	servicePlanClient := metadata.Client.AppService.ServicePlanClient
 	var rg, siteName string
 
-	if appId, ok := id.(parse.WebAppId); ok {
+	switch appId := id.(type) {
+	case parse.WebAppId:
 		rg = appId.ResourceGroup
 		siteName = appId.SiteName
-	}
-
-	if appId, ok := id.(parse.FunctionAppId); ok {
+	case parse.WebAppSlotId:
+		rg = appId.ResourceGroup
+		siteName = appId.SiteName
+	case parse.FunctionAppId:
+		rg = appId.ResourceGroup
+		siteName = appId.SiteName
+	case parse.FunctionAppSlotId:
 		rg = appId.ResourceGroup
 		siteName = appId.SiteName
 	}

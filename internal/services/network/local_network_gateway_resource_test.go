@@ -180,7 +180,7 @@ func TestAccLocalNetworkGateway_updateAddressSpace(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.noneAddressSpace(data),
+			Config: r.singleAddressSpace(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -370,7 +370,7 @@ resource "azurerm_local_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (LocalNetworkGatewayResource) noneAddressSpace(data acceptance.TestData) string {
+func (LocalNetworkGatewayResource) singleAddressSpace(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -386,6 +386,7 @@ resource "azurerm_local_network_gateway" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   gateway_address     = "127.0.0.1"
+  address_space       = ["127.0.0.0/24"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

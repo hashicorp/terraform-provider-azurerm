@@ -184,6 +184,20 @@ func resourceIotHub() *pluginsdk.Resource {
 								Type:     pluginsdk.TypeString,
 								Required: true,
 							},
+							"authentication_type": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								Default:  string(devices.AuthenticationTypeKeyBased),
+								ValidateFunc: validation.StringInSlice([]string{
+									string(devices.AuthenticationTypeKeyBased),
+									string(devices.AuthenticationTypeIdentityBased),
+								}, false),
+							},
+							"identity_id": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: msivalidate.UserAssignedIdentityID,
+							},
 							"notifications": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
@@ -312,8 +326,6 @@ func resourceIotHub() *pluginsdk.Resource {
 								DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 							},
 
-							// encoding should be case-sensitive but kept case-insensitive for backward compatibility.
-							// todo remove suppress.CaseDifference, make encoding case-sensitive and normalize it with pandora in 3.0 or 4.0
 							"encoding": {
 								Type:     pluginsdk.TypeString,
 								Optional: true,
@@ -702,8 +714,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if _, ok := d.GetOk("fallback_route"); ok {
 		routingProperties.FallbackRoute = expandIoTHubFallbackRoute(d)
-	} else if features.ThreePointOhBeta() {
-		// TODO update docs for 3.0
+	} else {
 		routingProperties.FallbackRoute = &devices.FallbackRouteProperties{
 			Source:        utils.String(string(devices.RoutingSourceDeviceMessages)),
 			Condition:     utils.String("true"),
@@ -719,7 +730,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	storageEndpoints, messagingEndpoints, enableFileUploadNotifications := expandIoTHubFileUpload(d)
+	storageEndpoints, messagingEndpoints, enableFileUploadNotifications, err := expandIoTHubFileUpload(d)
 	if err != nil {
 		return fmt.Errorf("expanding `file_upload`: %+v", err)
 	}
@@ -1004,7 +1015,7 @@ func expandIoTHubEnrichments(d *pluginsdk.ResourceData) *[]devices.EnrichmentPro
 	return &enrichmentProperties
 }
 
-func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.StorageEndpointProperties, map[string]*devices.MessagingEndpointProperties, bool) {
+func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.StorageEndpointProperties, map[string]*devices.MessagingEndpointProperties, bool, error) {
 	fileUploadList := d.Get("file_upload").([]interface{})
 
 	storageEndpointProperties := make(map[string]*devices.StorageEndpointProperties)
@@ -1014,6 +1025,8 @@ func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.Stor
 	if len(fileUploadList) > 0 {
 		fileUploadMap := fileUploadList[0].(map[string]interface{})
 
+		authenticationType := devices.AuthenticationType(fileUploadMap["authentication_type"].(string))
+		identityId := fileUploadMap["identity_id"].(string)
 		connectionStr := fileUploadMap["connection_string"].(string)
 		containerName := fileUploadMap["container_name"].(string)
 		notifications = fileUploadMap["notifications"].(bool)
@@ -1023,9 +1036,19 @@ func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.Stor
 		lockDuration := fileUploadMap["lock_duration"].(string)
 
 		storageEndpointProperties["$default"] = &devices.StorageEndpointProperties{
-			SasTTLAsIso8601:  &sasTTL,
-			ConnectionString: &connectionStr,
-			ContainerName:    &containerName,
+			SasTTLAsIso8601:    &sasTTL,
+			AuthenticationType: authenticationType,
+			ConnectionString:   &connectionStr,
+			ContainerName:      &containerName,
+		}
+
+		if identityId != "" {
+			if authenticationType != devices.AuthenticationTypeIdentityBased {
+				return nil, nil, false, fmt.Errorf("`identity_id` can only be specified when `authentication_type` is `identityBased`")
+			}
+			storageEndpointProperties["$default"].Identity = &devices.ManagedIdentity{
+				UserAssignedIdentity: &identityId,
+			}
 		}
 
 		messagingEndpointProperties["fileNotifications"] = &devices.MessagingEndpointProperties{
@@ -1035,7 +1058,7 @@ func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.Stor
 		}
 	}
 
-	return storageEndpointProperties, messagingEndpointProperties, notifications
+	return storageEndpointProperties, messagingEndpointProperties, notifications, nil
 }
 
 func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*devices.RoutingEndpoints, error) {
@@ -1284,6 +1307,18 @@ func flattenIoTHubFileUpload(storageEndpoints map[string]*devices.StorageEndpoin
 		if sasTTLAsIso8601 := storageEndpointProperties.SasTTLAsIso8601; sasTTLAsIso8601 != nil {
 			output["sas_ttl"] = *sasTTLAsIso8601
 		}
+
+		authenticationType := string(devices.AuthenticationTypeKeyBased)
+		if v := string(storageEndpointProperties.AuthenticationType); v != "" {
+			authenticationType = v
+		}
+		output["authentication_type"] = authenticationType
+
+		identityId := ""
+		if storageEndpointProperties.Identity != nil && storageEndpointProperties.Identity.UserAssignedIdentity != nil {
+			identityId = *storageEndpointProperties.Identity.UserAssignedIdentity
+		}
+		output["identity_id"] = identityId
 
 		if messagingEndpointProperties, ok := messagingEndpoints["fileNotifications"]; ok {
 			if lockDurationAsIso8601 := messagingEndpointProperties.LockDurationAsIso8601; lockDurationAsIso8601 != nil {

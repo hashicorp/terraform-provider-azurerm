@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -122,6 +123,9 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta int
 
 	id := parse.NewSqlRoleDefinitionID(subscriptionId, resourceGroup, accountName, roleDefinitionId)
 
+	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+
 	existing, err := client.GetSQLRoleDefinition(ctx, id.Name, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -202,6 +206,9 @@ func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
+	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+
 	parameters := documentdb.SQLRoleDefinitionCreateUpdateParameters{
 		SQLRoleDefinitionResource: &documentdb.SQLRoleDefinitionResource{
 			RoleName:         utils.String(d.Get("name").(string)),
@@ -234,6 +241,9 @@ func resourceCosmosDbSQLRoleDefinitionDelete(d *pluginsdk.ResourceData, meta int
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
+	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
 	future, err := client.DeleteSQLRoleDefinition(ctx, id.Name, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {

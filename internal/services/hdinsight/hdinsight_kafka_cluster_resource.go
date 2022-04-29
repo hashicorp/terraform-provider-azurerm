@@ -1,7 +1,6 @@
 package hdinsight
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -11,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -63,13 +61,6 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 			_, err := parse.ClusterID(id)
 			return err
 		}),
-
-		CustomizeDiff: func() pluginsdk.CustomizeDiffFunc {
-			if !features.ThreePointOhBeta() {
-				return resourceHDInsightKafkaClusterCustomizeDiff
-			}
-			return nil
-		}(),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -152,12 +143,9 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.IsUUID,
 						},
 
-						//lintignore: S013
 						"security_group_name": {
 							Type:         pluginsdk.TypeString,
-							Required:     features.ThreePointOhBeta(),
-							Optional:     !features.ThreePointOhBeta(),
-							Computed:     !features.ThreePointOhBeta(),
+							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -188,26 +176,9 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceHDInsightKafkaClusterCustomizeDiff(_ context.Context, diff *pluginsdk.ResourceDiff, meta interface{}) error {
-	// CLEANUP: this conditional validation no longer needed in v3.0, `security_group_name` will be Required
-	if meta.(*clients.Client).Account.UseMSAL {
-		if v, ok := diff.GetOk("rest_proxy"); ok && len(v.([]interface{})) > 0 {
-			restProxy := v.([]interface{})[0].(map[string]interface{})
-			if restProxy["security_group_name"].(string) == "" {
-				return fmt.Errorf("`rest_proxy.0.security_group_name` is required when the provider setting `use_msal` is true")
-			}
-		}
-	}
-
-	return nil
-}
-
 func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
-
-	// CLEANUP: remove graph client in v3.0
-	groupsClient := meta.(*clients.Client).HDInsight.GroupsClient
 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -264,22 +235,7 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		return tf.ImportAsExistsError("azurerm_hdinsight_kafka_cluster", id.ID())
 	}
 
-	var kafkaRestProperty *hdinsight.KafkaRestProperties
-	if meta.(*clients.Client).Account.UseMSAL {
-		kafkaRestProperty = expandKafkaRestProxyProperty(d.Get("rest_proxy").([]interface{}))
-	} else if !features.ThreePointOhBeta() {
-		kafkaRestProperty, err = expandKafkaRestProxyPropertyDeprecated(d.Get("rest_proxy").([]interface{}), func(groupId string) (*string, error) {
-			res, err := groupsClient.Get(ctx, groupId)
-			if err != nil {
-				return nil, fmt.Errorf("retrieving AAD group %q: %v", groupId, err)
-			}
-
-			return res.DisplayName, nil
-		})
-		if err != nil {
-			return fmt.Errorf("expanding kafka rest proxy property: %v", err)
-		}
-	}
+	kafkaRestProperty := expandKafkaRestProxyProperty(d.Get("rest_proxy").([]interface{}))
 
 	params := hdinsight.ClusterCreateParametersExtended{
 		Location: utils.String(location),
@@ -503,41 +459,6 @@ func expandKafkaRestProxyProperty(input []interface{}) *hdinsight.KafkaRestPrope
 			GroupName: &groupName,
 		},
 	}
-}
-
-// CLEANUP: remove expandKafkaRestProxyPropertyDeprecated in v3.0
-// nolint gocritic
-func expandKafkaRestProxyPropertyDeprecated(input []interface{}, getGroupName func(string) (*string, error)) (*hdinsight.KafkaRestProperties, error) {
-	if len(input) == 0 || input[0] == nil {
-		return nil, nil
-	}
-
-	raw := input[0].(map[string]interface{})
-	groupId := raw["security_group_id"].(string)
-
-	groupName := ""
-	if v, ok := raw["security_group_name"]; ok && v.(string) != "" {
-		groupName = v.(string)
-	} else {
-		if getGroupName == nil {
-			return nil, fmt.Errorf("getGroupName function was nil")
-		}
-		displayName, err := getGroupName(groupId)
-		if err != nil {
-			return nil, err
-		}
-		if displayName == nil {
-			return nil, fmt.Errorf("retrieving group name for %q: displayName was nil", groupId)
-		}
-		groupName = *displayName
-	}
-
-	return &hdinsight.KafkaRestProperties{
-		ClientGroupInfo: &hdinsight.ClientGroupInfo{
-			GroupID:   &groupId,
-			GroupName: &groupName,
-		},
-	}, nil
 }
 
 func flattenKafkaRestProxyProperty(input *hdinsight.KafkaRestProperties) []interface{} {

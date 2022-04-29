@@ -6,6 +6,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -18,12 +21,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceDashboard() *pluginsdk.Resource {
+func resourcePortalDashboard() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDashboardCreateUpdate,
-		Read:   resourceDashboardRead,
-		Update: resourceDashboardCreateUpdate,
-		Delete: resourceDashboardDelete,
+		Create: resourcePortalDashboardCreateUpdate,
+		Read:   resourcePortalDashboardRead,
+		Update: resourcePortalDashboardCreateUpdate,
+		Delete: resourcePortalDashboardDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DashboardID(id)
@@ -41,6 +44,7 @@ func resourceDashboard() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.DashboardName,
 			},
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -56,41 +60,48 @@ func resourceDashboard() *pluginsdk.Resource {
 	}
 }
 
-func resourceDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	t := d.Get("tags").(map[string]interface{})
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	dashboardProps := d.Get("dashboard_properties").(string)
+	id := parse.NewDashboardID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			}
+		}
 
-	// TODO: requires import support
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_portal_dashboard", id.ID())
+		}
+	}
 
 	dashboard := portal.Dashboard{
-		Location: &location,
-		Tags:     tags.Expand(t),
+		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	var dashboardProperties portal.DashboardProperties
 
-	if err := json.Unmarshal([]byte(dashboardProps), &dashboardProperties); err != nil {
+	dashboardPropsRaw := d.Get("dashboard_properties").(string)
+	if err := json.Unmarshal([]byte(dashboardPropsRaw), &dashboardProperties); err != nil {
 		return fmt.Errorf("parsing JSON: %+v", err)
 	}
 	dashboard.DashboardProperties = &dashboardProperties
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, dashboard); err != nil {
-		return fmt.Errorf("creating/updating Dashboard %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, dashboard); err != nil {
+		return fmt.Errorf("creating/updating %s %+v", id, err)
 	}
 
-	d.SetId(parse.NewDashboardID(subscriptionId, resourceGroup, name).ID())
-	return resourceDashboardRead(d, meta)
+	d.SetId(id.ID())
+	return resourcePortalDashboardRead(d, meta)
 }
 
-func resourceDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -125,7 +136,7 @@ func resourceDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceDashboardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalDashboardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
