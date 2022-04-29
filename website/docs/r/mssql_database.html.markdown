@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `server_id` - (Required) The id of the MS SQL Server on which to create the database. Changing this forces a new resource to be created.
 
-~> **Note:** This setting is still required for "Serverless" SKU's
+~> **Note:** This setting is still required for "Serverless" SKUs
 
 * `auto_pause_delay_in_minutes` - (Optional) Time in minutes after which database is automatically paused. A value of `-1` means that automatic pause is disabled. This property is only settable for General Purpose Serverless databases.
 
