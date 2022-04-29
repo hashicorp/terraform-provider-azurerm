@@ -129,8 +129,9 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 						},
 
 						"location": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							// TODO: does this want to be normalized?
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -169,86 +170,61 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	id := parse.NewFrontdoorOriginID(originGroupId.SubscriptionId, originGroupId.ResourceGroup, originGroupId.ProfileName, originGroupId.OriginGroupName, d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
+		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_origin", id.ID())
+	}
 
 	// I need to get the profile SKU so I know if it is valid or not to define a private link as
 	// private links are only allowed in the premium sku...
 	profileId := parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
-
 	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
 	if err != nil {
 		if utils.ResponseWasNotFound(profile.Response) {
-			return fmt.Errorf("%s does not exist: %+v", profileId, err)
+			return fmt.Errorf("retrieving parent %s: not found", profileId)
 		}
 
-		return fmt.Errorf("retrieving SKU information from %s: %+v", profileId, err)
+		return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
 	}
-
-	var sku string
-
-	if profileSku := profile.Sku; profileSku != nil {
-		sku = string(profileSku.Name)
-	} else {
-		return fmt.Errorf("retrieving SKU information from %s: %+v", profileId, err)
+	if profile.Sku == nil {
+		return fmt.Errorf("retrieving parent %s: `sku` was nil", profileId)
 	}
+	skuName := profile.Sku.Name
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_origin", id.ID())
-		}
-	}
-
-	originHostHeader := d.Get("origin_host_header").(string)
 	enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
-
-	props := cdn.AFDOrigin{
-		AFDOriginProperties: &cdn.AFDOriginProperties{
-			// AzureOrigin is currently not used, service team asked me to temporarily remove it from the resource
-			// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
-			EnabledState:                convertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
-			EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
-			HostName:                    utils.String(d.Get("host_name").(string)),
-			HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
-			HTTPSPort:                   utils.Int32(int32(d.Get("https_port").(int))),
-			Priority:                    utils.Int32(int32(d.Get("priority").(int))),
-			Weight:                      utils.Int32(int32(d.Get("weight").(int))),
-		},
+	props := &cdn.AFDOriginProperties{
+		// AzureOrigin is currently not used, service team asked me to temporarily remove it from the resource
+		// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
+		EnabledState:                convertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
+		EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
+		HostName:                    utils.String(d.Get("host_name").(string)),
+		HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
+		HTTPSPort:                   utils.Int32(int32(d.Get("https_port").(int))),
+		Priority:                    utils.Int32(int32(d.Get("priority").(int))),
+		Weight:                      utils.Int32(int32(d.Get("weight").(int))),
 	}
 
-	if originHostHeader != "" {
+	if originHostHeader := d.Get("origin_host_header").(string); originHostHeader != "" {
 		props.OriginHostHeader = utils.String(originHostHeader)
 	}
 
-	privateLinkSettings := d.Get("private_link").([]interface{})
-	if len(privateLinkSettings) > 0 {
-		if sku == string(cdn.SkuNamePremiumAzureFrontDoor) {
-			if !enableCertNameCheck {
-				return fmt.Errorf("%q requires that the %q field be set to %q, got %q", "private_link", "certificate_name_check_enabled", "true", "false")
-			} else {
-				// Check if this a Load Balancer Private Link or not, the Load Balancer Private Link requires
-				// that you stand up your own Private Link Service, which is why I am attempting to parse a
-				// Private Link Service ID here...
-				settings := privateLinkSettings[0].(map[string]interface{})
-				targetType := settings["target_type"].(string)
-				_, err := privateLinkServiceParse.PrivateLinkServiceID(settings["private_link_target_id"].(string))
-				if err != nil && targetType == "" {
-					// It is not a Load Balancer and the Target Type is empty, which is invalid...
-					return fmt.Errorf("the %[1]q block requires that you define the %[2]q field if the %[1]q is not a Load Balancer, expected %[3]s got %[4]q", "private_link", "target_type", strings.Join(ValidPrivateLinkTargetTypes(), ", "), targetType)
-				}
-				props.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLinkSettings)
-			}
-		} else {
-			return fmt.Errorf("the %q field is only valid if the %q SKU is set to %q, got %q", "private_link", "Frontdoor Profile", cdn.SkuNamePremiumAzureFrontDoor, sku)
-		}
+	expanded, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), skuName, enableCertNameCheck)
+	if err != nil {
+		return err
+	}
+	props.SharedPrivateLinkResource = expanded
+
+	payload := cdn.AFDOrigin{
+		AFDOriginProperties: props,
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, props)
+	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, payload)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -277,7 +253,7 @@ func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.OriginName)
@@ -321,23 +297,18 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	// I need to get the profile SKU so I know if it is valid or not to define a private link as
 	// private links are only allowed in the premium sku...
 	profileId := parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
-
 	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
 	if err != nil {
 		if utils.ResponseWasNotFound(profile.Response) {
-			return fmt.Errorf("%s does not exist: %+v", profileId, err)
+			return fmt.Errorf("retrieving parent %s: not found", profileId)
 		}
 
-		return fmt.Errorf("retrieving SKU information from %s: %+v", profileId, err)
+		return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
 	}
-
-	var sku string
-
-	if profileSku := profile.Sku; profileSku != nil {
-		sku = string(profileSku.Name)
-	} else {
-		return fmt.Errorf("retrieving SKU information from %s: %+v", profileId, err)
+	if profile.Sku == nil {
+		return fmt.Errorf("retrieving parent %s: `sku` was nil", profileId)
 	}
+	skuName := profile.Sku.Name
 
 	originHostHeader := d.Get("origin_host_header").(string)
 	enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
@@ -356,28 +327,11 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("private_link") {
-		privateLinkSettings := d.Get("private_link").([]interface{})
-		if len(privateLinkSettings) > 0 {
-			if sku == string(cdn.SkuNamePremiumAzureFrontDoor) {
-				if !enableCertNameCheck {
-					return fmt.Errorf("%q requires that the %q field be set to %q, got %q", "private_link", "certificate_name_check_enabled", "true", "false")
-				} else {
-					// Check if this a Load Balancer Private Link or not, the Load Balancer Private Link requires
-					// that you stand up your own Private Link Service, which is why I am attempting to parse a
-					// Private Link Service ID here...
-					settings := privateLinkSettings[0].(map[string]interface{})
-					targetType := settings["target_type"].(string)
-					_, err := privateLinkServiceParse.PrivateLinkServiceID(settings["private_link_target_id"].(string))
-					if err != nil && targetType == "" {
-						// It is not a Load Balancer and the Target Type is empty, which is invalid...
-						return fmt.Errorf("the %[1]q block requires that you define the %[2]q field if the %[1]q is not a Load Balancer, expected %[3]s got %[4]q", "private_link", "target_type", strings.Join(ValidPrivateLinkTargetTypes(), ", "), targetType)
-					}
-					props.SharedPrivateLinkResource = expandPrivateLinkSettings(privateLinkSettings)
-				}
-			} else {
-				return fmt.Errorf("the %q field is only valid if the %q SKU is set to %q, got %q", "private_link", "Frontdoor Profile", cdn.SkuNamePremiumAzureFrontDoor, sku)
-			}
+		privateLinkSettings, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), skuName, enableCertNameCheck)
+		if err != nil {
+			return err
 		}
+		props.SharedPrivateLinkResource = privateLinkSettings
 	}
 
 	if originHostHeader != "" {
@@ -407,6 +361,7 @@ func resourceCdnFrontdoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 
 	// It looks like Frontdoor does remove the Private link, I just need to poll here until it is removed...
 	// Investigate this further...
+	// TODO: what's the deal with this? ^
 	id, err := parse.FrontdoorOriginID(d.Id())
 	if err != nil {
 		return err
@@ -424,9 +379,28 @@ func resourceCdnFrontdoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandPrivateLinkSettings(input []interface{}) *cdn.SharedPrivateLinkResourceProperties {
+func expandPrivateLinkSettings(input []interface{}, skuName cdn.SkuName, enableCertNameCheck bool) (*cdn.SharedPrivateLinkResourceProperties, error) {
 	if len(input) == 0 {
-		return &cdn.SharedPrivateLinkResourceProperties{}
+		return &cdn.SharedPrivateLinkResourceProperties{}, nil
+	}
+
+	if skuName != cdn.SkuNamePremiumAzureFrontDoor {
+		return nil, fmt.Errorf("the `private_link` field can only be configured when the Frontdoor Profile is using a Premium SKU - but got %q", string(skuName))
+	}
+
+	if !enableCertNameCheck {
+		return nil, fmt.Errorf("the `private_link` field can only be configured when `certificate_name_check_enabled` is set to `true`")
+	}
+
+	// Check if this a Load Balancer Private Link or not, the Load Balancer Private Link requires
+	// that you stand up your own Private Link Service, which is why I am attempting to parse a
+	// Private Link Service ID here...
+	settings := input[0].(map[string]interface{})
+	targetType := settings["target_type"].(string)
+	_, err := privateLinkServiceParse.PrivateLinkServiceID(settings["private_link_target_id"].(string))
+	if err != nil && targetType == "" {
+		// It is not a Load Balancer and the Target Type is empty, which is invalid...
+		return nil, fmt.Errorf("the %[1]q block requires that you define the %[2]q field if the %[1]q is not a Load Balancer, expected %[3]s got %[4]q", "private_link", "target_type", strings.Join(ValidPrivateLinkTargetTypes(), ", "), targetType)
 	}
 
 	config := input[0].(map[string]interface{})
@@ -436,42 +410,47 @@ func expandPrivateLinkSettings(input []interface{}) *cdn.SharedPrivateLinkResour
 	groupId := config["target_type"].(string)
 	requestMessage := config["request_message"].(string)
 
-	privateLinkResource := cdn.SharedPrivateLinkResourceProperties{
+	return &cdn.SharedPrivateLinkResourceProperties{
 		PrivateLink: &cdn.ResourceReference{
 			ID: utils.String(resourceId),
 		},
 		GroupID:             utils.String(groupId),
 		PrivateLinkLocation: utils.String(location),
 		RequestMessage:      utils.String(requestMessage),
-	}
-
-	return &privateLinkResource
+	}, nil
 }
 
 func flattenPrivateLinkSettings(input *cdn.SharedPrivateLinkResourceProperties) []interface{} {
-	results := make([]interface{}, 0)
 	if input == nil {
-		return results
-	}
-	result := make(map[string]interface{})
-
-	if input.PrivateLink.ID != nil {
-		result["private_link_target_id"] = input.PrivateLink.ID
+		return []interface{}{}
 	}
 
+	privateLinkTargetId := ""
+	if input.PrivateLink != nil && input.PrivateLink.ID != nil {
+		privateLinkTargetId = *input.PrivateLink.ID
+	}
+
+	location := ""
 	if input.PrivateLinkLocation != nil {
-		result["location"] = input.PrivateLinkLocation
+		location = *input.PrivateLinkLocation
 	}
 
+	requestMessage := ""
 	if input.RequestMessage != nil {
-		result["request_message"] = input.RequestMessage
+		requestMessage = *input.RequestMessage
 	}
 
+	targetType := ""
 	if input.GroupID != nil {
-		result["target_type"] = input.GroupID
+		targetType = *input.GroupID
 	}
 
-	results = append(results, result)
-
-	return results
+	return []interface{}{
+		map[string]interface{}{
+			"location":               location,
+			"private_link_target_id": privateLinkTargetId,
+			"request_message":        requestMessage,
+			"target_type":            targetType,
+		},
+	}
 }

@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+// TODO: BLOCKER - in this file I've intentionally removed the feature-flag to not raise an error if there's items in the RG, since this highlights the Delete needs changes
+
 type CdnFrontdoorOriginResource struct {
 	RunAccTest bool
 }
@@ -204,14 +206,6 @@ func (r CdnFrontdoorOriginResource) template(data acceptance.TestData, profileSk
 	}
 
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%d"
   location = "%s"
@@ -438,6 +432,10 @@ resource "azurerm_linux_web_app" "test" {
 func (r CdnFrontdoorOriginResource) basic(data acceptance.TestData) string {
 	template := r.template(data, "default", false)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_cdn_frontdoor_origin" "test" {
@@ -480,6 +478,10 @@ resource "azurerm_cdn_frontdoor_origin" "import" {
 func (r CdnFrontdoorOriginResource) complete(data acceptance.TestData) string {
 	template := r.template(data, "default", false)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_cdn_frontdoor_origin" "test" {
@@ -501,6 +503,10 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 func (r CdnFrontdoorOriginResource) update(data acceptance.TestData) string {
 	template := r.template(data, "default", false)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_cdn_frontdoor_origin" "test" {
@@ -522,6 +528,10 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 func (r CdnFrontdoorOriginResource) privateLinkBlobPrimary(data acceptance.TestData) string {
 	template := r.templatePrivateLinkStorage(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_cdn_frontdoor_origin" "test" {
@@ -548,6 +558,10 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 func (r CdnFrontdoorOriginResource) privateLinkStaticWebSite(data acceptance.TestData) string {
 	template := r.templatePrivateLinkStorageStaticWebSite(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_cdn_frontdoor_origin" "test" {
@@ -574,6 +588,10 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 func (r CdnFrontdoorOriginResource) privateLinkAppServices(data acceptance.TestData) string {
 	template := r.templatePrivateLinkWebApp(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_cdn_frontdoor_origin" "test" {
@@ -600,6 +618,10 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 func (r CdnFrontdoorOriginResource) privateLinkLoadBalancer(data acceptance.TestData) string {
 	template := r.templatePrivateLinkLoadBalancer(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_cdn_frontdoor_origin" "test" {
