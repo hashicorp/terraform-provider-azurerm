@@ -77,7 +77,7 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cdn.ProbeProtocolHTTP),
 								string(cdn.ProbeProtocolHTTPS),
-								string(cdn.ProbeProtocolNotSet),
+								string(cdn.ProbeProtocolNotSet), // TODO: what does this do? feels like we should remove this, the default & make it required?
 							}, false),
 						},
 
@@ -88,7 +88,7 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cdn.HealthProbeRequestTypeGET),
 								string(cdn.HealthProbeRequestTypeHEAD),
-								string(cdn.HealthProbeRequestTypeNotSet),
+								string(cdn.HealthProbeRequestTypeNotSet), // TODO: what does this do? feels like we should remove this, the default & make it required?
 							}, false),
 						},
 					},
@@ -226,8 +226,9 @@ func resourceCdnFrontdoorOriginGroupRead(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("setting `load_balancing`: %+v", err)
 		}
 
-		// BUG: API does not return the profile name, pull it form the ID
+		// TODO: BLOCKER - BUG: API does not return the profile name, pull it from the ID
 		d.Set("cdn_frontdoor_profile_name", id.ProfileName)
+
 		d.Set("session_affinity_enabled", convertEnabledStateToBool(&props.SessionAffinityState))
 		d.Set("restore_traffic_time_to_healed_or_new_endpoint_in_minutes", props.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes)
 	}
@@ -245,16 +246,29 @@ func resourceCdnFrontdoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	props := cdn.AFDOriginGroupUpdateParameters{
-		AFDOriginGroupUpdatePropertiesParameters: &cdn.AFDOriginGroupUpdatePropertiesParameters{
-			HealthProbeSettings:   expandCdnFrontdoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
-			LoadBalancingSettings: expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
-			SessionAffinityState:  convertBoolToEnabledState(d.Get("session_affinity_enabled").(bool)),
-			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int32(int32(d.Get("restore_traffic_time_to_healed_or_new_endpoint_in_minutes").(int))),
-		},
+	params := &cdn.AFDOriginGroupUpdatePropertiesParameters{}
+
+	if d.HasChange("health_probe") {
+		params.HealthProbeSettings = expandCdnFrontdoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{}))
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, props)
+	if d.HasChange("load_balancing") {
+		params.LoadBalancingSettings = expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{}))
+	}
+
+	if d.HasChange("restore_traffic_time_to_healed_or_new_endpoint_in_minutes") {
+		params.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes = utils.Int32(int32(d.Get("restore_traffic_time_to_healed_or_new_endpoint_in_minutes").(int)))
+	}
+
+	if d.HasChange("session_affinity_enabled") {
+		params.SessionAffinityState = convertBoolToEnabledState(d.Get("session_affinity_enabled").(bool))
+	}
+
+	payload := cdn.AFDOriginGroupUpdateParameters{
+		AFDOriginGroupUpdatePropertiesParameters: params,
+	}
+
+	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, payload)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -284,7 +298,7 @@ func resourceCdnFrontdoorOriginGroupDelete(d *pluginsdk.ResourceData, meta inter
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
-	return err
+	return nil
 }
 
 func expandCdnFrontdoorOriginGroupHealthProbeParameters(input []interface{}) *cdn.HealthProbeParameters {
@@ -319,50 +333,64 @@ func expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input []interf
 }
 
 func flattenCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input *cdn.LoadBalancingSettingsParameters) []interface{} {
-	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return []interface{}{}
 	}
 
-	result := make(map[string]interface{})
-
+	additionalLatencyInMilliseconds := 0
 	if input.AdditionalLatencyInMilliseconds != nil {
-		result["additional_latency_in_milliseconds"] = *input.AdditionalLatencyInMilliseconds
+		additionalLatencyInMilliseconds = int(*input.AdditionalLatencyInMilliseconds)
 	}
 
+	sampleSize := 0
 	if input.SampleSize != nil {
-		result["sample_count"] = *input.SampleSize
+		sampleSize = int(*input.SampleSize)
 	}
 
+	successfulSamplesRequired := 0
 	if input.SuccessfulSamplesRequired != nil {
-		result["successful_samples_required"] = *input.SuccessfulSamplesRequired
+		successfulSamplesRequired = int(*input.SuccessfulSamplesRequired)
 	}
-	return append(results, result)
+	return []interface{}{
+		map[string]interface{}{
+			"additional_latency_in_milliseconds": additionalLatencyInMilliseconds,
+			"sample_count":                       sampleSize, // TODO: why isn't this called "sample_size"?
+			"successful_samples_required":        successfulSamplesRequired,
+		},
+	}
 }
 
 func flattenCdnFrontdoorOriginGroupHealthProbeParameters(input *cdn.HealthProbeParameters) []interface{} {
-	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return []interface{}{}
 	}
 
-	result := make(map[string]interface{})
-
+	intervalInSeconds := 0
 	if input.ProbeIntervalInSeconds != nil {
-		result["interval_in_seconds"] = *input.ProbeIntervalInSeconds
+		intervalInSeconds = int(*input.ProbeIntervalInSeconds)
 	}
 
+	path := ""
 	if input.ProbePath != nil {
-		result["path"] = *input.ProbePath
+		path = *input.ProbePath
 	}
 
+	protocol := ""
 	if input.ProbeProtocol != "" {
-		result["protocol"] = input.ProbeProtocol
+		protocol = string(input.ProbeProtocol)
 	}
 
+	requestType := ""
 	if input.ProbeRequestType != "" {
-		result["request_type"] = input.ProbeRequestType
+		requestType = string(input.ProbeRequestType)
 	}
 
-	return append(results, result)
+	return []interface{}{
+		map[string]interface{}{
+			"interval_in_seconds": intervalInSeconds,
+			"path":                path,
+			"protocol":            protocol,
+			"request_type":        requestType,
+		},
+	}
 }

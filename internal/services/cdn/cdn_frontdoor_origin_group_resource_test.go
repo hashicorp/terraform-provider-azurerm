@@ -25,7 +25,7 @@ func TestAccCdnFrontdoorOriginGroup_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("cdn_frontdoor_profile_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -53,7 +53,7 @@ func TestAccCdnFrontdoorOriginGroup_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("cdn_frontdoor_profile_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -67,14 +67,14 @@ func TestAccCdnFrontdoorOriginGroup_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("cdn_frontdoor_profile_id"),
+		data.ImportStep(),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("cdn_frontdoor_profile_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -97,10 +97,6 @@ func (r CdnFrontdoorOriginGroupResource) Exists(ctx context.Context, clients *cl
 
 func (r CdnFrontdoorOriginGroupResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%d"
   location = "%s"
@@ -115,7 +111,11 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 func (r CdnFrontdoorOriginGroupResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_origin_group" "test" {
   name                     = "accTestOriginGroup-%d"
@@ -133,7 +133,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
 func (r CdnFrontdoorOriginGroupResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_cdn_frontdoor_origin_group" "import" {
   name                     = azurerm_cdn_frontdoor_origin_group.test.name
@@ -151,7 +151,11 @@ resource "azurerm_cdn_frontdoor_origin_group" "import" {
 func (r CdnFrontdoorOriginGroupResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_origin_group" "test" {
   name                     = "accTestOriginGroup-%d"
@@ -179,7 +183,11 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
 func (r CdnFrontdoorOriginGroupResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_origin_group" "test" {
   name                     = "accTestOriginGroup-%d"
