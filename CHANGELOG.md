@@ -1,3 +1,9 @@
+## 3.5.0 (Unreleased)
+
+BUG FIXES:
+
+* Data Source: `azurerm_servicebus_queue_authorization_rule` - prevent crash by setting `queue_name` correctly [GH-16561]
+
 ## 3.4.0 (April 28, 2022)
 
 FEATURES:
