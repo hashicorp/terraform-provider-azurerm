@@ -3,12 +3,14 @@ package recoveryservices_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
+	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -24,6 +26,10 @@ func TestAccSiteRecoveryReplicatedVm_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				// A temporary disk with name `ms-asr-*` is created and deleted automatically by recovery service when creating the replication.
+				// After this temporary disk is deleted, its entry still remains in the resource list of the resource group for some time, causing the deletion of the resource group to fail.
+				// Delete the temporary disk explicitly as a workaround
+				data.CheckWithClientForResource(r.deleteTempDisk(), "azurerm_resource_group.test"),
 			),
 		},
 		data.ImportStep(),
@@ -39,6 +45,7 @@ func TestAccSiteRecoveryReplicatedVm_des(t *testing.T) {
 			Config: r.des(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClientForResource(r.deleteTempDisk(), "azurerm_resource_group.test"),
 			),
 		},
 		data.ImportStep(),
@@ -54,6 +61,7 @@ func TestAccSiteRecoveryReplicatedVm_zone2zone(t *testing.T) {
 			Config: r.zone2zone(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClientForResource(r.deleteTempDisk(), "azurerm_resource_group.test"),
 			),
 		},
 		data.ImportStep(),
@@ -894,4 +902,45 @@ func (t SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *c
 	}
 
 	return utils.Bool(resp.ID != nil), nil
+}
+
+func (SiteRecoveryReplicatedVmResource) deleteTempDisk() func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
+	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+		id, err := resourceParse.ResourceGroupID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		resourceClient := client.Resource.ResourcesClient
+		resp, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "", utils.Int32(500))
+		if err != nil {
+			return err
+		}
+
+		diskName := ""
+		resources := resp.Response().Value
+		if resources != nil {
+			for _, resource := range *resources {
+				if strings.HasPrefix(*resource.Name, "ms-asr-") {
+					diskName = *resource.Name
+					break
+				}
+			}
+		}
+
+		if diskName != "" {
+			diskClient := client.Compute.DisksClient
+			deleteFuture, err := diskClient.Delete(ctx, id.ResourceGroup, diskName)
+			if err != nil {
+				return fmt.Errorf("deleting Managed Disk %s: %+v", diskName, err)
+			}
+
+			err = deleteFuture.WaitForCompletionRef(ctx, diskClient.Client)
+			if err != nil {
+				return fmt.Errorf("waiting for the deletion of Managed Disk %s: %+v", diskName, err)
+			}
+		}
+
+		return nil
+	}
 }
