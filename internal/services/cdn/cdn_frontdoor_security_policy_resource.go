@@ -39,6 +39,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				// TODO: validation
 			},
 
 			"cdn_frontdoor_profile_id": {
@@ -70,6 +71,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ForceNew: true,
+										// TODO: validation for the ID type
 									},
 
 									"association": {
@@ -257,19 +259,17 @@ func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta in
 }
 
 func expandCdnFrontdoorSecurityPoliciesParameters(input []interface{}, isStandardSku bool) (cdn.BasicSecurityPolicyPropertiesParameters, error) {
+	// TODO: this method becomes superfluous
 	results, err := cdnfrontdoorsecurityparams.ExpandCdnFrontdoorFirewallPolicyParameters(input, isStandardSku)
 	if err != nil {
 		return results, err
 	}
 
-	if basic, ok := results.AsBasicSecurityPolicyPropertiesParameters(); ok {
-		return basic, nil
-	}
-
-	return nil, nil
+	return results, nil
 }
 
 func flattenCdnFrontdoorSecurityPoliciesParameters(input cdn.BasicSecurityPolicyPropertiesParameters) (*[]interface{}, error) {
+	// TODO: this method is superfluous?
 	results, err := cdnfrontdoorsecurityparams.FlattenCdnFrontdoorFirewallPolicyParameters(input)
 	if err != nil {
 		return nil, err

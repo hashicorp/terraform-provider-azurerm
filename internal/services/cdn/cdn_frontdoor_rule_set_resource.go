@@ -34,9 +34,10 @@ func resourceCdnFrontdoorRuleSet() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				// TODO: there's validation requirements in the test limiting this to 8 random chars, can we match that here?
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 

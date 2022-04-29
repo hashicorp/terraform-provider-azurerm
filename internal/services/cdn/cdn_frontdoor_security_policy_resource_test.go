@@ -25,6 +25,7 @@ func TestAccCdnFrontdoorSecurityPolicy_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		// TODO: we can remove these import-ignores by fixing the resource
 		data.ImportStep("azurerm_cdn_frontdoor_firewall_policy.test.cdn_frontdoor_profile_id", "azurerm_cdn_frontdoor_custom_domain.test.cdn_frontdoor_profile_id"),
 	})
 }
@@ -53,6 +54,7 @@ func TestAccCdnFrontdoorSecurityPolicy_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		// TODO: we can remove these import-ignores by fixing the resource
 		data.ImportStep("azurerm_cdn_frontdoor_firewall_policy.test.cdn_frontdoor_profile_id", "azurerm_cdn_frontdoor_custom_domain.test.cdn_frontdoor_profile_id"),
 	})
 }
@@ -77,10 +79,6 @@ func (r CdnFrontdoorSecurityPolicyResource) Exists(ctx context.Context, clients 
 
 func (r CdnFrontdoorSecurityPolicyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
   location = "%s"
@@ -164,7 +162,11 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 func (r CdnFrontdoorSecurityPolicyResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_security_policy" "test" {
   name                     = "accTestSecPol%d"
@@ -190,7 +192,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
 func (r CdnFrontdoorSecurityPolicyResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_cdn_frontdoor_security_policy" "import" {
   name                     = "accTestSecPol%d"
@@ -216,7 +218,11 @@ resource "azurerm_cdn_frontdoor_security_policy" "import" {
 func (r CdnFrontdoorSecurityPolicyResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_security_policy" "test" {
   name                     = "accTestSecPol%d"

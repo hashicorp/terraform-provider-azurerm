@@ -41,6 +41,7 @@ func resourceCdnFrontdoorSecret() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				// TODO: validation
 			},
 
 			"cdn_frontdoor_profile_id": {
@@ -261,6 +262,10 @@ func flattenSecretSecretParameters(input cdn.BasicSecretParameters) ([]interface
 			useLatest = *customerCertificate.UseLatestVersion
 		}
 
+		// TODO: BLOCKER - `vault.azure.net` is Azure Public, this needs to support all Azure Environments
+		// there's a method on the Key Vault Clients struct to obtain the Key Vault URI from the ARM ID
+		// which we can use here
+
 		if useLatest {
 			// Build the versionless certificate id
 			keyVaultCertificateId = fmt.Sprintf("https://%s.vault.azure.net/certificates/%s", secretSourceId.VaultName, secretSourceId.SecretName)
@@ -269,6 +274,8 @@ func flattenSecretSecretParameters(input cdn.BasicSecretParameters) ([]interface
 			keyVaultCertificateId = fmt.Sprintf("https://%s.vault.azure.net/certificates/%s/%s", secretSourceId.VaultName, secretSourceId.SecretName, certificateVersion)
 		}
 	}
+
+	// TODO: all nested fields need a value set into the state
 
 	fields["key_vault_certificate_id"] = keyVaultCertificateId
 

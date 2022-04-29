@@ -12,6 +12,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+// TODO: the validation methods want moving into ./validation
+// TODO: the convert methods need to be made private (since they're only related to this package)
+
 func ValidPrivateLinkTargetTypes() []string {
 	return []string{"blob", "blob_secondary", "sites", "web"}
 }
@@ -77,6 +80,8 @@ func expandStringSliceToCsvFormat(input []interface{}) *string {
 	}
 
 	v := utils.ExpandStringSlice(input)
+	// TODO: this can be reduced to:
+	// csv := fmt.Sprintf("[%s]", strings.Join(*v, ","))
 	csv := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(*v)), ","), "[]")
 
 	return &csv
@@ -174,6 +179,9 @@ func ConvertRouteLinkToDefaultDomainToBool(linkToDefaultDomain *cdn.LinkToDefaul
 }
 
 func IsValidDomain(i interface{}, k string) (warnings []string, errors []error) {
+	// TODO: this can be replaced by:
+	// Validation.Any(validation.IsIPv6Address, validation.IsIPv4Address, validation.StringIsNotEmpty)
+
 	isIPv6 := true
 	isIPv4 := true
 
@@ -210,6 +218,7 @@ func ValidateCdnFrontdoorUrlRedirectActionDestinationPath(i interface{}, k strin
 		return nil, []error{fmt.Errorf("%q is invalid: expected type of %q to be string", "url_redirect_action", k)}
 	}
 
+	// TODO: we don't mention the below in the error, but we probably should?
 	// Path cannot be empty and must start with /. Leave empty to use the incoming path as destination path.
 	if v != "" {
 		if !strings.HasPrefix(v, "/") {
@@ -404,6 +413,7 @@ func SchemaCdnFrontdoorOperator() *pluginsdk.Schema {
 }
 
 func SchemaCdnFrontdoorOperatorEqualOnly() *pluginsdk.Schema {
+	// TODO: if there's only one possible value, and it's defaulted - we don't need to expose this field for now?
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
@@ -462,13 +472,15 @@ func SchemaCdnFrontdoorMatchValues() *pluginsdk.Schema {
 
 func SchemaCdnFrontdoorServerPortMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		// TODO: should this be a set?
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 2,
 
 		// In some cases it is valid for this to be an empty string
 		Elem: &pluginsdk.Schema{
-			Type:    pluginsdk.TypeString,
+			Type: pluginsdk.TypeString,
+			// TODO: a list element can't have a default value
 			Default: "80",
 			ValidateFunc: validation.StringInSlice([]string{
 				"80",
@@ -480,12 +492,14 @@ func SchemaCdnFrontdoorServerPortMatchValues() *pluginsdk.Schema {
 
 func SchemaCdnFrontdoorSslProtocolMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		// TODO: should this be a Set?
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 3,
 
 		Elem: &pluginsdk.Schema{
-			Type:    pluginsdk.TypeString,
+			Type: pluginsdk.TypeString,
+			// TODO: a list element can't have a default value
 			Default: string(cdn.SslProtocolTLSv12),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(cdn.SslProtocolTLSv1),
@@ -524,6 +538,7 @@ func SchemaCdnFrontdoorMatchValuesRequired() *pluginsdk.Schema {
 
 func SchemaCdnFrontdoorRequestMethodMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		// TODO: should this be a Set?
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 7,
@@ -545,6 +560,7 @@ func SchemaCdnFrontdoorRequestMethodMatchValues() *pluginsdk.Schema {
 
 func SchemaCdnFrontdoorProtocolMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		// TODO: if this is MaxItems: 1, should this be a string?
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
@@ -553,6 +569,8 @@ func SchemaCdnFrontdoorProtocolMatchValues() *pluginsdk.Schema {
 			Type:    pluginsdk.TypeString,
 			Default: "HTTP",
 			ValidateFunc: validation.StringInSlice([]string{
+				// TODO: are there constants for these?
+				// TODO: other APIs use `Http` and `Https`, is that casing consistent in the API?
 				"HTTP",
 				"HTTPS",
 			}, false),
@@ -567,9 +585,11 @@ func SchemaCdnFrontdoorIsDeviceMatchValues() *pluginsdk.Schema {
 		MaxItems: 1,
 
 		Elem: &pluginsdk.Schema{
-			Type:    pluginsdk.TypeString,
+			Type: pluginsdk.TypeString,
+			// TODO: an element can't have a default
 			Default: "Mobile",
 			ValidateFunc: validation.StringInSlice([]string{
+				// TODO: are there constants for these?
 				"Mobile",
 				"Desktop",
 			}, false),
@@ -579,6 +599,7 @@ func SchemaCdnFrontdoorIsDeviceMatchValues() *pluginsdk.Schema {
 
 func SchemaCdnFrontdoorHttpVersionMatchValues() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		// TODO: should this be a set?
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 4,
@@ -597,12 +618,14 @@ func SchemaCdnFrontdoorHttpVersionMatchValues() *pluginsdk.Schema {
 
 func SchemaCdnFrontdoorRuleTransforms() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
+		// TODO: should this be a set?
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 4,
 
 		Elem: &pluginsdk.Schema{
-			Type:    pluginsdk.TypeString,
+			Type: pluginsdk.TypeString,
+			// TODO: an element can't have a default value like this - besides which it's a weird default?
 			Default: string(cdn.TransformLowercase),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(cdn.TransformLowercase),

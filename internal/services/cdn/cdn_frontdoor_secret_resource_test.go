@@ -14,6 +14,9 @@ import (
 )
 
 type CdnFrontdoorSecretResource struct {
+	// TODO: as per the other refactored resources, we need to find a way of running these
+	// we can make that opt-in via an env var (as per the other tests) - but this shouldn't
+	// require code changes to enable/disable the tests
 	DoNotRunFrontdooCustomDomainTests bool
 }
 
@@ -90,10 +93,6 @@ func (r CdnFrontdoorSecretResource) preCheck(t *testing.T) {
 
 func (r CdnFrontdoorSecretResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%d"
   location = "%s"
@@ -109,7 +108,11 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 func (r CdnFrontdoorSecretResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_secret" "test" {
   name                     = "accTestSecret-%d"
@@ -127,7 +130,7 @@ resource "azurerm_cdn_frontdoor_secret" "test" {
 func (r CdnFrontdoorSecretResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_cdn_frontdoor_secret" "import" {
   name                     = azurerm_cdn_frontdoor_secret.test.name
@@ -145,7 +148,11 @@ resource "azurerm_cdn_frontdoor_secret" "import" {
 func (r CdnFrontdoorSecretResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_secret" "test" {
   name                     = "accTestSecret-%d"

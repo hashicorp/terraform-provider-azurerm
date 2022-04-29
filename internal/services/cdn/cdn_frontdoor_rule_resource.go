@@ -17,6 +17,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+// TODO: all of the validation functions should be in `./validation`
+// TODO: the discriminators (e.g. expandFrontdoorDeliveryRuleActions) should be expanded using the standard way in the Azure SDK (e.g. `&SomeDescriminatedValue{}`)
+// TODO: several of the schema items expect a single item but are missing MaxItems:1
+// TODO: this needs a split/delta update method
+// TODO: all fields within nested block must be set into the state (e.g. we can't do `if model.Foo != nil { out["foo"] = foo }` but instead:
+// foo := ""
+// if model.Foo != nil {
+// 	foo = *model.Foo
+// }
+// return []interface{}{
+//   map[string]interface{}{
+//     "foo": foo, // and other fields
+//   },
+// }
+
 func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCdnFrontdoorRuleCreate,

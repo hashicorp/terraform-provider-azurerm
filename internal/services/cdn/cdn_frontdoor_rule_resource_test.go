@@ -94,6 +94,7 @@ func TestAccCdnFrontdoorRule_update(t *testing.T) {
 }
 
 func TestAccCdnFrontdoorRule_invalidCacheDuration(t *testing.T) {
+	// TODO: can't this be a unit test?
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontdoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -123,10 +124,6 @@ func (r CdnFrontdoorRuleResource) Exists(ctx context.Context, clients *clients.C
 
 func (r CdnFrontdoorRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
   location = "%s"
@@ -172,7 +169,11 @@ resource "azurerm_cdn_frontdoor_rule_set" "test" {
 func (r CdnFrontdoorRuleResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_rule" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
@@ -229,7 +230,11 @@ resource "azurerm_cdn_frontdoor_rule" "import" {
 func (r CdnFrontdoorRuleResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_rule" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
@@ -301,7 +306,11 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 func (r CdnFrontdoorRuleResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_rule" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
@@ -364,7 +373,11 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 func (r CdnFrontdoorRuleResource) actionOnly(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_rule" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
@@ -391,7 +404,11 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 func (r CdnFrontdoorRuleResource) invalidCacheDuration(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_rule" "test" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]

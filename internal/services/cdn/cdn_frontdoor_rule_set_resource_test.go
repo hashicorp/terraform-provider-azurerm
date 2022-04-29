@@ -76,10 +76,6 @@ func (r CdnFrontdoorRuleSetResource) Exists(ctx context.Context, clients *client
 
 func (r CdnFrontdoorRuleSetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%d"
   location = "%s"
@@ -95,7 +91,11 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 func (r CdnFrontdoorRuleSetResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_rule_set" "test" {
   name                     = "accTestRuleSet%d"
@@ -107,7 +107,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "test" {
 func (r CdnFrontdoorRuleSetResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_cdn_frontdoor_rule_set" "import" {
   name                     = azurerm_cdn_frontdoor_rule_set.test.name
@@ -119,7 +119,11 @@ resource "azurerm_cdn_frontdoor_rule_set" "import" {
 func (r CdnFrontdoorRuleSetResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+provider "azurerm" {
+  features {}
+}
+
+%s
 
 resource "azurerm_cdn_frontdoor_rule_set" "test" {
   name                     = "accTestRuleSet%d"
