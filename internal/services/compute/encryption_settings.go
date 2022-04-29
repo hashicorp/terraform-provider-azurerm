@@ -8,7 +8,7 @@ import (
 )
 
 func encryptionSettingsSchema() *pluginsdk.Schema {
-	if !features.ThreePointOhBeta() {
+	if !features.FourPointOhBeta() {
 		return &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -123,7 +123,7 @@ func expandManagedDiskEncryptionSettings(settingsList []interface{}) *compute.En
 		Enabled: utils.Bool(true),
 	}
 
-	if !features.ThreePointOhBeta() {
+	if !features.FourPointOhBeta() {
 		config.Enabled = utils.Bool(settings["enabled"].(bool))
 	}
 
@@ -212,7 +212,7 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *compute.Encryption
 	}
 
 	if len(diskEncryptionKeys) > 0 {
-		if !features.ThreePointOhBeta() {
+		if !features.FourPointOhBeta() {
 			return []interface{}{
 				map[string]interface{}{
 					"enabled":             true,

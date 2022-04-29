@@ -254,7 +254,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 		// Encryption Settings cannot be disabled once enabled
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("encryption_settings", func(ctx context.Context, old, new, meta interface{}) bool {
-				if !features.ThreePointOhBeta() {
+				if !features.FourPointOhBeta() {
 					return false
 				}
 				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
