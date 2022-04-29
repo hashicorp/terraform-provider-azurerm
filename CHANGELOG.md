@@ -1,5 +1,11 @@
 ## 3.5.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_linux_virtual_machine_scale_set` - improve validation on `termination_notification.timeout` [GH-16594]
+* `azurerm_orchestrated_virtual_machine_scale_set` - improve validation on `termination_notification.timeout` [GH-16594]
+* `azurerm_windows_virtual_machine_scale_set` - improve validation on `termination_notification.timeout` [GH-16594]
+
 BUG FIXES:
 
 * Data Source: `azurerm_servicebus_queue_authorization_rule` - prevent crash by setting `queue_name` correctly [GH-16561]
