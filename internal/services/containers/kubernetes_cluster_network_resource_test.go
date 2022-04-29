@@ -1882,8 +1882,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "kubenet"
-    service_cidrs  = ["10.0.0.0/16"]
+    network_plugin     = "kubenet"
+    dns_service_ip     = "10.1.1.10"
+    docker_bridge_cidr = "172.18.0.1/16"
+    service_cidrs      = ["10.1.1.0/24"]
   }
 
   identity {
