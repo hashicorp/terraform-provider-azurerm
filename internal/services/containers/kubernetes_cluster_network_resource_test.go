@@ -27,6 +27,7 @@ func TestAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccKubernetesCluster_advancedNetworkingIPVersionsIPv4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -405,6 +406,36 @@ func TestAccKubernetesCluster_privateClusterOff(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_podCidrs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.podCidrs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_serviceCidrs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceCidrs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -1798,6 +1829,68 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enablePrivateCluster, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) podCidrs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  network_profile {
+    network_plugin = "kubenet"
+    pod_cidrs      = ["10.1.1.0/24"]
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) serviceCidrs(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  network_profile {
+    network_plugin = "kubenet"
+    service_cidrs  = ["10.0.0.0/16"]
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) standardLoadBalancerConfig(data acceptance.TestData) string {

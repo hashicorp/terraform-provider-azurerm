@@ -26,15 +26,18 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *containerserv
 				dnsServiceIP := profile["dns_service_ip"].(string)
 				serviceCidr := profile["service_cidr"].(string)
 				podCidr := profile["pod_cidr"].(string)
+				serviceCidrs := profile["service_cidrs"].([]interface{})
 
 				// Azure network plugin is not compatible with pod_cidr
 				if podCidr != "" && networkPlugin == "azure" {
 					return fmt.Errorf("`pod_cidr` and `azure` cannot be set together")
 				}
 
-				// if not All empty values or All set values.
-				if !(dockerBridgeCidr == "" && dnsServiceIP == "" && serviceCidr == "") && !(dockerBridgeCidr != "" && dnsServiceIP != "" && serviceCidr != "") {
-					return fmt.Errorf("`docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set")
+				if len(serviceCidrs) == 0 {
+					// if not All empty values or All set values.
+					if !(dockerBridgeCidr == "" && dnsServiceIP == "" && serviceCidr == "") && !(dockerBridgeCidr != "" && dnsServiceIP != "" && serviceCidr != "") {
+						return fmt.Errorf("`docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set")
+					}
 				}
 			}
 		}
