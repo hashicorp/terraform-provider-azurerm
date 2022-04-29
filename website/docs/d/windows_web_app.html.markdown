@@ -189,6 +189,8 @@ A `auto_heal_setting` block exports the following:
 
 A `azure_blob_storage` block exports the following:
 
+* `level` - The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
+
 * `retention_in_days` - The time in days after which blobs will be removed.
 
 * `sas_url` - The SAS url to the Azure Blob container.
