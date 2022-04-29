@@ -517,11 +517,11 @@ A `network_profile` block supports the following:
 
 * `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
 
-* `pod_cidrs` - (Optional) One IPv4 CIDR is expected for single-stack networking. Two CIDRs, one for each IP family (IPv4/IPv6), is expected for dual-stack networking.
+* `pod_cidrs` - (Optional) One IPv4 CIDR is expected for single-stack networking. Two CIDRs, one for each IP family (IPv4/IPv6), is expected for dual-stack networking. Changing this forces a new resource to be created.
 
 * `service_cidr` - (Optional) The Network Range used by the Kubernetes service. Changing this forces a new resource to be created.
 
-* `service_cidrs` - (Optional) One IPv4 CIDR is expected for single-stack networking. Two CIDRs, one for each IP family (IPv4/IPv6), is expected for dual-stack networking.
+* `service_cidrs` - (Optional) One IPv4 CIDR is expected for single-stack networking. Two CIDRs, one for each IP family (IPv4/IPv6), is expected for dual-stack networking. Changing this forces a new resource to be created.
 
 ~> **Note:** This range should not be used by any network element on or connected to this VNet. Service address CIDR must be smaller than /12. `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set.
 
