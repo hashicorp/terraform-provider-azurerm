@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_linux_web_app` - add support for `sticky_settings` [GH-16546]
 * `azurerm_monitor_aad_diagnostic_setting` - remove validation on `log.category` to allow for new log categories that are available in Azure [GH-16534]
 * `azurerm_mssql_database` - Support for `short_term_retention_policy.0.backup_interval_in_hours` [GH-16528]
+* `azurerm_postgresql_server` - add validation for `public_network_access_enabled` [GH-16516]
 * `azurerm_stream_analytics_job` - support for the `type` property [GH-16548]
 * `azurerm_windows_function_app` - add support for `sticky_settings` [GH-16546]
 * `azurerm_windows_web_app` - add support for `sticky_settings` [GH-16546]
