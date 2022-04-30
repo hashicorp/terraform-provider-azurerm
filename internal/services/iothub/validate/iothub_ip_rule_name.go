@@ -9,7 +9,7 @@ func IoTHubIpRuleName(v interface{}, k string) (warnings []string, errors []erro
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-:.+%_#*?!(),=@;']{1,128}$`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("`ip_rule_name` can only be alphanumeric string up to 128 characters long. Only the ASCII 7-bit alphanumeric characters plus {'-', ':', '.', '+', '%%', '_', '#', '*', '?', '!', '(', ')', ',', '=', '@', ';', '''} are accepted"))
+		errors = append(errors, fmt.Errorf("`ip_rule_name` can only be alphanumeric string up to 128 characters long. Only the ASCII 7-bit alphanumeric characters plus the following special characters are accepted: - : . + %% _ # * ? ! ( ) , = @ ; '"))
 	}
 
 	return
