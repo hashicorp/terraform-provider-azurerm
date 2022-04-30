@@ -14,15 +14,15 @@ Manages an Azure App Configuration.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_app_configuration" "appconf" {
   name                = "appConf1"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 ```
 

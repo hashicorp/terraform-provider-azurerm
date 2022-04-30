@@ -13,7 +13,7 @@ Manages an Analysis Services Server.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "analysis-services-server-test"
   location = "West Europe"
 }
@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "rg" {
 resource "azurerm_analysis_services_server" "server" {
   name                    = "analysisservicesserver"
   location                = "northeurope"
-  resource_group_name     = azurerm_resource_group.rg.name
+  resource_group_name     = azurerm_resource_group.example.name
   sku                     = "S0"
   admin_users             = ["myuser@domain.tld"]
   enable_power_bi_service = true
