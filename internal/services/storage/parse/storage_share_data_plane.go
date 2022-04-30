@@ -9,13 +9,22 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
 )
 
-// TODO: tests for this
 var _ resourceid.Formatter = StorageShareDataPlaneId{}
 
 type StorageShareDataPlaneId struct {
 	AccountName  string
 	DomainSuffix string
 	Name         string
+}
+
+func (id StorageShareDataPlaneId) String() string {
+	segments := []string{
+		fmt.Sprintf("Account Name %q", id.AccountName),
+		fmt.Sprintf("Domain Suffix %q", id.DomainSuffix),
+		fmt.Sprintf("Name %q", id.Name),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Storage Share", segmentsStr)
 }
 
 // only present to comply with the interface
@@ -47,7 +56,16 @@ func StorageShareDataPlaneID(id string) (*StorageShareDataPlaneId, error) {
 	if len(hostSegments) == 0 {
 		return nil, fmt.Errorf("expected multiple host segments but got 0")
 	}
-	domainNameSuffix := strings.TrimPrefix(host, fmt.Sprintf("%s.file.", hostSegments[0]))
+
+	prefix := fmt.Sprintf("%s.file.", hostSegments[0])
+	if !strings.HasPrefix(host, prefix) {
+		return nil, fmt.Errorf("expected file host segment")
+	}
+	domainNameSuffix := strings.TrimPrefix(host, prefix)
+
+	if len(parsed.ShareName) == 0 {
+		return nil, fmt.Errorf("expected share name")
+	}
 
 	return &StorageShareDataPlaneId{
 		AccountName:  parsed.AccountName,
