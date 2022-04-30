@@ -33,11 +33,10 @@ resource "azurerm_storage_container" "example" {
 }
 
 resource "azurerm_storage_blob" "example" {
-  name                   = "my-awesome-content.zip"
-  storage_account_name   = azurerm_storage_account.example.name
-  storage_container_name = azurerm_storage_container.example.name
-  type                   = "Block"
-  source                 = "some-local-file.zip"
+  name               = "my-awesome-content.zip"
+  storage_account_id = azurerm_storage_account.example.id
+  type               = "Block"
+  source             = "some-local-file.zip"
 }
 ```
 
@@ -47,10 +46,15 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the storage blob. Must be unique within the storage container the blob is located.
 
-* `storage_account_name` - (Required) Specifies the storage account in which to create the storage container.
- Changing this forces a new resource to be created.
+* `storage_account_name` - (Optional) Specifies the name of the storage account in which to create the blob. Changing this forces a new resource to be created.
 
-* `storage_container_name` - (Required) The name of the storage container in which this blob should be created.
+-> **NOTE:** This property has been deprecated in favour of the `storage_container_id` property and will be removed in version 4.0 of the provider.
+
+* `storage_container_name` - (Optional) The name of the storage container in which this blob should be created.
+
+-> **NOTE:** This property has been deprecated in favour of the `storage_container_id` property and will be removed in version 4.0 of the provider.
+
+* `storage_container_id` - (Optional) The ID of the storage container in which this blob should be created.  Changing this forces a new resource to be created.
 
 * `type` - (Required) The type of the storage blob to be created. Possible values are `Append`, `Block` or `Page`. Changing this forces a new resource to be created.
 
@@ -64,9 +68,9 @@ The following arguments are supported:
 
 * `content_type` - (Optional) The content type of the storage blob. Cannot be defined if `source_uri` is defined. Defaults to `application/octet-stream`.
 
-* `content_md5` - (Optional) The MD5 sum of the blob contents. Cannot be defined if `source_uri` is defined, or if blob type is Append or Page. Changing this forces a new resource to be created.   
+* `content_md5` - (Optional) The MD5 sum of the blob contents. Cannot be defined if `source_uri` is defined, or if blob type is Append or Page. Changing this forces a new resource to be created.
 
-~> **NOTE:** This property is intended to be used with the Terraform internal [filemd5](https://www.terraform.io/docs/configuration/functions/filemd5.html) and [md5](https://www.terraform.io/docs/configuration/functions/md5.html) functions when `source` or `source_content`, respectively, are defined. 
+~> **NOTE:** This property is intended to be used with the Terraform internal [filemd5](https://www.terraform.io/docs/configuration/functions/filemd5.html) and [md5](https://www.terraform.io/docs/configuration/functions/md5.html) functions when `source` or `source_content`, respectively, are defined.
 
 * `source` - (Optional) An absolute path to a file on the local system. This field cannot be specified for Append blobs and cannot be specified if `source_content` or `source_uri` is specified.
 

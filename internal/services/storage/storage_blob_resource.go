@@ -8,7 +8,9 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -41,114 +43,155 @@ func resourceStorageBlob() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO: add validation
-			},
-
-			"storage_account_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountName,
-			},
-
-			"storage_container_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageContainerName,
-			},
-
-			"type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Append",
-					"Block",
-					"Page",
-				}, false),
-			},
-
-			"size": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      0,
-				ValidateFunc: validation.IntDivisibleBy(512),
-			},
-
-			"access_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(blobs.Archive),
-					string(blobs.Cool),
-					string(blobs.Hot),
-				}, false),
-			},
-
-			"content_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "application/octet-stream",
-			},
-
-			"cache_control": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
-
-			"source": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"source_uri", "source_content"},
-			},
-
-			"source_content": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"source", "source_uri"},
-			},
-
-			"source_uri": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"source", "source_content"},
-			},
-
-			"content_md5": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"source_uri"},
-			},
-
-			"url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"parallelism": {
-				// TODO: @tombuildsstuff - a note this only works for Page blobs
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      8,
-				ForceNew:     true,
-				ValidateFunc: validation.IntAtLeast(1),
-			},
-
-			"metadata": MetaDataComputedSchema(),
-		},
+		Schema: resourceStorageBlobSchema(),
 	}
+}
+
+func resourceStorageBlobSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			// TODO: add validation
+		},
+
+		"storage_container_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     features.FourPointOhBeta(),
+			Optional:     !features.FourPointOhBeta(),
+			Computed:     !features.FourPointOhBeta(),
+			ForceNew:     true,
+			ValidateFunc: validate.StorageContainerDataPlaneID,
+			ConflictsWith: func() []string {
+				if !features.FourPointOhBeta() {
+					return []string{
+						"storage_account_name",
+						"storage_container_name",
+					}
+				}
+				return []string{}
+			}(),
+		},
+
+		"type": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"Append",
+				"Block",
+				"Page",
+			}, false),
+		},
+
+		"size": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      0,
+			ValidateFunc: validation.IntDivisibleBy(512),
+		},
+
+		"access_tier": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(blobs.Archive),
+				string(blobs.Cool),
+				string(blobs.Hot),
+			}, false),
+		},
+
+		"content_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "application/octet-stream",
+		},
+
+		"cache_control": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
+
+		"source": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"source_uri", "source_content"},
+		},
+
+		"source_content": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"source", "source_uri"},
+		},
+
+		"source_uri": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"source", "source_content"},
+		},
+
+		"content_md5": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"source_uri"},
+		},
+
+		"url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"parallelism": {
+			// TODO: @tombuildsstuff - a note this only works for Page blobs
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      8,
+			ForceNew:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+		},
+
+		"metadata": MetaDataComputedSchema(),
+	}
+
+	if !features.FourPointOhBeta() {
+		out["storage_account_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageAccountName,
+			Deprecated:   "Deprecated in favour of `storage_container_id`",
+			RequiredWith: []string{
+				"storage_container_name",
+			},
+			ConflictsWith: []string{
+				"storage_container_id",
+			},
+		}
+
+		out["storage_container_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageContainerName,
+			Deprecated:   "Deprecated in favour of `storage_container_id`",
+			RequiredWith: []string{
+				"storage_account_name",
+			},
+			ConflictsWith: []string{
+				"storage_container_id",
+			},
+		}
+	}
+	return out
 }
 
 func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -156,8 +199,23 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	accountName := d.Get("storage_account_name").(string)
-	containerName := d.Get("storage_container_name").(string)
+	var accountName string
+	var containerName string
+	if !features.FourPointOhBeta() {
+		accountName = d.Get("storage_account_name").(string)
+		containerName = d.Get("storage_container_name").(string)
+	}
+
+	containerId, ok := d.GetOk("storage_container_id")
+	if ok {
+		parsedContainerId, err := parse.StorageContainerDataPlaneID(containerId.(string))
+		if err != nil {
+			return err
+		}
+
+		accountName = parsedContainerId.AccountName
+		containerName = parsedContainerId.Name
+	}
 	name := d.Get("name").(string)
 
 	account, err := storageClient.FindAccount(ctx, accountName)
@@ -337,9 +395,14 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
 	}
 
+	containerId := parse.NewStorageContainerDataPlaneId(id.AccountName, storageClient.Environment.StorageEndpointSuffix, id.ContainerName)
+
 	d.Set("name", id.BlobName)
-	d.Set("storage_container_name", id.ContainerName)
-	d.Set("storage_account_name", id.AccountName)
+	if !features.FourPointOhBeta() {
+		d.Set("storage_container_name", id.ContainerName)
+		d.Set("storage_account_name", id.AccountName)
+	}
+	d.Set("storage_container_id", containerId.ID())
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)

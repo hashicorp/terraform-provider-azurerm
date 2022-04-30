@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
@@ -294,6 +295,25 @@ func TestAccStorageBlob_contentTypePremium(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.contentTypePremium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
+// TODO Remove in 4.0
+func TestAccStorageBlob_id(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Test does not apply on 4.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.id(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -834,6 +854,25 @@ resource "azurerm_storage_blob" "test" {
   type                   = "Page"
   size                   = 5120
   content_type           = "image/gif"
+}
+`, template)
+}
+
+// TODO Remove in 4.0
+func (r StorageBlobResource) id(data acceptance.TestData) string {
+	template := r.template(data, "private")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name                 = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Page"
+  size                 = 5120
 }
 `, template)
 }
