@@ -41,7 +41,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "example" {
 ## Example Usage with SAS URI and SAS Token.
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
@@ -51,14 +51,14 @@ data "azurerm_client_config" "current" {
 
 resource "azurerm_data_factory" "test" {
   name                = "example"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_key_vault" "test" {
   name                = "example"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 }
