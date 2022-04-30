@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 )
 
-func TestFunctionAppFunctionName(t *testing.T) {
+func TestWebAppName(t *testing.T) {
 	cases := []struct {
 		Input       string
 		Valid       bool
@@ -23,11 +23,12 @@ func TestFunctionAppFunctionName(t *testing.T) {
 			ShowWarning: false,
 		},
 		{
-			Input:       "-notValid",
-			Valid:       false,
+			Input:       "-valid",
+			Valid:       true,
 			ShowWarning: false,
 		},
 		{
+			// len is 35
 			Input:       "ThisIsALongAndValidNameThatWillWork",
 			Valid:       true,
 			ShowWarning: true,
@@ -38,14 +39,15 @@ func TestFunctionAppFunctionName(t *testing.T) {
 			ShowWarning: true,
 		},
 		{
-			Input:       "EndsInWrongChar-",
-			Valid:       false,
-			ShowWarning: false,
+			// len is 60 and should show the warning message
+			Input:       "012345678901234567890123456789012345678901234567890123456789",
+			Valid:       true,
+			ShowWarning: true,
 		},
 	}
 
 	for _, tc := range cases {
-		warnings, errs := validate.FunctionAppFunctionName(tc.Input, "test")
+		warnings, errs := validate.WebAppName(tc.Input, "test")
 		valid := len(errs) == 0
 		showWarning := len(warnings) > 0
 
