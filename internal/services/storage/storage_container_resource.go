@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -40,51 +41,80 @@ func resourceStorageContainer() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageContainerName,
-			},
+		Schema: resourceStorageContainerSchema(),
+	}
+}
 
-			"storage_account_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountName,
-			},
+func resourceStorageContainerSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageContainerName,
+		},
 
-			"container_access_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "private",
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containers.Blob),
-					string(containers.Container),
-					"private",
-				}, false),
-			},
+		"storage_account_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     features.FourPointOhBeta(),
+			Optional:     !features.FourPointOhBeta(),
+			Computed:     !features.FourPointOhBeta(),
+			ForceNew:     true,
+			ValidateFunc: validate.StorageAccountID,
+			ConflictsWith: func() []string {
+				if !features.FourPointOhBeta() {
+					return []string{
+						"storage_account_name",
+					}
+				}
+				return []string{}
+			}(),
+		},
 
-			"metadata": MetaDataComputedSchema(),
+		"container_access_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "private",
+			ValidateFunc: validation.StringInSlice([]string{
+				string(containers.Blob),
+				string(containers.Container),
+				"private",
+			}, false),
+		},
 
-			// TODO: support for ACL's, Legal Holds and Immutability Policies
-			"has_immutability_policy": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
+		"metadata": MetaDataComputedSchema(),
 
-			"has_legal_hold": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
+		// TODO: support for ACL's, Legal Holds and Immutability Policies
+		"has_immutability_policy": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
 
-			"resource_manager_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
+		"has_legal_hold": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"resource_manager_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		out["storage_account_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageAccountName,
+			Deprecated:   "Deprecated in favour of `storage_account_id`",
+			ConflictsWith: []string{
+				"storage_account_id",
+			},
+		}
+	}
+	return out
 }
 
 func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -92,8 +122,23 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	var accountName string
+	if !features.FourPointOhBeta() {
+		accountName = d.Get("storage_account_name").(string)
+	}
+
+	accountId, ok := d.GetOk("storage_account_id")
+	if ok {
+		parsedAccountId, err := parse.StorageAccountID(accountId.(string))
+		if err != nil {
+			return err
+		}
+
+		accountName = parsedAccountId.Name
+	}
+
 	containerName := d.Get("name").(string)
-	accountName := d.Get("storage_account_name").(string)
+
 	accessLevelRaw := d.Get("container_access_type").(string)
 	accessLevel := expandStorageContainerAccessLevel(accessLevelRaw)
 
@@ -221,7 +266,10 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", id.Name)
-	d.Set("storage_account_name", id.AccountName)
+	d.Set("storage_account_id", account.ID)
+	if !features.FourPointOhBeta() {
+		d.Set("storage_account_name", id.AccountName)
+	}
 
 	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
 

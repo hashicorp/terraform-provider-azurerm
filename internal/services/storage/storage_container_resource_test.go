@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,6 +25,25 @@ func TestAccStorageContainer_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// TODO Remove in 4.0
+func TestAccStorageContainer_id(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Test does not apply on 4.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.id(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -232,11 +252,25 @@ func (r StorageContainerResource) Destroy(ctx context.Context, client *clients.C
 func (r StorageContainerResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
   storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+`, template)
+}
+
+// TODO Remove in 4.0
+func (r StorageContainerResource) id(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 `, template)
@@ -250,12 +284,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -277,7 +311,7 @@ resource "azurerm_storage_container" "test" {
 func (r StorageContainerResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_container" "import" {
   name                  = azurerm_storage_container.test.name
@@ -290,12 +324,12 @@ resource "azurerm_storage_container" "import" {
 func (r StorageContainerResource) update(data acceptance.TestData, accessType string) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
   storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "%s"
+  container_access_type = "%[2]s"
 }
 `, template, accessType)
 }
@@ -303,7 +337,7 @@ resource "azurerm_storage_container" "test" {
 func (r StorageContainerResource) metaData(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
@@ -320,7 +354,7 @@ resource "azurerm_storage_container" "test" {
 func (r StorageContainerResource) metaDataUpdated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
@@ -338,7 +372,7 @@ resource "azurerm_storage_container" "test" {
 func (r StorageContainerResource) metaDataEmpty(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
@@ -353,7 +387,7 @@ resource "azurerm_storage_container" "test" {
 func (r StorageContainerResource) root(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_container" "test" {
   name                  = "$root"
@@ -366,7 +400,7 @@ resource "azurerm_storage_container" "test" {
 func (r StorageContainerResource) web(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_container" "test" {
   name                  = "$web"
@@ -383,12 +417,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                            = "acctestacc%s"
+  name                            = "acctestacc%[3]s"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
   account_tier                    = "Standard"
