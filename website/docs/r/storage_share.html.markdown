@@ -29,9 +29,9 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_share" "example" {
-  name                 = "sharename"
-  storage_account_name = azurerm_storage_account.example.name
-  quota                = 50
+  name               = "sharename"
+  storage_account_id = azurerm_storage_account.example.id
+  quota              = 50
 
   acl {
     id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
@@ -51,7 +51,12 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the share. Must be unique within the storage account where the share is located.
 
-* `storage_account_name` - (Required) Specifies the storage account in which to create the share.
+* `storage_account_name` - (Optional) The name of the storage account in which to create the share.
+ Changing this forces a new resource to be created.
+
+-> **NOTE:** This property has been deprecated in favour of the `storage_account_id` property and will be removed in version 4.0 of the provider.
+
+* `storage_account_id` - (Optional) The ID of the storage account in which to create the share.
  Changing this forces a new resource to be created.
 
 * `access_tier` - (Optional) The access tier of the File Share. Possible values are `Hot`, `Cool` and `TransactionOptimized`, `Premium`.
@@ -80,7 +85,7 @@ A `access_policy` block supports the following:
 
 * `permissions` - (Required) The permissions which should be associated with this Shared Identifier. Possible value is combination of `r` (read), `w` (write), `d` (delete), and `l` (list).
 
-~> **Note:** Permission order is strict at the service side, and permissions need to be listed in the order above. 
+~> **Note:** Permission order is strict at the service side, and permissions need to be listed in the order above.
 
 * `start` - (Optional) The time at which this Access Policy should be valid from, in [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format.
 
