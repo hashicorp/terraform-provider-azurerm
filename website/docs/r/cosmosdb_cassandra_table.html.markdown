@@ -32,7 +32,7 @@ resource "azurerm_cosmosdb_account" "example" {
   }
 
   geo_location {
-    location          = "West US"
+    location          = azurerm_resource_group.example.location
     failover_priority = 0
   }
 }
