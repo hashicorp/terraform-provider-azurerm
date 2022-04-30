@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities"
@@ -15,7 +16,7 @@ import (
 
 type StorageTableEntityResource struct{}
 
-func TestAccTableEntity_basic(t *testing.T) {
+func TestAccStorageTableEntity_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 	r := StorageTableEntityResource{}
 
@@ -30,7 +31,26 @@ func TestAccTableEntity_basic(t *testing.T) {
 	})
 }
 
-func TestAccTableEntity_requiresImport(t *testing.T) {
+// TODO Remove in 4.0
+func TestAccStorageTableEntity_id(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Test does not apply on 4.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
+	r := StorageTableEntityResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.id(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageTableEntity_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 	r := StorageTableEntityResource{}
 
@@ -45,7 +65,7 @@ func TestAccTableEntity_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccTableEntity_update(t *testing.T) {
+func TestAccStorageTableEntity_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 	r := StorageTableEntityResource{}
 
@@ -108,6 +128,24 @@ func (r StorageTableEntityResource) basic(data acceptance.TestData) string {
 resource "azurerm_storage_table_entity" "test" {
   storage_account_name = azurerm_storage_account.test.name
   table_name           = azurerm_storage_table.test.name
+
+  partition_key = "test_partition%d"
+  row_key       = "test_row%d"
+  entity = {
+    Foo = "Bar"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+// TODO Remove in 4.0
+func (r StorageTableEntityResource) id(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_table_entity" "test" {
+  storage_table_id = azurerm_storage_table.test.id
 
   partition_key = "test_partition%d"
   row_key       = "test_row%d"

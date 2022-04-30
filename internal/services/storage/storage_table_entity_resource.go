@@ -7,6 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -34,40 +36,85 @@ func resourceStorageTableEntity() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"table_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageTableName,
-			},
-			"storage_account_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountName,
-			},
-			"partition_key": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			"row_key": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			"entity": {
-				Type:     pluginsdk.TypeMap,
-				Required: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
+		Schema: resourceStorageTableEntitySchema(),
+	}
+}
+
+func resourceStorageTableEntitySchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"storage_table_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     features.FourPointOhBeta(),
+			Optional:     !features.FourPointOhBeta(),
+			Computed:     !features.FourPointOhBeta(),
+			ForceNew:     true,
+			ValidateFunc: validate.StorageTableDataPlaneID,
+			ConflictsWith: func() []string {
+				if !features.FourPointOhBeta() {
+					return []string{
+						"storage_account_name",
+						"table_name",
+					}
+				}
+				return []string{}
+			}(),
+		},
+
+		"partition_key": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"row_key": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"entity": {
+			Type:     pluginsdk.TypeMap,
+			Required: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		out["storage_account_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageAccountName,
+			Deprecated:   "Deprecated in favour of `storage_table_id`",
+			RequiredWith: []string{
+				"table_name",
+			},
+			ConflictsWith: []string{
+				"storage_table_id",
+			},
+		}
+
+		out["table_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageTableName,
+			Deprecated:   "Deprecated in favour of `storage_table_id`",
+			RequiredWith: []string{
+				"storage_account_name",
+			},
+			ConflictsWith: []string{
+				"storage_table_id",
+			},
+		}
+	}
+	return out
 }
 
 func resourceStorageTableEntityCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -75,8 +122,24 @@ func resourceStorageTableEntityCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
 
-	accountName := d.Get("storage_account_name").(string)
-	tableName := d.Get("table_name").(string)
+	var accountName string
+	var tableName string
+	if !features.FourPointOhBeta() {
+		accountName = d.Get("storage_account_name").(string)
+		tableName = d.Get("table_name").(string)
+	}
+
+	tableId, ok := d.GetOk("storage_table_id")
+	if ok {
+		parsedTableId, err := parse.StorageTableDataPlaneID(tableId.(string))
+		if err != nil {
+			return err
+		}
+
+		accountName = parsedTableId.AccountName
+		tableName = parsedTableId.Name
+	}
+
 	partitionKey := d.Get("partition_key").(string)
 	rowKey := d.Get("row_key").(string)
 	entity := d.Get("entity").(map[string]interface{})
@@ -171,8 +234,14 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, account.ResourceGroup, err)
 	}
 
-	d.Set("storage_account_name", id.AccountName)
-	d.Set("table_name", id.TableName)
+	tableId := parse.NewStorageTableDataPlaneId(id.AccountName, storageClient.Environment.StorageEndpointSuffix, id.TableName)
+
+	if !features.FourPointOhBeta() {
+		d.Set("storage_account_name", id.AccountName)
+		d.Set("table_name", id.TableName)
+	}
+	d.Set("storage_table_id", tableId.ID())
+
 	d.Set("partition_key", id.PartitionKey)
 	d.Set("row_key", id.RowKey)
 	if err := d.Set("entity", flattenEntity(result.Entity)); err != nil {

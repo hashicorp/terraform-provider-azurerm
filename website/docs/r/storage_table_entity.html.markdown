@@ -32,8 +32,7 @@ resource "azurerm_storage_table" "example" {
 }
 
 resource "azurerm_storage_table_entity" "example" {
-  storage_account_name = azurerm_storage_account.example.name
-  table_name           = azurerm_storage_table.example.name
+  storage_table_id = azurerm_storage_account.example.id
 
   partition_key = "examplepartition"
   row_key       = "examplerow"
@@ -48,11 +47,18 @@ resource "azurerm_storage_table_entity" "example" {
 
 The following arguments are supported:
 
-* `storage_account_name` - (Required) Specifies the storage account in which to create the storage table entity.
+* `storage_account_name` - (Optional) Specifies the storage account in which to create the storage table entity.
  Changing this forces a new resource to be created.
 
-* `table_name` - (Required) The name of the storage table in which to create the storage table entity.
+-> **NOTE:** This property has been deprecated in favour of the `storage_table_id` property and will be removed in version 4.0 of the provider.
+
+* `table_name` - (Optional) The name of the storage table in which to create the storage table entity.
 Changing this forces a new resource to be created.
+
+-> **NOTE:** This property has been deprecated in favour of the `storage_table_id` property and will be removed in version 4.0 of the provider.
+
+* `storage_table_id` - (Optional) The ID of the storage table in which to create the storage table entity.
+ Changing this forces a new resource to be created
 
 * `partition_key` - (Required) The key for the partition where the entity will be inserted/merged. Changing this forces a new resource.
 
