@@ -108,10 +108,10 @@ func (r StorageQueueResource) Exists(ctx context.Context, client *clients.Client
 func (r StorageQueueResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%d"
+  name                 = "mysamplequeue-%[2]d"
   storage_account_name = azurerm_storage_account.test.name
 }
 `, template, data.RandomInteger)
@@ -126,11 +126,11 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  location = "%s"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -142,16 +142,29 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%d"
+  name                 = "mysamplequeue-%[1]d"
   storage_account_name = azurerm_storage_account.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageQueueResource) id(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+
+resource "azurerm_storage_queue" "test" {
+  name               = "mysamplequeue-%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+}
+`, template, data.RandomInteger)
 }
 
 func (r StorageQueueResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_queue" "import" {
   name                 = azurerm_storage_queue.test.name
@@ -163,10 +176,10 @@ resource "azurerm_storage_queue" "import" {
 func (r StorageQueueResource) metaData(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%d"
+  name                 = "mysamplequeue-%[2]d"
   storage_account_name = azurerm_storage_account.test.name
 
   metadata = {
@@ -179,10 +192,10 @@ resource "azurerm_storage_queue" "test" {
 func (r StorageQueueResource) metaDataUpdated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%d"
+  name                 = "mysamplequeue-%[2]d"
   storage_account_name = azurerm_storage_account.test.name
 
   metadata = {
@@ -200,12 +213,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
