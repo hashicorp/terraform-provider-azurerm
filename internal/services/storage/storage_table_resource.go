@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -41,51 +42,65 @@ func resourceStorageTable() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageTableName,
-			},
+		Schema: resourceStorageTableSchema(),
+	}
+}
 
-			"storage_account_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountName,
-			},
+func resourceStorageTableSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageTableName,
+		},
 
-			"acl": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringLenBetween(1, 64),
-						},
-						"access_policy": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"start": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"expiry": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"permissions": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
+		"storage_account_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     features.FourPointOhBeta(),
+			Optional:     !features.FourPointOhBeta(),
+			Computed:     !features.FourPointOhBeta(),
+			ForceNew:     true,
+			ValidateFunc: validate.StorageAccountID,
+			ConflictsWith: func() []string {
+				if !features.FourPointOhBeta() {
+					return []string{
+						"storage_account_name",
+					}
+				}
+				return []string{}
+			}(),
+		},
+
+		"acl": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringLenBetween(1, 64),
+					},
+					"access_policy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"start": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"expiry": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"permissions": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
 							},
 						},
@@ -94,6 +109,21 @@ func resourceStorageTable() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		out["storage_account_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageAccountName,
+			Deprecated:   "Deprecated in favour of `storage_account_id`",
+			ConflictsWith: []string{
+				"storage_account_id",
+			},
+		}
+	}
+	return out
 }
 
 func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -101,8 +131,23 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
 
+	var accountName string
+	if !features.FourPointOhBeta() {
+		accountName = d.Get("storage_account_name").(string)
+	}
+
+	accountId, ok := d.GetOk("storage_account_id")
+	if ok {
+		parsedAccountId, err := parse.StorageAccountID(accountId.(string))
+		if err != nil {
+			return err
+		}
+
+		accountName = parsedAccountId.Name
+	}
+
 	tableName := d.Get("name").(string)
-	accountName := d.Get("storage_account_name").(string)
+
 	aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
 	acls := expandStorageTableACLs(aclsRaw)
 
@@ -183,7 +228,10 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.Set("name", id.Name)
-	d.Set("storage_account_name", id.AccountName)
+	d.Set("storage_account_id", account.ID)
+	if !features.FourPointOhBeta() {
+		d.Set("storage_account_name", id.AccountName)
+	}
 
 	if err := d.Set("acl", flattenStorageTableACLs(acls)); err != nil {
 		return fmt.Errorf("flattening `acl`: %+v", err)

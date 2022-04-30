@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -22,6 +23,25 @@ func TestAccStorageTable_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// TODO Remove in 4.0
+func TestAccStorageTable_id(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Test does not apply on 4.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
+	r := StorageTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.id(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -130,39 +150,34 @@ func (r StorageTableResource) Destroy(ctx context.Context, client *clients.Clien
 }
 
 func (r StorageTableResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
+%[1]s
 
 resource "azurerm_storage_table" "test" {
-  name                 = "acctestst%d"
+  name                 = "acctestst%[2]d"
   storage_account_name = azurerm_storage_account.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, template, data.RandomInteger)
+}
+
+// TODO Remove in 4.0
+func (r StorageTableResource) id(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_table" "test" {
+  name               = "acctestst%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+}
+`, template, data.RandomInteger)
 }
 
 func (r StorageTableResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_table" "import" {
   name                 = azurerm_storage_table.test.name
@@ -172,30 +187,12 @@ resource "azurerm_storage_table" "import" {
 }
 
 func (r StorageTableResource) acl(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
+%[1]s
 
 resource "azurerm_storage_table" "test" {
-  name                 = "acctestst%d"
+  name                 = "acctestst%[2]d"
   storage_account_name = azurerm_storage_account.test.name
   acl {
     id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
@@ -207,34 +204,16 @@ resource "azurerm_storage_table" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func (r StorageTableResource) aclUpdated(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
+%[1]s
 
 resource "azurerm_storage_table" "test" {
-  name                 = "acctestst%d"
+  name                 = "acctestst%[2]d"
   storage_account_name = azurerm_storage_account.test.name
 
   acl {
@@ -256,5 +235,30 @@ resource "azurerm_storage_table" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, template, data.RandomInteger)
+}
+
+func (r StorageTableResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

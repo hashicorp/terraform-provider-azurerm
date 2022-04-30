@@ -27,8 +27,8 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_table" "example" {
-  name                 = "mysampletable"
-  storage_account_name = azurerm_storage_account.example.name
+  name               = "mysampletable"
+  storage_account_id = azurerm_storage_account.example.id
 }
 ```
 
@@ -38,7 +38,12 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the storage table. Must be unique within the storage account the table is located.
 
-* `storage_account_name` - (Required) Specifies the storage account in which to create the storage table.
+* `storage_account_name` - (Optional) Specifies the name of the storage account in which to create the storage table.
+ Changing this forces a new resource to be created.
+
+-> **NOTE:** This property has been deprecated in favour of the `storage_account_id` property and will be removed in version 4.0 of the provider.
+
+* `storage_account_name` - (Optional) Specifies the ID of the storage account in which to create the storage table.
  Changing this forces a new resource to be created.
 
 * `acl` - (Optional) One or more `acl` blocks as defined below.
