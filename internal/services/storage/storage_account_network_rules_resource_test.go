@@ -30,21 +30,6 @@ func TestAccStorageAccountNetworkRules_basic(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccountNetworkRules_id(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
-	r := StorageAccountNetworkRulesResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.id(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That("azurerm_storage_account.test").ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccStorageAccountNetworkRules_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 	r := StorageAccountNetworkRulesResource{}
@@ -210,54 +195,6 @@ func (r StorageAccountNetworkRulesResource) Exists(ctx context.Context, client *
 }
 
 func (r StorageAccountNetworkRulesResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Storage"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "unlikely23exst2acct%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "production"
-  }
-}
-
-resource "azurerm_storage_account_network_rules" "test" {
-  storage_account_id = azurerm_storage_account.test.id
-
-  default_action             = "Deny"
-  ip_rules                   = ["127.0.0.1"]
-  virtual_network_subnet_ids = [azurerm_subnet.test.id]
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
-}
-
-func (r StorageAccountNetworkRulesResource) id(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
