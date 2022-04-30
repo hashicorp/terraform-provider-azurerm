@@ -9,6 +9,8 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,29 +38,73 @@ func resourceStorageShareDirectory() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageShareDirectoryName,
-			},
-			"share_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			"storage_account_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"metadata": MetaDataSchema(),
-		},
+		Schema: resourceStorageShareDirectorySchema(),
 	}
+}
+
+func resourceStorageShareDirectorySchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageShareDirectoryName,
+		},
+
+		"storage_share_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     features.FourPointOhBeta(),
+			Optional:     !features.FourPointOhBeta(),
+			Computed:     !features.FourPointOhBeta(),
+			ForceNew:     true,
+			ValidateFunc: validate.StorageShareDataPlaneID,
+			ConflictsWith: func() []string {
+				if !features.FourPointOhBeta() {
+					return []string{
+						"storage_account_name",
+						"share_name",
+					}
+				}
+				return []string{}
+			}(),
+		},
+
+		"metadata": MetaDataSchema(),
+	}
+
+	if !features.FourPointOhBeta() {
+		out["storage_account_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageAccountName,
+			Deprecated:   "Deprecated in favour of `storage_share_id`",
+			RequiredWith: []string{
+				"share_name",
+			},
+			ConflictsWith: []string{
+				"storage_share_id",
+			},
+		}
+
+		out["share_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Deprecated:   "Deprecated in favour of `storage_share_id`",
+			RequiredWith: []string{
+				"storage_account_name",
+			},
+			ConflictsWith: []string{
+				"storage_share_id",
+			},
+		}
+	}
+
+	return out
 }
 
 func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -66,8 +112,24 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
 
-	accountName := d.Get("storage_account_name").(string)
-	shareName := d.Get("share_name").(string)
+	var accountName string
+	var shareName string
+	if !features.FourPointOhBeta() {
+		accountName = d.Get("storage_account_name").(string)
+		shareName = d.Get("share_name").(string)
+	}
+
+	shareId, ok := d.GetOk("storage_share_id")
+	if ok {
+		parsedShareId, err := parse.StorageShareDataPlaneID(shareId.(string))
+		if err != nil {
+			return err
+		}
+
+		accountName = parsedShareId.AccountName
+		shareName = parsedShareId.Name
+	}
+
 	directoryName := d.Get("name").(string)
 
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
@@ -189,9 +251,14 @@ func resourceStorageShareDirectoryRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving Storage Share %q (File Share %q / Account %q / Resource Group %q): %s", id.DirectoryName, id.ShareName, id.AccountName, account.ResourceGroup, err)
 	}
 
+	shareId := parse.NewStorageShareDataPlaneId(id.AccountName, storageClient.Environment.StorageEndpointSuffix, id.ShareName)
+
 	d.Set("name", id.DirectoryName)
-	d.Set("share_name", id.ShareName)
-	d.Set("storage_account_name", id.AccountName)
+	if !features.FourPointOhBeta() {
+		d.Set("share_name", id.ShareName)
+		d.Set("storage_account_name", id.AccountName)
+	}
+	d.Set("storage_share_id", shareId.ID())
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %s", err)

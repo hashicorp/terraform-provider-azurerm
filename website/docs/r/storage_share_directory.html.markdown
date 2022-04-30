@@ -33,9 +33,8 @@ resource "azurerm_storage_share" "example" {
 }
 
 resource "azurerm_storage_share_directory" "example" {
-  name                 = "example"
-  share_name           = azurerm_storage_share.example.name
-  storage_account_name = azurerm_storage_account.example.name
+  name             = "example"
+  storage_share_id = azurerm_storage_share.example.id
 }
 ```
 
@@ -45,9 +44,15 @@ The following arguments are supported:
 
 * `name` - (Required) The name (or path) of the Directory that should be created within this File Share. Changing this forces a new resource to be created.
 
-* `share_name` - (Required) The name of the File Share where this Directory should be created. Changing this forces a new resource to be created.
+* `share_name` - (Optional) The name of the File Share where this Directory should be created. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) The name of the Storage Account within which the File Share is located. Changing this forces a new resource to be created.
+-> **NOTE:** This property has been deprecated in favour of the `storage_share_id` property and will be removed in version 4.0 of the provider.
+
+* `storage_account_name` - (Optional) The name of the Storage Account within which the File Share is located. Changing this forces a new resource to be created.
+
+-> **NOTE:** This property has been deprecated in favour of the `storage_share_id` property and will be removed in version 4.0 of the provider.
+
+* `storage_share_id` - (Optional) The ID of the File Share where this Directory should be created. Changing this forces a new resource to be created.
 
 * `metadata` - (Optional) A mapping of metadata to assign to this Directory.
 
