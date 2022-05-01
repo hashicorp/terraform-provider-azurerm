@@ -234,8 +234,7 @@ resource "azurerm_subnet_network_security_group_association" "replica" {
 
 resource "azurerm_virtual_network_peering" "primary_replica" {
   name                      = "aadds-primary-replica"
-  resource_group_name       = azurerm_virtual_network.primary.resource_group_name
-  virtual_network_name      = azurerm_virtual_network.primary.name
+  virtual_network_id        = azurerm_virtual_network.example.id
   remote_virtual_network_id = azurerm_virtual_network.replica.id
 
   allow_forwarded_traffic      = true
@@ -246,8 +245,7 @@ resource "azurerm_virtual_network_peering" "primary_replica" {
 
 resource "azurerm_virtual_network_peering" "replica_primary" {
   name                      = "aadds-replica-primary"
-  resource_group_name       = azurerm_virtual_network.replica.resource_group_name
-  virtual_network_name      = azurerm_virtual_network.replica.name
+  virtual_network_id        = azurerm_virtual_network.example.id
   remote_virtual_network_id = azurerm_virtual_network.primary.id
 
   allow_forwarded_traffic      = true

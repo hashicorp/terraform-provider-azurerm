@@ -36,15 +36,13 @@ resource "azurerm_virtual_network" "example-2" {
 
 resource "azurerm_virtual_network_peering" "example-1" {
   name                      = "peer1to2"
-  resource_group_name       = azurerm_resource_group.example.name
-  virtual_network_name      = azurerm_virtual_network.example-1.name
+  virtual_network_id        = azurerm_virtual_network.example-1.id
   remote_virtual_network_id = azurerm_virtual_network.example-2.id
 }
 
 resource "azurerm_virtual_network_peering" "example-2" {
   name                      = "peer2to1"
-  resource_group_name       = azurerm_resource_group.example.name
-  virtual_network_name      = azurerm_virtual_network.example-2.name
+  virtual_network_id        = azurerm_virtual_network.example-2.id
   remote_virtual_network_id = azurerm_virtual_network.example-1.id
 }
 ```
@@ -98,8 +96,7 @@ resource "azurerm_subnet" "nva" {
 resource "azurerm_virtual_network_peering" "peering" {
   count                        = length(var.location)
   name                         = "peering-to-${element(azurerm_virtual_network.vnet.*.name, 1 - count.index)}"
-  resource_group_name          = element(azurerm_resource_group.example.*.name, count.index)
-  virtual_network_name         = element(azurerm_virtual_network.vnet.*.name, count.index)
+  virtual_network_id           = element(azurerm_virtual_network.vnet.*.id, count.index)
   remote_virtual_network_id    = element(azurerm_virtual_network.vnet.*.id, 1 - count.index)
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
@@ -116,15 +113,22 @@ The following arguments are supported:
 * `name` - (Required) The name of the virtual network peering. Changing this
     forces a new resource to be created.
 
-* `virtual_network_name` - (Required) The name of the virtual network. Changing
-    this forces a new resource to be created.
+* `virtual_network_name` - (Optional) The name of the local virtual network.
+    Changing this forces a new resource to be created.
+
+-> **NOTE:** This property has been deprecated in favour of the `virtual_network_id` property and will be removed in version 4.0 of the provider.
+
+* `virtual_network_id` - (Optional) The id of the local virtual network.
+    Changing this forces a new resource to be created.
 
 * `remote_virtual_network_id` - (Required) The full Azure resource ID of the
     remote virtual network.  Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the virtual network peering. Changing this forces a new resource to be
+* `resource_group_name` - (Optional) The name of the resource group in which the
+    local virtual network exists. Changing this forces a new resource to be
     created.
+
+-> **NOTE:** This property has been deprecated in favour of the `virtual_network_id` property and will be removed in version 4.0 of the provider.
 
 * `allow_virtual_network_access` - (Optional) Controls if the VMs in the remote
     virtual network can access VMs in the local virtual network. Defaults to

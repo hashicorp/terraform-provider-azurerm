@@ -8,10 +8,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -22,7 +24,7 @@ import (
 var peerMutex = &sync.Mutex{}
 
 func resourceVirtualNetworkPeering() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceVirtualNetworkPeeringCreateUpdate,
 		Read:   resourceVirtualNetworkPeeringRead,
 		Update: resourceVirtualNetworkPeeringCreateUpdate,
@@ -46,12 +48,22 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"virtual_network_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+			"virtual_network_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     features.FourPointOhBeta(),
+				Optional:     !features.FourPointOhBeta(),
+				Computed:     !features.FourPointOhBeta(),
+				ForceNew:     true,
+				ValidateFunc: validate.VirtualNetworkID,
+				ConflictsWith: func() []string {
+					if !features.FourPointOhBeta() {
+						return []string{
+							"resource_group_name",
+							"virtual_network_name",
+						}
+					}
+					return []string{}
+				}(),
 			},
 
 			"remote_virtual_network_id": {
@@ -85,6 +97,31 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ValidateFunc:  resourcegroups.ValidateName,
+			Deprecated:    "`resource_group_name` will be removed in favour of the property `virtual_network_id` in version 4.0 of the AzureRM Provider",
+			RequiredWith:  []string{"virtual_network_name"},
+			ConflictsWith: []string{"virtual_network_id"},
+		}
+
+		resource.Schema["virtual_network_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			Deprecated:    "`virtual_network_name` will be removed in favour of the property `virtual_network_id` in version 4.0 of the AzureRM Provider",
+			RequiredWith:  []string{"resource_group_name"},
+			ConflictsWith: []string{"virtual_network_id"},
+		}
+	}
+
+	return resource
 }
 
 func resourceVirtualNetworkPeeringCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -95,7 +132,26 @@ func resourceVirtualNetworkPeeringCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network peering creation.")
 
-	id := parse.NewVirtualNetworkPeeringID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string), d.Get("name").(string))
+	var resGroup string
+	var vnetName string
+
+	if !features.FourPointOhBeta() {
+		resGroup = d.Get("resource_group_name").(string)
+		vnetName = d.Get("virtual_network_name").(string)
+	}
+
+	virtualNetworkId, ok := d.GetOk("virtual_network_id")
+	if ok {
+		parsedVirtualNetworkId, err := parse.VirtualNetworkID(virtualNetworkId.(string))
+		if err != nil {
+			return err
+		}
+
+		resGroup = parsedVirtualNetworkId.ResourceGroup
+		vnetName = parsedVirtualNetworkId.Name
+	}
+
+	id := parse.NewVirtualNetworkPeeringID(subscriptionId, resGroup, vnetName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
@@ -137,6 +193,8 @@ func resourceVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
+	virtualNetworkId := parse.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroup, id.VirtualNetworkName)
+
 	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -147,9 +205,12 @@ func resourceVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	// update appropriate values
-	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("name", id.Name)
-	d.Set("virtual_network_name", id.VirtualNetworkName)
+	d.Set("virtual_network_id", virtualNetworkId.ID())
+	if !features.FourPointOhBeta() {
+		d.Set("resource_group_name", id.ResourceGroup)
+		d.Set("virtual_network_name", id.VirtualNetworkName)
+	}
 
 	if peer := resp.VirtualNetworkPeeringPropertiesFormat; peer != nil {
 		d.Set("allow_virtual_network_access", peer.AllowVirtualNetworkAccess)
