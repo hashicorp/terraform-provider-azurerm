@@ -30,10 +30,9 @@ resource "azurerm_virtual_network" "primary" {
 }
 
 resource "azurerm_subnet" "primary" {
-  name                 = "aadds-primary-subnet"
-  resource_group_name  = azurerm_resource_group.primary.name
-  virtual_network_name = azurerm_virtual_network.primary.name
-  address_prefixes     = ["10.0.1.0/24"]
+  name               = "aadds-primary-subnet"
+  virtual_network_id = azurerm_virtual_network.primary.id
+  address_prefixes   = ["10.0.1.0/24"]
 }
 
 resource "azurerm_network_security_group" "primary" {
@@ -169,10 +168,9 @@ resource "azurerm_virtual_network" "replica" {
 }
 
 resource "azurerm_subnet" "aadds_replica" {
-  name                 = "aadds-replica-subnet"
-  resource_group_name  = azurerm_resource_group.replica.name
-  virtual_network_name = azurerm_virtual_network.replica.name
-  address_prefixes     = ["10.20.0.0/24"]
+  name               = "aadds-replica-subnet"
+  virtual_network_id = azurerm_virtual_network.replica.id
+  address_prefixes   = ["10.20.0.0/24"]
 }
 
 resource "azurerm_network_security_group" "aadds_replica" {
@@ -281,17 +279,17 @@ resource "azurerm_active_directory_domain_service_replica_set" "replica" {
 The following arguments are supported:
 
 * `domain_service_id` - (Required) The ID of the Domain Service for which to create this Replica Set. Changing this forces a new resource to be created.
-  
+
 * `location` - (Required) The Azure location where this Replica Set should exist. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the subnet in which to place this Replica Set.
-  
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the Domain Service Replica Set.
-  
+
 * `domain_controller_ip_addresses` - A list of subnet IP addresses for the domain controllers in this Replica Set, typically two.
 
 * `external_access_ip_address` - The publicly routable IP address for the domain controllers in this Replica Set.

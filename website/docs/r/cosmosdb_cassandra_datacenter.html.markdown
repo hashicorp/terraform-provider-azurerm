@@ -36,10 +36,9 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "example-subnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.0/24"]
+  name               = "example-subnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.1.0/24"]
 }
 
 data "azuread_service_principal" "example" {
@@ -98,7 +97,7 @@ The following arguments are supported:
 
 * `managed_disk_customer_key_uri` - (Optional) The key URI of the customer key to use for the encryption of the Managed Disk.
 
-* `sku_name` - (Optional) Determines the selected sku. Defaults to Standard_DS14_v2. 
+* `sku_name` - (Optional) Determines the selected sku. Defaults to Standard_DS14_v2.
 
 * `disk_count` - (Optional) Determines the number of p30 disks that are attached to each node. Defaults to `4`.
 
@@ -106,7 +105,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Cassandra Datacenter.
 

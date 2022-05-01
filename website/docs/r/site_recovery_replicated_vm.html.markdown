@@ -142,17 +142,15 @@ resource "azurerm_virtual_network" "secondary" {
 }
 
 resource "azurerm_subnet" "primary" {
-  name                 = "network1-subnet"
-  resource_group_name  = azurerm_resource_group.primary.name
-  virtual_network_name = azurerm_virtual_network.primary.name
-  address_prefixes     = ["192.168.1.0/24"]
+  name               = "network1-subnet"
+  virtual_network_id = azurerm_virtual_network.primary.id
+  address_prefixes   = ["192.168.1.0/24"]
 }
 
 resource "azurerm_subnet" "secondary" {
-  name                 = "network2-subnet"
-  resource_group_name  = azurerm_resource_group.secondary.name
-  virtual_network_name = azurerm_virtual_network.secondary.name
-  address_prefixes     = ["192.168.2.0/24"]
+  name               = "network2-subnet"
+  virtual_network_id = azurerm_virtual_network.secondary.id
+  address_prefixes   = ["192.168.2.0/24"]
 }
 
 resource "azurerm_public_ip" "primary" {
@@ -246,7 +244,7 @@ The following arguments are supported:
 
 * `managed_disk` - (Required) One or more `managed_disk` block.
 
-* `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover). 
+* `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover).
 
 * `network_interface` - (Optional) One or more `network_interface` block.
 

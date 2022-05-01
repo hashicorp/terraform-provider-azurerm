@@ -40,10 +40,9 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "default"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["172.17.0.0/24"]
+  name               = "default"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["172.17.0.0/24"]
 
   service_endpoints = ["Microsoft.ServiceBus"]
 }

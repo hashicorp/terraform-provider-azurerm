@@ -26,10 +26,9 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "isesubnet1" {
-  name                 = "isesubnet1"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.0/27"]
+  name               = "isesubnet1"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.1.0/27"]
 
   delegation {
     name = "integrationServiceEnvironments"
@@ -40,10 +39,9 @@ resource "azurerm_subnet" "isesubnet1" {
 }
 
 resource "azurerm_subnet" "isesubnet2" {
-  name                 = "isesubnet2"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.32/27"]
+  name               = "isesubnet2"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.1.32/27"]
 }
 
 resource "azurerm_subnet" "isesubnet3" {
@@ -54,10 +52,9 @@ resource "azurerm_subnet" "isesubnet3" {
 }
 
 resource "azurerm_subnet" "isesubnet4" {
-  name                 = "isesubnet4"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.96/27"]
+  name               = "isesubnet4"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.1.96/27"]
 }
 
 resource "azurerm_integration_service_environment" "example" {
@@ -103,7 +100,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Integration Service Environment.
 

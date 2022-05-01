@@ -31,6 +31,25 @@ func TestAccSubnet_basic(t *testing.T) {
 	})
 }
 
+// TODO Remove in 4.0
+func TestAccSubnet_id(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Test does not apply on 4.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.id(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSubnet_basic_addressPrefixes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
@@ -668,6 +687,25 @@ resource "azurerm_subnet" "test2" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.3.0/24"]
+}
+`, r.template(data))
+}
+
+// TODO Remove in 4.0
+func (r SubnetResource) id(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.0.2.0/24"]
+}
+
+resource "azurerm_subnet" "test2" {
+  name               = "internal2"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.0.3.0/24"]
 }
 `, r.template(data))
 }

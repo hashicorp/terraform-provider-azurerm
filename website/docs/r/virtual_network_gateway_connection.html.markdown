@@ -31,10 +31,9 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.0/24"]
+  name               = "GatewaySubnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.1.0/24"]
 }
 
 resource "azurerm_local_network_gateway" "onpremise" {
@@ -103,10 +102,9 @@ resource "azurerm_virtual_network" "us" {
 }
 
 resource "azurerm_subnet" "us_gateway" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.us.name
-  virtual_network_name = azurerm_virtual_network.us.name
-  address_prefixes     = ["10.0.1.0/24"]
+  name               = "GatewaySubnet"
+  virtual_network_id = azurerm_virtual_network.us.id
+  address_prefixes   = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "us" {
@@ -145,10 +143,9 @@ resource "azurerm_virtual_network" "europe" {
 }
 
 resource "azurerm_subnet" "europe_gateway" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.europe.name
-  virtual_network_name = azurerm_virtual_network.europe.name
-  address_prefixes     = ["10.1.1.0/24"]
+  name               = "GatewaySubnet"
+  virtual_network_id = azurerm_virtual_network.europe.id
+  address_prefixes   = ["10.1.1.0/24"]
 }
 
 resource "azurerm_public_ip" "europe" {

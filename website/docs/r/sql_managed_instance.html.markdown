@@ -149,10 +149,9 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "subnet-mi"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.0.0/24"]
+  name               = "subnet-mi"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.0.0/24"]
 
   delegation {
     name = "managedinstancedelegation"
@@ -228,11 +227,11 @@ The following arguments are supported:
 
 * `collation` - (Optional) Specifies how the SQL Managed Instance will be collated. Default value is `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
 
-* `public_data_endpoint_enabled` - (Optional) Is the public data endpoint enabled? Default value is `false`. 
+* `public_data_endpoint_enabled` - (Optional) Is the public data endpoint enabled? Default value is `false`.
 
-* `minimum_tls_version` - (Optional) The Minimum TLS Version. Default value is `1.2` Valid values include `1.0`, `1.1`, `1.2`. 
+* `minimum_tls_version` - (Optional) The Minimum TLS Version. Default value is `1.2` Valid values include `1.0`, `1.1`, `1.2`.
 
-* `proxy_override` - (Optional) Specifies how the SQL Managed Instance will be accessed. Default value is `Default`. Valid values include `Default`, `Proxy`, and `Redirect`. 
+* `proxy_override` - (Optional) Specifies how the SQL Managed Instance will be accessed. Default value is `Default`. Valid values include `Default`, `Proxy`, and `Redirect`.
 
 * `timezone_id` - (Optional) The TimeZone ID that the SQL Managed Instance will be operating in. Default value is `UTC`. Changing this forces a new resource to be created.
 

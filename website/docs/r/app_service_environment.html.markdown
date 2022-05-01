@@ -27,17 +27,15 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "ase" {
-  name                 = "asesubnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.0/24"]
+  name               = "asesubnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.1.0/24"]
 }
 
 resource "azurerm_subnet" "gateway" {
-  name                 = "gatewaysubnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name               = "gatewaysubnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.2.0/24"]
 }
 
 resource "azurerm_app_service_environment" "example" {
@@ -59,13 +57,13 @@ resource "azurerm_app_service_environment" "example" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the App Service Environment. Changing this forces a new resource to be created. 
+* `name` - (Required) The name of the App Service Environment. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet which the App Service Environment should be connected to. Changing this forces a new resource to be created.
 
 ~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE this size cannot be changed.
 
-* `cluster_setting` - (Optional) Zero or more `cluster_setting` blocks as defined below. 
+* `cluster_setting` - (Optional) Zero or more `cluster_setting` blocks as defined below.
 
 * `internal_load_balancing_mode` - (Optional) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None`, `Web`, `Publishing` and combined value `"Web, Publishing"`. Defaults to `None`.
 
@@ -79,15 +77,15 @@ resource "azurerm_app_service_environment" "example" {
 
 * `resource_group_name` - (Optional) The name of the Resource Group where the App Service Environment exists. Defaults to the Resource Group of the Subnet (specified by `subnet_id`).
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created. 
+* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
 ---
 
 A `cluster_setting` block supports the following:
 
-* `name` - (Required) The name of the Cluster Setting. 
+* `name` - (Required) The name of the Cluster Setting.
 
-* `value` - (Required) The value for the Cluster Setting. 
+* `value` - (Required) The value for the Cluster Setting.
 
 ## Attributes Reference
 

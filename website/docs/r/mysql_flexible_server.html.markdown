@@ -30,11 +30,10 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "example-sn"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Storage"]
+  name               = "example-sn"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.2.0/24"]
+  service_endpoints  = ["Microsoft.Storage"]
   delegation {
     name = "fs"
     service_delegation {
@@ -153,7 +152,7 @@ A `maintenance_window` block supports the following:
 
 A `storage` block supports the following:
 
-* `auto_grow_enabled` - (Optional) Should Storage Auto Grow be enabled? Defaults to `true`. 
+* `auto_grow_enabled` - (Optional) Should Storage Auto Grow be enabled? Defaults to `true`.
 
 * `iops` - (Optional) The storage IOPS for the MySQL Flexible Server. Possible values are between `360` and `20000`.
 
@@ -161,7 +160,7 @@ A `storage` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the MySQL Flexible Server.
 

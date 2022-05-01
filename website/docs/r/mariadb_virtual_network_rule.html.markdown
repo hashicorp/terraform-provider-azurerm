@@ -28,11 +28,10 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "internal" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.7.29.0/29"]
-  service_endpoints    = ["Microsoft.Sql"]
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.7.29.0/29"]
+  service_endpoints  = ["Microsoft.Sql"]
 }
 
 resource "azurerm_mariadb_server" "example" {

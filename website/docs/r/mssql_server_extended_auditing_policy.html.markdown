@@ -75,8 +75,7 @@ resource "azurerm_virtual_network" "example" {
 
 resource "azurerm_subnet" "example" {
   name                                           = "subnetname-1"
-  resource_group_name                            = azurerm_resource_group.example.name
-  virtual_network_name                           = azurerm_virtual_network.example.name
+  virtual_network_id                             = azurerm_virtual_network.example.id
   address_prefixes                               = ["10.0.2.0/24"]
   service_endpoints                              = ["Microsoft.Sql", "Microsoft.Storage"]
   enforce_private_link_endpoint_network_policies = true
@@ -181,7 +180,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the MS SQL Server Extended Auditing Policy.
 

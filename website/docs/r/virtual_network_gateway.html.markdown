@@ -28,10 +28,9 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.0/24"]
+  name               = "GatewaySubnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -200,7 +199,7 @@ The `vpn_client_configuration` block supports:
 
 * `aad_audience` - (Optional) The client id of the Azure VPN application.
     See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/en-gb/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
-  
+
 * `aad_issuer` - (Optional) The STS url for your tenant
 
 * `root_certificate` - (Optional) One or more `root_certificate` blocks which are
@@ -216,7 +215,7 @@ The `vpn_client_configuration` block supports:
 
 * `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
     The supported values are `SSTP`, `IkeV2` and `OpenVPN`.
-    Values `SSTP` and `IkeV2` are incompatible with the use of 
+    Values `SSTP` and `IkeV2` are incompatible with the use of
     `aad_tenant`, `aad_audience` and `aad_issuer`.
 
 * `vpn_auth_types` - (Optional) List of the vpn authentication types for the virtual network gateway.
@@ -233,7 +232,7 @@ The `bgp_settings` block supports:
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
     through BGP peering. Valid values can be between `0` and `100`.
-  
+
 ---
 
 A `custom_route` block supports the following:
@@ -247,7 +246,7 @@ A `peering_addresses` supports the following:
 * `ip_configuration_name` - (Optional) The name of the IP configuration of this Virtual Network Gateway. In case there are multiple `ip_configuration` blocks defined, this property is **required** to specify.
 
 * `apipa_addresses` - (Optional) A list of Azure custom APIPA addresses assigned to the BGP peer of the Virtual Network Gateway.
-  
+
 ~> **Note:** The valid range for the reserved APIPA address in Azure Public is from `169.254.21.0` to `169.254.22.255`.
 
 ---
@@ -260,7 +259,7 @@ The `root_certificate` block supports:
     authority. The certificate must be provided in Base-64 encoded X.509 format
     (PEM). In particular, this argument *must not* include the
     `-----BEGIN CERTIFICATE-----` or `-----END CERTIFICATE-----` markers.
- 
+
 ---
 
 The `root_revoked_certificate` block supports:
@@ -269,7 +268,7 @@ The `root_revoked_certificate` block supports:
 
 * `public_cert_data` - (Required) The SHA1 thumbprint of the certificate to be
     revoked.
-  
+
 ## Attributes Reference
 
 The following attributes are exported:

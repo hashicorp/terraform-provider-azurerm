@@ -31,10 +31,9 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "example-subnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.0/24"]
+  name               = "example-subnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.1.0/24"]
 
   delegation {
     name = "delegation"
@@ -53,9 +52,15 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the subnet. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the subnet. Changing this forces a new resource to be created.
+* `resource_group_name` - (Optional) The name of the resource group in which to create the subnet. Changing this forces a new resource to be created.
 
-* `virtual_network_name` - (Required) The name of the virtual network to which to attach the subnet. Changing this forces a new resource to be created.
+-> **NOTE:** This property has been deprecated in favour of the `virtual_network_id` property and will be removed in version 4.0 of the provider.
+
+* `virtual_network_name` - (Optional) The name of the virtual network to which to attach the subnet. Changing this forces a new resource to be created.
+
+-> **NOTE:** This property has been deprecated in favour of the `virtual_network_id` property and will be removed in version 4.0 of the provider.
+
+* `virtual_network_id` - (Optional) The id of the virtual network to which to attach the subnet. Changing this forces a new resource to be created.
 
 * `address_prefixes` - (Required) The address prefixes to use for the subnet.
 

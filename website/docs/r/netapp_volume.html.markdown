@@ -26,10 +26,9 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "example-subnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name               = "example-subnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.2.0/24"]
 
   delegation {
     name = "netapp"
@@ -160,11 +159,11 @@ An `export_policy_rule` block supports the following:
 A `data_protection_replication` block is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, each volume must be in a supported [region pair](https://docs.microsoft.com/azure/azure-netapp-files/cross-region-replication-introduction#supported-region-pairs) and it supports the following:
 
 * `endpoint_type` - (Optional) The endpoint type, default value is `dst` for destination.
-  
+
 * `remote_volume_location` - (Required) Location of the primary volume.
 
 * `remote_volume_resource_id` - (Required) Resource ID of the primary volume.
-  
+
 * `replication_frequency` - (Required) Replication frequency, supported values are '10minutes', 'hourly', 'daily', values are case sensitive.
 
 A full example of the `data_protection_replication` attribute can be found in [the `./examples/netapp/volume_crr` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/netapp/volume_crr)

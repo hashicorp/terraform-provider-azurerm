@@ -30,11 +30,10 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "example-sn"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Storage"]
+  name               = "example-sn"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.2.0/24"]
+  service_endpoints  = ["Microsoft.Storage"]
   delegation {
     name = "fs"
     service_delegation {
@@ -80,7 +79,7 @@ resource "azurerm_postgresql_flexible_server" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this PostgreSQL Flexible Server. Changing this forces a new PostgreSQL Flexible Server to be created. 
+* `name` - (Required) The name which should be used for this PostgreSQL Flexible Server. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 ~> **Note** This must be unique across the entire Azure service, not just within the resource group.
 

@@ -9,7 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -49,7 +49,23 @@ func resourceSubnet() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"virtual_network_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     features.FourPointOhBeta(),
+				Optional:     !features.FourPointOhBeta(),
+				Computed:     !features.FourPointOhBeta(),
+				ForceNew:     true,
+				ValidateFunc: validate.VirtualNetworkID,
+				ConflictsWith: func() []string {
+					if !features.FourPointOhBeta() {
+						return []string{
+							"resource_group_name",
+							"virtual_network_name",
+						}
+					}
+					return []string{}
+				}(),
+			},
 
 			"virtual_network_name": {
 				Type:     pluginsdk.TypeString,
@@ -219,6 +235,27 @@ func resourceSubnet() *pluginsdk.Resource {
 			Deprecated:    "`enforce_private_link_service_network_policies` will be removed in favour of the property `private_link_service_network_policies_enabled` in version 4.0 of the AzureRM Provider",
 			ConflictsWith: []string{"private_link_service_network_policies_enabled"},
 		}
+
+		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ValidateFunc:  resourcegroups.ValidateName,
+			Deprecated:    "`resource_group_name` will be removed in favour of the property `virtual_network_id` in version 4.0 of the AzureRM Provider",
+			RequiredWith:  []string{"virtual_network_name"},
+			ConflictsWith: []string{"virtual_network_id"},
+		}
+
+		resource.Schema["virtual_network_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			Deprecated:    "`virtual_network_name` will be removed in favour of the property `virtual_network_id` in version 4.0 of the AzureRM Provider",
+			RequiredWith:  []string{"resource_group_name"},
+			ConflictsWith: []string{"virtual_network_id"},
+		}
 	}
 
 	return resource
@@ -234,7 +271,26 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")
 
-	id := parse.NewSubnetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string), d.Get("name").(string))
+	var resourceGroup string
+	var virtualNetworkName string
+
+	if !features.FourPointOhBeta() {
+		virtualNetworkName = d.Get("virtual_network_name").(string)
+		resourceGroup = d.Get("resource_group_name").(string)
+	}
+
+	virtualNetworkId, ok := d.GetOk("virtual_network_id")
+	if ok {
+		parsedVirtualNetworkId, err := parse.VirtualNetworkID(virtualNetworkId.(string))
+		if err != nil {
+			return err
+		}
+
+		resourceGroup = parsedVirtualNetworkId.ResourceGroup
+		virtualNetworkName = parsedVirtualNetworkId.Name
+	}
+
+	id := parse.NewSubnetID(subscriptionId, resourceGroup, virtualNetworkName, d.Get("name").(string))
 	existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -544,6 +600,8 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
+	virtualNetworkId := parse.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroup, id.VirtualNetworkName)
+
 	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -554,8 +612,11 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_network_name", id.VirtualNetworkName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("virtual_network_id", virtualNetworkId.ID())
+	if !features.FourPointOhBeta() {
+		d.Set("virtual_network_name", id.VirtualNetworkName)
+		d.Set("resource_group_name", id.ResourceGroup)
+	}
 
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		if props.AddressPrefixes == nil {

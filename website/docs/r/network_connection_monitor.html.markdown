@@ -34,10 +34,9 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "example-Subnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name               = "example-Subnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "example" {
@@ -223,7 +222,7 @@ A `test_configuration` block supports the following:
 
 * `icmp_configuration` - (Optional) A `icmp_configuration` block as defined below.
 
-* `preferred_ip_version` - (Optional) The preferred IP version which is used in the test evaluation. Possible values are `IPv4` and `IPv6`. 
+* `preferred_ip_version` - (Optional) The preferred IP version which is used in the test evaluation. Possible values are `IPv4` and `IPv6`.
 
 * `success_threshold` - (Optional) A `success_threshold` block as defined below.
 

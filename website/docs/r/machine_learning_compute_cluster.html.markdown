@@ -71,10 +71,9 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "example-subnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.1.0.0/24"]
+  name               = "example-subnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.1.0.0/24"]
 }
 
 resource "azurerm_machine_learning_compute_cluster" "test" {
@@ -111,7 +110,7 @@ The following arguments are supported:
 * `vm_size` - (Required) The size of the VM. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `scale_settings` - (Required) A `scale_settings` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
-  
+
 ---
 * `ssh` - (Optional) Credentials for an administrator user account that will be created on each compute node. A `ssh` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
 
@@ -158,7 +157,7 @@ A `scale_settings` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Machine Learning Compute Cluster.
 
