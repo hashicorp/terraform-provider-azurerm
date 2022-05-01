@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/adminkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/privateendpointconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/querykeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-08-01/sharedprivatelinkresources"
@@ -10,6 +11,7 @@ import (
 
 type Client struct {
 	AdminKeysClient                       *adminkeys.AdminKeysClient
+	PrivateEndpointConnectionsClient      *privateendpointconnections.PrivateEndpointConnectionsClient
 	QueryKeysClient                       *querykeys.QueryKeysClient
 	ServicesClient                        *services.ServicesClient
 	SearchSharedPrivateLinkResourceClient *sharedprivatelinkresources.SharedPrivateLinkResourcesClient
@@ -18,6 +20,9 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	adminKeysClient := adminkeys.NewAdminKeysClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&adminKeysClient.Client, o.ResourceManagerAuthorizer)
+
+	privateEndpointConnectionsClient := privateendpointconnections.NewPrivateEndpointConnectionsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&privateEndpointConnectionsClient.Client, o.ResourceManagerAuthorizer)
 
 	queryKeysClient := querykeys.NewQueryKeysClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&queryKeysClient.Client, o.ResourceManagerAuthorizer)
@@ -30,6 +35,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		AdminKeysClient:                       &adminKeysClient,
+		PrivateEndpointConnectionsClient:      &privateEndpointConnectionsClient,
 		QueryKeysClient:                       &queryKeysClient,
 		ServicesClient:                        &servicesClient,
 		SearchSharedPrivateLinkResourceClient: &searchSharedPrivateLinkResourceClient,

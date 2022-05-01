@@ -16,6 +16,7 @@ type Client struct {
 	IntegrationRuntimeAuthKeysClient                  *synapse.IntegrationRuntimeAuthKeysClient
 	IntegrationRuntimesClient                         *synapse.IntegrationRuntimesClient
 	KeysClient                                        *synapse.KeysClient
+	PrivateEndpointConnectionClient                   *synapse.PrivateEndpointConnectionsClient
 	PrivateLinkHubsClient                             *synapse.PrivateLinkHubsClient
 	SparkPoolClient                                   *synapse.BigDataPoolsClient
 	SqlPoolClient                                     *synapse.SQLPoolsClient
@@ -49,6 +50,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	keysClient := synapse.NewKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&keysClient.Client, o.ResourceManagerAuthorizer)
+
+	privateEndpointConnectionClient := synapse.NewPrivateEndpointConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&privateEndpointConnectionClient.Client, o.ResourceManagerAuthorizer)
 
 	privateLinkHubsClient := synapse.NewPrivateLinkHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&privateLinkHubsClient.Client, o.ResourceManagerAuthorizer)
@@ -107,6 +111,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		IntegrationRuntimeAuthKeysClient:                  &integrationRuntimeAuthKeysClient,
 		IntegrationRuntimesClient:                         &integrationRuntimesClient,
 		KeysClient:                                        &keysClient,
+		PrivateEndpointConnectionClient:                   &privateEndpointConnectionClient,
 		PrivateLinkHubsClient:                             &privateLinkHubsClient,
 		SparkPoolClient:                                   &sparkPoolClient,
 		SqlPoolClient:                                     &sqlPoolClient,

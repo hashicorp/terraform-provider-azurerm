@@ -4,17 +4,19 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/configurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/firewallrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/privateendpointconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/virtualnetworkrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	ConfigurationsClient      *configurations.ConfigurationsClient
-	DatabasesClient           *databases.DatabasesClient
-	FirewallRulesClient       *firewallrules.FirewallRulesClient
-	ServersClient             *servers.ServersClient
-	VirtualNetworkRulesClient *virtualnetworkrules.VirtualNetworkRulesClient
+	ConfigurationsClient            *configurations.ConfigurationsClient
+	DatabasesClient                 *databases.DatabasesClient
+	FirewallRulesClient             *firewallrules.FirewallRulesClient
+	PrivateEndpointConnectionClient *privateendpointconnections.PrivateEndpointConnectionsClient
+	ServersClient                   *servers.ServersClient
+	VirtualNetworkRulesClient       *virtualnetworkrules.VirtualNetworkRulesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -27,6 +29,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	FirewallRulesClient := firewallrules.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	PrivateEndpointConnectionClient := privateendpointconnections.NewPrivateEndpointConnectionsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&PrivateEndpointConnectionClient.Client, o.ResourceManagerAuthorizer)
+
 	ServersClient := servers.NewServersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&ServersClient.Client, o.ResourceManagerAuthorizer)
 
@@ -34,10 +39,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		ConfigurationsClient:      &configurationsClient,
-		DatabasesClient:           &DatabasesClient,
-		FirewallRulesClient:       &FirewallRulesClient,
-		ServersClient:             &ServersClient,
-		VirtualNetworkRulesClient: &VirtualNetworkRulesClient,
+		ConfigurationsClient:            &configurationsClient,
+		DatabasesClient:                 &DatabasesClient,
+		FirewallRulesClient:             &FirewallRulesClient,
+		PrivateEndpointConnectionClient: &PrivateEndpointConnectionClient,
+		ServersClient:                   &ServersClient,
+		VirtualNetworkRulesClient:       &VirtualNetworkRulesClient,
 	}
 }

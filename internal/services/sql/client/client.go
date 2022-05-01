@@ -19,6 +19,7 @@ type Client struct {
 	ManagedInstanceAdministratorsClient             *sqlv5.ManagedInstanceAdministratorsClient
 	ManagedInstanceAzureADOnlyAuthenticationsClient *sqlv5.ManagedInstanceAzureADOnlyAuthenticationsClient
 	ManagedDatabasesClient                          *msi.ManagedDatabasesClient
+	PrivateEndpointConnectionsClient                *msi.PrivateEndpointConnectionsClient
 	ServersClient                                   *sql.ServersClient
 	ServerExtendedBlobAuditingPoliciesClient        *sql.ExtendedServerBlobAuditingPoliciesClient
 	ServerConnectionPoliciesClient                  *sql.ServerConnectionPoliciesClient
@@ -63,6 +64,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	managedDatabasesClient := msi.NewManagedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedDatabasesClient.Client, o.ResourceManagerAuthorizer)
 
+	privateEndpointConnectionsClient := msi.NewPrivateEndpointConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&privateEndpointConnectionsClient.Client, o.ResourceManagerAuthorizer)
+
 	serversClient := sql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serversClient.Client, o.ResourceManagerAuthorizer)
 
@@ -96,6 +100,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ManagedInstanceAdministratorsClient:             &managedInstanceAdministratorsClient,
 		ManagedInstanceAzureADOnlyAuthenticationsClient: &managedInstanceAzureADOnlyAuthenticationsClient,
 		ManagedDatabasesClient:                          &managedDatabasesClient,
+		PrivateEndpointConnectionsClient:                &privateEndpointConnectionsClient,
 		ServersClient:                                   &serversClient,
 		ServerAzureADAdministratorsClient:               &serverAzureADAdministratorsClient,
 		ServerAzureADOnlyAuthenticationsClient:          &serverAzureADOnlyAuthenticationsClient,
