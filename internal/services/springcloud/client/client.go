@@ -6,16 +6,17 @@ import (
 )
 
 type Client struct {
-	AppsClient               *appplatform.AppsClient
-	BindingsClient           *appplatform.BindingsClient
-	CertificatesClient       *appplatform.CertificatesClient
-	ConfigServersClient      *appplatform.ConfigServersClient
-	CustomDomainsClient      *appplatform.CustomDomainsClient
-	MonitoringSettingsClient *appplatform.MonitoringSettingsClient
-	DeploymentsClient        *appplatform.DeploymentsClient
-	ServicesClient           *appplatform.ServicesClient
-	ServiceRegistryClient    *appplatform.ServiceRegistriesClient
-	StoragesClient           *appplatform.StoragesClient
+	AppsClient                *appplatform.AppsClient
+	BindingsClient            *appplatform.BindingsClient
+	BuildServiceBuilderClient *appplatform.BuildServiceBuilderClient
+	CertificatesClient        *appplatform.CertificatesClient
+	ConfigServersClient       *appplatform.ConfigServersClient
+	CustomDomainsClient       *appplatform.CustomDomainsClient
+	MonitoringSettingsClient  *appplatform.MonitoringSettingsClient
+	DeploymentsClient         *appplatform.DeploymentsClient
+	ServicesClient            *appplatform.ServicesClient
+	ServiceRegistryClient     *appplatform.ServiceRegistriesClient
+	StoragesClient            *appplatform.StoragesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -24,6 +25,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	bindingsClient := appplatform.NewBindingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&bindingsClient.Client, o.ResourceManagerAuthorizer)
+
+	buildServiceBuilderClient := appplatform.NewBuildServiceBuilderClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&buildServiceBuilderClient.Client, o.ResourceManagerAuthorizer)
 
 	certificatesClient := appplatform.NewCertificatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&certificatesClient.Client, o.ResourceManagerAuthorizer)
@@ -50,15 +54,16 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&storageClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AppsClient:               &appsClient,
-		BindingsClient:           &bindingsClient,
-		CertificatesClient:       &certificatesClient,
-		ConfigServersClient:      &configServersClient,
-		CustomDomainsClient:      &customDomainsClient,
-		DeploymentsClient:        &deploymentsClient,
-		MonitoringSettingsClient: &monitoringSettingsClient,
-		ServicesClient:           &servicesClient,
-		ServiceRegistryClient:    &serviceRegistryClient,
-		StoragesClient:           &storageClient,
+		AppsClient:                &appsClient,
+		BindingsClient:            &bindingsClient,
+		BuildServiceBuilderClient: &buildServiceBuilderClient,
+		CertificatesClient:        &certificatesClient,
+		ConfigServersClient:       &configServersClient,
+		CustomDomainsClient:       &customDomainsClient,
+		DeploymentsClient:         &deploymentsClient,
+		MonitoringSettingsClient:  &monitoringSettingsClient,
+		ServicesClient:            &servicesClient,
+		ServiceRegistryClient:     &serviceRegistryClient,
+		StoragesClient:            &storageClient,
 	}
 }
