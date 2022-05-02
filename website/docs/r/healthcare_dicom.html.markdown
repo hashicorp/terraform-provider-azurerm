@@ -78,9 +78,9 @@ An `authentication` supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Healthcare DICOM Service.
-  * `update` - (Defaults to 30 minutes) Used when updating the Healthcare DICOM Service.
-  * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare DICOM Service.
-  * `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare DICOM Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Healthcare DICOM Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare DICOM Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare DICOM Service.
 
 ## Import
 
