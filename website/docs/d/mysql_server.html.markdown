@@ -92,7 +92,7 @@ A `threat_detection_policy` block exports the following:
 
 * `storage_account_access_key` - Specifies the identifier key of the Threat Detection audit storage account.
 
-* `storage_endpoint` - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
+* `storage_endpoint` - Specifies the blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
 
 ## Timeouts
 
