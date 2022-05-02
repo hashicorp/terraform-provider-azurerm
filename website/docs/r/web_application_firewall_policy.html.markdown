@@ -208,7 +208,7 @@ The `rule_group_override` block supports the following:
 
 * `rule_group_name` - (Required) The name of the Rule Group
 
-* `disabled_rules` - (Optional) One or more Rule ID's
+* `disabled_rules` - (Optional) One or more Rule IDs
 
 ## Attributes Reference
 

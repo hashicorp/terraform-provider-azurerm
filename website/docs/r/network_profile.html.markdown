@@ -94,7 +94,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Network Profile.
 
-* `container_network_interface_ids` - A list of Container Network Interface ID's.
+* `container_network_interface_ids` - A list of Container Network Interface IDs.
 
 ## Timeouts
 

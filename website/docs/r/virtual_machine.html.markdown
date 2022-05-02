@@ -105,7 +105,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Virtual Machine exists. Changing this forces a new resource to be created.
 
-* `network_interface_ids` - (Required) A list of Network Interface ID's which should be associated with the Virtual Machine.
+* `network_interface_ids` - (Required) A list of Network Interface IDs which should be associated with the Virtual Machine.
 
 * `os_profile_linux_config` - (Required, when a Linux machine) An `os_profile_linux_config` block as defined below.
 
