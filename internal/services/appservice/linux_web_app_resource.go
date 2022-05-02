@@ -32,6 +32,7 @@ type LinuxWebAppModel struct {
 	AppSettings                   map[string]string          `tfschema:"app_settings"`
 	StickySettings                []helpers.StickySettings   `tfschema:"sticky_settings"`
 	AuthSettings                  []helpers.AuthSettings     `tfschema:"auth_settings"`
+	AuthV2Settings                []helpers.AuthV2Settings   `tfschema:"auth_v2_settings"`
 	Backup                        []helpers.Backup           `tfschema:"backup"`
 	ClientAffinityEnabled         bool                       `tfschema:"client_affinity_enabled"`
 	ClientCertEnabled             bool                       `tfschema:"client_certificate_enabled"`
@@ -91,6 +92,8 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
+
+		"auth_v2_settings": helpers.AuthV2SettingsSchema(),
 
 		"backup": helpers.BackupSchema(),
 
@@ -378,6 +381,15 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			authv2 := helpers.ExpandAuthV2Settings(webApp.AuthV2Settings)
+			if authv2.SiteAuthSettingsV2Properties != nil {
+				resp, err := client.UpdateAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName, *authv2)
+				if err != nil {
+					return fmt.Errorf("updating AuthV2 settings for Linux %s: %+v", id, err)
+				}
+				metadata.Logger.Infof("[STEBUG] resp: %#v", resp)
+			}
+
 			if metadata.ResourceData.HasChange("logs") {
 				logsConfig := helpers.ExpandLogsConfig(webApp.LogsConfig)
 				if logsConfig.SiteLogsConfigProperties != nil {
@@ -455,6 +467,11 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			auth, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading Auth Settings for Linux %s: %+v", id, err)
+			}
+
+			authV2, err := client.GetAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading authV2 settings for Linux %s: %+v", *id, err)
 			}
 
 			backup, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
@@ -542,6 +559,8 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			state.AuthSettings = helpers.FlattenAuthSettings(auth)
+
+			state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
@@ -759,6 +778,13 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *authUpdate); err != nil {
 					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("auth_v2_settings") {
+				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				if _, err := client.UpdateAuthSettingsV2(ctx, id.ResourceGroup, id.SiteName, *authV2Update); err != nil {
+					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
 				}
 			}
 
