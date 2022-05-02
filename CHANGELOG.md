@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_orchestrated_virtual_machine_scale_set` - improve validation on `termination_notification.timeout` [GH-16594]
 * `azurerm_servicebus_namespace` - `sku` can be updated to `Basic`/`Standard` without recreating the resource [GH-16523]
 * `azurerm_windows_virtual_machine_scale_set` - improve validation on `termination_notification.timeout` [GH-16594]
+* `azurerm_virtual_network_gateway_connection` - Multiple `traffic_selector_policy` can now be specified [GH-15938]
 * `azurerm_stream_analytics_output_servicebus_queue` - add support for `property_columns` and `system_property_columns` [GH-16572]
 
 BUG FIXES:
