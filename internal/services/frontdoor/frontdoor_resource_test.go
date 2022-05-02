@@ -125,6 +125,20 @@ func TestAccFrontDoor_multiplePools(t *testing.T) {
 	})
 }
 
+func TestAccFrontDoor_routingRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
+	r := FrontDoorResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.routingRule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("explicit_resource_order"),
+	})
+}
+
 func TestAccFrontDoor_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	r := FrontDoorResource{}
@@ -489,8 +503,10 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                = "acctest-FD-%d"
-  resource_group_name = azurerm_resource_group.test.name
+  name                  = "acctest-FD-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  friendly_name         = "TestGroup"
+  load_balancer_enabled = false
 
   backend_pool_settings {
     enforce_backend_pools_certificate_name_check = false
@@ -503,9 +519,89 @@ resource "azurerm_frontdoor" "test" {
     accepted_protocols = ["Http", "Https"]
     patterns_to_match  = ["/*"]
     frontend_endpoints = [local.endpoint_name]
+    enabled            = false
     forwarding_configuration {
-      forwarding_protocol = "MatchRequest"
-      backend_pool_name   = local.backend_name
+      forwarding_protocol    = "MatchRequest"
+      backend_pool_name      = local.backend_name
+      custom_forwarding_path = "/"
+    }
+  }
+
+  backend_pool_load_balancing {
+    name = local.load_balancing_name
+  }
+
+  backend_pool_health_probe {
+    name                = local.health_probe_name
+    interval_in_seconds = 30
+    path                = "/"
+  }
+
+  backend_pool {
+    name = local.backend_name
+    backend {
+      host_header = "www.bing.com"
+      address     = "www.bing.com"
+      http_port   = 80
+      https_port  = 443
+      priority    = 2
+    }
+
+    load_balancing_name = local.load_balancing_name
+    health_probe_name   = local.health_probe_name
+  }
+
+  frontend_endpoint {
+    name                         = local.endpoint_name
+    host_name                    = "acctest-FD-%d.azurefd.net"
+    session_affinity_enabled     = true
+    session_affinity_ttl_seconds = 2
+  }
+  tags = {
+    ENV = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (FrontDoorResource) routingRule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-frontdoor-%[1]d"
+  location = "%[2]s"
+}
+
+locals {
+  backend_name        = "backend-bing"
+  endpoint_name       = "frontend-endpoint"
+  health_probe_name   = "health-probe"
+  load_balancing_name = "load-balancing-setting"
+}
+
+resource "azurerm_frontdoor" "test" {
+  name                = "acctest-FD-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = false
+  }
+
+  routing_rule {
+    name               = "routing-rule"
+    accepted_protocols = ["Http", "Https"]
+    patterns_to_match  = ["/*"]
+    frontend_endpoints = [local.endpoint_name]
+    redirect_configuration {
+      redirect_type       = "Moved"
+      redirect_protocol   = "HttpOnly"
+      custom_query_string = false
+      custom_path         = "/"
+      custom_host         = "127.0.0.1"
+      custom_fragment     = "5fgdfg"
     }
   }
 
@@ -532,10 +628,10 @@ resource "azurerm_frontdoor" "test" {
 
   frontend_endpoint {
     name      = local.endpoint_name
-    host_name = "acctest-FD-%d.azurefd.net"
+    host_name = "acctest-FD-%[1]d.azurefd.net"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (FrontDoorResource) waf(data acceptance.TestData) string {
