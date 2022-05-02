@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `version` - (Required) Specifies the version of PostgreSQL to use. Valid values are `9.5`, `9.6`, `10`, `10.0`, and `11`. Changing this forces a new resource to be created.
 
-* `administrator_login` - (Optional) The Administrator Login for the PostgreSQL Server. Required when `create_mode` is `Default`. Changing this forces a new resource to be created.
+* `administrator_login` - (Optional) The Administrator login for the PostgreSQL Server. Required when `create_mode` is `Default`. Changing this forces a new resource to be created.
 
 * `administrator_login_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Server. Required when `create_mode` is `Default`.
 

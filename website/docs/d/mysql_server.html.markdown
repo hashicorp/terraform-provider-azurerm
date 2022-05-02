@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `version` - The version of this MySQL Server.
 
-* `administrator_login` - The Administrator Login for the MySQL Server.
+* `administrator_login` - The Administrator login for the MySQL Server.
 
 * `auto_grow_enabled` - The auto grow setting for this MySQL Server.
 

@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `version` - (Required) Specifies the version of MySQL to use. Valid values are `5.7`, or `8.0`. Changing this forces a new resource to be created.
 
-* `administrator_login` - (Optional) The Administrator Login for the MySQL Server. Required when `create_mode` is `Default`. Changing this forces a new resource to be created.
+* `administrator_login` - (Optional) The Administrator login for the MySQL Server. Required when `create_mode` is `Default`. Changing this forces a new resource to be created.
 
 * `administrator_login_password` - (Optional) The Password associated with the `administrator_login` for the MySQL Server. Required when `create_mode` is `Default`.
 

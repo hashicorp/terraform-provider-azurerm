@@ -180,7 +180,7 @@ An `auth_settings` block supports the following:
 
 * `active_directory` - (Optional) An `active_directory` block as defined below.
 
-* `additional_login_params` - (Optional) Login parameters to send to the OpenID Connect authorization endpoint when a user logs in. Each parameter must be in the form "key=value".
+* `additional_login_params` - (Optional) login parameters to send to the OpenID Connect authorization endpoint when a user logs in. Each parameter must be in the form "key=value".
 
 * `allowed_external_redirect_urls` - (Optional) External URLs that can be redirected to as part of logging in or logging out of the app.
 
@@ -222,9 +222,9 @@ A `facebook` block supports the following:
 
 * `app_id` - (Required) The App ID of the Facebook app used for login
 
-* `app_secret` - (Required) The App Secret of the Facebook app used for Facebook Login.
+* `app_secret` - (Required) The App Secret of the Facebook app used for Facebook login.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook Login authentication. https://developers.facebook.com/docs/facebook-login
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook login authentication. https://developers.facebook.com/docs/facebook-login
 
 ---
 
