@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source**: `azurerm_healthcare_dicom_service` [GH-15887]
 * **New Resource**: `azurerm_healthcare_dicom_service` [GH-15887]
+* **New Resource**: `azurerm_spring_cloud_builder` [GH-16036]
 
 ENHANCEMENTS:
 
