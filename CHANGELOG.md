@@ -1,5 +1,10 @@
 ## 3.5.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source**: `azurerm_healthcare_dicom_service` [GH-15887]
+* **New Resource**: `azurerm_healthcare_dicom_service` [GH-15887]
+
 ENHANCEMENTS:
 
 * `azurerm_linux_virtual_machine_scale_set` - improve validation on `termination_notification.timeout` [GH-16594]
