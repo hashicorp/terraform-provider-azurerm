@@ -94,6 +94,8 @@ The following arguments are supported:
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`. 
 
 * `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App.
@@ -128,7 +130,7 @@ An `active_directory` block supports the following:
 
 A `application_stack` block supports the following:
 
-* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1` and `6`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1` and `6`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
@@ -158,7 +160,7 @@ An `auth_settings` block supports the following:
 
 * `active_directory` - (Optional) An `active_directory` block as defined above.
 
-* `additional_login_params` - (Optional) Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
+* `additional_login_parameters` - (Optional) Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
 
 * `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Function App.
 
@@ -317,7 +319,7 @@ A `schedule` block supports the following:
 
 * `frequency_interval` - (Required) How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).
 
-~> **NOTE:** Not all intervals are supported on all Windows Function App SKU's. Please refer to the official documentation for appropriate values.
+~> **NOTE:** Not all intervals are supported on all Windows Function App SKUs. Please refer to the official documentation for appropriate values.
 
 * `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day` and `Hour`. 
 
@@ -383,7 +385,7 @@ A `site_config` block supports the following:
 
 * `health_check_eviction_time_in_min` - (Optional) The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`.
 
-* `http2_enabled` - (Optional) Specifies if the http2 protocol should be enabled. Defaults to `false`.
+* `http2_enabled` - (Optional) Specifies if the HTTP2 protocol should be enabled. Defaults to `false`.
 
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
 
@@ -414,6 +416,14 @@ A `site_config` block supports the following:
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Windows Function App.
+
+---
+
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - (Optional) A list of `app_setting` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - (Optional) A list of `connection_string` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
 
 ---
 

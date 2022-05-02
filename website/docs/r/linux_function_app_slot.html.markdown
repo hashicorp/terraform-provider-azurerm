@@ -226,7 +226,7 @@ A `site_config` block supports the following:
 
 * `health_check_path` - (Optional) The path to be checked for this function app health.
 
-* `http2_enabled` - (Optional) Specifies if the http2 protocol should be enabled. Defaults to `false`.
+* `http2_enabled` - (Optional) Specifies if the HTTP2 protocol should be enabled. Defaults to `false`.
 
 * `ip_restriction` - (Optional) an `ip_restriction` block as detailed below.
 
@@ -348,7 +348,7 @@ A `schedule` block supports the following:
 
 * `frequency_interval` - (Required) How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).
 
-~> **NOTE:** Not all intervals are supported on all Linux Function App SKU's. Please refer to the official documentation for appropriate values.
+~> **NOTE:** Not all intervals are supported on all Linux Function App SKUs. Please refer to the official documentation for appropriate values.
 
 * `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day` and `Hour`.
 

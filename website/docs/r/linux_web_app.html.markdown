@@ -25,7 +25,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_service_plan" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "West Europe"
+  location            = azurerm_resource_group.example.location
   os_type             = "Linux"
   sku_name            = "P1v2"
 }
@@ -85,6 +85,8 @@ The following arguments are supported:
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Web App.
 
 ---
@@ -115,7 +117,7 @@ A `application_logs` block supports the following:
 
 * `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 
-* `file_system_level` - (Optional) Log level. Possible values include: `Verbose`, `Information`, `Warning`, and `Error`.
+* `file_system_level` - (Required) Log level. Possible values include: `Verbose`, `Information`, `Warning`, and `Error`.
 
 ---
 
@@ -125,9 +127,9 @@ An `application_stack` block supports the following:
 
 * `docker_image_tag` - (Optional) The image Tag to use. e.g. `latest`.
 
-* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1`, `5.0`, and `6.0`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, and `6.0`.
 
-* `java_server` - (Optional) The java server type. Possible values include `JAVA`, `TOMCAT`, and `JBOSSEAP`.
+* `java_server` - (Optional) The Java server type. Possible values include `JAVA`, `TOMCAT`, and `JBOSSEAP`.
 
 ~> **NOTE:** `JBOSSEAP` requires a Premium Service Plan SKU to be a valid option. 
 
@@ -157,7 +159,7 @@ A `auth_settings` block supports the following:
 
 * `active_directory` - (Optional) An `active_directory` block as defined above.
 
-* `additional_login_params` - (Optional) Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
+* `additional_login_parameters` - (Optional) Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
 
 * `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Linux Web App.
 
@@ -198,6 +200,8 @@ A `auto_heal_setting` block supports the following:
 ---
 
 A `azure_blob_storage` block supports the following:
+
+* `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
 * `retention_in_days` - (Required) The time in days after which to remove blobs. A value of `0` means no retention.
 
@@ -367,7 +371,7 @@ A `schedule` block supports the following:
 
 * `frequency_interval` - (Required) How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).
 
-~> **NOTE:** Not all intervals are supported on all Linux Web App SKU's. Please refer to the official documentation for appropriate values.
+~> **NOTE:** Not all intervals are supported on all Linux Web App SKUs. Please refer to the official documentation for appropriate values.
 
 * `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day`, `Hour`
 
@@ -453,6 +457,8 @@ A `site_config` block supports the following:
 
 * `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker. Defaults to `true`.
 
+* `vnet_route_all_enabled` - (Optional) Should all outbound traffic have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.
+
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Linux App Service.
@@ -484,6 +490,15 @@ A `status_code` block supports the following:
 * `sub_status` - (Optional) The Request Sub Status of the Status Code.
 
 * `win32_status` - (Optional) The Win32 Status Code of the Request.
+
+---
+
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - (Optional) A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - (Optional) A list of `connection_string` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+
 
 ---
 

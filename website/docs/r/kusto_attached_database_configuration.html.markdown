@@ -13,15 +13,15 @@ Manages a Kusto (also known as Azure Data Explorer) Attached Database Configurat
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "my-kusto-rg"
   location = "West Europe"
 }
 
 resource "azurerm_kusto_cluster" "follower_cluster" {
   name                = "cluster1"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
@@ -31,8 +31,8 @@ resource "azurerm_kusto_cluster" "follower_cluster" {
 
 resource "azurerm_kusto_cluster" "followed_cluster" {
   name                = "cluster2"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
@@ -42,22 +42,22 @@ resource "azurerm_kusto_cluster" "followed_cluster" {
 
 resource "azurerm_kusto_database" "followed_database" {
   name                = "my-followed-database"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   cluster_name        = azurerm_kusto_cluster.cluster2.name
 }
 
 resource "azurerm_kusto_database" "example" {
   name                = "example"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   cluster_name        = azurerm_kusto_cluster.cluster2.name
 }
 
 resource "azurerm_kusto_attached_database_configuration" "example" {
   name                                 = "configuration1"
-  resource_group_name                  = azurerm_resource_group.rg.name
-  location                             = azurerm_resource_group.rg.location
+  resource_group_name                  = azurerm_resource_group.example.name
+  location                             = azurerm_resource_group.example.location
   cluster_name                         = azurerm_kusto_cluster.follower_cluster.name
   cluster_resource_id                  = azurerm_kusto_cluster.followed_cluster.id
   database_name                        = azurerm_kusto_database.example.name

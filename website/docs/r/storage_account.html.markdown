@@ -180,7 +180,7 @@ A `cors_rule` block supports the following:
 
 * `allowed_headers` - (Required) A list of headers that are allowed to be a part of the cross-origin request.
 
-* `allowed_methods` - (Required) A list of http methods that are allowed to be executed by the origin. Valid options are
+* `allowed_methods` - (Required) A list of HTTP methods that are allowed to be executed by the origin. Valid options are
 `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS`, `PUT` or `PATCH`.
 
 * `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS.
@@ -276,7 +276,7 @@ A `network_rules` block supports the following:
 * `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
 * `bypass` - (Optional)  Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are
 any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
-* `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
+* `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPv4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 
 * `private_link_access` - (Optional) One or More `private_link_access` block as defined below.
@@ -327,7 +327,7 @@ A `routing` block supports the following:
 
 * `publish_internet_endpoints` - (Optional) Should internet routing storage endpoints be published? Defaults to `false`.
 
-* `publish_microsoft_endpoints` - (Optional) Should microsoft routing storage endpoints be published? Defaults to `false`.
+* `publish_microsoft_endpoints` - (Optional) Should Microsoft routing storage endpoints be published? Defaults to `false`.
 
 * `choice` - (Optional) Specifies the kind of network routing opted by the user. Possible values are `InternetRouting` and `MicrosoftRouting`. Defaults to `MicrosoftRouting`.
 

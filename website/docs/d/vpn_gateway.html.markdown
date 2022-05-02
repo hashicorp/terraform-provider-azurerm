@@ -78,7 +78,7 @@ A `bgp_settings` block exports the following:
 
 A `instance_bgp_peering_address` block exports the following:
 
-* `ip_configuration_id` - The pre-defined id of VPN Gateway Ip Configuration.
+* `ip_configuration_id` - The pre-defined id of VPN Gateway IP Configuration.
 
 * `default_ips` - The list of default BGP peering addresses which belong to the pre-defined VPN Gateway IP configuration.
 

@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -222,18 +221,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"upgrade_settings": upgradeSettingsSchema(),
 				}
 
-				if features.ThreePointOhBeta() {
-					s["zones"] = commonschema.ZonesMultipleOptionalForceNew()
-				} else {
-					s["availability_zones"] = &schema.Schema{
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					}
-				}
+				s["zones"] = commonschema.ZonesMultipleOptionalForceNew()
 
 				return s
 			}(),
@@ -676,19 +664,9 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 		// ScaleSetPriority:       "",
 	}
 
-	if features.ThreePointOhBeta() {
-		zones := zones.Expand(raw["zones"].(*schema.Set).List())
-		if len(zones) > 0 {
-			profile.AvailabilityZones = &zones
-		}
-	} else {
-		availabilityZonesRaw := raw["availability_zones"].([]interface{})
-		availabilityZones := utils.ExpandStringSlice(availabilityZonesRaw)
-
-		// otherwise: Standard Load Balancer is required for availability zone.
-		if len(*availabilityZones) > 0 {
-			profile.AvailabilityZones = availabilityZones
-		}
+	zones := zones.Expand(raw["zones"].(*schema.Set).List())
+	if len(zones) > 0 {
+		profile.AvailabilityZones = &zones
 	}
 
 	if maxPods := int32(raw["max_pods"].(int)); maxPods > 0 {
@@ -972,11 +950,6 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		return nil, err
 	}
 
-	var availabilityZones []string
-	if agentPool.AvailabilityZones != nil {
-		availabilityZones = *agentPool.AvailabilityZones
-	}
-
 	count := 0
 	if agentPool.Count != nil {
 		count = int(*agentPool.Count)
@@ -1119,12 +1092,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		"only_critical_addons_enabled": criticalAddonsEnabled,
 		"kubelet_config":               flattenAgentPoolKubeletConfig(agentPool.KubeletConfig),
 		"linux_os_config":              linuxOSConfig,
-	}
-
-	if features.ThreePointOhBeta() {
-		out["zones"] = zones.Flatten(agentPool.AvailabilityZones)
-	} else {
-		out["availability_zones"] = availabilityZones
+		"zones":                        zones.Flatten(agentPool.AvailabilityZones),
 	}
 
 	return &[]interface{}{

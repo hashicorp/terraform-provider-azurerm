@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Virtual Hub IP. Changing this forces a new resource to be created.
 
-* `virtual_hub_id` - (Required) The ID of the Virtual Hub within which this ip configuration should be created. Changing this forces a new resource to be created.
+* `virtual_hub_id` - (Required) The ID of the Virtual Hub within which this IP configuration should be created. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet that the IP will reside. Changing this forces a new resource to be created.
 

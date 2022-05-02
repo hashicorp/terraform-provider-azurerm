@@ -272,6 +272,90 @@ func TestAccLinuxFunctionApp_addAppSettings(t *testing.T) {
 	})
 }
 
+// Sticky Settings
+
+func TestAccLinuxFunctionApp_stickySettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.stickySettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionApp_stickySettingsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings").DoesNotExist(),
+				check.That(data.ResourceName).Key("sticky_settings").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.stickySettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.stickySettingsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("3"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.stickySettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.stickySettingsRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // backup by plan type
 
 func TestAccLinuxFunctionApp_withBackupElasticPremiumPlan(t *testing.T) {
@@ -411,6 +495,21 @@ func TestAccLinuxFunctionApp_withAuthSettingsStandard(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionApp_scmIpRestrictionSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scmIpRestrictionSubnet(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -1331,6 +1430,154 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
+func (r LinuxFunctionAppResource) stickySettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+    third  = "degree"
+  }
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "Third"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  sticky_settings {
+    app_setting_names       = ["foo", "secret"]
+    connection_string_names = ["First", "Third"]
+  }
+}
+`, r.template(data, SkuStandardPlan), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) stickySettingsRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+    third  = "degree"
+  }
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "Third"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+}
+`, r.template(data, SkuStandardPlan), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) stickySettingsUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+    third  = "degree"
+  }
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "Third"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  sticky_settings {
+    app_setting_names       = ["foo", "secret", "third"]
+    connection_string_names = ["First", "Second", "Third"]
+  }
+}
+`, r.template(data, SkuStandardPlan), data.RandomInteger)
+}
+
 func (r LinuxFunctionAppResource) connectionStrings(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2100,6 +2347,11 @@ resource "azurerm_linux_function_app" "test" {
     vnet_route_all_enabled = true
   }
 
+  sticky_settings {
+    app_setting_names       = ["foo", "secret"]
+    connection_string_names = ["First"]
+  }
+
   tags = {
     terraform = "true"
     Env       = "AccTest"
@@ -2257,6 +2509,46 @@ resource "azurerm_linux_function_app" "test" {
   depends_on = [azurerm_service_plan.update]
 }
 `, r.templateServicePlanUpdate(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) scmIpRestrictionSubnet(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    scm_ip_restriction {
+      virtual_network_subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data, planSku), data.RandomInteger)
 }
 
 func (r LinuxFunctionAppResource) updateStorageAccount(data acceptance.TestData, planSku string) string {

@@ -51,283 +51,7 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 		// TODO: exposing requireGuestProvisionSignal once it's available
 		// https://github.com/Azure/azure-rest-api-specs/pull/7246
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: computeValidate.VirtualMachineName,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			// Required
-			"admin_username": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"admin_password": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				Sensitive:        true,
-				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
-				ValidateFunc:     validation.StringIsNotEmpty,
-			},
-
-			"network_interface": VirtualMachineScaleSetNetworkInterfaceSchema(),
-
-			"os_disk": VirtualMachineScaleSetOSDiskSchema(),
-
-			"instances": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntAtLeast(0),
-			},
-
-			"sku": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			// Optional
-			"additional_capabilities": VirtualMachineScaleSetAdditionalCapabilitiesSchema(),
-
-			"additional_unattend_content": additionalUnattendContentSchema(),
-
-			"automatic_os_upgrade_policy": VirtualMachineScaleSetAutomatedOSUpgradePolicySchema(),
-
-			"automatic_instance_repair": VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
-
-			"boot_diagnostics": bootDiagnosticsSchema(),
-
-			"computer_name_prefix": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-
-				// Computed since we reuse the VM name if one's not specified
-				Computed: true,
-				ForceNew: true,
-
-				ValidateFunc: computeValidate.WindowsComputerNamePrefix,
-			},
-
-			"custom_data": base64.OptionalSchema(false),
-
-			"data_disk": VirtualMachineScaleSetDataDiskSchema(),
-
-			"do_not_run_extensions_on_overprovisioned_machines": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
-
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_automatic_updates": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"encryption_at_host_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"eviction_policy": {
-				// only applicable when `priority` is set to `Spot`
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
-					string(compute.VirtualMachineEvictionPolicyTypesDelete),
-				}, false),
-			},
-
-			"extension": VirtualMachineScaleSetExtensionsSchema(),
-
-			"extensions_time_budget": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      "PT1H30M",
-				ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
-			},
-
-			"health_probe_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
-
-			"license_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"None",
-					"Windows_Client",
-					"Windows_Server",
-				}, false),
-				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
-					if old == "None" && new == "" || old == "" && new == "None" {
-						return true
-					}
-
-					return false
-				},
-			},
-
-			"max_bid_price": {
-				Type:         pluginsdk.TypeFloat,
-				Optional:     true,
-				Default:      -1,
-				ValidateFunc: computeValidate.SpotMaxPrice,
-			},
-
-			"overprovision": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"plan": planSchema(),
-
-			"platform_fault_domain_count": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				ForceNew: true,
-				Computed: true,
-			},
-
-			"priority": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(compute.VirtualMachinePriorityTypesRegular),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.VirtualMachinePriorityTypesRegular),
-					string(compute.VirtualMachinePriorityTypesSpot),
-				}, false),
-			},
-
-			"provision_vm_agent": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-				ForceNew: true,
-			},
-
-			"proximity_placement_group_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
-				// the Compute API is broken and returns the Resource Group name in UPPERCASE :shrug:, github issue: https://github.com/Azure/azure-rest-api-specs/issues/10016
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
-			"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),
-
-			"secret": windowsSecretSchema(),
-
-			"secure_boot_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-
-			"single_placement_group": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"source_image_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
-			"source_image_reference": sourceImageReferenceSchema(false),
-
-			"tags": tags.Schema(),
-
-			"timezone": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: computeValidate.VirtualMachineTimeZone(),
-			},
-
-			"upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(compute.UpgradeModeManual),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.UpgradeModeAutomatic),
-					string(compute.UpgradeModeManual),
-					string(compute.UpgradeModeRolling),
-				}, false),
-			},
-
-			"user_data": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsBase64,
-			},
-
-			"vtpm_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-
-			"winrm_listener": winRmListenerSchema(),
-
-			"zone_balance": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-				Default:  false,
-			},
-
-			"scale_in_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.VirtualMachineScaleSetScaleInRulesDefault),
-					string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),
-					string(compute.VirtualMachineScaleSetScaleInRulesOldestVM),
-				}, false),
-			},
-
-			"terminate_notification": VirtualMachineScaleSetTerminateNotificationSchema(),
-
-			"zones": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return azure.SchemaZones()
-				}
-
-				return commonschema.ZonesMultipleOptionalForceNew()
-			}(),
-
-			// Computed
-			"unique_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-		},
+		Schema: resourceWindowsVirtualMachineScaleSetSchema(),
 	}
 }
 
@@ -563,7 +287,13 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		virtualMachineProfile.OsProfile.WindowsConfiguration.TimeZone = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("terminate_notification"); ok {
+	if !features.FourPointOhBeta() {
+		if v, ok := d.GetOk("terminate_notification"); ok {
+			virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
+		}
+	}
+
+	if v, ok := d.GetOk("termination_notification"); ok {
 		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
 
@@ -873,8 +603,15 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	if d.HasChange("terminate_notification") {
-		notificationRaw := d.Get("terminate_notification").([]interface{})
+	if !features.FourPointOhBeta() {
+		if d.HasChange("terminate_notification") {
+			notificationRaw := d.Get("terminate_notification").([]interface{})
+			updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
+		}
+	}
+
+	if d.HasChange("termination_notification") {
+		notificationRaw := d.Get("termination_notification").([]interface{})
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
 	}
 
@@ -1164,9 +901,17 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 			d.Set("health_probe_id", healthProbeId)
 		}
 
+		if !features.FourPointOhBeta() {
+			if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
+				if err := d.Set("terminate_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
+					return fmt.Errorf("setting `terminate_notification`: %+v", err)
+				}
+			}
+		}
+
 		if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
-			if err := d.Set("terminate_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
-				return fmt.Errorf("setting `terminate_notification`: %+v", err)
+			if err := d.Set("termination_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
+				return fmt.Errorf("setting `termination_notification`: %+v", err)
 			}
 		}
 
@@ -1274,4 +1019,290 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 	log.Printf("[DEBUG] Deleted Windows Virtual Machine Scale Set %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	return nil
+}
+
+func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: computeValidate.VirtualMachineName,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"location": azure.SchemaLocation(),
+
+		// Required
+		"admin_username": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"admin_password": {
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			ForceNew:         true,
+			Sensitive:        true,
+			DiffSuppressFunc: adminPasswordDiffSuppressFunc,
+			ValidateFunc:     validation.StringIsNotEmpty,
+		},
+
+		"network_interface": VirtualMachineScaleSetNetworkInterfaceSchema(),
+
+		"os_disk": VirtualMachineScaleSetOSDiskSchema(),
+
+		"instances": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntAtLeast(0),
+		},
+
+		"sku": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		// Optional
+		"additional_capabilities": VirtualMachineScaleSetAdditionalCapabilitiesSchema(),
+
+		"additional_unattend_content": additionalUnattendContentSchema(),
+
+		"automatic_os_upgrade_policy": VirtualMachineScaleSetAutomatedOSUpgradePolicySchema(),
+
+		"automatic_instance_repair": VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
+
+		"boot_diagnostics": bootDiagnosticsSchema(),
+
+		"computer_name_prefix": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+
+			// Computed since we reuse the VM name if one's not specified
+			Computed: true,
+			ForceNew: true,
+
+			ValidateFunc: computeValidate.WindowsComputerNamePrefix,
+		},
+
+		"custom_data": base64.OptionalSchema(false),
+
+		"data_disk": VirtualMachineScaleSetDataDiskSchema(),
+
+		"do_not_run_extensions_on_overprovisioned_machines": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
+		// TODO 4.0: change this from enable_* to *_enabled
+		"enable_automatic_updates": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"encryption_at_host_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"eviction_policy": {
+			// only applicable when `priority` is set to `Spot`
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
+				string(compute.VirtualMachineEvictionPolicyTypesDelete),
+			}, false),
+		},
+
+		"extension": VirtualMachineScaleSetExtensionsSchema(),
+
+		"extensions_time_budget": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "PT1H30M",
+			ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
+		},
+
+		"health_probe_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: azure.ValidateResourceID,
+		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"license_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"None",
+				"Windows_Client",
+				"Windows_Server",
+			}, false),
+			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+				if old == "None" && new == "" || old == "" && new == "None" {
+					return true
+				}
+
+				return false
+			},
+		},
+
+		"max_bid_price": {
+			Type:         pluginsdk.TypeFloat,
+			Optional:     true,
+			Default:      -1,
+			ValidateFunc: computeValidate.SpotMaxPrice,
+		},
+
+		"overprovision": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"plan": planSchema(),
+
+		"platform_fault_domain_count": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			ForceNew: true,
+			Computed: true,
+		},
+
+		"priority": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(compute.VirtualMachinePriorityTypesRegular),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(compute.VirtualMachinePriorityTypesRegular),
+				string(compute.VirtualMachinePriorityTypesSpot),
+			}, false),
+		},
+
+		"provision_vm_agent": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+			ForceNew: true,
+		},
+
+		"proximity_placement_group_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: azure.ValidateResourceID,
+			// the Compute API is broken and returns the Resource Group name in UPPERCASE :shrug:, github issue: https://github.com/Azure/azure-rest-api-specs/issues/10016
+			DiffSuppressFunc: suppress.CaseDifference,
+		},
+
+		"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),
+
+		"secret": windowsSecretSchema(),
+
+		"secure_boot_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"single_placement_group": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"source_image_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: azure.ValidateResourceID,
+		},
+
+		"source_image_reference": sourceImageReferenceSchema(false),
+
+		"tags": tags.Schema(),
+
+		"timezone": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: computeValidate.VirtualMachineTimeZone(),
+		},
+
+		"upgrade_mode": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(compute.UpgradeModeManual),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(compute.UpgradeModeAutomatic),
+				string(compute.UpgradeModeManual),
+				string(compute.UpgradeModeRolling),
+			}, false),
+		},
+
+		"user_data": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsBase64,
+		},
+
+		"vtpm_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"winrm_listener": winRmListenerSchema(),
+
+		"zone_balance": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+			Default:  false,
+		},
+
+		"scale_in_policy": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+				string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),
+				string(compute.VirtualMachineScaleSetScaleInRulesOldestVM),
+			}, false),
+		},
+
+		"termination_notification": VirtualMachineScaleSetTerminationNotificationSchema(),
+
+		"zones": func() *schema.Schema {
+			if !features.ThreePointOhBeta() {
+				return azure.SchemaZones()
+			}
+
+			return commonschema.ZonesMultipleOptionalForceNew()
+		}(),
+
+		// Computed
+		"unique_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
+
+	if !features.FourPointOhBeta() {
+		out["terminate_notification"] = VirtualMachineScaleSetTerminateNotificationSchema()
+	}
+
+	return out
 }

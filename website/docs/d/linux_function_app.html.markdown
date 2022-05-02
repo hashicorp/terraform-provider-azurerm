@@ -23,7 +23,7 @@ output "id" {
 }
 ```
 
-## Arguments Referencez
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -71,6 +71,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `storage_account_access_key` -  The access key used to access the backend storage account for the Function App. 
 
 * `storage_key_vault_secret_id` - The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.
@@ -113,7 +115,7 @@ A `application_stack` block exports the following:
 
 * `docker` -  One or more `docker` blocks as defined below.
 
-* `dotnet_version` -  The version of .Net used.
+* `dotnet_version` -  The version of .NET used.
 
 * `java_version` - The Version of Java used.
 
@@ -141,7 +143,7 @@ An `auth_settings` block exports the following:
 
 * `active_directory` - An `active_directory` block as defined above.
 
-* `additional_login_params` -A map of Login Parameters sent to the OpenID Connect authorization endpoint when a user logs in.
+* `additional_login_parameters` - A map of Login Parameters sent to the OpenID Connect authorization endpoint when a user logs in.
 
 * `allowed_external_redirect_urls` - A list of External URLs that can be redirected to as part of logging in or logging out of the Linux Web App.
 
@@ -335,6 +337,14 @@ A `scm_ip_restriction` block exports the following:
 
 ---
 
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - A list of `app_setting` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - A list of `connection_string` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
+
+---
+
 A `site_config` block exports the following:
 
 * `always_on` - If this Linux Web App is Always On enabled.
@@ -373,7 +383,7 @@ A `site_config` block exports the following:
 
 * `health_check_eviction_time_in_min` - The amount of time in minutes that a node can be unhealthy before being removed from the load balancer.
 
-* `http2_enabled` - Is the http2 protocol enabled?
+* `http2_enabled` - Is the HTTP2 protocol enabled?
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 

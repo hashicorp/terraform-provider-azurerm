@@ -3,12 +3,12 @@ subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_server_extended_auditing_policy"
 description: |-
-  Manages a Ms Sql Server Extended Auditing Policy.
+  Manages a MS SQL Server Extended Auditing Policy.
 ---
 
 # azurerm_mssql_server_extended_auditing_policy
 
-Manages a Ms Sql Server Extended Auditing Policy.
+Manages a MS SQL Server Extended Auditing Policy.
 
 
 ## Example Usage
@@ -161,7 +161,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "example" {
 
 The following arguments are supported:
 
-* `server_id` - (Required) The ID of the sql server to set the extended auditing policy. Changing this forces a new resource to be created.
+* `server_id` - (Required) The ID of the SQL Server to set the extended auditing policy. Changing this forces a new resource to be created.
 
 * `enabled` - (Required) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
 
@@ -183,20 +183,20 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Ms Sql Server Extended Auditing Policy.
+* `id` - The ID of the MS SQL Server Extended Auditing Policy.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Ms Sql Server Extended Auditing Policy.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Ms Sql Server Extended Auditing Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the Ms Sql Server Extended Auditing Policy.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Ms Sql Server Extended Auditing Policy.
+* `create` - (Defaults to 30 minutes) Used when creating the MS SQL Server Extended Auditing Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MS SQL Server Extended Auditing Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the MS SQL Server Extended Auditing Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the MS SQL Server Extended Auditing Policy.
 
 ## Import
 
-Ms Sql Server Extended Auditing Policys can be imported using the `resource id`, e.g.
+MS SQL Server Extended Auditing Policies can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_mssql_server_extended_auditing_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Sql/servers/sqlServer1/extendedAuditingSettings/default

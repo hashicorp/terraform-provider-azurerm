@@ -92,17 +92,6 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 						"category": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(aad.AuditLogs),
-								string(aad.SignInLogs),
-								"ADFSSignInLogs",
-								"ManagedIdentitySignInLogs",
-								"NonInteractiveUserSignInLogs",
-								"ProvisioningLogs",
-								"ServicePrincipalSignInLogs",
-								"RiskyUsers",
-								"UserRiskEvents",
-							}, false),
 						},
 
 						"enabled": {

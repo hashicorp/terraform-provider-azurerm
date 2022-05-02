@@ -197,7 +197,7 @@ The following arguments are supported:
 
 * `github_repo` - (Optional) A `github_repo` block as defined below.
 
-* `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed Aad Tenant Ids For Linking. 
+* `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed AAD Tenant Ids For Linking. 
 
 * `managed_resource_group_name` - (Optional) Workspace managed resource group.
 

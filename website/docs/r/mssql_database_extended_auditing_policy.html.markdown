@@ -3,12 +3,12 @@ subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_database_extended_auditing_policy"
 description: |-
-  Manages a Ms Sql Database Extended Auditing Policy.
+  Manages a MS SQL Database Extended Auditing Policy.
 ---
 
 # azurerm_mssql_database_extended_auditing_policy
 
-Manages a Ms Sql Database Extended Auditing Policy.
+Manages a MS SQL Database Extended Auditing Policy.
 
 ~> **NOTE:** The Database Extended Auditing Policy can also be set in the `extended_auditing_policy` block in the [azurerm_mssql_database](mssql_database.html) resource. You can only use one or the other and using both will cause a conflict.
 
@@ -59,7 +59,7 @@ resource "azurerm_mssql_database_extended_auditing_policy" "example" {
 
 The following arguments are supported:
 
-* `database_id` - (Required) The ID of the sql database to set the extended auditing policy. Changing this forces a new resource to be created.
+* `database_id` - (Required) The ID of the SQL database to set the extended auditing policy. Changing this forces a new resource to be created.
 
 * `enabled` - (Required) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
 
@@ -75,28 +75,28 @@ The following arguments are supported:
 
 * `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? 
 
-~> **NOTE:** To enable sending audit events to Log Analytics, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_log_analytics` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/sql_auditing_log_analytics).  To enable sending server audit events to Log Analytics, please enable the master database to send audit events to Log Analytics.
-To enable audit events to Eventhub, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_eventhub` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/sql_auditing_eventhub). 
+~> **NOTE:** To enable sending audit events to Log Analytics, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_log_analytics` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/sql_auditing_log_analytics).  To enable sending server audit events to Log Analytics, please enable the master database to send audit events to Log Analytics.
+To enable audit events to Eventhub, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_eventhub` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/sql_auditing_eventhub). 
 
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Ms Sql Database Extended Auditing Policy.
+* `id` - The ID of the MS SQL Database Extended Auditing Policy.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Ms Sql Database Extended Auditing Policy.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Ms Sql Database Extended Auditing Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the Ms Sql Database Extended Auditing Policy.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Ms Sql Database Extended Auditing Policy.
+* `create` - (Defaults to 30 minutes) Used when creating the MS SQL Database Extended Auditing Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MS SQL Database Extended Auditing Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the MS SQL Database Extended Auditing Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the MS SQL Database Extended Auditing Policy.
 
 ## Import
 
-Ms Sql Database Extended Auditing Policys can be imported using the `resource id`, e.g.
+MS SQL Database Extended Auditing Policies can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_mssql_database_extended_auditing_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Sql/servers/sqlServer1/databases/db1/extendedAuditingSettings/default

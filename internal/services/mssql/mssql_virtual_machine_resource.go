@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2021-11-01-preview/sqlvirtualmachine"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -58,9 +58,9 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(sqlvirtualmachine.PAYG),
-					string(sqlvirtualmachine.AHUB),
-					string(sqlvirtualmachine.DR),
+					string(sqlvirtualmachine.SQLServerLicenseTypePAYG),
+					string(sqlvirtualmachine.SQLServerLicenseTypeAHUB),
+					string(sqlvirtualmachine.SQLServerLicenseTypeDR),
 				}, false),
 			},
 
@@ -94,8 +94,8 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 										Required:         true,
 										DiffSuppressFunc: suppress.CaseDifference,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(sqlvirtualmachine.Daily),
-											string(sqlvirtualmachine.Weekly),
+											string(sqlvirtualmachine.FullBackupFrequencyTypeDaily),
+											string(sqlvirtualmachine.FullBackupFrequencyTypeWeekly),
 										}, false),
 									},
 
@@ -156,13 +156,13 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(sqlvirtualmachine.Monday),
-								string(sqlvirtualmachine.Tuesday),
-								string(sqlvirtualmachine.Wednesday),
-								string(sqlvirtualmachine.Thursday),
-								string(sqlvirtualmachine.Friday),
-								string(sqlvirtualmachine.Saturday),
-								string(sqlvirtualmachine.Sunday),
+								string(sqlvirtualmachine.DayOfWeekMonday),
+								string(sqlvirtualmachine.DayOfWeekTuesday),
+								string(sqlvirtualmachine.DayOfWeekWednesday),
+								string(sqlvirtualmachine.DayOfWeekThursday),
+								string(sqlvirtualmachine.DayOfWeekFriday),
+								string(sqlvirtualmachine.DayOfWeekSaturday),
+								string(sqlvirtualmachine.DayOfWeekSunday),
 							}, false),
 						},
 
@@ -237,11 +237,11 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 			"sql_connectivity_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(sqlvirtualmachine.PRIVATE),
+				Default:  string(sqlvirtualmachine.ConnectivityTypePRIVATE),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(sqlvirtualmachine.LOCAL),
-					string(sqlvirtualmachine.PRIVATE),
-					string(sqlvirtualmachine.PUBLIC),
+					string(sqlvirtualmachine.ConnectivityTypeLOCAL),
+					string(sqlvirtualmachine.ConnectivityTypePRIVATE),
+					string(sqlvirtualmachine.ConnectivityTypePUBLIC),
 				}, false),
 			},
 
@@ -269,18 +269,18 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(sqlvirtualmachine.NEW),
-								string(sqlvirtualmachine.EXTEND),
-								string(sqlvirtualmachine.ADD),
+								string(sqlvirtualmachine.DiskConfigurationTypeNEW),
+								string(sqlvirtualmachine.DiskConfigurationTypeEXTEND),
+								string(sqlvirtualmachine.DiskConfigurationTypeADD),
 							}, false),
 						},
 						"storage_workload_type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(sqlvirtualmachine.GENERAL),
-								string(sqlvirtualmachine.OLTP),
-								string(sqlvirtualmachine.DW),
+								string(sqlvirtualmachine.SQLWorkloadTypeGENERAL),
+								string(sqlvirtualmachine.SQLWorkloadTypeOLTP),
+								string(sqlvirtualmachine.SQLWorkloadTypeDW),
 							}, false),
 						},
 						"data_settings":    helper.StorageSettingSchema(),
@@ -356,7 +356,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Properties: &sqlvirtualmachine.Properties{
 			VirtualMachineResourceID:   utils.String(d.Get("virtual_machine_id").(string)),
 			SQLServerLicenseType:       sqlvirtualmachine.SQLServerLicenseType(d.Get("sql_license_type").(string)),
-			SQLManagement:              sqlvirtualmachine.Full,
+			SQLManagement:              sqlvirtualmachine.SQLManagementModeFull,
 			AutoBackupSettings:         expandSqlVirtualMachineAutoBackupSettings(d.Get("auto_backup").([]interface{})),
 			AutoPatchingSettings:       expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
 			KeyVaultCredentialSettings: expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
@@ -604,10 +604,10 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) *sqlvirtualm
 			ret.BackupSystemDbs = utils.Bool(v.(bool))
 		}
 
-		ret.BackupScheduleType = sqlvirtualmachine.Automated
+		ret.BackupScheduleType = sqlvirtualmachine.BackupScheduleTypeAutomated
 		if v, ok := config["manual_schedule"]; ok && len(v.([]interface{})) > 0 {
 			manualSchedule := v.([]interface{})[0].(map[string]interface{})
-			ret.BackupScheduleType = sqlvirtualmachine.Manual
+			ret.BackupScheduleType = sqlvirtualmachine.BackupScheduleTypeManual
 
 			if v, ok := manualSchedule["full_backup_frequency"]; ok {
 				ret.FullBackupFrequency = sqlvirtualmachine.FullBackupFrequencyType(v.(string))
@@ -633,7 +633,7 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachine.AutoBackup
 	}
 
 	manualSchedule := make([]interface{}, 0)
-	if strings.EqualFold(string(autoBackup.BackupScheduleType), string(sqlvirtualmachine.Manual)) {
+	if strings.EqualFold(string(autoBackup.BackupScheduleType), string(sqlvirtualmachine.BackupScheduleTypeManual)) {
 		var fullBackupStartHour int
 		if autoBackup.FullBackupStartTime != nil {
 			fullBackupStartHour = int(*autoBackup.FullBackupStartTime)
@@ -797,7 +797,7 @@ func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *s
 		StorageWorkloadType:   sqlvirtualmachine.StorageWorkloadType(storageSettings["storage_workload_type"].(string)),
 		SQLDataSettings:       expandSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
 		SQLLogSettings:        expandSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),
-		SQLTempDbSettings:     expandSqlVirtualMachineDataStorageSettings(storageSettings["temp_db_settings"].([]interface{})),
+		SQLTempDbSettings:     expandSqlVirtualMachineTempDbSettings(storageSettings["temp_db_settings"].([]interface{})),
 	}
 }
 
@@ -811,7 +811,7 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 		"disk_type":             string(input.DiskConfigurationType),
 		"data_settings":         flattenSqlVirtualMachineStorageSettings(input.SQLDataSettings),
 		"log_settings":          flattenSqlVirtualMachineStorageSettings(input.SQLLogSettings),
-		"temp_db_settings":      flattenSqlVirtualMachineStorageSettings(input.SQLTempDbSettings),
+		"temp_db_settings":      flattenSqlVirtualMachineTempDbSettings(input.SQLTempDbSettings),
 	}
 
 	if output["storage_workload_type"].(string) == "" && output["disk_type"] == "" &&
@@ -848,6 +848,35 @@ func expandSqlVirtualMachineStorageSettingsLuns(input []interface{}) *[]int32 {
 }
 
 func flattenSqlVirtualMachineStorageSettings(input *sqlvirtualmachine.SQLStorageSettings) []interface{} {
+	if input == nil || input.Luns == nil {
+		return []interface{}{}
+	}
+	attrs := make(map[string]interface{})
+
+	if input.Luns != nil {
+		attrs["luns"] = *input.Luns
+	}
+
+	if input.DefaultFilePath != nil {
+		attrs["default_file_path"] = *input.DefaultFilePath
+	}
+
+	return []interface{}{attrs}
+}
+
+func expandSqlVirtualMachineTempDbSettings(input []interface{}) *sqlvirtualmachine.SQLTempDbSettings {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	dataStorageSettings := input[0].(map[string]interface{})
+
+	return &sqlvirtualmachine.SQLTempDbSettings{
+		Luns:            expandSqlVirtualMachineStorageSettingsLuns(dataStorageSettings["luns"].([]interface{})),
+		DefaultFilePath: utils.String(dataStorageSettings["default_file_path"].(string)),
+	}
+}
+
+func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachine.SQLTempDbSettings) []interface{} {
 	if input == nil || input.Luns == nil {
 		return []interface{}{}
 	}

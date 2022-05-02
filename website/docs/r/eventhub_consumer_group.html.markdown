@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_eventhub_namespace" "example" {
   name                = "acceptanceTestEventHubNamespace"
-  location            = "West US"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Basic"
   capacity            = 2

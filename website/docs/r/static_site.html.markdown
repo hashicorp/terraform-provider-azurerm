@@ -32,9 +32,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Static Web App should exist. Changing this forces a new Static Web App to be created.
 
-* `sku_tier` - (Optional) Specifies the sku tier of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
+* `sku_tier` - (Optional) Specifies the SKU tier of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
 
-* `sku_size` - (Optional) Specifies the sku size of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
+* `sku_size` - (Optional) Specifies the SKU size of the Static Web App. Possible values are "Free" or "Standard". Defaults to "Free".
 
 * `identitiy` - (Optional) An `identity` block as defined below.
 
@@ -54,7 +54,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Static Web App.
 
-* `api_key` - The API key of this Static Web App, which is used for later interacting with this Static Web App from other clients, e.g. Github Action.
+* `api_key` - The API key of this Static Web App, which is used for later interacting with this Static Web App from other clients, e.g. GitHub Action.
   
 * `default_host_name` - The default host name of the Static Web App.
 
