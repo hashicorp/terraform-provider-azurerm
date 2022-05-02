@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `email_account_admins` - (Optional) Boolean flag which specifies if the alert is sent to the account administrators or not. Defaults to `false`.
 
-* `email_addresses` - (Optional) Specifies an array of e-mail addresses to which the alert is sent.
+* `email_addresses` - (Optional) Specifies an array of email addresses to which the alert is sent.
 
 * `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs. Defaults to `0`.
 
