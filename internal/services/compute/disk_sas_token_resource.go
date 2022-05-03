@@ -27,6 +27,11 @@ func resourceDiskExport() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.ManagedDiskID(id)
+			return err
+		}),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"managed_disk_id": {
 				Type:         pluginsdk.TypeString,
@@ -35,11 +40,12 @@ func resourceDiskExport() *pluginsdk.Resource {
 				ValidateFunc: validate.ManagedDiskID,
 			},
 
+			// unable to provide upper value of 4294967295 as it's not comptabile with 32-bit (overflow errors)
 			"duration_in_seconds": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.IntBetween(30, 4294967295),
+				ValidateFunc: validation.IntAtLeast(30),
 			},
 
 			"access_level": {
@@ -83,12 +89,12 @@ func resourceDiskExportCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	resp, err := client.Get(ctx, diskId.ResourceGroup, diskId.DiskName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Disk %s: %+v", *diskId, err)
+		return fmt.Errorf("error retrieving Disk %s: %+v", *diskId, err)
 	}
 
 	// checking whether disk export SAS URL is active already before creating. If yes, we raise an error
 	if resp.DiskState == "ActiveSAS" {
-		return fmt.Errorf("Active SAS Token for Disk Export already exists, it should be imported %s: %+v", *diskId, err)
+		return fmt.Errorf("active SAS Token for Disk Export already exists, cannot create another one %s: %+v", *diskId, err)
 	}
 
 	future, err := client.GrantAccess(ctx, diskId.ResourceGroup, diskId.DiskName, grantAccessData)
