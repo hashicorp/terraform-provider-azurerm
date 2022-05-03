@@ -1466,7 +1466,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
 		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
 			if allowBlobPublicAccess {
-				return fmt.Errorf(`%q is not supported for a Storage Account located in %q`, "allow_nested_items_to_be_public", envName)
+				return fmt.Errorf("allow_nested_items_to_be_public is not supported for a Storage Account located in %q", envName)
 			}
 		} else {
 			opts := storage.AccountUpdateParameters{
