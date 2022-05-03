@@ -48,7 +48,7 @@ The following attributes are exported:
 
 * `id` - The ID of the DDoS Protection Plan
 
-* `virtual_network_ids` - A list of Virtual Network ID's associated with the DDoS Protection Plan.
+* `virtual_network_ids` - A list of Virtual Network IDs associated with the DDoS Protection Plan.
 
 ## Timeouts
 

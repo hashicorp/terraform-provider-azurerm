@@ -105,7 +105,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Virtual Machine exists. Changing this forces a new resource to be created.
 
-* `network_interface_ids` - (Required) A list of Network Interface ID's which should be associated with the Virtual Machine.
+* `network_interface_ids` - (Required) A list of Network Interface IDs which should be associated with the Virtual Machine.
 
 * `os_profile_linux_config` - (Required, when a Linux machine) An `os_profile_linux_config` block as defined below.
 
@@ -346,7 +346,7 @@ A `storage_os_disk` block supports the following:
 
 * `disk_size_gb` - (Optional) Specifies the size of the OS Disk in gigabytes.
 
-* `image_uri` - (Optional) Specifies the Image URI in the format `publisherName:offer:skus:version`. This field can also specify the [VHD URI](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-linux-cli-deploy-templates/#create-a-custom-vm-image) of a custom VM image to clone. When cloning a Custom (Unmanaged) Disk Image the `os_type` field must be set.
+* `image_uri` - (Optional) Specifies the Image URI in the format `publisherName:offer:skus:version`. This field can also specify the [VHD URI](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/tutorial-custom-images) of a custom VM image to clone. When cloning a Custom (Unmanaged) Disk Image the `os_type` field must be set.
 
 * `os_type` - (Optional) Specifies the Operating System on the OS Disk. Possible values are `Linux` and `Windows`.
 

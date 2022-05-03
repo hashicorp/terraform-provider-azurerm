@@ -73,7 +73,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name            = "example"
   data_factory_id = azurerm_data_factory.test.id
 
-  sas_uri = "https://storageaccountname.blob.core.windows.net"
+  sas_uri = "https://example.blob.core.windows.net"
   key_vault_sas_token {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
@@ -84,7 +84,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name            = "example"
   data_factory_id = azurerm_data_factory.test.id
 
-  service_endpoint     = "https://storageaccountname.blob.core.windows.net"
+  service_endpoint     = "https://example.blob.core.windows.net"
   service_principal_id = "00000000-0000-0000-0000-000000000000"
   tenant_id            = "00000000-0000-0000-0000-000000000000"
   service_principal_linked_key_vault_key {
