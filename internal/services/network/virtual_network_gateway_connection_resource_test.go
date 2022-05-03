@@ -1072,6 +1072,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+}
 
 resource "azurerm_virtual_network_gateway" "test" {
   name                = "acctestgw-%d"
