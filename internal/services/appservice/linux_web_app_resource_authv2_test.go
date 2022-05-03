@@ -101,8 +101,13 @@ resource "azurerm_linux_web_app" "test" {
     "%[3]s" = "%[4]s" 
   }
 
+  sticky_settings {
+    app_setting_names       = ["%[3]s"]
+  }
+
   auth_v2_settings {
     auth_enabled = true
+    default_provider = "apple"
     unauthenticated_action = "Return401"
     
     apple {

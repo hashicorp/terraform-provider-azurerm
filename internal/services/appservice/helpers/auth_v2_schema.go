@@ -90,7 +90,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					// ValidateFunc: validation.StringInSlice([]string{}, false), // TODO - find the correct strings for the Auth names
-					Description: "The Default Authentication Provider to use when more than one is specified and the `unauthenticated_action` is set to `RedirectToLoginPage`.",
+					Description: "The Default Authentication Provider to use when the `unauthenticated_action` is set to `RedirectToLoginPage`.",
 				},
 
 				"excluded_paths": {
@@ -499,7 +499,11 @@ func expandAppleAuthV2Settings(input []AppleAuthV2Settings) *web.Apple {
 		return result
 	}
 
-	return nil
+	return &web.Apple{
+		AppleProperties: &web.AppleProperties{
+			Enabled: utils.Bool(true),
+		},
+	}
 }
 
 func flattenAppleAuthV2Settings(input *web.Apple) []AppleAuthV2Settings {
@@ -829,7 +833,9 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *web.AzureActiveDirector
 		return result
 	}
 
-	return nil
+	return &web.AzureActiveDirectory{
+		Enabled: utils.Bool(true),
+	}
 }
 
 func flattenAadAuthV2Settings(input *web.AzureActiveDirectory) []AadAuthV2Settings {
@@ -1359,11 +1365,13 @@ func expandFacebookAuthV2Settings(input []FacebookAuthV2Settings) *web.Facebook 
 		return result
 	}
 
-	return nil
+	return &web.Facebook{
+		Enabled: utils.Bool(true),
+	}
 }
 
 func flattenFacebookAuthV2Settings(input *web.Facebook) []FacebookAuthV2Settings {
-	if input == nil || !utils.NormaliseNilableBool(input.Enabled) {
+	if input == nil {
 		return nil
 	}
 
@@ -1377,7 +1385,7 @@ func flattenFacebookAuthV2Settings(input *web.Facebook) []FacebookAuthV2Settings
 			result.AppSecretSettingName = utils.NormalizeNilableString(reg.AppSecretSettingName)
 		}
 	}
-	if login := input.Login; login != nil && login.Scopes != nil {
+	if login := input.Login; login != nil && login.Scopes != nil && len(*login.Scopes) != 0 {
 		result.LoginScopes = *login.Scopes
 	}
 
@@ -1485,7 +1493,11 @@ func expandGitHubAuthV2Settings(input []GithubAuthV2Settings) *web.GitHub {
 		return result
 	}
 
-	return nil
+	return &web.GitHub{
+		GitHubProperties: &web.GitHubProperties{
+			Enabled: utils.Bool(true),
+		},
+	}
 }
 
 func flattenGitHubAuthV2Settings(input *web.GitHub) []GithubAuthV2Settings {
@@ -1642,7 +1654,11 @@ func expandGoogleAuthV2Settings(input []GoogleAuthV2Settings) *web.Google {
 		return result
 	}
 
-	return nil
+	return &web.Google{
+		GoogleProperties: &web.GoogleProperties{
+			Enabled: utils.Bool(true),
+		},
+	}
 }
 
 func flattenGoogleAuthV2Settings(input *web.Google) []GoogleAuthV2Settings {
@@ -1793,7 +1809,11 @@ func expandMicrosoftAuthV2Settings(input []MicrosoftAuthV2Settings) *web.LegacyM
 		return result
 	}
 
-	return nil
+	return &web.LegacyMicrosoftAccount{
+		LegacyMicrosoftAccountProperties: &web.LegacyMicrosoftAccountProperties{
+			Enabled: utils.Bool(true),
+		},
+	}
 }
 
 func flattenMicrosoftAuthV2Settings(input *web.LegacyMicrosoftAccount) []MicrosoftAuthV2Settings {
@@ -1900,7 +1920,11 @@ func expandTwitterAuthV2Settings(input []TwitterAuthV2Settings) *web.Twitter {
 		return result
 	}
 
-	return nil
+	return &web.Twitter{
+		TwitterProperties: &web.TwitterProperties{
+			Enabled: utils.Bool(true),
+		},
+	}
 }
 
 func flattenTwitterAuthV2Settings(input *web.Twitter) []TwitterAuthV2Settings {
