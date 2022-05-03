@@ -279,6 +279,7 @@ A `plan` block supports the following:
 
 * `publisher` - (Required) Specifies the Publisher of the Marketplace Image this Virtual Machine should be created from. Changing this forces a new resource to be created.
 
+-> **NOTE:** Do not use the `plan` block with Microsoft's standard image (e.g. when `publisher = "MicrosoftWindowsServer"`). This will prevent the purchase of the offer. 
 ---
 
 A `secret` block supports the following:
