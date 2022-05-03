@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
@@ -15,6 +16,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
 )
+
+const maximumStandardShareQuota = 5120
+const minimumPremiumShareQuota = 100
 
 func resourceStorageShare() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -160,6 +164,17 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 	}
 
+	accountProperties, err := storageClient.AccountsClient.GetProperties(ctx, account.ResourceGroup, accountName, "")
+	if err != nil {
+		return fmt.Errorf("retrieving Account %q properties for Share %q: %+v", accountName, shareName, err)
+	}
+	if accountProperties.Sku.Tier == storage.SkuTierStandard && quota > maximumStandardShareQuota {
+		return fmt.Errorf("creating Share %q (Account %q / Resource Group %q): maximum quota for %s tier accounts is %d", shareName, accountName, account.ResourceGroup, accountProperties.Sku.Tier, maximumStandardShareQuota)
+	}
+	if accountProperties.Sku.Tier == storage.SkuTierPremium && quota < minimumPremiumShareQuota {
+		return fmt.Errorf("creating Share %q (Account %q / Resource Group %q): minimum quota for %s tier accounts is %d", shareName, accountName, account.ResourceGroup, accountProperties.Sku.Tier, minimumPremiumShareQuota)
+	}
+
 	client, err := storageClient.FileSharesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("building File Share Client: %s", err)
@@ -278,6 +293,11 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
+	accountProperties, err := storageClient.AccountsClient.GetProperties(ctx, account.ResourceGroup, id.AccountName, "")
+	if err != nil {
+		return fmt.Errorf("retrieving Account %q properties for Share %q: %+v", id.AccountName, id.Name, err)
+	}
+
 	client, err := storageClient.FileSharesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
@@ -286,6 +306,13 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	if d.HasChange("quota") {
 		log.Printf("[DEBUG] Updating the Quota for File Share %q (Storage Account %q)", id.Name, id.AccountName)
 		quota := d.Get("quota").(int)
+
+		if accountProperties.Sku.Tier == storage.SkuTierStandard && quota > maximumStandardShareQuota {
+			return fmt.Errorf("updating Quota for File Share Share %q (Storage Account %q): maximum quota for %s tier accounts is %d", id.Name, id.AccountName, accountProperties.Sku.Tier, maximumStandardShareQuota)
+		}
+		if accountProperties.Sku.Tier == storage.SkuTierPremium && quota < minimumPremiumShareQuota {
+			return fmt.Errorf("updating Quota for File Share Share %q (Storage Account %q): minimum quota for %s tier accounts is %d", id.Name, id.AccountName, accountProperties.Sku.Tier, minimumPremiumShareQuota)
+		}
 
 		if err := client.UpdateQuota(ctx, account.ResourceGroup, id.AccountName, id.Name, quota); err != nil {
 			return fmt.Errorf("updating Quota for File Share %q (Storage Account %q): %s", id.Name, id.AccountName, err)

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -22,6 +23,26 @@ func TestAccStorageShare_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled_protocol").HasValue("SMB"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// TODO Remove in 4.0
+func TestAccStorageShare_id(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Test does not apply on 4.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.id(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled_protocol").HasValue("SMB"),
@@ -320,12 +341,26 @@ func (r StorageShareResource) Destroy(ctx context.Context, client *clients.Clien
 func (r StorageShareResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
+  name                 = "testshare%[2]s"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 5
+}
+`, template, data.RandomString)
+}
+
+// TODO Remove in 4.0
+func (r StorageShareResource) id(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_share" "test" {
+  name               = "testshare%[2]s"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 `, template, data.RandomString)
 }
@@ -333,10 +368,10 @@ resource "azurerm_storage_share" "test" {
 func (r StorageShareResource) metaData(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
+  name                 = "testshare%[2]s"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 5
 
@@ -350,10 +385,10 @@ resource "azurerm_storage_share" "test" {
 func (r StorageShareResource) metaDataUpdated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
+  name                 = "testshare%[2]s"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 5
 
@@ -368,10 +403,10 @@ resource "azurerm_storage_share" "test" {
 func (r StorageShareResource) acl(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
+  name                 = "testshare%[2]s"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 5
 
@@ -391,10 +426,10 @@ resource "azurerm_storage_share" "test" {
 func (r StorageShareResource) aclGhostedRecall(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
+  name                 = "testshare%[2]s"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 5
 
@@ -411,10 +446,10 @@ resource "azurerm_storage_share" "test" {
 func (r StorageShareResource) aclUpdated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
+  name                 = "testshare%[2]s"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 5
 
@@ -443,7 +478,7 @@ resource "azurerm_storage_share" "test" {
 func (r StorageShareResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_share" "import" {
   name                 = azurerm_storage_share.test.name
@@ -456,10 +491,10 @@ resource "azurerm_storage_share" "import" {
 func (r StorageShareResource) updateQuota(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
+  name                 = "testshare%[2]s"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 5
 }
@@ -473,12 +508,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storageshare-%d"
-  location = "%s"
+  name     = "acctestRG-storageshare-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestshare%s"
+  name                     = "acctestshare%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Premium"
@@ -491,11 +526,11 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
+  name                 = "testshare%[3]s"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 6000
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageShareResource) largeQuotaUpdate(data acceptance.TestData) string {
@@ -505,12 +540,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storageshare-%d"
-  location = "%s"
+  name     = "acctestRG-storageshare-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestshare%s"
+  name                     = "acctestshare%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Premium"
@@ -523,11 +558,11 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
+  name                 = "testshare%[3]s"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 10000
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageShareResource) accessTierStandard(data acceptance.TestData, tier string) string {
@@ -597,12 +632,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_kind             = "FileStorage"
@@ -611,12 +646,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
+  name                 = "testshare%[3]s"
   storage_account_name = azurerm_storage_account.test.name
-  enabled_protocol     = "%s"
+  enabled_protocol     = "%[4]s"
   quota                = 100
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, protocol)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, protocol)
 }
 
 func (r StorageShareResource) template(data acceptance.TestData) string {
@@ -626,12 +661,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "acctestacc%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
