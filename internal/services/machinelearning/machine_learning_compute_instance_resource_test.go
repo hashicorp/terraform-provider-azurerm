@@ -105,7 +105,7 @@ func TestAccComputeInstance_identity(t *testing.T) {
 }
 
 func (r ComputeInstanceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	computeClient := client.MachineLearning.MachineLearningComputeClient
+	computeClient := client.MachineLearning.ComputeClient
 	id, err := parse.ComputeID(state.ID)
 	if err != nil {
 		return nil, err
