@@ -2,6 +2,7 @@ package helpers_test
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
@@ -57,16 +58,16 @@ func TestMergeUserAppSettings(t *testing.T) {
 			},
 			expected: []web.NameValuePair{
 				{
+					Name:  utils.String("test"),
+					Value: utils.String("UserValue"),
+				},
+				{
 					Name:  utils.String("test2"),
 					Value: utils.String("ServiceValue2"),
 				},
 				{
 					Name:  utils.String("test3"),
 					Value: utils.String("ServiceValue3"),
-				},
-				{
-					Name:  utils.String("test"),
-					Value: utils.String("UserValue"),
 				},
 				{
 					Name:  utils.String("test4"),
@@ -77,9 +78,13 @@ func TestMergeUserAppSettings(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actual := helpers.MergeUserAppSettings(&v.service, v.user)
-		if !reflect.DeepEqual(*actual, v.expected) {
-			t.Fatalf("expected %+v, got %+v", v.expected, *actual)
+		actualRaw := helpers.MergeUserAppSettings(&v.service, v.user)
+		actual := *actualRaw
+		sort.Slice(actual, func(i, j int) bool {
+			return *actual[i].Name < *actual[j].Name
+		})
+		if !reflect.DeepEqual(actual, v.expected) {
+			t.Fatalf("expected %+v, got %+v", v.expected, actual)
 		}
 	}
 }
