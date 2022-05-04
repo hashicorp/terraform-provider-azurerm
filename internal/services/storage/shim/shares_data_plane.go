@@ -90,6 +90,7 @@ func (w DataPlaneStorageShareWrapper) Get(ctx context.Context, _, accountName, s
 		QuotaGB:         props.QuotaInGB,
 		ACLs:            acls.SignedIdentifiers,
 		EnabledProtocol: props.EnabledProtocol,
+		AccessTier:      props.AccessTier,
 	}, nil
 }
 

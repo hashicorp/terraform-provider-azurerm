@@ -206,13 +206,6 @@ func TestAccStorageShare_accessTier(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.accessTier(data, string(shares.PremiumAccessTier)),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.accessTier(data, string(shares.TransactionOptimizedAccessTier)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -538,15 +531,16 @@ resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  account_tier             = "Premium"
+  account_tier             = "Standard"
   account_replication_type = "LRS"
+  account_kind             = "StorageV2"
 }
 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 100
-  enabled_protocol     = "NFS"
+  enabled_protocol     = "SMB"
   access_tier          = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, tier)
