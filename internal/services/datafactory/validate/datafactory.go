@@ -38,7 +38,7 @@ func DataFactoryManagedPrivateEndpointName() pluginsdk.SchemaValidateFunc {
 		}
 
 		if !regexp.MustCompile(`^([_A-Za-z0-9]|([_A-Za-z0-9][-_A-Za-z0-9]{0,125}[_A-Za-z0-9]))$`).MatchString(v) {
-			errors = append(errors, fmt.Errorf("invalid Data Factory Managed Private Endpoint name, must match the regular expression ^[A-Za-z0-9_]+"))
+			errors = append(errors, fmt.Errorf("invalid Data Factory Managed Private Endpoint name, must match the regular expression ^([_A-Za-z0-9]|([_A-Za-z0-9][-_A-Za-z0-9]{0,125}[_A-Za-z0-9]))$"))
 		}
 
 		return warnings, errors
