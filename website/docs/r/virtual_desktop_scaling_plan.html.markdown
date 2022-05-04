@@ -58,7 +58,7 @@ resource "azurerm_role_assignment" "example" {
   name                             = random_uuid.example.result
   scope                            = azurerm_resource_group.example.id
   role_definition_id               = azurerm_role_definition.example.role_definition_resource_id
-  principal_id                     = data.azuread_service_principal.example.application_id
+  principal_id                     = data.azuread_service_principal.example.id
   skip_service_principal_aad_check = true
 }
 resource "azurerm_virtual_desktop_host_pool" "example" {
