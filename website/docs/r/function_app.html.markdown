@@ -129,7 +129,7 @@ resource "azurerm_function_app" "example" {
   version                    = "~3"
 }
 ```
-~> **Note:** Version `~3` is required for Linux Function Apps.
+~> **Note:** Version `~3` or `~4` is required for Linux Function Apps.
 
 ## Example Usage (Python in a Consumption Plan)
 
