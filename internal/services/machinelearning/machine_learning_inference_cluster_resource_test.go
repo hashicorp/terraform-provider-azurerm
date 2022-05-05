@@ -148,7 +148,7 @@ func TestAccInferenceCluster_identity(t *testing.T) {
 }
 
 func (r InferenceClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	inferenceClusterClient := client.MachineLearning.MachineLearningComputeClient
+	inferenceClusterClient := client.MachineLearning.ComputeClient
 	id, err := parse.InferenceClusterID(state.ID)
 	if err != nil {
 		return nil, err
