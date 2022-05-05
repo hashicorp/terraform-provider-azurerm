@@ -22,6 +22,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_servicebus_queue_authorization_rule` - prevent crash by setting `queue_name` correctly [GH-16561]
+* Data Source: `azurerm_service_plan:` - correctly populate `kind` and `os_type` attributes [GH-16431]
 * `azurerm_data_factory_dataset_delimited_text` - set defaults properly for `column_delimiter`, `quote_character`, `escape_character`, `first_row_as_header` and `null_value` [GH-16543]
 * `azurerm_linux_function_app` - fix deduplication of user `app_settings` [GH-15740]
 * `azurerm_linux_function_app` -  fix `app_settings.WEBSITE_RUN_FROM_PACKAGE` handling from external sources [GH-16641]
