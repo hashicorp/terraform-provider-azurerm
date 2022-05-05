@@ -11,6 +11,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v63.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-16533]
+* dependencies: updating to `v1.5.11` of `github.com/hashicorp/go-getter` [GH-16659]
 * `azurerm_linux_virtual_machine_scale_set` - improve validation on `termination_notification.timeout` [GH-16594]
 * `azurerm_orchestrated_virtual_machine_scale_set` - improve validation on `termination_notification.timeout` [GH-16594]
 * `azurerm_servicebus_namespace` - `sku` can be updated to `Basic`/`Standard` without recreating the resource [GH-16523]
