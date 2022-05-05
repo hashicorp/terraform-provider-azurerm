@@ -127,29 +127,6 @@ func TestAccStreamAnalyticsStreamInputEventHub_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccStreamAnalyticsStreamInputEventHub_authenticationMode(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
-	r := StreamAnalyticsStreamInputEventHubResource{}
-	identity := "identity { type = \"SystemAssigned\" }"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.csv(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("shared_access_policy_key"),
-		{
-			Config: r.authenticationMode(data, identity),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r StreamAnalyticsStreamInputEventHubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.StreamInputID(state.ID)
 	if err != nil {
@@ -167,7 +144,7 @@ func (r StreamAnalyticsStreamInputEventHubResource) Exists(ctx context.Context, 
 }
 
 func (r StreamAnalyticsStreamInputEventHubResource) avro(data acceptance.TestData) string {
-	template := r.template(data, "")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -189,7 +166,7 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
 }
 
 func (r StreamAnalyticsStreamInputEventHubResource) csv(data acceptance.TestData) string {
-	template := r.template(data, "")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -214,7 +191,7 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
 }
 
 func (r StreamAnalyticsStreamInputEventHubResource) json(data acceptance.TestData) string {
-	template := r.template(data, "")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -238,7 +215,7 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
 }
 
 func (r StreamAnalyticsStreamInputEventHubResource) jsonNoOptional(data acceptance.TestData) string {
-	template := r.template(data, "")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -260,7 +237,7 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
 }
 
 func (r StreamAnalyticsStreamInputEventHubResource) updated(data acceptance.TestData) string {
-	template := r.template(data, "")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -330,30 +307,7 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "import" {
 `, template)
 }
 
-func (r StreamAnalyticsStreamInputEventHubResource) authenticationMode(data acceptance.TestData, identity string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = azurerm_stream_analytics_job.test.name
-  resource_group_name          = azurerm_stream_analytics_job.test.resource_group_name
-  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
-  eventhub_name                = azurerm_eventhub.test.name
-  servicebus_namespace         = azurerm_eventhub_namespace.test.name
-  partition_key                = "partitionKey"
-  authentication_mode          = "Msi"
-
-  serialization {
-    type            = "Csv"
-    encoding        = "UTF8"
-    field_delimiter = ","
-  }
-}
-`, r.template(data, identity), data.RandomInteger)
-}
-
-func (r StreamAnalyticsStreamInputEventHubResource) template(data acceptance.TestData, identity string) string {
+func (r StreamAnalyticsStreamInputEventHubResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -405,7 +359,6 @@ resource "azurerm_stream_analytics_job" "test" {
     FROM [YourInputAlias]
 QUERY
 
-  %s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, identity)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

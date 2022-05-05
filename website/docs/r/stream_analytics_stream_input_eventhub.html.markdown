@@ -76,17 +76,15 @@ The following arguments are supported:
 
 * `servicebus_namespace` - (Required) The namespace that is associated with the desired Event Hub, Service Bus Queue, Service Bus Topic, etc.
 
-* `serialization` - (Required) A `serialization` block as defined below.
+* `shared_access_policy_key` - (Required) The shared access policy key for the specified shared access policy.
 
-* `authentication_mode` - (Optional) The authentication mode for the Stream Output. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
+* `shared_access_policy_name` - (Required) The shared access policy name for the Event Hub, Service Bus Queue, Service Bus Topic, etc.
+
+* `serialization` - (Required) A `serialization` block as defined below.
 
 * `partition_key` - (Optional) The property the input Event Hub has been partitioned by.
 
 * `eventhub_consumer_group_name` - (Optional) The name of an Event Hub Consumer Group that should be used to read events from the Event Hub. Specifying distinct consumer group names for multiple inputs allows each of those inputs to receive the same events from the Event Hub. If not set the input will use the Event Hub's default consumer group. 
-
-* `shared_access_policy_key` - (Optional) The shared access policy key for the specified shared access policy.
-
-* `shared_access_policy_name` - (Optional) The shared access policy name for the Event Hub, Service Bus Queue, Service Bus Topic, etc.
 
 ---
 

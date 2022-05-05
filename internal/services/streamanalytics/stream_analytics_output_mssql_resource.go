@@ -77,27 +77,32 @@ func resourceStreamAnalyticsOutputSql() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"authentication_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(streamanalytics.AuthenticationModeConnectionString),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamanalytics.AuthenticationModeConnectionString),
-					string(streamanalytics.AuthenticationModeMsi),
-				}, false),
-			},
-
 			"user": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"password": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"max_batch_count": {
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				Default:      10000,
+				ValidateFunc: validation.FloatBetween(1, 1073741824),
+			},
+
+			"max_writer_count": {
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.FloatBetween(0, 1),
 			},
 		},
 	}
@@ -124,6 +129,8 @@ func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, met
 	server := d.Get("server").(string)
 	databaseName := d.Get("database").(string)
 	tableName := d.Get("table").(string)
+	sqlUser := d.Get("user").(string)
+	sqlUserPassword := d.Get("password").(string)
 
 	props := streamanalytics.Output{
 		Name: utils.String(id.Name),
@@ -131,26 +138,16 @@ func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, met
 			Datasource: &streamanalytics.AzureSQLDatabaseOutputDataSource{
 				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftSQLServerDatabase,
 				AzureSQLDatabaseOutputDataSourceProperties: &streamanalytics.AzureSQLDatabaseOutputDataSourceProperties{
-					Server:             utils.String(server),
-					Database:           utils.String(databaseName),
-					Table:              utils.String(tableName),
-					AuthenticationMode: streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
+					Server:         utils.String(server),
+					Database:       utils.String(databaseName),
+					User:           utils.String(sqlUser),
+					Password:       utils.String(sqlUserPassword),
+					Table:          utils.String(tableName),
+					MaxBatchCount:  utils.Float(d.Get("max_batch_count").(float64)),
+					MaxWriterCount: utils.Float(d.Get("max_writer_count").(float64)),
 				},
 			},
 		},
-	}
-
-	sqlDatabaseOutputDataSource, ok := props.Datasource.AsAzureSQLDatabaseOutputDataSource()
-	if !ok {
-		return fmt.Errorf("converting Output Data Source to an Azure Sql Database Output: %+v", id)
-	}
-
-	if v, ok := d.GetOk("user"); ok {
-		sqlDatabaseOutputDataSource.AzureSQLDatabaseOutputDataSourceProperties.User = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("password"); ok {
-		sqlDatabaseOutputDataSource.AzureSQLDatabaseOutputDataSourceProperties.Password = utils.String(v.(string))
 	}
 
 	if d.IsNewResource() {
@@ -201,7 +198,18 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("database", v.Database)
 		d.Set("table", v.Table)
 		d.Set("user", v.User)
-		d.Set("authentication_mode", v.AuthenticationMode)
+
+		maxBatchCount := float64(10000)
+		if v.MaxBatchCount != nil {
+			maxBatchCount = *v.MaxBatchCount
+		}
+		d.Set("max_batch_count", maxBatchCount)
+
+		maxWriterCount := float64(1)
+		if v.MaxWriterCount != nil {
+			maxWriterCount = *v.MaxWriterCount
+		}
+		d.Set("max_writer_count", maxWriterCount)
 	}
 
 	return nil

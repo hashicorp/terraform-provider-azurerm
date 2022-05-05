@@ -67,13 +67,11 @@ The following arguments are supported:
 
 * `server` - (Required) The SQL server url. Changing this forces a new resource to be created.
 
+* `user` - (Required) Username used to login to the Microsoft SQL Server. Changing this forces a new resource to be created.
+
+* `password` - (Required) Password used together with username, to login to the Microsoft SQL Server. Changing this forces a new resource to be created.
+
 * `table` - (Required) Table in the database that the output points to. Changing this forces a new resource to be created.
-
-* `authentication_mode` - (Optional) The authentication mode for the Stream Output. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
-
-* `user` - (Optional) Username used to login to the Microsoft SQL Server.
-
-* `password` - (Optional) Password used together with username, to login to the Microsoft SQL Server.
 
 ## Attributes Reference
 

@@ -64,14 +64,17 @@ func resourceStreamAnalyticsOutputEventHub() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"authentication_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(streamanalytics.AuthenticationModeConnectionString),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamanalytics.AuthenticationModeConnectionString),
-					string(streamanalytics.AuthenticationModeMsi),
-				}, false),
+			"shared_access_policy_key": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"shared_access_policy_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"property_columns": {
@@ -89,19 +92,6 @@ func resourceStreamAnalyticsOutputEventHub() *pluginsdk.Resource {
 			},
 
 			"serialization": schemaStreamAnalyticsOutputSerialization(),
-
-			"shared_access_policy_key": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"shared_access_policy_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
 		},
 	}
 }
@@ -128,6 +118,8 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 
 	eventHubName := d.Get("eventhub_name").(string)
 	serviceBusNamespace := d.Get("servicebus_namespace").(string)
+	sharedAccessPolicyKey := d.Get("shared_access_policy_key").(string)
+	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
 	propertyColumns := d.Get("property_columns").([]interface{})
 	partitionKey := d.Get("partition_key").(string)
 
@@ -143,28 +135,16 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 			Datasource: &streamanalytics.EventHubOutputDataSource{
 				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftServiceBusEventHub,
 				EventHubOutputDataSourceProperties: &streamanalytics.EventHubOutputDataSourceProperties{
-					EventHubName:        utils.String(eventHubName),
-					ServiceBusNamespace: utils.String(serviceBusNamespace),
-					PropertyColumns:     utils.ExpandStringSlice(propertyColumns),
-					PartitionKey:        utils.String(partitionKey),
-					AuthenticationMode:  streamanalytics.AuthenticationMode(d.Get("authentication_mode").(string)),
+					EventHubName:           utils.String(eventHubName),
+					ServiceBusNamespace:    utils.String(serviceBusNamespace),
+					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
+					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
+					PropertyColumns:        utils.ExpandStringSlice(propertyColumns),
+					PartitionKey:           utils.String(partitionKey),
 				},
 			},
 			Serialization: serialization,
 		},
-	}
-
-	eventhubOutputDataSource, ok := props.Datasource.AsEventHubOutputDataSource()
-	if !ok {
-		return fmt.Errorf("converting Output Data Source to an EventHub Output: %+v", id)
-	}
-
-	if v, ok := d.GetOk("shared_access_policy_name"); ok {
-		eventhubOutputDataSource.EventHubOutputDataSourceProperties.SharedAccessPolicyName = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("shared_access_policy_key"); ok {
-		eventhubOutputDataSource.EventHubOutputDataSourceProperties.SharedAccessPolicyKey = utils.String(v.(string))
 	}
 
 	if d.IsNewResource() {
@@ -216,7 +196,6 @@ func resourceStreamAnalyticsOutputEventHubRead(d *pluginsdk.ResourceData, meta i
 		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
 		d.Set("property_columns", v.PropertyColumns)
 		d.Set("partition_key", v.PartitionKey)
-		d.Set("authentication_mode", v.AuthenticationMode)
 
 		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)
