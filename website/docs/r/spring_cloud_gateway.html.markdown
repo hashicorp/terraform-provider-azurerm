@@ -34,8 +34,8 @@ resource "azurerm_spring_cloud_gateway" "test" {
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
   api_metadata {
     description       = "example description"
-    documentation_url = "www.example.com/docs"
-    server_url        = "example.com"
+    documentation_url = "https://www.example.com/docs"
+    server_url        = "https://wwww.example.com"
     title             = "example title"
     version           = "1.0"
   }
@@ -60,7 +60,7 @@ resource "azurerm_spring_cloud_gateway" "test" {
   sso {
     client_id     = "example id"
     client_secret = "example secret"
-    issuer_uri    = "/issueToken"
+    issuer_uri    = "https://www.test.com/issueToken"
     scope         = ["read"]
   }
 }
@@ -136,7 +136,7 @@ The `quota` block supports the following:
 
 A `sso` block supports the following:
 
-* `client_id` - (Optional) The public_access_enabled identifier for the application.
+* `client_id` - (Optional) The public identifier for the application.
 
 * `client_secret` - (Optional) The secret known only to the application and the authorization server.
 
