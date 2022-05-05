@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source**: `azurerm_healthcare_dicom_service` [GH-15887]
 * **New Resource**: `azurerm_healthcare_dicom_service` [GH-15887]
+* **New Resource:** `azurerm_mssql_managed_instance_vulnerability_assessment` [GH-16639]
 * **New Resource**: `azurerm_spring_cloud_builder` [GH-16036]
 * **New Resource**: `azurerm_spring_cloud_configuration_service` [GH-16087]
 
