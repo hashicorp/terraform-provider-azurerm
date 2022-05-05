@@ -192,7 +192,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"termination_notification": OrchestratedVirtualMachineScaleSetTerminateNotificationSchema(),
+			"termination_notification": OrchestratedVirtualMachineScaleSetTerminationNotificationSchema(),
 
 			"zones": func() *schema.Schema {
 				if !features.ThreePointOhBeta() {

@@ -341,6 +341,21 @@ func TestAccLinuxFunctionAppSlot_withAuthSettingsStandard(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionAppSlot_scmIpRestrictionSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scmIpRestrictionSubnet(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxFunctionAppSlot_withAuthSettingsConsumption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -1808,6 +1823,43 @@ resource "azurerm_linux_function_app_slot" "test" {
   }
 }
 `, r.storageContainerTemplate(data, planSku), data.RandomInteger, data.Client().TenantID)
+}
+
+func (r LinuxFunctionAppSlotResource) scmIpRestrictionSubnet(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%[2]d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    scm_ip_restriction {
+      virtual_network_subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data, planSku), data.RandomInteger)
 }
 
 func (r LinuxFunctionAppSlotResource) elasticComplete(data acceptance.TestData) string {

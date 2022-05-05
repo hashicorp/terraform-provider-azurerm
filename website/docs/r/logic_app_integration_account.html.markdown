@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Logic App Integration Account should exist. Changing this forces a new Logic App Integration Account to be created.
 
-* `sku_name` - (Required) The sku name of the Logic App Integration Account. Possible Values are `Basic`, `Free` and `Standard`.
+* `sku_name` - (Required) The SKU name of the Logic App Integration Account. Possible Values are `Basic`, `Free` and `Standard`.
 
 ---
 

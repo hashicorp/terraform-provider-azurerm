@@ -3,12 +3,12 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_vpn_gateway_nat_rule"
 description: |-
-  Manages a VPN Gateway Nat Rule.
+  Manages a VPN Gateway NAT Rule.
 ---
 
 # azurerm_vpn_gateway_nat_rule
 
-Manages a VPN Gateway Nat Rule.
+Manages a VPN Gateway NAT Rule.
 
 ## Example Usage
 
@@ -52,40 +52,40 @@ resource "azurerm_vpn_gateway_nat_rule" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this VPN Gateway Nat Rule. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this VPN Gateway NAT Rule. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which this VPN Gateway Nat Rule should be created. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The Name of the Resource Group in which this VPN Gateway NAT Rule should be created. Changing this forces a new resource to be created.
 
-* `vpn_gateway_id` - (Required) The ID of the VPN Gateway that this VPN Gateway Nat Rule belongs to. Changing this forces a new resource to be created.
+* `vpn_gateway_id` - (Required) The ID of the VPN Gateway that this VPN Gateway NAT Rule belongs to. Changing this forces a new resource to be created.
 
-* `external_address_space_mappings` - (Required) A list of CIDR Ranges which are used for external mapping of the VPN Gateway Nat Rule.
+* `external_address_space_mappings` - (Required) A list of CIDR Ranges which are used for external mapping of the VPN Gateway NAT Rule.
 
-* `internal_address_space_mappings` - (Required) A list of CIDR Ranges which are used for internal mapping of the VPN Gateway Nat Rule.
+* `internal_address_space_mappings` - (Required) A list of CIDR Ranges which are used for internal mapping of the VPN Gateway NAT Rule.
 
-* `ip_configuration_id` - (Optional) The ID of the IP Configuration this VPN Gateway Nat Rule applies to. Possible values are `Instance0` and `Instance1`.
+* `ip_configuration_id` - (Optional) The ID of the IP Configuration this VPN Gateway NAT Rule applies to. Possible values are `Instance0` and `Instance1`.
 
-* `mode` - (Optional) The source Nat direction of the VPN Nat. Possible values are `EgressSnat` and `IngressSnat`. Defaults to `EgressSnat`. Changing this forces a new resource to be created.
+* `mode` - (Optional) The source NAT direction of the VPN NAT. Possible values are `EgressSnat` and `IngressSnat`. Defaults to `EgressSnat`. Changing this forces a new resource to be created.
 
-* `type` - (Optional) The type of the VPN Gateway Nat Rule. Possible values are `Dynamic` and `Static`. Defaults to `Static`. Changing this forces a new resource to be created.
+* `type` - (Optional) The type of the VPN Gateway NAT Rule. Possible values are `Dynamic` and `Static`. Defaults to `Static`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the VPN Gateway Nat Rule.
+* `id` - The ID of the VPN Gateway NAT Rule.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the VPN Gateway Nat Rule.
-* `read` - (Defaults to 5 minutes) Used when retrieving the VPN Gateway Nat Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the VPN Gateway Nat Rule.
-* `delete` - (Defaults to 30 minutes) Used when deleting the VPN Gateway Nat Rule.
+* `create` - (Defaults to 30 minutes) Used when creating the VPN Gateway NAT Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the VPN Gateway NAT Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the VPN Gateway NAT Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the VPN Gateway NAT Rule.
 
 ## Import
 
-VPN Gateway Nat Rules can be imported using the `resource id`, e.g.
+VPN Gateway NAT Rules can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_vpn_gateway_nat_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/vpnGateways/vpnGateway1/natRules/natRule1

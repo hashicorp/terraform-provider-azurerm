@@ -44,6 +44,26 @@ func TestAccAzureRMServiceBusNamespace_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusNamespace_updateSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	r := ServiceBusNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standardSku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}
@@ -242,6 +262,26 @@ resource "azurerm_servicebus_namespace" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ServiceBusNamespaceResource) standardSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  local_auth_enabled  = false
+}`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ServiceBusNamespaceResource) requiresImport(data acceptance.TestData) string {

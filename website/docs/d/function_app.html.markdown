@@ -120,7 +120,7 @@ A `site_config` block exports the following:
 
 * `cors` - A `cors` block as defined above.
 
-* `dotnet_framework_version` - The version of the .net framework's CLR used in this App Service.
+* `dotnet_framework_version` - The version of the .NET framework's CLR used in this App Service.
 
 * `elastic_instance_minimum` - The number of minimum instances for this function app. Only applicable to apps on the Premium plan.
 

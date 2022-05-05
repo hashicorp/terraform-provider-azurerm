@@ -78,6 +78,24 @@ func resourceStreamAnalyticsOutputServiceBusQueue() *pluginsdk.Resource {
 			},
 
 			"serialization": schemaStreamAnalyticsOutputSerialization(),
+
+			"property_columns": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"system_property_columns": {
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
 		},
 	}
 }
@@ -123,6 +141,8 @@ func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.Resou
 					ServiceBusNamespace:    utils.String(serviceBusNamespace),
 					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
 					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
+					PropertyColumns:        utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
+					SystemPropertyColumns:  d.Get("system_property_columns").(map[string]interface{}),
 				},
 			},
 			Serialization: serialization,
@@ -177,6 +197,8 @@ func resourceStreamAnalyticsOutputServiceBusQueueRead(d *pluginsdk.ResourceData,
 		d.Set("queue_name", v.QueueName)
 		d.Set("servicebus_namespace", v.ServiceBusNamespace)
 		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
+		d.Set("property_columns", v.PropertyColumns)
+		d.Set("system_property_columns", v.SystemPropertyColumns)
 
 		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)

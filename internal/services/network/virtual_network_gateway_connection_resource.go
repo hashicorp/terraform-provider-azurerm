@@ -166,7 +166,6 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			"traffic_selector_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"local_address_cidrs": {
