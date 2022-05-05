@@ -48,8 +48,8 @@ resource "azurerm_spring_cloud_gateway" "test" {
     exposed_headers     = ["x-example-header"]
     max_age_seconds     = 86400
   }
-  https_only            = false
-  public_access_enabled = true
+  https_only                    = false
+  public_network_access_enabled = true
   quota {
     cpu    = "1"
     memory = "2Gi"
@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `instance_count` - (Optional) Specifies the required instance count of the Spring Cloud Gateway. Possible Values are between `1` and `500`. Defaults to `1` if not specified.
 
-* `public_access_enabled` - (Optional) Indicates whether the Spring Cloud Gateway exposes endpoint.
+* `public_network_access_enabled` - (Optional) Indicates whether the Spring Cloud Gateway exposes endpoint.
 
 * `quota` - (Optional) A `quota` block as defined below.
 
@@ -150,7 +150,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Spring Cloud Gateway.
 
-* `url` - URL of the Spring Cloud Gateway, exposed when 'public_access_enabled' is true.
+* `url` - URL of the Spring Cloud Gateway, exposed when 'public_network_access_enabled' is true.
 
 ## Timeouts
 
