@@ -177,13 +177,6 @@ resource "azurerm_spring_cloud_gateway" "test" {
   }
 
   instance_count = 2
-
-  sso {
-    client_id     = "test"
-    client_secret = "secret"
-    issuer_uri    = "https://www.test.com/issueToken"
-    scope         = ["read"]
-  }
 }
 `, template)
 }
