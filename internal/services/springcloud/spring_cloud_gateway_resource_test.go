@@ -54,7 +54,7 @@ func TestAccSpringCloudGateway_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sso_properties.0.client_id", "sso_properties.0.client_secret"),
+		data.ImportStep("sso.0.client_id", "sso.0.client_secret"),
 	})
 }
 
@@ -75,7 +75,7 @@ func TestAccSpringCloudGateway_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sso_properties.0.client_id", "sso_properties.0.client_secret"),
+		data.ImportStep("sso.0.client_id", "sso.0.client_secret"),
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -153,24 +153,24 @@ func (r SpringCloudGatewayResource) complete(data acceptance.TestData) string {
 resource "azurerm_spring_cloud_gateway" "test" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
-  api_metadata_properties {
-    description   = "test description"
-    documentation = "www.test.com/docs"
-    server_url    = "test.com"
-    title         = "test title"
-    version       = "1.0"
+  api_metadata {
+    description       = "test description"
+    documentation_url = "https://www.test.com/docs"
+    server_url        = "https://www.test.com"
+    title             = "test title"
+    version           = "1.0"
   }
 
-  cors_properties {
-    allow_credentials = false
-    allowed_headers   = ["*"]
-    allowed_methods   = ["PUT"]
-    allowed_origins   = ["test.com"]
-    exposed_headers   = ["x-test-header"]
-    max_age           = 86400
+  cors {
+    credentials_allowed = false
+    allowed_headers     = ["*"]
+    allowed_methods     = ["PUT"]
+    allowed_origins     = ["test.com"]
+    exposed_headers     = ["x-test-header"]
+    max_age_seconds     = 86400
   }
-  https_only = false
-  public     = true
+  https_only            = false
+  public_access_enabled = true
   quota {
     cpu    = "1"
     memory = "2Gi"
@@ -178,10 +178,10 @@ resource "azurerm_spring_cloud_gateway" "test" {
 
   instance_count = 2
 
-  sso_properties {
+  sso {
     client_id     = "test"
     client_secret = "secret"
-    issuer_uri    = "/issueToken"
+    issuer_uri    = "https://www.test.com/issueToken"
     scope         = ["read"]
   }
 }

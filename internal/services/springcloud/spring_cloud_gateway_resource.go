@@ -24,10 +24,10 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 		Delete: resourceSpringCloudGatewayDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -52,7 +52,7 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudServiceID,
 			},
 
-			"api_metadata_properties": {
+			"api_metadata": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -64,16 +64,16 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"documentation": {
+						"documentation_url": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 						},
 
 						"server_url": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 						},
 
 						"title": {
@@ -91,13 +91,13 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 				},
 			},
 
-			"cors_properties": {
+			"cors": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"allow_credentials": {
+						"credentials_allowed": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
@@ -115,8 +115,16 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"DELETE",
+									"GET",
+									"HEAD",
+									"MERGE",
+									"POST",
+									"OPTIONS",
+									"PUT",
+								}, false),
 							},
 						},
 
@@ -138,7 +146,7 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 							},
 						},
 
-						"max_age": {
+						"max_age_seconds": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
 						},
@@ -158,7 +166,7 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 500),
 			},
 
-			"public": {
+			"public_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -203,7 +211,7 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 				},
 			},
 
-			"sso_properties": {
+			"sso": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -224,7 +232,7 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 						"issuer_uri": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 						},
 
 						"scope": {
@@ -281,12 +289,12 @@ func resourceSpringCloudGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	gatewayResource := appplatform.GatewayResource{
 		Properties: &appplatform.GatewayProperties{
-			APIMetadataProperties: expandGatewayGatewayAPIMetadataProperties(d.Get("api_metadata_properties").([]interface{})),
-			CorsProperties:        expandGatewayGatewayCorsProperties(d.Get("cors_properties").([]interface{})),
+			APIMetadataProperties: expandGatewayGatewayAPIMetadataProperties(d.Get("api_metadata").([]interface{})),
+			CorsProperties:        expandGatewayGatewayCorsProperties(d.Get("cors").([]interface{})),
 			HTTPSOnly:             utils.Bool(d.Get("https_only").(bool)),
-			Public:                utils.Bool(d.Get("public").(bool)),
+			Public:                utils.Bool(d.Get("public_access_enabled").(bool)),
 			ResourceRequests:      expandGatewayGatewayResourceRequests(d.Get("quota").([]interface{})),
-			SsoProperties:         expandGatewaySsoProperties(d.Get("sso_properties").([]interface{})),
+			SsoProperties:         expandGatewaySsoProperties(d.Get("sso").([]interface{})),
 		},
 		Sku: &appplatform.Sku{
 			Name:     service.Sku.Name,
@@ -333,19 +341,19 @@ func resourceSpringCloudGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("instance_count", resp.Sku.Capacity)
 	}
 	if props := resp.Properties; props != nil {
-		if err := d.Set("api_metadata_properties", flattenGatewayGatewayAPIMetadataProperties(props.APIMetadataProperties)); err != nil {
-			return fmt.Errorf("setting `api_metadata_properties`: %+v", err)
+		if err := d.Set("api_metadata", flattenGatewayGatewayAPIMetadataProperties(props.APIMetadataProperties)); err != nil {
+			return fmt.Errorf("setting `api_metadata`: %+v", err)
 		}
-		if err := d.Set("cors_properties", flattenGatewayGatewayCorsProperties(props.CorsProperties)); err != nil {
-			return fmt.Errorf("setting `cors_properties`: %+v", err)
+		if err := d.Set("cors", flattenGatewayGatewayCorsProperties(props.CorsProperties)); err != nil {
+			return fmt.Errorf("setting `cors`: %+v", err)
 		}
 		d.Set("https_only", props.HTTPSOnly)
-		d.Set("public", props.Public)
+		d.Set("public_access_enabled", props.Public)
 		if err := d.Set("quota", flattenGatewayGatewayResourceRequests(props.ResourceRequests)); err != nil {
 			return fmt.Errorf("setting `resource_requests`: %+v", err)
 		}
-		if err := d.Set("sso_properties", flattenGatewaySsoProperties(props.SsoProperties, d.Get("sso_properties").([]interface{}))); err != nil {
-			return fmt.Errorf("setting `sso_properties`: %+v", err)
+		if err := d.Set("sso", flattenGatewaySsoProperties(props.SsoProperties, d.Get("sso").([]interface{}))); err != nil {
+			return fmt.Errorf("setting `sso`: %+v", err)
 		}
 		d.Set("url", props.URL)
 	}
@@ -381,7 +389,7 @@ func expandGatewayGatewayAPIMetadataProperties(input []interface{}) *appplatform
 	return &appplatform.GatewayAPIMetadataProperties{
 		Title:         utils.String(v["title"].(string)),
 		Description:   utils.String(v["description"].(string)),
-		Documentation: utils.String(v["documentation"].(string)),
+		Documentation: utils.String(v["documentation_url"].(string)),
 		Version:       utils.String(v["version"].(string)),
 		ServerURL:     utils.String(v["server_url"].(string)),
 	}
@@ -396,8 +404,8 @@ func expandGatewayGatewayCorsProperties(input []interface{}) *appplatform.Gatewa
 		AllowedOrigins:   utils.ExpandStringSlice(v["allowed_origins"].(*pluginsdk.Set).List()),
 		AllowedMethods:   utils.ExpandStringSlice(v["allowed_methods"].(*pluginsdk.Set).List()),
 		AllowedHeaders:   utils.ExpandStringSlice(v["allowed_headers"].(*pluginsdk.Set).List()),
-		MaxAge:           utils.Int32(int32(v["max_age"].(int))),
-		AllowCredentials: utils.Bool(v["allow_credentials"].(bool)),
+		MaxAge:           utils.Int32(int32(v["max_age_seconds"].(int))),
+		AllowCredentials: utils.Bool(v["credentials_allowed"].(bool)),
 		ExposedHeaders:   utils.ExpandStringSlice(v["exposed_headers"].(*pluginsdk.Set).List()),
 	}
 }
@@ -453,11 +461,11 @@ func flattenGatewayGatewayAPIMetadataProperties(input *appplatform.GatewayAPIMet
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"description":   description,
-			"documentation": documentation,
-			"server_url":    serverUrl,
-			"title":         title,
-			"version":       version,
+			"description":       description,
+			"documentation_url": documentation,
+			"server_url":        serverUrl,
+			"title":             title,
+			"version":           version,
 		},
 	}
 }
@@ -477,12 +485,12 @@ func flattenGatewayGatewayCorsProperties(input *appplatform.GatewayCorsPropertie
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"allow_credentials": allowCredentials,
-			"allowed_headers":   utils.FlattenStringSlice(input.AllowedHeaders),
-			"allowed_methods":   utils.FlattenStringSlice(input.AllowedMethods),
-			"allowed_origins":   utils.FlattenStringSlice(input.AllowedOrigins),
-			"exposed_headers":   utils.FlattenStringSlice(input.ExposedHeaders),
-			"max_age":           maxAge,
+			"credentials_allowed": allowCredentials,
+			"allowed_headers":     utils.FlattenStringSlice(input.AllowedHeaders),
+			"allowed_methods":     utils.FlattenStringSlice(input.AllowedMethods),
+			"allowed_origins":     utils.FlattenStringSlice(input.AllowedOrigins),
+			"exposed_headers":     utils.FlattenStringSlice(input.ExposedHeaders),
+			"max_age_seconds":     maxAge,
 		},
 	}
 }

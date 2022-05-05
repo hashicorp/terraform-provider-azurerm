@@ -32,24 +32,24 @@ resource "azurerm_spring_cloud_service" "example" {
 resource "azurerm_spring_cloud_gateway" "test" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
-  api_metadata_properties {
-    description   = "example description"
-    documentation = "www.example.com/docs"
-    server_url    = "example.com"
-    title         = "example title"
-    version       = "1.0"
+  api_metadata {
+    description       = "example description"
+    documentation_url = "www.example.com/docs"
+    server_url        = "example.com"
+    title             = "example title"
+    version           = "1.0"
   }
 
-  cors_properties {
-    allow_credentials = false
-    allowed_headers   = ["*"]
-    allowed_methods   = ["PUT"]
-    allowed_origins   = ["example.com"]
-    exposed_headers   = ["x-example-header"]
-    max_age           = 86400
+  cors {
+    credentials_allowed = false
+    allowed_headers     = ["*"]
+    allowed_methods     = ["PUT"]
+    allowed_origins     = ["example.com"]
+    exposed_headers     = ["x-example-header"]
+    max_age_seconds     = 86400
   }
-  https_only = false
-  public     = true
+  https_only            = false
+  public_access_enabled = true
   quota {
     cpu    = "1"
     memory = "2Gi"
@@ -57,7 +57,7 @@ resource "azurerm_spring_cloud_gateway" "test" {
 
   instance_count = 2
 
-  sso_properties {
+  sso {
     client_id     = "example id"
     client_secret = "example secret"
     issuer_uri    = "/issueToken"
@@ -76,39 +76,39 @@ The following arguments are supported:
 
 ---
 
-* `api_metadata_properties` - (Optional) A `api_metadata_properties` block as defined below.
+* `api_metadata` - (Optional) A `api_metadata` block as defined below.
 
-* `cors_properties` - (Optional) A `cors_properties` block as defined below.
+* `cors` - (Optional) A `cors` block as defined below.
 
-* `https_only` - (Optional) Indicate if only https is allowed.
+* `https_only` - (Optional) is only https is allowed?
 
 * `instance_count` - (Optional) Specifies the required instance count of the Spring Cloud Gateway. Possible Values are between `1` and `500`. Defaults to `1` if not specified.
 
-* `public` - (Optional) Indicates whether the Spring Cloud Gateway exposes endpoint.
+* `public_access_enabled` - (Optional) Indicates whether the Spring Cloud Gateway exposes endpoint.
 
 * `quota` - (Optional) A `quota` block as defined below.
 
-* `sso_properties` - (Optional) A `sso_properties` block as defined below.
+* `sso` - (Optional) A `sso` block as defined below.
 
 ---
 
-A `api_metadata_properties` block supports the following:
+A `api_metadata` block supports the following:
 
 * `description` - (Optional) Detailed description of the APIs available on the Gateway instance.
 
-* `documentation` - (Optional) Location of additional documentation for the APIs available on the Gateway instance.
+* `documentation_url` - (Optional) Location of additional documentation for the APIs available on the Gateway instance.
 
 * `server_url` - (Optional) Base URL that API consumers will use to access APIs on the Gateway instance.
 
-* `title` - (Optional) Title describing the context of the APIs available on the Gateway instance.
+* `title` - (Optional) Specifies the title describing the context of the APIs available on the Gateway instance.
 
-* `version` - (Optional) Version of APIs available on this Gateway instance.
+* `version` - (Optional) Specifies the version of APIs available on this Gateway instance.
 
 ---
 
-A `cors_properties` block supports the following:
+A `cors` block supports the following:
 
-* `allow_credentials` - (Optional) Whether user credentials are supported on cross-site requests.
+* `credentials_allowed` - (Optional) is user credentials are supported on cross-site requests?
 
 * `allowed_headers` - (Optional) Allowed headers in cross-site requests. The special value `*` allows actual requests to send any header.
 
@@ -118,7 +118,7 @@ A `cors_properties` block supports the following:
 
 * `exposed_headers` - (Optional) HTTP response headers to expose for cross-site requests.
 
-* `max_age` - (Optional) How long, in seconds, the response from a pre-flight request can be cached by clients.
+* `max_age_seconds` - (Optional) How long, in seconds, the response from a pre-flight request can be cached by clients.
 
 ---
 
@@ -134,9 +134,9 @@ The `quota` block supports the following:
 
 ---
 
-A `sso_properties` block supports the following:
+A `sso` block supports the following:
 
-* `client_id` - (Optional) The public identifier for the application.
+* `client_id` - (Optional) The public_access_enabled identifier for the application.
 
 * `client_secret` - (Optional) The secret known only to the application and the authorization server.
 
@@ -150,16 +150,16 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Spring Cloud Gateway.
 
-* `url` - URL of the Spring Cloud Gateway, exposed when 'public' is true.
+* `url` - URL of the Spring Cloud Gateway, exposed when 'public_access_enabled' is true.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Gateway.
+* `create` - (Defaults to 60 minutes) Used when creating the Spring Cloud Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Gateway.
-* `update` - (Defaults to 30 minutes) Used when updating the Spring Cloud Gateway.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Spring Cloud Gateway.
+* `update` - (Defaults to 60 minutes) Used when updating the Spring Cloud Gateway.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Spring Cloud Gateway.
 
 ## Import
 
