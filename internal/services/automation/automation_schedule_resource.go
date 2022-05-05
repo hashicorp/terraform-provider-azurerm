@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -70,7 +69,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 					string(automation.ScheduleFrequencyMonth),
 					string(automation.ScheduleFrequencyOneTime),
 					string(automation.ScheduleFrequencyWeek),
-				}, !features.ThreePointOhBeta()),
+				}, false),
 			},
 
 			// ignored when frequency is `OneTime`
@@ -123,7 +122,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 						string(automation.ScheduleDayFriday),
 						string(automation.ScheduleDaySaturday),
 						string(automation.ScheduleDaySunday),
-					}, !features.ThreePointOhBeta()),
+					}, false),
 					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 				Set:           set.HashStringIgnoreCase,
@@ -161,7 +160,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 								string(automation.ScheduleDayFriday),
 								string(automation.ScheduleDaySaturday),
 								string(automation.ScheduleDaySunday),
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 						"occurrence": {
 							Type:     pluginsdk.TypeInt,
@@ -433,8 +432,5 @@ func flattenArmAutomationScheduleAdvancedMonthlyOccurrences(s *automation.Advanc
 }
 
 func getDefaultTimezone() string {
-	if features.ThreePointOhBeta() {
-		return "Etc/UTC"
-	}
-	return "UTC"
+	return "Etc/UTC"
 }

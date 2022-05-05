@@ -14,7 +14,6 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	mgmtGrpParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
@@ -72,13 +71,6 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
-			Computed: !features.ThreePointOhBeta(),
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"management_group_name"}
-				}
-				return []string{}
-			}(),
 		},
 
 		"display_name": {
@@ -110,15 +102,7 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 		//lintignore: S013
 		"policy_definition_reference": {
 			Type:     pluginsdk.TypeList,
-			Required: features.ThreePointOhBeta(),
-			Optional: !features.ThreePointOhBeta(),
-			Computed: !features.ThreePointOhBeta(),
-			ExactlyOneOf: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"policy_definitions", "policy_definition_reference"}
-				}
-				return []string{}
-			}(),
+			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"policy_definition_id": {
@@ -130,7 +114,6 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 					"parameter_values": {
 						Type:             pluginsdk.TypeString,
 						Optional:         true,
-						Computed:         !features.ThreePointOhBeta(),
 						ValidateFunc:     validation.StringIsJSON,
 						DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 					},
@@ -193,26 +176,6 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	if !features.ThreePointOhBeta() {
-		out["management_group_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			Computed:      true,
-			ConflictsWith: []string{"management_group_id"},
-			Deprecated:    "Deprecated in favour of `management_group_id`",
-		}
-		out["policy_definitions"] = &pluginsdk.Schema{
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			Computed:         true,
-			ValidateFunc:     validation.StringIsJSON,
-			DiffSuppressFunc: policyDefinitionsDiffSuppressFunc,
-			ExactlyOneOf:     []string{"policy_definitions", "policy_definition_reference"},
-			Deprecated:       "Deprecated in favour of `policy_definition_reference`",
-		}
-	}
-
 	return out
 }
 
@@ -272,21 +235,13 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 
 	name := d.Get("name").(string)
 	managementGroupName := ""
-	if !features.ThreePointOhBeta() {
-		if v, ok := d.GetOk("management_group_name"); ok {
-			managementGroupName = v.(string)
-		}
+	managementGroupID, err := mgmtGrpParse.ManagementGroupID(d.Get("management_group_id").(string))
+	if err != nil {
+		return err
 	}
+	managementGroupName = managementGroupID.Name
 
-	if v, ok := d.GetOk("management_group_id"); ok {
-		id, err := mgmtGrpParse.ManagementGroupID(v.(string))
-		if err != nil {
-			return err
-		}
-		managementGroupName = id.Name
-	}
-
-	existing, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupName)
+	existing, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupID.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for presence of existing Policy Set Definition %q: %+v", name, err)
@@ -317,17 +272,6 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 			return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 		}
 		properties.Parameters = parameters
-	}
-
-	if !features.ThreePointOhBeta() {
-		if v, ok := d.GetOk("policy_definitions"); ok {
-			var policyDefinitions []policy.DefinitionReference
-			err := json.Unmarshal([]byte(v.(string)), &policyDefinitions)
-			if err != nil {
-				return fmt.Errorf("expanding JSON for `policy_definitions`: %+v", err)
-			}
-			properties.PolicyDefinitions = &policyDefinitions
-		}
 	}
 
 	if v, ok := d.GetOk("policy_definition_reference"); ok {
@@ -460,15 +404,6 @@ func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interf
 		existing.SetDefinitionProperties.PolicyDefinitionGroups = expandAzureRMPolicySetDefinitionPolicyGroups(d.Get("policy_definition_group").(*pluginsdk.Set).List())
 	}
 
-	if !features.ThreePointOhBeta() && d.HasChange("policy_definitions") {
-		var policyDefinitions []policy.DefinitionReference
-		err := json.Unmarshal([]byte(d.Get("policy_definitions").(string)), &policyDefinitions)
-		if err != nil {
-			return fmt.Errorf("expanding JSON for `policy_definitions`: %+v", err)
-		}
-		existing.SetDefinitionProperties.PolicyDefinitions = &policyDefinitions
-	}
-
 	if d.HasChange("policy_definition_reference") {
 		definitions, err := expandAzureRMPolicySetDefinitionPolicyDefinitionsUpdate(d)
 		if err != nil {
@@ -560,14 +495,6 @@ func resourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interfac
 			}
 
 			d.Set("parameters", parametersStr)
-		}
-
-		if policyDefinitions := props.PolicyDefinitions; policyDefinitions != nil && !features.ThreePointOhBeta() {
-			policyDefinitionsRes, err := json.Marshal(policyDefinitions)
-			if err != nil {
-				return fmt.Errorf("flattening JSON for `policy_defintions`: %+v", err)
-			}
-			d.Set("policy_definitions", string(policyDefinitionsRes))
 		}
 
 		references, err := flattenAzureRMPolicySetDefinitionPolicyDefinitions(props.PolicyDefinitions)

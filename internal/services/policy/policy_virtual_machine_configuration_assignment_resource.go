@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
@@ -119,14 +118,6 @@ func resourcePolicyVirtualMachineConfigurationAssignmentSchema() map[string]*plu
 				},
 			},
 		},
-	}
-	if !features.ThreePointOhBeta() {
-		s := out["configuration"].Elem.(*pluginsdk.Resource)
-		s.Schema["name"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Deprecated: "This field is no longer used and will be removed in the next major version of the Azure Provider",
-		}
 	}
 	return out
 }
