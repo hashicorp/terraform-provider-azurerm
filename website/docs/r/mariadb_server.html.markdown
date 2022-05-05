@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `version` - (Required) Specifies the version of MariaDB to use. Possible values are `10.2` and `10.3`. Changing this forces a new resource to be created.
 
-* `administrator_login` - (Required) The Administrator Login for the MariaDB Server. Changing this forces a new resource to be created.
+* `administrator_login` - (Required) The Administrator login for the MariaDB Server. Changing this forces a new resource to be created.
 
 * `administrator_login_password` - (Required) The Password associated with the `administrator_login` for the MariaDB Server.
 

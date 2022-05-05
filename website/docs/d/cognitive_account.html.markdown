@@ -38,7 +38,7 @@ The following attributes are exported:
 
 * `kind` - The kind of the Cognitive Services Account
 
-* `sku_name` - The sku name of the Cognitive Services Account
+* `sku_name` - The SKU name of the Cognitive Services Account
 
 * `endpoint` - The endpoint of the Cognitive Services Account
 

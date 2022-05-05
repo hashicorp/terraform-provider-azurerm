@@ -24,7 +24,7 @@ Manages a Linux Virtual Machine.
 
 ## Example Usage
 
-This example provisions a basic Linux Virtual Machine on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine` resource can be found [in the ./examples/virtual-machines/linux directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/linux).
+This example provisions a basic Linux Virtual Machine on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine` resource can be found [in the ./examples/virtual-machines/linux directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/linux).
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -99,7 +99,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Linux Virtual Machine. Changing this forces a new resource to be created.
 
-* `network_interface_ids` - (Required). A list of Network Interface ID's which should be attached to this Virtual Machine. The first Network Interface ID in this list will be the Primary Network Interface on the Virtual Machine.
+* `network_interface_ids` - (Required). A list of Network Interface IDs which should be attached to this Virtual Machine. The first Network Interface ID in this list will be the Primary Network Interface on the Virtual Machine.
 
 * `os_disk` - (Required) A `os_disk` block as defined below.
 
@@ -152,7 +152,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `patch_mode` - (Optional) Specifies the mode of in-guest patching to this Linux Virtual Machine. Possible values are `AutomaticByPlatform` and `ImageDefault`. Defaults to `ImageDefault`. For more informaton on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
+* `patch_mode` - (Optional) Specifies the mode of in-guest patching to this Linux Virtual Machine. Possible values are `AutomaticByPlatform` and `ImageDefault`. Defaults to `ImageDefault`. For more information on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
 
 -> **NOTE:** If `patch_mode` is set to `AutomaticByPlatform` then `provision_vm_agent` must also be set to `true`.
 
@@ -167,6 +167,8 @@ The following arguments are supported:
 * `priority`- (Optional) Specifies the priority of this Virtual Machine. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this forces a new resource to be created.
 
 * `provision_vm_agent` - (Optional) Should the Azure VM Agent be provisioned on this Virtual Machine? Defaults to `true`. Changing this forces a new resource to be created.
+
+~> **NOTE:** If `provision_vm_agent` is set to `false` then `allow_extension_operations` must also be set to `false`.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group which the Virtual Machine should be assigned to.
 
@@ -304,7 +306,7 @@ A `termination_notification` block supports the following:
 
 * `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine? Defaults to `false`.
 
-* `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
+* `timeout` - (Optional) Length of time (in minutes, between `5` and `15`) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
 
 ~> **NOTE:** For more information about the termination notification, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
 

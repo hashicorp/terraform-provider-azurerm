@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_image" "example" {
   name                = "acctest"
-  location            = "West US"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
   os_disk {
@@ -42,7 +42,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_image" "example" {
   name                      = "acctest"
-  location                  = "West US"
+  location                  = azurerm_resource_group.example.location
   resource_group_name       = azurerm_resource_group.example.name
   source_virtual_machine_id = "{vm_id}"
 }

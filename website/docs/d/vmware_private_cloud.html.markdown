@@ -3,12 +3,12 @@ subcategory: "VMware (AVS)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_vmware_private_cloud"
 description: |-
-  Gets information about an existing Vmware Private Cloud.
+  Gets information about an existing VMware Private Cloud.
 ---
 
 # Data Source: azurerm_vmware_private_cloud
 
-Use this data source to access information about an existing Vmware Private Cloud.
+Use this data source to access information about an existing VMware Private Cloud.
 
 ## Example Usage
 
@@ -29,25 +29,25 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of this Vmware Private Cloud.
+* `name` - (Required) The name of this VMware Private Cloud.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Vmware Private Cloud exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the VMware Private Cloud exists.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Vmware Private Cloud.
+* `id` - The ID of the VMware Private Cloud.
 
-* `location` - The Azure Region where the Vmware Private Cloud exists.
+* `location` - The Azure Region where the VMware Private Cloud exists.
 
 * `circuit` - A `circuit` block as defined below.
 
-* `internet_connection_enabled` - Is the Vmware Private Cluster connected to the internet?
+* `internet_connection_enabled` - Is the VMware Private Cluster connected to the internet?
 
 * `management_cluster` - A `management_cluster` block as defined below.
 
-* `network_subnet_cidr` - The subnet cidr of the Vmware Private Cloud.
+* `network_subnet_cidr` - The subnet CIDR of the VMware Private Cloud.
 
 * `hcx_cloud_manager_endpoint` - The endpoint for the HCX Cloud Manager.
 
@@ -67,7 +67,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `vmotion_subnet_cidr` - The network which is used for live migration of virtual machines.
 
-* `tags` - A mapping of tags assigned to the Vmware Private Cloud.
+* `tags` - A mapping of tags assigned to the VMware Private Cloud.
 
 ---
 
@@ -95,4 +95,4 @@ A `management_cluster` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Vmware Private Cloud.
+* `read` - (Defaults to 5 minutes) Used when retrieving the VMware Private Cloud.

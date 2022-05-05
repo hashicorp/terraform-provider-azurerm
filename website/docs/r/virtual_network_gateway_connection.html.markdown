@@ -269,8 +269,8 @@ Changing this value will force a resource to be created.
     Only a single policy can be defined for a connection. For details on
     custom policies refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-ipsecikepolicy-rm-powershell).
 
-* `traffic_selector_policy` A `traffic_selector_policy` which allows to specify traffic selector policy proposal to be used in a virtual network gateway connection.
-    Only one block can be defined for a connection.
+* `traffic_selector_policy` (Optional) One or more `traffic_selector_policy` blocks which are documented below. 
+    A `traffic_selector_policy` allows to specify a traffic selector policy proposal to be used in a virtual network gateway connection.
     For details about traffic selectors refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-connect-multiple-policybased-rm-ps).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -302,6 +302,12 @@ The `ipsec_policy` block supports:
 
 * `sa_lifetime` - (Optional) The IPSec SA lifetime in seconds. Must be at least
     `300` seconds. Defaults to `27000` seconds.
+
+The `traffic_selector_policy` block supports:
+
+* `local_address_cidrs` - List of local CIDRs.
+
+* `remote_address_cidrs` - List of remote CIDRs.
 
 ## Attributes Reference
 

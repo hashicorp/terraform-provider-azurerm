@@ -651,10 +651,6 @@ func expandVirtualNetworkGatewayBgpSettings(id parse.VirtualNetworkGatewayId, d 
 	bgp := bgpSets[0].(map[string]interface{})
 
 	asn := int64(bgp["asn"].(int))
-	var peeringAddress string
-	if !features.ThreePointOhBeta() {
-		peeringAddress = bgp["peering_address"].(string)
-	}
 	peerWeight := int32(bgp["peer_weight"].(int))
 
 	ipConfiguration := d.Get("ip_configuration").([]interface{})
@@ -665,7 +661,6 @@ func expandVirtualNetworkGatewayBgpSettings(id parse.VirtualNetworkGatewayId, d 
 
 	return &network.BgpSettings{
 		Asn:                 &asn,
-		BgpPeeringAddress:   &peeringAddress,
 		PeerWeight:          &peerWeight,
 		BgpPeeringAddresses: peeringAddresses,
 	}, nil
@@ -856,9 +851,6 @@ func flattenVirtualNetworkGatewayBgpSettings(settings *network.BgpSettings) ([]i
 
 		if asn := settings.Asn; asn != nil {
 			flat["asn"] = int(*asn)
-		}
-		if address := settings.BgpPeeringAddress; !features.ThreePointOhBeta() && address != nil {
-			flat["peering_address"] = *address
 		}
 		if weight := settings.PeerWeight; weight != nil {
 			flat["peer_weight"] = int(*weight)

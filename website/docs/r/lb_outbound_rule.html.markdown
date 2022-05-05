@@ -22,14 +22,14 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_public_ip" "example" {
   name                = "PublicIPForLB"
-  location            = "West US"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "example" {
   name                = "TestLoadBalancer"
-  location            = "West US"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
   frontend_ip_configuration {
@@ -66,7 +66,7 @@ The following arguments are supported:
 * `backend_address_pool_id` - (Required) The ID of the Backend Address Pool. Outbound traffic is randomly load balanced across IPs in the backend IPs.
 * `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Udp`, `Tcp` or `All`.
 * `enable_tcp_reset` - (Optional) Receive bidirectional TCP Reset on TCP flow idle timeout or unexpected connection termination. This element is only used when the protocol is set to TCP.
-* `allocated_outbound_ports` - (Optional) The number of outbound ports to be used for NAT.
+* `allocated_outbound_ports` - (Optional) The number of outbound ports to be used for NAT. Defaults to `1024`.
 * `idle_timeout_in_minutes` - (Optional) The timeout for the TCP idle connection
 
 ---

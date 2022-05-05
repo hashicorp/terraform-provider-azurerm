@@ -27,7 +27,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_storage_account" "example" {
   name                     = "storageaccountname"
   resource_group_name      = azurerm_resource_group.example.name
-  location                 = "westus"
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
@@ -86,6 +86,9 @@ output "sas_url_query_string" {
 * `services` - A `services` block as defined below.
 * `start` - The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
 * `expiry` - The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.
+
+-> **NOTE:** The [ISO-8601 Time offset from UTC](https://en.wikipedia.org/wiki/ISO_8601#Time_offsets_from_UTC) is currently not supported by the service, which will result into 409 error.
+
 * `permissions` - A `permissions` block as defined below.
 
 ---

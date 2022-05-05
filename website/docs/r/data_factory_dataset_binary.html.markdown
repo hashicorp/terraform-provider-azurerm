@@ -110,6 +110,8 @@ A `azure_blob_storage_location` block supports the following:
 
 * `filename` - (Optional) The filename of the file in the blob container.
 
+* `dynamic_container_enabled` - (Optional) Is the `container` using dynamic expression, function or system variables? Defaults to `false`.
+
 * `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
 
 * `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
@@ -144,7 +146,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Data Factorie Binary Datasets can be imported using the `resource id`, e.g.
+Data Factory Binary Datasets can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_data_factory_dataset_binary.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/datasets/example

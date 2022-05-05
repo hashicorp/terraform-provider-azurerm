@@ -25,7 +25,7 @@ We recommend using either a Service Principal or Managed Service Identity when r
 
 A Service Principal is a security principal within Azure Active Directory which can be granted access to resources within Azure Subscriptions. To authenticate with a Service Principal, you will need to create an Application object within Azure Active Directory, which you will use as a means of authentication, either [using a Client Secret](service_principal_client_secret.html) or a Client Certificate (which is documented in this guide). This can be done using the Azure Portal.
 
-This guide will cover how to generate a client certificate, how to create an Application and linked Service Principal, and then how to assign the Client Certificate to the Application so that it can be used for authentication. Once that's done finally we're going to grant the Service Principal permission to manage resources in the Subscription - to do this we're going to assign `Contributor` rights to the Subscription - however, [it's possible to assign other permissions](https://azure.microsoft.com/en-gb/documentation/articles/role-based-access-built-in-roles/) depending on your configuration.
+This guide will cover how to generate a client certificate, how to create an Application and linked Service Principal, and then how to assign the Client Certificate to the Application so that it can be used for authentication. Once that's done finally we're going to grant the Service Principal permission to manage resources in the Subscription - to do this we're going to assign `Contributor` rights to the Subscription - however, [it's possible to assign other permissions](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles) depending on your configuration.
 
 ---
 
@@ -77,7 +77,7 @@ The Public Key associated with the generated Certificate can be uploaded by sele
 
 Now that we've created the Application within Azure Active Directory and assigned the certificate we're using for authentication, we can now grant the Application permissions to manage the Subscription via its linked Service Principal. To do this, [navigate to the **Subscriptions** blade within the Azure Portal](https://portal.azure.com/#blade/Microsoft_Azure_Billing/SubscriptionsBlade), select the Subscription you wish to use, then click **Access Control (IAM)** and finally **Add** > **Add role assignment**.
 
-Firstly, specify a Role which grants the appropriate permissions needed for the Service Principal (for example, `Contributor` will grant Read/Write on all resources in the Subscription). More information about [the built in roles can be found here](https://azure.microsoft.com/en-gb/documentation/articles/role-based-access-built-in-roles/).
+Firstly, specify a Role which grants the appropriate permissions needed for the Service Principal (for example, `Contributor` will grant Read/Write on all resources in the Subscription). More information about [the built in roles can be found here](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles).
 
 Secondly, search for and select the name of the Service Principal created in Azure Active Directory to assign it this role - then press **Save**.
 

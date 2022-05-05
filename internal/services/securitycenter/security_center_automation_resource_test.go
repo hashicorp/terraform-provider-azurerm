@@ -204,7 +204,6 @@ func TestAccSecurityCenterAutomation_sourceMulti(t *testing.T) {
 				check.That(data.ResourceName).Key("source.7.rule_set.#").HasValue("0"),
 				check.That(data.ResourceName).Key("source.8.rule_set.#").HasValue("0"),
 				check.That(data.ResourceName).Key("source.9.rule_set.#").HasValue("0"),
-				check.That(data.ResourceName).Key("source.10.rule_set.#").HasValue("0"),
 			),
 		},
 		data.ImportStep("action.0.trigger_url", "action.1.trigger_url"), // trigger_url needs to be ignored
@@ -361,7 +360,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type              = "eventHub"
+    type              = "eventhub"
     resource_id       = azurerm_eventhub.test.id
     connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_string
   }
@@ -769,10 +768,6 @@ resource "azurerm_security_center_automation" "test" {
 
   source {
     event_source = "SecureScoreControls"
-  }
-
-  source {
-    event_source = "AssessmentsSnapshot"
   }
 
   source {

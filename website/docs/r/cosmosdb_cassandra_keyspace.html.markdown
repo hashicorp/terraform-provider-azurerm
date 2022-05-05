@@ -13,14 +13,15 @@ Manages a Cassandra KeySpace within a Cosmos DB Account.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "tflex-cosmosdb-account-rg"
+resource "azurerm_resource_group" "example" {
+  name     = "tflex-cosmosdb-account-rg"
+  location = "West Europe"
 }
 
 resource "azurerm_cosmosdb_account" "example" {
   name                = "tfex-cosmosdb-account"
-  resource_group_name = data.azurerm_resource_group.example.name
-  location            = data.azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   offer_type          = "Standard"
 
   capabilities {
@@ -32,7 +33,7 @@ resource "azurerm_cosmosdb_account" "example" {
   }
 
   geo_location {
-    location          = "West US"
+    location          = azurerm_resource_group.example.location
     failover_priority = 0
   }
 }
@@ -67,7 +68,7 @@ The following arguments are supported:
 
 An `autoscale_settings` block supports the following:
 
-* `max_throughput` - (Optional) The maximum throughput of the Cassandra KeySpace (RU/s). Must be between `4,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
+* `max_throughput` - (Optional) The maximum throughput of the Cassandra KeySpace (RU/s). Must be between `1,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
 
 
 ## Attributes Reference

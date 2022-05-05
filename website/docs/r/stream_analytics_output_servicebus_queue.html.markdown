@@ -13,8 +13,9 @@ Manages a Stream Analytics Output to a ServiceBus Queue.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
 }
 
 data "azurerm_stream_analytics_job" "example" {
@@ -24,8 +25,8 @@ data "azurerm_stream_analytics_job" "example" {
 
 resource "azurerm_servicebus_namespace" "example" {
   name                = "example-namespace"
-  location            = data.azurerm_resource_group.example.location
-  resource_group_name = data.azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 }
 
@@ -69,6 +70,12 @@ The following arguments are supported:
 * `shared_access_policy_name` - (Required) The shared access policy name for the Event Hub, Service Bus Queue, Service Bus Topic, etc.
 
 * `serialization` - (Required) A `serialization` block as defined below.
+
+* `property_columns` - (Optional) A list of property columns to add to the Service Bus Queue output.
+
+* `system_property_columns` - (Optional) A key-value pair of system property columns that will be attached to the outgoing messages for the Service Bus Queue Output.
+
+-> **NOTE:** The acceptable keys are `ContentType`, `CorrelationId`, `Label`, `MessageId`, `PartitionKey`, `ReplyTo`, `ReplyToSessionId`, `ScheduledEnqueueTimeUtc`, `SessionId`, `TimeToLive` and `To`.
 
 ---
 

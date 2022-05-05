@@ -510,7 +510,7 @@ resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
   enabled_protocol     = "%s"
-  quota                = 1
+  quota                = 100
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, protocol)
 }

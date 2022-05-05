@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `peer_asn` - (Optional) The peer autonomous system number for the Virtual Hub Bgp Connection. Changing this forces a new resource to be created.
 
-* `peer_ip` - (Optional) The peer ip address for the Virtual Hub Bgp Connection. Changing this forces a new resource to be created.
+* `peer_ip` - (Optional) The peer IP address for the Virtual Hub Bgp Connection. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

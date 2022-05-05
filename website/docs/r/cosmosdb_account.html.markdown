@@ -13,7 +13,7 @@ Manages a CosmosDB (formally DocumentDB) Account.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = var.resource_group_name
   location = var.resource_group_location
 }
@@ -25,8 +25,8 @@ resource "random_integer" "ri" {
 
 resource "azurerm_cosmosdb_account" "db" {
   name                = "tfex-cosmos-db-${random_integer.ri.result}"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   offer_type          = "Standard"
   kind                = "MongoDB"
 
@@ -60,7 +60,7 @@ resource "azurerm_cosmosdb_account" "db" {
   }
 
   geo_location {
-    location          = azurerm_resource_group.rg.location
+    location          = azurerm_resource_group.example.location
     failover_priority = 0
   }
 }
@@ -128,7 +128,7 @@ The following arguments are supported:
 
 * `mongo_server_version` - (Optional) The Server Version of a MongoDB account. Possible values are `4.0`, `3.6`, and `3.2`.
 
-* `network_acl_bypass_for_azure_services` - (Optional) If azure services can bypass ACLs. Defaults to `false`.
+* `network_acl_bypass_for_azure_services` - (Optional) If Azure services can bypass ACLs. Defaults to `false`.
 
 * `network_acl_bypass_ids` - (Optional) The list of resource Ids for Network Acl Bypass for this Cosmos DB account.
 
@@ -207,7 +207,7 @@ A `cors_rule` block supports the following:
 
 * `allowed_headers` - (Required) A list of headers that are allowed to be a part of the cross-origin request.
 
-* `allowed_methods` - (Required) A list of http headers that are allowed to be executed by the origin. Valid options are  `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS`, `PUT` or `PATCH`.
+* `allowed_methods` - (Required) A list of HTTP headers that are allowed to be executed by the origin. Valid options are  `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS`, `PUT` or `PATCH`.
 
 * `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS.
 

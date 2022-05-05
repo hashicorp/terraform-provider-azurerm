@@ -139,7 +139,7 @@ An `identity` block supports the following:
 * `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Blueprint.
 
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the Blueprint Assignment
 

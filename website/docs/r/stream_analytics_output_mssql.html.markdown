@@ -13,8 +13,9 @@ Manages a Stream Analytics Output to Microsoft SQL Server Database.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
 }
 
 data "azurerm_stream_analytics_job" "example" {
@@ -72,6 +73,10 @@ The following arguments are supported:
 * `password` - (Required) Password used together with username, to login to the Microsoft SQL Server. Changing this forces a new resource to be created.
 
 * `table` - (Required) Table in the database that the output points to. Changing this forces a new resource to be created.
+
+* `max_batch_count` - (Optional) The max batch count to write to the SQL Database. Defaults to `10000`. Possible values are between `1` and `1073741824`.
+
+* `max_writer_count` - (Optional) The max writer count for the SQL Database. Defaults to `1`. Possible values are `0` which bases the writer count on the query partition and `1` which corresponds to a single writer.
 
 ## Attributes Reference
 

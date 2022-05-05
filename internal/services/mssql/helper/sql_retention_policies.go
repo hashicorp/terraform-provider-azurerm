@@ -70,6 +70,12 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: validation.IntBetween(1, 35),
 				},
+				"backup_interval_in_hours": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntInSlice([]int{12, 24}),
+					Default:      12,
+				},
 			},
 		},
 	}
@@ -158,22 +164,30 @@ func ExpandShortTermRetentionPolicy(input []interface{}) *sql.BackupShortTermRet
 		shortTermPolicyProperties.RetentionDays = utils.Int32(int32(v.(int)))
 	}
 
+	if v, ok := shortTermRetentionPolicy["backup_interval_in_hours"]; ok {
+		shortTermPolicyProperties.DiffBackupIntervalInHours = utils.Int32(int32(v.(int)))
+	}
+
 	return &shortTermPolicyProperties
 }
 
 func FlattenShortTermRetentionPolicy(shortTermRetentionPolicy *sql.BackupShortTermRetentionPolicy, d *pluginsdk.ResourceData) []interface{} {
+	result := make([]interface{}, 0)
+
 	if shortTermRetentionPolicy == nil {
-		return []interface{}{}
+		return result
 	}
 
-	retentionDays := int32(7)
+	flattenShortTermRetentionPolicy := map[string]interface{}{}
+
+	flattenShortTermRetentionPolicy["retention_days"] = int32(7)
 	if shortTermRetentionPolicy.RetentionDays != nil {
-		retentionDays = *shortTermRetentionPolicy.RetentionDays
+		flattenShortTermRetentionPolicy["retention_days"] = *shortTermRetentionPolicy.RetentionDays
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"retention_days": retentionDays,
-		},
+	if shortTermRetentionPolicy.DiffBackupIntervalInHours != nil {
+		flattenShortTermRetentionPolicy["backup_interval_in_hours"] = *shortTermRetentionPolicy.DiffBackupIntervalInHours
 	}
+	result = append(result, flattenShortTermRetentionPolicy)
+	return result
 }

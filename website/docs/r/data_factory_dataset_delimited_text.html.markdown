@@ -132,6 +132,8 @@ An `azure_blob_storage_location` block supports the following:
 
 * `filename` - (Optional) The filename of the file.
 
+* `dynamic_container_enabled` - (Optional) Is the `container` using dynamic expression, function or system variables? Defaults to `false`.
+
 * `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
 
 * `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.

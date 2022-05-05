@@ -181,6 +181,21 @@ func TestAccVPNServerConfiguration_multipleAuthTypes(t *testing.T) {
 	})
 }
 
+func TestAccVPNServerConfiguration_withoutRadiusServerRootCertificate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration", "test")
+	r := VPNServerConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withoutRadiusServerRootCertificate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VPNServerConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VpnServerConfigurationID(state.ID)
 	if err != nil {
@@ -526,6 +541,27 @@ uGLOhRJOFprPdoDIUBB+tmCl3oDcBy3vnUeOEioz8zAkprcb3GHwHAK+vHmmfgcn
 WsfMLH4JCLa/tRYL+Rw/N3ybCkDp00s0WUZ+AoDywSl0Q/ZEnNY0MsFiw6LyIdbq
 M/s/1JRtO3bDSzD9TazRVzn2oBqzSa8VgIo5C1nOnoAKJTlsClJKvIhnRlaLQqk=
 EOF
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r VPNServerConfigurationResource) withoutRadiusServerRootCertificate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_vpn_server_configuration" "test" {
+  name                     = "acctestVPNSC-%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  vpn_authentication_types = ["Radius"]
+
+  radius {
+    server {
+      address = "10.105.1.1"
+      secret  = "vindicators-the-return-of-worldender"
+      score   = 15
+    }
   }
 }
 `, r.template(data), data.RandomInteger)

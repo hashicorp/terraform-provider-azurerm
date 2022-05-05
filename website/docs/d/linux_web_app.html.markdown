@@ -83,6 +83,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `site_credential` - A `site_credential` block as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `storage_account` - A `storage_account` block as defined below.
 
 * `tags` - A mapping of tags assigned to the Linux Web App.
@@ -123,9 +125,9 @@ An `application_stack` block exports the following:
 
 * `docker_image_tag` - The image Tag.
 
-* `dotnet_version` - The version of .Net in use.
+* `dotnet_version` - The version of .NET in use.
 
-* `java_server` - The java server type.
+* `java_server` - The Java server type.
 
 * `java_server_version` - The Version of the `java_server` in use.
 
@@ -185,6 +187,8 @@ A `auto_heal_setting` block exports the following:
 
 A `azure_blob_storage` block exports the following:
 
+* `level` - The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
+
 * `retention_in_days` - The time in days after which to remove blobs. A value of `0` means no retention.
 
 * `sas_url` - The SAS url to an Azure blob container.
@@ -225,11 +229,11 @@ A `facebook` block exports the following:
 
 * `app_id` - The App ID of the Facebook app used for login.
 
-* `app_secret` - The App Secret of the Facebook app used for Facebook Login.
+* `app_secret` - The App Secret of the Facebook app used for Facebook login.
 
-* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook Login.
+* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Facebook Login authentication.
+* `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Facebook login authentication.
 
 ---
 
@@ -245,11 +249,11 @@ A `github` block exports the following:
 
 * `client_id` - The ID of the GitHub app used for login.
 
-* `client_secret` - The Client Secret of the GitHub app used for GitHub Login.
+* `client_secret` - The client secret of the GitHub app used for GitHub login.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes in the GitHub Login authentication.
+* `oauth_scopes` - A list of OAuth 2.0 scopes in the GitHub login authentication.
 
 ---
 
@@ -259,7 +263,7 @@ A `google` block exports the following:
 
 * `client_secret` - The client secret associated with the Google web application.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google login.
 
 * `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Google Sign-In authentication.
 
@@ -434,6 +438,14 @@ A `status_code` block exports the following:
 * `sub_status` - The Request Sub Status of the Status Code.
 
 * `win32_status` - The Win32 Status Code of the Request.
+
+---
+
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - A list of `connection_string` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
 
 ---
 

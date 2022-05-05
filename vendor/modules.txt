@@ -1,6 +1,6 @@
 # cloud.google.com/go/storage v1.16.0
 ## explicit; go 1.11
-# github.com/Azure/azure-sdk-for-go v63.0.0+incompatible
+# github.com/Azure/azure-sdk-for-go v63.4.0+incompatible
 ## explicit
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad
@@ -81,7 +81,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-pr
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql
-github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine
+github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2021-11-01-preview/sqlvirtualmachine
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/managedvirtualnetwork
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-08-01-preview/accesscontrol
 github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
@@ -114,14 +114,14 @@ github.com/Azure/azure-sdk-for-go/version
 # github.com/Azure/go-autorest v14.2.0+incompatible
 ## explicit
 github.com/Azure/go-autorest
-# github.com/Azure/go-autorest/autorest v0.11.24
+# github.com/Azure/go-autorest/autorest v0.11.26
 ## explicit; go 1.15
 github.com/Azure/go-autorest/autorest
 github.com/Azure/go-autorest/autorest/azure
 # github.com/Azure/go-autorest/autorest/adal v0.9.18
 ## explicit; go 1.15
 github.com/Azure/go-autorest/autorest/adal
-# github.com/Azure/go-autorest/autorest/azure/cli v0.4.4
+# github.com/Azure/go-autorest/autorest/azure/cli v0.4.5
 ## explicit; go 1.15
 github.com/Azure/go-autorest/autorest/azure/cli
 # github.com/Azure/go-autorest/autorest/date v0.3.0
@@ -168,8 +168,8 @@ github.com/fatih/color
 # github.com/gofrs/uuid v4.0.0+incompatible
 ## explicit
 github.com/gofrs/uuid
-# github.com/golang-jwt/jwt/v4 v4.2.0
-## explicit; go 1.15
+# github.com/golang-jwt/jwt/v4 v4.4.1
+## explicit; go 1.16
 github.com/golang-jwt/jwt/v4
 # github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 ## explicit
@@ -195,7 +195,7 @@ github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.28.0
+# github.com/hashicorp/go-azure-helpers v0.30.0
 ## explicit; go 1.17
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/lang/dates
@@ -230,7 +230,6 @@ github.com/hashicorp/go-cty/cty/msgpack
 github.com/hashicorp/go-cty/cty/set
 # github.com/hashicorp/go-getter v1.5.4
 ## explicit; go 1.13
-github.com/hashicorp/go-getter/helper/url
 # github.com/hashicorp/go-hclog v0.16.1
 ## explicit; go 1.13
 github.com/hashicorp/go-hclog
@@ -339,7 +338,7 @@ github.com/hashicorp/yamux
 # github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220407025246-3a3ee0ab24a8
 ## explicit; go 1.16
 github.com/magodo/terraform-provider-azurerm-example-gen/examplegen
-# github.com/manicminer/hamilton v0.43.0
+# github.com/manicminer/hamilton v0.44.0
 ## explicit; go 1.16
 github.com/manicminer/hamilton/auth
 github.com/manicminer/hamilton/environments
@@ -390,7 +389,7 @@ github.com/sergi/go-diff/diffmatchpatch
 # github.com/shopspring/decimal v1.2.0
 ## explicit; go 1.13
 github.com/shopspring/decimal
-# github.com/tombuildsstuff/giovanni v0.18.0
+# github.com/tombuildsstuff/giovanni v0.20.0
 ## explicit; go 1.13
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs
@@ -422,7 +421,7 @@ github.com/zclconf/go-cty/cty/function/stdlib
 github.com/zclconf/go-cty/cty/gocty
 github.com/zclconf/go-cty/cty/json
 github.com/zclconf/go-cty/cty/set
-# golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
+# golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 ## explicit; go 1.17
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5
@@ -430,7 +429,6 @@ golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/curve25519/internal/field
 golang.org/x/crypto/ed25519
-golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/openpgp

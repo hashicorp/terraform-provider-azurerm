@@ -54,7 +54,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	workflowClient := logic.NewWorkflowsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workflowClient.Client, o.ResourceManagerAuthorizer)
 
-	triggersClient := logic.NewWorkflowTriggersClient(o.SubscriptionId)
+	triggersClient := logic.NewWorkflowTriggersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&triggersClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

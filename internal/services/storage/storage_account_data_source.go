@@ -92,6 +92,11 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"nfsv3_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"primary_location": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -334,6 +339,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("min_tls_version", string(props.MinimumTLSVersion))
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
+		d.Set("nfsv3_enabled", props.EnableNfsV3)
 		d.Set("allow_nested_items_to_be_public", props.AllowBlobPublicAccess)
 
 		if customDomain := props.CustomDomain; customDomain != nil {

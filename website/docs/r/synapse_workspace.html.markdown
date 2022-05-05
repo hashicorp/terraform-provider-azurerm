@@ -179,7 +179,7 @@ The following arguments are supported:
 
 * `storage_data_lake_gen2_filesystem_id` - (Required) Specifies the ID of storage data lake gen2 filesystem resource. Changing this forces a new resource to be created.
 
-* `sql_administrator_login` - (Required) Specifies The Login Name of the SQL administrator. Changing this forces a new resource to be created.
+* `sql_administrator_login` - (Required) Specifies The login name of the SQL administrator. Changing this forces a new resource to be created.
 
 * `sql_administrator_login_password` - (Required) The Password associated with the `sql_administrator_login` for the SQL administrator.
 
@@ -197,7 +197,7 @@ The following arguments are supported:
 
 * `github_repo` - (Optional) A `github_repo` block as defined below.
 
-* `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed Aad Tenant Ids For Linking. 
+* `linking_allowed_for_aad_tenant_ids` - (Optional) Allowed AAD Tenant Ids For Linking. 
 
 * `managed_resource_group_name` - (Optional) Workspace managed resource group.
 
