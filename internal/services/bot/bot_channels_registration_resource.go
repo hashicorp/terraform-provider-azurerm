@@ -230,10 +230,10 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 
 	d.SetId(resourceId.ID())
 
-	// d.GetOk cannot identify whether user sets the property that is bool type and the computed attribute is true. So it has to identify it using `d.GetRawConfig()`
+	// d.GetOk cannot identify whether user sets the property that is bool type and `public_network_access_enabled` is set as `false`. So it has to identify it using `d.GetRawConfig()`
 	publicNetworkAccessEnabled := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]
 	if !features.FourPointOhBeta() {
-		// d.GetOk cannot identify whether user sets the property that is bool type and the computed attribute is true. So it has to identify it using `d.GetRawConfig()`
+		// d.GetOk cannot identify whether user sets the property that is bool type and `isolated_network_enabled` is set as `false`. So it has to identify it using `d.GetRawConfig()`
 		isolatedNetworkEnabled := d.GetRawConfig().AsValueMap()["isolated_network_enabled"]
 		if !isolatedNetworkEnabled.IsNull() || !publicNetworkAccessEnabled.IsNull() {
 			return resourceBotChannelsRegistrationUpdate(d, meta)
@@ -343,7 +343,7 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if !features.FourPointOhBeta() {
-		// d.GetOk cannot identify whether user sets the property that is bool type and the computed attribute is true. So it has to identify it using `d.GetRawConfig()`
+		// d.GetOk cannot identify whether user sets the property that is bool type and `isolated_network_enabled` is set as `false`. So it has to identify it using `d.GetRawConfig()`
 		if v := d.GetRawConfig().AsValueMap()["isolated_network_enabled"]; !v.IsNull() {
 			publicNetworkAccessEnabled := botservice.PublicNetworkAccessEnabled
 			if v.True() {
@@ -353,7 +353,7 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
-	// d.GetOk cannot identify whether user sets the property that is bool type and the computed attribute is true. So it has to identify it using `d.GetRawConfig()`
+	// d.GetOk cannot identify whether user sets the property that is bool type and `public_network_access_enabled` is set as `false`. So it has to identify it using `d.GetRawConfig()`
 	if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
 		publicNetworkAccessEnabled := botservice.PublicNetworkAccessEnabled
 		if v.False() {
