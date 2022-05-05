@@ -127,7 +127,6 @@ resource "azurerm_bot_channels_registration" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "F0"
   microsoft_app_id    = data.azurerm_client_config.current.client_id
-  public_network_access_enabled = false
 
   tags = {
     environment = "production"
@@ -249,10 +248,10 @@ resource "azurerm_bot_channels_registration" "test" {
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
   developer_app_insights_application_id = azurerm_application_insights.test2.app_id
 
-  description                   = "TestDescription2"
+  description              = "TestDescription2"
   isolated_network_enabled = false
-  icon_url                      = "http://myprofile/myicon2.png"
-  cmk_key_vault_url             = azurerm_key_vault_key.test2.id
+  icon_url                 = "http://myprofile/myicon2.png"
+  cmk_key_vault_url        = azurerm_key_vault_key.test2.id
 
   tags = {
     environment = "production2"
@@ -470,10 +469,10 @@ resource "azurerm_bot_channels_registration" "test" {
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
   developer_app_insights_application_id = azurerm_application_insights.test.app_id
 
-  description                   = "TestDescription"
+  description              = "TestDescription"
   isolated_network_enabled = true
-  icon_url                      = "http://myprofile/myicon.png"
-  cmk_key_vault_url             = azurerm_key_vault_key.test.id
+  icon_url                 = "http://myprofile/myicon.png"
+  cmk_key_vault_url        = azurerm_key_vault_key.test.id
 
   tags = {
     environment = "production"
@@ -691,9 +690,9 @@ resource "azurerm_bot_channels_registration" "test" {
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
   developer_app_insights_application_id = azurerm_application_insights.test2.app_id
 
-  description                   = "TestDescription2"
+  description              = "TestDescription2"
   isolated_network_enabled = false
-  icon_url                      = "http://myprofile/myicon2.png"
+  icon_url                 = "http://myprofile/myicon2.png"
 
   tags = {
     environment = "production2"
