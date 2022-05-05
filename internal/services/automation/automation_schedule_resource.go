@@ -105,7 +105,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 			"timezone": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      getDefaultTimezone(),
+				Default:      "Etc/UTC",
 				ValidateFunc: azvalidate.AzureTimeZoneString(),
 			},
 
@@ -429,8 +429,4 @@ func flattenArmAutomationScheduleAdvancedMonthlyOccurrences(s *automation.Advanc
 		}
 	}
 	return flattenedMonthlyOccurrences
-}
-
-func getDefaultTimezone() string {
-	return "Etc/UTC"
 }

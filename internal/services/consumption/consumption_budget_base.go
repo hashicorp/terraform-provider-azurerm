@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
@@ -350,12 +349,6 @@ func (br consumptionBudgetBaseResource) createFunc(resourceName, scopeFieldName 
 
 			var err error
 			scope := metadata.ResourceData.Get(scopeFieldName).(string)
-			if scopeFieldName == "subscription_id" && !features.ThreePointOhBeta() {
-				scope, err = parseScope(metadata.ResourceData.Get(scopeFieldName).(string))
-				if err != nil {
-					return err
-				}
-			}
 
 			id := parse.NewConsumptionBudgetId(scope, metadata.ResourceData.Get("name").(string))
 

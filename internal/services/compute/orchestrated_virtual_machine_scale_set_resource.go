@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 
@@ -194,13 +193,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"termination_notification": OrchestratedVirtualMachineScaleSetTerminationNotificationSchema(),
 
-			"zones": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return azure.SchemaZones()
-				}
-
-				return commonschema.ZonesMultipleOptionalForceNew()
-			}(),
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 			"tags": tags.Schema(),
 
@@ -252,13 +245,9 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		},
 	}
 
-	if features.ThreePointOhBeta() {
-		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
-		if len(zones) > 0 {
-			props.Zones = &zones
-		}
-	} else {
-		props.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
+	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		props.Zones = &zones
 	}
 
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
