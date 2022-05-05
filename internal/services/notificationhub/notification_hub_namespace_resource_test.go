@@ -40,7 +40,7 @@ func TestAccNotificationHubNamespace_updateTag(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("namespace_type"),
 		{
 			Config: r.withoutTag(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -48,7 +48,7 @@ func TestAccNotificationHubNamespace_updateTag(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("namespace_type"),
 		{
 			Config: r.free(data),
 			Check: acceptance.ComposeTestCheckFunc(
