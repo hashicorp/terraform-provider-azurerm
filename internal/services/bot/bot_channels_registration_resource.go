@@ -146,9 +146,22 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			},
 
 			"isolated_network_enabled": {
+				Type:       pluginsdk.TypeBool,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "Deprecated in favour of `public_network_access_enabled`",
+				ConflictsWith: []string{
+					"public_network_access_enabled",
+				},
+			},
+
+			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+				ConflictsWith: []string{
+					"isolated_network_enabled",
+				},
 			},
 
 			"tags": tags.Schema(),
@@ -211,7 +224,7 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 
 	d.SetId(resourceId.ID())
 
-	// As `d.GetOk()` cannot identify whether `isolated_network_enabled` is set when it is set as `false` in tf config, so it always has to be updated
+	// `public_network_access_enabled` would be always set because it has default value
 	return resourceBotChannelsRegistrationUpdate(d, meta)
 }
 
@@ -255,10 +268,11 @@ func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("icon_url", props.IconURL)
 
 		if props.PublicNetworkAccess == botservice.PublicNetworkAccessDisabled {
-			d.Set("isolated_network_enabled", false)
-		} else {
-			// To be compatible with old version, `isolated_network_enabled` would be set to default value `true` when `isolated_network_enabled` is empty string or `Enabled` at service side
 			d.Set("isolated_network_enabled", true)
+			d.Set("public_network_access_enabled", false)
+		} else {
+			d.Set("isolated_network_enabled", false)
+			d.Set("public_network_access_enabled", true)
 		}
 	}
 
@@ -281,9 +295,12 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 		displayName = id.Name
 	}
 
-	publicNetworkAccessEnabled := botservice.PublicNetworkAccessEnabled
-	if enabled := d.Get("isolated_network_enabled").(bool); !enabled {
-		publicNetworkAccessEnabled = botservice.PublicNetworkAccessDisabled
+	botPublicNetworkAccessEnabled := botservice.PublicNetworkAccessEnabled
+	if v, ok := d.GetOk("isolated_network_enabled"); ok && v.(bool) {
+		botPublicNetworkAccessEnabled = botservice.PublicNetworkAccessDisabled
+	} else if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() && v.False() {
+		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
+		botPublicNetworkAccessEnabled = botservice.PublicNetworkAccessDisabled
 	}
 
 	bot := botservice.Bot{
@@ -298,7 +315,7 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
 			IconURL:                           utils.String(d.Get("icon_url").(string)),
 			IsCmekEnabled:                     utils.Bool(false),
-			PublicNetworkAccess:               publicNetworkAccessEnabled,
+			PublicNetworkAccess:               botPublicNetworkAccessEnabled,
 		},
 		Location: utils.String(d.Get("location").(string)),
 		Sku: &botservice.Sku{
