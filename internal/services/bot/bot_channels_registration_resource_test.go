@@ -88,6 +88,35 @@ func testAccBotChannelsRegistration_complete(t *testing.T) {
 	})
 }
 
+func testAccBotChannelsRegistration_publicNetworkAccessEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
+	r := BotChannelsRegistrationResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccess(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("developer_app_insights_api_key"),
+		{
+			Config: r.publicNetworkAccess(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("developer_app_insights_api_key"),
+		{
+			Config: r.publicNetworkAccess(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("developer_app_insights_api_key"),
+	})
+}
+
 func (t BotChannelsRegistrationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.BotServiceID(state.ID)
 	if err != nil {
@@ -126,6 +155,7 @@ resource "azurerm_bot_channels_registration" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "F0"
   microsoft_app_id    = data.azurerm_client_config.current.client_id
+  public_network_access_enabled = false
 
   tags = {
     environment = "production"
@@ -246,10 +276,10 @@ resource "azurerm_bot_channels_registration" "test" {
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
   developer_app_insights_application_id = azurerm_application_insights.test2.app_id
 
-  description              = "TestDescription2"
-  isolated_network_enabled = false
-  icon_url                 = "http://myprofile/myicon2.png"
-  cmk_key_vault_url        = azurerm_key_vault_key.test2.id
+  description                   = "TestDescription2"
+  public_network_access_enabled = false
+  icon_url                      = "http://myprofile/myicon2.png"
+  cmk_key_vault_url             = azurerm_key_vault_key.test2.id
 
   tags = {
     environment = "production2"
@@ -344,10 +374,10 @@ resource "azurerm_bot_channels_registration" "test" {
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
   developer_app_insights_application_id = azurerm_application_insights.test.app_id
 
-  description              = "TestDescription"
-  isolated_network_enabled = true
-  icon_url                 = "http://myprofile/myicon.png"
-  cmk_key_vault_url        = azurerm_key_vault_key.test.id
+  description                   = "TestDescription"
+  public_network_access_enabled = true
+  icon_url                      = "http://myprofile/myicon.png"
+  cmk_key_vault_url             = azurerm_key_vault_key.test.id
 
   tags = {
     environment = "production"
@@ -468,13 +498,46 @@ resource "azurerm_bot_channels_registration" "test" {
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
   developer_app_insights_application_id = azurerm_application_insights.test2.app_id
 
-  description              = "TestDescription2"
-  isolated_network_enabled = false
-  icon_url                 = "http://myprofile/myicon2.png"
+  description                   = "TestDescription2"
+  public_network_access_enabled = false
+  icon_url                      = "http://myprofile/myicon2.png"
 
   tags = {
     environment = "production2"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
+}
+
+func (BotChannelsRegistrationResource) publicNetworkAccess(data acceptance.TestData, publicNetworkAccessEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_bot_channels_registration" "test" {
+  name                          = "acctestdf%d"
+  location                      = "global"
+  resource_group_name           = azurerm_resource_group.test.name
+  sku                           = "F0"
+  microsoft_app_id              = data.azurerm_client_config.current.client_id
+  public_network_access_enabled = %t
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, publicNetworkAccessEnabled)
 }

@@ -148,7 +148,6 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			"isolated_network_enabled": {
 				Type:       pluginsdk.TypeBool,
 				Optional:   true,
-				Computed:   true,
 				Deprecated: "Deprecated in favour of `public_network_access_enabled`",
 				ConflictsWith: []string{
 					"public_network_access_enabled",
