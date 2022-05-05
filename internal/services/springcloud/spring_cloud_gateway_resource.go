@@ -232,7 +232,7 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 						"issuer_uri": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"scope": {
