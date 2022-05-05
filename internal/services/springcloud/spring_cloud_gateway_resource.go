@@ -166,7 +166,7 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 500),
 			},
 
-			"public_access_enabled": {
+			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -292,7 +292,7 @@ func resourceSpringCloudGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			APIMetadataProperties: expandGatewayGatewayAPIMetadataProperties(d.Get("api_metadata").([]interface{})),
 			CorsProperties:        expandGatewayGatewayCorsProperties(d.Get("cors").([]interface{})),
 			HTTPSOnly:             utils.Bool(d.Get("https_only").(bool)),
-			Public:                utils.Bool(d.Get("public_access_enabled").(bool)),
+			Public:                utils.Bool(d.Get("public_network_access_enabled").(bool)),
 			ResourceRequests:      expandGatewayGatewayResourceRequests(d.Get("quota").([]interface{})),
 			SsoProperties:         expandGatewaySsoProperties(d.Get("sso").([]interface{})),
 		},
@@ -348,7 +348,7 @@ func resourceSpringCloudGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `cors`: %+v", err)
 		}
 		d.Set("https_only", props.HTTPSOnly)
-		d.Set("public_access_enabled", props.Public)
+		d.Set("public_network_access_enabled", props.Public)
 		if err := d.Set("quota", flattenGatewayGatewayResourceRequests(props.ResourceRequests)); err != nil {
 			return fmt.Errorf("setting `resource_requests`: %+v", err)
 		}

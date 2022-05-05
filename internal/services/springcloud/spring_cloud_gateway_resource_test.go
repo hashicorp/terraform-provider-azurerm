@@ -169,8 +169,8 @@ resource "azurerm_spring_cloud_gateway" "test" {
     exposed_headers     = ["x-test-header"]
     max_age_seconds     = 86400
   }
-  https_only            = false
-  public_access_enabled = true
+  https_only                    = false
+  public_network_access_enabled = true
   quota {
     cpu    = "1"
     memory = "2Gi"
