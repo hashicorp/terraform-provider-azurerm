@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -23,7 +24,7 @@ import (
 )
 
 func resourceBotChannelsRegistration() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceBotChannelsRegistrationCreate,
 		Read:   resourceBotChannelsRegistrationRead,
 		Delete: resourceBotChannelsRegistrationDelete,
@@ -145,27 +146,33 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				ValidateFunc: validate.BotChannelRegistrationIconUrl,
 			},
 
-			"isolated_network_enabled": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Deprecated: "Deprecated in favour of `public_network_access_enabled`",
-				ConflictsWith: []string{
-					"public_network_access_enabled",
-				},
-			},
-
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
-				ConflictsWith: []string{
-					"isolated_network_enabled",
-				},
+				Computed: !features.FourPointOhBeta(),
+				ConflictsWith: func() []string {
+					if !features.FourPointOhBeta() {
+						return []string{"isolated_network_enabled"}
+					}
+					return []string{}
+				}(),
 			},
 
 			"tags": tags.Schema(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["isolated_network_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "`isolated_network_enabled` will be removed in favour of the property `public_network_access_enabled` in version 4.0 of the AzureRM Provider.",
+			ConflictsWith: []string{"public_network_access_enabled"},
+		}
+	}
+
+	return resource
 }
 
 func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -223,8 +230,23 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 
 	d.SetId(resourceId.ID())
 
-	// `public_network_access_enabled` would be always set because it has default value
-	return resourceBotChannelsRegistrationUpdate(d, meta)
+	// d.GetOk cannot identify whether user sets the property that is bool type and the computed attribute is true. So it has to identify it using `d.GetRawConfig()`
+	publicNetworkAccessEnabled := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]
+	if !features.FourPointOhBeta() {
+		// d.GetOk cannot identify whether user sets the property that is bool type and the computed attribute is true. So it has to identify it using `d.GetRawConfig()`
+		isolatedNetworkEnabled := d.GetRawConfig().AsValueMap()["isolated_network_enabled"]
+		if !isolatedNetworkEnabled.IsNull() || !publicNetworkAccessEnabled.IsNull() {
+			return resourceBotChannelsRegistrationUpdate(d, meta)
+		} else {
+			return resourceBotChannelsRegistrationRead(d, meta)
+		}
+	} else {
+		if !publicNetworkAccessEnabled.IsNull() {
+			return resourceBotChannelsRegistrationUpdate(d, meta)
+		} else {
+			return resourceBotChannelsRegistrationRead(d, meta)
+		}
+	}
 }
 
 func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -265,6 +287,15 @@ func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("developer_app_insights_key", props.DeveloperAppInsightKey)
 		d.Set("developer_app_insights_application_id", props.DeveloperAppInsightsApplicationID)
 		d.Set("icon_url", props.IconURL)
+
+		// `PublicNetworkAccess` is empty string when `public_network_access_enabled` or `isolated_network_enabled` isn't specified. So `public_network_access_enabled` and `isolated_network_enabled` shouldn't be set at this time to avoid diff
+		if props.PublicNetworkAccess != "" {
+			d.Set("public_network_access_enabled", props.PublicNetworkAccess == botservice.PublicNetworkAccessEnabled)
+
+			if !features.FourPointOhBeta() {
+				d.Set("isolated_network_enabled", props.PublicNetworkAccess == botservice.PublicNetworkAccessDisabled)
+			}
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -286,14 +317,6 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 		displayName = id.Name
 	}
 
-	botPublicNetworkAccessEnabled := botservice.PublicNetworkAccessEnabled
-	if v, ok := d.GetOk("isolated_network_enabled"); ok && v.(bool) {
-		botPublicNetworkAccessEnabled = botservice.PublicNetworkAccessDisabled
-	} else if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() && v.False() {
-		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
-		botPublicNetworkAccessEnabled = botservice.PublicNetworkAccessDisabled
-	}
-
 	bot := botservice.Bot{
 		Properties: &botservice.BotProperties{
 			DisplayName:                       utils.String(displayName),
@@ -306,7 +329,6 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
 			IconURL:                           utils.String(d.Get("icon_url").(string)),
 			IsCmekEnabled:                     utils.Bool(false),
-			PublicNetworkAccess:               botPublicNetworkAccessEnabled,
 		},
 		Location: utils.String(d.Get("location").(string)),
 		Sku: &botservice.Sku{
@@ -318,6 +340,26 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 
 	if _, ok := d.GetOk("cmk_key_vault_url"); ok {
 		bot.Properties.IsCmekEnabled = utils.Bool(true)
+	}
+
+	if !features.FourPointOhBeta() {
+		// d.GetOk cannot identify whether user sets the property that is bool type and the computed attribute is true. So it has to identify it using `d.GetRawConfig()`
+		if v := d.GetRawConfig().AsValueMap()["isolated_network_enabled"]; !v.IsNull() {
+			publicNetworkAccessEnabled := botservice.PublicNetworkAccessEnabled
+			if v.True() {
+				publicNetworkAccessEnabled = botservice.PublicNetworkAccessDisabled
+			}
+			bot.Properties.PublicNetworkAccess = publicNetworkAccessEnabled
+		}
+	}
+
+	// d.GetOk cannot identify whether user sets the property that is bool type and the computed attribute is true. So it has to identify it using `d.GetRawConfig()`
+	if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
+		publicNetworkAccessEnabled := botservice.PublicNetworkAccessEnabled
+		if v.False() {
+			publicNetworkAccessEnabled = botservice.PublicNetworkAccessDisabled
+		}
+		bot.Properties.PublicNetworkAccess = publicNetworkAccessEnabled
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, bot); err != nil {
