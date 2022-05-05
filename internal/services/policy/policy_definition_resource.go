@@ -279,7 +279,7 @@ func flattenJSON(stringMap interface{}) string {
 }
 
 func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -349,6 +349,4 @@ func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 
 		"metadata": metadataSchema(),
 	}
-
-	return out
 }

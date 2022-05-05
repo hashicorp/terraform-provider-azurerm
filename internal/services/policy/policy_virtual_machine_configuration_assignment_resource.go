@@ -44,7 +44,7 @@ func resourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource {
 }
 
 func resourcePolicyVirtualMachineConfigurationAssignmentSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -119,7 +119,6 @@ func resourcePolicyVirtualMachineConfigurationAssignmentSchema() map[string]*plu
 			},
 		},
 	}
-	return out
 }
 
 func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -7,8 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2019-10-01/consumption"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
@@ -325,20 +323,6 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 
 func (br consumptionBudgetBaseResource) attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
-}
-
-// CLEANUP remove in 3.0
-func parseScope(scope string) (string, error) {
-	// The validation behaviour of subscription_id isn't correct, it should only accept
-	// the resource ID format for the subscription. This ensures backward compatibility
-	// for the time being but should be removed in 3.0
-	if _, err := uuid.ParseUUID(scope); err == nil {
-		return "/subscriptions/" + scope, nil
-	}
-	if _, err := commonids.ParseSubscriptionID(scope); err == nil {
-		return scope, nil
-	}
-	return "", fmt.Errorf("could not parse %s, was not a valid subscription ID or subscription resource ID", scope)
 }
 
 func (br consumptionBudgetBaseResource) createFunc(resourceName, scopeFieldName string) sdk.ResourceFunc {

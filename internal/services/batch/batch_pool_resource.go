@@ -906,7 +906,7 @@ func flattenBatchPoolIdentity(input *batch.PoolIdentity) (*[]interface{}, error)
 }
 
 func startTaskSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"command_line": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -1008,5 +1008,4 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-	return out
 }

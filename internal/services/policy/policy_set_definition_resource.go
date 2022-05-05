@@ -47,7 +47,7 @@ func resourceArmPolicySetDefinition() *pluginsdk.Resource {
 }
 
 func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -175,8 +175,6 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 			Set: resourceARMPolicySetDefinitionPolicyDefinitionGroupHash,
 		},
 	}
-
-	return out
 }
 
 func policySetDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
@@ -200,25 +198,6 @@ func policySetDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *plugins
 	}
 
 	return reflect.DeepEqual(oldPolicySetDefinitionsMetadata, newPolicySetDefinitionsMetadata)
-}
-
-// This function only serves the deprecated attribute `policy_definitions` in the old api-version.
-// The old api-version only support two attribute - `policy_definition_id` and `parameters` in each element.
-// Therefore this function is used for ignoring any other keys and then compare if there is a diff
-func policyDefinitionsDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	var oldPolicyDefinitions []DefinitionReferenceInOldApiVersion
-	errOld := json.Unmarshal([]byte(old), &oldPolicyDefinitions)
-	if errOld != nil {
-		return false
-	}
-
-	var newPolicyDefinitions []DefinitionReferenceInOldApiVersion
-	errNew := json.Unmarshal([]byte(new), &newPolicyDefinitions)
-	if errNew != nil {
-		return false
-	}
-
-	return reflect.DeepEqual(oldPolicyDefinitions, newPolicyDefinitions)
 }
 
 type DefinitionReferenceInOldApiVersion struct {
