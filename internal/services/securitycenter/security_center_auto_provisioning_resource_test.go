@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -40,11 +42,14 @@ func TestAccSecurityCenterAutoProvision_update(t *testing.T) {
 }
 
 func (SecurityCenterAutoProvisionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	securityCenterAutoProvisioningName := "default"
-
-	resp, err := clients.SecurityCenter.AutoProvisioningClient.Get(ctx, securityCenterAutoProvisioningName)
+	id, err := parse.AutoProvisioningSettingID(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("reading Security Center auto provision (%s): %+v", securityCenterAutoProvisioningName, err)
+		return nil, err
+	}
+
+	resp, err := clients.SecurityCenter.AutoProvisioningClient.Get(ctx, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving auto-provisioning setting for %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.AutoProvisioningSettingProperties != nil), nil

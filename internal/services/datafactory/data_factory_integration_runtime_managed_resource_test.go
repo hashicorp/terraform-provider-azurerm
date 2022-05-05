@@ -119,10 +119,9 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_managed" "test" {
-  name                = "managed-integration-runtime"
-  data_factory_name   = azurerm_data_factory.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name            = "managed-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
 
   node_size                        = "Standard_D8_v3"
   number_of_nodes                  = 2
@@ -155,7 +154,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_data_factory" "test" {
@@ -165,10 +164,9 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_managed" "test" {
-  name                = "managed-integration-runtime"
-  data_factory_name   = azurerm_data_factory.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name            = "managed-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
 
   node_size = "Standard_D8_v3"
 
@@ -207,10 +205,9 @@ resource "azurerm_sql_server" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_managed" "test" {
-  name                = "managed-integration-runtime"
-  data_factory_name   = azurerm_data_factory.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name            = "managed-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
 
   node_size = "Standard_D8_v3"
 
@@ -277,10 +274,9 @@ data "azurerm_storage_account_blob_container_sas" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_managed" "test" {
-  name                = "managed-integration-runtime"
-  data_factory_name   = azurerm_data_factory.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name            = "managed-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
 
   node_size = "Standard_D8_v3"
 
@@ -335,11 +331,10 @@ resource "azurerm_sql_active_directory_administrator" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_managed" "test" {
-  name                = "managed-integration-runtime"
-  data_factory_name   = azurerm_data_factory.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  node_size           = "Standard_D8_v3"
+  name            = "managed-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  node_size       = "Standard_D8_v3"
 
   catalog_info {
     server_endpoint = azurerm_sql_server.test.fully_qualified_domain_name

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -44,29 +43,12 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
-			// TODO remove in 3.0
-			"data_factory_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryName(),
-				Deprecated:   "`data_factory_name` is deprecated in favour of `data_factory_id` and will be removed in version 3.0 of the AzureRM provider",
-				ExactlyOneOf: []string{"data_factory_id"},
-			},
-
 			"data_factory_id": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true, // TODO set to Required in 3.0
-				Computed:     true, // TODO remove in 3.0
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataFactoryID,
-				ExactlyOneOf: []string{"data_factory_name"},
 			},
-
-			// There's a bug in the Azure API where this is returned in lower-case
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"linked_service_name": {
 				Type:         pluginsdk.TypeString,
@@ -124,10 +106,14 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_container_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"path": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
 						},
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -178,6 +164,7 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 			"column_delimiter": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  ",",
 			},
 
 			// Delimited Text Specific Field
@@ -190,12 +177,14 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 			"quote_character": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  `"`,
 			},
 
 			// Delimited Text Specific Field
 			"escape_character": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  `\`,
 			},
 
 			// Delimited Text Specific Field
@@ -209,12 +198,14 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 			"first_row_as_header": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			// Delimited Text Specific Field
 			"null_value": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  "",
 			},
 
 			"parameters": {
@@ -327,18 +318,9 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// TODO remove/simplify this after deprecation in 3.0
-	var err error
-	var dataFactoryId *parse.DataFactoryId
-	if v := d.Get("data_factory_name").(string); v != "" {
-		newDataFactoryId := parse.NewDataFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string))
-		dataFactoryId = &newDataFactoryId
-	}
-	if v := d.Get("data_factory_id").(string); v != "" {
-		dataFactoryId, err = parse.DataFactoryID(v)
-		if err != nil {
-			return err
-		}
+	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	if err != nil {
+		return err
 	}
 
 	id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
@@ -385,12 +367,12 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 		delimited_textDatasetProperties.EncodingName = v.(string)
 	}
 
-	if v, ok := d.GetOk("first_row_as_header"); ok {
-		delimited_textDatasetProperties.FirstRowAsHeader = v.(bool)
+	if v, ok := d.Get("first_row_as_header").(bool); ok {
+		delimited_textDatasetProperties.FirstRowAsHeader = v
 	}
 
-	if v, ok := d.GetOk("null_value"); ok {
-		delimited_textDatasetProperties.NullValue = v.(string)
+	if v, ok := d.Get("null_value").(string); ok {
+		delimited_textDatasetProperties.NullValue = v
 	}
 
 	if v, ok := d.GetOk("compression_level"); ok {
@@ -409,7 +391,6 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	description := d.Get("description").(string)
-	// TODO
 	delimited_textTableset := datafactory.DelimitedTextDataset{
 		DelimitedTextDatasetTypeProperties: &delimited_textDatasetProperties,
 		LinkedServiceName:                  linkedService,
@@ -478,9 +459,6 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	// TODO remove in 3.0
-	d.Set("data_factory_name", id.FactoryName)
 	d.Set("data_factory_id", dataFactoryId.ID())
 
 	delimited_textTable, ok := resp.Properties.AsDelimitedTextDataset()

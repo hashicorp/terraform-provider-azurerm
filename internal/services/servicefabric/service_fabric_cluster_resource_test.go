@@ -109,7 +109,7 @@ func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
-	codeVersion := "7.2.445.9590"
+	codeVersion := "8.2.1486.9590"
 	r := ServiceFabricClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -347,7 +347,7 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateCommonNames(t *testing.
 				check.That(data.ResourceName).Key("client_certificate_common_name.#").HasValue("2"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.0.common_name").HasValue("firstcertcommonname"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.0.is_admin").HasValue("true"),
-				check.That(data.ResourceName).Key("client_certificate_common_name.0.issuer_thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("client_certificate_common_name.0.issuer_thumbprint").HasValue("3341db6cf2af72c611df3be3721a653af1d43ecd50f584f828793dbe9103c3ee"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.1.common_name").HasValue("secondcertcommonname"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.1.is_admin").HasValue("false"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.1.issuer_thumbprint").IsEmpty(),

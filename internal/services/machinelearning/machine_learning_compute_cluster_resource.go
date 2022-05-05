@@ -6,11 +6,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -64,14 +62,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{string(machinelearningservices.VMPriorityDedicated), string(machinelearningservices.VMPriorityLowPriority)}, false),
 			},
 
-			"identity": func() *schema.Schema {
-				// TODO: 3.0 - document this in the upgrade guide
-				if features.ThreePointOhBeta() {
-					return commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew()
-				}
-
-				return identityLegacySchema()
-			}(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew(),
 
 			"scale_settings": {
 				Type:     pluginsdk.TypeList,

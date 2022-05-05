@@ -10,8 +10,6 @@ description: |-
 
 Manages a Windows Web App.
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -27,8 +25,8 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_service_plan" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "West Europe"
-  sku_name            = "P1V2"
+  location            = azurerm_resource_group.example.location
+  sku_name            = "P1v2"
 }
 
 resource "azurerm_windows_web_app" "example" {
@@ -81,6 +79,8 @@ The following arguments are supported:
 
 * `logs` - (Optional) A `logs` block as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Windows Web App.
@@ -115,15 +115,17 @@ A `application_logs` block supports the following:
 
 * `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 
-* `file_system_level` - (Optional) Log level. Possible values include: `Verbose`, `Information`, `Warning`, and `Error`.
+* `file_system_level` - (Required) Log level. Possible values include: `Verbose`, `Information`, `Warning`, and `Error`.
 
 ---
 
-A `application_stack` block supports the following:
+An `application_stack` block supports the following:
 
-* `current_stack` - (Optional) The Application Stack for the Windows Web App. Possible values include `dotnet`, `node`, `python`, `php`, and `java`.
+* `current_stack` - (Optional) The Application Stack for the Windows Web App. Possible values include `dotnet`, `dotnetcore`, `node`, `python`, `php`, and `java`.
 
 ~> **NOTE:** Whilst this property is Optional omitting it can cause unexpected behaviour, in particular for display of settings in the Azure Portal.
+
+~> **NOTE:** The value of `dotnetcore` is for use in combination with `dotnet_version` set to `v3.0` only.
 
 * `docker_container_name` - (Optional) The name of the Docker Container. For example `azure-app-service/samples/aspnethelloworld`
 
@@ -131,7 +133,7 @@ A `application_stack` block supports the following:
 
 * `docker_container_tag` - (Optional) The Image Tag of the specified Docker Container to use. For example `latest`
 
-* `dotnet_version` - (Optional) The version of .Net to use when `current_stack` is set to `dotnet`. Possible values include `v2.0`, `v3.0`, `v4.0`, and `v5.0`.
+* `dotnet_version` - (Optional) The version of .NET to use when `current_stack` is set to `dotnet`. Possible values include `v3.0`, `v4.0`, `v5.0`, and `v6.0`.
 
 * `java_container` - (Optional) The Java container type to use when `current_stack` is set to `java`. Possible values include `JAVA`, `JETTY`, and `TOMCAT`. Required with `java_version` and `java_container_version`.
 
@@ -141,11 +143,11 @@ A `application_stack` block supports the following:
 
 ~> **NOTE:** For compatible combinations of `java_version`, `java_container` and `java_container_version` users can use `az webapp list-runtimes` from command line.
 
-* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`.
+* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values include `12-LTS`, `14-LTS`, and `16-LTS`.
 
 ~> **NOTE:** This property conflicts with `java_version`.
 
-* `php_version` - (Optional) The version of PHP to use when `current_stack` is set to `php`. Possible values include `v5.6`, `v7.3`, and `v7.4`.
+* `php_version` - (Optional) The version of PHP to use when `current_stack` is set to `php`. Possible values include `v7.4`.
 
 * `python_version` - (Optional) The version of Python to use when `current_stack` is set to `python`. Possible values include `2.7` and `3.4.0`.
 
@@ -157,7 +159,7 @@ A `auth_settings` block supports the following:
 
 * `active_directory` - (Optional) An `active_directory` block as defined above.
 
-* `additional_login_params` - (Optional) Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in. 
+* `additional_login_parameters` - (Optional) Specifies a map of login Parameters to send to the OpenID Connect authorization endpoint when a user logs in. 
 
 * `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Windows Web App.
 
@@ -199,6 +201,8 @@ A `auto_heal_setting` block supports the following:
 
 A `azure_blob_storage` block supports the following:
 
+* `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
+
 * `retention_in_days` - (Required) The time in days after which to remove blobs. A value of `0` means no retention.
 
 * `sas_url` - (Required) SAS url to an Azure blob container with read/write/list/delete permissions.
@@ -218,6 +222,8 @@ A `backup` block supports the following:
 ---
 
 A `connection_string` block supports the following:
+
+* `name` - (Required) The name of the Connection String.
 
 * `type` - (Required) Type of database. Possible values include: `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and `SQLServer`.
 
@@ -245,11 +251,11 @@ A `facebook` block supports the following:
 
 * `app_id` - (Required) The App ID of the Facebook app used for login.
 
-* `app_secret` - (Optional) The App Secret of the Facebook app used for Facebook Login. Cannot be specified with `app_secret_setting_name`.
+* `app_secret` - (Optional) The App Secret of the Facebook app used for Facebook login. Cannot be specified with `app_secret_setting_name`.
 
-* `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook Login. Cannot be specified with `app_secret`. 
+* `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook login. Cannot be specified with `app_secret`. 
 
-* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook login authentication.
 
 ---
 
@@ -265,11 +271,11 @@ A `github` block supports the following:
 
 * `client_id` - (Required) The ID of the GitHub app used for login.
 
-* `client_secret` - (Optional) The Client Secret of the GitHub app used for GitHub Login. Cannot be specified with `client_secret_setting_name`.
+* `client_secret` - (Optional) The Client Secret of the GitHub app used for GitHub login. Cannot be specified with `client_secret_setting_name`.
 
-* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for GitHub Login. Cannot be specified with `client_secret`.
+* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for GitHub login. Cannot be specified with `client_secret`.
 
-* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub login authentication.
 
 ---
 
@@ -279,7 +285,7 @@ A `google` block supports the following:
 
 * `client_secret` - (Optional) The client secret associated with the Google web application.  Cannot be specified with `client_secret_setting_name`.
 
-* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google Login. Cannot be specified with `client_secret`.
+* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google login. Cannot be specified with `client_secret`.
 
 * `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, "openid", "profile", and "email" are used as default scopes. 
 
@@ -307,11 +313,13 @@ A `http_logs` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `ManagedServiceIdentityTypeSystemAssigned`, `ManagedServiceIdentityTypeUserAssigned`, and `ManagedServiceIdentityTypeSystemAssignedUserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Windows Web App. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of Identity IDs.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Windows Web App.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -371,7 +379,7 @@ A `schedule` block supports the following:
 
 * `frequency_interval` - (Required) How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).
 
-~> **NOTE:** Not all intervals are supported on all Windows Web App SKU's. Please refer to the official documentation for appropriate values.
+~> **NOTE:** Not all intervals are supported on all Windows Web App SKUs. Please refer to the official documentation for appropriate values.
 
 * `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day`, `Hour`
 
@@ -455,11 +463,11 @@ A `site_config` block supports the following:
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Windows Web App `ip_restriction` configuration be used for the SCM also.
 
-* `32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker.
+* `use_32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker.
 
 * `virtual_application` - (Optional) One or more `virtual_application` blocks as defined below.
 
-* `websockets` - (Optional) Should Web Sockets be enabled. Defaults to `false`. 
+* `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`. 
 
 * `worker_count` - (Optional) The number of Workers for this Windows App Service.
 
@@ -490,6 +498,14 @@ A `status_code` block supports the following:
 * `sub_status` - (Optional) The Request Sub Status of the Status Code.
 
 * `win32_status` - (Optional) The Win32 Status Code of the Request.
+
+---
+
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - (Optional) A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - (Optional) A list of `connection_string` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
 
 ---
 
@@ -559,6 +575,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Windows Web App.
 
+* `identity` - An `identity` block as defined below.
+
 * `kind` - The Kind value for this Windows Web App. 
 
 * `outbound_ip_address_list` - A list of outbound IP addresses - such as `["52.23.25.3", "52.143.43.12"]`
@@ -570,6 +588,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
 * `site_credential` - A `site_credential` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 

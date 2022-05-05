@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
@@ -78,7 +79,7 @@ func resourceLogAnalyticsDataSourceWindowsEvent() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					// API backend accepts event_types case-insensitively
-					ValidateFunc:     validation.StringInSlice([]string{"error", "warning", "information"}, !features.ThreePointOhBeta()),
+					ValidateFunc:     validation.StringInSlice([]string{"Error", "Warning", "Information"}, !features.ThreePointOhBeta()),
 					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 			},
@@ -195,7 +196,9 @@ func resourceLogAnalyticsDataSourceWindowsEventDelete(d *pluginsdk.ResourceData,
 func flattenLogAnalyticsDataSourceWindowsEventEventType(eventTypes []dataSourceWindowsEventEventType) []interface{} {
 	output := make([]interface{}, 0)
 	for _, e := range eventTypes {
-		output = append(output, e.EventType)
+		// The casing isn't preserved by the API for event types, so we need to normalise it here until
+		// https://github.com/Azure/azure-rest-api-specs/issues/18163 is fixed
+		output = append(output, strings.ToLower(e.EventType))
 	}
 	return output
 }

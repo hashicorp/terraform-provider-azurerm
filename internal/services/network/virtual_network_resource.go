@@ -8,6 +8,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -70,6 +73,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		// Optional
 		"bgp_community": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -105,6 +109,8 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
+
+		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 		"flow_timeout_in_minutes": {
 			Type:         pluginsdk.TypeInt,
@@ -195,6 +201,7 @@ func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	vnet := network.VirtualNetwork{
 		Name:                           utils.String(id.Name),
+		ExtendedLocation:               expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:                       utils.String(location),
 		VirtualNetworkPropertiesFormat: vnetProperties,
 		Tags:                           tags.Expand(t),
@@ -269,9 +276,8 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
 		d.Set("guid", props.ResourceGUID)

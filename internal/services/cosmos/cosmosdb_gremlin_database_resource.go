@@ -183,6 +183,7 @@ func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 
 func resourceCosmosGremlinDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
+	accClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -210,16 +211,23 @@ func resourceCosmosGremlinDatabaseRead(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	throughputResp, err := client.GetGremlinDatabaseThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+	accResp, err := accClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("reading Throughput on Cosmos Gremlin Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
+		return fmt.Errorf("reading Cosmos Account %q : %+v", id.DatabaseAccountName, err)
+	}
+
+	if !isServerlessCapacityMode(accResp) {
+		throughputResp, err := client.GetGremlinDatabaseThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(throughputResp.Response) {
+				return fmt.Errorf("reading Throughput on Cosmos Gremlin Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
+			} else {
+				d.Set("throughput", nil)
+				d.Set("autoscale_settings", nil)
+			}
 		} else {
-			d.Set("throughput", nil)
-			d.Set("autoscale_settings", nil)
+			common.SetResourceDataThroughputFromResponse(throughputResp, d)
 		}
-	} else {
-		common.SetResourceDataThroughputFromResponse(throughputResp, d)
 	}
 
 	return nil

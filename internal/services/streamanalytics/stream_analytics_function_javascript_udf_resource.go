@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -137,10 +137,10 @@ func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *pluginsdk.ResourceData, m
 
 	function := streamanalytics.Function{
 		Properties: &streamanalytics.ScalarFunctionProperties{
-			Type: streamanalytics.TypeScalar,
+			Type: streamanalytics.TypeBasicFunctionPropertiesTypeScalar,
 			FunctionConfiguration: &streamanalytics.FunctionConfiguration{
 				Binding: &streamanalytics.JavaScriptFunctionBinding{
-					Type: streamanalytics.TypeMicrosoftStreamAnalyticsJavascriptUdf,
+					Type: streamanalytics.TypeBasicFunctionBindingTypeMicrosoftStreamAnalyticsJavascriptUdf,
 					JavaScriptFunctionBindingProperties: &streamanalytics.JavaScriptFunctionBindingProperties{
 						Script: utils.String(script),
 					},

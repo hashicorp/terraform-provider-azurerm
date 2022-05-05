@@ -10,8 +10,6 @@ description: |-
 
 Manages a Linux Function App.
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -66,8 +64,6 @@ The following arguments are supported:
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App.
-
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
@@ -98,11 +94,21 @@ The following arguments are supported:
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
-* `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`. 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
+* `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`.
+
+* `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App.
 
 * `storage_uses_managed_identity` - (Optional) Should the Function App use Managed Identity to access the storage account. Conflicts with `storage_account_access_key`.
 
-~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified.
+~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
+
+* `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account for this Function App.
+
+~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name`. 
+
+~> **NOTE:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
@@ -126,11 +132,13 @@ A `application_stack` block supports the following:
 
 * `docker` - (Optional) One or more `docker` blocks as defined below.
 
-* `dotnet_version` - (Optional) The version of .Net to use. Possible values include `3.1` and `6`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1` and `6.0`.
+
+* `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
 * `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, and `11`.
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `12`, and `14`.
+* `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, and `16`.
 
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.6`, `3.7`, `3.8`, and `3.9`.
 
@@ -156,7 +164,7 @@ An `auth_settings` block supports the following:
 
 * `active_directory` - (Optional) An `active_directory` block as defined above.
 
-* `additional_login_params` - (Optional) Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
+* `additional_login_parameters` - (Optional) Specifies a map of login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
 
 * `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Linux Web App.
 
@@ -241,11 +249,11 @@ A `facebook` block supports the following:
 
 * `app_id` - (Required) The App ID of the Facebook app used for login.
 
-* `app_secret` - (Optional) The App Secret of the Facebook app used for Facebook Login. Cannot be specified with `app_secret_setting_name`.
+* `app_secret` - (Optional) The App Secret of the Facebook app used for Facebook login. Cannot be specified with `app_secret_setting_name`.
 
-* `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook Login. Cannot be specified with `app_secret`.
+* `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook login. Cannot be specified with `app_secret`.
 
-* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook login authentication.
 
 ---
 
@@ -253,11 +261,11 @@ A `github` block supports the following:
 
 * `client_id` - (Required) The ID of the GitHub app used for login.
 
-* `client_secret` - (Optional) The Client Secret of the GitHub app used for GitHub Login. Cannot be specified with `client_secret_setting_name`.
+* `client_secret` - (Optional) The Client Secret of the GitHub app used for GitHub login. Cannot be specified with `client_secret_setting_name`.
 
-* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for GitHub Login. Cannot be specified with `client_secret`.
+* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for GitHub login. Cannot be specified with `client_secret`.
 
-* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub login authentication.
 
 ---
 
@@ -267,7 +275,7 @@ A `google` block supports the following:
 
 * `client_secret` - (Optional) The client secret associated with the Google web application.  Cannot be specified with `client_secret_setting_name`.
 
-* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google Login. Cannot be specified with `client_secret`.
+* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google login. Cannot be specified with `client_secret`.
 
 * `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, "openid", "profile", and "email" are used as default scopes.
 
@@ -287,11 +295,13 @@ A `headers` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Linux Function App. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Identity IDs.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Linux Function App.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -331,7 +341,7 @@ A `schedule` block supports the following:
 
 * `frequency_interval` - (Required) How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).
 
-~> **NOTE:** Not all intervals are supported on all Linux Function App SKU's. Please refer to the official documentation for appropriate values.
+~> **NOTE:** Not all intervals are supported on all Linux Function App SKUs. Please refer to the official documentation for appropriate values.
 
 * `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day` and `Hour`. 
 
@@ -381,6 +391,8 @@ A `site_config` block supports the following:
 
 * `application_stack` - (Optional) An `application_stack` block as defined above.
 
+~> **Note:** If this is set, there must not be an application setting `FUNCTIONS_WORKER_RUNTIME`.
+
 * `app_service_logs` - (Optional) An `app_service_logs` block as defined above.
 
 * `auto_swap_slot_name` - (Optional) The Linux Function App Slot Name to automatically swap to when deployment to that slot is successfully completed.
@@ -401,7 +413,7 @@ A `site_config` block supports the following:
 
 * `health_check_eviction_time_in_min` - (Optional) The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`.
 
-* `http2_enabled` - (Optional) Specifies if the http2 protocol should be enabled. Defaults to `false`.
+* `http2_enabled` - (Optional) Specifies if the HTTP2 protocol should be enabled. Defaults to `false`.
 
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
 
@@ -435,6 +447,14 @@ A `site_config` block supports the following:
 
 ---
 
+A `sticky_settings` block supports the following:
+
+* `app_setting_names` - (Optional) A list of `app_setting` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - (Optional) A list of `connection_string` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
+
+---
+
 A `twitter` block supports the following:
 
 * `consumer_key` - (Required) The OAuth 1.0a consumer key of the Twitter application used for sign-in.
@@ -453,6 +473,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Linux Function App.
 
+* `identity` - An `identity` block as defined below.
+
 * `kind` - The Kind value for this Linux Function App.
 
 * `outbound_ip_address_list` - A list of outbound IP addresses. For example `["52.23.25.3", "52.143.43.12"]`
@@ -467,6 +489,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+---
+
 A `site_credential` block exports the following:
 
 * `name` - The Site Credentials Username used for publishing.
@@ -478,7 +508,7 @@ A `site_credential` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Linux Function App.
-* `read` - (Defaults to 25 minutes) Used when retrieving the Linux Function App.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Linux Function App.
 * `update` - (Defaults to 30 minutes) Used when updating the Linux Function App.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Linux Function App.
 

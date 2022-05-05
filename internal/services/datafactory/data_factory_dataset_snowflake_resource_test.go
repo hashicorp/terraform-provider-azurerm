@@ -50,18 +50,6 @@ func TestAccDataFactoryDatasetSnowflake_update(t *testing.T) {
 			Config: r.update2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("structure_column.#").HasValue("2"),
-				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
-				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
-				check.That(data.ResourceName).Key("additional_properties.%").HasValue("1"),
-				check.That(data.ResourceName).Key("description").HasValue("test description 2"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update3(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("schema_column.#").HasValue("2"),
 				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
 				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
@@ -115,16 +103,14 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name                = "linkkv"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  key_vault_id        = azurerm_key_vault.test.id
+  name            = "linkkv"
+  data_factory_id = azurerm_data_factory.test.id
+  key_vault_id    = azurerm_key_vault.test.id
 }
 
 resource "azurerm_data_factory_linked_service_snowflake" "test" {
-  name                = "linksnowflake"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
+  name            = "linksnowflake"
+  data_factory_id = azurerm_data_factory.test.id
 
   connection_string = "jdbc:snowflake://account.region.snowflakecomputing.com/?user=user&db=db&warehouse=wh"
   key_vault_password {
@@ -135,7 +121,6 @@ resource "azurerm_data_factory_linked_service_snowflake" "test" {
 
 resource "azurerm_data_factory_dataset_snowflake" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_snowflake.test.name
 }
@@ -170,16 +155,14 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name                = "linkkv"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  key_vault_id        = azurerm_key_vault.test.id
+  name            = "linkkv"
+  data_factory_id = azurerm_data_factory.test.id
+  key_vault_id    = azurerm_key_vault.test.id
 }
 
 resource "azurerm_data_factory_linked_service_snowflake" "test" {
-  name                = "linksnowflake"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
+  name            = "linksnowflake"
+  data_factory_id = azurerm_data_factory.test.id
 
   connection_string = "jdbc:snowflake://account.region.snowflakecomputing.com/?user=user&db=db&warehouse=wh"
   key_vault_password {
@@ -190,7 +173,6 @@ resource "azurerm_data_factory_linked_service_snowflake" "test" {
 
 resource "azurerm_data_factory_dataset_snowflake" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_snowflake.test.name
 
@@ -243,16 +225,14 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name                = "linkkv"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  key_vault_id        = azurerm_key_vault.test.id
+  name            = "linkkv"
+  data_factory_id = azurerm_data_factory.test.id
+  key_vault_id    = azurerm_key_vault.test.id
 }
 
 resource "azurerm_data_factory_linked_service_snowflake" "test" {
-  name                = "linksnowflake"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
+  name            = "linksnowflake"
+  data_factory_id = azurerm_data_factory.test.id
 
   connection_string = "jdbc:snowflake://account.region.snowflakecomputing.com/?user=user&db=db&warehouse=wh"
   key_vault_password {
@@ -263,91 +243,7 @@ resource "azurerm_data_factory_linked_service_snowflake" "test" {
 
 resource "azurerm_data_factory_dataset_snowflake" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
   data_factory_id     = azurerm_data_factory.test.id
-  linked_service_name = azurerm_data_factory_linked_service_snowflake.test.name
-
-  description = "test description 2"
-  annotations = ["test1", "test2", "test3"]
-  table_name  = "testTable"
-  folder      = "testFolder"
-
-  parameters = {
-    foo  = "test1"
-    bar  = "test2"
-    buzz = "test3"
-  }
-
-  additional_properties = {
-    foo = "test1"
-  }
-
-  structure_column {
-    name        = "test1"
-    type        = "Byte"
-    description = "description"
-  }
-
-  structure_column {
-    name        = "test2"
-    type        = "Byte"
-    description = "description"
-  }
-
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (DatasetSnowflakeResource) update3(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctkv%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name                = "linkkv"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-  key_vault_id        = azurerm_key_vault.test.id
-}
-
-resource "azurerm_data_factory_linked_service_snowflake" "test" {
-  name                = "linksnowflake"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
-
-  connection_string = "jdbc:snowflake://account.region.snowflakecomputing.com/?user=user&db=db&warehouse=wh"
-  key_vault_password {
-    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
-    secret_name         = "secret"
-  }
-}
-
-resource "azurerm_data_factory_dataset_snowflake" "test" {
-  name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_snowflake.test.name
 
   description = "test description 2"

@@ -644,6 +644,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	apiClient := meta.(*clients.Client).ApiManagement.ApiClient
+	deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
 	productsClient := meta.(*clients.Client).ApiManagement.ProductsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -684,6 +685,57 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	publicNetworkAccess := apimanagement.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = apimanagement.PublicNetworkAccessDisabled
+	}
+
+	if d.IsNewResource() {
+		// before creating check to see if the resource exists in the soft delete state
+		softDeleted, err := deletedServicesClient.GetByName(ctx, id.ServiceName, location)
+		if err != nil {
+			// If Terraform lacks permission to read at the Subscription we'll get 403, not 404
+			if !utils.ResponseWasNotFound(softDeleted.Response) && !utils.ResponseWasForbidden(softDeleted.Response) {
+				return fmt.Errorf("checking for the presence of an existing Soft-Deleted API Management %q (Location %q): %+v", id.ServiceName, location, err)
+			}
+		}
+
+		// if so, does the user want us to recover it?
+		if !utils.ResponseWasNotFound(softDeleted.Response) && !utils.ResponseWasForbidden(softDeleted.Response) {
+			if !meta.(*clients.Client).Features.ApiManagement.RecoverSoftDeleted {
+				// this exists but the users opted out, so they must import this it out-of-band
+				return fmt.Errorf(optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(id.ServiceName, location))
+			}
+
+			// First recover the deleted API Management, since all other properties are ignored during a restore operation
+			// (don't set the ID just yet to avoid tainting on failure)
+			params := apimanagement.ServiceResource{
+				Location: utils.String(location),
+				ServiceProperties: &apimanagement.ServiceProperties{
+					Restore: utils.Bool(true),
+				},
+			}
+
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, params); err != nil {
+				return fmt.Errorf("recovering %s: %+v", id, err)
+			}
+
+			// Wait for the ProvisioningState to become "Succeeded" before attempting to update
+			log.Printf("[DEBUG] Waiting for %s to become ready", id)
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context had no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"Deleted", "Activating", "Updating", "Unknown"},
+				Target:                    []string{"Succeeded", "Ready"},
+				Refresh:                   apiManagementRefreshFunc(ctx, client, id.ServiceName, id.ResourceGroup),
+				MinTimeout:                1 * time.Minute,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
+			}
+		}
 	}
 
 	properties := apimanagement.ServiceResource{
@@ -1070,6 +1122,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 
 func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1093,7 +1146,6 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 	// Purge the soft deleted Api Management permanently if the feature flag is enabled
 	if meta.(*clients.Client).Features.ApiManagement.PurgeSoftDeleteOnDestroy {
 		log.Printf("[DEBUG] %s marked for purge - executing purge", *id)
-		deletedServicesClient := meta.(*clients.Client).ApiManagement.DeletedServicesClient
 		_, err := deletedServicesClient.GetByName(ctx, id.ServiceName, azure.NormalizeLocation(d.Get("location").(string)))
 		if err != nil {
 			return err
@@ -1934,6 +1986,7 @@ func flattenApiManagementTenantAccessSettings(input apimanagement.AccessInformat
 
 	if input.SecondaryKey != nil {
 		result["secondary_key"] = *input.SecondaryKey
+
 	}
 
 	return []interface{}{result}
@@ -1978,4 +2031,21 @@ func flattenAPIManagementCertificates(d *pluginsdk.ResourceData, inputs *[]apima
 		outputs = append(outputs, output)
 	}
 	return outputs
+}
+
+func optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(name, location string) string {
+	message := `
+An existing soft-deleted API Management exists with the Name %q in the location %q, however
+automatically recovering this API Management has been disabled via the "features" block.
+
+Terraform can automatically recover the soft-deleted API Management when this behaviour is
+enabled within the "features" block (located within the "provider" block) - more
+information can be found here:
+
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+
+Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
+this into Terraform via "terraform import", or pick a different name/location.
+`
+	return fmt.Sprintf(message, name, location)
 }

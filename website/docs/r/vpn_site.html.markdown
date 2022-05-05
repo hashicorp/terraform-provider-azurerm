@@ -74,7 +74,7 @@ A `bgp` block supports the following:
 
 * `asn` - (Required) The BGP speaker's ASN.
 
-* `peering_address` - (Required) The BGP peering ip address. 
+* `peering_address` - (Required) The BGP peering IP address. 
 
 ---
 

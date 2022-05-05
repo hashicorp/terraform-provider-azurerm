@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -90,6 +90,20 @@ func resourceStreamAnalyticsOutputSql() *pluginsdk.Resource {
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"max_batch_count": {
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				Default:      10000,
+				ValidateFunc: validation.FloatBetween(1, 1073741824),
+			},
+
+			"max_writer_count": {
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.FloatBetween(0, 1),
+			},
 		},
 	}
 }
@@ -122,13 +136,15 @@ func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, met
 		Name: utils.String(id.Name),
 		OutputProperties: &streamanalytics.OutputProperties{
 			Datasource: &streamanalytics.AzureSQLDatabaseOutputDataSource{
-				Type: streamanalytics.TypeMicrosoftSQLServerDatabase,
+				Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftSQLServerDatabase,
 				AzureSQLDatabaseOutputDataSourceProperties: &streamanalytics.AzureSQLDatabaseOutputDataSourceProperties{
-					Server:   utils.String(server),
-					Database: utils.String(databaseName),
-					User:     utils.String(sqlUser),
-					Password: utils.String(sqlUserPassword),
-					Table:    utils.String(tableName),
+					Server:         utils.String(server),
+					Database:       utils.String(databaseName),
+					User:           utils.String(sqlUser),
+					Password:       utils.String(sqlUserPassword),
+					Table:          utils.String(tableName),
+					MaxBatchCount:  utils.Float(d.Get("max_batch_count").(float64)),
+					MaxWriterCount: utils.Float(d.Get("max_writer_count").(float64)),
 				},
 			},
 		},
@@ -182,6 +198,18 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("database", v.Database)
 		d.Set("table", v.Table)
 		d.Set("user", v.User)
+
+		maxBatchCount := float64(10000)
+		if v.MaxBatchCount != nil {
+			maxBatchCount = *v.MaxBatchCount
+		}
+		d.Set("max_batch_count", maxBatchCount)
+
+		maxWriterCount := float64(1)
+		if v.MaxWriterCount != nil {
+			maxWriterCount = *v.MaxWriterCount
+		}
+		d.Set("max_writer_count", maxWriterCount)
 	}
 
 	return nil

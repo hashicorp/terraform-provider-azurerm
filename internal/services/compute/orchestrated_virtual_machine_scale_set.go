@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -611,7 +611,7 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 	}
 }
 
-func OrchestratedVirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
+func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -626,7 +626,7 @@ func OrchestratedVirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.
 				"timeout": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azValidate.ISO8601Duration,
+					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
 				},
 			},

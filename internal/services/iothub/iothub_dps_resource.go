@@ -110,16 +110,10 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							Optional: true,
 							Default:  features.ThreePointOhBeta(),
 						},
-						// TODO update docs with new default for 3.0
 						"allocation_weight": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							Default: func() interface{} {
-								if features.ThreePointOhBeta() {
-									return 1
-								}
-								return 0
-							}(),
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      1,
 							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 						"hostname": {
@@ -157,9 +151,9 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								strings.Title(string(iothub.IPFilterTargetTypeAll)),
-								strings.Title(string(iothub.IPFilterTargetTypeServiceAPI)),
-								strings.Title(string(iothub.IPFilterTargetTypeDeviceAPI)),
+								azure.TitleCase(string(iothub.IPFilterTargetTypeAll)),
+								azure.TitleCase(string(iothub.IPFilterTargetTypeServiceAPI)),
+								azure.TitleCase(string(iothub.IPFilterTargetTypeDeviceAPI)),
 							}, false),
 						},
 					},
@@ -448,7 +442,7 @@ func expandDpsIPFilterRules(d *pluginsdk.ResourceData) *[]iothub.IPFilterRule {
 			FilterName: utils.String(rawRule["name"].(string)),
 			Action:     iothub.IPFilterActionType(rawRule["action"].(string)),
 			IPMask:     utils.String(rawRule["ip_mask"].(string)),
-			Target:     iothub.IPFilterTargetType(strings.Title(rawRule["target"].(string))),
+			Target:     iothub.IPFilterTargetType(azure.TitleCase(rawRule["target"].(string))),
 		}
 
 		rules = append(rules, *rule)

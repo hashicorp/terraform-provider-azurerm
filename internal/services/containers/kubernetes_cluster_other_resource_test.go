@@ -2,7 +2,6 @@ package containers_test
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -21,47 +20,6 @@ func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 			Config: r.basicAvailabilitySetConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.host").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.username").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.password").Exists(),
-				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesCluster_basicAvailabilitySetSensitive(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	os.Setenv("ARM_AKS_KUBE_CONFIGS_SENSITIVE", "true")
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicAvailabilitySetConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.host").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.username").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.password").Exists(),
-				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
 			),
 		},
 		data.ImportStep(),
@@ -77,18 +35,6 @@ func TestAccKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
 			Config: r.sameSize(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.host").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.username").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.password").Exists(),
-				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
 			),
 		},
 		data.ImportStep(),
@@ -104,18 +50,6 @@ func TestAccKubernetesCluster_basicVMSS(t *testing.T) {
 			Config: r.basicVMSSConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("role_based_access_control.0.azure_active_directory.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.host").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.username").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.password").Exists(),
-				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
-				check.That(data.ResourceName).Key("network_profile.0.load_balancer_sku").HasValue("Standard"),
 			),
 		},
 		data.ImportStep(),
@@ -636,6 +570,54 @@ func TestAccKubernetesCluster_osSku(t *testing.T) {
 			Config: r.osSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_microsoftDefender(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.microsoftDefender(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.microsoftDefenderDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_oidcIssuer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.oidcIssuer(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("oidc_issuer_url").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.oidcIssuer(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("oidc_issuer_url").IsSet(),
 			),
 		},
 		data.ImportStep(),
@@ -1553,7 +1535,8 @@ func (KubernetesClusterResource) diskEncryptionConfig(data acceptance.TestData) 
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -1891,6 +1874,37 @@ func (KubernetesClusterResource) osSku(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+    os_sku     = "Ubuntu"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) oidcIssuer(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
   location = "%s"
@@ -1909,6 +1923,76 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+  oidc_issuer_enabled = %t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
+}
+
+func (KubernetesClusterResource) microsoftDefender(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                              = "acctestaks%d"
+  location                          = azurerm_resource_group.test.location
+  resource_group_name               = azurerm_resource_group.test.name
+  dns_prefix                        = "acctestaks%d"
+  role_based_access_control_enabled = true
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  microsoft_defender {
+    log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) microsoftDefenderDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                              = "acctestaks%d"
+  location                          = azurerm_resource_group.test.location
+  resource_group_name               = azurerm_resource_group.test.name
+  dns_prefix                        = "acctestaks%d"
+  role_based_access_control_enabled = true
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

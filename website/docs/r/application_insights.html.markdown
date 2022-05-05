@@ -90,7 +90,7 @@ The following arguments are supported:
 
 * `sampling_percentage` - (Optional) Specifies the percentage of the data produced by the monitored application that is sampled for Application Insights telemetry.
 
-* `disable_ip_masking` - (Optional) By default the real client ip is masked as `0.0.0.0` in the logs. Use this argument to disable masking and log the real client ip. Defaults to `false`.
+* `disable_ip_masking` - (Optional) By default the real client IP is masked as `0.0.0.0` in the logs. Use this argument to disable masking and log the real client IP. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

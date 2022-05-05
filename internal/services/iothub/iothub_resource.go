@@ -1,13 +1,11 @@
 package iothub
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/url"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -186,6 +184,20 @@ func resourceIotHub() *pluginsdk.Resource {
 								Type:     pluginsdk.TypeString,
 								Required: true,
 							},
+							"authentication_type": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								Default:  string(devices.AuthenticationTypeKeyBased),
+								ValidateFunc: validation.StringInSlice([]string{
+									string(devices.AuthenticationTypeKeyBased),
+									string(devices.AuthenticationTypeIdentityBased),
+								}, false),
+							},
+							"identity_id": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: msivalidate.UserAssignedIdentityID,
+							},
 							"notifications": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
@@ -314,8 +326,6 @@ func resourceIotHub() *pluginsdk.Resource {
 								DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 							},
 
-							// encoding should be case-sensitive but kept case-insensitive for backward compatibility.
-							// todo remove suppress.CaseDifference, make encoding case-sensitive and normalize it with pandora in 3.0 or 4.0
 							"encoding": {
 								Type:     pluginsdk.TypeString,
 								Optional: true,
@@ -704,8 +714,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if _, ok := d.GetOk("fallback_route"); ok {
 		routingProperties.FallbackRoute = expandIoTHubFallbackRoute(d)
-	} else if features.ThreePointOhBeta() {
-		// TODO update docs for 3.0
+	} else {
 		routingProperties.FallbackRoute = &devices.FallbackRouteProperties{
 			Source:        utils.String(string(devices.RoutingSourceDeviceMessages)),
 			Condition:     utils.String("true"),
@@ -721,7 +730,7 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	storageEndpoints, messagingEndpoints, enableFileUploadNotifications := expandIoTHubFileUpload(d)
+	storageEndpoints, messagingEndpoints, enableFileUploadNotifications, err := expandIoTHubFileUpload(d)
 	if err != nil {
 		return fmt.Errorf("expanding `file_upload`: %+v", err)
 	}
@@ -790,23 +799,13 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		props.Properties.MinTLSVersion = utils.String(v.(string))
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props, ""); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props, "")
+	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	timeout := pluginsdk.TimeoutUpdate
-	if d.IsNewResource() {
-		timeout = pluginsdk.TimeoutCreate
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"Activating", "Transitioning"},
-		Target:  []string{"Succeeded"},
-		Refresh: iothubStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
-		Timeout: d.Timeout(timeout),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -954,80 +953,15 @@ func resourceIotHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.ByName(id.Name, IothubResourceName)
 	defer locks.UnlockByName(id.Name, IothubResourceName)
 
-	// when running acctest of `azurerm_iot_security_solution`, we found after delete the iot security solution, the iothub provisionState is `Transitioning`
-	// if we delete directly, the func `client.Delete` will throw error
-	// so first wait for the iotHub state become succeed
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"Activating", "Transitioning"},
-		Target:  []string{"Succeeded"},
-		Refresh: iothubStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
-		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for ProvisioningState of %s to become `Succeeded`: %+v", id, err)
-	}
-
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
 		return err
 	}
-
-	return waitForIotHubToBeDeleted(ctx, client, id.ResourceGroup, id.Name, d)
-}
-
-func waitForIotHubToBeDeleted(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string, d *pluginsdk.ResourceData) error {
-	// we can't use the Waiter here since the API returns a 404 once it's deleted which is considered a polling status code..
-	log.Printf("[DEBUG] Waiting for IotHub (%q in Resource Group %q) to be deleted", name, resourceGroup)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"200"},
-		Target:  []string{"404"},
-		Refresh: iothubStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for IotHub (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	return nil
-}
-
-func iothubStateRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, name)
-
-		log.Printf("Retrieving IoTHub %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
-
-		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
-				return res, "NotFound", nil
-			}
-			return nil, "", fmt.Errorf("polling for the Provisioning State of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
-		}
-
-		if res.Properties == nil || res.Properties.ProvisioningState == nil {
-			return res, "", fmt.Errorf("polling for the Provisioning State of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
-		}
-
-		return res, *res.Properties.ProvisioningState, nil
-	}
-}
-
-func iothubStateStatusCodeRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, name)
-
-		log.Printf("Retrieving IoTHub %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
-
-		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
-				return res, strconv.Itoa(res.StatusCode), nil
-			}
-			return nil, "", fmt.Errorf("polling for the status of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
-		}
-
-		return res, strconv.Itoa(res.StatusCode), nil
-	}
 }
 
 func expandIoTHubRoutes(d *pluginsdk.ResourceData) *[]devices.RouteProperties {
@@ -1081,7 +1015,7 @@ func expandIoTHubEnrichments(d *pluginsdk.ResourceData) *[]devices.EnrichmentPro
 	return &enrichmentProperties
 }
 
-func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.StorageEndpointProperties, map[string]*devices.MessagingEndpointProperties, bool) {
+func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.StorageEndpointProperties, map[string]*devices.MessagingEndpointProperties, bool, error) {
 	fileUploadList := d.Get("file_upload").([]interface{})
 
 	storageEndpointProperties := make(map[string]*devices.StorageEndpointProperties)
@@ -1091,6 +1025,8 @@ func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.Stor
 	if len(fileUploadList) > 0 {
 		fileUploadMap := fileUploadList[0].(map[string]interface{})
 
+		authenticationType := devices.AuthenticationType(fileUploadMap["authentication_type"].(string))
+		identityId := fileUploadMap["identity_id"].(string)
 		connectionStr := fileUploadMap["connection_string"].(string)
 		containerName := fileUploadMap["container_name"].(string)
 		notifications = fileUploadMap["notifications"].(bool)
@@ -1100,9 +1036,19 @@ func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.Stor
 		lockDuration := fileUploadMap["lock_duration"].(string)
 
 		storageEndpointProperties["$default"] = &devices.StorageEndpointProperties{
-			SasTTLAsIso8601:  &sasTTL,
-			ConnectionString: &connectionStr,
-			ContainerName:    &containerName,
+			SasTTLAsIso8601:    &sasTTL,
+			AuthenticationType: authenticationType,
+			ConnectionString:   &connectionStr,
+			ContainerName:      &containerName,
+		}
+
+		if identityId != "" {
+			if authenticationType != devices.AuthenticationTypeIdentityBased {
+				return nil, nil, false, fmt.Errorf("`identity_id` can only be specified when `authentication_type` is `identityBased`")
+			}
+			storageEndpointProperties["$default"].Identity = &devices.ManagedIdentity{
+				UserAssignedIdentity: &identityId,
+			}
 		}
 
 		messagingEndpointProperties["fileNotifications"] = &devices.MessagingEndpointProperties{
@@ -1112,7 +1058,7 @@ func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.Stor
 		}
 	}
 
-	return storageEndpointProperties, messagingEndpointProperties, notifications
+	return storageEndpointProperties, messagingEndpointProperties, notifications, nil
 }
 
 func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*devices.RoutingEndpoints, error) {
@@ -1361,6 +1307,18 @@ func flattenIoTHubFileUpload(storageEndpoints map[string]*devices.StorageEndpoin
 		if sasTTLAsIso8601 := storageEndpointProperties.SasTTLAsIso8601; sasTTLAsIso8601 != nil {
 			output["sas_ttl"] = *sasTTLAsIso8601
 		}
+
+		authenticationType := string(devices.AuthenticationTypeKeyBased)
+		if v := string(storageEndpointProperties.AuthenticationType); v != "" {
+			authenticationType = v
+		}
+		output["authentication_type"] = authenticationType
+
+		identityId := ""
+		if storageEndpointProperties.Identity != nil && storageEndpointProperties.Identity.UserAssignedIdentity != nil {
+			identityId = *storageEndpointProperties.Identity.UserAssignedIdentity
+		}
+		output["identity_id"] = identityId
 
 		if messagingEndpointProperties, ok := messagingEndpoints["fileNotifications"]; ok {
 			if lockDurationAsIso8601 := messagingEndpointProperties.LockDurationAsIso8601; lockDurationAsIso8601 != nil {

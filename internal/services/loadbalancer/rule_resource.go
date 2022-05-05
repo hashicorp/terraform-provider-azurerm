@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 
@@ -140,7 +139,6 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.Set("name", config.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := config.LoadBalancingRulePropertiesFormat; props != nil {
 		d.Set("disable_outbound_snat", props.DisableOutboundSnat)
@@ -367,8 +365,6 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: loadBalancerValidate.RuleName,
 		},
-
-		"resource_group_name": azure.SchemaResourceGroupName(),
 
 		"loadbalancer_id": {
 			Type:         pluginsdk.TypeString,

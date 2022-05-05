@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Integration Service Environment should exist. Changing this forces a new Integration Service Environment to be created.
 
-* `sku_name` - (Required) The sku name and capacity of the Integration Service Environment. Possible Values for `sku` element are `Developer` and `Premium` and possible values for the `capacity` element are from `0` to `10`.  Defaults to `sku` of `Developer` with a `Capacity` of `0` (e.g. `Developer_0`). Changing this forces a new Integration Service Environment to be created when `sku` element is not the same with existing one.
+* `sku_name` - (Required) The SKU name and capacity of the Integration Service Environment. Possible Values for `sku` element are `Developer` and `Premium` and possible values for the `capacity` element are from `0` to `10`.  Defaults to `sku` of `Developer` with a `Capacity` of `0` (e.g. `Developer_0`). Changing this forces a new Integration Service Environment to be created when `sku` element is not the same with existing one.
 
 ~> **NOTE** For a `sku_name` using the `Developer` `sku` the `capacity` element must be always `0`. For a `sku_name` using the `sku` of `Premium` the `capacity` element can be between `0` and `10`.
 
@@ -107,13 +107,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Integration Service Environment.
 
-* `connector_endpoint_ip_addresses` - The list of access endpoint ip addresses of connector.
+* `connector_endpoint_ip_addresses` - The list of access endpoint IP addresses of connector.
 
-* `connector_outbound_ip_addresses` - The list of outgoing ip addresses of connector.
+* `connector_outbound_ip_addresses` - The list of outgoing IP addresses of connector.
 
-* `workflow_endpoint_ip_addresses` - The list of access endpoint ip addresses of workflow.
+* `workflow_endpoint_ip_addresses` - The list of access endpoint IP addresses of workflow.
 
-* `workflow_outbound_ip_addresses` - The list of outgoing ip addresses of workflow.
+* `workflow_outbound_ip_addresses` - The list of outgoing IP addresses of workflow.
 
 ## Timeouts
 

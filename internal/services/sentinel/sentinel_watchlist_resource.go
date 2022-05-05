@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	loganalyticsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
@@ -28,6 +28,7 @@ type WatchlistModel struct {
 	Description             string   `tfschema:"description"`
 	Labels                  []string `tfschema:"labels"`
 	DefaultDuration         string   `tfschema:"default_duration"`
+	ItemSearchKey           string   `tfschema:"item_search_key"`
 }
 
 func (r WatchlistResource) Arguments() map[string]*pluginsdk.Schema {
@@ -45,6 +46,12 @@ func (r WatchlistResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
 		},
 		"display_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"item_search_key": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -108,7 +115,7 @@ func (r WatchlistResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewWatchlistID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.WorkspaceName, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
+			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -124,10 +131,11 @@ func (r WatchlistResource) Create() sdk.ResourceFunc {
 					// The only supported provider for now is "Microsoft"
 					Provider: utils.String("Microsoft"),
 
-					// The "source" and "contentType" represent the source file name which contains the watchlist items and its content type.
+					// The "source" represent the source file name which contains the watchlist items.
 					// Setting them here is merely to make the API happy.
-					Source:      securityinsight.Source("a.csv"),
-					ContentType: utils.String("Text/Csv"),
+					Source: securityinsight.Source("a.csv"),
+
+					ItemsSearchKey: utils.String(model.ItemSearchKey),
 				},
 			}
 
@@ -141,7 +149,7 @@ func (r WatchlistResource) Create() sdk.ResourceFunc {
 				param.WatchlistProperties.DefaultDuration = &model.DefaultDuration
 			}
 
-			_, err = client.Create(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name, param)
+			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, param)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -163,7 +171,7 @@ func (r WatchlistResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name)
+			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
@@ -189,6 +197,9 @@ func (r WatchlistResource) Read() sdk.ResourceFunc {
 				if props.DefaultDuration != nil {
 					model.DefaultDuration = *props.DefaultDuration
 				}
+				if props.ItemsSearchKey != nil {
+					model.ItemSearchKey = *props.ItemsSearchKey
+				}
 			}
 
 			return metadata.Encode(&model)
@@ -207,7 +218,7 @@ func (r WatchlistResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, id.ResourceGroup, OperationalInsightsResourceProvider, id.WorkspaceName, id.Name); err != nil {
+			if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

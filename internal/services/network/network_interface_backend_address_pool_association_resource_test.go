@@ -205,9 +205,9 @@ func (r NetworkInterfaceBackendAddressPoolResource) requiresImport(data acceptan
 %s
 
 resource "azurerm_network_interface_backend_address_pool_association" "import" {
-  network_interface_id     = azurerm_network_interface_backend_address_pool_association.test.network_interface_id
-  ip_configuration_name    = azurerm_network_interface_backend_address_pool_association.test.ip_configuration_name
-  backend_address_pool_ids = [azurerm_network_interface_backend_address_pool_association.test.backend_address_pool_id]
+  network_interface_id    = azurerm_network_interface_backend_address_pool_association.test.network_interface_id
+  ip_configuration_name   = azurerm_network_interface_backend_address_pool_association.test.ip_configuration_name
+  backend_address_pool_id = azurerm_network_interface_backend_address_pool_association.test.backend_address_pool_id
 }
 `, r.basic(data))
 }
@@ -265,7 +265,7 @@ resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {

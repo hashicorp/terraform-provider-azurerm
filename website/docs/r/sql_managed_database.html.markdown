@@ -8,11 +8,18 @@ description: |-
 
 # azurerm_sql_managed_database
 
-Manages a SQL Azure Managed Database
+Manages a SQL Azure Managed Database.
+
+-> **Note:** The `azurerm_sql_managed_database` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_managed_database`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_managed_database) resource instead.
 
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
+}
+
 resource "azurerm_sql_managed_database" "example" {
   name                    = "exampledatabase"
   sql_managed_instance_id = azurerm_sql_managed_instance.example.id

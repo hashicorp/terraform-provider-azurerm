@@ -9,8 +9,6 @@ description: |-
 
 Manages a Windows Function App Slot.
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -69,8 +67,6 @@ The following arguments are supported:
 
 * `site_config` - (Required) a `site_config` block as detailed below.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App Slot.
-
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
@@ -103,9 +99,17 @@ The following arguments are supported:
 
 * `storage_account_access_key` - (Optional) The access key which will be used to access the storage account for the Function App Slot.
 
+* `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App Slot.
+
 * `storage_uses_managed_identity` - (Optional) Should the Function App Slot use its Managed Identity to access storage.
 
-~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified.
+~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
+
+* `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account for this Function App Slot.
+
+~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name`.
+
+~> **NOTE:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Windows Function App Slot.
 
@@ -117,7 +121,7 @@ An `auth_settings` block supports the following:
 
 * `active_directory` - (Optional) an `active_directory` block as detailed below.
 
-* `additional_login_parameters` - (Optional) Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
+* `additional_login_parameters` - (Optional) Specifies a map of login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
 
 * `allowed_external_redirect_urls` - (Optional) an `allowed_external_redirect_urls` block as detailed below.
 
@@ -173,13 +177,11 @@ A `connection_string` block supports the following:
 
 An `identity` block supports the following:
 
-* `identity_ids` - (Optional) an `identity_ids` block as detailed below.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Windows Function App Slot. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `type` - (Required) The type of managed service identity. Possible values include: `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Windows Function App Slot.
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity.
-
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity.
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -219,7 +221,7 @@ A `site_config` block supports the following:
 
 * `health_check_path` - (Optional) The path to be checked for this function app health.
 
-* `http2_enabled` - (Optional) Specifies if the http2 protocol should be enabled. Defaults to `false`.
+* `http2_enabled` - (Optional) Specifies if the HTTP2 protocol should be enabled. Defaults to `false`.
 
 * `ip_restriction` - (Optional) an `ip_restriction` block as detailed below.
 
@@ -283,9 +285,9 @@ A `facebook` block supports the following:
 
 * `app_id` - (Required) The App ID of the Facebook app used for login.
 
-* `app_secret` - (Optional) The App Secret of the Facebook app used for Facebook Login. Cannot be specified with `app_secret_setting_name`.
+* `app_secret` - (Optional) The App Secret of the Facebook app used for Facebook login. Cannot be specified with `app_secret_setting_name`.
 
-* `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook Login. Cannot be specified with `app_secret`.
+* `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook login. Cannot be specified with `app_secret`.
 
 * `oauth_scopes` - (Optional) an `oauth_scopes` block as detailed below.
 
@@ -295,9 +297,9 @@ A `github` block supports the following:
 
 * `client_id` - (Required) The ID of the GitHub app used for login.
 
-* `client_secret` - (Optional) The Client Secret of the GitHub app used for GitHub Login. Cannot be specified with `client_secret_setting_name`.
+* `client_secret` - (Optional) The Client Secret of the GitHub app used for GitHub login. Cannot be specified with `client_secret_setting_name`.
 
-* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for GitHub Login. Cannot be specified with `client_secret`.
+* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for GitHub login. Cannot be specified with `client_secret`.
 
 * `oauth_scopes` - (Optional) an `oauth_scopes` block as detailed below.
 
@@ -309,7 +311,7 @@ A `google` block supports the following:
 
 * `client_secret` - (Optional) The client secret associated with the Google web application.  Cannot be specified with `client_secret_setting_name`.
 
-* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google Login. Cannot be specified with `client_secret`.
+* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google login. Cannot be specified with `client_secret`.
 
 * `oauth_scopes` - (Optional) an `oauth_scopes` block as detailed below.
 
@@ -341,7 +343,7 @@ A `schedule` block supports the following:
 
 * `frequency_interval` - (Required) How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).
 
-~> **NOTE:** Not all intervals are supported on all SKU's. Please refer to the official documentation for appropriate values.
+~> **NOTE:** Not all intervals are supported on all SKUs. Please refer to the official documentation for appropriate values.
 
 * `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day` and `Hour`.
 
@@ -368,6 +370,8 @@ An `app_service_logs` block supports the following:
 An `application_stack` block supports the following:
 
 * `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1` and `6`
+
+* `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
 * `java_version` - (Optional) The version of Java to use. Possible values are `8`, and `11`
 
@@ -450,6 +454,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_hostname` - The default hostname of the Windows Function App Slot.
 
+* `identity` - An `identity` block as defined below.
+
 * `kind` - The Kind value for this Windows Function App Slot.
 
 * `outbound_ip_address_list` - A list of outbound IP addresses. For example `["52.23.25.3", "52.143.43.12"]`.
@@ -461,6 +467,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `possible_outbound_ip_addresses` - A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`. For example `["52.23.25.3", "52.143.43.12","52.143.43.17"]`.
 
 * `site_credential` - A `site_credential` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 
@@ -476,7 +490,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Windows Function App Slot.
 * `update` - (Defaults to 30 minutes) Used when updating the Windows Function App Slot.
-* `read` - (Defaults to 25 minutes) Used when retrieving the Windows Function App Slot.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Windows Function App Slot.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Windows Function App Slot.
 
 ## Import

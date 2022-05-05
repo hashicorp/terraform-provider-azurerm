@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `synapse_workspace_id` - (Required) The ID of the Synapse workspace to set the extended auditing policy. Changing this forces a new resource to be created.
 
-* `storage_endpoint` - (Optional) The blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all extended auditing logs.
+* `storage_endpoint` - (Optional) The blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all extended auditing logs.
 
 * `retention_in_days` - (Optional) The number of days to retain logs for in the storage account.
 
@@ -91,7 +91,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Synapse Workspace Extended Auditing Policys can be imported using the `resource id`, e.g.
+Synapse Workspace Extended Auditing Policies can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_synapse_workspace_extended_auditing_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Synapse/workspaces/workspace1/extendedAuditingSettings/default

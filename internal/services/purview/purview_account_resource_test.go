@@ -183,10 +183,6 @@ func (r PurviewAccountResource) requiresImport(data acceptance.TestData) string 
 	template := r.basic(data)
 	if !features.ThreePointOhBeta() {
 		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_purview_account" "import" {
@@ -197,10 +193,6 @@ resource "azurerm_purview_account" "import" {
 `, template)
 	}
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_purview_account" "import" {
