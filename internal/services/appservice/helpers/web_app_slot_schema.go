@@ -570,39 +570,43 @@ func ExpandSiteConfigLinuxWebAppSlot(siteConfig []SiteConfigLinuxWebAppSlot, exi
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-		linuxAppStack := linuxSlotSiteConfig.ApplicationStack[0]
-		if linuxAppStack.NetFrameworkVersion != "" {
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
-		}
-
-		if linuxAppStack.PhpVersion != "" {
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PHP|%s", linuxAppStack.PhpVersion))
-		}
-
-		if linuxAppStack.NodeVersion != "" {
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
-		}
-
-		if linuxAppStack.PythonVersion != "" {
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
-		}
-
-		if linuxAppStack.RubyVersion != "" {
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
-		}
-
-		if linuxAppStack.JavaServer != "" {
-			// (@jackofallops) - Java has some special cases for Java SE when using specific versions of the runtime, resulting in this string
-			// being formatted in the form: `JAVA|u242` instead of the standard pattern of `JAVA|u242-java8` for example. This applies to jre8 and java11.
-			if linuxAppStack.JavaServer == "JAVA" && linuxAppStack.JavaServerVersion == "" {
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("%s|%s", linuxAppStack.JavaServer, linuxAppStack.JavaVersion))
-			} else {
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("%s|%s-%s", linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion, linuxAppStack.JavaVersion))
+		if len(linuxSlotSiteConfig.ApplicationStack) == 1 {
+			linuxAppStack := linuxSlotSiteConfig.ApplicationStack[0]
+			if linuxAppStack.NetFrameworkVersion != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
 			}
-		}
 
-		if linuxAppStack.DockerImage != "" {
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+			if linuxAppStack.PhpVersion != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PHP|%s", linuxAppStack.PhpVersion))
+			}
+
+			if linuxAppStack.NodeVersion != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
+			}
+
+			if linuxAppStack.PythonVersion != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
+			}
+
+			if linuxAppStack.RubyVersion != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
+			}
+
+			if linuxAppStack.JavaServer != "" {
+				// (@jackofallops) - Java has some special cases for Java SE when using specific versions of the runtime, resulting in this string
+				// being formatted in the form: `JAVA|u242` instead of the standard pattern of `JAVA|u242-java8` for example. This applies to jre8 and java11.
+				if linuxAppStack.JavaServer == "JAVA" && linuxAppStack.JavaServerVersion == "" {
+					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("%s|%s", linuxAppStack.JavaServer, linuxAppStack.JavaVersion))
+				} else {
+					expanded.LinuxFxVersion = utils.String(fmt.Sprintf("%s|%s-%s", linuxAppStack.JavaServer, linuxAppStack.JavaServerVersion, linuxAppStack.JavaVersion))
+				}
+			}
+
+			if linuxAppStack.DockerImage != "" {
+				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
+			}
+		} else {
+			expanded.LinuxFxVersion = utils.String("")
 		}
 	}
 
@@ -821,22 +825,27 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.application_stack") {
-		winAppStack := winSlotSiteConfig.ApplicationStack[0]
-		expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
-		expanded.PhpVersion = utils.String(winAppStack.PhpVersion)
-		expanded.NodeVersion = utils.String(winAppStack.NodeVersion)
-		expanded.PythonVersion = utils.String(winAppStack.PythonVersion)
-		expanded.JavaVersion = utils.String(winAppStack.JavaVersion)
-		expanded.JavaContainer = utils.String(winAppStack.JavaContainer)
-		expanded.JavaContainerVersion = utils.String(winAppStack.JavaContainerVersion)
-		if winAppStack.DockerContainerName != "" {
-			if winAppStack.DockerContainerRegistry != "" {
-				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-			} else {
-				expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+		if len(winSlotSiteConfig.ApplicationStack) == 1 {
+
+			winAppStack := winSlotSiteConfig.ApplicationStack[0]
+			expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
+			expanded.PhpVersion = utils.String(winAppStack.PhpVersion)
+			expanded.NodeVersion = utils.String(winAppStack.NodeVersion)
+			expanded.PythonVersion = utils.String(winAppStack.PythonVersion)
+			expanded.JavaVersion = utils.String(winAppStack.JavaVersion)
+			expanded.JavaContainer = utils.String(winAppStack.JavaContainer)
+			expanded.JavaContainerVersion = utils.String(winAppStack.JavaContainerVersion)
+			if winAppStack.DockerContainerName != "" {
+				if winAppStack.DockerContainerRegistry != "" {
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+				} else {
+					expanded.WindowsFxVersion = utils.String(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
+				}
 			}
+			currentStack = winAppStack.CurrentStack
+		} else {
+			expanded.WindowsFxVersion = utils.String("")
 		}
-		currentStack = winAppStack.CurrentStack
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.virtual_application") {

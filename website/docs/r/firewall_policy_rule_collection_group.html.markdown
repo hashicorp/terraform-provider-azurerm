@@ -123,13 +123,13 @@ A `network_rule_collection` block supports the following:
 
 A `nat_rule_collection` block supports the following:
 
-* `name` - (Required) The name which should be used for this nat rule collection.
+* `name` - (Required) The name which should be used for this NAT rule collection.
 
-* `action` - (Required) The action to take for the nat rules in this collection. Currently, the only possible value is `Dnat`.
+* `action` - (Required) The action to take for the NAT rules in this collection. Currently, the only possible value is `Dnat`.
 
-* `priority` - (Required) The priority of the nat rule collection. The range is `100` - `65000`.
+* `priority` - (Required) The priority of the NAT rule collection. The range is `100` - `65000`.
 
-* `rule` - (Required) A `rule` (nat rule) block as defined above.
+* `rule` - (Required) A `rule` (NAT rule) block as defined above.
 
 ---
 
@@ -180,7 +180,7 @@ A `rule` (network rule) block supports the following:
 
 ---
 
-A `rule` (nat rule) block supports the following:
+A `rule` (NAT rule) block supports the following:
 
 * `name` - (Required) The name which should be used for this rule.
 

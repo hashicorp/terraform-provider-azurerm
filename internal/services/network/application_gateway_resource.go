@@ -108,9 +108,9 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 
 func resourceApplicationGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApplicationGatewayCreateUpdate,
+		Create: resourceApplicationGatewayCreate,
 		Read:   resourceApplicationGatewayRead,
-		Update: resourceApplicationGatewayCreateUpdate,
+		Update: resourceApplicationGatewayUpdate,
 		Delete: resourceApplicationGatewayDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ApplicationGatewayID(id)
@@ -1602,7 +1602,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -1789,11 +1789,270 @@ func resourceApplicationGatewayCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, gateway)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
+		return fmt.Errorf("waiting for create of %s: %+v", id, err)
+	}
+
+	if stopApplicationGateway {
+		future, err := client.Start(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("starting %s: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for %s to start: %+v", id, err)
+		}
+	}
+
+	d.SetId(id.ID())
+	return resourceApplicationGatewayRead(d, meta)
+}
+
+func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ApplicationGatewayID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	applicationGateway, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if d.HasChange("tags") {
+		applicationGateway.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if applicationGateway.ApplicationGatewayPropertiesFormat == nil {
+		applicationGateway.ApplicationGatewayPropertiesFormat = &network.ApplicationGatewayPropertiesFormat{}
+	}
+
+	if d.HasChange("enable_http2") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.EnableHTTP2 = utils.Bool(d.Get("enable_http2").(bool))
+	}
+
+	if d.HasChange("trusted_root_certificate") {
+		trustedRootCertificates, err := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `trusted_root_certificate`: %+v", err)
+		}
+		applicationGateway.ApplicationGatewayPropertiesFormat.TrustedRootCertificates = trustedRootCertificates
+	}
+
+	if d.HasChange("request_routing_rule") {
+		requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, id.ID())
+		if err != nil {
+			return fmt.Errorf("expanding `request_routing_rule`: %+v", err)
+		}
+		applicationGateway.ApplicationGatewayPropertiesFormat.RequestRoutingRules = requestRoutingRules
+	}
+
+	if d.HasChange("url_path_map") {
+		urlPathMaps, err := expandApplicationGatewayURLPathMaps(d, id.ID())
+		if err != nil {
+			return fmt.Errorf("expanding `url_path_map`: %+v", err)
+		}
+
+		applicationGateway.ApplicationGatewayPropertiesFormat.URLPathMaps = urlPathMaps
+	}
+
+	if d.HasChange("redirect_configuration") {
+		redirectConfigurations, err := expandApplicationGatewayRedirectConfigurations(d, id.ID())
+		if err != nil {
+			return fmt.Errorf("expanding `redirect_configuration`: %+v", err)
+		}
+
+		applicationGateway.ApplicationGatewayPropertiesFormat.RedirectConfigurations = redirectConfigurations
+	}
+
+	if d.HasChange("ssl_certificate") {
+		sslCertificates, err := expandApplicationGatewaySslCertificates(d)
+		if err != nil {
+			return fmt.Errorf("expanding `ssl_certificate`: %+v", err)
+		}
+
+		applicationGateway.ApplicationGatewayPropertiesFormat.SslCertificates = sslCertificates
+	}
+
+	if d.HasChange("trusted_client_certificate") {
+		trustedClientCertificates, err := expandApplicationGatewayTrustedClientCertificates(d)
+		if err != nil {
+			return fmt.Errorf("expanding `trusted_client_certificate`: %+v", err)
+		}
+
+		applicationGateway.ApplicationGatewayPropertiesFormat.TrustedClientCertificates = trustedClientCertificates
+	}
+
+	if d.HasChange("ssl_profile") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.SslProfiles = expandApplicationGatewaySslProfiles(d, id.ID())
+	}
+
+	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
+	if d.HasChange("gateway_ip_configuration") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.GatewayIPConfigurations = gatewayIPConfigurations
+	}
+
+	if d.HasChange("http_listener") {
+		httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
+		if err != nil {
+			return fmt.Errorf("fail to expand `http_listener`: %+v", err)
+		}
+
+		applicationGateway.ApplicationGatewayPropertiesFormat.HTTPListeners = httpListeners
+	}
+
+	if d.HasChange("rewrite_rule_set") {
+		rewriteRuleSets, err := expandApplicationGatewayRewriteRuleSets(d)
+		if err != nil {
+			return fmt.Errorf("expanding `rewrite_rule_set`: %v", err)
+		}
+
+		applicationGateway.ApplicationGatewayPropertiesFormat.RewriteRuleSets = rewriteRuleSets
+	}
+
+	if d.HasChange("autoscale_configuration") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.AutoscaleConfiguration = expandApplicationGatewayAutoscaleConfiguration(d)
+	}
+
+	if d.HasChange("authentication_certificate") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.AuthenticationCertificates = expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{}))
+	}
+
+	if d.HasChange("custom_error_configuration") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.CustomErrorConfigurations = expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
+	}
+
+	if d.HasChange("backend_address_pool") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.BackendAddressPools = expandApplicationGatewayBackendAddressPools(d)
+	}
+
+	if d.HasChange("backend_http_settings") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.BackendHTTPSettingsCollection = expandApplicationGatewayBackendHTTPSettings(d, id.ID())
+	}
+
+	if d.HasChange("frontend_ip_configuration") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.FrontendIPConfigurations = expandApplicationGatewayFrontendIPConfigurations(d, id.ID())
+	}
+
+	if d.HasChange("frontend_port") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.FrontendPorts = expandApplicationGatewayFrontendPorts(d)
+	}
+
+	if d.HasChange("private_link_configuration") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.PrivateLinkConfigurations = expandApplicationGatewayPrivateLinkConfigurations(d)
+	}
+
+	if d.HasChange("probe") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.Probes = expandApplicationGatewayProbes(d)
+	}
+
+	if d.HasChange("sku") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.Sku = expandApplicationGatewaySku(d)
+	}
+
+	if d.HasChange("ssl_policy") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.SslPolicy = expandApplicationGatewaySslPolicy(d.Get("ssl_policy").([]interface{}))
+	}
+
+	if d.HasChange("zones") {
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			applicationGateway.Zones = &zones
+		}
+	}
+
+	if d.HasChange("fips_enabled") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.EnableFips = utils.Bool(d.Get("fips_enabled").(bool))
+	}
+
+	if d.HasChange("force_firewall_policy_association") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.ForceFirewallPolicyAssociation = utils.Bool(d.Get("force_firewall_policy_association").(bool))
+	}
+
+	if d.HasChange("identity") {
+		expandedIdentity, err := expandApplicationGatewayIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		applicationGateway.Identity = expandedIdentity
+	}
+
+	// validation (todo these should probably be moved into their respective expand functions, which would then return an error?)
+	if applicationGateway.ApplicationGatewayPropertiesFormat != nil && applicationGateway.ApplicationGatewayPropertiesFormat.BackendHTTPSettingsCollection != nil {
+		for _, backendHttpSettings := range *applicationGateway.ApplicationGatewayPropertiesFormat.BackendHTTPSettingsCollection {
+			if props := backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
+				if props.HostName == nil || props.PickHostNameFromBackendAddress == nil {
+					continue
+				}
+
+				if *props.HostName != "" && *props.PickHostNameFromBackendAddress {
+					return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
+				}
+			}
+		}
+	}
+
+	if applicationGateway.ApplicationGatewayPropertiesFormat != nil && applicationGateway.ApplicationGatewayPropertiesFormat.Probes != nil {
+		for _, probe := range *applicationGateway.ApplicationGatewayPropertiesFormat.Probes {
+			if props := probe.ApplicationGatewayProbePropertiesFormat; props != nil {
+				if props.Host == nil || props.PickHostNameFromBackendHTTPSettings == nil {
+					continue
+				}
+
+				if *props.Host == "" && !*props.PickHostNameFromBackendHTTPSettings {
+					return fmt.Errorf("One of `host` or `pick_host_name_from_backend_http_settings` must be set")
+				}
+
+				if *props.Host != "" && *props.PickHostNameFromBackendHTTPSettings {
+					return fmt.Errorf("Only one of `host` or `pick_host_name_from_backend_http_settings` can be set")
+				}
+			}
+		}
+	}
+
+	if d.HasChange("waf_configuration") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
+	}
+
+	appGWSkuTier := d.Get("sku.0.tier").(string)
+	wafFileUploadLimit := d.Get("waf_configuration.0.file_upload_limit_mb").(int)
+
+	if appGWSkuTier != string(network.ApplicationGatewayTierWAFV2) && wafFileUploadLimit > 500 {
+		return fmt.Errorf("Only SKU `%s` allows `file_upload_limit_mb` to exceed 500MB", network.ApplicationGatewayTierWAFV2)
+	}
+
+	if d.HasChange("firewall_policy_id") {
+		applicationGateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
+			ID: utils.String(d.Get("firewall_policy_id").(string)),
+		}
+	}
+
+	if stopApplicationGateway {
+		future, err := client.Stop(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("stopping %s: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for %s to stop: %+v", id, err)
+		}
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, applicationGateway)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	if stopApplicationGateway {

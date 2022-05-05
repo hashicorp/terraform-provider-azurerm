@@ -508,7 +508,7 @@ func resourceIotHub() *pluginsdk.Resource {
 										"name": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringIsNotEmpty,
+											ValidateFunc: iothubValidate.IoTHubIpRuleName,
 										},
 										"ip_mask": {
 											Type:         pluginsdk.TypeString,

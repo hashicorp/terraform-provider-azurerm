@@ -78,7 +78,6 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servicebus.SkuNameBasic),
 					string(servicebus.SkuNameStandard),
@@ -164,6 +163,14 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			oldCustomerManagedKey, newCustomerManagedKey := diff.GetChange("customer_managed_key")
 			if len(oldCustomerManagedKey.([]interface{})) != 0 && len(newCustomerManagedKey.([]interface{})) == 0 {
 				diff.ForceNew("customer_managed_key")
+			}
+
+			oldSku, newSku := diff.GetChange("sku")
+			if diff.HasChange("sku") {
+				if strings.EqualFold(newSku.(string), string(servicebus.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(servicebus.SkuNamePremium)) {
+					log.Printf("[DEBUG] cannot migrate a namespace from or to Premium SKU")
+					diff.ForceNew("sku")
+				}
 			}
 			return nil
 		}),

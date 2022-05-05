@@ -25,7 +25,7 @@ resource "azurerm_management_lock" "subscription-level" {
 }
 ```
 
-## Example Usage (Resource Group Level Lock)
+## Example Usage (Resource Group Level Lock)
 
 ```hcl
 resource "azurerm_resource_group" "example" {
