@@ -266,14 +266,6 @@ func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("developer_app_insights_key", props.DeveloperAppInsightKey)
 		d.Set("developer_app_insights_application_id", props.DeveloperAppInsightsApplicationID)
 		d.Set("icon_url", props.IconURL)
-
-		if props.PublicNetworkAccess == botservice.PublicNetworkAccessDisabled {
-			d.Set("isolated_network_enabled", true)
-			d.Set("public_network_access_enabled", false)
-		} else {
-			d.Set("isolated_network_enabled", false)
-			d.Set("public_network_access_enabled", true)
-		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
