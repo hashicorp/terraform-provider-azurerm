@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
 )
 
 type StorageShareResource struct{}
@@ -192,21 +191,21 @@ func TestAccStorageShare_accessTier(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.accessTier(data, string(shares.CoolAccessTier)),
+			Config: r.accessTier(data, "Cool"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.accessTier(data, string(shares.HotAccessTier)),
+			Config: r.accessTier(data, "Hot"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.accessTier(data, string(shares.TransactionOptimizedAccessTier)),
+			Config: r.accessTier(data, "TransactionOptimized"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
