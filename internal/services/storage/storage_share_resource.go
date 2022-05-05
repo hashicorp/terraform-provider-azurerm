@@ -236,9 +236,11 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("url", id.ID())
 	d.Set("enabled_protocol", string(props.EnabledProtocol))
 
-	if accessTier := props.AccessTier; accessTier != nil {
-		d.Set("access_tier", string(*accessTier))
+	accessTier := ""
+	if props.AccessTier != nil {
+		accessTier = string(*props.AccessTier)
 	}
+	d.Set("access_tier", accessTier)
 
 	if err := d.Set("acl", flattenStorageShareACLs(props.ACLs)); err != nil {
 		return fmt.Errorf("flattening `acl`: %+v", err)
