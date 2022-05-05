@@ -131,7 +131,7 @@ func (r ServicePlanDataSource) Read() sdk.ResourceFunc {
 			}
 
 			servicePlan.Location = location.NormalizeNilable(existing.Location)
-			servicePlan.Kind = *existing.Kind
+			servicePlan.Kind = utils.NormalizeNilableString(existing.Kind)
 
 			if sku := existing.Sku; sku != nil {
 				if sku.Name != nil {
