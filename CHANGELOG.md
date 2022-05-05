@@ -27,6 +27,7 @@ BUG FIXES:
 * `azurerm_linux_function_app` -  fix `app_settings.WEBSITE_RUN_FROM_PACKAGE` handling from external sources [GH-16641]
 * `azurerm_linux_function_app_slot` - fix deduplication of user `app_settings` [GH-15740]
 * `azurerm_linux_function_app_slot` - fix `app_settings.WEBSITE_RUN_FROM_PACKAGE` handling from external sources [GH-16641]
+* `azurerm_machine_learning_compute_cluster` - resource can now be deleted instead of detached [GH-16640]
 * `azurerm_windows_function_app` - fix deduplication of user `app_settings` [GH-15740]
 * `azurerm_windows_function_app_slot` - fix deduplication of user `app_settings` [GH-15740]
 
