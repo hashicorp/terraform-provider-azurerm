@@ -1,3 +1,9 @@
+## 3.6.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_storage_share` - add `access_tier` attribute [GH-16462]
+
 ## 3.5.0 (May 05, 2022)
 
 FEATURES:
