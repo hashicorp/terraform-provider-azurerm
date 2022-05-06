@@ -393,8 +393,6 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
-	waitForEventHubNamespaceToBeUpdated(ctx, client, id)
-
 	d.SetId(id.ID())
 
 	if d.HasChange("network_rulesets") {
@@ -413,6 +411,19 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
 			return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
 		}
+	}
+
+	deadline, _ := ctx.Deadline()
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:      []string{"Activating", "ActivatingIdentity", "Pending"},
+		Target:       []string{"Succeeded"},
+		Refresh:      eventHubNamespaceProvisioningStateRefreshFunc(ctx, client, id),
+		Timeout:      time.Until(deadline),
+		PollInterval: 10 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be updated: %+v", id, err)
 	}
 
 	return resourceEventHubNamespaceRead(d, meta)
@@ -528,28 +539,6 @@ func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *namespaces
 		Target:  []string{"404"},
 		Refresh: eventHubNamespaceStateStatusCodeRefreshFunc(ctx, client, id),
 		Timeout: time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
-	}
-
-	return nil
-}
-
-func waitForEventHubNamespaceToBeUpdated(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context has no deadline")
-	}
-
-	log.Printf("[DEBUG] Waiting for %s to be updated..", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:      []string{"Activating", "ActivatingIdentity", "Pending"},
-		Target:       []string{"Succeeded"},
-		Refresh:      eventHubNamespaceProvisioningStateRefreshFunc(ctx, client, id),
-		Timeout:      time.Until(deadline),
-		PollInterval: 10 * time.Second,
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
