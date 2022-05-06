@@ -415,7 +415,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	deadline, _ := ctx.Deadline()
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:      []string{"Activating", "ActivatingIdentity", "Pending"},
+		Pending:      []string{"Activating", "ActivatingIdentity", "Updating", "Pending"},
 		Target:       []string{"Succeeded"},
 		Refresh:      eventHubNamespaceProvisioningStateRefreshFunc(ctx, client, id),
 		Timeout:      time.Until(deadline),
