@@ -396,13 +396,13 @@ type BotProperties struct {
 	IsCmekEnabled *bool `json:"isCmekEnabled,omitempty"`
 	// CmekKeyVaultURL - The CMK Url
 	CmekKeyVaultURL *string `json:"cmekKeyVaultUrl,omitempty"`
-	// CmekEncryptionStatus - The CMK encryption status
+	// CmekEncryptionStatus - READ-ONLY; The CMK encryption status
 	CmekEncryptionStatus *string `json:"cmekEncryptionStatus,omitempty"`
 	// PublicNetworkAccess - Whether the bot is in an isolated network. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
 	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 	// IsStreamingSupported - Whether the bot is streaming supported
 	IsStreamingSupported *bool `json:"isStreamingSupported,omitempty"`
-	// IsDeveloperAppInsightsAPIKeySet - Whether the bot is developerAppInsightsApiKey set
+	// IsDeveloperAppInsightsAPIKeySet - READ-ONLY; Whether the bot is developerAppInsightsApiKey set
 	IsDeveloperAppInsightsAPIKeySet *bool `json:"isDeveloperAppInsightsApiKeySet,omitempty"`
 	// MigrationToken - READ-ONLY; Token used to migrate non Azure bot to azure subscription
 	MigrationToken *string `json:"migrationToken,omitempty"`
@@ -481,17 +481,11 @@ func (bp BotProperties) MarshalJSON() ([]byte, error) {
 	if bp.CmekKeyVaultURL != nil {
 		objectMap["cmekKeyVaultUrl"] = bp.CmekKeyVaultURL
 	}
-	if bp.CmekEncryptionStatus != nil {
-		objectMap["cmekEncryptionStatus"] = bp.CmekEncryptionStatus
-	}
 	if bp.PublicNetworkAccess != "" {
 		objectMap["publicNetworkAccess"] = bp.PublicNetworkAccess
 	}
 	if bp.IsStreamingSupported != nil {
 		objectMap["isStreamingSupported"] = bp.IsStreamingSupported
-	}
-	if bp.IsDeveloperAppInsightsAPIKeySet != nil {
-		objectMap["isDeveloperAppInsightsApiKeySet"] = bp.IsDeveloperAppInsightsAPIKeySet
 	}
 	if bp.DisableLocalAuth != nil {
 		objectMap["disableLocalAuth"] = bp.DisableLocalAuth
@@ -2263,6 +2257,12 @@ type ListChannelWithKeysResponse struct {
 	Resource BasicChannel `json:"resource,omitempty"`
 	// Setting - Channel settings
 	Setting *ChannelSettings `json:"setting,omitempty"`
+	// ProvisioningState - Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// EntityTag - Entity tag of the resource
+	EntityTag *string `json:"entityTag,omitempty"`
+	// ChangedTime - Changed time of the resource
+	ChangedTime *string `json:"changedTime,omitempty"`
 	// Properties - The set of properties specific to bot channel resource
 	Properties BasicChannel `json:"properties,omitempty"`
 	// ID - READ-ONLY; Specifies the resource ID.
@@ -2291,6 +2291,15 @@ func (lcwkr ListChannelWithKeysResponse) MarshalJSON() ([]byte, error) {
 	objectMap["resource"] = lcwkr.Resource
 	if lcwkr.Setting != nil {
 		objectMap["setting"] = lcwkr.Setting
+	}
+	if lcwkr.ProvisioningState != nil {
+		objectMap["provisioningState"] = lcwkr.ProvisioningState
+	}
+	if lcwkr.EntityTag != nil {
+		objectMap["entityTag"] = lcwkr.EntityTag
+	}
+	if lcwkr.ChangedTime != nil {
+		objectMap["changedTime"] = lcwkr.ChangedTime
 	}
 	objectMap["properties"] = lcwkr.Properties
 	if lcwkr.Location != nil {
@@ -2336,6 +2345,33 @@ func (lcwkr *ListChannelWithKeysResponse) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				lcwkr.Setting = &setting
+			}
+		case "provisioningState":
+			if v != nil {
+				var provisioningState string
+				err = json.Unmarshal(*v, &provisioningState)
+				if err != nil {
+					return err
+				}
+				lcwkr.ProvisioningState = &provisioningState
+			}
+		case "entityTag":
+			if v != nil {
+				var entityTag string
+				err = json.Unmarshal(*v, &entityTag)
+				if err != nil {
+					return err
+				}
+				lcwkr.EntityTag = &entityTag
+			}
+		case "changedTime":
+			if v != nil {
+				var changedTime string
+				err = json.Unmarshal(*v, &changedTime)
+				if err != nil {
+					return err
+				}
+				lcwkr.ChangedTime = &changedTime
 			}
 		case "properties":
 			if v != nil {
