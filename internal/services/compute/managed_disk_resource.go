@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -137,7 +136,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.OperatingSystemTypesWindows),
 					string(compute.OperatingSystemTypesLinux),
-				}, !features.ThreePointOhBeta()),
+				}, false),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -468,14 +467,10 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Tags: tags.Expand(t),
 	}
 
-	if features.ThreePointOhBeta() {
-		if zone, ok := d.GetOk("zone"); ok {
-			createDisk.Zones = &[]string{
-				zone.(string),
-			}
+	if zone, ok := d.GetOk("zone"); ok {
+		createDisk.Zones = &[]string{
+			zone.(string),
 		}
-	} else {
-		createDisk.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, createDisk)
@@ -821,16 +816,12 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
-	if features.ThreePointOhBeta() {
-		zone := ""
-		if resp.Zones != nil && len(*resp.Zones) > 0 {
-			z := *resp.Zones
-			zone = z[0]
-		}
-		d.Set("zone", zone)
-	} else {
-		d.Set("zones", utils.FlattenStringSlice(resp.Zones))
+	zone := ""
+	if resp.Zones != nil && len(*resp.Zones) > 0 {
+		z := *resp.Zones
+		zone = z[0]
 	}
+	d.Set("zone", zone)
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("storage_account_type", string(sku.Name))

@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -416,10 +415,6 @@ resource "azurerm_key_vault_secret" "test" {
 }
 
 func (KeyVaultSecretResource) withExternalAccessPolicy(data acceptance.TestData) string {
-	var softDelete string
-	if !features.ThreePointOhBeta() {
-		softDelete = "soft_delete_enabled = true"
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -434,12 +429,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
-  %s
+  name                       = "acctestkv-%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
   soft_delete_retention_days = 7
 
   tags = {
@@ -470,7 +464,7 @@ resource "azurerm_key_vault_secret" "test" {
   key_vault_id = azurerm_key_vault.test.id
   depends_on   = [azurerm_key_vault_access_policy.test]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, softDelete, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (KeyVaultSecretResource) withExternalAccessPolicyUpdate(data acceptance.TestData) string {
