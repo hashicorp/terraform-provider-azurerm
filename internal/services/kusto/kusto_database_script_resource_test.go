@@ -229,28 +229,7 @@ resource "azurerm_kusto_script" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r KustoScriptResource) multiple(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_kusto_script" "script" {
-  name        = "acctest-ks-%d"
-  database_id = azurerm_kusto_database.test.id
-  url         = azurerm_storage_blob.test.id
-  sas_token   = data.azurerm_storage_account_blob_container_sas.test.sas
-}
-
-resource "azurerm_kusto_script" "script2" {
-  name        = "acctest-ks-2-%d"
-  database_id = azurerm_kusto_database.test.id
-  url         = azurerm_storage_blob.test.id
-  sas_token   = data.azurerm_storage_account_blob_container_sas.test.sas
-}
-`, template, data.RandomInteger, data.RandomInteger)
-}
-
-func (KustoDatabaseResource) multiple_diff(data acceptance.TestData) string {
+func (KustoDatabaseResource) multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
