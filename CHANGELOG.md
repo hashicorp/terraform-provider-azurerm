@@ -4,12 +4,14 @@ FEATURES:
 
 * **New Data Source**: `azurerm_healthcare_dicom_service` [GH-15887]
 * **New Resource**: `azurerm_healthcare_dicom_service` [GH-15887]
+* **New Resource:** `azurerm_mssql_managed_instance_vulnerability_assessment` [GH-16639]
 * **New Resource**: `azurerm_spring_cloud_builder` [GH-16036]
 * **New Resource**: `azurerm_spring_cloud_configuration_service` [GH-16087]
 
 ENHANCEMENTS:
 
 * dependencies: updating to `v63.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-16533]
+* dependencies: updating to `v1.5.11` of `github.com/hashicorp/go-getter` [GH-16659]
 * `azurerm_linux_virtual_machine_scale_set` - improve validation on `termination_notification.timeout` [GH-16594]
 * `azurerm_orchestrated_virtual_machine_scale_set` - improve validation on `termination_notification.timeout` [GH-16594]
 * `azurerm_servicebus_namespace` - `sku` can be updated to `Basic`/`Standard` without recreating the resource [GH-16523]
@@ -21,9 +23,13 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_servicebus_queue_authorization_rule` - prevent crash by setting `queue_name` correctly [GH-16561]
+* Data Source: `azurerm_service_plan:` - correctly populate `kind` and `os_type` attributes [GH-16431]
 * `azurerm_data_factory_dataset_delimited_text` - set defaults properly for `column_delimiter`, `quote_character`, `escape_character`, `first_row_as_header` and `null_value` [GH-16543]
 * `azurerm_linux_function_app` - fix deduplication of user `app_settings` [GH-15740]
+* `azurerm_linux_function_app` -  fix `app_settings.WEBSITE_RUN_FROM_PACKAGE` handling from external sources [GH-16641]
 * `azurerm_linux_function_app_slot` - fix deduplication of user `app_settings` [GH-15740]
+* `azurerm_linux_function_app_slot` - fix `app_settings.WEBSITE_RUN_FROM_PACKAGE` handling from external sources [GH-16641]
+* `azurerm_machine_learning_compute_cluster` - resource can now be deleted instead of detached [GH-16640]
 * `azurerm_windows_function_app` - fix deduplication of user `app_settings` [GH-15740]
 * `azurerm_windows_function_app_slot` - fix deduplication of user `app_settings` [GH-15740]
 
