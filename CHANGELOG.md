@@ -1,39 +1,39 @@
-## 3.5.0 (Unreleased)
+## 3.5.0 (May 05, 2022)
 
 FEATURES:
 
-* **New Data Source**: `azurerm_healthcare_dicom_service` [GH-15887]
-* **New Resource**: `azurerm_healthcare_dicom_service` [GH-15887]
-* **New Resource**: `azurerm_mssql_managed_instance_vulnerability_assessment` [GH-16639]
-* **New resource**: `azurerm_sentinel_data_connector_aws_s3` [GH-16440]
-* **New Resource**: `azurerm_spring_cloud_builder` [GH-16036]
-* **New Resource**: `azurerm_spring_cloud_configuration_service` [GH-16087]
+* **New Data Source**: `azurerm_healthcare_dicom_service` ([#15887](https://github.com/hashicorp/terraform-provider-azurerm/issues/15887))
+* **New Resource**: `azurerm_healthcare_dicom_service` ([#15887](https://github.com/hashicorp/terraform-provider-azurerm/issues/15887))
+* **New Resource**: `azurerm_mssql_managed_instance_vulnerability_assessment` ([#16639](https://github.com/hashicorp/terraform-provider-azurerm/issues/16639))
+* **New resource**: `azurerm_sentinel_data_connector_aws_s3` ([#16440](https://github.com/hashicorp/terraform-provider-azurerm/issues/16440))
+* **New Resource**: `azurerm_spring_cloud_builder` ([#16036](https://github.com/hashicorp/terraform-provider-azurerm/issues/16036))
+* **New Resource**: `azurerm_spring_cloud_configuration_service` ([#16087](https://github.com/hashicorp/terraform-provider-azurerm/issues/16087))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v63.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-16533]
-* dependencies: updating to `v1.5.11` of `github.com/hashicorp/go-getter` [GH-16659]
-* dependencies: upgrade `recoveryservices` to `2021-12-01` [GH-16001]
-* `azurerm_linux_virtual_machine_scale_set` - improve validation on the `termination_notification.timeout` property [GH-16594]
-* `azurerm_orchestrated_virtual_machine_scale_set` - improve validation on the `termination_notification.timeout` property [GH-16594]
-* `azurerm_servicebus_namespace` - the `sku` property can now be updated to `Basic` or `Standard` without recreating the resource [GH-16523]
-* `azurerm_storage_account` - support for the `cross_tenant_replication_enabled` property [GH-16351]
-* `azurerm_windows_virtual_machine_scale_set` - improve validation on the `termination_notification.timeout` property [GH-16594]
-* `azurerm_virtual_network_gateway_connection` - the `traffic_selector_policy` property can now be specified [GH-15938]
-* `azurerm_stream_analytics_output_servicebus_queue` - support for the `property_columns` and `system_property_columns` properties [GH-16572]
+* dependencies: updating to `v63.4.0` of `github.com/Azure/azure-sdk-for-go` ([#16533](https://github.com/hashicorp/terraform-provider-azurerm/issues/16533))
+* dependencies: updating to `v1.5.11` of `github.com/hashicorp/go-getter` ([#16659](https://github.com/hashicorp/terraform-provider-azurerm/issues/16659))
+* dependencies: upgrade `recoveryservices` to `2021-12-01` ([#16001](https://github.com/hashicorp/terraform-provider-azurerm/issues/16001))
+* `azurerm_linux_virtual_machine_scale_set` - improve validation on the `termination_notification.timeout` property ([#16594](https://github.com/hashicorp/terraform-provider-azurerm/issues/16594))
+* `azurerm_orchestrated_virtual_machine_scale_set` - improve validation on the `termination_notification.timeout` property ([#16594](https://github.com/hashicorp/terraform-provider-azurerm/issues/16594))
+* `azurerm_servicebus_namespace` - the `sku` property can now be updated to `Basic` or `Standard` without recreating the resource ([#16523](https://github.com/hashicorp/terraform-provider-azurerm/issues/16523))
+* `azurerm_storage_account` - support for the `cross_tenant_replication_enabled` property ([#16351](https://github.com/hashicorp/terraform-provider-azurerm/issues/16351))
+* `azurerm_windows_virtual_machine_scale_set` - improve validation on the `termination_notification.timeout` property ([#16594](https://github.com/hashicorp/terraform-provider-azurerm/issues/16594))
+* `azurerm_virtual_network_gateway_connection` - the `traffic_selector_policy` property can now be specified ([#15938](https://github.com/hashicorp/terraform-provider-azurerm/issues/15938))
+* `azurerm_stream_analytics_output_servicebus_queue` - support for the `property_columns` and `system_property_columns` properties ([#16572](https://github.com/hashicorp/terraform-provider-azurerm/issues/16572))
 
 BUG FIXES:
 
-* Data Source: `azurerm_servicebus_queue_authorization_rule` - prevent a possible crash by setting `queue_name` correctly [GH-16561]
-* Data Source: `azurerm_service_plan:` - correctly populate the `kind` and `os_type` attributes [GH-16431]
-* `azurerm_data_factory_dataset_delimited_text` - set defaults properly for `column_delimiter`, `quote_character`, `escape_character`, `first_row_as_header` and `null_value` [GH-16543]
-* `azurerm_linux_function_app` - correctly deduplicate user `app_settings` [GH-15740]
-* `azurerm_linux_function_app` -  fix `app_settings.WEBSITE_RUN_FROM_PACKAGE` handling from external sources [GH-16641]
-* `azurerm_linux_function_app_slot` - correctly deduplicate user `app_settings` [GH-15740]
-* `azurerm_linux_function_app_slot` - fix `app_settings.WEBSITE_RUN_FROM_PACKAGE` handling from external sources [GH-16641]
-* `azurerm_machine_learning_compute_cluster` - resource will now be deleted instead of just detached [GH-16640]
-* `azurerm_windows_function_app` - correctly deduplicate user `app_settings` [GH-15740]
-* `azurerm_windows_function_app_slot` - correctly deduplicate user `app_settings` [GH-15740]
+* Data Source: `azurerm_servicebus_queue_authorization_rule` - prevent a possible crash by setting `queue_name` correctly ([#16561](https://github.com/hashicorp/terraform-provider-azurerm/issues/16561))
+* Data Source: `azurerm_service_plan:` - correctly populate the `kind` and `os_type` attributes ([#16431](https://github.com/hashicorp/terraform-provider-azurerm/issues/16431))
+* `azurerm_data_factory_dataset_delimited_text` - set defaults properly for `column_delimiter`, `quote_character`, `escape_character`, `first_row_as_header` and `null_value` ([#16543](https://github.com/hashicorp/terraform-provider-azurerm/issues/16543))
+* `azurerm_linux_function_app` - correctly deduplicate user `app_settings` ([#15740](https://github.com/hashicorp/terraform-provider-azurerm/issues/15740))
+* `azurerm_linux_function_app` -  fix `app_settings.WEBSITE_RUN_FROM_PACKAGE` handling from external sources ([#16641](https://github.com/hashicorp/terraform-provider-azurerm/issues/16641))
+* `azurerm_linux_function_app_slot` - correctly deduplicate user `app_settings` ([#15740](https://github.com/hashicorp/terraform-provider-azurerm/issues/15740))
+* `azurerm_linux_function_app_slot` - fix `app_settings.WEBSITE_RUN_FROM_PACKAGE` handling from external sources ([#16641](https://github.com/hashicorp/terraform-provider-azurerm/issues/16641))
+* `azurerm_machine_learning_compute_cluster` - resource will now be deleted instead of just detached ([#16640](https://github.com/hashicorp/terraform-provider-azurerm/issues/16640))
+* `azurerm_windows_function_app` - correctly deduplicate user `app_settings` ([#15740](https://github.com/hashicorp/terraform-provider-azurerm/issues/15740))
+* `azurerm_windows_function_app_slot` - correctly deduplicate user `app_settings` ([#15740](https://github.com/hashicorp/terraform-provider-azurerm/issues/15740))
 
 ## 3.4.0 (April 28, 2022)
 
