@@ -45,6 +45,7 @@ type LinuxFunctionAppModel struct {
 	BuiltinLogging              bool                                 `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled           bool                                 `tfschema:"client_certificate_enabled"`
 	ClientCertMode              string                               `tfschema:"client_certificate_mode"`
+	StorageAccounts             []helpers.StorageAccount             `tfschema:"storage_account"`
 	ConnectionStrings           []helpers.ConnectionString           `tfschema:"connection_string"`
 	DailyMemoryTimeQuota        int                                  `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
 	Enabled                     bool                                 `tfschema:"enabled"`
@@ -241,6 +242,8 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionApp(),
 
 		"sticky_settings": helpers.StickySettingsSchema(),
+
+		"storage_account": helpers.StorageAccountSchema(),
 
 		"tags": tags.Schema(),
 	}
@@ -492,6 +495,15 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			storageConfig := helpers.ExpandStorageConfig(functionApp.StorageAccounts)
+			if storageConfig.Properties != nil {
+				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageConfig); err != nil {
+					if err != nil {
+						return fmt.Errorf("setting Storage Accounts for Linux %s: %+v", id, err)
+					}
+				}
+			}
+
 			connectionStrings := helpers.ExpandConnectionStrings(functionApp.ConnectionStrings)
 			if connectionStrings.Properties != nil {
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStrings); err != nil {
@@ -547,6 +559,11 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+			}
+
+			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
@@ -615,6 +632,8 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
 			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
+
+			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
 			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
@@ -724,6 +743,13 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
+			if metadata.ResourceData.HasChange("storage_account") {
+				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
+				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
+					return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
+				}
+			}
+
 			storageString := state.StorageAccountName
 			if !state.StorageUsesMSI {
 				if state.StorageKeyVaultSecretID != "" {
@@ -736,7 +762,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			if sendContentSettings {
 				appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 				if err != nil {
-					return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
+					return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
 				}
 				if state.AppSettings == nil {
 					state.AppSettings = make(map[string]string)

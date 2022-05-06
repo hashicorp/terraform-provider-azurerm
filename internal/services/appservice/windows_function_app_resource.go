@@ -45,6 +45,7 @@ type WindowsFunctionAppModel struct {
 	BuiltinLogging              bool                                   `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled           bool                                   `tfschema:"client_certificate_enabled"`
 	ClientCertMode              string                                 `tfschema:"client_certificate_mode"`
+	StorageAccounts             []helpers.StorageAccount             `tfschema:"storage_account"`
 	ConnectionStrings           []helpers.ConnectionString             `tfschema:"connection_string"`
 	DailyMemoryTimeQuota        int                                    `tfschema:"daily_memory_time_quota"`
 	Enabled                     bool                                   `tfschema:"enabled"`
@@ -242,6 +243,8 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"sticky_settings": helpers.StickySettingsSchema(),
 
+		"storage_account": helpers.StorageAccountSchema(),
+
 		"tags": tags.Schema(),
 	}
 }
@@ -391,6 +394,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionApp.StorageAccountName, functionApp.StorageAccountKey, metadata.Client.Account.Environment.StorageEndpointSuffix)
 				}
 			}
+
 			siteConfig, err := helpers.ExpandSiteConfigWindowsFunctionApp(functionApp.SiteConfig, nil, metadata, functionApp.FunctionExtensionsVersion, storageString, functionApp.StorageUsesMSI)
 			if err != nil {
 				return fmt.Errorf("expanding site_config for Windows %s: %+v", id, err)
@@ -490,6 +494,15 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+            storageConfig := helpers.ExpandStorageConfig(functionApp.StorageAccounts)
+			if storageConfig.Properties != nil {
+				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageConfig); err != nil {
+					if err != nil {
+						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
+					}
+				}
+			}
+
 			connectionStrings := helpers.ExpandConnectionStrings(functionApp.ConnectionStrings)
 			if connectionStrings.Properties != nil {
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStrings); err != nil {
@@ -545,6 +558,11 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+			}
+
+            storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
@@ -613,6 +631,8 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 			state.Backup = helpers.FlattenBackupConfig(backup)
 
 			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
+
+			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
 			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
@@ -718,6 +738,13 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Tags = tags.FromTypedObject(state.Tags)
+			}
+
+            if metadata.ResourceData.HasChange("storage_account") {
+				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
+				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
+					return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
+				}
 			}
 
 			storageString := state.StorageAccountName
