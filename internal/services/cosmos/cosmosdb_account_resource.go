@@ -120,7 +120,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.DatabaseAccountOfferTypeStandard),
-				}, !features.ThreePointOhBeta()),
+				}, false),
 			},
 
 			"analytical_storage": {
@@ -192,7 +192,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 					string(documentdb.DatabaseAccountKindGlobalDocumentDB),
 					string(documentdb.DatabaseAccountKindMongoDB),
 					string(documentdb.DatabaseAccountKindParse),
-				}, !features.ThreePointOhBeta()),
+				}, false),
 			},
 
 			"ip_range_filter": func() *schema.Schema {
@@ -268,7 +268,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 								string(documentdb.DefaultConsistencyLevelEventual),
 								string(documentdb.DefaultConsistencyLevelSession),
 								string(documentdb.DefaultConsistencyLevelStrong),
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 
 						"max_interval_in_seconds": {
@@ -329,24 +329,18 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-							ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-								out := []string{
-									"EnableAggregationPipeline",
-									"EnableCassandra",
-									"EnableGremlin",
-									"EnableTable",
-									"EnableServerless",
-									"EnableMongo",
-									"MongoDBv3.4",
-									"mongoEnableDocLevelTTL",
-									"DisableRateLimitingResponses",
-									"AllowSelfServeUpgradeToMongo36",
-								}
-								if !features.ThreePointOhBeta() {
-									out = append(out, "EnableAnalyticalStorage")
-								}
-								return validation.StringInSlice(out, !features.ThreePointOhBeta())
-							}(),
+							ValidateFunc: validation.StringInSlice([]string{
+								"EnableAggregationPipeline",
+								"EnableCassandra",
+								"EnableGremlin",
+								"EnableTable",
+								"EnableServerless",
+								"EnableMongo",
+								"MongoDBv3.4",
+								"mongoEnableDocLevelTTL",
+								"DisableRateLimitingResponses",
+								"AllowSelfServeUpgradeToMongo36",
+							}, false),
 						},
 					},
 				},
