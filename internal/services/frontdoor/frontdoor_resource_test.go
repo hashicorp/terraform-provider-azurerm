@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -36,26 +34,6 @@ func TestAccFrontDoor_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("backend_pool_health_probe.0.enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("backend_pool_health_probe.0.probe_method").HasValue("HEAD"),
 			),
-		},
-		data.ImportStep("explicit_resource_order"),
-	})
-}
-
-// remove in 3.0
-func TestAccFrontDoor_global(t *testing.T) {
-	if features.ThreePointOhBeta() {
-		t.Skip("This test is deprecated for 3.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
-	r := FrontDoorResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.global(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("location").HasValue("global"),
-			),
-			ExpectNonEmptyPlan: true,
 		},
 		data.ImportStep("explicit_resource_order"),
 	})
