@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -60,11 +59,6 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("sku", string(sku.Tier))
 	}
 
-	if !features.ThreePointOhBeta() {
-		// Deprecated as it is not returned by the API now.
-		d.Set("storage_account_id", "")
-	}
-
 	if *resp.AdminUserEnabled {
 		credsResp, err := client.ListCredentials(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
@@ -85,7 +79,7 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -123,13 +117,4 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.SchemaDataSource(),
 	}
-	if !features.ThreePointOhBeta() {
-		out["storage_account_id"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
-		}
-	}
-
-	return out
 }

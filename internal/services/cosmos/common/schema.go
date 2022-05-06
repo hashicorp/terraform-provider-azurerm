@@ -2,7 +2,6 @@ package common
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -109,20 +108,10 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 					Optional:         true,
 					Default:          documentdb.IndexingModeConsistent,
 					DiffSuppressFunc: suppress.CaseDifferenceV2Only, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
-					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-						keys := []string{
-							string(documentdb.IndexingModeConsistent),
-							string(documentdb.IndexingModeNone),
-						}
-						if !features.ThreePointOhBeta() {
-							keys = []string{
-								"Consistent",
-								"None",
-							}
-
-						}
-						return validation.StringInSlice(keys, false)
-					}(),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(documentdb.IndexingModeConsistent),
+						string(documentdb.IndexingModeNone),
+					}, false),
 				},
 
 				"included_path": {
@@ -218,19 +207,10 @@ func CosmosDbIndexingPolicyCompositeIndexSchema() *pluginsdk.Schema {
 								Required: true,
 								// Workaround for Azure/azure-rest-api-specs#11222
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-									keys := []string{
-										string(documentdb.CompositePathSortOrderAscending),
-										string(documentdb.CompositePathSortOrderDescending),
-									}
-									if !features.ThreePointOhBeta() {
-										keys = []string{
-											"Ascending",
-											"Descending",
-										}
-									}
-									return validation.StringInSlice(keys, features.ThreePointOhBeta())
-								}(),
+								ValidateFunc: validation.StringInSlice([]string{
+									string(documentdb.CompositePathSortOrderAscending),
+									string(documentdb.CompositePathSortOrderDescending),
+								}, true),
 							},
 						},
 					},

@@ -319,14 +319,9 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	if features.ThreePointOhBeta() {
-		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
-		if len(zones) > 0 {
-			props.Zones = &zones
-		}
-	} else {
-		zonesRaw := d.Get("zones").([]interface{})
-		props.Zones = azure.ExpandZones(zonesRaw)
+	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		props.Zones = &zones
 	}
 
 	if v, ok := d.GetOk("platform_fault_domain_count"); ok {
@@ -1220,13 +1215,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 
 		"termination_notification": VirtualMachineScaleSetTerminationNotificationSchema(),
 
-		"zones": func() *schema.Schema {
-			if !features.ThreePointOhBeta() {
-				return azure.SchemaZones()
-			}
-
-			return commonschema.ZonesMultipleOptionalForceNew()
-		}(),
+		"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 		// Computed
 		"unique_id": {

@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
@@ -59,17 +58,9 @@ func resourceIothubEndpointServicebusQueue() map[string]*pluginsdk.Schema {
 		//lintignore: S013
 		"iothub_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     features.ThreePointOhBeta(),
-			Optional:     !features.ThreePointOhBeta(),
+			Required:     true,
 			ForceNew:     true,
-			Computed:     !features.ThreePointOhBeta(),
 			ValidateFunc: iothubValidate.IotHubID,
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"iothub_name"}
-				}
-				return []string{}
-			}(),
 		},
 
 		"authentication_type": {
@@ -121,18 +112,6 @@ func resourceIothubEndpointServicebusQueue() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	if !features.ThreePointOhBeta() {
-		out["iothub_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			Computed:      true,
-			ValidateFunc:  iothubValidate.IoTHubName,
-			Deprecated:    "Deprecated in favour of `iothub_id`",
-			ConflictsWith: []string{"iothub_id"},
-		}
-	}
-
 	return out
 }
 
@@ -145,20 +124,12 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData
 
 	endpointRG := d.Get("resource_group_name").(string)
 
-	iotHubRG := endpointRG
-
-	var iotHubName string
-	if !features.ThreePointOhBeta() {
-		iotHubName = d.Get("iothub_name").(string)
+	iotHubId, err := parse.IotHubID(d.Get("iothub_id").(string))
+	if err != nil {
+		return err
 	}
-	if iotHubName == "" {
-		id, err := parse.IotHubID(d.Get("iothub_id").(string))
-		if err != nil {
-			return err
-		}
-		iotHubName = id.Name
-		iotHubRG = id.ResourceGroup
-	}
+	iotHubName := iotHubId.Name
+	iotHubRG := iotHubId.ResourceGroup
 
 	id := parse.NewEndpointServiceBusQueueID(subscriptionId, iotHubRG, iotHubName, d.Get("name").(string))
 
@@ -271,9 +242,6 @@ func resourceIotHubEndpointServiceBusQueueRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	d.Set("name", id.EndpointName)
-	if !features.ThreePointOhBeta() {
-		d.Set("iothub_name", id.IotHubName)
-	}
 
 	iotHubId := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
 	d.Set("iothub_id", iotHubId.ID())
