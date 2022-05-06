@@ -85,6 +85,20 @@ func TestAccKustoScript_update(t *testing.T) {
 	})
 }
 
+func TestAccKustoScript_multiple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_script", "test")
+	r := KustoScriptResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sas_token"),
+	})
+}
+
 func (r KustoScriptResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ScriptID(state.ID)
 	if err != nil {
@@ -156,8 +170,8 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   container_name    = azurerm_storage_container.test.name
   https_only        = true
 
-  start  = "2017-03-21"
-  expiry = "2022-03-21"
+  start  = "2022-03-21"
+  expiry = "2027-03-21"
 
   permissions {
     read   = true
@@ -213,4 +227,25 @@ resource "azurerm_kusto_script" "test" {
   force_an_update_when_value_changed = "first"
 }
 `, template, data.RandomInteger)
+}
+
+func (r KustoScriptResource) multiple(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kusto_script" "test" {
+  name        = "acctest-ks-%d"
+  database_id = azurerm_kusto_database.test.id
+  url         = azurerm_storage_blob.test.id
+  sas_token   = data.azurerm_storage_account_blob_container_sas.test.sas
+}
+
+resource "azurerm_kusto_script" "test2" {
+  name        = "acctest-ks-2-%d"
+  database_id = azurerm_kusto_database.test.id
+  url         = azurerm_storage_blob.test.id
+  sas_token   = data.azurerm_storage_account_blob_container_sas.test.sas
+}
+`, template, data.RandomInteger, data.RandomInteger)
 }
