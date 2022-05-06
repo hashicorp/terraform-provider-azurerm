@@ -535,6 +535,57 @@ func TestAccLinuxFunctionApp_withAuthSettingsStandard(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionApp_withStorageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withStorageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxFunctionApp_withStorageAccountUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withStorageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withStorageAccountUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxFunctionApp_scmIpRestrictionSubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -3397,25 +3448,20 @@ func (r LinuxFunctionAppResource) vNetIntegration_basic(data acceptance.TestData
 provider "azurerm" {
   features {}
 }
-
 %s
-
 resource "azurerm_virtual_network" "test" {
   name                = "vnet-%d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-
 resource "azurerm_subnet" "test1" {
   name                 = "subnet1"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
-
   delegation {
     name = "delegation"
-
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
@@ -3449,10 +3495,7 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {}
-
 }
-
-
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
@@ -3461,9 +3504,7 @@ func (r LinuxFunctionAppResource) vNetIntegration_subnet1(data acceptance.TestDa
 provider "azurerm" {
   features {}
 }
-
 %s
-
 resource "azurerm_virtual_network" "test" {
   name                = "vnet-%d"
   address_space       = ["10.0.0.0/16"]
@@ -3479,7 +3520,6 @@ resource "azurerm_subnet" "test1" {
 
   delegation {
     name = "delegation"
-
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
@@ -3495,26 +3535,22 @@ resource "azurerm_subnet" "test2" {
 
   delegation {
     name = "delegation"
-
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
-
 resource "azurerm_linux_function_app" "test" {
   name                      = "acctest-LFA-%d"
   location                  = azurerm_resource_group.test.location
   resource_group_name       = azurerm_resource_group.test.name
   service_plan_id           = azurerm_service_plan.test.id
   virtual_network_subnet_id = azurerm_subnet.test1.id
-
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {}
-
 }
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
@@ -3524,25 +3560,20 @@ func (r LinuxFunctionAppResource) vNetIntegration_subnet2(data acceptance.TestDa
 provider "azurerm" {
   features {}
 }
-
 %s
-
 resource "azurerm_virtual_network" "test" {
   name                = "vnet-%d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-
 resource "azurerm_subnet" "test1" {
   name                 = "subnet1"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
-
   delegation {
     name = "delegation"
-
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
@@ -3558,7 +3589,6 @@ resource "azurerm_subnet" "test2" {
 
   delegation {
     name = "delegation"
-
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
@@ -3577,7 +3607,6 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {}
-
 }
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
@@ -3585,7 +3614,6 @@ resource "azurerm_linux_function_app" "test" {
 func (r LinuxFunctionAppResource) withASEV3(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
   resource_group_name      = azurerm_resource_group.test.name
@@ -3607,6 +3635,130 @@ resource "azurerm_linux_function_app" "test" {
     vnet_route_all_enabled = true
   }
 }
-
 `, ServicePlanResource{}.aseV3Linux(data), data.RandomString, data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) withStorageAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+resource "azurerm_linux_function_app" "test" {
+  name                       = "acctestWA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  site_config {}
+  storage_account {
+    name         = "files"
+    type         = "AzureFiles"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.test.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/files"
+  }
+}
+`, r.templateWithStorageAccount(data), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) withStorageAccountUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+resource "azurerm_linux_function_app" "test" {
+  name                       = "acctestWA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  site_config {}
+  storage_account {
+    name         = "updatedfiles"
+    type         = "AzureBlob"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.test.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/blob"
+  }
+}
+`, r.templateWithStorageAccount(data), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) templateWithStorageAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+resource "azurerm_storage_share" "test" {
+  name                 = "test"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
+}
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+  resource_types {
+    service   = false
+    container = false
+    object    = true
+  }
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = false
+  }
+  start  = "2021-04-01"
+  expiry = "2024-03-30"
+  permissions {
+    read    = false
+    write   = true
+    delete  = false
+    list    = false
+    add     = false
+    create  = false
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+`, r.standardPlanTemplate(data), data.RandomInteger, data.RandomString)
+}
+
+func (LinuxFunctionAppResource) standardPlanTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+  sku_name            = "S1"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
