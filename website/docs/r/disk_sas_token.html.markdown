@@ -3,12 +3,12 @@ subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_disk_sas_token"
 description: |-
-  Manages a Disk Export.
+  Manages a Disk SAS Token.
 ---
 
 # azurerm_managed_disk_sas_token
 
-Manages a Disk Export.
+Manages a Disk SAS Token.
 
 Use this resource to obtain a Shared Access Signature (SAS Token) for an existing Managed Disk.
 
@@ -23,6 +23,7 @@ resource "azurerm_resource_group" "test" {
   name     = "testrg"
   location = "West Europe"
 }
+
 resource "azurerm_managed_disk" "test" {
   name                 = "tst-disk-export"
   location             = azurerm_resource_group.test.location
@@ -31,6 +32,7 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "1"
 }
+
 resource "azurerm_managed_disk_sas_token" "test" {
   managed_disk_id     = azurerm_managed_disk.test.id
   duration_in_seconds = 300
@@ -66,3 +68,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `create` - (Defaults to 30 minutes) Used when creating the Disk.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Disk.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Disk.
+
+## Import
+
+Disk SAS Token can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_managed_disk_sas_token.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/disks/manageddisk1
+```

@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceDiskExport() *pluginsdk.Resource {
+func resourceManagedDiskSasToken() *pluginsdk.Resource {
 
 	return &pluginsdk.Resource{
-		Create: resourceDiskExportCreate,
-		Read:   resourceDiskExportRead,
-		Delete: resourceDiskExportDelete,
+		Create: resourceManagedDiskSasTokenCreate,
+		Read:   resourceManagedDiskSasTokenRead,
+		Delete: resourceManagedDiskSasTokenDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -68,7 +68,7 @@ func resourceDiskExport() *pluginsdk.Resource {
 
 }
 
-func resourceDiskExportCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,11 +116,11 @@ func resourceDiskExportCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	sasToken := *read.AccessSAS
 	d.Set("sas_url", sasToken)
 
-	return resourceDiskExportRead(d, meta)
+	return resourceManagedDiskSasTokenRead(d, meta)
 
 }
 
-func resourceDiskExportRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskSasTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,7 +146,7 @@ func resourceDiskExportRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceDiskExportDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskSasTokenDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
