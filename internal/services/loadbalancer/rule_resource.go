@@ -171,9 +171,6 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 						backendAddressPoolIds = append(backendAddressPoolIds, *p.ID)
 					}
 				}
-				if len(backendAddressPoolIds) == 1 {
-					backendAddressPoolId = backendAddressPoolIds[0].(string)
-				}
 			}
 		} else {
 			if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {

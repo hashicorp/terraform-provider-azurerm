@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -332,15 +331,4 @@ func dailyQuotaGbDiffSuppressFunc(_, _, _ string, d *pluginsdk.ResourceData) boo
 	}
 
 	return false
-}
-
-func logAnalyticsLinkedServiceSkuChangeCaseDifference(k, old, new string, d *pluginsdk.ResourceData) bool {
-	// (@WodansSon) - This is needed because if you connect your workspace to a log analytics linked service resource it
-	// will modify the value of your sku to "lacluster". We are currently in negotiations with the service team to
-	// see if there is another way of doing this, for now this is the workaround
-	if old == "lacluster" {
-		old = new
-	}
-
-	return suppress.CaseDifferenceV2Only(k, old, new, d)
 }
