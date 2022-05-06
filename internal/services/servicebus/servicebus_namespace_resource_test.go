@@ -281,7 +281,8 @@ resource "azurerm_servicebus_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   local_auth_enabled  = false
-}`, data.RandomInteger, data.Locations.Primary)
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ServiceBusNamespaceResource) requiresImport(data acceptance.TestData) string {
