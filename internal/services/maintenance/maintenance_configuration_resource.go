@@ -55,9 +55,7 @@ func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"resource_group_name": func() *pluginsdk.Schema {
-				return azure.SchemaResourceGroupName()
-			}(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"scope": {
 				Type:     pluginsdk.TypeString,
