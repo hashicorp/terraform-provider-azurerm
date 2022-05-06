@@ -329,35 +329,11 @@ func signalRIsInServerlessMode(features *[]signalr.SignalRFeature) bool {
 	return false
 }
 
-func expandSignalRFeatures(input []interface{}) *[]signalr.SignalRFeature {
-	features := make([]signalr.SignalRFeature, 0)
-	for _, featureValue := range input {
-		value := featureValue.(map[string]interface{})
-		features = append(features, signalRFeature(signalr.FeatureFlags(value["flag"].(string)), value["value"].(string)))
-	}
-	return &features
-}
-
 func signalRFeature(featureFlag signalr.FeatureFlags, value string) signalr.SignalRFeature {
 	return signalr.SignalRFeature{
 		Flag:  featureFlag,
 		Value: value,
 	}
-}
-
-func flattenSignalRFeatures(features *[]signalr.SignalRFeature) []interface{} {
-	if features == nil {
-		return []interface{}{}
-	}
-
-	result := make([]interface{}, 0)
-	for _, feature := range *features {
-		result = append(result, map[string]interface{}{
-			"flag":  string(feature.Flag),
-			"value": feature.Value,
-		})
-	}
-	return result
 }
 
 func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSettings {
