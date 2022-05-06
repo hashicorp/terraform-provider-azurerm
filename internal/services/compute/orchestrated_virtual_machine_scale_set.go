@@ -738,7 +738,7 @@ func validateAdminUsernameLinux(input interface{}, key string) (warnings []strin
 
 	for _, str := range invalidUserNames {
 		if strings.EqualFold(v, str) {
-			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(invalidUserNames), v))
+			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, strings.Join(invalidUserNames, ", "), v))
 			return warnings, errors
 		}
 	}
@@ -800,12 +800,21 @@ func validatePasswordComplexity(input interface{}, key string, min int, max int)
 	// NOTE: I realize that some of these will not pass the above complexity checks, but they are in the API so I am checking
 	// the same values that the API is...
 	disallowedValues := []string{
-		"abc@123", "P@$$w0rd", "P@ssw0rd", "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!",
+		"abc@123",
+		"P@$$w0rd",
+		"P@ssw0rd",
+		"P@ssword123",
+		"Pa$$word",
+		"pass@word1",
+		"Password!",
+		"Password1",
+		"Password22",
+		"iloveyou!",
 	}
 
 	for _, str := range disallowedValues {
 		if password == str {
-			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(disallowedValues), password))
+			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, strings.Join(disallowedValues, ", "), password))
 			return warnings, errors
 		}
 	}

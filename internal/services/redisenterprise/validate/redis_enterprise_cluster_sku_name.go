@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/redisenterprise/mgmt/2021-03-01/redisenterprise"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
 // RedisEnterpriseClusterSkuName - validates if passed input string contains a valid Redis Enterprise Cluster Sku
@@ -56,7 +55,7 @@ func RedisEnterpriseClusterSkuName(v interface{}, k string) (warnings []string, 
 	}
 
 	if !validSku {
-		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of [%s], got %q", k, "name", azure.QuotedStringSlice(validSkus), value))
+		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of [%s], got %q", k, "name", strings.Join(validSkus, ", "), value))
 	}
 
 	if !validCapacity {

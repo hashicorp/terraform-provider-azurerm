@@ -1,29 +1,11 @@
 package validate
 
 import (
-	"fmt"
-
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func DataboxEdgeCountry(v interface{}, k string) (warnings []string, errors []error) {
-	value, ok := v.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return warnings, errors
-	}
-
-	validCountries := getDataboxEdgeCountries()
-
-	for _, str := range validCountries {
-		if value == str {
-			return warnings, errors
-		}
-	}
-
-	errors = append(errors, fmt.Errorf("expected %q to be one of [%s], got %q", k, azure.QuotedStringSlice(validCountries), value))
-
-	return warnings, errors
+	return validation.StringInSlice(getDataboxEdgeCountries(), false)(v, k)
 }
 
 func getDataboxEdgeCountries() []string {
