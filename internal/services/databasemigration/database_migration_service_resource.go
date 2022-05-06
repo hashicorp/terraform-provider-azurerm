@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -195,8 +194,7 @@ func resourceDatabaseMigrationServiceDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	toDeleteRunningTasks := features.ThreePointOhBeta()
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, &toDeleteRunningTasks)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, utils.Bool(true))
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
