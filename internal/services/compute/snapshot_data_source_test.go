@@ -43,17 +43,15 @@ func TestAccDataSourceSnapshot_encryption(t *testing.T) {
 
 func TestAccDataSourceSnapshot_trustedLaunch(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_snapshot", "snapshot")
-	r := SnapshotResource{}
+	r := SnapshotDataSource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.trustedLaunch(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("trusted_launch_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep("source_uri"),
 	})
 }
 
