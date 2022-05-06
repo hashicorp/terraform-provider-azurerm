@@ -542,17 +542,13 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 				armActionBaseBlob := armAction.BaseBlob
 				if armActionBaseBlob != nil {
 					var (
-						tierToCoolSinceMod       = 0
+						tierToCoolSinceMod       = -1
 						tierToCoolSinceAccess    = -1
-						tierToArchiveSinceMod    = 0
+						tierToArchiveSinceMod    = -1
 						tierToArchiveSinceAccess = -1
-						deleteSinceMod           = 0
+						deleteSinceMod           = -1
 						deleteSinceAccess        = -1
 					)
-
-					tierToCoolSinceMod = -1
-					tierToArchiveSinceMod = -1
-					deleteSinceMod = -1
 
 					if props := armActionBaseBlob.TierToCool; props != nil {
 						if props.DaysAfterModificationGreaterThan != nil {
