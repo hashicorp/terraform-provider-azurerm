@@ -206,8 +206,8 @@ SCRIPT
 
 
   input {
-    type                       = "bigint"
-    is_configuration_parameter = %t
+    type                    = "bigint"
+    configuration_parameter = %t
   }
 
   output {

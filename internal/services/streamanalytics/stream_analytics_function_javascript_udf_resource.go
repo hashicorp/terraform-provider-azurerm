@@ -72,7 +72,7 @@ func resourceStreamAnalyticsFunctionUDF() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"is_configuration_parameter": {
+						"configuration_parameter": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -249,7 +249,7 @@ func expandStreamAnalyticsFunctionInputs(input []interface{}) *[]streamanalytics
 		variableType := v["type"].(string)
 		outputs = append(outputs, streamanalytics.FunctionInput{
 			DataType:                 utils.String(variableType),
-			IsConfigurationParameter: utils.Bool(v["is_configuration_parameter"].(bool)),
+			IsConfigurationParameter: utils.Bool(v["configuration_parameter"].(bool)),
 		})
 	}
 
@@ -275,8 +275,8 @@ func flattenStreamAnalyticsFunctionInputs(input *[]streamanalytics.FunctionInput
 		}
 
 		outputs = append(outputs, map[string]interface{}{
-			"type":                       variableType,
-			"is_configuration_parameter": isConfigurationParameter,
+			"type":                    variableType,
+			"configuration_parameter": isConfigurationParameter,
 		})
 	}
 
