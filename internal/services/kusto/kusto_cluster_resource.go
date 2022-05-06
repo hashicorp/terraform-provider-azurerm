@@ -262,8 +262,8 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	locks.ByID(id.ID())
-	defer locks.UnlockByID(id.ID())
+	locks.ByID(id.Name())
+	defer locks.UnlockByID(id.Name())
 
 	sku, err := expandKustoClusterSku(d.Get("sku").([]interface{}))
 	if err != nil {
