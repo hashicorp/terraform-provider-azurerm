@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/magodo/terraform-provider-azurerm-example-gen/examplegen"
 )
 
 // NOTE: since we're using `go run` for these tools all of the code needs to live within the main.go
@@ -27,6 +28,12 @@ func main() {
 	resourceId := f.String("resource-id", "", "An Azure Resource ID showing an example of how to Import this Resource")
 	resourceType := f.String("type", "", "Whether this is a Data Source (data) or a Resource (resource)")
 	websitePath := f.String("website-path", "", "The relative path to the website folder")
+
+	// example generation related flags
+	genExample := f.Bool("example", false, "Wether to generate the Terraform configuration example from AccTest")
+	rootDir := f.String("root-dir", "", "The path to the project root. Required when `-example` is set.")
+	servicePkg := f.String("service-pkg", "", "The service package where the AccTest resides in. Required when `-example` is set.")
+	testCase := f.String("testcase", "", "The name of the AccTest where the Terraform configuration derives from. Required when `-example` is set.")
 
 	_ = f.Parse(os.Args[1:])
 
@@ -66,13 +73,22 @@ func main() {
 		return
 	}
 
-	if err := run(*resourceName, *brandName, resourceId, isResource, *websitePath); err != nil {
+	var expsrc *examplegen.ExampleSource
+	if *genExample {
+		expsrc = &examplegen.ExampleSource{
+			RootDir:     *rootDir,
+			ServicePkgs: []string{*servicePkg},
+			TestCase:    *testCase,
+		}
+	}
+
+	if err := run(*resourceName, *brandName, resourceId, isResource, *websitePath, expsrc); err != nil {
 		panic(err)
 	}
 }
 
-func run(resourceName, brandName string, resourceId *string, isResource bool, websitePath string) error {
-	content, err := getContent(resourceName, brandName, resourceId, isResource)
+func run(resourceName, brandName string, resourceId *string, isResource bool, websitePath string, expsrc *examplegen.ExampleSource) error {
+	content, err := getContent(resourceName, brandName, resourceId, isResource, expsrc)
 	if err != nil {
 		return fmt.Errorf("building content: %s", err)
 	}
@@ -80,12 +96,13 @@ func run(resourceName, brandName string, resourceId *string, isResource bool, we
 	return saveContent(resourceName, websitePath, *content, isResource)
 }
 
-func getContent(resourceName, brandName string, resourceId *string, isResource bool) (*string, error) {
+func getContent(resourceName, brandName string, resourceId *string, isResource bool, expsrc *examplegen.ExampleSource) (*string, error) {
 	generator := documentationGenerator{
-		resourceName: resourceName,
-		brandName:    brandName,
-		resourceId:   resourceId,
-		isDataSource: !isResource,
+		resourceName:  resourceName,
+		brandName:     brandName,
+		resourceId:    resourceId,
+		isDataSource:  !isResource,
+		exampleSource: expsrc,
 	}
 
 	if !isResource {
@@ -200,6 +217,9 @@ type documentationGenerator struct {
 
 	// websiteCategories is the list of categories available by this service definition
 	websiteCategories []string
+
+	// exampleSource is the source information that is used to generate the TF example
+	exampleSource *examplegen.ExampleSource
 }
 
 func (gen documentationGenerator) generate() string {
@@ -370,6 +390,12 @@ func (gen documentationGenerator) description() string {
 }
 
 func (gen documentationGenerator) exampleUsageBlock() string {
+	if gen.exampleSource != nil {
+		if cfg, err := gen.exampleSource.GenExample(); err == nil {
+			return cfg
+		}
+	}
+
 	requiredFields := gen.requiredFieldsForExampleBlock(gen.resource.Schema, 1)
 
 	if gen.isDataSource {

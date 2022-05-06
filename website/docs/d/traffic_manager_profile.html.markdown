@@ -78,7 +78,7 @@ A `custom_header` block supports the following:
 
 * `name` - The name of the custom header.
 
-* `value` - The value of custom header. Applicable for Http and Https protocol.
+* `value` - The value of custom header. Applicable for HTTP and HTTPS protocol.
 
 ## Timeouts
 

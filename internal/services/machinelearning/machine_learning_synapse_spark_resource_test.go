@@ -103,7 +103,7 @@ func TestAccSynapseSpark_identity(t *testing.T) {
 }
 
 func (r SynapseSparkResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	computeClient := client.MachineLearning.MachineLearningComputeClient
+	computeClient := client.MachineLearning.ComputeClient
 	id, err := parse.ComputeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -326,6 +326,10 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_synapse_spark_pool" "test" {

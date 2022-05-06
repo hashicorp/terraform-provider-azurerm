@@ -159,7 +159,6 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			}
 
 			if !features.ThreePointOhBeta() {
-				// TODO: document that this is replaced by `zones` in 3.0
 				s["availability_zones"] = &schema.Schema{
 					Type:     pluginsdk.TypeList,
 					Computed: true,

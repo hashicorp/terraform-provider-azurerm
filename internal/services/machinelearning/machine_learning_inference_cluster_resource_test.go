@@ -148,7 +148,7 @@ func TestAccInferenceCluster_identity(t *testing.T) {
 }
 
 func (r InferenceClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	inferenceClusterClient := client.MachineLearning.MachineLearningComputeClient
+	inferenceClusterClient := client.MachineLearning.ComputeClient
 	id, err := parse.InferenceClusterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -466,7 +466,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[7]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -559,7 +559,7 @@ resource "azurerm_subnet" "test" {
   resource_group_name                            = azurerm_resource_group.test.name
   virtual_network_name                           = azurerm_virtual_network.test.name
   enforce_private_link_endpoint_network_policies = true
-  address_prefix                                 = "10.1.0.0/24"
+  address_prefixes                               = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {

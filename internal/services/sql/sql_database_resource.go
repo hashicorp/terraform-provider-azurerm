@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -89,11 +88,7 @@ func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
 	createMode := sql.CreateMode(d.Get("create_mode").(string))
-	if createMode == sql.CreateModeOnlineSecondary && len(auditingPolicies) > 0 {
-		return fmt.Errorf("auditing policies are not supported on an online secondary for %s", id)
-	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
@@ -211,16 +206,6 @@ func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("setting database threat detection policy: %+v", err)
 	}
 
-	if createMode != sql.CreateModeOnlineSecondary {
-		auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
-		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{
-			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlDBBlobAuditingPolicies(auditingPolicies),
-		}
-		if _, err = auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, auditingProps); err != nil {
-			return fmt.Errorf("setting Blob Auditing Policies for %s: %+v", id, err)
-		}
-	}
-
 	return resourceSqlDatabaseRead(d, meta)
 }
 
@@ -251,12 +236,6 @@ func resourceSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if err := d.Set("threat_detection_policy", flattenArmSqlServerThreatDetectionPolicy(d, threat)); err != nil {
 			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
 		}
-	}
-
-	auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -297,11 +276,6 @@ func resourceSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("encryption", flattenEncryptionStatus(props.TransparentDataEncryption))
 		d.Set("read_scale", props.ReadScale == sql.ReadScaleEnabled)
 		d.Set("zone_redundant", props.ZoneRedundant)
-	}
-
-	flattenBlobAuditing := helper.FlattenAzureRmSqlDBBlobAuditingPolicies(&auditingResp, d)
-	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
-		return fmt.Errorf("failure in setting `extended_auditing_policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -745,8 +719,6 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
-
-		"extended_auditing_policy": helper.ExtendedAuditingSchema(),
 
 		"tags": tags.Schema(),
 	}

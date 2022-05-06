@@ -10,6 +10,8 @@ description: |-
 
 Manages a shared dashboard in the Azure Portal.
 
+!> **Note:** The `azurerm_dashboard` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_portal_dashboard`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/portal_dashboard) resource instead.
+
 ## Example Usage
 
 ```hcl
@@ -25,15 +27,15 @@ variable "video_link" {
 
 data "azurerm_subscription" "current" {}
 
-resource "azurerm_resource_group" "my-group" {
+resource "azurerm_resource_group" "example" {
   name     = "mygroup"
   location = "West Europe"
 }
 
 resource "azurerm_dashboard" "my-board" {
   name                = "my-cool-dashboard"
-  resource_group_name = azurerm_resource_group.my-group.name
-  location            = azurerm_resource_group.my-group.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   tags = {
     source = "terraform"
   }
@@ -208,8 +210,8 @@ data "template_file" "dash-template" {
 
 resource "azurerm_dashboard" "my-board" {
   name                = "my-cool-dashboard"
-  resource_group_name = azurerm_resource_group.my-group.name
-  location            = azurerm_resource_group.my-group.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   tags = {
     source = "terraform"
   }
@@ -223,8 +225,8 @@ resource "azurerm_dashboard" "my-board" {
 ```hcl
 resource "azurerm_dashboard" "my-board" {
   name                = "my-cool-dashboard"
-  resource_group_name = azurerm_resource_group.my-group.name
-  location            = azurerm_resource_group.my-group.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   tags = {
     source = "terraform"
   }
@@ -241,10 +243,11 @@ resource "azurerm_dashboard" "my-board" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Shared Dashboard. This should be be 64 chars max, only alphanumeric and hyphens (no spaces). For a more friendly display name, add the `hidden-title` tag.
+* `name` - (Required) Specifies the name of the Shared Dashboard. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the dashboard.
+-> **Note**: You can specify a tag with the key `hidden-title` to set a more user-friendly title for this Dashboard.  
+
+* `resource_group_name` - (Required) The name of the resource group in which to create the dashboard. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 

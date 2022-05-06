@@ -68,12 +68,14 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 			"dsc_primary_access_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 			"dsc_secondary_access_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,

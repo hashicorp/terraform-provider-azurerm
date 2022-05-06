@@ -64,9 +64,8 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
-  name                = "acctestSIR%d"
-  data_factory_id     = azurerm_data_factory.test.id
-  resource_group_name = azurerm_resource_group.test.name
+  name            = "acctestSIR%d"
+  data_factory_id = azurerm_data_factory.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -93,7 +92,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -157,7 +156,7 @@ resource "azurerm_virtual_machine_extension" "test" {
   type_handler_version = "1.10"
   settings = jsonencode({
     "fileUris"         = ["https://raw.githubusercontent.com/Azure/azure-quickstart-templates/00b79d2102c88b56502a63041936ef4dd62cf725/101-vms-with-selfhost-integration-runtime/gatewayInstall.ps1"],
-    "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File gatewayInstall.ps1 ${azurerm_data_factory_integration_runtime_self_hosted.host.auth_key_1} && timeout /t 120"
+    "commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File gatewayInstall.ps1 ${azurerm_data_factory_integration_runtime_self_hosted.host.primary_authorization_key} && timeout /t 120"
   })
 }
 
@@ -173,9 +172,8 @@ resource "azurerm_data_factory" "host" {
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "host" {
-  name                = "acctestirshh%d"
-  data_factory_name   = azurerm_data_factory.host.name
-  resource_group_name = azurerm_resource_group.host.name
+  name            = "acctestirshh%d"
+  data_factory_id = azurerm_data_factory.host.id
 }
 
 resource "azurerm_resource_group" "target" {
@@ -200,9 +198,8 @@ resource "azurerm_data_factory" "target" {
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "target" {
-  name                = "acctestirsht%d"
-  data_factory_name   = azurerm_data_factory.target.name
-  resource_group_name = azurerm_resource_group.target.name
+  name            = "acctestirsht%d"
+  data_factory_id = azurerm_data_factory.target.id
 
   rbac_authorization {
     resource_id = azurerm_data_factory_integration_runtime_self_hosted.host.id

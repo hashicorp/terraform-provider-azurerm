@@ -286,8 +286,7 @@ JSON
 
 resource "azurerm_data_factory_dataset_json" "test1" {
   name                = "acctestds1%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_custom_service.test.name
 
   azure_blob_storage_location {
@@ -301,8 +300,7 @@ resource "azurerm_data_factory_dataset_json" "test1" {
 
 resource "azurerm_data_factory_dataset_json" "test2" {
   name                = "acctestds2%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_custom_service.test.name
 
   azure_blob_storage_location {

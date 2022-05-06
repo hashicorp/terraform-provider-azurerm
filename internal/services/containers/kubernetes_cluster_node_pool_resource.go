@@ -428,23 +428,16 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	orchestratorVersion := d.Get("orchestrator_version").(string)
 	if orchestratorVersion != "" {
-		if err := validateNodePoolSupportsVersion(ctx, containersClient, id, orchestratorVersion); err != nil {
+		if err := validateNodePoolSupportsVersion(ctx, containersClient, "", id, orchestratorVersion); err != nil {
 			return err
 		}
 
 		profile.OrchestratorVersion = utils.String(orchestratorVersion)
 	}
 
-	if features.ThreePointOhBeta() {
-		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
-		if len(zones) > 0 {
-			profile.AvailabilityZones = &zones
-		}
-	} else {
-		availabilityZonesRaw := d.Get("availability_zones").([]interface{})
-		if availabilityZones := utils.ExpandStringSlice(availabilityZonesRaw); len(*availabilityZones) > 0 {
-			profile.AvailabilityZones = availabilityZones
-		}
+	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		profile.AvailabilityZones = &zones
 	}
 
 	if maxPods := int32(d.Get("max_pods").(int)); maxPods > 0 {
@@ -628,8 +621,16 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 			return fmt.Errorf("the Orchestrator Version cannot be updated when using a Spot Node Pool")
 		}
 
+		existingNodePool, err := client.Get(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
+		if err != nil {
+			return fmt.Errorf("retrieving Node Pool %s: %+v", *id, err)
+		}
 		orchestratorVersion := d.Get("orchestrator_version").(string)
-		if err := validateNodePoolSupportsVersion(ctx, containersClient, *id, orchestratorVersion); err != nil {
+		currentOrchestratorVersion := ""
+		if v := existingNodePool.OrchestratorVersion; v != nil {
+			currentOrchestratorVersion = *v
+		}
+		if err := validateNodePoolSupportsVersion(ctx, containersClient, currentOrchestratorVersion, *id, orchestratorVersion); err != nil {
 			return err
 		}
 
