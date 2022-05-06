@@ -128,6 +128,10 @@ The following arguments are supported:
 
 * `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
 
+* `transparent_data_encryption_enabled` - If set to true, Transparent Data Encryption will be enabled on the database. Defaults to `true`.
+
+* -> **NOTE:** TDE cannot be disabled on servers with SKUs other than ones starting with DW.
+
 * `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones. This property is only settable for Premium and Business Critical databases.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
