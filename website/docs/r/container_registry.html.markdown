@@ -188,6 +188,8 @@ The following arguments are supported:
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
 
+  ~> **NOTE:** Changing the `zone_redundancy_enabled` forces the a new underlying replication to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to this replication location.
 
 ---
