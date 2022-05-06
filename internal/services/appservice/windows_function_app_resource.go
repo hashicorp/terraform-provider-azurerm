@@ -557,12 +557,12 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 
 			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+				return fmt.Errorf("reading Sticky Settings for Windows %s: %+v", id, err)
 			}
 
             storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
+				return fmt.Errorf("reading Storage Account information for WIndows %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
@@ -743,7 +743,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
             if metadata.ResourceData.HasChange("storage_account") {
 				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
-					return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating Storage Accounts for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -836,7 +836,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 
 				if _, err := client.UpdateSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName, stickySettingsUpdate); err != nil {
-					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating Sticky Settings for Windows %s: %+v", id, err)
 				}
 			}
 

@@ -477,7 +477,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					SlotConfigNames: stickySettings,
 				}
 				if _, err := client.UpdateSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName, stickySettingsUpdate); err != nil {
-					return fmt.Errorf("updating Sticky Settings for Windows %s: %+v", id, err)
+					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
 				}
 			}
 
