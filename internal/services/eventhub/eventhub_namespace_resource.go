@@ -393,6 +393,8 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
+	waitForEventHubNamespaceToBeUpdated(ctx, client, id)
+
 	d.SetId(id.ID())
 
 	if d.HasChange("network_rulesets") {
@@ -535,6 +537,28 @@ func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *namespaces
 	return nil
 }
 
+func waitForEventHubNamespaceToBeUpdated(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context has no deadline")
+	}
+
+	log.Printf("[DEBUG] Waiting for %s to be updated..", id)
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:      []string{"Activating", "ActivatingIdentity", "Pending"},
+		Target:       []string{"Succeeded"},
+		Refresh:      eventHubNamespaceProvisioningStateRefreshFunc(ctx, client, id),
+		Timeout:      time.Until(deadline),
+		PollInterval: 10 * time.Second,
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
+	}
+
+	return nil
+}
+
 func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
@@ -550,6 +574,26 @@ func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client *na
 		}
 
 		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
+	}
+}
+
+func eventHubNamespaceProvisioningStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+
+		provisioningState := "Pending"
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return res, provisioningState, nil
+			}
+			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
+		}
+
+		if res.Model != nil && res.Model.Properties != nil && res.Model.Properties.ProvisioningState != nil {
+			provisioningState = *res.Model.Properties.ProvisioningState
+		}
+
+		return res, provisioningState, nil
 	}
 }
 
