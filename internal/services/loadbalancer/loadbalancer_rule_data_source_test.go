@@ -68,7 +68,7 @@ func (r LoadBalancerRule) completeDataSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_lb_backend_address_pool" "test" {
-  name = "LbPool-%s"
+  name            = "LbPool-%s"
   loadbalancer_id = azurerm_lb.test.id
 }
 

@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
@@ -86,8 +85,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 					string(operationalinsights.WorkspaceSkuNameEnumStandard),
 					string(operationalinsights.WorkspaceSkuNameEnumCapacityReservation),
 					"Unlimited", // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: logAnalyticsLinkedServiceSkuChangeCaseDifference,
+				}, false),
 			},
 
 			"reservation_capacity_in_gb_per_day": {

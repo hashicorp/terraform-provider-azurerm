@@ -361,7 +361,7 @@ func (r LoadBalancerRule) inconsistentRead(data acceptance.TestData) string {
 %s
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name = "%d-address-pool"
+  name            = "%d-address-pool"
   loadbalancer_id = azurerm_lb.test.id
 }
 
