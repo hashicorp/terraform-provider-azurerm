@@ -87,6 +87,11 @@ func resourceSnapshot() *pluginsdk.Resource {
 
 			"encryption_settings": encryptionSettingsSchema(),
 
+			"trusted_launch_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -206,6 +211,14 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 			return fmt.Errorf("setting `encryption_settings`: %+v", err)
 		}
+
+		trustedLaunchEnabled := false
+		if securityProfile := props.SecurityProfile; securityProfile != nil {
+			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
+				trustedLaunchEnabled = true
+			}
+		}
+		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
