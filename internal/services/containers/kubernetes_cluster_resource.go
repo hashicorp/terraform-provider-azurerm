@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-01-02-preview/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -1908,7 +1908,7 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName, nil)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

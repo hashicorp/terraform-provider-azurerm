@@ -523,13 +523,15 @@ func PossibleScaleSetPriorityValues() []ScaleSetPriority {
 type SnapshotType string
 
 const (
+	// SnapshotTypeManagedCluster The snapshot is a snapshot of a managed cluster.
+	SnapshotTypeManagedCluster SnapshotType = "ManagedCluster"
 	// SnapshotTypeNodePool The snapshot is a snapshot of a node pool.
 	SnapshotTypeNodePool SnapshotType = "NodePool"
 )
 
 // PossibleSnapshotTypeValues returns an array of possible values for the SnapshotType const type.
 func PossibleSnapshotTypeValues() []SnapshotType {
-	return []SnapshotType{SnapshotTypeNodePool}
+	return []SnapshotType{SnapshotTypeManagedCluster, SnapshotTypeNodePool}
 }
 
 // StorageProfileTypes enumerates the values for storage profile types.
