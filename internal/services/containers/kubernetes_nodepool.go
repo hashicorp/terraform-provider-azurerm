@@ -218,6 +218,13 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ForceNew: true,
 					},
 
+					"host_group_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: computeValidate.HostGroupID,
+					},
+
 					"upgrade_settings": upgradeSettingsSchema(),
 				}
 
@@ -702,6 +709,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 		profile.VnetSubnetID = utils.String(vnetSubnetID)
 	}
 
+	if hostGroupID := raw["host_group_id"].(string); hostGroupID != "" {
+		profile.HostGroupID = utils.String(hostGroupID)
+	}
+
 	if orchestratorVersion := raw["orchestrator_version"].(string); orchestratorVersion != "" {
 		profile.OrchestratorVersion = utils.String(orchestratorVersion)
 	}
@@ -1042,6 +1053,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		vnetSubnetId = *agentPool.VnetSubnetID
 	}
 
+	hostGroupID := ""
+	if agentPool.HostGroupID != nil {
+		hostGroupID = *agentPool.HostGroupID
+	}
+
 	orchestratorVersion := ""
 	if agentPool.OrchestratorVersion != nil {
 		orchestratorVersion = *agentPool.OrchestratorVersion
@@ -1093,6 +1109,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		"kubelet_config":               flattenAgentPoolKubeletConfig(agentPool.KubeletConfig),
 		"linux_os_config":              linuxOSConfig,
 		"zones":                        zones.Flatten(agentPool.AvailabilityZones),
+		"host_group_id":                hostGroupID,
 	}
 
 	return &[]interface{}{
