@@ -635,6 +635,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	if d.HasChange("workload_runtime") {
 		props.WorkloadRuntime = containerservice.WorkloadRuntime(d.Get("workload_runtime").(string))
 	}
+
 	if d.HasChange("node_labels") {
 		props.NodeLabels = utils.ExpandMapStringPtrString(d.Get("node_labels").(map[string]interface{}))
 	}
