@@ -1,6 +1,6 @@
 package network
 
-import "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+import "github.com/hashicorp/terraform-provider-azurerm/internal/azuresdk/network/2022-01-01/network"
 
 func FindNetworkInterfaceIPConfiguration(input *[]network.InterfaceIPConfiguration, name string) *network.InterfaceIPConfiguration {
 	if input == nil {

@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/azuresdk/network/2022-01-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
