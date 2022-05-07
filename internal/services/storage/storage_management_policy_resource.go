@@ -61,22 +61,15 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
-						//lintignore:XS003
 						"filters": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"prefix_match": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-										Set:      pluginsdk.HashString,
-									},
 									"blob_types": {
 										Type:     pluginsdk.TypeSet,
-										Optional: true,
+										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
@@ -86,7 +79,12 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 										},
 										Set: pluginsdk.HashString,
 									},
-
+									"prefix_match": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+										Set:      pluginsdk.HashString,
+									},
 									"match_blob_index_tag": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
