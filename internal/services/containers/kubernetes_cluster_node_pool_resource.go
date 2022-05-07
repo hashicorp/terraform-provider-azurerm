@@ -161,7 +161,6 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			"node_labels": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				ForceNew: true,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -635,6 +634,9 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	if d.HasChange("workload_runtime") {
 		props.WorkloadRuntime = containerservice.WorkloadRuntime(d.Get("workload_runtime").(string))
+	}
+	if d.HasChange("node_labels") {
+		props.NodeLabels = utils.ExpandMapStringPtrString(d.Get("node_labels").(map[string]interface{}))
 	}
 
 	// validate the auto-scale fields are both set/unset to prevent a continual diff
