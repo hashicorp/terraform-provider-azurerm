@@ -9,7 +9,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,7 +35,7 @@ func dataSourceAdvisorRecommendations() *pluginsdk.Resource {
 						string(advisor.Performance),
 						string(advisor.Cost),
 						string(advisor.OperationalExcellence),
-					}, !features.ThreePointOhBeta()),
+					}, false),
 					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 			},

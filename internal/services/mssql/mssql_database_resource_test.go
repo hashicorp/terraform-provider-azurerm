@@ -1408,7 +1408,8 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[3]d"
   server_id = azurerm_mssql_server.test.id
   short_term_retention_policy {
-    retention_days = 8
+    retention_days           = 8
+    backup_interval_in_hours = 12
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
@@ -1438,7 +1439,8 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[3]d"
   server_id = azurerm_mssql_server.test.id
   short_term_retention_policy {
-    retention_days = 10
+    retention_days           = 10
+    backup_interval_in_hours = 24
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)

@@ -63,6 +63,28 @@ func TestAccComputeCluster_complete(t *testing.T) {
 	})
 }
 
+func TestAccComputeCluster_recreateVmSize(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
+	r := ComputeClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.recreateVmSize(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccComputeCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
 	r := ComputeClusterResource{}
@@ -127,7 +149,7 @@ func TestAccComputeCluster_identity(t *testing.T) {
 }
 
 func (r ComputeClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	computeClusterClient := client.MachineLearning.MachineLearningComputeClient
+	computeClusterClient := client.MachineLearning.ComputeClient
 	id, err := parse.ComputeClusterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -206,6 +228,32 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test
   ]
+}
+`, template, data.RandomIntOfLength(8))
+}
+
+func (r ComputeClusterResource) recreateVmSize(data acceptance.TestData) string {
+	template := r.template_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_machine_learning_compute_cluster" "test" {
+  name                          = "CC-%d"
+  location                      = azurerm_resource_group.test.location
+  vm_priority                   = "LowPriority"
+  vm_size                       = "STANDARD_D1_V2"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  local_auth_enabled            = false
+
+  scale_settings {
+    min_node_count                       = 0
+    max_node_count                       = 1
+    scale_down_nodes_after_idle_duration = "PT30S" # 30 seconds
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, template, data.RandomIntOfLength(8))
 }

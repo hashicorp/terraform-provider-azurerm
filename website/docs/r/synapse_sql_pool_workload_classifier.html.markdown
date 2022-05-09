@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Synapse SQL Pool Workload Classifier. Changing this forces a new Synapse SQL Pool Workload Classifier to be created.
 
-* `workload_group_id` - (Required) The ID of the Synapse Sql Pool Workload Group. Changing this forces a new Synapse SQL Pool Workload Classifier to be created.
+* `workload_group_id` - (Required) The ID of the Synapse SQL Pool Workload Group. Changing this forces a new Synapse SQL Pool Workload Classifier to be created.
 
 * `member_name` - (Required) The workload classifier member name used to classified against.
 

@@ -52,6 +52,8 @@ output "storage_account_tier" {
 
 * `is_hns_enabled` - Is Hierarchical Namespace enabled?
 
+* `nfsv3_enabled` - Is NFSv3 protocol enabled?
+
 * `custom_domain` - A `custom_domain` block as documented below.
 
 * `tags` - A mapping of tags to assigned to the resource.

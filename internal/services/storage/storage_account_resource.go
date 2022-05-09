@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -17,11 +18,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -46,26 +45,15 @@ import (
 
 var (
 	storageAccountResourceName = "azurerm_storage_account"
-	allowPublicNestedItemsName = getDefaultAllowBlobPublicAccessName()
 )
 
 func resourceStorageAccount() *pluginsdk.Resource {
 	upgraders := map[int]pluginsdk.StateUpgrade{
 		0: migration.AccountV0ToV1{},
 		1: migration.AccountV1ToV2{},
+		2: migration.AccountV2ToV3{},
 	}
-	schemaVersion := 2
-
-	// TODO: (v3.0) The migration is not backwards compatible so we need to make sure it's always
-	// behind a flag that is *not* user configurable.
-
-	// TODO: (v3.0) Add the following to the migration guide:
-	// *Breaking Change* In this version the field `allow_blob_public_access` is renamed to `allow_nested_items_to_be_public`
-	// in order to make its use clearer. Please update your configuration before running terraform.
-	if features.ThreePointOh() {
-		upgraders[2] = migration.AccountV2ToV3{}
-		schemaVersion = 3
-	}
+	schemaVersion := 3
 
 	return &pluginsdk.Resource{
 		Create: resourceStorageAccountCreate,
@@ -109,9 +97,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					string(storage.KindBlockBlobStorage),
 					string(storage.KindFileStorage),
 					string(storage.KindStorageV2),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-				Default:          string(storage.KindStorageV2),
+				}, false),
+				Default: string(storage.KindStorageV2),
 			},
 
 			"account_tier": {
@@ -121,7 +108,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"Standard",
 					"Premium",
-				}, !features.ThreePointOhBeta()),
+				}, false),
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
@@ -135,8 +122,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					"RAGRS",
 					"GZRS",
 					"RAGZRS",
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
@@ -147,8 +133,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.AccessTierCool),
 					string(storage.AccessTierHot),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"azure_files_authentication": {
@@ -214,7 +199,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					},
 				},
 			},
-
+			"cross_tenant_replication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 			"custom_domain": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -238,10 +227,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"customer_managed_key": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				// Remove in 3.0 - this needs to be Computed for now otherwise it will generate a diff for users using
-				// azurerm_storage_account_customer_managed_key. Once this is no longer Computed users should add
-				// ignore_changes to their config for this block
-				Computed: !features.ThreePointOhBeta(),
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -272,12 +257,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"min_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default: func() interface{} {
-					if features.ThreePointOhBeta() {
-						return string(storage.MinimumTLSVersionTLS12)
-					}
-					return string(storage.MinimumTLSVersionTLS10)
-				}(),
+				Default:  string(storage.MinimumTLSVersionTLS12),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.MinimumTLSVersionTLS10),
 					string(storage.MinimumTLSVersionTLS11),
@@ -300,10 +280,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 
 			// TODO: document this new field in 3.0
-			allowPublicNestedItemsName: {
+			"allow_nested_items_to_be_public": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  getDefaultAllowBlobPublicAccess(),
+				Default:  true,
 			},
 
 			"shared_access_key_enabled": {
@@ -330,8 +310,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									string(storage.BypassLogging),
 									string(storage.BypassMetrics),
 									string(storage.BypassNone),
-								}, !features.ThreePointOhBeta()),
-								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+								}, false),
 							},
 							Set: pluginsdk.HashString,
 						},
@@ -469,6 +448,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"logging": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -500,6 +480,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"hour_metrics": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -508,6 +489,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
+									// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
 									"enabled": {
 										Type:     pluginsdk.TypeBool,
 										Required: true,
@@ -527,6 +509,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"minute_metrics": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -535,6 +518,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
+									// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
 									"enabled": {
 										Type:     pluginsdk.TypeBool,
 										Required: true,
@@ -674,7 +658,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"static_website": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -979,8 +963,9 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	minimumTLSVersion := d.Get("min_tls_version").(string)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
-	allowBlobPublicAccess := d.Get(allowPublicNestedItemsName).(bool)
+	allowBlobPublicAccess := d.Get("allow_nested_items_to_be_public").(bool)
 	allowSharedKeyAccess := d.Get("shared_access_key_enabled").(bool)
+	crossTenantReplication := d.Get("cross_tenant_replication_enabled").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -995,11 +980,12 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
-			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
-			NetworkRuleSet:         expandStorageAccountNetworkRules(d, tenantId),
-			IsHnsEnabled:           &isHnsEnabled,
-			EnableNfsV3:            &nfsV3Enabled,
-			AllowSharedKeyAccess:   &allowSharedKeyAccess,
+			EnableHTTPSTrafficOnly:      &enableHTTPSTrafficOnly,
+			NetworkRuleSet:              expandStorageAccountNetworkRules(d, tenantId),
+			IsHnsEnabled:                &isHnsEnabled,
+			EnableNfsV3:                 &nfsV3Enabled,
+			AllowSharedKeyAccess:        &allowSharedKeyAccess,
+			AllowCrossTenantReplication: &crossTenantReplication,
 		},
 	}
 
@@ -1010,7 +996,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
 	if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
 		if allowBlobPublicAccess || minimumTLSVersion != string(storage.MinimumTLSVersionTLS10) {
-			return fmt.Errorf(`%q and "min_tls_version" are not supported for a Storage Account located in %q`, allowPublicNestedItemsName, envName)
+			return fmt.Errorf(`"allow_nested_items_to_be_public" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
 		}
 	} else {
 		parameters.AccountPropertiesCreateParameters.AllowBlobPublicAccess = &allowBlobPublicAccess
@@ -1328,6 +1314,11 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 	}
 
+	if d.HasChange("cross_tenant_replication_enabled") {
+		crossTenantReplication := d.Get("cross_tenant_replication_enabled").(bool)
+		opts.AccountPropertiesUpdateParameters.AllowCrossTenantReplication = &crossTenantReplication
+	}
+
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
 		return fmt.Errorf("updating Azure Storage Account AllowSharedKeyAccess %q: %+v", id.Name, err)
 	}
@@ -1394,6 +1385,21 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	// Updating `identity` should occur before updating `customer_managed_key`, as the latter depends on an identity.
+	if d.HasChange("identity") {
+		storageAccountIdentity, err := expandAzureRmStorageAccountIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return err
+		}
+		opts := storage.AccountUpdateParameters{
+			Identity: storageAccountIdentity,
+		}
+
+		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
+			return fmt.Errorf("updating Azure Storage Account identity %q: %+v", id.Name, err)
+		}
+	}
+
 	if d.HasChange("customer_managed_key") {
 		cmk := d.Get("customer_managed_key").([]interface{})
 		encryption, err := expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, resourceClient, cmk)
@@ -1451,8 +1457,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange(allowPublicNestedItemsName) {
-		allowBlobPublicAccess := d.Get(allowPublicNestedItemsName).(bool)
+	if d.HasChange("allow_nested_items_to_be_public") {
+		allowBlobPublicAccess := d.Get("allow_nested_items_to_be_public").(bool)
 
 		// For all Clouds except Public, China, and USGovernmentCloud, don't specify "allow_blob_public_access" in request body.
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
@@ -1460,7 +1466,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
 		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name && envName != autorestAzure.ChinaCloud.Name {
 			if allowBlobPublicAccess {
-				return fmt.Errorf(`%q is not supported for a Storage Account located in %q`, allowPublicNestedItemsName, envName)
+				return fmt.Errorf("allow_nested_items_to_be_public is not supported for a Storage Account located in %q", envName)
 			}
 		} else {
 			opts := storage.AccountUpdateParameters{
@@ -1472,20 +1478,6 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
 				return fmt.Errorf("updating Azure Storage Account allow_blob_public_access %q: %+v", id.Name, err)
 			}
-		}
-	}
-
-	if d.HasChange("identity") {
-		storageAccountIdentity, err := expandAzureRmStorageAccountIdentity(d.Get("identity").([]interface{}))
-		if err != nil {
-			return err
-		}
-		opts := storage.AccountUpdateParameters{
-			Identity: storageAccountIdentity,
-		}
-
-		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, opts); err != nil {
-			return fmt.Errorf("updating Azure Storage Account identity %q: %+v", id.Name, err)
 		}
 	}
 
@@ -1729,21 +1721,19 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("nfsv3_enabled", props.EnableNfsV3)
 
-		if features.ThreePointOh() {
-			// There is a certain edge case that could result in the Azure API returning a null value for AllowBLobPublicAccess.
-			// Since the field is a pointer, this gets marshalled to a nil value instead of a boolean. Here we set this
-			// to the default value, but since this is a breaking change we'll enforce this in 3.0
-
-			allowBlobPublicAccess := getDefaultAllowBlobPublicAccess()
-			if props.AllowBlobPublicAccess != nil {
-				allowBlobPublicAccess = *props.AllowBlobPublicAccess
-			}
-			//lintignore:R001
-			d.Set(allowPublicNestedItemsName, allowBlobPublicAccess)
-		} else {
-			//lintignore:R001
-			d.Set(allowPublicNestedItemsName, props.AllowBlobPublicAccess)
+		if crossTenantReplication := props.AllowCrossTenantReplication; crossTenantReplication != nil {
+			d.Set("cross_tenant_replication_enabled", crossTenantReplication)
 		}
+
+		// There is a certain edge case that could result in the Azure API returning a null value for AllowBLobPublicAccess.
+		// Since the field is a pointer, this gets marshalled to a nil value instead of a boolean.
+
+		allowBlobPublicAccess := true
+		if props.AllowBlobPublicAccess != nil {
+			allowBlobPublicAccess = *props.AllowBlobPublicAccess
+		}
+		//lintignore:R001
+		d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
 
 		// For all Clouds except Public, China, and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
 		// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
@@ -2460,10 +2450,27 @@ func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties
 			CorsRule: []queues.CorsRule{},
 		},
 		HourMetrics: &queues.MetricsConfig{
+			Version: "1.0",
 			Enabled: false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
 		},
 		MinuteMetrics: &queues.MetricsConfig{
+			Version: "1.0",
 			Enabled: false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
+		},
+		Logging: &queues.LoggingConfig{
+			Version: "1.0",
+			Delete:  false,
+			Read:    false,
+			Write:   false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
 		},
 	}
 	if len(input) == 0 {
@@ -2488,7 +2495,13 @@ func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties
 
 func expandQueuePropertiesMetrics(input []interface{}) (*queues.MetricsConfig, error) {
 	if len(input) == 0 {
-		return &queues.MetricsConfig{}, nil
+		return &queues.MetricsConfig{
+			Version: "1.0",
+			Enabled: false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
+		}, nil
 	}
 
 	metricsAttr := input[0].(map[string]interface{})
@@ -2521,7 +2534,15 @@ func expandQueuePropertiesMetrics(input []interface{}) (*queues.MetricsConfig, e
 
 func expandQueuePropertiesLogging(input []interface{}) *queues.LoggingConfig {
 	if len(input) == 0 {
-		return &queues.LoggingConfig{}
+		return &queues.LoggingConfig{
+			Version: "1.0",
+			Delete:  false,
+			Read:    false,
+			Write:   false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
+		}
 	}
 
 	loggingAttr := input[0].(map[string]interface{})
@@ -3229,24 +3250,11 @@ func setEndpointAndHost(d *pluginsdk.ResourceData, ordinalString string, endpoin
 		host = u.Host
 	}
 
-	//lintignore: R001
+	// lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_endpoint", ordinalString, typeString), endpoint)
-	//lintignore: R001
+	// lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_host", ordinalString, typeString), host)
 	return nil
-}
-
-func getDefaultAllowBlobPublicAccess() bool {
-	// The default value for the field that controls if the blobs that belong to a storage account
-	// can allow anonymous access or not will change from false to true in 3.0.
-	return features.ThreePointOh()
-}
-
-func getDefaultAllowBlobPublicAccessName() string {
-	if features.ThreePointOh() {
-		return "allow_nested_items_to_be_public"
-	}
-	return "allow_blob_public_access"
 }
 
 func expandEdgeZone(input string) *storage.ExtendedLocation {

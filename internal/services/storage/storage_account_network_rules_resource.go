@@ -317,11 +317,15 @@ func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta in
 	}
 
 	// We can't delete a network rule set so we'll just update it back to the default instead
+	virtualNetworkRules := make([]storage.VirtualNetworkRule, 0)
+	ipRules := make([]storage.IPRule, 0)
 	opts := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			NetworkRuleSet: &storage.NetworkRuleSet{
-				Bypass:        storage.BypassAzureServices,
-				DefaultAction: storage.DefaultActionAllow,
+				Bypass:              storage.BypassAzureServices,
+				VirtualNetworkRules: &virtualNetworkRules,
+				IPRules:             &ipRules,
+				DefaultAction:       storage.DefaultActionAllow,
 			},
 		},
 	}

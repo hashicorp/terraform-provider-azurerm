@@ -93,13 +93,13 @@ The following arguments are supported:
 
 * `email_account_admins_enabled` - (Optional) Boolean flag which specifies if the alert is sent to the account administrators or not. Defaults to `false`.
 
-* `email_addresses` - (Optional) Specifies an array of e-mail addresses to which the alert is sent.
+* `email_addresses` - (Optional) Specifies an array of email addresses to which the alert is sent.
 
 * `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs. Defaults to `0`.
 
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account.
 
-* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
 
 
 ## Attributes Reference

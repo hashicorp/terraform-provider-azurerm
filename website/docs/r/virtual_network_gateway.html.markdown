@@ -124,12 +124,12 @@ The following arguments are supported:
   `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`, `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw4`,`VpnGw5`, `VpnGw1AZ`,
   `VpnGw2AZ`, `VpnGw3AZ`,`VpnGw4AZ` and `VpnGw5AZ` and depend on the `type`, `vpn_type` and
   `generation` arguments.
-  A `PolicyBased` gateway only supports the `Basic` sku. Further, the `UltraPerformance`
-  sku is only supported by an `ExpressRoute` gateway.
+  A `PolicyBased` gateway only supports the `Basic` SKU. Further, the `UltraPerformance`
+  SKU is only supported by an `ExpressRoute` gateway.
 
-~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be sku "Basic" not "Standard"
+~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be SKU "Basic" not "Standard"
 
-~> **NOTE:** Not all skus (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region.
+~> **NOTE:** Not all SKUs (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region.
 
 * `type` - (Required) The type of the Virtual Network Gateway. Valid options are
   `Vpn` or `ExpressRoute`. Changing the type forces a new resource to be created.
@@ -138,7 +138,7 @@ The following arguments are supported:
 
 * `active_active` - (Optional) If `true`, an active-active Virtual Network Gateway
   will be created. An active-active gateway requires a `HighPerformance` or an
-  `UltraPerformance` sku. If `false`, an active-standby gateway will be created.
+  `UltraPerformance` SKU. If `false`, an active-standby gateway will be created.
   Defaults to `false`.
 
 * `default_local_network_gateway_id` -  (Optional) The ID of the local network gateway
@@ -183,14 +183,14 @@ The `ip_configuration` block supports:
     the associated subnet is named `GatewaySubnet`. Therefore, each virtual
     network can contain at most a single Virtual Network Gateway.
 
-* `public_ip_address_id` - (Required) The ID of the public ip address to associate
+* `public_ip_address_id` - (Required) The ID of the public IP address to associate
     with the Virtual Network Gateway.
 
 ---
 
 The `vpn_client_configuration` block supports:
 
-* `address_space` - (Required) The address space out of which ip addresses for
+* `address_space` - (Required) The address space out of which IP addresses for
     vpn clients will be taken. You can provide more than one address space, e.g.
     in CIDR notation.
 

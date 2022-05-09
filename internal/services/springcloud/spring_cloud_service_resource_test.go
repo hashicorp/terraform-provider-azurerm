@@ -144,6 +144,35 @@ func TestAccSpringCloudService_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudService_serviceRegistry(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
+	r := SpringCloudServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceRegistry(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceRegistry(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceRegistry(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t SpringCloudServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SpringCloudServiceID(state.ID)
 	if err != nil {
@@ -175,6 +204,27 @@ resource "azurerm_spring_cloud_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (SpringCloudServiceResource) serviceRegistry(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-spring-%d"
+  location = "%s"
+}
+
+resource "azurerm_spring_cloud_service" "test" {
+  name                     = "acctest-sc-%d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  sku_name                 = "E0"
+  service_registry_enabled = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
 
 func (SpringCloudServiceResource) singleGitRepo(data acceptance.TestData) string {

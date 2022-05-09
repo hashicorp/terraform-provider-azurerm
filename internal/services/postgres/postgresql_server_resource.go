@@ -468,6 +468,11 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 		time, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 
+		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
+		if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
+			return fmt.Errorf("`public_network_access_enabled` doesn't support PointInTimeRestore mode")
+		}
+
 		props = &postgresql.ServerPropertiesForRestore{
 			CreateMode:     mode,
 			SourceServerID: &source,
@@ -475,7 +480,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 				Time: time,
 			},
 			InfrastructureEncryption: infraEncrypt,
-			PublicNetworkAccess:      publicAccess,
 			MinimalTLSVersion:        tlsMin,
 			SslEnforcement:           ssl,
 			StorageProfile:           storage,
@@ -649,11 +653,6 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	publicAccess := postgresql.PublicNetworkAccessEnumEnabled
-	if v := d.Get("public_network_access_enabled"); !v.(bool) {
-		publicAccess = postgresql.PublicNetworkAccessEnumDisabled
-	}
-
 	ssl := postgresql.SslEnforcementEnumEnabled
 	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
 		ssl = postgresql.SslEnforcementEnumDisabled
@@ -673,14 +672,26 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	properties := postgresql.ServerUpdateParameters{
 		Identity: expandedIdentity,
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
-			PublicNetworkAccess: publicAccess,
-			SslEnforcement:      ssl,
-			MinimalTLSVersion:   tlsMin,
-			StorageProfile:      expandPostgreSQLStorageProfile(d),
-			Version:             postgresql.ServerVersion(d.Get("version").(string)),
+			SslEnforcement:    ssl,
+			MinimalTLSVersion: tlsMin,
+			StorageProfile:    expandPostgreSQLStorageProfile(d),
+			Version:           postgresql.ServerVersion(d.Get("version").(string)),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if mode == postgresql.CreateModePointInTimeRestore {
+		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
+		if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
+			return fmt.Errorf("`public_network_access_enabled` doesn't support PointInTimeRestore mode")
+		}
+	} else {
+		publicAccess := postgresql.PublicNetworkAccessEnumEnabled
+		if v := d.Get("public_network_access_enabled"); !v.(bool) {
+			publicAccess = postgresql.PublicNetworkAccessEnumDisabled
+		}
+		properties.ServerUpdateParametersProperties.PublicNetworkAccess = publicAccess
 	}
 
 	oldCreateMode, newCreateMode := d.GetChange("create_mode")

@@ -24,11 +24,14 @@ var runNightly = mapOf(
 
 // specifies a list of services which should be run with a custom test configuration
 var serviceTestConfigurationOverrides = mapOf(
-        // these tests all conflict with one another
-        "authorization" to testConfiguration(parallelism = 1),
-
         // Server is only available in certain locations
         "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
+
+        // App Service Plans for Linux are currently unavailable in WestUS2
+        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus", "eastus2", true)),
+
+        // these tests all conflict with one another
+        "authorization" to testConfiguration(parallelism = 1),
 
         // HCICluster is only available in certain locations
         "azurestackhci" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
@@ -63,6 +66,15 @@ var serviceTestConfigurationOverrides = mapOf(
         // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
         "loganalytics" to testConfiguration(parallelism = 1),
 
+         // Logic uses app service which is only available in certain locations
+         "logic" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+
+        // MSSQl uses app service which is only available in certain locations
+        "mssql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+
+        // MySQL has quota available in certain locations
+        "mysql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+
         // netapp has a max of 20 accounts per subscription so lets limit it to 10 to account for broken ones, run Monday, Wednesday, Friday
         "netapp" to testConfiguration(parallelism = 10, daysOfWeek = "2,4,6"),
 
@@ -82,9 +94,18 @@ var serviceTestConfigurationOverrides = mapOf(
         // Spring Cloud only allows a max of 10 provisioned
         "springcloud" to testConfiguration(parallelism = 5),
 
+        // SQL has quota available in certain locations
+        "sql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+
+        // StreamAnalytics has quota available in certain locations
+        "streamanalytics" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+
+        // Synapse is only available in certain locations
+        "synapse" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+
         // Currently, we have insufficient quota to actually run these, but there are a few nodes in West Europe, so we'll pin it there for now
         "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
-        "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6")
+        "web" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false))
 )

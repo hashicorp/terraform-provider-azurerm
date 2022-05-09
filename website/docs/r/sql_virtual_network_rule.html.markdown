@@ -36,7 +36,7 @@ resource "azurerm_subnet" "subnet" {
 }
 
 resource "azurerm_sql_server" "sqlserver" {
-  name                         = "unqiueazuresqlserver"
+  name                         = "uniqueazuresqlserver"
   resource_group_name          = azurerm_resource_group.example.name
   location                     = azurerm_resource_group.example.location
   version                      = "12.0"

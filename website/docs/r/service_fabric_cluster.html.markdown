@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `fabric_settings` - (Optional) One or more `fabric_settings` blocks as defined below.
 
-* `upgrade_policy` - (optional) A `upgrade_policy` block as defined below.
+* `upgrade_policy` - (Optional) A `upgrade_policy` block as defined below.
 
 * `service_fabric_zonal_upgrade_mode` - (Optional) Specifies the logical grouping of VMs in upgrade domains. Possible values are `Hierarchical` or `Parallel`.
 

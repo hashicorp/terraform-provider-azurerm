@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/sdk/2021-04-30/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -549,10 +548,6 @@ resource "azurerm_cognitive_account" "import" {
 
 func (CognitiveAccountResource) complete(data acceptance.TestData) string {
 	outboundNetworkAccessRestrictedName := "outbound_network_access_restricted = true"
-	if !features.ThreePointOhBeta() {
-		outboundNetworkAccessRestrictedName = "outbound_network_access_restrited = true"
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

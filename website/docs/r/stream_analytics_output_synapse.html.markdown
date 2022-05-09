@@ -13,8 +13,9 @@ Manages a Stream Analytics Output to an Azure Synapse Analytics Workspace.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
 }
 
 data "azurerm_stream_analytics_job" "example" {
