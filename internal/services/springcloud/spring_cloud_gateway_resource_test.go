@@ -3,6 +3,7 @@ package springcloud_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -47,19 +48,23 @@ func TestAccSpringCloudGateway_requiresImport(t *testing.T) {
 func TestAccSpringCloudGateway_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_gateway", "test")
 	r := SpringCloudGatewayResource{}
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, clientId, clientSecret),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("sso.0.client_id", "sso.0.client_secret"),
 	})
 }
 
 func TestAccSpringCloudGateway_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_gateway", "test")
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	r := SpringCloudGatewayResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -70,12 +75,12 @@ func TestAccSpringCloudGateway_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.complete(data, clientId, clientSecret),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("sso.0.client_id", "sso.0.client_secret"),
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -145,10 +150,12 @@ resource "azurerm_spring_cloud_gateway" "import" {
 `, config)
 }
 
-func (r SpringCloudGatewayResource) complete(data acceptance.TestData) string {
+func (r SpringCloudGatewayResource) complete(data acceptance.TestData, clientId, clientSecret string) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_spring_cloud_gateway" "test" {
   name                    = "default"
@@ -156,6 +163,7 @@ resource "azurerm_spring_cloud_gateway" "test" {
 
   https_only                    = false
   public_network_access_enabled = true
+  instance_count                = 2
 
   api_metadata {
     description       = "test description"
@@ -178,7 +186,12 @@ resource "azurerm_spring_cloud_gateway" "test" {
     memory = "2Gi"
   }
 
-  instance_count = 2
+  sso {
+    client_id     = "%s"
+    client_secret = "%s"
+    issuer_uri    = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0"
+    scope         = ["read"]
+  }
 }
-`, template)
+`, template, clientId, clientSecret)
 }
