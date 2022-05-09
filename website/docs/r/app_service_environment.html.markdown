@@ -88,7 +88,7 @@ A `cluster_setting` block supports the following:
 
 * `value` - (Required) The value for the Cluster Setting. 
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The ID of the App Service Environment.
 

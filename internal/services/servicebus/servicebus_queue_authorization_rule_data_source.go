@@ -131,7 +131,7 @@ func dataSourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	} else {
 		rgName = d.Get("resource_group_name").(string)
 		nsName = d.Get("namespace_name").(string)
-		queueName = d.Get("topic_name").(string)
+		queueName = d.Get("queue_name").(string)
 	}
 
 	id := parse.NewQueueAuthorizationRuleID(subscriptionId, rgName, nsName, queueName, d.Get("name").(string))

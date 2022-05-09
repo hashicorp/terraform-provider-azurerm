@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the MySQL Flexible Server should exist. Changing this forces a new MySQL Flexible Server to be created.
 
-* `administrator_login` - (Optional) The Administrator Login for the MySQL Flexible Server. Required when `create_mode` is `Default`. Changing this forces a new MySQL Flexible Server to be created.
+* `administrator_login` - (Optional) The Administrator login for the MySQL Flexible Server. Required when `create_mode` is `Default`. Changing this forces a new MySQL Flexible Server to be created.
 
 * `administrator_password` - (Optional) The Password associated with the `administrator_login` for the MySQL Flexible Server. Required when `create_mode` is `Default`.
 

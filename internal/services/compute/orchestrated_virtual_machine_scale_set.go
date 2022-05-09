@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -436,7 +435,7 @@ func computerPrefixLinuxSchema() *pluginsdk.Schema {
 }
 
 func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
-	out := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -513,26 +512,6 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		o := out.Elem.(*pluginsdk.Resource)
-
-		o.Schema["disk_iops_read_write"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeInt,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This property has been renamed to `ultra_ssd_disk_iops_read_write` and will be removed in v3.0 of the provider",
-		}
-
-		o.Schema["disk_mbps_read_write"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeInt,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This property has been renamed to `ultra_ssd_disk_mbps_read_write` and will be removed in v3.0 of the provider",
-		}
-	}
-
-	return out
 }
 
 func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
@@ -611,7 +590,7 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 	}
 }
 
-func OrchestratedVirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
+func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -626,7 +605,7 @@ func OrchestratedVirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.
 				"timeout": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azValidate.ISO8601Duration,
+					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
 				},
 			},
@@ -1770,13 +1749,6 @@ func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]compute.VirtualM
 			"ultra_ssd_disk_iops_read_write": iops,
 			"ultra_ssd_disk_mbps_read_write": mbps,
 		})
-
-		if !features.ThreePointOhBeta() {
-			output = append(output, map[string]interface{}{
-				"disk_iops_read_write": iops,
-				"disk_mbps_read_write": mbps,
-			})
-		}
 	}
 
 	return output

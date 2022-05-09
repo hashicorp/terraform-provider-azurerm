@@ -1,7 +1,7 @@
 module github.com/hashicorp/terraform-provider-azurerm
 
 require (
-	github.com/Azure/azure-sdk-for-go v63.1.0+incompatible
+	github.com/Azure/azure-sdk-for-go v63.4.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.26
 	github.com/Azure/go-autorest/autorest/date v0.3.0
 	github.com/Azure/go-autorest/autorest/to v0.4.0
@@ -23,7 +23,7 @@ require (
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.2.0
 	github.com/shopspring/decimal v1.2.0
-	github.com/tombuildsstuff/giovanni v0.19.0
+	github.com/tombuildsstuff/giovanni v0.20.0
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
 	gopkg.in/yaml.v2 v2.3.0
@@ -49,7 +49,7 @@ require (
 	github.com/hashicorp/go-checkpoint v0.5.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320 // indirect
-	github.com/hashicorp/go-getter v1.5.4 // indirect
+	github.com/hashicorp/go-getter v1.5.11 // indirect
 	github.com/hashicorp/go-hclog v0.16.1 // indirect
 	github.com/hashicorp/go-plugin v1.4.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect

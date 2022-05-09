@@ -94,6 +94,8 @@ The following arguments are supported:
 
 * `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`. Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
 
+* `cross_tenant_replication_enabled` - (Optional) Should cross Tenant replication be enabled? Defaults to `true`.
+
 * `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Storage Account should exist. Changing this forces a new Storage Account to be created.
@@ -180,7 +182,7 @@ A `cors_rule` block supports the following:
 
 * `allowed_headers` - (Required) A list of headers that are allowed to be a part of the cross-origin request.
 
-* `allowed_methods` - (Required) A list of http methods that are allowed to be executed by the origin. Valid options are
+* `allowed_methods` - (Required) A list of HTTP methods that are allowed to be executed by the origin. Valid options are
 `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS`, `PUT` or `PATCH`.
 
 * `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS.

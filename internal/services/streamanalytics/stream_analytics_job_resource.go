@@ -102,6 +102,17 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				Default: string(streamanalytics.EventsOutOfOrderPolicyAdjust),
 			},
 
+			"type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.JobTypeCloud),
+					string(streamanalytics.JobTypeEdge),
+				}, false),
+				Default: string(streamanalytics.JobTypeCloud),
+			},
+
 			"output_error_policy": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -114,7 +125,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 
 			"streaming_units": {
 				Type:         pluginsdk.TypeInt,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validate.StreamAnalyticsJobStreamingUnits,
 			},
 
@@ -167,9 +178,9 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	eventsLateArrivalMaxDelayInSeconds := d.Get("events_late_arrival_max_delay_in_seconds").(int)
 	eventsOutOfOrderMaxDelayInSeconds := d.Get("events_out_of_order_max_delay_in_seconds").(int)
 	eventsOutOfOrderPolicy := d.Get("events_out_of_order_policy").(string)
+	jobType := d.Get("type").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	outputErrorPolicy := d.Get("output_error_policy").(string)
-	streamingUnits := d.Get("streaming_units").(int)
 	transformationQuery := d.Get("transformation_query").(string)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -177,9 +188,20 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	transformation := streamanalytics.Transformation{
 		Name: utils.String("main"),
 		TransformationProperties: &streamanalytics.TransformationProperties{
-			StreamingUnits: utils.Int32(int32(streamingUnits)),
-			Query:          utils.String(transformationQuery),
+			Query: utils.String(transformationQuery),
 		},
+	}
+
+	if jobType == string(streamanalytics.JobTypeEdge) {
+		if _, ok := d.GetOk("streaming_units"); ok {
+			return fmt.Errorf("the job type `Edge` doesn't support `streaming_units`")
+		}
+	} else {
+		if v, ok := d.GetOk("streaming_units"); ok {
+			transformation.TransformationProperties.StreamingUnits = utils.Int32(int32(v.(int)))
+		} else {
+			return fmt.Errorf("`streaming_units` must be set when `type` is `Cloud`")
+		}
 	}
 
 	expandedIdentity, err := expandStreamAnalyticsJobIdentity(d.Get("identity").([]interface{}))
@@ -199,18 +221,25 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			EventsOutOfOrderMaxDelayInSeconds:  utils.Int32(int32(eventsOutOfOrderMaxDelayInSeconds)),
 			EventsOutOfOrderPolicy:             streamanalytics.EventsOutOfOrderPolicy(eventsOutOfOrderPolicy),
 			OutputErrorPolicy:                  streamanalytics.OutputErrorPolicy(outputErrorPolicy),
+			JobType:                            streamanalytics.JobType(jobType),
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(t),
 	}
 
-	if streamAnalyticsCluster := d.Get("stream_analytics_cluster_id"); streamAnalyticsCluster != "" {
-		props.StreamingJobProperties.Cluster = &streamanalytics.ClusterInfo{
-			ID: utils.String(streamAnalyticsCluster.(string)),
+	if jobType == string(streamanalytics.JobTypeEdge) {
+		if _, ok := d.GetOk("stream_analytics_cluster_id"); ok {
+			return fmt.Errorf("the job type `Edge` doesn't support `stream_analytics_cluster_id`")
 		}
 	} else {
-		props.StreamingJobProperties.Cluster = &streamanalytics.ClusterInfo{
-			ID: nil,
+		if streamAnalyticsCluster := d.Get("stream_analytics_cluster_id"); streamAnalyticsCluster != "" {
+			props.StreamingJobProperties.Cluster = &streamanalytics.ClusterInfo{
+				ID: utils.String(streamAnalyticsCluster.(string)),
+			}
+		} else {
+			props.StreamingJobProperties.Cluster = &streamanalytics.ClusterInfo{
+				ID: nil,
+			}
 		}
 	}
 
@@ -297,6 +326,7 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		d.Set("events_out_of_order_policy", string(props.EventsOutOfOrderPolicy))
 		d.Set("output_error_policy", string(props.OutputErrorPolicy))
+		d.Set("type", string(props.JobType))
 
 		// Computed
 		d.Set("job_id", props.JobID)

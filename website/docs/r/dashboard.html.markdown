@@ -27,15 +27,15 @@ variable "video_link" {
 
 data "azurerm_subscription" "current" {}
 
-resource "azurerm_resource_group" "my-group" {
+resource "azurerm_resource_group" "example" {
   name     = "mygroup"
   location = "West Europe"
 }
 
 resource "azurerm_dashboard" "my-board" {
   name                = "my-cool-dashboard"
-  resource_group_name = azurerm_resource_group.my-group.name
-  location            = azurerm_resource_group.my-group.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   tags = {
     source = "terraform"
   }
@@ -210,8 +210,8 @@ data "template_file" "dash-template" {
 
 resource "azurerm_dashboard" "my-board" {
   name                = "my-cool-dashboard"
-  resource_group_name = azurerm_resource_group.my-group.name
-  location            = azurerm_resource_group.my-group.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   tags = {
     source = "terraform"
   }
@@ -225,8 +225,8 @@ resource "azurerm_dashboard" "my-board" {
 ```hcl
 resource "azurerm_dashboard" "my-board" {
   name                = "my-cool-dashboard"
-  resource_group_name = azurerm_resource_group.my-group.name
-  location            = azurerm_resource_group.my-group.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   tags = {
     source = "terraform"
   }

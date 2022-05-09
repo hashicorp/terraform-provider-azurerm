@@ -32,6 +32,30 @@ func TestAccDataSourceServiceBusQueueAuthorizationRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceServiceBusQueueAuthorizationRule_queueName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_queue_authorization_rule", "test")
+	r := ServiceBusQueueAuthorizationRuleDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.queueName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").Exists(),
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("namespace_name").Exists(),
+				check.That(data.ResourceName).Key("queue_name").Exists(),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string_alias").HasValue(""),
+				check.That(data.ResourceName).Key("secondary_connection_string_alias").HasValue(""),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceServiceBusQueueAuthorizationRule_withAliasConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_queue_authorization_rule", "test")
 	r := ServiceBusQueueAuthorizationRuleDataSource{}
@@ -57,6 +81,19 @@ func (ServiceBusQueueAuthorizationRuleDataSource) basic(data acceptance.TestData
 data "azurerm_servicebus_queue_authorization_rule" "test" {
   name     = azurerm_servicebus_queue_authorization_rule.test.name
   queue_id = azurerm_servicebus_queue.test.id
+}
+`, ServiceBusQueueAuthorizationRuleResource{}.base(data, true, true, true))
+}
+
+func (ServiceBusQueueAuthorizationRuleDataSource) queueName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_servicebus_queue_authorization_rule" "test" {
+  name                = azurerm_servicebus_queue_authorization_rule.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  queue_name          = azurerm_servicebus_queue.test.name
 }
 `, ServiceBusQueueAuthorizationRuleResource{}.base(data, true, true, true))
 }

@@ -15,15 +15,15 @@ Manages a Kusto (also known as Azure Data Explorer) Database Principal Assignmen
 ```hcl
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "KustoRG"
   location = "West Europe"
 }
 
 resource "azurerm_kusto_cluster" "example" {
   name                = "KustoCluster"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name     = "Standard_D13_v2"
@@ -33,8 +33,8 @@ resource "azurerm_kusto_cluster" "example" {
 
 resource "azurerm_kusto_database" "example" {
   name                = "KustoDatabase"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   cluster_name        = azurerm_kusto_cluster.example.name
 
   hot_cache_period   = "P7D"
@@ -43,7 +43,7 @@ resource "azurerm_kusto_database" "example" {
 
 resource "azurerm_kusto_database_principal_assignment" "example" {
   name                = "KustoPrincipalAssignment"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.example.name
   cluster_name        = azurerm_kusto_cluster.example.name
   database_name       = azurerm_kusto_database.example.name
 

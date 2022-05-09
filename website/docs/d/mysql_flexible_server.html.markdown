@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `location` - The Azure Region of the MySQL Flexible Server.
 
-* `administrator_login` - The Administrator Login of the MySQL Flexible Server.
+* `administrator_login` - The Administrator login of the MySQL Flexible Server.
 
 * `backup_retention_days` - The backup retention days of the MySQL Flexible Server.
 

@@ -128,9 +128,9 @@ The `repository` block supports the following:
 
 The `http_basic_auth` block supports the following:
 
-* `username` - (Required) The username that's used to access the Git repository server, required when the Git repository server supports Http Basic Authentication.
+* `username` - (Required) The username that's used to access the Git repository server, required when the Git repository server supports HTTP Basic Authentication.
 
-* `password` - (Required) The password used to access the Git repository server, required when the Git repository server supports Http Basic Authentication.
+* `password` - (Required) The password used to access the Git repository server, required when the Git repository server supports HTTP Basic Authentication.
 
 ---
 

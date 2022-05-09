@@ -251,7 +251,7 @@ details can be found at https://aka.ms/version-skew-policy.
 `, desiredNodePoolVersion, nodePoolName, clusterName, resourceGroup, clusterVersionDetails, versionsList)
 }
 
-func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client, defaultNodePoolId parse.NodePoolId, desiredNodePoolVersion string) error {
+func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client, currentNodePoolVersion string, defaultNodePoolId parse.NodePoolId, desiredNodePoolVersion string) error {
 	// confirm the version being used is >= the version of the control plane
 	versions, err := client.AgentPoolsClient.GetAvailableAgentPoolVersions(ctx, defaultNodePoolId.ResourceGroup, defaultNodePoolId.ManagedClusterName)
 	if err != nil {
@@ -259,7 +259,14 @@ func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client,
 	}
 	versionExists := false
 	supportedVersions := make([]string, 0)
-	if versions.AgentPoolAvailableVersionsProperties != nil && versions.AgentPoolAvailableVersionsProperties.AgentPoolVersions != nil {
+
+	// when updating a cluster running a deprecated version of k8s then the validation should pass
+	if currentNodePoolVersion == desiredNodePoolVersion {
+		versionExists = true
+	}
+
+	// when creating a new cluster or upgrading the desired version should be supported
+	if !versionExists && versions.AgentPoolAvailableVersionsProperties != nil && versions.AgentPoolAvailableVersionsProperties.AgentPoolVersions != nil {
 		for _, version := range *versions.AgentPoolAvailableVersionsProperties.AgentPoolVersions {
 			if version.KubernetesVersion == nil {
 				continue

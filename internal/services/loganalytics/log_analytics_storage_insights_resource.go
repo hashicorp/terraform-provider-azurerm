@@ -11,11 +11,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -163,7 +161,7 @@ func expandStorageInsightConfigStorageAccount(id string, key string) *operationa
 }
 
 func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -212,10 +210,4 @@ func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		schema["tags"] = tags.SchemaDeprecatedUnsupported()
-	}
-
-	return schema
 }

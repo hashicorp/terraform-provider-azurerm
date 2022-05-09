@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `version` - (Required) Specifies the version of MariaDB to use. Possible values are `10.2` and `10.3`. Changing this forces a new resource to be created.
 
-* `administrator_login` - (Required) The Administrator Login for the MariaDB Server. Changing this forces a new resource to be created.
+* `administrator_login` - (Required) The Administrator login for the MariaDB Server. Changing this forces a new resource to be created.
 
 * `administrator_login_password` - (Required) The Password associated with the `administrator_login` for the MariaDB Server.
 
@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `ssl_enforcement_enabled` - (Required) Specifies if SSL should be enforced on connections. Possible values are `true` and `false`.
 
-* `storage_mb` - (Required) Max storage allowed for a server. Possible values are between `5120` MB (5GB) and `1024000`MB (1TB) for the Basic SKU and between `5120` MB (5GB) and `4096000` MB (4TB) for General Purpose/Memory Optimized SKU's. For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/mariadb/servers/create#storageprofile).
+* `storage_mb` - (Required) Max storage allowed for a server. Possible values are between `5120` MB (5GB) and `1024000`MB (1TB) for the Basic SKU and between `5120` MB (5GB) and `4096000` MB (4TB) for General Purpose/Memory Optimized SKUs. For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/mariadb/servers/create#storageprofile).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

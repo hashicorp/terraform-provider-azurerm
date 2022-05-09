@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -133,14 +132,13 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			"license_type": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Windows_Client",
 					"Windows_Server",
-				}, !features.ThreePointOhBeta()),
+				}, false),
 			},
 
 			"upgrade_policy_mode": {
@@ -150,8 +148,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 					string(compute.UpgradeModeAutomatic),
 					string(compute.UpgradeModeManual),
 					string(compute.UpgradeModeRolling),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"health_probe_id": {
@@ -224,8 +221,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.VirtualMachinePriorityTypesLow),
 					string(compute.VirtualMachinePriorityTypesRegular),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"eviction_policy": {
@@ -591,8 +587,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 								string(compute.StorageAccountTypesPremiumLRS),
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
-							}, !features.ThreePointOhBeta()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 
 						"caching": {
@@ -651,8 +646,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 								string(compute.StorageAccountTypesPremiumLRS),
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
-							}, !features.ThreePointOhBeta()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 					},
 				},
