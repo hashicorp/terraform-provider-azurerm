@@ -32,6 +32,11 @@ resource "azurerm_spring_cloud_service" "example" {
 resource "azurerm_spring_cloud_gateway" "test" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+
+  https_only                    = false
+  public_network_access_enabled = true
+  instance_count                = 2
+
   api_metadata {
     description       = "example description"
     documentation_url = "https://www.example.com/docs"
@@ -48,14 +53,11 @@ resource "azurerm_spring_cloud_gateway" "test" {
     exposed_headers     = ["x-example-header"]
     max_age_seconds     = 86400
   }
-  https_only                    = false
-  public_network_access_enabled = true
+
   quota {
     cpu    = "1"
     memory = "2Gi"
   }
-
-  instance_count = 2
 
   sso {
     client_id     = "example id"

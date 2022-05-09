@@ -54,7 +54,7 @@ func TestAccSpringCloudGateway_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sso.0.client_id", "sso.0.client_secret"),
+		data.ImportStep(),
 	})
 }
 
@@ -75,7 +75,7 @@ func TestAccSpringCloudGateway_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sso.0.client_id", "sso.0.client_secret"),
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
@@ -153,6 +153,10 @@ func (r SpringCloudGatewayResource) complete(data acceptance.TestData) string {
 resource "azurerm_spring_cloud_gateway" "test" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+
+  https_only                    = false
+  public_network_access_enabled = true
+
   api_metadata {
     description       = "test description"
     documentation_url = "https://www.test.com/docs"
@@ -169,21 +173,12 @@ resource "azurerm_spring_cloud_gateway" "test" {
     exposed_headers     = ["x-test-header"]
     max_age_seconds     = 86400
   }
-  https_only                    = false
-  public_network_access_enabled = true
   quota {
     cpu    = "1"
     memory = "2Gi"
   }
 
   instance_count = 2
-
-  sso {
-    client_id     = "test"
-    client_secret = "secret"
-    issuer_uri    = "/issueToken"
-    scope         = ["read"]
-  }
 }
 `, template)
 }
