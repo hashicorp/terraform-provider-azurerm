@@ -1,7 +1,10 @@
 ## 3.6.0 (Unreleased)
 
-ENHANCEMENTS:
+FEATURES:
 
+* **New Resource**: `azurerm_managed_disk_sas_token` [GH-15558]
+ 
+ENHANCEMENTS:
 
 * `azurerm_kubernetes_cluster_node_pool` - the property `node_labels` can now be updated [GH-16360]
 * `azurerm_kubernetes_cluster` - the property `default_node_pool.node_labels` can now be updated [GH-16360]
