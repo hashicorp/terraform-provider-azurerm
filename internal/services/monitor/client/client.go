@@ -5,6 +5,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/datacollection"
 	newActionGroupClient "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -24,6 +25,7 @@ type Client struct {
 	ActionGroupsClient               *newActionGroupClient.ActionGroupsClient
 	ActivityLogAlertsClient          *insights.ActivityLogAlertsClient
 	AlertRulesClient                 *classic.AlertRulesClient
+	DataCollectionRulesClient        *datacollection.RulesClient
 	DiagnosticSettingsClient         *classic.DiagnosticSettingsClient
 	DiagnosticSettingsCategoryClient *classic.DiagnosticSettingsCategoryClient
 	LogProfilesClient                *classic.LogProfilesClient
@@ -55,6 +57,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	AlertRulesClient := classic.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AlertRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	DataCollectionRulesClient := datacollection.NewRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DataCollectionRulesClient.Client, o.ResourceManagerAuthorizer)
+
 	DiagnosticSettingsClient := classic.NewDiagnosticSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DiagnosticSettingsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -84,6 +89,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ActionGroupsClient:               &ActionGroupsClient,
 		ActivityLogAlertsClient:          &ActivityLogAlertsClient,
 		AlertRulesClient:                 &AlertRulesClient,
+		DataCollectionRulesClient:        &DataCollectionRulesClient,
 		DiagnosticSettingsClient:         &DiagnosticSettingsClient,
 		DiagnosticSettingsCategoryClient: &DiagnosticSettingsCategoryClient,
 		LogProfilesClient:                &LogProfilesClient,

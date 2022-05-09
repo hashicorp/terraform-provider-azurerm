@@ -10,3 +10,4 @@ package monitor
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=PrivateLinkScope -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/privateLinkScopes/pls1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=PrivateLinkScopedService -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/privateLinkScopes/pls1/scopedResources/sr1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ScheduledQueryRules -rewrite=true -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/scheduledQueryRules/rule1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=DataCollectionRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/dataCollectionRules/rule1
