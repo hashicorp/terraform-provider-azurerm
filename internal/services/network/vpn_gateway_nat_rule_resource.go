@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -18,7 +19,7 @@ import (
 )
 
 func resourceVPNGatewayNatRule() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceVPNGatewayNatRuleCreateUpdate,
 		Read:   resourceVPNGatewayNatRuleRead,
 		Update: resourceVPNGatewayNatRuleCreateUpdate,
@@ -53,21 +54,63 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 				ValidateFunc: validate.VpnGatewayID,
 			},
 
-			"external_address_space_mappings": {
+			"external_mapping": {
 				Type:     pluginsdk.TypeSet,
-				Required: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.IsCIDR,
+				Optional: true,
+				Computed: !features.FourPointOhBeta(),
+				AtLeastOneOf: func() []string {
+					out := []string{
+						"external_mapping",
+					}
+					if !features.FourPointOhBeta() {
+						out = append(out, "external_address_space_mappings")
+					}
+					return out
+				}(),
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"address_space": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsCIDR,
+						},
+
+						"port_range": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
 				},
 			},
 
-			"internal_address_space_mappings": {
+			"internal_mapping": {
 				Type:     pluginsdk.TypeSet,
-				Required: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.IsCIDR,
+				Optional: true,
+				Computed: !features.FourPointOhBeta(),
+				AtLeastOneOf: func() []string {
+					out := []string{
+						"internal_mapping",
+					}
+					if !features.FourPointOhBeta() {
+						out = append(out, "internal_address_space_mappings")
+					}
+					return out
+				}(),
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"address_space": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsCIDR,
+						},
+
+						"port_range": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
 				},
 			},
 
@@ -103,6 +146,50 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["external_address_space_mappings"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`external_address_space_mappings` will be removed in favour of the property `external_mapping` in version 4.0 of the AzureRM Provider.",
+			AtLeastOneOf: func() []string {
+				out := []string{
+					"external_mapping",
+				}
+				if !features.FourPointOhBeta() {
+					out = append(out, "external_address_space_mappings")
+				}
+				return out
+			}(),
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.IsCIDR,
+			},
+		}
+
+		resource.Schema["internal_address_space_mappings"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`internal_address_space_mappings` will be removed in favour of the property `internal_mapping` in version 4.0 of the AzureRM Provider.",
+			AtLeastOneOf: func() []string {
+				out := []string{
+					"internal_mapping",
+				}
+				if !features.FourPointOhBeta() {
+					out = append(out, "internal_address_space_mappings")
+				}
+				return out
+			}(),
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.IsCIDR,
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceVPNGatewayNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -133,11 +220,27 @@ func resourceVPNGatewayNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	props := network.VpnGatewayNatRule{
 		Name: utils.String(d.Get("name").(string)),
 		VpnGatewayNatRuleProperties: &network.VpnGatewayNatRuleProperties{
-			ExternalMappings: expandVpnGatewayNatRuleAddressSpaceMappings(d.Get("external_address_space_mappings").(*pluginsdk.Set).List()),
-			InternalMappings: expandVpnGatewayNatRuleAddressSpaceMappings(d.Get("internal_address_space_mappings").(*pluginsdk.Set).List()),
-			Mode:             network.VpnNatRuleMode(d.Get("mode").(string)),
-			Type:             network.VpnNatRuleType(d.Get("type").(string)),
+			Mode: network.VpnNatRuleMode(d.Get("mode").(string)),
+			Type: network.VpnNatRuleType(d.Get("type").(string)),
 		},
+	}
+
+	if !features.FourPointOhBeta() {
+		if v, ok := d.GetOk("external_address_space_mappings"); ok {
+			props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(v.(*pluginsdk.Set).List())
+		}
+
+		if v, ok := d.GetOk("internal_address_space_mappings"); ok {
+			props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(v.(*pluginsdk.Set).List())
+		}
+	}
+
+	if v, ok := d.GetOk("external_mapping"); ok {
+		props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleMappings(v.(*pluginsdk.Set).List())
+	}
+
+	if v, ok := d.GetOk("internal_mapping"); ok {
+		props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleMappings(v.(*pluginsdk.Set).List())
 	}
 
 	if v, ok := d.GetOk("ip_configuration_id"); ok {
@@ -188,12 +291,22 @@ func resourceVPNGatewayNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("mode", props.Mode)
 		d.Set("type", props.Type)
 
-		if err := d.Set("external_address_space_mappings", flattenVpnGatewayNatRuleAddressSpaceMappings(props.ExternalMappings)); err != nil {
-			return fmt.Errorf("setting `external_address_space_mappings`: %+v", err)
+		if !features.FourPointOhBeta() {
+			if err := d.Set("external_address_space_mappings", flattenVpnGatewayNatRuleAddressSpaceMappings(props.ExternalMappings)); err != nil {
+				return fmt.Errorf("setting `external_address_space_mappings`: %+v", err)
+			}
+
+			if err := d.Set("internal_address_space_mappings", flattenVpnGatewayNatRuleAddressSpaceMappings(props.InternalMappings)); err != nil {
+				return fmt.Errorf("setting `internal_address_space_mappings`: %+v", err)
+			}
 		}
 
-		if err := d.Set("internal_address_space_mappings", flattenVpnGatewayNatRuleAddressSpaceMappings(props.InternalMappings)); err != nil {
-			return fmt.Errorf("setting `internal_address_space_mappings`: %+v", err)
+		if err := d.Set("external_mapping", flattenVpnGatewayNatRuleMappings(props.ExternalMappings)); err != nil {
+			return fmt.Errorf("setting `external_mapping`: %+v", err)
+		}
+
+		if err := d.Set("internal_mapping", flattenVpnGatewayNatRuleMappings(props.InternalMappings)); err != nil {
+			return fmt.Errorf("setting `internal_mapping`: %+v", err)
 		}
 	}
 
@@ -232,6 +345,52 @@ func expandVpnGatewayNatRuleAddressSpaceMappings(input []interface{}) *[]network
 	}
 
 	return &results
+}
+
+func expandVpnGatewayNatRuleMappings(input []interface{}) *[]network.VpnNatRuleMapping {
+	results := make([]network.VpnNatRuleMapping, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		result := network.VpnNatRuleMapping{
+			AddressSpace: utils.String(v["address_space"].(string)),
+		}
+
+		if portRange := v["port_range"].(string); portRange != "" {
+			result.PortRange = utils.String(portRange)
+		}
+
+		results = append(results, result)
+	}
+
+	return &results
+}
+
+func flattenVpnGatewayNatRuleMappings(input *[]network.VpnNatRuleMapping) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var addressSpace string
+		if item.AddressSpace != nil {
+			addressSpace = *item.AddressSpace
+		}
+
+		var portRange string
+		if item.PortRange != nil {
+			portRange = *item.PortRange
+		}
+
+		results = append(results, map[string]interface{}{
+			"address_space": addressSpace,
+			"port_range":    portRange,
+		})
+	}
+
+	return results
 }
 
 func flattenVpnGatewayNatRuleAddressSpaceMappings(input *[]network.VpnNatRuleMapping) []interface{} {
