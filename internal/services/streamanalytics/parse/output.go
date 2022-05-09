@@ -40,11 +40,6 @@ func (id OutputId) ID() string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.StreamingjobName, id.Name)
 }
 
-func (id OutputId) StreamingJobID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StreamAnalytics/streamingjobs/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.StreamingjobName)
-}
-
 // OutputID parses a Output ID into an OutputId struct
 func OutputID(input string) (*OutputId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)

@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `group_name` - (Required) The name of the Power BI group. Use this property to help remember which specific Power BI group id was used.
 
-* `authentication_mode` - (Optional) Authentication mode. Default to "Msi".
+* `authentication_mode` - (Optional) Authentication mode. Defaults to `Msi`.
 
 ## Timeouts
 

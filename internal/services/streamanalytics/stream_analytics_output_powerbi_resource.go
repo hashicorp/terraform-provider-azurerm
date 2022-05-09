@@ -226,9 +226,11 @@ func (r OutputPowerBIResource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("converting output data source to a powerBI output: %+v", err)
 				}
 
+				streamingJobId := parse.NewStreamingJobID(id.SubscriptionId, id.ResourceGroup, id.StreamingjobName)
+
 				state := OutputPowerBIResourceModel{
 					Name:               id.Name,
-					StreamAnalyticsJob: id.StreamingJobID(),
+					StreamAnalyticsJob: streamingJobId.ID(),
 				}
 
 				if v.Dataset != nil {
