@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -39,13 +36,7 @@ func TestAccDataSourceMsSqlServer_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("version").Exists(),
 				check.That(data.ResourceName).Key("administrator_login").Exists(),
 				check.That(data.ResourceName).Key("fully_qualified_domain_name").Exists(),
-				func() pluginsdk.TestCheckFunc {
-					if !features.ThreePointOhBeta() {
-						return check.That(data.ResourceName).Key("identity.0.user_assigned_identity_ids.#").HasValue("1")
-					}
-
-					return check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1")
-				}(),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.%").Exists(),
 			),
 		},
