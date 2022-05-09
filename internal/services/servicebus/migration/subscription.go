@@ -3,7 +3,6 @@ package migration
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -13,7 +12,7 @@ var _ pluginsdk.StateUpgrade = ServiceBusSubscriptionV0ToV1{}
 type ServiceBusSubscriptionV0ToV1 struct{}
 
 func (ServiceBusSubscriptionV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -22,7 +21,7 @@ func (ServiceBusSubscriptionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 		"topic_id": {
 			Type:     pluginsdk.TypeString,
-			Required: features.ThreePointOhBeta(),
+			Required: true,
 			ForceNew: true,
 		},
 
@@ -86,7 +85,6 @@ func (ServiceBusSubscriptionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 	}
-	return s
 }
 
 func (ServiceBusSubscriptionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
