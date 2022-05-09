@@ -843,7 +843,7 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName, nil)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName, utils.Bool(true))
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

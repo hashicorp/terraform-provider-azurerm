@@ -1908,7 +1908,7 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName, nil)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName, utils.Bool(true))
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
