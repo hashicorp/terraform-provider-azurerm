@@ -195,7 +195,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 					},
 					ManagedInstancePairs: &[]sql.ManagedInstancePairInfo{
 						{
-							PrimaryManagedInstanceID: utils.String(id.ID()),
+							PrimaryManagedInstanceID: utils.String(managedInstanceId.ID()),
 							PartnerManagedInstanceID: utils.String(partnerId.ID()),
 						},
 					},
