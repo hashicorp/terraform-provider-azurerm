@@ -93,6 +93,9 @@ func TestAccKustoScript_multiple(t *testing.T) {
 			Config: r.multiple(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(fmt.Sprintf("%s%d", data.ResourceName, 2)).ExistsInAzure(r),
+				check.That(fmt.Sprintf("%s%d", data.ResourceName, 3)).ExistsInAzure(r),
+				check.That(fmt.Sprintf("%s%d", data.ResourceName, 4)).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("sas_token"),
@@ -229,122 +232,59 @@ resource "azurerm_kusto_script" "test" {
 `, template, data.RandomInteger)
 }
 
-func (KustoDatabaseResource) multiple(data acceptance.TestData) string {
+func (r KustoScriptResource) multiple(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
+%s
+
+resource "azurerm_kusto_database" "test2" {
+  name                = "acctest-kd-2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_name        = azurerm_kusto_cluster.test.name
 }
 
-resource "azurerm_resource_group" "rg" {
-  name     = "acctestRG-%d"
-  location = "%s"
+resource "azurerm_kusto_database" "test3" {
+  name                = "acctest-kd-3-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_name        = azurerm_kusto_cluster.test.name
 }
 
-resource "azurerm_kusto_cluster" "cluster" {
-  name                = "acctestkc%s"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-
-  sku {
-	  name     = "Dev(No SLA)_Standard_D11_v2"
-	  capacity = 1
-  }
+resource "azurerm_kusto_database" "test4" {
+  name                = "acctest-kd-4-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_name        = azurerm_kusto_cluster.test.name
 }
 
-resource "azurerm_kusto_database" "database" {
-  name                = "acctestkd-%d"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  cluster_name        = azurerm_kusto_cluster.cluster.name
-}
-
-resource "azurerm_kusto_database" "database2" {
-  name                = "acctestkd-2-%d"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  cluster_name        = azurerm_kusto_cluster.cluster.name
-}
-
-resource "azurerm_kusto_database" "database3" {
-  name                = "acctestkd-3-%d"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  cluster_name        = azurerm_kusto_cluster.cluster.name
-}
-
-resource "azurerm_kusto_database" "database4" {
-  name                = "acctestkd-4-%d"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  cluster_name        = azurerm_kusto_cluster.cluster.name
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "setup-files"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "script.txt"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = ".create table MyTable (Level:string, Timestamp:datetime, UserId:string, TraceId:string, Message:string, ProcessId:int32)"
-}
-
-data "azurerm_storage_account_blob_container_sas" "test" {
-  connection_string = azurerm_storage_account.test.primary_connection_string
-  container_name    = azurerm_storage_container.test.name
-  https_only        = true
-
-  start  = "2022-03-21"
-  expiry = "2027-03-21"
-
-  permissions {
-	read   = true
-	add    = false
-	create = false
-	write  = true
-	delete = false
-	list   = true
-  }
-}
-
-resource "azurerm_kusto_script" "script" {
+resource "azurerm_kusto_script" "test" {
   name        = "acctest-ks-%d"
-  database_id = azurerm_kusto_database.database.id
+  database_id = azurerm_kusto_database.test.id
   url         = azurerm_storage_blob.test.id
   sas_token   = data.azurerm_storage_account_blob_container_sas.test.sas
 }
 
-resource "azurerm_kusto_script" "script2" {
+resource "azurerm_kusto_script" "test2" {
   name        = "acctest-ks-2-%d"
-  database_id = azurerm_kusto_database.database2.id
+  database_id = azurerm_kusto_database.test2.id
   url         = azurerm_storage_blob.test.id
   sas_token   = data.azurerm_storage_account_blob_container_sas.test.sas
 }
 
-resource "azurerm_kusto_script" "script3" {
+resource "azurerm_kusto_script" "test3" {
   name        = "acctest-ks-3-%d"
-  database_id = azurerm_kusto_database.database3.id
+  database_id = azurerm_kusto_database.test3.id
   url         = azurerm_storage_blob.test.id
   sas_token   = data.azurerm_storage_account_blob_container_sas.test.sas
 }
 
-resource "azurerm_kusto_script" "script4" {
+resource "azurerm_kusto_script" "test4" {
   name        = "acctest-ks-4-%d"
-  database_id = azurerm_kusto_database.database4.id
+  database_id = azurerm_kusto_database.test4.id
   url         = azurerm_storage_blob.test.id
   sas_token   = data.azurerm_storage_account_blob_container_sas.test.sas
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger,
+		data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
