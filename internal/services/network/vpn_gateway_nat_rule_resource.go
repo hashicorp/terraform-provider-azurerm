@@ -55,7 +55,7 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 			},
 
 			"external_mapping": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: !features.FourPointOhBeta(),
 				AtLeastOneOf: func() []string {
@@ -85,7 +85,7 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 			},
 
 			"internal_mapping": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: !features.FourPointOhBeta(),
 				AtLeastOneOf: func() []string {
@@ -149,7 +149,7 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 
 	if !features.FourPointOhBeta() {
 		resource.Schema["external_address_space_mappings"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeSet,
+			Type:       pluginsdk.TypeList,
 			Optional:   true,
 			Computed:   true,
 			Deprecated: "`external_address_space_mappings` will be removed in favour of the property `external_mapping` in version 4.0 of the AzureRM Provider.",
@@ -169,7 +169,7 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 		}
 
 		resource.Schema["internal_address_space_mappings"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeSet,
+			Type:       pluginsdk.TypeList,
 			Optional:   true,
 			Computed:   true,
 			Deprecated: "`internal_address_space_mappings` will be removed in favour of the property `internal_mapping` in version 4.0 of the AzureRM Provider.",
@@ -225,20 +225,20 @@ func resourceVPNGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	if !features.FourPointOhBeta() {
 		if v, ok := d.GetOk("external_address_space_mappings"); ok {
-			props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(v.(*pluginsdk.Set).List())
+			props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(v.([]interface{}))
 		}
 
 		if v, ok := d.GetOk("internal_address_space_mappings"); ok {
-			props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(v.(*pluginsdk.Set).List())
+			props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(v.([]interface{}))
 		}
 	}
 
 	if v, ok := d.GetOk("external_mapping"); ok {
-		props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleMappings(v.(*pluginsdk.Set).List())
+		props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleMappings(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("internal_mapping"); ok {
-		props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleMappings(v.(*pluginsdk.Set).List())
+		props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleMappings(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("ip_configuration_id"); ok {
@@ -342,20 +342,20 @@ func resourceVPNGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta interface{}
 	// d.GetOk always returns true and the value that is set in the previous apply when the property has the attribute `Computed: true`. Hence, at this time d.GetOk cannot identify whether user sets the property in tf config so that it has to identify it via splitting create and update method and using d.HasChange
 	if !features.FourPointOhBeta() {
 		if ok := d.HasChange("external_address_space_mappings"); ok {
-			props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(d.Get("external_address_space_mappings").(*pluginsdk.Set).List())
+			props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(d.Get("external_address_space_mappings").([]interface{}))
 		}
 
 		if ok := d.HasChange("internal_address_space_mappings"); ok {
-			props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(d.Get("internal_address_space_mappings").(*pluginsdk.Set).List())
+			props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(d.Get("internal_address_space_mappings").([]interface{}))
 		}
 	}
 
 	if ok := d.HasChange("external_mapping"); ok {
-		props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleMappings(d.Get("external_mapping").(*pluginsdk.Set).List())
+		props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleMappings(d.Get("external_mapping").([]interface{}))
 	}
 
 	if ok := d.HasChange("internal_mapping"); ok {
-		props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleMappings(d.Get("internal_mapping").(*pluginsdk.Set).List())
+		props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleMappings(d.Get("internal_mapping").([]interface{}))
 	}
 
 	if v, ok := d.GetOk("ip_configuration_id"); ok {
