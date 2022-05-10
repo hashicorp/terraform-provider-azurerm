@@ -25,8 +25,8 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_namespace_name      = "tfex-eventhub-namespace.name"
   eventhub_name                = "tfex-eventhub.name"
   eventhub_consumer_group_name = "tfex-eventhub-consumer-group.name"
-  
-  device_mapping               = <<JSON
+
+  device_mapping = <<JSON
 {
 "templateType": "CollectionContent",
 "template": []

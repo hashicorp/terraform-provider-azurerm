@@ -17,8 +17,8 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   medtech_service_id                   = "mt_service_id"
   destination_fhir_service_id          = "fhir_service_id"
   destination_identity_resolution_type = "Create"
-  
-  destination_fhir_mapping             = <<JSON
+
+  destination_fhir_mapping = <<JSON
   {
     "content": {
               "templateType": "CollectionFhirTemplate",
