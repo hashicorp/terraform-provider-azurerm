@@ -298,7 +298,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			result, err := client.Get(ctx, id.ResourceGroup, state.Location, id.Name)
+			result, err := client.Get(ctx, id.ResourceGroup, id.LocationName, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(result.Response) {
 					return metadata.MarkAsGone(id)
