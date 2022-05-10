@@ -20,9 +20,9 @@ import (
 
 func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceVPNGatewayNatRuleCreateUpdate,
+		Create: resourceVPNGatewayNatRuleCreate,
 		Read:   resourceVPNGatewayNatRuleRead,
-		Update: resourceVPNGatewayNatRuleCreateUpdate,
+		Update: resourceVPNGatewayNatRuleUpdate,
 		Delete: resourceVPNGatewayNatRuleDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -192,10 +192,10 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceVPNGatewayNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVPNGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.NatRuleClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	vpnGatewayId, err := parse.VpnGatewayID(d.Get("vpn_gateway_id").(string))
@@ -205,16 +205,14 @@ func resourceVPNGatewayNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	id := parse.NewVpnGatewayNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vpnGatewayId.Name, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
+	existing, err := client.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_vpn_gateway_nat_rule", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_vpn_gateway_nat_rule", id.ID())
 	}
 
 	props := network.VpnGatewayNatRule{
@@ -249,11 +247,11 @@ func resourceVPNGatewayNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName, props)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of the %s: %+v", id, err)
+		return fmt.Errorf("waiting for creation of the %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -311,6 +309,69 @@ func resourceVPNGatewayNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	return nil
+}
+
+func resourceVPNGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Network.NatRuleClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	vpnGatewayId, err := parse.VpnGatewayID(d.Get("vpn_gateway_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewVpnGatewayNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vpnGatewayId.Name, d.Get("name").(string))
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName)
+	if err != nil {
+		return err
+	}
+
+	props := network.VpnGatewayNatRule{
+		Name: utils.String(d.Get("name").(string)),
+		VpnGatewayNatRuleProperties: &network.VpnGatewayNatRuleProperties{
+			Mode:             network.VpnNatRuleMode(d.Get("mode").(string)),
+			Type:             network.VpnNatRuleType(d.Get("type").(string)),
+			ExternalMappings: existing.VpnGatewayNatRuleProperties.ExternalMappings,
+			InternalMappings: existing.VpnGatewayNatRuleProperties.InternalMappings,
+		},
+	}
+
+	// d.GetOk always returns true and the value that is set in the previous apply when the property has the attribute `Computed: true`. Hence, at this time d.GetOk cannot identify whether user sets the property in tf config so that it has to identify it via splitting create and update method and using d.HasChange
+	if !features.FourPointOhBeta() {
+		if ok := d.HasChange("external_address_space_mappings"); ok {
+			props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(d.Get("external_address_space_mappings").(*pluginsdk.Set).List())
+		}
+
+		if ok := d.HasChange("internal_address_space_mappings"); ok {
+			props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(d.Get("internal_address_space_mappings").(*pluginsdk.Set).List())
+		}
+	}
+
+	if ok := d.HasChange("external_mapping"); ok {
+		props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleMappings(d.Get("external_mapping").(*pluginsdk.Set).List())
+	}
+
+	if ok := d.HasChange("internal_mapping"); ok {
+		props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleMappings(d.Get("internal_mapping").(*pluginsdk.Set).List())
+	}
+
+	if v, ok := d.GetOk("ip_configuration_id"); ok {
+		props.VpnGatewayNatRuleProperties.IPConfigurationID = utils.String(v.(string))
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName, props)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of the %s: %+v", id, err)
+	}
+
+	return resourceVPNGatewayNatRuleRead(d, meta)
 }
 
 func resourceVPNGatewayNatRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
