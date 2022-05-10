@@ -13,6 +13,10 @@ ENHANCEMENTS:
 * `azurerm_snapshot` - support for the `trusted_launch_enabled` propertyu [GH-16679]
 * `azurerm_stream_analytics_function_javascript_udf` - support for the `input.configuration_parameter` property [GH-16579]
 
+BUG FIXES:
+
+* `azurerm_source_control_token` - fix incorrect id validator [GH-16693]
+
 ## 3.5.0 (May 05, 2022)
 
 FEATURES:
