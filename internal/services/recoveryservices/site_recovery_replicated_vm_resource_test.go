@@ -26,9 +26,6 @@ func TestAccSiteRecoveryReplicatedVm_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				// A temporary disk with name `ms-asr-*` is created and deleted automatically by recovery service when creating the replication.
-				// After this temporary disk is deleted, its entry still remains in the resource list of the resource group for some time, causing the deletion of the resource group to fail.
-				// Delete the temporary disk explicitly as a workaround
 				data.CheckWithClientForResource(r.deleteTempDisk(), "azurerm_resource_group.test"),
 			),
 		},
@@ -904,6 +901,10 @@ func (t SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *c
 	return utils.Bool(resp.ID != nil), nil
 }
 
+
+// A temporary disk with name `ms-asr-*` is created and deleted automatically by recovery service when creating the replication.
+// After this temporary disk is deleted, its entry still remains in the resource list of the resource group for some time, causing the deletion of the resource group to fail.
+// Delete the temporary disk explicitly as a workaround, this can be removed after https://github.com/Azure/azure-rest-api-specs/issues/18993 is fixed.
 func (SiteRecoveryReplicatedVmResource) deleteTempDisk() func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := resourceParse.ResourceGroupID(state.ID)
