@@ -112,13 +112,12 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   destination_fhir_service_id          = azurerm_healthcare_fhir_service.test.id
   destination_identity_resolution_type = "Create"
 
-  destination_fhir_mapping             = <<JSON
+  destination_fhir_mapping = <<JSON
 {
 "templateType": "CollectionFhirTemplate",
 "template": []
 }
 JSON
-
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -133,7 +132,7 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   destination_fhir_service_id          = azurerm_healthcare_fhir_service.test.id
   destination_identity_resolution_type = "Create"
 
-  destination_fhir_mapping             = <<JSON
+  destination_fhir_mapping = <<JSON
 {
   "templateType": "CollectionFhirTemplate",
             "template": [
@@ -160,7 +159,6 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
             ]
 }
 JSON
-
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -175,13 +173,12 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   destination_fhir_service_id          = azurerm_healthcare_fhir_service.test1.id
   destination_identity_resolution_type = "Create"
 
-  destination_fhir_mapping             = <<JSON
+  destination_fhir_mapping = <<JSON
 {
 "templateType": "CollectionFhirTemplate",
 "template": []
 }
 JSON
-
 }`, r.template(data), data.RandomInteger)
 }
 
@@ -195,13 +192,12 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   destination_fhir_service_id          = azurerm_healthcare_fhir_service.test.id
   destination_identity_resolution_type = "Lookup"
 
-  destination_fhir_mapping             = <<JSON
+  destination_fhir_mapping = <<JSON
 {
 "templateType": "CollectionFhirTemplate",
 "template": []
 }
 JSON
-
 }`, r.template(data), data.RandomInteger)
 }
 
@@ -233,6 +229,5 @@ resource "azurerm_healthcare_fhir_service" "test1" {
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
 }
-
 `, HealthCareWorkspaceMedTechServiceResource{}.basic(data), data.RandomInteger, data.RandomInteger)
 }

@@ -134,13 +134,12 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_name                = azurerm_eventhub.test.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
 
-  device_mapping               = <<JSON
+  device_mapping = <<JSON
 {
 "templateType": "CollectionContent",
 "template": []
 }
 JSON
-
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -161,7 +160,7 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_name                = azurerm_eventhub.test.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
 
-  device_mapping               = <<JSON
+  device_mapping = <<JSON
 {
             "templateType": "CollectionContent",
             "template": [
@@ -184,7 +183,6 @@ resource "azurerm_healthcare_medtech_service" "test" {
             ]
 }
 JSON
-
 }`, r.template(data), data.RandomInteger)
 }
 
@@ -201,13 +199,12 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_name                = azurerm_eventhub.test1.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
 
-  device_mapping               = <<JSON
+  device_mapping = <<JSON
 {
 "templateType": "CollectionContent",
 "template": []
 }
 JSON
-
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -225,13 +222,12 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_name                = azurerm_eventhub.test.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test1.name
 
-  device_mapping               = <<JSON
+  device_mapping = <<JSON
 {
 "templateType": "CollectionContent",
 "template": []
 }
 JSON
-
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -249,7 +245,7 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_name                = azurerm_eventhub.test.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
 
-  device_mapping               = <<JSON
+  device_mapping = <<JSON
 {
    "templateType": "CollectionContent",
             "template": [
@@ -272,7 +268,6 @@ resource "azurerm_healthcare_medtech_service" "test" {
             ]
 }
 JSON
-
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -330,6 +325,5 @@ resource "azurerm_healthcare_workspace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
