@@ -901,7 +901,6 @@ func (t SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *c
 	return utils.Bool(resp.ID != nil), nil
 }
 
-
 // A temporary disk with name `ms-asr-*` is created and deleted automatically by recovery service when creating the replication.
 // After this temporary disk is deleted, its entry still remains in the resource list of the resource group for some time, causing the deletion of the resource group to fail.
 // Delete the temporary disk explicitly as a workaround, this can be removed after https://github.com/Azure/azure-rest-api-specs/issues/18993 is fixed.
