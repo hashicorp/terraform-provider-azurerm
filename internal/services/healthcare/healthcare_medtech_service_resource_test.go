@@ -133,12 +133,14 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_namespace_name      = azurerm_eventhub_namespace.test.name
   eventhub_name                = azurerm_eventhub.test.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
+
   device_mapping               = <<JSON
 {
 "templateType": "CollectionContent",
 "template": []
 }
 JSON
+
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -154,9 +156,11 @@ resource "azurerm_healthcare_medtech_service" "test" {
   identity {
     type = "SystemAssigned"
   }
+
   eventhub_namespace_name      = azurerm_eventhub_namespace.test.name
   eventhub_name                = azurerm_eventhub.test.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
+
   device_mapping               = <<JSON
 {
             "templateType": "CollectionContent",
@@ -180,6 +184,7 @@ resource "azurerm_healthcare_medtech_service" "test" {
             ]
 }
 JSON
+
 }`, r.template(data), data.RandomInteger)
 }
 
@@ -195,12 +200,14 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_namespace_name      = azurerm_eventhub_namespace.test.name
   eventhub_name                = azurerm_eventhub.test1.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
+
   device_mapping               = <<JSON
 {
 "templateType": "CollectionContent",
 "template": []
 }
 JSON
+
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -217,12 +224,14 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_namespace_name      = azurerm_eventhub_namespace.test.name
   eventhub_name                = azurerm_eventhub.test.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test1.name
+
   device_mapping               = <<JSON
 {
 "templateType": "CollectionContent",
 "template": []
 }
 JSON
+
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -239,6 +248,7 @@ resource "azurerm_healthcare_medtech_service" "test" {
   eventhub_namespace_name      = azurerm_eventhub_namespace.test.name
   eventhub_name                = azurerm_eventhub.test.name
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
+
   device_mapping               = <<JSON
 {
    "templateType": "CollectionContent",
@@ -262,6 +272,7 @@ resource "azurerm_healthcare_medtech_service" "test" {
             ]
 }
 JSON
+
 }
 `, r.template(data), data.RandomInteger)
 }

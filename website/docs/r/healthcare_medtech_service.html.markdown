@@ -17,12 +17,15 @@ resource "azurerm_healthcare_medtech_service" "test" {
   name         = "tftest"
   workspace_id = "tfex-workspace_id"
   location     = "east us"
+
   identity {
     type = "SystemAssigned"
   }
+
   eventhub_namespace_name      = "tfex-eventhub-namespace.name"
   eventhub_name                = "tfex-eventhub.name"
   eventhub_consumer_group_name = "tfex-eventhub-consumer-group.name"
+  
   device_mapping               = <<JSON
 {
 "templateType": "CollectionContent",
@@ -68,7 +71,7 @@ The following arguments are supported:
 ---
 An `identity` block exports the following:
 
-* `type` The type of identity used for the Healthcare Fhir service.
+* `type` - The type of identity used for the Healthcare Med Tech service.
 
 * `principal_id` - The Principal ID associated with this System Assigned Managed Service Identity.
 

@@ -14,9 +14,10 @@ Manages a Healthcare Med Tech Service Fhir Destination.
 resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   name                                 = "tfexmtdes"
   location                             = "east us"
-  medtech_Service_id                   = "mt_service_id"
+  medtech_service_id                   = "mt_service_id"
   destination_fhir_service_id          = "fhir_service_id"
   destination_identity_resolution_type = "Create"
+  
   destination_fhir_mapping             = <<JSON
   {
     "content": {
@@ -33,13 +34,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Healthcare Med Tech Service Fhir Destination. Changing this forces a new Healthcare Med Tech Service Fhir Destination to be created.
 
-* `medtech_Service_id`  - (Required) Specifies the name of the Healthcare Med Tech Service where the Healthcare Med Tech Service Fhir Destination should exist. Changing this forces a new Healthcare Med Tech Service Fhir Destination to be created.
+* `medtech_service_id`  - (Required) Specifies the name of the Healthcare Med Tech Service where the Healthcare Med Tech Service Fhir Destination should exist. Changing this forces a new Healthcare Med Tech Service Fhir Destination to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Healthcare Med Tech Service Fhir Destination should be created. Changing this forces a new Healthcare Med Tech Service Fhir Destination to be created.
 
-* `destination_identity_resolution_type` - (Required) Specifies the Destination Identity Resolution Type where the Healthcare Med Tech Service Fhir Destination should be created. Possible values are `Create`, `Lookup`. Defaults to `Create`.
+* `destination_identity_resolution_type` - (Required) Specifies the destination identity resolution type where the Healthcare Med Tech Service Fhir Destination should be created. Possible values are `Create`, `Lookup`. Defaults to `Create`.
 
-* `destination_fhir_mapping` - (Required) Specifies the Destination Fhir Mappings of the MedTech Service Fhir Destination.
+* `destination_fhir_mapping` - (Required) Specifies the destination Fhir mappings of the Med Tech Service Fhir Destination.
 
 ## Attributes Reference
 

@@ -111,13 +111,14 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   medtech_service_id                   = azurerm_healthcare_medtech_service.test.id
   destination_fhir_service_id          = azurerm_healthcare_fhir_service.test.id
   destination_identity_resolution_type = "Create"
+
   destination_fhir_mapping             = <<JSON
 {
 "templateType": "CollectionFhirTemplate",
 "template": []
 }
 JSON
-  depends_on                           = [azurerm_healthcare_fhir_service.test]
+
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -131,6 +132,7 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   medtech_service_id                   = azurerm_healthcare_medtech_service.test.id
   destination_fhir_service_id          = azurerm_healthcare_fhir_service.test.id
   destination_identity_resolution_type = "Create"
+
   destination_fhir_mapping             = <<JSON
 {
   "templateType": "CollectionFhirTemplate",
@@ -158,6 +160,7 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
             ]
 }
 JSON
+
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -171,12 +174,14 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   medtech_service_id                   = azurerm_healthcare_medtech_service.test.id
   destination_fhir_service_id          = azurerm_healthcare_fhir_service.test1.id
   destination_identity_resolution_type = "Create"
+
   destination_fhir_mapping             = <<JSON
 {
 "templateType": "CollectionFhirTemplate",
 "template": []
 }
 JSON
+
 }`, r.template(data), data.RandomInteger)
 }
 
@@ -189,12 +194,14 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "test" {
   medtech_service_id                   = azurerm_healthcare_medtech_service.test.id
   destination_fhir_service_id          = azurerm_healthcare_fhir_service.test.id
   destination_identity_resolution_type = "Lookup"
+
   destination_fhir_mapping             = <<JSON
 {
 "templateType": "CollectionFhirTemplate",
 "template": []
 }
 JSON
+
 }`, r.template(data), data.RandomInteger)
 }
 
@@ -207,11 +214,11 @@ resource "azurerm_healthcare_fhir_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_healthcare_workspace.test.id
   kind                = "fhir-R4"
+
   authentication {
     authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
-  depends_on = [azurerm_healthcare_workspace.test]
 }
 
 resource "azurerm_healthcare_fhir_service" "test1" {
@@ -220,11 +227,11 @@ resource "azurerm_healthcare_fhir_service" "test1" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_healthcare_workspace.test.id
   kind                = "fhir-R4"
+
   authentication {
     authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
-  depends_on = [azurerm_healthcare_workspace.test]
 }
 
 `, HealthCareWorkspaceMedTechServiceResource{}.basic(data), data.RandomInteger, data.RandomInteger)
