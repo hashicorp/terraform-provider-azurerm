@@ -1,6 +1,7 @@
 package containers
 
 import (
+	"encoding/base64"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -109,8 +110,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"message_of_day": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"min_count": {
@@ -238,6 +241,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"workload_runtime": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(containerservice.WorkloadRuntimeOCIContainer),
 							string(containerservice.WorkloadRuntimeWasmWasi),
@@ -667,7 +671,6 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 		EnableNodePublicIP:     utils.Bool(raw["enable_node_public_ip"].(bool)),
 		EnableEncryptionAtHost: utils.Bool(raw["enable_host_encryption"].(bool)),
 		KubeletDiskType:        containerservice.KubeletDiskType(raw["kubelet_disk_type"].(string)),
-		MessageOfTheDay:        utils.String(raw["message_of_day"].(string)),
 		Name:                   utils.String(raw["name"].(string)),
 		NodeLabels:             nodeLabels,
 		NodeTaints:             nodeTaints,
@@ -699,6 +702,11 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 
 	if maxPods := int32(raw["max_pods"].(int)); maxPods > 0 {
 		profile.MaxPods = utils.Int32(maxPods)
+	}
+
+	if v := raw["message_of_day"].(string); v != "" {
+		messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
+		profile.MessageOfTheDay = &messageOfTheDayEncoded
 	}
 
 	if prefixID := raw["node_public_ip_prefix_id"].(string); prefixID != "" {
@@ -1030,7 +1038,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 
 	messageOfTheDay := ""
 	if agentPool.MessageOfTheDay != nil {
-		messageOfTheDay = *agentPool.MessageOfTheDay
+		messageOfTheDayDecoded, err := base64.StdEncoding.DecodeString(*agentPool.MessageOfTheDay)
+		if err != nil {
+			return nil, err
+		}
+		messageOfTheDay = string(messageOfTheDayDecoded)
 	}
 
 	minCount := 0

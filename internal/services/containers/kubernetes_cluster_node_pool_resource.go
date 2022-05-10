@@ -1,6 +1,7 @@
 package containers
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 	"strings"
@@ -142,8 +143,10 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 
 			"message_of_day": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"mode": {
@@ -378,7 +381,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		EnableUltraSSD:         utils.Bool(d.Get("ultra_ssd_enabled").(bool)),
 		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
 		KubeletDiskType:        containerservice.KubeletDiskType(d.Get("kubelet_disk_type").(string)),
-		MessageOfTheDay:        utils.String(d.Get("message_of_day").(string)),
 		Mode:                   mode,
 		ScaleSetPriority:       containerservice.ScaleSetPriority(priority),
 		Tags:                   tags.Expand(t),
@@ -444,6 +446,11 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	nodeTaintsRaw := d.Get("node_taints").([]interface{})
 	if nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
 		profile.NodeTaints = nodeTaints
+	}
+
+	if v := d.Get("message_of_day").(string); v != "" {
+		messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
+		profile.MessageOfTheDay = &messageOfTheDayEncoded
 	}
 
 	if osDiskSizeGB := d.Get("os_disk_size_gb").(int); osDiskSizeGB > 0 {
@@ -583,7 +590,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("message_of_day") {
-		props.MessageOfTheDay = utils.String(d.Get("message_of_day").(string))
+		if v := d.Get("message_of_day").(string); v != "" {
+			messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
+			props.MessageOfTheDay = &messageOfTheDayEncoded
+		}
 	}
 
 	if d.HasChange("mode") {
@@ -772,7 +782,11 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		messageOfTheDay := ""
 		if props.MessageOfTheDay != nil {
-			messageOfTheDay = *props.MessageOfTheDay
+			messageOfTheDayDecoded, err := base64.StdEncoding.DecodeString(*props.MessageOfTheDay)
+			if err != nil {
+				return fmt.Errorf("setting `message_of_day`: %+v", err)
+			}
+			messageOfTheDay = string(messageOfTheDayDecoded)
 		}
 		d.Set("message_of_day", messageOfTheDay)
 

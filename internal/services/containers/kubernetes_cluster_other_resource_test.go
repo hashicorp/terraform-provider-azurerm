@@ -1226,13 +1226,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                        = "default"
-    node_count                  = 1
-    vm_size                     = "Standard_DS2_v2"
-    fips_enabled                = true
-    kubelet_disk_type           = "OS"
-    message_of_day              = "tips_of_message"
-    message_outbound_ipv6_count = 3
+    name              = "default"
+    node_count        = 1
+    vm_size           = "Standard_DS2_v2"
+    fips_enabled      = true
+    kubelet_disk_type = "OS"
+    message_of_day    = "daily message"
   }
 
   identity {
