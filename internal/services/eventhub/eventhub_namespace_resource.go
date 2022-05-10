@@ -76,7 +76,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 					string(namespaces.SkuNameBasic),
 					string(namespaces.SkuNameStandard),
 					string(namespaces.SkuNamePremium),
-				}, !features.ThreePointOhBeta()),
+				}, false),
 			},
 
 			"capacity": {

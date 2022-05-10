@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -348,20 +347,6 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-	}
-	if !features.ThreePointOhBeta() {
-		s["max_task_retry_count"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		}
-
-		s["environment"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		}
 	}
 	return s
 }

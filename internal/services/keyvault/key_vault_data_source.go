@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -26,148 +25,138 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: func() map[string]*pluginsdk.Schema {
-			dsSchema := map[string]*pluginsdk.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validate.VaultName,
-				},
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.VaultName,
+			},
 
-				"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-				"location": commonschema.LocationComputed(),
+			"location": commonschema.LocationComputed(),
 
-				"sku_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+			"sku_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"vault_uri": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+			"vault_uri": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"tenant_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+			"tenant_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"access_policy": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"tenant_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+			"access_policy": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"object_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"application_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"certificate_permissions": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
-							"object_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+						},
+						"key_permissions": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
-							"application_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
+						},
+						"secret_permissions": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
-							"certificate_permissions": {
-								Type:     pluginsdk.TypeList,
-								Computed: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-							"key_permissions": {
-								Type:     pluginsdk.TypeList,
-								Computed: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-							"secret_permissions": {
-								Type:     pluginsdk.TypeList,
-								Computed: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-							"storage_permissions": {
-								Type:     pluginsdk.TypeList,
-								Computed: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
+						},
+						"storage_permissions": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 					},
 				},
+			},
 
-				"enabled_for_deployment": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
+			"enabled_for_deployment": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 
-				"enabled_for_disk_encryption": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
+			"enabled_for_disk_encryption": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 
-				"enabled_for_template_deployment": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
+			"enabled_for_template_deployment": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_rbac_authorization": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
+			// TODO 4.0: change this from enable_* to *_enabled
+			"enable_rbac_authorization": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 
-				"network_acls": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"default_action": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"bypass": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"ip_rules": {
-								Type:     pluginsdk.TypeSet,
-								Computed: true,
-								Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-								Set:      pluginsdk.HashString,
-							},
-							"virtual_network_subnet_ids": {
-								Type:     pluginsdk.TypeSet,
-								Computed: true,
-								Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-								Set:      set.HashStringIgnoreCase,
-							},
+			"network_acls": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"default_action": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"bypass": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"ip_rules": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      pluginsdk.HashString,
+						},
+						"virtual_network_subnet_ids": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+							Set:      set.HashStringIgnoreCase,
 						},
 					},
 				},
+			},
 
-				"purge_protection_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
+			"purge_protection_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 
-				"tags": tags.SchemaDataSource(),
-			}
-			if !features.ThreePointOhBeta() {
-				dsSchema["soft_delete_enabled"] = &pluginsdk.Schema{
-					Type:       pluginsdk.TypeBool,
-					Computed:   true,
-					Deprecated: `Azure has removed support for disabling Soft Delete as of 2020-12-15, as such this field will always return 'true' and will be removed in version 3.0 of the Azure Provider.`,
-				}
-			}
-			return dsSchema
-		}(),
+			"tags": tags.SchemaDataSource(),
+		},
 	}
 }
 
@@ -202,10 +191,6 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("enable_rbac_authorization", props.EnableRbacAuthorization)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
-
-		if !features.ThreePointOhBeta() {
-			d.Set("soft_delete_enabled", true)
-		}
 
 		if sku := props.Sku; sku != nil {
 			if err := d.Set("sku_name", string(sku.Name)); err != nil {

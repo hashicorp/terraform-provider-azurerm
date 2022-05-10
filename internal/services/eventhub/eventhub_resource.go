@@ -93,7 +93,7 @@ func resourceEventHub() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(eventhubs.EncodingCaptureDescriptionAvro),
 								string(eventhubs.EncodingCaptureDescriptionAvroDeflate),
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 						"interval_in_seconds": {
 							Type:         pluginsdk.TypeInt,

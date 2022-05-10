@@ -124,7 +124,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 
 					"node_labels": {
 						Type:     pluginsdk.TypeMap,
-						ForceNew: true,
 						Optional: true,
 						Computed: true,
 						Elem: &pluginsdk.Schema{
