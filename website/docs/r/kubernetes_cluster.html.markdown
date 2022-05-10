@@ -356,7 +356,7 @@ A `default_node_pool` block supports the following:
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/PodSubnetPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni#register-the-podsubnetpreview-preview-feature) for more information.
 
-* `scale_down_mode` - This also effects the cluster autoscaler behavior. If not specified, it defaults to Delete. Possible values include: 'ScaleDownModeDelete', 'ScaleDownModeDeallocate'. Changing this forces a new resource to be created.
+* `scale_down_mode` - (Optional) This also effects the cluster autoscaler behavior. If not specified, it defaults to Delete. Possible values include: 'ScaleDownModeDelete', 'ScaleDownModeDeallocate'. Changing this forces a new resource to be created.
 
 * `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`.
 
