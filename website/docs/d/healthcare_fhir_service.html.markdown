@@ -41,24 +41,24 @@ The following attributes are exported:
 
 * `identity` - The `identity` block as defined below.
 
-* `access_policy_object_ids` The list of the access policies of the service instance.
+* `access_policy_object_ids` - The list of the access policies of the service instance.
 
-* `cors_configuration` The `cors_configuration` block as defined below.
+* `cors_configuration` - The `cors_configuration` block as defined below.
 
-* `acr_login_servers` The list of azure container registry settings used for convert data operation of the service instance.
+* `acr_login_servers` - The list of azure container registry settings used for convert data operation of the service instance.
 
-* `authentication` The `authentication` block as defined below.
+* `authentication` - The `authentication` block as defined below.
 
-* `export_storage_account_name` The name of the export storage account which accepts the operation configuration information.
+* `configuration_export_storage_account_name` - The name of the storage account which the operation configuration information is exported to.
 
-* `public_network_access_enabled` The public networks when data plane traffic coming from public networks while private endpoint is enabled.
+* `public_network_access_enabled` - Is public networks access enabled when data plane traffic coming from public networks while private endpoint is enabled?
 
 * `tags` - The map of tags assigned to the Healthcare FHIR Service.
 
 ---
 An `identity` block exports the following:
 
-* `type` The type of identity used for the Healthcare FHIR service.
+* `type` - The type of identity used for the Healthcare FHIR service.
 
 * `principal_id` - The Principal ID associated with this System Assigned Managed Service Identity.
 
@@ -67,19 +67,18 @@ An `identity` block exports the following:
 ---
 A `cors_configuration` block exports the following:
 
-* `allowed_origins` The set of origins to be allowed via CORS.
-* `allowed_headers` The set of headers to be allowed via CORS.
-* `allowed_methods` The methods to be allowed via CORS.
-* `max_age_in_seconds` The max age to be allowed via CORS.
-* `allow_credentials`  The credentials are allowed via CORS.
+* `allowed_origins` - The set of origins to be allowed via CORS.
+* `allowed_headers` - The set of headers to be allowed via CORS.
+* `allowed_methods` - The methods to be allowed via CORS.
+* `max_age_in_seconds` - The max age to be allowed via CORS.
+* `credentials_allowed` - Are credentials allowed via CORS?
 
 ---
 An `authentication` block exports the following:
 
-* `authority` The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
+* `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
   Authority must be registered to Azure AD and in the following format: https://{Azure-AD-endpoint}/{tenant-id}.
-* `audience` The intended audience to receive authentication tokens for the service. The default value is https://<name>.fhir.azurehealthcareapis.com
-* `smart_proxy_enabled` The 'SMART on FHIR' option for mobile and web implementations.
+* `audience` - The intended audience to receive authentication tokens for the service. The default value is https://<name>.fhir.azurehealthcareapis.com
 
 ## Timeouts
 

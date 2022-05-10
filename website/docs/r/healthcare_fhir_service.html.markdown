@@ -22,12 +22,14 @@ resource "azurerm_healthcare_fhir_service" "test" {
   resource_group_name = "tfex-resource_group"
   workspace_id        = "tfex-workspace_id"
   kind                = "fhir-R4"
+
   authentication {
     authority = "https://login.microsoftonline.com/tenantId"
     audience  = "https://tfexfhir.fhir.azurehealthcareapis.com"
   }
+
   access_policy_object_ids = [
-    data.azurerm_client_config.current.object_id,
+    data.azurerm_client_config.current.object_id
   ]
 
   identity {
@@ -37,13 +39,14 @@ resource "azurerm_healthcare_fhir_service" "test" {
   acr_login_servers = ["tfex-container_registry_login_server"]
 
   cors_configuration {
-    allowed_origins    = ["https://tfex.com:123", "https://tfex1.com:3389"]
-    allowed_headers    = ["*"]
-    allowed_methods    = ["GET", "DELETE", "PUT"]
-    max_age_in_seconds = 3600
-    allow_credentials  = true
+    allowed_origins     = ["https://tfex.com:123", "https://tfex1.com:3389"]
+    allowed_headers     = ["*"]
+    allowed_methods     = ["GET", "DELETE", "PUT"]
+    max_age_in_seconds  = 3600
+    credentials_allowed = true
   }
-  export_storage_account_name = "storage_account_name"
+
+  configuration_export_storage_account_name = "storage_account_name"
 }
 ```
 
@@ -65,11 +68,11 @@ The following arguments are supported:
 
 * `cors_configuration` - (Optional) A `cors_configuration` block as defined below.
 
-* `acr_login_servers` - - (Optional) A list of azure container registry settings used for convert data operation of the service instance.
+* `acr_login_servers` - (Optional) A list of azure container registry settings used for convert data operation of the service instance.
 
 * `authentication` - (Required) An `authentication` block as defined below.
 
-* `export_storage_account_name` - (Optional) specifies the name of the export storage account which accepts the operation configuration information
+* `configuration_export_storage_account_name` - (Optional) Specifies the name of the storage account which the operation configuration information is exported to.
 
 * `public_network_access_enabled` - (Optional) Whether to enabled public networks when data plane traffic coming from public networks while private endpoint is enabled.
 
@@ -85,7 +88,7 @@ A `cors_configuration` block supports the following:
 * `allowed_headers` - (Required) A set of headers to be allowed via CORS.
 * `allowed_methods` - (Required) The methods to be allowed via CORS.
 * `max_age_in_seconds` - (Required) The max age to be allowed via CORS.
-* `allow_credentials` - (Boolean) If credentials are allowed via CORS.
+* `credentials_allowed` - (Optional) If credentials are allowed via CORS.
 
 ---
 An `authentication` supports the following:

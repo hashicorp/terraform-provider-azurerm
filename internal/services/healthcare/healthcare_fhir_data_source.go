@@ -60,10 +60,12 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
 						"audience": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
 						"smart_proxy_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
@@ -94,6 +96,7 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 								Type: pluginsdk.TypeString,
 							},
 						},
+
 						"allowed_headers": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -101,6 +104,7 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 								Type: pluginsdk.TypeString,
 							},
 						},
+
 						"allowed_methods": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -108,11 +112,13 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 								Type: pluginsdk.TypeString,
 							},
 						},
+
 						"max_age_in_seconds": {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
-						"allow_credentials": {
+
+						"credentials_allowed": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
@@ -120,7 +126,7 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
-			"export_storage_account_name": {
+			"configuration_export_storage_account_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -172,7 +178,7 @@ func dataSourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta int
 		d.Set("cors_configuration", flattenFhirCorsConfiguration(props.CorsConfiguration))
 		d.Set("acr_login_servers", flattenFhirAcrLoginServer(props.AcrConfiguration))
 		if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {
-			d.Set("export_storage_account_name", props.ExportConfiguration.StorageAccountName)
+			d.Set("configuration_export_storage_account_name", props.ExportConfiguration.StorageAccountName)
 		}
 	}
 	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {

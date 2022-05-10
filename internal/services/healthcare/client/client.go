@@ -29,6 +29,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		HealthcareServiceClient:               &HealthcareServiceClient,
 		HealthcareWorkspaceClient:             &HealthcareWorkspaceClient,
 		HealthcareWorkspaceDicomServiceClient: &HealthcareWorkspaceDicomServiceClient,
-		HealthcareWorkspaceFhirServiceClient: &HealthcareWorkspaceFhirServiceClient,
+		HealthcareWorkspaceFhirServiceClient:  &HealthcareWorkspaceFhirServiceClient,
 	}
 }
