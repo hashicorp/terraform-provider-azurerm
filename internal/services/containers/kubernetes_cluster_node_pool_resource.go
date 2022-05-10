@@ -141,6 +141,12 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"message_of_day": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "message",
+			},
+
 			"mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -373,6 +379,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		EnableUltraSSD:         utils.Bool(d.Get("ultra_ssd_enabled").(bool)),
 		EnableNodePublicIP:     utils.Bool(d.Get("enable_node_public_ip").(bool)),
 		KubeletDiskType:        containerservice.KubeletDiskType(d.Get("kubelet_disk_type").(string)),
+		MessageOfTheDay:        utils.String(d.Get("message_of_day").(string)),
 		Mode:                   mode,
 		ScaleSetPriority:       containerservice.ScaleSetPriority(priority),
 		Tags:                   tags.Expand(t),
@@ -576,6 +583,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.MaxCount = utils.Int32(int32(d.Get("max_count").(int)))
 	}
 
+	if d.HasChange("message_of_day") {
+		props.MessageOfTheDay = utils.String(d.Get("message_of_day").(string))
+	}
+
 	if d.HasChange("mode") {
 		props.Mode = containerservice.AgentPoolMode(d.Get("mode").(string))
 	}
@@ -759,6 +770,12 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			maxCount = int(*props.MaxCount)
 		}
 		d.Set("max_count", maxCount)
+
+		messageOfTheDay := ""
+		if props.MessageOfTheDay != nil {
+			messageOfTheDay = *props.MessageOfTheDay
+		}
+		d.Set("message_of_day", messageOfTheDay)
 
 		maxPods := 0
 		if props.MaxPods != nil {
