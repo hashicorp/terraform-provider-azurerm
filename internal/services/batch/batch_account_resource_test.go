@@ -55,6 +55,22 @@ func TestAccBatchAccount_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.basicUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
+			),
+		},
 	})
 }
 
@@ -187,6 +203,30 @@ resource "azurerm_batch_account" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (BatchAccountResource) basicUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+
+  tags = {
+    env = "test"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

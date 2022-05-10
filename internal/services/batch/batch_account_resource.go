@@ -297,8 +297,6 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	if err != nil {
 		return err
 	}
-
-	storageAccountId := d.Get("storage_account_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	identity, err := expandBatchAccountIdentity(d.Get("identity").([]interface{}))
@@ -311,13 +309,16 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	parameters := batch.AccountUpdateParameters{
 		AccountUpdateProperties: &batch.AccountUpdateProperties{
-			AutoStorage: &batch.AutoStorageBaseProperties{
-				StorageAccountID: &storageAccountId,
-			},
 			Encryption: encryption,
 		},
 		Identity: identity,
 		Tags:     tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("storage_account_id"); ok && v.(string) != "" {
+		parameters.AccountUpdateProperties.AutoStorage = &batch.AutoStorageBaseProperties{
+			StorageAccountID: utils.String(v.(string)),
+		}
 	}
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.BatchAccountName, parameters); err != nil {
