@@ -225,8 +225,8 @@ func TestAccVirtualNetworkGatewayConnection_useCustomBgpAddresses(t *testing.T) 
 			Config: r.useCustomBgpAddresses(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("custom_bgp_addresses.0.primary_address").HasValue("169.254.21.2"),
-				check.That(data.ResourceName).Key("custom_bgp_addresses.0.secondary_address").HasValue("169.254.21.6"),
+				check.That(data.ResourceName).Key("custom_bgp_addresses.0.primary").HasValue("169.254.21.2"),
+				check.That(data.ResourceName).Key("custom_bgp_addresses.0.secondary").HasValue("169.254.21.6"),
 			),
 		},
 		data.ImportStep(),
@@ -1229,8 +1229,8 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   enable_bgp = true
 
   custom_bgp_addresses {
-    primary_address   = "169.254.21.2"
-    secondary_address = "169.254.21.6"
+    primary = "169.254.21.2"
+    secondary = "169.254.21.6"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)

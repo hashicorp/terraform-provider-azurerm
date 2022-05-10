@@ -189,12 +189,12 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"primary_address": {
+						"primary": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.Any(validation.IsIPv4Address),
 						},
-						"secondary_address": {
+						"secondary": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.Any(validation.IsIPv4Address),
@@ -735,8 +735,8 @@ func expandGatewayCustomBgpIPAddresses(d *pluginsdk.ResourceData, bgpPeeringAddr
 	}
 
 	bgAs := bgpAddresses[0].(map[string]interface{})
-	primaryAddress := bgAs["primary_address"].(string)
-	secondaryAddress := bgAs["secondary_address"].(string)
+	primaryAddress := bgAs["primary"].(string)
+	secondaryAddress := bgAs["secondary"].(string)
 
 	var primaryIpConfiguration *string
 	var secondaryIpConfiguration *string
@@ -801,8 +801,8 @@ func flattenGatewayCustomBgpIPAddresses(gatewayCustomBgpIPAddresses *[]network.G
 	if len(*gatewayCustomBgpIPAddresses) == 2 {
 		addresses := *gatewayCustomBgpIPAddresses
 		customBgpIpAdresses = append(customBgpIpAdresses, map[string]interface{}{
-			"primary_address":   addresses[0].CustomBgpIPAddress,
-			"secondary_address": addresses[1].CustomBgpIPAddress,
+			"primary":   addresses[0].CustomBgpIPAddress,
+			"secondary": addresses[1].CustomBgpIPAddress,
 		})
 	}
 
