@@ -1229,7 +1229,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   enable_bgp = true
 
   custom_bgp_addresses {
-    primary = "169.254.21.2"
+    primary   = "169.254.21.2"
     secondary = "169.254.21.6"
   }
 }
