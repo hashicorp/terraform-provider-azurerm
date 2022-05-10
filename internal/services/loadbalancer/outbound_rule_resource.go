@@ -99,9 +99,10 @@ func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 			},
 
 			"allocated_outbound_ports": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				Default:  1024,
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1024,
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"idle_timeout_in_minutes": {
@@ -304,7 +305,8 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *pluginsdk.ResourceData, meta i
 
 func expandAzureRmLoadBalancerOutboundRule(d *pluginsdk.ResourceData, lb *network.LoadBalancer) (*network.OutboundRule, error) {
 	properties := network.OutboundRulePropertiesFormat{
-		Protocol: network.LoadBalancerOutboundRuleProtocol(d.Get("protocol").(string)),
+		Protocol:               network.LoadBalancerOutboundRuleProtocol(d.Get("protocol").(string)),
+		AllocatedOutboundPorts: utils.Int32(int32(d.Get("allocated_outbound_ports").(int))),
 	}
 
 	feConfigs := d.Get("frontend_ip_configuration").([]interface{})
@@ -338,10 +340,6 @@ func expandAzureRmLoadBalancerOutboundRule(d *pluginsdk.ResourceData, lb *networ
 
 	if v, ok := d.GetOk("enable_tcp_reset"); ok {
 		properties.EnableTCPReset = utils.Bool(v.(bool))
-	}
-
-	if v, ok := d.GetOk("allocated_outbound_ports"); ok {
-		properties.AllocatedOutboundPorts = utils.Int32(int32(v.(int)))
 	}
 
 	return &network.OutboundRule{

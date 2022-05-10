@@ -11,8 +11,13 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
 )
 
+type ShareProperties struct {
+	QuotaInGb  *int
+	AccessTier *AccessTier
+}
+
 // SetProperties lets you update the Quota for the specified Storage Share
-func (client Client) SetProperties(ctx context.Context, accountName, shareName string, newQuotaGB int) (result autorest.Response, err error) {
+func (client Client) SetProperties(ctx context.Context, accountName, shareName string, properties ShareProperties) (result autorest.Response, err error) {
 	if accountName == "" {
 		return result, validation.NewError("shares.Client", "SetProperties", "`accountName` cannot be an empty string.")
 	}
@@ -22,11 +27,11 @@ func (client Client) SetProperties(ctx context.Context, accountName, shareName s
 	if strings.ToLower(shareName) != shareName {
 		return result, validation.NewError("shares.Client", "SetProperties", "`shareName` must be a lower-cased string.")
 	}
-	if newQuotaGB <= 0 || newQuotaGB > 102400 {
+	if newQuotaGB := properties.QuotaInGb; newQuotaGB != nil && (*newQuotaGB <= 0 || *newQuotaGB > 102400) {
 		return result, validation.NewError("shares.Client", "SetProperties", "`newQuotaGB` must be greater than 0, and less than/equal to 100TB (102400 GB)")
 	}
 
-	req, err := client.SetPropertiesPreparer(ctx, accountName, shareName, newQuotaGB)
+	req, err := client.SetPropertiesPreparer(ctx, accountName, shareName, properties)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "shares.Client", "SetProperties", nil, "Failure preparing request")
 		return
@@ -49,7 +54,7 @@ func (client Client) SetProperties(ctx context.Context, accountName, shareName s
 }
 
 // SetPropertiesPreparer prepares the SetProperties request.
-func (client Client) SetPropertiesPreparer(ctx context.Context, accountName, shareName string, quotaGB int) (*http.Request, error) {
+func (client Client) SetPropertiesPreparer(ctx context.Context, accountName, shareName string, properties ShareProperties) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"shareName": autorest.Encode("path", shareName),
 	}
@@ -60,8 +65,14 @@ func (client Client) SetPropertiesPreparer(ctx context.Context, accountName, sha
 	}
 
 	headers := map[string]interface{}{
-		"x-ms-version":     APIVersion,
-		"x-ms-share-quota": quotaGB,
+		"x-ms-version": APIVersion,
+	}
+	if properties.QuotaInGb != nil {
+		headers["x-ms-share-quota"] = *properties.QuotaInGb
+	}
+
+	if properties.AccessTier != nil {
+		headers["x-ms-access-tier"] = string(*properties.AccessTier)
 	}
 
 	preparer := autorest.CreatePreparer(

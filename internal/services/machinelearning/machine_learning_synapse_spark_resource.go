@@ -86,7 +86,7 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 }
 
 func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
+	client := meta.(*clients.Client).MachineLearning.ComputeClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -138,7 +138,7 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
+	client := meta.(*clients.Client).MachineLearning.ComputeClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +188,7 @@ func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func resourceSynapseSparkDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MachineLearning.MachineLearningComputeClient
+	client := meta.(*clients.Client).MachineLearning.ComputeClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	id, err := parse.ComputeID(d.Id())

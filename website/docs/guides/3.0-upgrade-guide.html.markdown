@@ -881,6 +881,28 @@ The deprecated field `local_user_not_allowed` will be removed in favour of the `
 
 The deprecated field `process_not_allowed` will be removed in favour of the `processes_not_allowed` property.
 
+### Resource: `azurerm_key_vault`
+
+The deprecated field `soft_delete_enabled` will be removed since it is no longer possible to disable this.
+
+The casing on the values for the `certificate_permissions` field have been updated to use TitleCase (e.g. `setissuers` -> `SetIssuers`).
+
+The casing on the values for the `key_permissions` field have been updated to use TitleCase (e.g. `unwrapKey` -> `UnwrapKey`).
+
+The casing on the values for the `secret_permissions` field have been updated to use TitleCase (e.g. `purge` -> `Purge`).
+
+The casing on the values for the `storage_permissions` field have been updated to use TitleCase (e.g. `regenerateKey` -> `RegenerateKey`).
+
+### Resource: `azurerm_key_vault_access_policy`
+
+The casing on the values for the `certificate_permissions` field have been updated to use TitleCase (e.g. `setissuers` -> `SetIssuers`).
+
+The casing on the values for the `key_permissions` field have been updated to use TitleCase (e.g. `unwrapKey` -> `UnwrapKey`).
+
+The casing on the values for the `secret_permissions` field have been updated to use TitleCase (e.g. `purge` -> `Purge`).
+
+The casing on the values for the `storage_permissions` field have been updated to use TitleCase (e.g. `regenerateKey` -> `RegenerateKey`).
+
 ### Resource: `azurerm_key_vault_certificate`
 
 The field `x509_certificate_properties.0.key_usage`  will be moved from a List to a Set, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
@@ -888,10 +910,6 @@ The field `x509_certificate_properties.0.key_usage`  will be moved from a List t
 ### Resource: `azurerm_key_vault_key`
 
 The field `curve` will no longer accept the value `SECP256K1` since it was renamed to `P-256K`.
-
-### Resource: `azurerm_key_vault`
-
-The deprecated field `soft_delete_enabled` will be removed since it is no longer possible to disable this.
 
 ### Resource: `azurerm_kubernetes_cluster`
 
@@ -1381,7 +1399,7 @@ The field `role_name` will no longer accept the values `Workspace Admin`, `Apach
 
 The field `spark_version` will no longer accept the value `3.0`.
 
-### Resource: `azurerm_synapse_workspace_key`
+### Resource: `azurerm_synapse_workspace`
 
 The `identity` block is now required to be consistent across the Provider - [see the dedicated issue on how Identity is changing in 3.0 for more information](https://github.com/hashicorp/terraform-provider-azurerm/issues/15187). You will need to add:
 

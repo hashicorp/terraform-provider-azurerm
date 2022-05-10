@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	purviewValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/validate"
@@ -360,17 +359,11 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if features.ThreePointOh() {
-		expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
-		}
-		workspaceInfo.Identity = expandedIdentity
-	} else {
-		workspaceInfo.Identity = &synapse.ManagedIdentity{
-			Type: synapse.ResourceIdentityTypeSystemAssigned,
-		}
+	expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
+	workspaceInfo.Identity = expandedIdentity
 
 	if purviewId, ok := d.GetOk("purview_id"); ok {
 		workspaceInfo.WorkspaceProperties.PurviewConfiguration = &synapse.PurviewConfiguration{
@@ -653,8 +646,12 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("sql_identity_control_enabled") {
 		sqlControlSettings := expandIdentityControlSQLSettings(d.Get("sql_identity_control_enabled").(bool))
-		if _, err = identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings); err != nil {
+		future, err := identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings)
+		if err != nil {
 			return fmt.Errorf("Updating workspace identity control for SQL pool: %+v", err)
+		}
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for update workspace identity control for SQL pool of %q: %+v", id, err)
 		}
 	}
 

@@ -226,7 +226,7 @@ An `identity` block supports the following:
 
 A `network_rule_set` block supports the following:
 
-* `default_action` - (Optional) Default Action for Network Rule Set. Possible values are `DefaultActionDeny`, `DefaultActionAllow`. Defaults to `DefaultActionDeny`.
+* `default_action` - (Optional) Default Action for Network Rule Set. Possible values are `Deny`, `Allow`. Defaults to `Deny`.
 
 * `apply_to_builtin_eventhub_endpoint` - (Optional) Determines if Network Rule Set is also applied to the BuiltIn EventHub EndPoint of the IotHub. Defaults to `false`.
 
@@ -236,9 +236,9 @@ A `network_rule_set` block supports the following:
 
 A `ip_rule` block supports the following:
 
-* `name` - (Required) The name of the ip rule.
+* `name` - (Required) The name of the IP rule.
 
-* `ip_mask` - (Required) The IP address range in CIDR notation for the ip rule.
+* `ip_mask` - (Required) The IP address range in CIDR notation for the IP rule.
 
 * `action` - (Optional) The desired action for requests captured by this rule. Possible values are `Allow`. Defaults to `Allow`.
 

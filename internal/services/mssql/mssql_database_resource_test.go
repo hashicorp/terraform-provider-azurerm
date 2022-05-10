@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -62,7 +61,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
 				check.That(data.ResourceName).Key("max_size_gb").HasValue("1"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
-				check.That(data.ResourceName).Key("storage_account_type").HasValue("Geo"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("Local"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
 			),
@@ -622,10 +621,6 @@ func TestAccMsSqlDatabase_geoBackupPolicy(t *testing.T) {
 }
 
 func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
-	if !features.ThreePointOhBeta() {
-		t.Skipf("This test runs only on 3.0")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
@@ -650,10 +645,6 @@ func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
 }
 
 func TestAccMsSqlDatabase_errorOnDisabledEncryption(t *testing.T) {
-	if !features.ThreePointOhBeta() {
-		t.Skipf("This test runs only on 3.0")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
@@ -662,6 +653,21 @@ func TestAccMsSqlDatabase_errorOnDisabledEncryption(t *testing.T) {
 			Config:      r.errorOnDisabledEncryption(data),
 			ExpectError: regexp.MustCompile("transparent data encryption can only be disabled on Data Warehouse SKUs"),
 		},
+	})
+}
+
+func TestAccMsSqlDatabase_ledgerEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ledgerEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -740,6 +746,8 @@ resource "azurerm_mssql_database" "test" {
   sample_name  = "AdventureWorksLT"
   sku_name     = "GP_Gen5_2"
 
+  storage_account_type = "Local"
+
   tags = {
     ENV = "Test"
   }
@@ -758,6 +766,8 @@ resource "azurerm_mssql_database" "test" {
   license_type = "LicenseIncluded"
   max_size_gb  = 2
   sku_name     = "GP_Gen5_2"
+
+  storage_account_type = "Zone"
 
   tags = {
     ENV = "Staging"
@@ -1389,7 +1399,8 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[3]d"
   server_id = azurerm_mssql_server.test.id
   short_term_retention_policy {
-    retention_days = 8
+    retention_days           = 8
+    backup_interval_in_hours = 12
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
@@ -1419,7 +1430,8 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[3]d"
   server_id = azurerm_mssql_server.test.id
   short_term_retention_policy {
-    retention_days = 10
+    retention_days           = 10
+    backup_interval_in_hours = 24
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
@@ -1472,6 +1484,18 @@ resource "azurerm_mssql_database" "test" {
   name                                = "acctest-db-%d"
   server_id                           = azurerm_mssql_server.test.id
   transparent_data_encryption_enabled = false
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) ledgerEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name           = "acctest-db-%[2]d"
+  server_id      = azurerm_mssql_server.test.id
+  ledger_enabled = true
 }
 `, r.template(data), data.RandomInteger)
 }

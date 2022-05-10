@@ -17,7 +17,7 @@ type AccessPackageCatalogClient struct {
 
 func NewAccessPackageCatalogClient(tenantId string) *AccessPackageCatalogClient {
 	return &AccessPackageCatalogClient{
-		BaseClient: NewClient(VersionBeta, tenantId),
+		BaseClient: NewClient(Version10, tenantId),
 	}
 }
 
@@ -28,7 +28,7 @@ func (c *AccessPackageCatalogClient) List(ctx context.Context, query odata.Query
 		OData:            query,
 		ValidStatusCodes: []int{http.StatusOK},
 		Uri: Uri{
-			Entity:      "/identityGovernance/entitlementManagement/accessPackageCatalogs",
+			Entity:      "/identityGovernance/entitlementManagement/catalogs",
 			HasTenantId: true,
 		},
 	})
@@ -64,7 +64,7 @@ func (c *AccessPackageCatalogClient) Create(ctx context.Context, accessPackageCa
 		Body:             body,
 		ValidStatusCodes: []int{http.StatusCreated},
 		Uri: Uri{
-			Entity:      "/identityGovernance/entitlementManagement/accessPackageCatalogs",
+			Entity:      "/identityGovernance/entitlementManagement/catalogs",
 			HasTenantId: true,
 		},
 	})
@@ -93,7 +93,7 @@ func (c *AccessPackageCatalogClient) Get(ctx context.Context, id string, query o
 		OData:                  query,
 		ValidStatusCodes:       []int{http.StatusOK},
 		Uri: Uri{
-			Entity:      fmt.Sprintf("/identityGovernance/entitlementManagement/accessPackageCatalogs/%s", id),
+			Entity:      fmt.Sprintf("/identityGovernance/entitlementManagement/catalogs/%s", id),
 			HasTenantId: true,
 		},
 	})
@@ -133,7 +133,7 @@ func (c *AccessPackageCatalogClient) Update(ctx context.Context, accessPackageCa
 		ConsistencyFailureFunc: RetryOn404ConsistencyFailureFunc,
 		ValidStatusCodes:       []int{http.StatusNoContent},
 		Uri: Uri{
-			Entity:      fmt.Sprintf("/identityGovernance/entitlementManagement/accessPackageCatalogs/%s", *accessPackageCatalog.ID),
+			Entity:      fmt.Sprintf("/identityGovernance/entitlementManagement/catalogs/%s", *accessPackageCatalog.ID),
 			HasTenantId: true,
 		},
 	})
@@ -150,7 +150,7 @@ func (c *AccessPackageCatalogClient) Delete(ctx context.Context, id string) (int
 		ConsistencyFailureFunc: RetryOn404ConsistencyFailureFunc,
 		ValidStatusCodes:       []int{http.StatusNoContent},
 		Uri: Uri{
-			Entity:      fmt.Sprintf("/identityGovernance/entitlementManagement/accessPackageCatalogs/%s", id),
+			Entity:      fmt.Sprintf("/identityGovernance/entitlementManagement/catalogs/%s", id),
 			HasTenantId: true,
 		},
 	})

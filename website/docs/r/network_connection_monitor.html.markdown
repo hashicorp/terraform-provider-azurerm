@@ -273,11 +273,11 @@ A `success_threshold` block supports the following:
 
 A `tcp_configuration` block supports the following:
 
-* `port` - (Required) The port for the Tcp connection.
+* `port` - (Required) The port for the TCP connection.
 
 * `trace_route_enabled` - (Optional) Should path evaluation with trace route be enabled? Defaults to `true`.
 
-* `destination_port_behavior` - (Optional) The destination port behavior for the Tcp connection. Possible values are `None` and `ListenIfAvailable`.
+* `destination_port_behavior` - (Optional) The destination port behavior for the TCP connection. Possible values are `None` and `ListenIfAvailable`.
 
 ---
 

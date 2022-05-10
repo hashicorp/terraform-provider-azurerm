@@ -98,11 +98,15 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName, parameters, ""); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName, parameters, "")
+	if err != nil {
 		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+	}
 
-	err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

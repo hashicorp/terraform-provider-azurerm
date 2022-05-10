@@ -53,7 +53,7 @@ The following arguments are supported:
 
 ~> **Please Note**: Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`.
 
-* `access_policy_ids` - (Optional) A set of Azure object id's that are allowed to access the Service. If not configured, the default value is the object id of the service principal or user that is running Terraform.
+* `access_policy_ids` - (Optional) A set of Azure object IDs that are allowed to access the Service. If not configured, the default value is the object id of the service principal or user that is running Terraform.
 * `authentication_configuration` - (Optional) An `authentication_configuration` block as defined below.
 * `cosmosdb_throughput` - (Optional) The provisioned throughput for the backing database. Range of `400`-`10000`. Defaults to `400`.
 * `cosmosdb_key_vault_key_versionless_id` - (Optional) A versionless Key Vault Key ID for CMK encryption of the backing database. Changing this forces a new resource to be created.

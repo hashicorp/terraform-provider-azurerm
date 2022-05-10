@@ -199,7 +199,7 @@ A `trusted_root_certificate` block supports the following:
 
 * `name` - (Required) The Name of the Trusted Root Certificate to use.
 
-* `data` - (optional) The contents of the Trusted Root Certificate which should be used. Required if `key_vault_secret_id` is not set.
+* `data` - (Optional) The contents of the Trusted Root Certificate which should be used. Required if `key_vault_secret_id` is not set.
 
 * `key_vault_secret_id` - (Optional) The Secret ID of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for the Key Vault to use this feature. Required if `data` is not set.
 
@@ -401,9 +401,9 @@ A `probe` block support the following:
 
 * `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 - 20 seconds.
 
-* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from http settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
+* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from HTTP settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
 
-* `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend http settings. Defaults to `false`.
+* `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend HTTP settings. Defaults to `false`.
 
 * `match` - (Optional) A `match` block as defined above.
 

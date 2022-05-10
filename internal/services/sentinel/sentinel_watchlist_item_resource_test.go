@@ -170,6 +170,7 @@ resource "azurerm_sentinel_watchlist" "test" {
   name                       = "accTestWL-%d"
   log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
   display_name               = "test"
+  item_search_key            = "k1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

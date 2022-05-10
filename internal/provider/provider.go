@@ -226,29 +226,6 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 		ResourcesMap:   resources,
 	}
 
-	if !features.ThreePointOhBeta() {
-		p.Schema["metadata_url"] = &schema.Schema{
-			Type:        schema.TypeString,
-			Optional:    true,
-			Deprecated:  "use `metadata_host` instead",
-			Description: "Deprecated - replaced by `metadata_host`.",
-		}
-
-		p.Schema["skip_credentials_validation"] = &schema.Schema{
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "[DEPRECATED] This will cause the AzureRM Provider to skip verifying the credentials being used are valid.",
-			Deprecated:  "This field is deprecated and will be removed in version 3.0 of the Azure Provider",
-		}
-
-		p.Schema["use_msal"] = &schema.Schema{
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "Should Terraform obtain MSAL auth tokens and no longer use Azure Active Directory Graph?",
-			DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_USE_MSAL", "ARM_USE_MSGRAPH"}, false),
-		}
-	}
-
 	p.ConfigureContextFunc = providerConfigure(p)
 
 	return p
@@ -277,8 +254,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			}
 		}
 
-		useMsal := features.ThreePointOhBeta() || d.Get("use_msal").(bool)
-
 		builder := &authentication.Builder{
 			SubscriptionID:     d.Get("subscription_id").(string),
 			ClientID:           d.Get("client_id").(string),
@@ -301,8 +276,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			// Doc Links
 			ClientSecretDocsLink: "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret",
 
-			// MSAL opt-in
-			UseMicrosoftGraph: useMsal,
+			// Use MSAL
+			UseMicrosoftGraph: true,
 		}
 
 		config, err := builder.Build()
@@ -327,7 +302,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
 			Features:                    expandFeatures(d.Get("features").([]interface{})),
 			StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
-			UseMSAL:                     useMsal,
 
 			// this field is intentionally not exposed in the provider block, since it's only used for
 			// platform level tracing

@@ -16,15 +16,15 @@ Manages an Azure App Configuration Key.
 ## Example Usage of `kv` type
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_app_configuration" "appconf" {
   name                = "appConf1"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 
 data "azurerm_client_config" "current" {}
@@ -49,15 +49,15 @@ resource "azurerm_app_configuration_key" "test" {
 
 ## Example Usage of `vault` type
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_app_configuration" "appconf" {
   name                = "appConf1"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 
 data "azurerm_client_config" "current" {}

@@ -20,7 +20,7 @@ Manages a Linux Virtual Machine Scale Set.
 
 ## Example Usage
 
-This example provisions a basic Linux Virtual Machine Scale Set on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine_scale_set` resource can be found [in the ./examples/vm-scale-set/linux` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/vm-scale-set/linux).
+This example provisions a basic Linux Virtual Machine Scale Set on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine_scale_set` resource can be found [in the ./examples/vm-scale-set/linux` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/vm-scale-set/linux).
 
 ```hcl
 provider "azurerm" {
@@ -201,6 +201,10 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine Scale Set.
 
 * `terminate_notification` - (Optional) A `terminate_notification` block as defined below.
+
+~> **Note:** This property has been deprecated in favour of the `termination_notification` property and will be removed in version 4.0 of the provider.
+
+* `termination_notification` - (Optional) A `termination_notification` block as defined below.
 
 * `upgrade_mode` - (Optional) Specifies how Upgrades (e.g. changing the Image/SKU) should be performed to Virtual Machine Instances. Possible values are `Automatic`, `Manual` and `Rolling`. Defaults to `Manual`.
 
@@ -481,6 +485,16 @@ A `terminate_notification` block supports the following:
 * `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
 
 ~> **NOTE:** For more information about the terminate notification, please [refer to this doc](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
+
+---
+
+A `termination_notification` block supports the following:
+
+* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine Scale Set? Defaults to `false`.
+
+* `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
+
+~> **NOTE:** For more information about the termination notification, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
 
 ---
 

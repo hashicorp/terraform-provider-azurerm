@@ -88,7 +88,7 @@ A `input_mapping_default_values` supports the following:
 
 A `inbound_ip_rule` block supports the following:
 
-* `ip_mask` - The ip mask (CIDR) to match on.
+* `ip_mask` - The IP mask (CIDR) to match on.
 
 * `action` - The action to take when the rule is matched. Possible values are `Allow`.
 

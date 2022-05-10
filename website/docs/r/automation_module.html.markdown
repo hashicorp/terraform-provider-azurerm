@@ -53,7 +53,7 @@ The following arguments are supported:
 
 `module_link` supports the following:
 
-* `uri` - (Required) The uri of the module content (zip or nupkg).
+* `uri` - (Required) The URI of the module content (zip or nupkg).
 
 ## Attributes Reference
 

@@ -70,6 +70,8 @@ The following arguments are supported:
 
 * `config_server_git_setting` - (Optional) A `config_server_git_setting` block as defined below.
 
+* `service_registry_enabled` - (Optional) Whether enable the default Service Registry.
+
 * `trace` - (Optional) A `trace` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -126,9 +128,9 @@ The `repository` block supports the following:
 
 The `http_basic_auth` block supports the following:
 
-* `username` - (Required) The username that's used to access the Git repository server, required when the Git repository server supports Http Basic Authentication.
+* `username` - (Required) The username that's used to access the Git repository server, required when the Git repository server supports HTTP Basic Authentication.
 
-* `password` - (Required) The password used to access the Git repository server, required when the Git repository server supports Http Basic Authentication.
+* `password` - (Required) The password used to access the Git repository server, required when the Git repository server supports HTTP Basic Authentication.
 
 ---
 
@@ -168,7 +170,7 @@ The `required_network_traffic_rules` supports the following:
 
 * `fqdns` - The FQDN list of required traffic.
 
-* `ips` - The ip list of required traffic.
+* `ips` - The IP list of required traffic.
 
 * `port` - The port of required traffic.
 

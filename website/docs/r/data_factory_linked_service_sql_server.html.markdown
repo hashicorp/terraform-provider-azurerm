@@ -100,6 +100,8 @@ The following arguments are supported:
 
 * `key_vault_password` - (Optional) A `key_vault_password` block as defined below. Use this argument to store SQL Server password in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
 
+* `user_name` - (Optional) The on-premises Windows authentication user name.
+
 ---
 
 A `key_vault_connection_string` block supports the following:
