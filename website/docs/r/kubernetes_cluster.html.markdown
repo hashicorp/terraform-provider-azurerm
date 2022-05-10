@@ -334,6 +334,8 @@ A `default_node_pool` block supports the following:
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
+* `message_of_day` - (Optional) A base64-encoded string which will be written to /etc/motd after decoding. This allows customization of the message of the day for Linux nodes. It must not be specified for Windows nodes. It must be a static string (i.e., will be printed raw and not be executed as a script).
+
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in the Default Node Pool.
@@ -353,6 +355,8 @@ A `default_node_pool` block supports the following:
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist. Changing this forces a new resource to be created.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/PodSubnetPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni#register-the-podsubnetpreview-preview-feature) for more information.
+
+* `scale_down_mode` - This also effects the cluster autoscaler behavior. If not specified, it defaults to Delete. Possible values include: 'ScaleDownModeDelete', 'ScaleDownModeDeallocate'. Changing this forces a new resource to be created.
 
 * `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`.
 
@@ -383,6 +387,8 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 * `node_count` - (Required) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
 -> **Note:** If `enable_auto_scaling` is set to `false` both `min_count` and `max_count` fields need to be set to `null` or omitted from the configuration.
+
+* `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `OCIContainer` and `WasmWasi`.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster should be located. Changing this forces a new Kubernetes Cluster to be created.
 
@@ -545,6 +551,8 @@ A `load_balancer_profile` block supports the following:
 * `idle_timeout_in_minutes` - (Optional) Desired outbound flow idle timeout in minutes for the cluster load balancer. Must be between `4` and `120` inclusive. Defaults to `30`.
 
 * `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be between `1` and `100` inclusive.
+
+* `managed_outbound_ipv6_count` - (Optional) The desired number of IPv6 outbound IPs created/managed by Azure for the cluster load balancer. Allowed values must be in the range of 1 to 100 (inclusive). The default value is 0 for single-stack and 1 for dual-stack.
 
 * `outbound_ip_address_ids` - (Optional) The ID of the Public IP Addresses which should be used for outbound communication for the cluster load balancer.
 

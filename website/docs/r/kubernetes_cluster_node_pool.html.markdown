@@ -95,6 +95,8 @@ The following arguments are supported:
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
+* `message_of_day` - (Optional) A base64-encoded string which will be written to /etc/motd after decoding. This allows customization of the message of the day for Linux nodes. It must not be specified for Windows nodes. It must be a static string (i.e., will be printed raw and not be executed as a script).
+
 * `mode` - (Optional) Should this Node Pool be used for System or User resources? Possible values are `System` and `User`. Defaults to `User`.
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in this Node Pool.
