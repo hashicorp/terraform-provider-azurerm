@@ -195,8 +195,6 @@ A `endpoint` block supports the following:
 
 * `target_resource_type` - (Optional) The endpoint type of the Network Connection Monitor. Possible values are `AzureSubnet`, `AzureVM`, `AzureVNet`, `ExternalAddress`, `MMAWorkspaceMachine` and `MMAWorkspaceNetwork`.
 
-* `virtual_machine_id` - (Optional / **Deprecated**) The ID of the Virtual Machine which is used as the endpoint by the Network Connection Monitor. This property is deprecated in favour of `target_resource_id`.
-
 ---
 
 A `filter` block supports the following:
@@ -275,11 +273,11 @@ A `success_threshold` block supports the following:
 
 A `tcp_configuration` block supports the following:
 
-* `port` - (Required) The port for the Tcp connection.
+* `port` - (Required) The port for the TCP connection.
 
 * `trace_route_enabled` - (Optional) Should path evaluation with trace route be enabled? Defaults to `true`.
 
-* `destination_port_behavior` - (Optional) The destination port behavior for the Tcp connection. Possible values are `None` and `ListenIfAvailable`.
+* `destination_port_behavior` - (Optional) The destination port behavior for the TCP connection. Possible values are `None` and `ListenIfAvailable`.
 
 ---
 

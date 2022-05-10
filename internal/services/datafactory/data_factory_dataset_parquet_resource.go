@@ -85,6 +85,11 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_container_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"path": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -277,7 +282,6 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	description := d.Get("description").(string)
-	// TODO
 	parquetTableset := datafactory.ParquetDataset{
 		ParquetDatasetTypeProperties: &parquetDatasetProperties,
 		LinkedServiceName:            linkedService,

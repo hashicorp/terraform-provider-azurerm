@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -58,13 +57,7 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"identity": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return schemaAppServiceIdentity()
-				}
-
-				return commonschema.SystemAssignedUserAssignedIdentityOptional()
-			}(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"function_app_name": {
 				Type:         pluginsdk.TypeString,
@@ -139,13 +132,6 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"linux",
 				}, false),
-			},
-
-			"client_affinity_enabled": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This property is no longer configurable in the service and has been deprecated.",
 			},
 
 			"connection_string": {
@@ -267,7 +253,6 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
-	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
@@ -290,12 +275,11 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanID),
-			Enabled:               utils.Bool(enabled),
-			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
-			SiteConfig:            &siteConfig,
+			ServerFarmID:         utils.String(appServicePlanID),
+			Enabled:              utils.Bool(enabled),
+			HTTPSOnly:            utils.Bool(httpsOnly),
+			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			SiteConfig:           &siteConfig,
 		},
 	}
 
@@ -355,7 +339,6 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
-	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
@@ -388,12 +371,11 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanID),
-			Enabled:               utils.Bool(enabled),
-			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
-			SiteConfig:            &siteConfig,
+			ServerFarmID:         utils.String(appServicePlanID),
+			Enabled:              utils.Bool(enabled),
+			HTTPSOnly:            utils.Bool(httpsOnly),
+			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			SiteConfig:           &siteConfig,
 		},
 	}
 
@@ -539,7 +521,6 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("daily_memory_time_quota", props.DailyMemoryTimeQuota)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
-		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)

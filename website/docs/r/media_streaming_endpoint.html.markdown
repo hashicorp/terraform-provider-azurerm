@@ -117,7 +117,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Streaming Endpoint should exist. Changing this forces a new Streaming Endpoint to be created.
 
-* `scale_units` - (Required) The number of scale units.
+* `scale_units` - (Required) The number of scale units. To create a Standard Streaming Endpoint set 0. For Premium Streaming Endpoint valid values are between 1 and 10.
 
 ---
 

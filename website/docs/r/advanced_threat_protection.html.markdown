@@ -13,7 +13,7 @@ Manages a resources Advanced Threat Protection setting.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "atp-example"
   location = "West Europe"
 }

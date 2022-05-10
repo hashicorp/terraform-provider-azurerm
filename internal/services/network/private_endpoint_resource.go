@@ -486,7 +486,7 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 
-		networkInterface := getNetworkInterface(networkInterfaceId)
+		networkInterface := flattenNetworkInterface(networkInterfaceId)
 		if err := d.Set("network_interface", networkInterface); err != nil {
 			return fmt.Errorf("setting `network_interface`: %+v", err)
 		}

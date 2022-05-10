@@ -8,11 +8,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -48,7 +50,7 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 }
 
 func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -70,6 +72,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		// Optional
 		"bgp_community": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -105,6 +108,8 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
+
+		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 		"flow_timeout_in_minutes": {
 			Type:         pluginsdk.TypeInt,
@@ -152,17 +157,6 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		out["vm_protection_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    false,
-			Deprecated: "This is deprecated in favor of `ddos_protection_plan`",
-		}
-	}
-
-	return out
 }
 
 func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -195,6 +189,7 @@ func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	vnet := network.VirtualNetwork{
 		Name:                           utils.String(id.Name),
+		ExtendedLocation:               expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:                       utils.String(location),
 		VirtualNetworkPropertiesFormat: vnetProperties,
 		Tags:                           tags.Expand(t),
@@ -269,9 +264,8 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
 		d.Set("guid", props.ResourceGUID)
@@ -301,10 +295,6 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		if err := d.Set("bgp_community", bgpCommunity); err != nil {
 			return fmt.Errorf("setting `bgp_community`: %+v", err)
-		}
-
-		if !features.ThreePointOhBeta() {
-			d.Set("vm_protection_enabled", props.EnableVMProtection)
 		}
 	}
 
@@ -390,10 +380,6 @@ func expandVirtualNetworkProperties(ctx context.Context, d *pluginsdk.ResourceDa
 			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
 		},
 		Subnets: &subnets,
-	}
-
-	if !features.ThreePointOhBeta() {
-		properties.EnableVMProtection = utils.Bool(d.Get("vm_protection_enabled").(bool))
 	}
 
 	if v, ok := d.GetOk("ddos_protection_plan"); ok {

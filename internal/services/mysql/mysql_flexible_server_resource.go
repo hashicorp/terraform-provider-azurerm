@@ -79,7 +79,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Default:      7,
-				ValidateFunc: validation.IntBetween(7, 35),
+				ValidateFunc: validation.IntBetween(1, 35),
 			},
 
 			"create_mode": {

@@ -58,7 +58,7 @@ The following arguments are supported:
 
 ---
 
-* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to `false`.
+* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Defaults to `false`.
 
 * `routing` - (Optional)  A `routing` block as defined below.
 
@@ -78,7 +78,7 @@ A `propagated_route_table` block supports the following:
 
 * `labels` - (Optional) The list of labels to assign to this route table.
 
-* `route_table_ids` - (Optional) A list of Route Table ID's to associated with this Virtual Hub Connection.
+* `route_table_ids` - (Optional) A list of Route Table IDs to associated with this Virtual Hub Connection.
 
 ---
 

@@ -9,11 +9,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hardwaresecuritymodules/mgmt/2018-10-31-preview/hardwaresecuritymodules"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -103,13 +101,7 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"zones": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return azure.SchemaZones()
-				}
-
-				return commonschema.ZonesMultipleOptionalForceNew()
-			}(),
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 			"tags": tags.Schema(),
 		},
@@ -149,13 +141,9 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
-		if features.ThreePointOhBeta() {
-			zones := zones.Expand(d.Get("zones").(*schema.Set).List())
-			if len(zones) > 0 {
-				parameters.Zones = &zones
-			}
-		} else {
-			parameters.Zones = azure.ExpandZones(v.([]interface{}))
+		zones := zones.Expand(v.(*schema.Set).List())
+		if len(zones) > 0 {
+			parameters.Zones = &zones
 		}
 	}
 

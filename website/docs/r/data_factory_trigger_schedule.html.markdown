@@ -48,12 +48,6 @@ The following arguments are supported:
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
-* `data_factory_name` - (Optional) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
-
--> **Note:** This property has been deprecated in favour of the `data_factory_id` property and will be removed in version 3.0 of the provider.
-
--> **Note:** At least one of `data_factory_id` or `data_factory_name` must be set.
-
 * `pipeline_name` - (Required) The Data Factory Pipeline name that the trigger will act on.
 
 * `description` - (Optional) The Schedule Trigger's description.

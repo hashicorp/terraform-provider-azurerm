@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"log"
 	"testing"
 	"time"
 )
@@ -88,4 +89,11 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 
 func TestProvider_impl(t *testing.T) {
 	_ = AzureProvider()
+}
+
+func TestProvider_counts(t *testing.T) {
+	// @tombuildsstuff: this is less a unit test and more a useful placeholder tbh
+	provider := TestAzureProvider()
+	log.Printf("Data Sources: %d", len(provider.DataSourcesMap))
+	log.Printf("Resources: %d", len(provider.ResourcesMap))
 }

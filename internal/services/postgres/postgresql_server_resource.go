@@ -16,13 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -127,65 +125,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 					string(postgresql.OneOne),
 					string(postgresql.OneZero),
 					string(postgresql.OneZeroFullStopZero),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-			},
-
-			"storage_profile": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				Deprecated: "all storage_profile properties have been move to the top level. This block will be removed in version 3.0 of the provider.",
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"storage_mb": {
-							Type:          pluginsdk.TypeInt,
-							Optional:      true,
-							ConflictsWith: []string{"storage_mb"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc: validation.All(
-								validation.IntBetween(5120, 4194304),
-								validation.IntDivisibleBy(1024),
-							),
-						},
-
-						"backup_retention_days": {
-							Type:          pluginsdk.TypeInt,
-							Optional:      true,
-							Default:       7,
-							ConflictsWith: []string{"backup_retention_days"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc:  validation.IntBetween(7, 35),
-						},
-
-						"auto_grow": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ConflictsWith: []string{"auto_grow_enabled"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc: validation.StringInSlice([]string{
-								string(postgresql.StorageAutogrowEnabled),
-								string(postgresql.StorageAutogrowDisabled),
-							}, false),
-						},
-
-						"geo_redundant_backup": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ForceNew:      true,
-							ConflictsWith: []string{"geo_redundant_backup_enabled"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc: validation.StringInSlice([]string{
-								"Enabled",
-								"Disabled",
-							}, !features.ThreePointOhBeta()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-						},
-					},
-				},
+				}, false),
 			},
 
 			"administrator_login": {
@@ -205,36 +145,21 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			"auto_grow_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default: func() interface{} {
-					if features.ThreePointOhBeta() {
-						return true
-					}
-					return nil
-				}(),
-				Computed:      !features.ThreePointOhBeta(),
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.auto_grow"},
+				Default:  true,
 			},
 
 			"backup_retention_days": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.backup_retention_days"},
-				ValidateFunc:  validation.IntBetween(7, 35),
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
 			"geo_redundant_backup_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Computed: !features.ThreePointOhBeta(),
-				Default: func() interface{} {
-					if !features.ThreePointOhBeta() {
-						return nil
-					}
-					return false
-				}(),
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
+				Default:  false,
 			},
 
 			"create_mode": {
@@ -276,10 +201,9 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			},
 
 			"storage_mb": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.storage_mb"},
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.All(
 					validation.IntBetween(5120, 16777216),
 					validation.IntDivisibleBy(1024),
@@ -289,12 +213,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			"ssl_minimal_tls_version_enforced": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default: func() interface{} {
-					if features.ThreePointOhBeta() {
-						return string(postgresql.TLS12)
-					}
-					return string(postgresql.TLSEnforcementDisabled)
-				}(),
+				Default:  string(postgresql.TLS12),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.TLSEnforcementDisabled),
 					string(postgresql.TLS10),
@@ -304,22 +223,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			},
 
 			"ssl_enforcement_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true, // required in 3.0
-				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
-			},
-
-			"ssl_enforcement": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				Deprecated:   "this has been renamed to the boolean `ssl_enforcement_enabled` and will be removed in version 3.0 of the provider.",
-				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
-				ValidateFunc: validation.StringInSlice([]string{
-					string(postgresql.SslEnforcementEnumDisabled),
-					string(postgresql.SslEnforcementEnumEnabled),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeBool,
+				Required: true,
 			},
 
 			"threat_detection_policy": {
@@ -543,6 +448,11 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 		time, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 
+		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
+		if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
+			return fmt.Errorf("`public_network_access_enabled` doesn't support PointInTimeRestore mode")
+		}
+
 		props = &postgresql.ServerPropertiesForRestore{
 			CreateMode:     mode,
 			SourceServerID: &source,
@@ -550,7 +460,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 				Time: time,
 			},
 			InfrastructureEncryption: infraEncrypt,
-			PublicNetworkAccess:      publicAccess,
 			MinimalTLSVersion:        tlsMin,
 			SslEnforcement:           ssl,
 			StorageProfile:           storage,
@@ -724,11 +633,6 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	publicAccess := postgresql.PublicNetworkAccessEnumEnabled
-	if v := d.Get("public_network_access_enabled"); !v.(bool) {
-		publicAccess = postgresql.PublicNetworkAccessEnumDisabled
-	}
-
 	ssl := postgresql.SslEnforcementEnumEnabled
 	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
 		ssl = postgresql.SslEnforcementEnumDisabled
@@ -748,14 +652,26 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	properties := postgresql.ServerUpdateParameters{
 		Identity: expandedIdentity,
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
-			PublicNetworkAccess: publicAccess,
-			SslEnforcement:      ssl,
-			MinimalTLSVersion:   tlsMin,
-			StorageProfile:      expandPostgreSQLStorageProfile(d),
-			Version:             postgresql.ServerVersion(d.Get("version").(string)),
+			SslEnforcement:    ssl,
+			MinimalTLSVersion: tlsMin,
+			StorageProfile:    expandPostgreSQLStorageProfile(d),
+			Version:           postgresql.ServerVersion(d.Get("version").(string)),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if mode == postgresql.CreateModePointInTimeRestore {
+		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
+		if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
+			return fmt.Errorf("`public_network_access_enabled` doesn't support PointInTimeRestore mode")
+		}
+	} else {
+		publicAccess := postgresql.PublicNetworkAccessEnumEnabled
+		if v := d.Get("public_network_access_enabled"); !v.(bool) {
+			publicAccess = postgresql.PublicNetworkAccessEnumDisabled
+		}
+		properties.ServerUpdateParametersProperties.PublicNetworkAccess = publicAccess
 	}
 
 	oldCreateMode, newCreateMode := d.GetChange("create_mode")
@@ -845,17 +761,12 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("ssl_enforcement", string(props.SslEnforcement))
 		d.Set("ssl_minimal_tls_version_enforced", props.MinimalTLSVersion)
 		d.Set("version", string(props.Version))
 
 		d.Set("infrastructure_encryption_enabled", props.InfrastructureEncryption == postgresql.InfrastructureEncryptionEnabled)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == postgresql.PublicNetworkAccessEnumEnabled)
 		d.Set("ssl_enforcement_enabled", props.SslEnforcement == postgresql.SslEnforcementEnumEnabled)
-
-		if err := d.Set("storage_profile", flattenPostgreSQLStorageProfile(props.StorageProfile)); err != nil {
-			return fmt.Errorf("setting `storage_profile`: %+v", err)
-		}
 
 		if storage := props.StorageProfile; storage != nil {
 			d.Set("storage_mb", storage.StorageMB)
@@ -950,14 +861,6 @@ func expandServerSkuName(skuName string) (*postgresql.Sku, error) {
 
 func expandPostgreSQLStorageProfile(d *pluginsdk.ResourceData) *postgresql.StorageProfile {
 	storage := postgresql.StorageProfile{}
-	if v, ok := d.GetOk("storage_profile"); ok {
-		storageprofile := v.([]interface{})[0].(map[string]interface{})
-
-		storage.BackupRetentionDays = utils.Int32(int32(storageprofile["backup_retention_days"].(int)))
-		storage.StorageMB = utils.Int32(int32(storageprofile["storage_mb"].(int)))
-		storage.StorageAutogrow = postgresql.StorageAutogrow(storageprofile["auto_grow"].(string))
-		storage.GeoRedundantBackup = postgresql.GeoRedundantBackup(storageprofile["geo_redundant_backup"].(string))
-	}
 
 	// now override whatever we may have from the block with the top level properties
 	if v, ok := d.GetOk("auto_grow_enabled"); ok {
@@ -983,25 +886,6 @@ func expandPostgreSQLStorageProfile(d *pluginsdk.ResourceData) *postgresql.Stora
 	}
 
 	return &storage
-}
-
-func flattenPostgreSQLStorageProfile(resp *postgresql.StorageProfile) []interface{} {
-	values := map[string]interface{}{}
-
-	values["storage_mb"] = nil
-	if storageMB := resp.StorageMB; storageMB != nil {
-		values["storage_mb"] = *storageMB
-	}
-
-	values["backup_retention_days"] = nil
-	if backupRetentionDays := resp.BackupRetentionDays; backupRetentionDays != nil {
-		values["backup_retention_days"] = *backupRetentionDays
-	}
-
-	values["auto_grow"] = string(resp.StorageAutogrow)
-	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
-
-	return []interface{}{values}
 }
 
 func expandSecurityAlertPolicy(i interface{}) *postgresql.ServerSecurityAlertPolicy {

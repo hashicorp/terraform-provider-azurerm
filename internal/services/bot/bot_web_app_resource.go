@@ -191,7 +191,7 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("creating Web App Bot %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	// TODO: in 3.0 we should remove the "Default Site" on the Directline resource at this point if we can
+	// TODO: in 4.0 we should remove the "Default Site" on the Directline resource at this point if we can
 
 	d.SetId(resourceId.ID())
 	return resourceBotWebAppRead(d, meta)

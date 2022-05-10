@@ -2,10 +2,11 @@ package loganalytics
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -31,6 +31,11 @@ func resourceLogAnalyticsSavedSearch() *pluginsdk.Resource {
 			return err
 		}),
 
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SavedSearchV0ToV1{},
+		}),
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -44,16 +49,12 @@ func resourceLogAnalyticsSavedSearch() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.LogAnalyticsWorkspaceID,
-				// https://github.com/Azure/azure-rest-api-specs/issues/9330
-				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
-				// https://github.com/Azure/azure-rest-api-specs/issues/9330
-				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"category": {
@@ -106,20 +107,18 @@ func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta inter
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Saved Search creation.")
 
-	name := d.Get("name").(string)
-	workspaceID := d.Get("log_analytics_workspace_id").(string)
-	id, err := parse.LogAnalyticsWorkspaceID(workspaceID)
+	workspaceId, err := parse.LogAnalyticsWorkspaceID(d.Get("log_analytics_workspace_id").(string))
 	if err != nil {
 		return err
 	}
 
+	id := parse.NewLogAnalyticsSavedSearchID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.WorkspaceName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SavedSearcheName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Log Analytics Saved Search %q (WorkSpace %q / Resource Group %q): %s", name, id.WorkspaceName, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
@@ -149,35 +148,22 @@ func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta inter
 		parameters.SavedSearchProperties.FunctionParameters = utils.String(strings.Join(result, ", "))
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, name, parameters); err != nil {
-		return fmt.Errorf("creating Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %+v", name, id.WorkspaceName, id.ResourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SavedSearcheName, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %+v", name, id.WorkspaceName, id.ResourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("cannot read Log Analytics Saved Search %q (WorkSpace %q / Resource Group %q): %s", name, id.WorkspaceName, id.ResourceGroup, err)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourceLogAnalyticsSavedSearchRead(d, meta)
 }
 
 func resourceLogAnalyticsSavedSearchRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	// FIXME: @favoretti: API returns ID without a leading slash
-	id, err := parse.LogAnalyticsSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(d.Id(), "/")))
+	id, err := parse.LogAnalyticsSavedSearchID(d.Id())
 	if err != nil {
 		return err
 	}
-	workspaceId := parse.NewLogAnalyticsWorkspaceID(subscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SavedSearcheName)
 	if err != nil {
@@ -189,7 +175,7 @@ func resourceLogAnalyticsSavedSearchRead(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.Set("name", id.SavedSearcheName)
-	d.Set("log_analytics_workspace_id", workspaceId)
+	d.Set("log_analytics_workspace_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 
 	if props := resp.SavedSearchProperties; props != nil {
 		d.Set("display_name", props.DisplayName)
@@ -215,14 +201,13 @@ func resourceLogAnalyticsSavedSearchDelete(d *pluginsdk.ResourceData, meta inter
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	// FIXME: @favoretti: API returns ID without a leading slash
-	id, err := parse.LogAnalyticsSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(d.Id(), "/")))
+	id, err := parse.LogAnalyticsSavedSearchID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.SavedSearcheName); err != nil {
-		return fmt.Errorf("deleting Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %s", id.WorkspaceName, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -14,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -166,6 +167,8 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 			"encryption_at_host_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -293,30 +296,15 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 
+			"termination_notification": virtualMachineTerminationNotificationSchema(),
+
 			"user_data": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsBase64,
 			},
 
-			"zone": func() *pluginsdk.Schema {
-				if !features.ThreePointOhBeta() {
-					return &pluginsdk.Schema{
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						// this has to be computed because when you are trying to assign this VM to a VMSS in VMO mode with zones,
-						// the VMO mode VMSS will assign a zone for each of its instance.
-						// and if the VMSS in not zonal, this value should be left empty
-						Computed: true,
-						ConflictsWith: []string{
-							"availability_set_id",
-						},
-					}
-				}
-
-				return commonschema.ZoneSingleOptionalForceNew()
-			}(),
+			"zone": commonschema.ZoneSingleOptionalForceNew(),
 
 			// Computed
 			"private_ip_address": {
@@ -424,10 +412,11 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	sshKeys := ExpandSSHKeys(sshKeysRaw)
 
 	params := compute.VirtualMachine{
-		Name:     utils.String(id.Name),
-		Location: utils.String(location),
-		Identity: identity,
-		Plan:     plan,
+		Name:             utils.String(id.Name),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         utils.String(location),
+		Identity:         identity,
+		Plan:             plan,
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
@@ -466,13 +455,9 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		Tags: tags.Expand(t),
 	}
 
-	if v, ok := d.GetOk("patch_mode"); ok {
-		if v == string(compute.LinuxVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
-			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
-		}
-
-		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
-			PatchMode: compute.LinuxVMGuestPatchMode(v.(string)),
+	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
 		}
 	}
 
@@ -480,9 +465,13 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		params.VirtualMachineProperties.LicenseType = utils.String(v.(string))
 	}
 
-	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+	if v, ok := d.GetOk("patch_mode"); ok {
+		if v.(string) == string(compute.LinuxVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
+			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
+		}
+
+		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
+			PatchMode: compute.LinuxVMGuestPatchMode(v.(string)),
 		}
 	}
 
@@ -495,6 +484,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		}
 		params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
 		params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled.(bool))
+	}
+
+	if v, ok := d.GetOk("termination_notification"); ok {
+		params.VirtualMachineProperties.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(v.([]interface{}))
 	}
 
 	if vtpmEnabled, ok := d.GetOk("vtpm_enabled"); ok && vtpmEnabled.(bool) {
@@ -632,9 +625,8 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
 	identity, err := flattenVirtualMachineIdentity(resp.Identity)
 	if err != nil {
@@ -778,6 +770,12 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 
 		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference)); err != nil {
 			return fmt.Errorf("setting `source_image_reference`: %+v", err)
+		}
+	}
+
+	if scheduleProfile := props.ScheduledEventsProfile; scheduleProfile != nil {
+		if err := d.Set("termination_notification", flattenVirtualMachineScheduledEventsProfile(scheduleProfile)); err != nil {
+			return fmt.Errorf("setting `termination_notification`: %+v", err)
 		}
 	}
 
@@ -1088,6 +1086,13 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
+	}
+
+	if d.HasChange("termination_notification") {
+		shouldUpdate = true
+
+		notificationRaw := d.Get("termination_notification").([]interface{})
+		update.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(notificationRaw)
 	}
 
 	if d.HasChange("tags") {

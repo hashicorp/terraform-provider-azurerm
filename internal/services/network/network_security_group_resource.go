@@ -9,13 +9,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -81,8 +79,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 								string(network.SecurityRuleProtocolIcmp),
 								string(network.SecurityRuleProtocolAh),
 								string(network.SecurityRuleProtocolEsp),
-							}, !features.ThreePointOhBeta()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 
 						"source_port_range": {
@@ -153,8 +150,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.SecurityRuleAccessAllow),
 								string(network.SecurityRuleAccessDeny),
-							}, !features.ThreePointOhBeta()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 
 						"priority": {
@@ -169,8 +165,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.SecurityRuleDirectionInbound),
 								string(network.SecurityRuleDirectionOutbound),
-							}, !features.ThreePointOhBeta()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 					},
 				},

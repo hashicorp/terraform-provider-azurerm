@@ -57,6 +57,17 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
 			},
 
+			"storage_kind": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Storage",
+					"StorageV2",
+					"BlobStorage",
+					"BlockBlobStorage",
+				}, false),
+			},
+
 			"sas_uri": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -65,7 +76,29 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
 			},
 
+			// TODO for @favoretti: rename this to 'sas_token_linked_key_vault_key' for 3.4.0
 			"key_vault_sas_token": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"linked_service_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"secret_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"service_principal_linked_key_vault_key": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -112,7 +145,6 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				RequiredWith: []string{"use_managed_identity"},
 				ExactlyOneOf: []string{"connection_string", "sas_uri", "service_endpoint"},
 			},
 
@@ -120,7 +152,6 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsUUID,
-				RequiredWith: []string{"service_principal_key"},
 				ConflictsWith: []string{
 					"use_managed_identity",
 				},
@@ -130,7 +161,6 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				RequiredWith: []string{"service_principal_id"},
 			},
 
 			"tenant_id": {
@@ -218,14 +248,22 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 			blobStorageProperties.ServiceEndpoint = utils.String(v.(string))
 		}
 	} else {
-		secureString := datafactory.SecureString{
-			Value: utils.String(d.Get("service_principal_key").(string)),
-			Type:  datafactory.TypeSecureString,
+		if v, ok := d.GetOk("service_endpoint"); ok {
+			blobStorageProperties.ServiceEndpoint = utils.String(v.(string))
+		}
+		if kvsp, ok := d.GetOk("service_principal_linked_key_vault_key"); ok {
+			blobStorageProperties.ServicePrincipalKey = expandAzureKeyVaultSecretReference(kvsp.([]interface{}))
+		} else {
+			secureString := datafactory.SecureString{
+				Value: utils.String(d.Get("service_principal_key").(string)),
+				Type:  datafactory.TypeSecureString,
+			}
+			blobStorageProperties.ServicePrincipalKey = &secureString
 		}
 
 		blobStorageProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
 		blobStorageProperties.Tenant = utils.String(d.Get("tenant_id").(string))
-		blobStorageProperties.ServicePrincipalKey = &secureString
+
 	}
 
 	blobStorageLinkedService := &datafactory.AzureBlobStorageLinkedService{
@@ -240,6 +278,10 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
 		blobStorageLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
+	}
+
+	if v, ok := d.GetOk("storage_kind"); ok {
+		blobStorageLinkedService.AccountKind = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
@@ -309,10 +351,19 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 	}
 
 	if properties := blobStorage.AzureBlobStorageLinkedServiceTypeProperties; properties != nil {
+		d.Set("storage_kind", properties.AccountKind)
 		if sasToken := properties.SasToken; sasToken != nil {
 			if keyVaultPassword, ok := sasToken.AsAzureKeyVaultSecretReference(); ok {
 				if err := d.Set("key_vault_sas_token", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
 					return fmt.Errorf("Error setting `key_vault_sas_token`: %+v", err)
+				}
+			}
+		}
+
+		if spKey := properties.ServicePrincipalKey; spKey != nil {
+			if kvSPkey, ok := spKey.AsAzureKeyVaultSecretReference(); ok {
+				if err := d.Set("service_principal_linked_key_vault_key", flattenAzureKeyVaultSecretReference(kvSPkey)); err != nil {
+					return fmt.Errorf("Error setting `service_principal_linked_key_vault_key`: %+v", err)
 				}
 			}
 		}

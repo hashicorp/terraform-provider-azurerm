@@ -26,11 +26,30 @@ resource "azurerm_redis_enterprise_cluster" "example" {
   sku_name = "Enterprise_E20-4"
 }
 
+resource "azurerm_redis_enterprise_cluster" "example1" {
+  name                = "example-redisenterprise1"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
+  sku_name = "Enterprise_E20-4"
+}
+
 resource "azurerm_redis_enterprise_database" "example" {
   name                = "default"
   resource_group_name = azurerm_resource_group.example.name
 
-  cluster_id = azurerm_redis_enterprise_cluster.example.id
+  cluster_id        = azurerm_redis_enterprise_cluster.example.id
+  client_protocol   = "Encrypted"
+  clustering_policy = "EnterpriseCluster"
+  eviction_policy   = "NoEviction"
+  port              = 10000
+
+  linked_database_id = [
+    "${azurerm_redis_enterprise_cluster.example.id}/databases/default",
+    "${azurerm_redis_enterprise_cluster.example1.id}/databases/default"
+  ]
+
+  linked_database_group_nickname = "tftestGeoGroup"
 }
 ```
 
@@ -50,7 +69,17 @@ The following arguments are supported:
 
 * `eviction_policy` - (Optional) Redis eviction policy - default is VolatileLRU. Possible values are `AllKeysLFU`, `AllKeysLRU`, `AllKeysRandom`, `VolatileLRU`, `VolatileLFU`, `VolatileTTL`, `VolatileRandom` and `NoEviction`. Defaults to `VolatileLRU`. Changing this forces a new Redis Enterprise Database to be created.
 
+-> **NOTE:** Eviction Policy must be set to NoEviction when using RediSearch module
+
 * `module` - (Optional)  A `module` block as defined below.
+
+-> **NOTE:** Only RediSearch module is allowed with geo-replication
+
+* `linked_database_id` - (Optional) A list of database resources to link with this database with a maximum of 5.
+
+-> **NOTE:** Only the newly created databases can be added to an existing geo-replication group. Existing regular databases or recreated databases cannot be added to the existing geo-replication group. Any linked database be removed from the list will be forcefully unlinked.The only recommended operation is to delete after force-unlink and the recommended scenario of force-unlink is region outrage. The database cannot be linked again after force-unlink.
+
+* `linked_database_group_nickname` - (Optional) Nickname of the group of linked databases. Changing this force a new Redis Enterprise Geo Database to be created.
 
 * `port` - (Optional) TCP port of the database endpoint. Specified at create time. Defaults to an available port. Changing this forces a new Redis Enterprise Database to be created.
 
@@ -80,6 +109,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Redis Enterprise Database.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Enterprise Database.
+* `update` - (Defaults to 30 minutes) Used when updating the Redis Enterprise Database.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Redis Enterprise Database.
 
 ## Import
