@@ -54,7 +54,7 @@ func resourceVirtualNetworkGatewayNatRule() *pluginsdk.Resource {
 			},
 
 			"external_mapping": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -74,7 +74,7 @@ func resourceVirtualNetworkGatewayNatRule() *pluginsdk.Resource {
 			},
 
 			"internal_mapping": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -150,8 +150,8 @@ func resourceVirtualNetworkGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta 
 	props := network.VirtualNetworkGatewayNatRule{
 		Name: utils.String(d.Get("name").(string)),
 		VirtualNetworkGatewayNatRuleProperties: &network.VirtualNetworkGatewayNatRuleProperties{
-			ExternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("external_mapping").(*pluginsdk.Set).List()),
-			InternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("internal_mapping").(*pluginsdk.Set).List()),
+			ExternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("external_mapping").([]interface{})),
+			InternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("internal_mapping").([]interface{})),
 			Mode:             network.VpnNatRuleMode(d.Get("mode").(string)),
 			Type:             network.VpnNatRuleType(d.Get("type").(string)),
 		},
@@ -230,8 +230,8 @@ func resourceVirtualNetworkGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta 
 	props := network.VirtualNetworkGatewayNatRule{
 		Name: utils.String(d.Get("name").(string)),
 		VirtualNetworkGatewayNatRuleProperties: &network.VirtualNetworkGatewayNatRuleProperties{
-			ExternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("external_mapping").(*pluginsdk.Set).List()),
-			InternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("internal_mapping").(*pluginsdk.Set).List()),
+			ExternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("external_mapping").([]interface{})),
+			InternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("internal_mapping").([]interface{})),
 			Mode:             network.VpnNatRuleMode(d.Get("mode").(string)),
 			Type:             network.VpnNatRuleType(d.Get("type").(string)),
 		},
