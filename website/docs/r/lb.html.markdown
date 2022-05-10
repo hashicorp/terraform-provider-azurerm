@@ -20,14 +20,14 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_public_ip" "example" {
   name                = "PublicIPForLB"
-  location            = "West US"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "example" {
   name                = "TestLoadBalancer"
-  location            = "West US"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
   frontend_ip_configuration {
@@ -57,25 +57,20 @@ The following arguments are supported:
 
 -> **NOTE:** The `Microsoft.Network/AllowGatewayLoadBalancer` feature is required to be registered in order to use the `Gateway` SKU. The feature can only be registered by the Azure service team, please submit an [Azure support ticket](https://azure.microsoft.com/en-us/support/create-ticket/) for that.
 
-* `sku_tier` - (Optional) `sku_tier` - (Optional) The Sku Tier of this Load Balancer. Possible values are `Global` and `Regional`. Defaults to `Regional`. Changing this forces a new resource to be created.
+* `sku_tier` - (Optional) `sku_tier` - (Optional) The SKU tier of this Load Balancer. Possible values are `Global` and `Regional`. Defaults to `Regional`. Changing this forces a new resource to be created.
 * 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `frontend_ip_configuration` supports the following:
 
-* `name` - (Required) Specifies the name of the frontend ip configuration.
-* `availability_zone` - (Optional) A list of Availability Zones which the Load Balancer's IP Addresses should be created in. Possible values are `Zone-Redundant`, `1`, `2`, `3`, and `No-Zone`. Availability Zone can only be updated whenever the name of the front end ip configuration changes. Defaults to `Zone-Redundant`. 
+* `name` - (Required) Specifies the name of the frontend IP configuration.
 
- `No-Zone` - A `non-zonal` resource will be created and the resource will not be replicated or distributed to any Availability Zones.
+* `zones` - (Optional) Specifies a list of Availability Zones in which the IP Address for this Load Balancer should be located. Changing this forces a new Load Balancer to be created.
 
- `1`, `2` or `3` (e.g. single Availability Zone) - A `zonal` resource will be created and will be replicate or distribute to a single specific Availability Zone. 
-
- `Zone-Redundant` - A `zone-redundant` resource will be created and will replicate or distribute the resource across all three Availability Zones automatically.
-
--> **NOTE:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-availability-zones) and [in select regions](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) at this time. Standard SKU Load Balancer that do not specify a zone are zone redundant by default. If the chosen region does not support zones, the value of `No-Zone` must be specified.
+-> **NOTE:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/azure/load-balancer/load-balancer-standard-availability-zones) and [in select regions](https://docs.microsoft.com/azure/availability-zones/az-overview) at this time.
 
 * `subnet_id` - The ID of the Subnet which should be associated with the IP Configuration.
-* `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway Sku Load Balancer.
+* `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway SKU Load Balancer.
 * `private_ip_address` - (Optional) Private IP Address to assign to the Load Balancer. The last one and first four IPs in any range are reserved and cannot be manually assigned.
 * `private_ip_address_allocation` - (Optional) The allocation method for the Private IP Address used by this Load Balancer. Possible values as `Dynamic` and `Static`.
 * `private_ip_address_version` - The version of IP that the Private IP Address is. Possible values are `IPv4` or `IPv6`.

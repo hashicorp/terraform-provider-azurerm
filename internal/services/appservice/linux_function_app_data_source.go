@@ -45,6 +45,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	ForceDisableContentShare  bool                                 `tfschema:"content_share_force_disabled"`
 	HttpsOnly                 bool                                 `tfschema:"https_only"`
 	SiteConfig                []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
+	StickySettings            []helpers.StickySettings             `tfschema:"sticky_settings"`
 	Tags                      map[string]string                    `tfschema:"tags"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -216,6 +217,8 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"site_credential": helpers.SiteCredentialSchema(),
+
+		"sticky_settings": helpers.StickySettingsComputedSchema(),
 	}
 }
 
@@ -256,6 +259,11 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
 			}
 
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+			}
+
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("listing Site Publishing Credential information for Linux %s: %+v", id, err)
@@ -294,6 +302,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				Enabled:              utils.NormaliseNilableBool(functionApp.Enabled),
 				ClientCertMode:       string(functionApp.ClientCertMode),
 				DailyMemoryTimeQuota: int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
+				StickySettings:       helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                 tags.ToTypedObject(functionApp.Tags),
 				Kind:                 utils.NormalizeNilableString(functionApp.Kind),
 			}

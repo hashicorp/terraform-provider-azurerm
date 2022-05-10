@@ -49,7 +49,7 @@ The following arguments are supported:
 
 ~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - a list can be found [here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
 
-* `sku_name` - (Optional) The `name` of the sku to be used by this Orcestrated Virtual Machine Scale Set. Valid values include: any of the [General purpose](https://docs.microsoft.com/azure/virtual-machines/sizes-general), [Compute optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-compute), [Memory optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-memory), [Storage optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-storage), [GPU optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-gpu), [FPGA optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-field-programmable-gate-arrays), [High performance](https://docs.microsoft.com/azure/virtual-machines/sizes-hpc), or [Previous generation](https://docs.microsoft.com/azure/virtual-machines/sizes-previous-gen) virtual machine sku's.
+* `sku_name` - (Optional) The `name` of the SKU to be used by this Orcestrated Virtual Machine Scale Set. Valid values include: any of the [General purpose](https://docs.microsoft.com/azure/virtual-machines/sizes-general), [Compute optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-compute), [Memory optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-memory), [Storage optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-storage), [GPU optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-gpu), [FPGA optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-field-programmable-gate-arrays), [High performance](https://docs.microsoft.com/azure/virtual-machines/sizes-hpc), or [Previous generation](https://docs.microsoft.com/azure/virtual-machines/sizes-previous-gen) virtual machine SKUs.
 
 * `instances`- (Optional) The number of Virtual Machines in the Orcestrated Virtual Machine Scale Set.
 
@@ -121,9 +121,9 @@ A `windows_configuration` block supports the following:
 
 * `hotpatching_enabled` - (Optional) Should the VM be patched without requiring a reboot? Possible values are `true` or `false`. Defaults to `false`. For more information about hot patching please see the [product documentation](https://docs.microsoft.com/azure/automanage/automanage-hotpatch).
 
--> **NOTE:** Hotpatching can only be enabled if the `patch_mode` is set to `AutomaticByPlatform`, the `provision_vm_agent` is set to `true`, your `source_image_reference` references a hotpatching enabled image, the VM's `sku_name` is set to a [Azure generation 2](https://docs.microsoft.com/azure/virtual-machines/generation-2#generation-2-vm-sizes) VM sku and the `extension` contains an application health extension. An example of how to correctly configure a Orchestrated Virtual Machine Scale Set to provision a Windows Virtual Machine with hotpatching enabled can be found in the [`./examples/orchestrated-vm-scale-set/hotpatching-enabled`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/orchestrated-vm-scale-set/hotpatching-enabled) directory within the Github Repository.
+-> **NOTE:** Hotpatching can only be enabled if the `patch_mode` is set to `AutomaticByPlatform`, the `provision_vm_agent` is set to `true`, your `source_image_reference` references a hotpatching enabled image, the VM's `sku_name` is set to a [Azure generation 2](https://docs.microsoft.com/azure/virtual-machines/generation-2#generation-2-vm-sizes) VM SKU and the `extension` contains an application health extension. An example of how to correctly configure a Orchestrated Virtual Machine Scale Set to provision a Windows Virtual Machine with hotpatching enabled can be found in the [`./examples/orchestrated-vm-scale-set/hotpatching-enabled`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/orchestrated-vm-scale-set/hotpatching-enabled) directory within the GitHub Repository.
 
-* `patch_mode` - (Optional) Specifies the mode of in-guest patching of this Windows Virtual Machine. Possible values are `Manual`, `AutomaticByOS` and `AutomaticByPlatform`. Defaults to `AutomaticByOS`. For more informaton on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
+* `patch_mode` - (Optional) Specifies the mode of in-guest patching of this Windows Virtual Machine. Possible values are `Manual`, `AutomaticByOS` and `AutomaticByPlatform`. Defaults to `AutomaticByOS`. For more information on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
 
 -> **NOTE:** If `patch_mode` is set to `AutomaticByPlatform` the `provision_vm_agent` must be set to `true` and the `extension` must contain at least one application health extension.
 
@@ -149,9 +149,9 @@ A `linux_configuration` block supports the following:
 
 ~> **NOTE:** Either `admin_password` or `admin_ssh_key` must be specified.
 
-* `patch_mode` - (Optional) Specifies the mode of in-guest patching of this Windows Virtual Machine. Possible values are `ImageDefault` or `AutomaticByPlatform`. Defaults to `ImageDefault`. For more informaton on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
+* `patch_mode` - (Optional) Specifies the mode of in-guest patching of this Windows Virtual Machine. Possible values are `ImageDefault` or `AutomaticByPlatform`. Defaults to `ImageDefault`. For more information on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
 
--> **NOTE:** If `patch_mode` is set to `AutomaticByPlatform` the `provision_vm_agent` must be set to `true` and the `extension` must contain at least one application health extension.  An example of how to correctly configure a Orchestrated Virtual Machine Scale Set to provision a Linux Virtual Machine with Automatic VM Guest Patching enabled can be found in the [`./examples/orchestrated-vm-scale-set/automatic-vm-guest-patching`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/orchestrated-vm-scale-set/automatic-vm-guest-patching) directory within the Github Repository.
+-> **NOTE:** If `patch_mode` is set to `AutomaticByPlatform` the `provision_vm_agent` must be set to `true` and the `extension` must contain at least one application health extension.  An example of how to correctly configure a Orchestrated Virtual Machine Scale Set to provision a Linux Virtual Machine with Automatic VM Guest Patching enabled can be found in the [`./examples/orchestrated-vm-scale-set/automatic-vm-guest-patching`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/orchestrated-vm-scale-set/automatic-vm-guest-patching) directory within the GitHub Repository.
 
 * `provision_vm_agent` - (Optional) Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set? Defaults to `true`. Changing this value forces a new resource to be created.
 
@@ -271,11 +271,11 @@ A `ip_configuration` block supports the following:
 
 * `name` - (Required) The Name which should be used for this IP Configuration.
 
-* `application_gateway_backend_address_pool_ids` - (Optional) A list of Backend Address Pools ID's from a Application Gateway which this Orchestrated Virtual Machine Scale Set should be connected to.
+* `application_gateway_backend_address_pool_ids` - (Optional) A list of Backend Address Pools IDs from a Application Gateway which this Orchestrated Virtual Machine Scale Set should be connected to.
 
-* `application_security_group_ids` - (Optional) A list of Application Security Group ID's which this Orchestrated Virtual Machine Scale Set should be connected to.
+* `application_security_group_ids` - (Optional) A list of Application Security Group IDs which this Orchestrated Virtual Machine Scale Set should be connected to.
 
-* `load_balancer_backend_address_pool_ids` - (Optional) A list of Backend Address Pools ID's from a Load Balancer which this Orchestrated Virtual Machine Scale Set should be connected to.
+* `load_balancer_backend_address_pool_ids` - (Optional) A list of Backend Address Pools IDs from a Load Balancer which this Orchestrated Virtual Machine Scale Set should be connected to.
 
 ~> **NOTE:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a depends_on between this resource and the Load Balancer Rule.
 
@@ -371,7 +371,7 @@ A `public_ip_address` block supports the following:
 
 A `termination_notification` block supports the following:
 
-* `enabled` - (Required) Should the terminate notification be enabled on this Virtual Machine Scale Set? Possible values `true` or `false` Defaults to `false`. 
+* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine Scale Set? Possible values `true` or `false` Defaults to `false`. 
 
 * `timeout` - (Optional) Length of time (in minutes, between `5` and `15`) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in `ISO 8601` format. Defaults to `PT5M`.
 

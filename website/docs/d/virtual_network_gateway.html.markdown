@@ -77,7 +77,7 @@ The `ip_configuration` block supports:
 
 The `vpn_client_configuration` block supports:
 
-* `address_space` - The address space out of which ip addresses for
+* `address_space` - The address space out of which IP addresses for
     vpn clients will be taken. You can provide more than one address space, e.g.
     in CIDR notation.
 

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2021-08-01/databases"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/sdk/2022-01-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -58,6 +58,55 @@ func TestRedisEnterpriseDatabase_complete(t *testing.T) {
 	})
 }
 
+func TestRedisEnterpriseDatabase_geoDatabase(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
+	r := RedisenterpriseDatabaseResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoDatabase(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestRedisEnterpriseDatabase_geoDatabaseModule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
+	r := RedisenterpriseDatabaseResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoDatabasewithModuleEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestRedisEnterpriseDatabase_unlinkDatabase(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
+	r := RedisenterpriseDatabaseResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoDatabase(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.unlinkDatabase(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r RedisenterpriseDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := databases.ParseDatabaseID(state.ID)
 	if err != nil {
@@ -95,7 +144,21 @@ resource "azurerm_redis_enterprise_cluster" "test" {
 
   sku_name = "Enterprise_E20-4"
 }
-`, data.RandomInteger, "eastus", data.RandomInteger)
+resource "azurerm_redis_enterprise_cluster" "test1" {
+  name                = "acctest-rec-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku_name = "Enterprise_E20-4"
+}
+resource "azurerm_redis_enterprise_cluster" "test2" {
+  name                = "acctest-rec-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku_name = "Enterprise_E20-4"
+}
+`, data.RandomInteger, "eastus", data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r RedisenterpriseDatabaseResource) basic(data acceptance.TestData) string {
@@ -144,7 +207,7 @@ resource "azurerm_redis_enterprise_database" "test" {
 
   module {
     name = "RedisBloom"
-    args = "ERROR_RATE 0.00 INITIAL_SIZE 400"
+    args = "ERROR_RATE 1 INITIAL_SIZE 400"
   }
 
   module {
@@ -155,4 +218,72 @@ resource "azurerm_redis_enterprise_database" "test" {
   port = 10000
 }
 `, template)
+}
+
+func (r RedisenterpriseDatabaseResource) geoDatabase(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_redis_enterprise_database" "test" {
+  cluster_id          = azurerm_redis_enterprise_cluster.test.id
+  resource_group_name = azurerm_resource_group.test.name
+
+  client_protocol   = "Encrypted"
+  clustering_policy = "EnterpriseCluster"
+  eviction_policy   = "NoEviction"
+
+  linked_database_id = [
+    "${azurerm_redis_enterprise_cluster.test.id}/databases/default",
+    "${azurerm_redis_enterprise_cluster.test1.id}/databases/default",
+    "${azurerm_redis_enterprise_cluster.test2.id}/databases/default"
+  ]
+
+  linked_database_group_nickname = "tftestGeoGroup"
+}
+`, r.template(data))
+}
+
+func (r RedisenterpriseDatabaseResource) unlinkDatabase(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_redis_enterprise_database" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  cluster_id          = azurerm_redis_enterprise_cluster.test.id
+
+  client_protocol   = "Encrypted"
+  clustering_policy = "EnterpriseCluster"
+  eviction_policy   = "NoEviction"
+
+  linked_database_id = [
+    "${azurerm_redis_enterprise_cluster.test.id}/databases/default",
+    "${azurerm_redis_enterprise_cluster.test1.id}/databases/default",
+  ]
+
+  linked_database_group_nickname = "tftestGeoGroup"
+}
+`, r.template(data))
+}
+
+func (r RedisenterpriseDatabaseResource) geoDatabasewithModuleEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_redis_enterprise_database" "test" {
+  cluster_id          = azurerm_redis_enterprise_cluster.test.id
+  resource_group_name = azurerm_resource_group.test.name
+
+  client_protocol   = "Encrypted"
+  clustering_policy = "EnterpriseCluster"
+  eviction_policy   = "NoEviction"
+  module {
+    name = "RediSearch"
+    args = ""
+  }
+  linked_database_id = [
+    "${azurerm_redis_enterprise_cluster.test.id}/databases/default",
+    "${azurerm_redis_enterprise_cluster.test1.id}/databases/default",
+    "${azurerm_redis_enterprise_cluster.test2.id}/databases/default"
+  ]
+
+  linked_database_group_nickname = "tftestGeoGroup"
+}
+`, r.template(data))
 }

@@ -210,24 +210,27 @@ func resourceArmManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData
 	}
 
 	if existing.RemediationProperties != nil && existing.RemediationProperties.ResourceDiscoveryMode == policyinsights.ReEvaluateCompliance {
-		log.Printf("[DEBUG] cancelling the remediation first before deleting it when `resource_discovery_mode` is set to `ReEvaluateCompliance`")
-		if _, err := client.CancelAtManagementGroup(ctx, managementGroupId.Name, id.Name); err != nil {
-			return fmt.Errorf("cancelling %s: %+v", id.ID(), err)
-		}
+		// Remediation can only be canceld when it is in "Evaluating" status, otherwise, API might raise error (e.g. canceling a "Completed" remediation returns 400).
+		if existing.RemediationProperties.ProvisioningState != nil && *existing.RemediationProperties.ProvisioningState == "Evaluating" {
+			log.Printf("[DEBUG] cancelling the remediation first before deleting it when `resource_discovery_mode` is set to `ReEvaluateCompliance`")
+			if _, err := client.CancelAtManagementGroup(ctx, managementGroupId.Name, id.Name); err != nil {
+				return fmt.Errorf("cancelling %s: %+v", id.ID(), err)
+			}
 
-		log.Printf("[DEBUG] waiting for the %s to be canceled", id.ID())
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending: []string{"Cancelling"},
-			Target: []string{
-				"Succeeded", "Canceled", "Failed",
-			},
-			Refresh:    managementGroupPolicyRemediationCancellationRefreshFunc(ctx, client, *id, *managementGroupId),
-			MinTimeout: 10 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
-		}
+			log.Printf("[DEBUG] waiting for the %s to be canceled", id.ID())
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{"Cancelling"},
+				Target: []string{
+					"Succeeded", "Canceled", "Failed",
+				},
+				Refresh:    managementGroupPolicyRemediationCancellationRefreshFunc(ctx, client, *id, *managementGroupId),
+				MinTimeout: 10 * time.Second,
+				Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+			}
 
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for %s to be canceled: %+v", id.ID(), err)
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to be canceled: %+v", id.ID(), err)
+			}
 		}
 	}
 

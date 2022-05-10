@@ -86,6 +86,15 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 				},
 			},
 
+			"system_property_columns": {
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			"serialization": schemaStreamAnalyticsOutputSerialization(),
 		},
 	}
@@ -130,6 +139,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 					SharedAccessPolicyKey:  utils.String(d.Get("shared_access_policy_key").(string)),
 					SharedAccessPolicyName: utils.String(d.Get("shared_access_policy_name").(string)),
 					PropertyColumns:        utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
+					SystemPropertyColumns:  utils.ExpandMapStringPtrString(d.Get("system_property_columns").(map[string]interface{})),
 				},
 			},
 			Serialization: serialization,
@@ -184,6 +194,10 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 		d.Set("servicebus_namespace", v.ServiceBusNamespace)
 		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
 		d.Set("property_columns", v.PropertyColumns)
+
+		if err = d.Set("system_property_columns", utils.FlattenMapStringPtrString(v.SystemPropertyColumns)); err != nil {
+			return err
+		}
 
 		if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 			return fmt.Errorf("setting `serialization`: %+v", err)

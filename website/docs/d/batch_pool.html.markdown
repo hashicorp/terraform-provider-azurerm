@@ -31,7 +31,7 @@ The following attributes are exported:
 
 * `account_name` - The name of the Batch account.
 
-* `node_agent_sku_id` - The Sku of the node agents in the Batch pool.
+* `node_agent_sku_id` - The SKU of the node agents in the Batch pool.
 
 * `vm_size` - The size of the VM created in the Batch pool.
 

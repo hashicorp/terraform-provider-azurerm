@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `zones` - (Required) Specifies a list of Availability Zones in which this Disk Pool should be located. Changing this forces a new Disk Pool to be created.
 
-* `sku_name` - (Required) The Sku of the Disk Pool. Possible values are `Basic_B1`, `Standard_S1` and `Premium_P1`. Changing this forces a new Disk Pool to be created.
+* `sku_name` - (Required) The SKU of the Disk Pool. Possible values are `Basic_B1`, `Standard_S1` and `Premium_P1`. Changing this forces a new Disk Pool to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet where the Disk Pool should be created. Changing this forces a new Disk Pool to be created.
 

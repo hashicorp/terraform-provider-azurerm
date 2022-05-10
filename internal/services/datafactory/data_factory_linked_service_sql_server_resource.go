@@ -138,6 +138,11 @@ func resourceDataFactoryLinkedServiceSQLServer() *pluginsdk.Resource {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
+			"user_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
@@ -180,6 +185,10 @@ func resourceDataFactoryLinkedServiceSQLServerCreateUpdate(d *pluginsdk.Resource
 
 	if v, ok := d.GetOk("connection_string"); ok {
 		sqlServerLinkedService.SQLServerLinkedServiceTypeProperties.ConnectionString = v.(string)
+	}
+
+	if v, ok := d.GetOk("user_name"); ok {
+		sqlServerLinkedService.SQLServerLinkedServiceTypeProperties.UserName = v.(string)
 	}
 
 	if v, ok := d.GetOk("key_vault_connection_string"); ok {
@@ -266,6 +275,7 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, me
 	}
 
 	if properties := sqlServer.SQLServerLinkedServiceTypeProperties; properties != nil {
+		d.Set("user_name", properties.UserName)
 		if properties.ConnectionString != nil {
 			if val, ok := properties.ConnectionString.(map[string]interface{}); ok {
 				if err := d.Set("key_vault_connection_string", flattenAzureKeyVaultConnectionString(val)); err != nil {

@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hpccache/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -242,12 +241,6 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					}
 					if err := d.Set("default_access_policy", defaultAccessPolicy); err != nil {
 						return fmt.Errorf("setting `default_access_policy`: %v", err)
-					}
-
-					if !features.ThreePointOhBeta() {
-						// Set the "root_squash_enabled" for whatever is set in the config, to make any existing .tf that has specified this property
-						// not encounter plan diff.
-						d.Set("root_squash_enabled", d.Get("root_squash_enabled"))
 					}
 				}
 			}
@@ -632,7 +625,7 @@ func expandStorageCacheDirectoryLdapBind(input []interface{}) *storagecache.Cach
 }
 
 func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -932,14 +925,4 @@ func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
-	if !features.ThreePointOhBeta() {
-		out["root_squash_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This property is not functional and will be deprecated in favor of `default_access_policy.0.access_rule.x.root_squash_enabled`, where the scope of access_rule is `default`.",
-		}
-	}
-
-	return out
 }

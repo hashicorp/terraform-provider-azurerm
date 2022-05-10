@@ -18,14 +18,14 @@ Manages a Virtual Machine.
 
 ## Example Usage (from an Azure Platform Image)
 
-This example provisions a Virtual Machine with Managed Disks. Other examples of the `azurerm_virtual_machine` resource can be found in [the `./examples/virtual-machines` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines)
+This example provisions a Virtual Machine with Managed Disks. Other examples of the `azurerm_virtual_machine` resource can be found in [the `./examples/virtual-machines` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines)
 
 ```hcl
 variable "prefix" {
   default = "tfvmex"
 }
 
-resource "azurerm_resource_group" "main" {
+resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
   location = "West Europe"
 }
@@ -33,21 +33,21 @@ resource "azurerm_resource_group" "main" {
 resource "azurerm_virtual_network" "main" {
   name                = "${var.prefix}-network"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "internal" {
   name                 = "internal"
-  resource_group_name  = azurerm_resource_group.main.name
-  virtual_network_name = azurerm_virtual_network.main.name
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "main" {
   name                = "${var.prefix}-nic"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   ip_configuration {
     name                          = "testconfiguration1"
@@ -58,8 +58,8 @@ resource "azurerm_network_interface" "main" {
 
 resource "azurerm_virtual_machine" "main" {
   name                  = "${var.prefix}-vm"
-  location              = azurerm_resource_group.main.location
-  resource_group_name   = azurerm_resource_group.main.name
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
   network_interface_ids = [azurerm_network_interface.main.id]
   vm_size               = "Standard_DS1_v2"
 
@@ -105,7 +105,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Virtual Machine exists. Changing this forces a new resource to be created.
 
-* `network_interface_ids` - (Required) A list of Network Interface ID's which should be associated with the Virtual Machine.
+* `network_interface_ids` - (Required) A list of Network Interface IDs which should be associated with the Virtual Machine.
 
 * `os_profile_linux_config` - (Required, when a Linux machine) An `os_profile_linux_config` block as defined below.
 
@@ -300,7 +300,7 @@ To provision a Custom Image, the following fields are applicable:
 
 * `id` - (Required) Specifies the ID of the Custom Image which the Virtual Machine should be created from. Changing this forces a new resource to be created.
 
--> **NOTE:** An example of how to use this is available within [the `./examples/virtual-machines/virtual_machine/managed-disks/from-custom-image` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/virtual_machine/managed-disks/from-custom-image)
+-> **NOTE:** An example of how to use this is available within [the `./examples/virtual-machines/virtual_machine/managed-disks/from-custom-image` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/virtual_machine/managed-disks/from-custom-image)
 
 ---
 
@@ -346,7 +346,7 @@ A `storage_os_disk` block supports the following:
 
 * `disk_size_gb` - (Optional) Specifies the size of the OS Disk in gigabytes.
 
-* `image_uri` - (Optional) Specifies the Image URI in the format `publisherName:offer:skus:version`. This field can also specify the [VHD uri](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-linux-cli-deploy-templates/#create-a-custom-vm-image) of a custom VM image to clone. When cloning a Custom (Unmanaged) Disk Image the `os_type` field must be set.
+* `image_uri` - (Optional) Specifies the Image URI in the format `publisherName:offer:skus:version`. This field can also specify the [VHD URI](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/tutorial-custom-images) of a custom VM image to clone. When cloning a Custom (Unmanaged) Disk Image the `os_type` field must be set.
 
 * `os_type` - (Optional) Specifies the Operating System on the OS Disk. Possible values are `Linux` and `Windows`.
 

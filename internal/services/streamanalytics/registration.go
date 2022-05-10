@@ -28,6 +28,7 @@ func (r Registration) Resources() []sdk.Resource {
 		OutputFunctionResource{},
 		OutputTableResource{},
 		OutputPowerBIResource{},
+		OutputCosmosDBResource{},
 	}
 }
 

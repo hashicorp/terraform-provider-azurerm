@@ -154,21 +154,15 @@ func resourceSentinelDataConnectorOffice365CreateUpdate(d *pluginsdk.ResourceDat
 		Kind: securityinsight.KindBasicDataConnectorKindOffice365,
 	}
 
-	// Service avoid concurrent updates of this resource via checking the "etag" to guarantee it is the same value as last Read.
-	// TODO: following code can be removed once the issue below is fixed:
-	// https://github.com/Azure/azure-rest-api-specs/issues/13203
 	if !d.IsNewResource() {
 		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Data Connector Office 365 %q: %+v", id, err)
 		}
 
-		dc, ok := resp.Value.(securityinsight.OfficeDataConnector)
-		if !ok {
+		if _, ok := resp.Value.(securityinsight.OfficeDataConnector); !ok {
 			return fmt.Errorf("%s was not an Office 365 Data Connector", id)
 		}
-
-		param.Etag = dc.Etag
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, param); err != nil {

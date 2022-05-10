@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `certificate` - (Optional) One or more (up to 10) `certificate` blocks as defined below.
 
-* `client_certificate_enabled` - (Optional) Enforce a client certificate to be presented on each request to the gateway? This is only supported when sku type is `Consumption`.
+* `client_certificate_enabled` - (Optional) Enforce a client certificate to be presented on each request to the gateway? This is only supported when SKU type is `Consumption`.
 
 * `gateway_disabled` - (Optional) Disable the gateway in main region? This is only supported when `additional_location` is set.
 
@@ -91,7 +91,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Custom public IPs are only supported on the `Premium` and `Developer` tiers when deployed in a virtual network.
 
-* `public_network_access_enabled` - (Optional) Is public access to the service allowed?.
+* `public_network_access_enabled` - (Optional) Is public access to the service allowed?. Defaults to `true`
 
 * `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`. 
 > **NOTE:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. And please ensure other necessary ports are open according to [api management network configuration](https://docs.microsoft.com/en-us/azure/api-management/api-management-using-with-vnet#-common-network-configuration-issues).
@@ -318,7 +318,7 @@ A `sign_up` block supports the following:
 
 A `tenant_access` block supports the following:
 
-* `enabled` - (Required) Should the access to the management api be enabled?
+* `enabled` - (Required) Should the access to the management API be enabled?
 
 ---
 

@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
@@ -74,7 +73,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 					string(automation.RunbookTypeEnumPowerShell),
 					string(automation.RunbookTypeEnumPowerShellWorkflow),
 					string(automation.RunbookTypeEnumScript),
-				}, !features.ThreePointOhBeta()),
+				}, false),
 			},
 
 			"log_progress": {

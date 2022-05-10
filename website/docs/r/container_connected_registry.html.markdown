@@ -70,7 +70,7 @@ The following arguments are supported:
 
 ---
 
-* `audit_log_enabled` - (Optional) Should the log auditting be enabled?
+* `audit_log_enabled` - (Optional) Should the log auditing be enabled?
 
 * `client_token_ids` - (Optional) Specifies a list of IDs of Container Registry Tokens, which are meant to be used by the clients to connect to the Connected Registry.
 
@@ -120,7 +120,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Container Connected Registrys can be imported using the `resource id`, e.g.
+Container Connected Registries can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_container_connected_registry.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.ContainerRegistry/registries/registry1/connectedRegistries/registry1
