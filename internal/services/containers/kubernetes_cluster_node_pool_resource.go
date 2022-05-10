@@ -144,7 +144,6 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			"message_of_day": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "message",
 			},
 
 			"mode": {

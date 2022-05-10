@@ -198,28 +198,24 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ForceNew:     true,
 						ValidateFunc: azure.ValidateResourceID,
 					},
-
 					"orchestrator_version": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-
 					"pod_subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: networkValidate.SubnetID,
 					},
-
 					"proximity_placement_group_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: computeValidate.ProximityPlacementGroupID,
 					},
-
 					"only_critical_addons_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
