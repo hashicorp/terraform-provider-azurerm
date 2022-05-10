@@ -58,10 +58,10 @@ func resourceDataFactoryDataFlow() *pluginsdk.Resource {
 			"script_lines": {
 				Type:         pluginsdk.TypeList,
 				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
 				AtLeastOneOf: []string{"script", "script_lines"},
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
