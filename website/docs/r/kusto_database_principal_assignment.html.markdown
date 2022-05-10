@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `principal_type` - (Required) The type of the principal. Valid values include `App`, `Group`, `User`. Changing this forces a new resource to be created.
 
-* `role` - (Required) The database role assigned to the principal. Valid values include `Admin`, `Ingestor`, `Monitor`, `UnrestrictedViewers`, `User` and `Viewer`. Changing this forces a new resource to be created.
+* `role` - (Required) The database role assigned to the principal. Valid values include `Admin`, `Ingestor`, `Monitor`, `UnrestrictedViewer`, `User` and `Viewer`. Changing this forces a new resource to be created.
 
 * `tenant_id` - (Required) The tenant id in which the principal resides. Changing this forces a new resource to be created.
 
