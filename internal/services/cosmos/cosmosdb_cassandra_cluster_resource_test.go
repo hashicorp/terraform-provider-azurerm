@@ -20,9 +20,9 @@ func TestAccCassandraCluster(t *testing.T) {
 	// Azure only being able provision against one app id at a time
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"basic": {
-			//"basic":          testAccCassandraCluster_basic,
-			//"requiresImport": testAccCassandraCluster_requiresImport,
-			"tags": testAccCassandraCluster_tags,
+			"basic":          testAccCassandraCluster_basic,
+			"requiresImport": testAccCassandraCluster_requiresImport,
+			"tags":           testAccCassandraCluster_tags,
 		},
 	})
 }
