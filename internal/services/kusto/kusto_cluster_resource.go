@@ -235,6 +235,36 @@ func resourceKustoCluster() *pluginsdk.Resource {
 
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
+			"allowed_ip_range_list": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.Any(
+						validation.IsCIDR,
+						validation.IsIPv4Address,
+					),
+				},
+			},
+
+			"allowed_fqdn_list": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"restrict_outbound_network_access": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.ClusterNetworkAccessFlagDisabled),
+					string(kusto.ClusterNetworkAccessFlagEnabled),
+				}, false),
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -313,6 +343,20 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
 		vnet := expandKustoClusterVNET(v.([]interface{}))
 		clusterProperties.VirtualNetworkConfiguration = vnet
+	}
+
+	if v, ok := d.GetOk("allowed_ip_range_list"); ok {
+		allowedIPRangeList := expandAllowedIPRangeList(v.([]interface{}))
+		clusterProperties.AllowedIPRangeList = allowedIPRangeList
+	}
+
+	if v, ok := d.GetOk("allowed_fqdn_list"); ok {
+		allowedFqdnList := expandAllowedFqdnList(v.([]interface{}))
+		clusterProperties.AllowedFqdnList = allowedFqdnList
+	}
+
+	if v, ok := d.GetOk("restrict_outbound_network_access"); ok {
+		clusterProperties.RestrictOutboundNetworkAccess = kusto.ClusterNetworkAccessFlag(v.(string))
 	}
 
 	expandedIdentity, err := expandClusterIdentity(d.Get("identity").([]interface{}))
@@ -443,6 +487,9 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("uri", props.URI)
 		d.Set("data_ingestion_uri", props.DataIngestionURI)
 		d.Set("engine", props.EngineType)
+		d.Set("allowed_ip_range_list", flattenAllowedIpRangeList(resp.AllowedIPRangeList))
+		d.Set("allowed_fqdn_list", flattenAllowedFqdnList(props.AllowedFqdnList))
+		d.Set("restrict_outbound_network_access", props.RestrictOutboundNetworkAccess)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -588,6 +635,58 @@ func expandClusterIdentity(input []interface{}) (*kusto.Identity, error) {
 		}
 	}
 	return &out, nil
+}
+
+func expandAllowedFqdnList(input []interface{}) *[]string {
+	if len(input) == 0 {
+		return nil
+	}
+
+	fqdn := make([]string, 0)
+	for _, v := range input {
+		fqdn = append(fqdn, v.(string))
+	}
+
+	return &fqdn
+}
+
+func expandAllowedIPRangeList(input []interface{}) *[]string {
+	if len(input) == 0 {
+		return nil
+	}
+
+	ipr := make([]string, 0)
+	for _, v := range input {
+		ipr = append(ipr, v.(string))
+	}
+
+	return &ipr
+}
+
+func flattenAllowedFqdnList(input *[]string) interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	fqdn := make([]interface{}, 0)
+	for _, v := range *input {
+		fqdn = append(fqdn, v)
+	}
+
+	return &fqdn
+}
+
+func flattenAllowedIpRangeList(input *[]string) interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	ipr := make([]interface{}, 0)
+	for _, v := range *input {
+		ipr = append(ipr, v)
+	}
+
+	return &ipr
 }
 
 func flattenClusterIdentity(input *kusto.Identity) (*[]interface{}, error) {

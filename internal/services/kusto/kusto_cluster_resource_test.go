@@ -396,10 +396,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kusto_cluster" "test" {
-  name                          = "acctestkc%s"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  public_network_access_enabled = false
+  name                             = "acctestkc%s"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  public_network_access_enabled    = false
+  restrict_outbound_network_access = "Disabled"
+  allowed_ip_range_list            = ["123.123.123.123/24", "1.2.3.4"]
+  allowed_fqdn_list                = ["*.google.com", ]
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
