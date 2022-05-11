@@ -20,7 +20,6 @@ import (
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -141,7 +140,6 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 								string(web.ConnectionStringTypeSQLAzure),
 								string(web.ConnectionStringTypeSQLServer),
 							}, false),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 
 						"value": {
@@ -768,7 +766,6 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 						"v5.0",
 						"v6.0",
 					}, false),
-					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 				},
 
 				"vnet_route_all_enabled": {
