@@ -241,10 +241,9 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"workload_runtime": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						ForceNew: true,
+						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(containerservice.WorkloadRuntimeOCIContainer),
-							string(containerservice.WorkloadRuntimeWasmWasi),
 						}, false),
 					},
 				}
