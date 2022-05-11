@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -24,6 +25,7 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCassandraClusterCreate,
 		Read:   resourceCassandraClusterRead,
+		Update: resourceCassandraClusterUpdate,
 		Delete: resourceCassandraClusterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -63,6 +65,8 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -93,6 +97,7 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 			DelegatedManagementSubnetID:   utils.String(d.Get("delegated_management_subnet_id").(string)),
 			InitialCassandraAdminPassword: utils.String(d.Get("default_admin_password").(string)),
 		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateUpdate(ctx, id.ResourceGroup, id.Name, body)
@@ -101,7 +106,7 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on create/update for %q: %+v", id, err)
+		return fmt.Errorf("waiting on create for %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -140,7 +145,38 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	// The "default_admin_password" is not returned in GET response, hence setting it from config.
 	d.Set("default_admin_password", d.Get("default_admin_password").(string))
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cosmos.CassandraClustersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	resourceGroupName := d.Get("resource_group_name").(string)
+	name := d.Get("name").(string)
+	id := parse.NewCassandraClusterID(subscriptionId, resourceGroupName, name)
+
+	body := documentdb.ClusterResource{
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Properties: &documentdb.ClusterResourceProperties{
+			DelegatedManagementSubnetID:   utils.String(d.Get("delegated_management_subnet_id").(string)),
+			InitialCassandraAdminPassword: utils.String(d.Get("default_admin_password").(string)),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	future, err := client.CreateUpdate(ctx, id.ResourceGroup, id.Name, body)
+	if err != nil {
+		return fmt.Errorf("updating %q: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting on update for %q: %+v", id, err)
+	}
+
+	return resourceCassandraClusterRead(d, meta)
 }
 
 func resourceCassandraClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {

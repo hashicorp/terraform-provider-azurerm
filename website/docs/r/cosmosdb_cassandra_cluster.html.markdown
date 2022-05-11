@@ -36,10 +36,14 @@ resource "azurerm_subnet" "example" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
+data "azuread_service_principal" "example" {
+  display_name = "Azure Cosmos DB"
+}
+
 resource "azurerm_role_assignment" "example" {
   scope                = azurerm_virtual_network.example.id
   role_definition_name = "Network Contributor"
-  principal_id         = "e5007d2c-4b13-4a74-9b6a-605d99f03501"
+  principal_id         = data.azuread_service_principal.example.object_id
 }
 
 resource "azurerm_cosmosdb_cassandra_cluster" "example" {
@@ -65,6 +69,8 @@ The following arguments are supported:
 
 * `default_admin_password` - (Required) The initial admin password for this Cassandra Cluster.
 
+* `tags` - A mapping of tags assigned to the resource.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -77,6 +83,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cassandra Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cassandra Cluster.
+* `update` - (Defaults to 30 minutes) Used when updating the Cassandra Cluster.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Cassandra Cluster.
 
 ## Import
