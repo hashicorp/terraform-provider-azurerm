@@ -71,6 +71,7 @@ func TestAccBatchAccount_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -170,6 +171,44 @@ func TestAccBatchAccount_cmk(t *testing.T) {
 				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").IsSet(),
 			),
 		},
+	})
+}
+
+func TestAccBatchAccount_removeStorageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := BatchAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.removeStorageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -538,4 +577,30 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, tenantID, tenantID, tenantID, data.RandomInteger)
+}
+
+func (BatchAccountResource) removeStorageAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+
+  public_network_access_enabled = false
+
+  tags = {
+    env = "test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
