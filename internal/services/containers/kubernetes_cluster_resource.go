@@ -1440,9 +1440,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if key := "network_profile.0.load_balancer_profile.0.managed_outbound_ipv6_count"; d.HasChange(key) {
 				managedOutboundIPV6Count := d.Get(key).(int)
 				if loadBalancerProfile.ManagedOutboundIPs == nil {
-					loadBalancerProfile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{
-						CountIPv6: utils.Int32(int32(managedOutboundIPV6Count)),
-					}
+					loadBalancerProfile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{}
 				}
 				loadBalancerProfile.ManagedOutboundIPs.CountIPv6 = utils.Int32(int32(managedOutboundIPV6Count))
 
@@ -2230,7 +2228,7 @@ func expandLoadBalancerProfile(d []interface{}) *containerservice.ManagedCluster
 	if ipv6Count := config["managed_outbound_ipv6_count"]; ipv6Count != nil {
 		if c := int32(ipv6Count.(int)); c > 0 {
 			if profile.ManagedOutboundIPs == nil {
-				profile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{CountIPv6: &c}
+				profile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{}
 			}
 			profile.ManagedOutboundIPs.CountIPv6 = &c
 		}
