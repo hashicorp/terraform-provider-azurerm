@@ -3,6 +3,7 @@ package batch
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
@@ -58,6 +59,19 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			},
+
+			"allowed_authentication_modes": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(batch.AuthenticationModeSharedKey),
+						string(batch.AuthenticationModeAAD),
+						string(batch.AuthenticationModeTaskAuthenticationToken),
+					}, false),
+				},
 			},
 
 			"pool_allocation_mode": {
@@ -174,9 +188,10 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	parameters := batch.AccountCreateParameters{
 		Location: &location,
 		AccountCreateProperties: &batch.AccountCreateProperties{
-			PoolAllocationMode:  batch.PoolAllocationMode(poolAllocationMode),
-			PublicNetworkAccess: batch.PublicNetworkAccessTypeEnabled,
-			Encryption:          encryption,
+			PoolAllocationMode:         batch.PoolAllocationMode(poolAllocationMode),
+			PublicNetworkAccess:        batch.PublicNetworkAccessTypeEnabled,
+			Encryption:                 encryption,
+			AllowedAuthenticationModes: expandAllowedAuthenticationModes(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()),
 		},
 		Identity: identity,
 		Tags:     tags.Expand(t),
@@ -271,9 +286,14 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
 			return fmt.Errorf("setting `encryption`: %+v", err)
 		}
+
+		if err := d.Set("allowed_authentication_modes", flattenAllowedAuthenticationModes(props.AllowedAuthenticationModes)); err != nil {
+			return fmt.Errorf("setting `allowed_authentication_modes`: %+v", err)
+		}
 	}
 
-	if d.Get("pool_allocation_mode").(string) == string(batch.PoolAllocationModeBatchService) {
+	if d.Get("pool_allocation_mode").(string) == string(batch.PoolAllocationModeBatchService) &&
+		isShardKeyAllowed(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()) {
 		keys, err := client.GetKeys(ctx, id.ResourceGroup, id.BatchAccountName)
 		if err != nil {
 			return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", id.BatchAccountName, id.ResourceGroup, err)
@@ -298,7 +318,6 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	storageAccountId := d.Get("storage_account_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	identity, err := expandBatchAccountIdentity(d.Get("identity").([]interface{}))
@@ -311,13 +330,18 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	parameters := batch.AccountUpdateParameters{
 		AccountUpdateProperties: &batch.AccountUpdateProperties{
-			AutoStorage: &batch.AutoStorageBaseProperties{
-				StorageAccountID: &storageAccountId,
-			},
-			Encryption: encryption,
+			Encryption:                 encryption,
+			AllowedAuthenticationModes: expandAllowedAuthenticationModes(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()),
 		},
 		Identity: identity,
 		Tags:     tags.Expand(t),
+	}
+
+	storageAccountId := d.Get("storage_account_id").(string)
+	if storageAccountId != "" {
+		parameters.AutoStorage = &batch.AutoStorageBaseProperties{
+			StorageAccountID: &storageAccountId,
+		}
 	}
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.BatchAccountName, parameters); err != nil {
@@ -419,6 +443,30 @@ func expandEncryption(e []interface{}) *batch.EncryptionProperties {
 	return &encryptionProperty
 }
 
+func expandAllowedAuthenticationModes(input []interface{}) *[]batch.AuthenticationMode {
+	if len(input) == 0 {
+		return &[]batch.AuthenticationMode{}
+	}
+
+	allowedAuthModes := make([]batch.AuthenticationMode, 0)
+	for _, mode := range input {
+		allowedAuthModes = append(allowedAuthModes, batch.AuthenticationMode(mode.(string)))
+	}
+	return &allowedAuthModes
+}
+
+func flattenAllowedAuthenticationModes(input *[]batch.AuthenticationMode) []string {
+	if input == nil || len(*input) == 0 {
+		return []string{}
+	}
+
+	allowedAuthModes := make([]string, 0)
+	for _, mode := range *input {
+		allowedAuthModes = append(allowedAuthModes, string(mode))
+	}
+	return allowedAuthModes
+}
+
 func flattenEncryption(encryptionProperties *batch.EncryptionProperties) []interface{} {
 	if encryptionProperties == nil || encryptionProperties.KeySource == batch.KeySourceMicrosoftBatch {
 		return []interface{}{}
@@ -429,4 +477,16 @@ func flattenEncryption(encryptionProperties *batch.EncryptionProperties) []inter
 			"key_vault_key_id": *encryptionProperties.KeyVaultProperties.KeyIdentifier,
 		},
 	}
+}
+
+func isShardKeyAllowed(input []interface{}) bool {
+	if len(input) == 0 {
+		return false
+	}
+	for _, authMod := range input {
+		if strings.EqualFold(authMod.(string), string(batch.AuthenticationModeSharedKey)) {
+			return true
+		}
+	}
+	return false
 }

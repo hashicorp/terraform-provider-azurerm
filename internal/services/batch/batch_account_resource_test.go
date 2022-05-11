@@ -17,6 +17,49 @@ import (
 
 type BatchAccountResource struct{}
 
+var confi = `
+
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_resource_group" "example" {
+  name = "xz3-testbatch-rg"
+}
+
+resource "azurerm_batch_account" "example" {
+  name                 = "xz3testbatchaccount1"
+  resource_group_name  = data.azurerm_resource_group.example.name
+  location             = data.azurerm_resource_group.example.location
+  pool_allocation_mode = "BatchService"
+  #  storage_account_id   = azurerm_storage_account.example.id
+
+  #allowed_authentication_modes = [
+#    "SharedKey",
+#    "AAD",
+#    "TaskAuthenticationToken"
+  #]
+
+  tags = {
+    env = "test"
+  }
+}
+`
+
+func TestAccBatchAccount_ddd(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := BatchAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: confi,
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestValidateBatchAccountName(t *testing.T) {
 	testCases := []struct {
 		input       string
@@ -153,6 +196,42 @@ func TestAccBatchAccount_cmk(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").IsSet(),
 			),
+		},
+	})
+}
+
+func TestAccBatchAccount_authenticationModes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := BatchAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationModes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allowed_authentication_modes.#").HasValue("3"),
+			),
+		},
+	})
+}
+
+func TestAccBatchAccount_authenticationModesUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := BatchAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationModes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allowed_authentication_modes.#").HasValue("3"),
+			),
+		},
+		{
+			Config: r.authenticationModesUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allowed_authentication_modes.#").HasValue("0")),
 		},
 	})
 }
@@ -498,4 +577,56 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, tenantID, tenantID, tenantID, data.RandomInteger)
+}
+
+func (BatchAccountResource) authenticationModes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+  allowed_authentication_modes = [
+	"AAD",
+	"SharedKey",
+	"TaskAuthenticationToken"
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (BatchAccountResource) authenticationModesUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+  allowed_authentication_modes = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
