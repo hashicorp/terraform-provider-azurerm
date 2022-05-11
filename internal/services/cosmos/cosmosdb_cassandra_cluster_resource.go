@@ -1,6 +1,7 @@
 package cosmos
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -36,6 +37,7 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -167,13 +169,27 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateUpdate(ctx, id.ResourceGroup, id.Name, body)
+	// Though there is update method but Service API complains it isn't implemented
+	_, err := client.CreateUpdate(ctx, id.ResourceGroup, id.Name, body)
 	if err != nil {
 		return fmt.Errorf("updating %q: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on update for %q: %+v", id, err)
+	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/19021
+	// There is a long running issue on updating this resource.
+	// The API cannot update the property after WaitForCompletionRef is returned.
+	// It has to wait a while after that. Then the property can be updated successfully.
+	stateConf := &pluginsdk.StateChangeConf{
+		Delay:      1 * time.Minute,
+		Pending:    []string{string(documentdb.ManagedCassandraProvisioningStateUpdating)},
+		Target:     []string{string(documentdb.ManagedCassandraProvisioningStateSucceeded)},
+		Refresh:    cosmosdbCassandraClusterStateRefreshFunc(ctx, client, id),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	return resourceCassandraClusterRead(d, meta)
@@ -202,4 +218,19 @@ func resourceCassandraClusterDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+
+func cosmosdbCassandraClusterStateRefreshFunc(ctx context.Context, client *documentdb.CassandraClustersClient, id parse.CassandraClusterId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
+		}
+
+		if res.Properties != nil && res.Properties.ProvisioningState != "" {
+			return res, string(res.Properties.ProvisioningState), nil
+		}
+		return nil, "", fmt.Errorf("unable to read provisioning state")
+	}
+
 }
