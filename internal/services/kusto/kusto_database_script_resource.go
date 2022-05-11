@@ -98,9 +98,9 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	clusterId := parse.NewClusterId(databaseId.SubscriptionId, databaseId.ResourceGroup, databaseId.ClusterName)
-	locks.ByID(clusterId.ClusterName)
-	defer locks.UnlockByID(clusterId.ClusterName)
+	clusterId := parse.NewClusterID(databaseId.SubscriptionId, databaseId.ResourceGroup, databaseId.ClusterName)
+	locks.ByID(clusterId.Name)
+	defer locks.UnlockByID(clusterId.Name)
 
 	forceUpdateTag := d.Get("force_an_update_when_value_changed").(string)
 	if len(forceUpdateTag) == 0 {
