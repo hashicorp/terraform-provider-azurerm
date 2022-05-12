@@ -147,7 +147,7 @@ func TestAccDataSourceKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceKubernetesCluster_advancedNetworkingNoneByOCNI(t *testing.T) {
+func TestAccDataSourceKubernetesCluster_advancedNetworkingNone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
