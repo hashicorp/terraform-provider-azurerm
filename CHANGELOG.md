@@ -4,6 +4,8 @@ FEATURES:
 
 * **New Resource**: `azurerm_managed_disk_sas_token` [GH-15558]
 * **New Resource**: `azurerm_spring_cloud_gateway` [GH-16175]
+* **New Resource**: `azurerm_confidential_ledger` [GH-15420]
+
  
 ENHANCEMENTS:
 
