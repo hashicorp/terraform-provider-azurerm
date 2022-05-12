@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Redis Cache should be located. Changing this forces a new Redis Cache to be created.
 
--> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+-> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](https://aka.ms/azenroll).
 
 ---
 
@@ -198,7 +198,7 @@ A `redis_configuration` block exports the following:
 
 ## Relevant Links
  - [Azure Cache for Redis planning](https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-planning-faq)
- - [Redis: Available Configuration Settings](http://redis.io/topics/config)
+ - [Redis: Available Configuration Settings](https://redis.io/topics/config)
 
 ## Timeouts
 
