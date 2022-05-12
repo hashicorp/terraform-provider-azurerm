@@ -46,7 +46,7 @@ func SQLTempDBStorageSettingSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  256,
 				},
-				"data_growth": {
+				"data_file_growth_in_mb": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
 					Default:  512,
