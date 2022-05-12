@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-10-01/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

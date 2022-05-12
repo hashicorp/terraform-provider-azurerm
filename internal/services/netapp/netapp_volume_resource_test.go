@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-10-01/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -40,6 +41,23 @@ func TestAccNetAppVolume_nfsv41(t *testing.T) {
 			Config: r.nfsv41(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_features").HasValue(string(netapp.NetworkFeaturesBasic)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_standardNetworkFeature(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standardNetworkFeature(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_features").HasValue(string(netapp.NetworkFeaturesStandard)),
 			),
 		},
 		data.ImportStep(),
@@ -297,6 +315,27 @@ resource "azurerm_netapp_volume" "test" {
     unix_read_only    = false
     unix_read_write   = true
   }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) standardNetworkFeature(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-%d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  network_features    = "Standard"
+  protocols           = ["NFSv3"]
+  storage_quota_in_gb = 100
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }

@@ -69,6 +69,7 @@ resource "azurerm_netapp_volume" "example" {
   volume_path                = "my-unique-file-path"
   service_level              = "Premium"
   subnet_id                  = azurerm_subnet.example.id
+  network_features           = "Basic"
   protocols                  = ["NFSv4.1"]
   security_style             = "Unix"
   storage_quota_in_gb        = 100
@@ -117,6 +118,8 @@ The following arguments are supported:
 * `security_style` - (Optional) Volume security style, accepted values are `Unix` or `Ntfs`. If not provided, single-protocol volume is created defaulting to `Unix` if it is `NFSv3` or `NFSv4.1` volume, if `CIFS`, it will default to `Ntfs`. In a dual-protocol volume, if not provided, its value will be `Ntfs`.
 
 * `subnet_id` - (Required) The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation. Changing this forces a new resource to be created.
+
+* `network_features` - (Optional) Indicates which network feature to use, accepted values are `Basic` or `Standard`, it defaults to `Basic` if not defined. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://docs.microsoft.com/en-us/azure/azure-netapp-files/configure-network-features).
 
 * `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
 
