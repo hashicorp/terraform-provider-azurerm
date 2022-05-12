@@ -45,7 +45,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `storage_account_name` - The backend storage account name used by this Function App.
 
-* `app_settings` - A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
+* `app_settings` - A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
 * `auth_settings` - A `auth_settings` block as defined below.
 

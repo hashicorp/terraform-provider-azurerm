@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `subresource_name` - (Required) Specifies the sub resource name which the Synapse Private Endpoint is able to connect to. Changing this forces a new resource to be created.
 
--> **NOTE:** Possible values are listed in [documentation](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview#dns-configuration).
+-> **NOTE:** Possible values are listed in [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#dns-configuration).
 
 ## Attributes Reference
 

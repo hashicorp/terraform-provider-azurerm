@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `access_level` - (Required) The level of access required on the disk. Supported are Read, Write.
 
-Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/en-us/rest/api/compute/disks/grant-access)
+Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/rest/api/compute/disks/grant-access)
 for additional details on the fields above.
 
 ## Attributes Reference
