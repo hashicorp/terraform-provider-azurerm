@@ -2,13 +2,12 @@
 
 FEATURES:
 
+* **New Resource**: `azurerm_confidential_ledger` [GH-15420]
 * **New Resource**: `azurerm_managed_disk_sas_token` [GH-15558]
 * **New Resource**: `azurerm_spring_cloud_gateway` [GH-16175]
-* **New Resource**: `azurerm_confidential_ledger` [GH-15420]
+* **New Resource**: `azurerm_spring_cloud_build_pack_binding` [GH-16673]
 
- 
 ENHANCEMENTS:
-
 
 * `azurerm_kubernetes_cluster_node_pool` - the property `node_labels` can now be updated [GH-16360]
 * `azurerm_kubernetes_cluster` - the property `default_node_pool.node_labels` can now be updated [GH-16360]
@@ -18,7 +17,6 @@ ENHANCEMENTS:
 * `azurerm_snapshot` - support for the `trusted_launch_enabled` propertyu [GH-16679]
 * `azurerm_stream_analytics_function_javascript_uda` - support for the `input.configuration_parameter` property [GH-16575]
 * `azurerm_stream_analytics_function_javascript_udf` - support for the `input.configuration_parameter` property [GH-16579]
-
 
 BUG FIXES:
 
