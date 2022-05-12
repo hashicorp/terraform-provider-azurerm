@@ -99,7 +99,6 @@ github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedappl
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions
-github.com/Azure/azure-sdk-for-go/services/search/mgmt/2020-03-13/search
 github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2021-06-01/servicefabric
 github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage
 github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache
