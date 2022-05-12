@@ -56,7 +56,7 @@ func SQLTempDBStorageSettingSchema() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				"log_file_size": {
+				"log_file_size_mb": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
 					Default:  256,
