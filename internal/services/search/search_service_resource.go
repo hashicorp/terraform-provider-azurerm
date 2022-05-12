@@ -282,6 +282,9 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	queryKeysClient := meta.(*clients.Client).Search.QueryKeysClient
 	queryKeysId, err := querykeys.ParseSearchServiceID(d.Id())
+	if err != nil {
+		return err
+	}
 	queryKeysResp, err := queryKeysClient.ListBySearchService(ctx, *queryKeysId, querykeys.ListBySearchServiceOperationOptions{})
 	if err == nil {
 		if model := queryKeysResp.Model; model != nil {
