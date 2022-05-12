@@ -9,6 +9,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_container_group` - support for the `key_vault_key_id` property (Customer Managed Key encryption) [GH-16709]
 * `azurerm_kubernetes_cluster_node_pool` - the property `node_labels` can now be updated [GH-16360]
 * `azurerm_kubernetes_cluster` - the property `default_node_pool.node_labels` can now be updated [GH-16360]
 * `azurerm_kubernetes_cluster` - allow value `none` for `network_profile.network_plugin` [GH-16250]
