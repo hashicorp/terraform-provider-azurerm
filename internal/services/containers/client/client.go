@@ -22,6 +22,7 @@ type Client struct {
 	WebhooksClient                    *containerregistry.WebhooksClient
 	TokensClient                      *containerregistry.TokensClient
 	ScopeMapsClient                   *containerregistry.ScopeMapsClient
+	SnapshotsClient                   *containerservice.SnapshotsClient
 	TasksClient                       *legacyacr.TasksClient
 	ConnectedRegistriesClient         *containerregistry.ConnectedRegistriesClient
 
@@ -66,6 +67,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	servicesClient := legacy.NewContainerServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
 
+	snapshotsClient := containerservice.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&snapshotsClient.Client, o.ResourceManagerAuthorizer)
+
 	connectedRegistriesClient := containerregistry.NewConnectedRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&connectedRegistriesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -79,6 +83,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		WebhooksClient:                    &webhooksClient,
 		ReplicationsClient:                &replicationsClient,
 		ServicesClient:                    &servicesClient,
+		SnapshotsClient:                   &snapshotsClient,
 		Environment:                       o.Environment,
 		TokensClient:                      &tokensClient,
 		ScopeMapsClient:                   &scopeMapsClient,
