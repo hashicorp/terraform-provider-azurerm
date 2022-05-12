@@ -2,6 +2,7 @@ package batch
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"strings"
 	"time"
@@ -59,6 +60,24 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			},
+
+			"storage_account_authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(batch.AutoStorageAuthenticationModeStorageKeys),
+					string(batch.AutoStorageAuthenticationModeBatchAccountManagedIdentity),
+				}, false),
+				Default:      string(batch.AutoStorageAuthenticationModeStorageKeys),
+				RequiredWith: []string{"storage_account_id"},
+			},
+
+			"storage_account_node_identity": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+				RequiredWith: []string{"storage_account_id"},
 			},
 
 			"allowed_authentication_modes": {
@@ -216,9 +235,23 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		parameters.KeyVaultReference = keyVaultReference
 	}
 
+	authMode := d.Get("storage_account_authentication_mode").(string)
+	if batch.AutoStorageAuthenticationMode(authMode) == batch.AutoStorageAuthenticationModeBatchAccountManagedIdentity &&
+		identity.Type == batch.ResourceIdentityTypeNone {
+		return fmt.Errorf(" storage_account_authentication_mode=`BatchAccountManagedIdentity` can only be set when identity.type is `SystemAssigned` or `UserAssigned`")
+	}
+
 	if storageAccountId != "" {
 		parameters.AccountCreateProperties.AutoStorage = &batch.AutoStorageBaseProperties{
-			StorageAccountID: &storageAccountId,
+			StorageAccountID:   &storageAccountId,
+			AuthenticationMode: batch.AutoStorageAuthenticationMode(authMode),
+		}
+	}
+
+	nodeIdentity := d.Get("storage_account_node_identity").(string)
+	if nodeIdentity != "" {
+		parameters.AccountCreateProperties.AutoStorage.NodeIdentityReference = &batch.ComputeNodeIdentityReference{
+			ResourceID: utils.String(nodeIdentity),
 		}
 	}
 
@@ -275,6 +308,11 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("account_endpoint", props.AccountEndpoint)
 		if autoStorage := props.AutoStorage; autoStorage != nil {
 			d.Set("storage_account_id", autoStorage.StorageAccountID)
+			d.Set("storage_account_authentication_mode", autoStorage.AuthenticationMode)
+
+			if autoStorage.NodeIdentityReference != nil {
+				d.Set("storage_account_node_identity", autoStorage.NodeIdentityReference.ResourceID)
+			}
 		}
 
 		if props.PublicNetworkAccess != "" {
@@ -337,10 +375,24 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		Tags:     tags.Expand(t),
 	}
 
+	authMode := d.Get("storage_account_authentication_mode").(string)
+	if batch.AutoStorageAuthenticationMode(authMode) == batch.AutoStorageAuthenticationModeBatchAccountManagedIdentity &&
+		identity.Type == batch.ResourceIdentityTypeNone {
+		return fmt.Errorf(" storage_account_authentication_mode=`BatchAccountManagedIdentity` can only be set when identity.type is `SystemAssigned` or `UserAssigned`")
+	}
+
 	storageAccountId := d.Get("storage_account_id").(string)
 	if storageAccountId != "" {
 		parameters.AutoStorage = &batch.AutoStorageBaseProperties{
-			StorageAccountID: &storageAccountId,
+			StorageAccountID:   &storageAccountId,
+			AuthenticationMode: batch.AutoStorageAuthenticationMode(authMode),
+		}
+	}
+
+	nodeIdentity := d.Get("storage_account_node_identity").(string)
+	if nodeIdentity != "" {
+		parameters.AutoStorage.NodeIdentityReference = &batch.ComputeNodeIdentityReference{
+			ResourceID: utils.String(nodeIdentity),
 		}
 	}
 
