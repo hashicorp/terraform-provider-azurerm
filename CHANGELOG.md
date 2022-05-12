@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_snapshot` - support for the `trusted_launch_enabled` propertyu [GH-16679]
 * `azurerm_stream_analytics_function_javascript_uda` - support for the `input.configuration_parameter` property [GH-16575]
 * `azurerm_stream_analytics_function_javascript_udf` - support for the `input.configuration_parameter` property [GH-16579]
+* `azurerm_synapse_workspace` - correctly update the `public_network_access_enabled` property [GH-16733]
 
 BUG FIXES:
 
