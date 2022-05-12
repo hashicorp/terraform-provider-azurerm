@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2020-03-13/search"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -59,13 +58,13 @@ func resourceSearchService() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(search.Free),
-					string(search.Basic),
-					string(search.Standard),
-					string(search.Standard2),
-					string(search.Standard3),
-					string(search.StorageOptimizedL1),
-					string(search.StorageOptimizedL2),
+					string(services.SkuNameFree),
+					string(services.SkuNameBasic),
+					string(services.SkuNameStandard),
+					string(services.SkuNameStandardTwo),
+					string(services.SkuNameStandardThree),
+					string(services.SkuNameStorageOptimizedLOne),
+					string(services.SkuNameStorageOptimizedLOne),
 				}, false),
 			},
 
@@ -359,22 +358,4 @@ func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
 		result = append(result, rule.Value)
 	}
 	return result
-}
-
-func flattenSearchServiceIdentity(input *search.Identity) []interface{} {
-	var transition *identity.SystemAssigned
-
-	if input != nil {
-		transition = &identity.SystemAssigned{
-			Type: identity.Type(string(input.Type)),
-		}
-		if input.PrincipalID != nil {
-			transition.PrincipalId = *input.PrincipalID
-		}
-		if input.TenantID != nil {
-			transition.TenantId = *input.TenantID
-		}
-	}
-
-	return identity.FlattenSystemAssigned(transition)
 }
