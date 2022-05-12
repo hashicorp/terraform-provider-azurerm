@@ -15,11 +15,11 @@ import (
 
 type CassandraClusterResource struct{}
 
-func TestAccCassandraCluster_basic(t *testing.T) {
+func testAccCassandraCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_cluster", "test")
 	r := CassandraClusterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
@@ -30,11 +30,11 @@ func TestAccCassandraCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccCassandraCluster_requiresImport(t *testing.T) {
+func testAccCassandraCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_cluster", "test")
 	r := CassandraClusterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -89,10 +89,14 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
+data "azuread_service_principal" "test" {
+  display_name = "Azure Cosmos DB"
+}
+
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_virtual_network.test.id
   role_definition_name = "Network Contributor"
-  principal_id         = "255f3c8e-0c3d-4f06-ba9d-2fb68af0faed"
+  principal_id         = data.azuread_service_principal.test.object_id
 }
 
 resource "azurerm_cosmosdb_cassandra_cluster" "test" {
@@ -101,6 +105,8 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   location                       = azurerm_resource_group.test.location
   delegated_management_subnet_id = azurerm_subnet.test.id
   default_admin_password         = "Password1234"
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, data.RandomInteger, data.Locations.Secondary)
 }
