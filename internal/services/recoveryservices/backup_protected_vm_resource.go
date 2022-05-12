@@ -11,11 +11,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	vmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -292,7 +290,7 @@ func expandDiskLunList(input []interface{}) []interface{} {
 }
 
 func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
 		"recovery_vault_name": {
@@ -337,10 +335,4 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 			},
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		schema["tags"] = tags.SchemaDeprecatedUnsupported()
-	}
-
-	return schema
 }

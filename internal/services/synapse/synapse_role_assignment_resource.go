@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -75,29 +74,18 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 				DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
 					return migration.MigrateToNewRole(old) == migration.MigrateToNewRole(new)
 				},
-				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-					out := []string{
-						"Apache Spark Administrator",
-						"Synapse Administrator",
-						"Synapse Artifact Publisher",
-						"Synapse Artifact User",
-						"Synapse Compute Operator",
-						"Synapse Contributor",
-						"Synapse Credential User",
-						"Synapse Linked Data Manager",
-						"Synapse SQL Administrator",
-						"Synapse User",
-					}
-
-					if !features.ThreePointOh() {
-						out = append(out, []string{
-							"Workspace Admin",
-							"Apache Spark Admin",
-							"Sql Admin",
-						}...)
-					}
-					return validation.StringInSlice(out, false)
-				}(),
+				ValidateFunc: validation.StringInSlice([]string{
+					"Apache Spark Administrator",
+					"Synapse Administrator",
+					"Synapse Artifact Publisher",
+					"Synapse Artifact User",
+					"Synapse Compute Operator",
+					"Synapse Contributor",
+					"Synapse Credential User",
+					"Synapse Linked Data Manager",
+					"Synapse SQL Administrator",
+					"Synapse User",
+				}, false),
 			},
 		},
 	}

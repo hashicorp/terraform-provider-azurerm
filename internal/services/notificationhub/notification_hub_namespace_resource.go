@@ -13,12 +13,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -82,8 +80,7 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(notificationhubs.NamespaceTypeMessaging),
 					string(notificationhubs.NamespaceTypeNotificationHub),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"tags": tags.Schema(),

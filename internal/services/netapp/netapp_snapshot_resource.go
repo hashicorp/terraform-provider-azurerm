@@ -11,69 +11,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceNetAppSnapshot() *pluginsdk.Resource {
-	s := map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.SnapshotName,
-		},
-
-		"resource_group_name": azure.SchemaResourceGroupName(),
-
-		"location": azure.SchemaLocation(),
-
-		"account_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.AccountName,
-		},
-
-		"pool_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.PoolName,
-		},
-
-		"volume_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.VolumeName,
-		},
-	}
-
-	if !features.ThreePointOhBeta() {
-		s["tags"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-			Deprecated: "This property has been deprecated as the API no longer supports tags and will be removed in version 3.0 of the provider.",
-		}
-	}
 	return &pluginsdk.Resource{
 		Create: resourceNetAppSnapshotCreate,
 		Read:   resourceNetAppSnapshotRead,
-		Update: func() pluginsdk.UpdateFunc {
-			if !features.ThreePointOhBeta() {
-				return resourceNetAppSnapshotUpdate
-			}
-			return nil
-		}(),
 		Delete: resourceNetAppSnapshotDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -87,7 +35,39 @@ func resourceNetAppSnapshot() *pluginsdk.Resource {
 			return err
 		}),
 
-		Schema: s,
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.SnapshotName,
+			},
+
+			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"location": azure.SchemaLocation(),
+
+			"account_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.AccountName,
+			},
+
+			"pool_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.PoolName,
+			},
+
+			"volume_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.VolumeName,
+			},
+		},
 	}
 }
 
@@ -111,10 +91,6 @@ func resourceNetAppSnapshotCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-
-	if !features.ThreePointOhBeta() && tags.Expand(d.Get("tags").(map[string]interface{})) != nil {
-		log.Printf("[WARN] Tags are not supported on snaphots anymore, ignoring values.")
-	}
 
 	parameters := netapp.Snapshot{
 		Location: utils.String(location),
@@ -162,19 +138,6 @@ func resourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	return nil
-}
-
-// CLEANUP: remove this in version 3.0 of the provider
-func resourceNetAppSnapshotUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	if !features.ThreePointOhBeta() {
-		// Snapshot resource in Azure changed its type to proxied resource, therefore
-		// tags are not supported anymore, ignoring any tags.
-		if tags.Expand(d.Get("tags").(map[string]interface{})) == nil {
-			log.Printf("[WARN] Tags are not supported on snaphots anymore, no update will happen in a snapshot at this time.")
-		}
-	}
-
-	return resourceNetAppSnapshotRead(d, meta)
 }
 
 func resourceNetAppSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
