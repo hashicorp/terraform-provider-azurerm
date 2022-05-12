@@ -21,6 +21,8 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_app_configuration_feature` - allow successful creation of resource without specifying any optional filters [GH-16459]
+* `azurerm_mssql_managed_instance_failover_group` - correctly import resource and sent primary isntance id [GH-16705]
+
 
 ## 3.5.0 (May 05, 2022)
 
