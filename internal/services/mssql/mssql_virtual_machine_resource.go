@@ -286,7 +286,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 						"data_settings":    helper.StorageSettingSchema(),
 						"log_settings":     helper.StorageSettingSchema(),
 						"temp_db_settings": helper.SQLTempDBStorageSettingSchema(),
-						"sql_system_db_on_datadisk": {
+						"system_db_on_datadisk_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
