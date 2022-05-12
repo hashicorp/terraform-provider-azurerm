@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-var addOnAppGatewaySubnetCIDR string = "10.241.0.0/16" // AKS will use 10.240.0.0/16 for the aks subnet so use 10.241.0.0/16 for the app gateway subnet
+var addOnAppGatewaySubnetCIDR string = "10.225.0.0/16" // AKS will use 10.224.0.0/12 for the aks subnet so use 10.225.0.0/16 for the app gateway subnet
 
 func TestAccKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
