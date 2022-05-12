@@ -257,11 +257,11 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 		}
 
-		if err := d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+		if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %s", err)
 		}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}
