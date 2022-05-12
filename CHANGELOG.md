@@ -7,11 +7,17 @@ FEATURES:
  
 ENHANCEMENTS:
 
+
 * `azurerm_kubernetes_cluster_node_pool` - the property `node_labels` can now be updated [GH-16360]
 * `azurerm_kubernetes_cluster` - the property `default_node_pool.node_labels` can now be updated [GH-16360]
 * `azurerm_storage_share` - add `access_tier` attribute [GH-16462]
 * `azurerm_snapshot` - support for the `trusted_launch_enabled` propertyu [GH-16679]
 * `azurerm_stream_analytics_function_javascript_udf` - support for the `input.configuration_parameter` property [GH-16579]
+
+
+BUG FIXES:
+
+* `azurerm_app_configuration_feature` - allow successful creation of resource without specifying any optional filters [GH-16459]
 
 ## 3.5.0 (May 05, 2022)
 
