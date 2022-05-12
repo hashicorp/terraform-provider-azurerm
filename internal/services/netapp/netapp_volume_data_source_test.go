@@ -34,6 +34,15 @@ func (NetAppVolumeDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  alias = "all"
+  features {
+    resource_group {
+	  prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 data "azurerm_netapp_volume" "test" {
   resource_group_name = azurerm_netapp_volume.test.resource_group_name
   account_name        = azurerm_netapp_volume.test.account_name
