@@ -58,7 +58,7 @@ resource "azurerm_cosmosdb_cassandra_cluster" "example" {
   location                       = azurerm_resource_group.example.location
   delegated_management_subnet_id = azurerm_subnet.example.id
   default_admin_password         = "Password1234"
-  
+
   depends_on = [azurerm_role_assignment.example]
 }
 ```
