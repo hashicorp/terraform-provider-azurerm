@@ -13,7 +13,7 @@ Manages a 3rd Generation (v3) App Service Environment.
 
 ## Example Usage
 
-This example provisions an App Service Environment V3. Additional examples of how to use the `azurerm_app_service_environment_v3` resource can be found [in the `./examples/app-service-environment-v3` directory](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service-environment-v3) within the Github Repository.
+This example provisions an App Service Environment V3. Additional examples of how to use the `azurerm_app_service_environment_v3` resource can be found [in the `./examples/app-service-environment-v3` directory](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/app-service-environment-v3) within the GitHub Repository.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -109,7 +109,7 @@ A `cluster_setting` block supports the following:
 
 * `value` - (Required) The value for the Cluster Setting. 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments above, the following Attributes are exported:
 

@@ -58,20 +58,20 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Data Factory MySql Linked Service.
+* `id` - The ID of the Data Factory MySQL Linked Service.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Data Factory MySql Linked Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Data Factory MySql Linked Service.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory MySql Linked Service.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory MySql Linked Service.
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory MySQL Linked Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory MySQL Linked Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory MySQL Linked Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory MySQL Linked Service.
 
 ## Import
 
-Data Factory MySql Linked Service's can be imported using the `resource id`, e.g.
+Data Factory MySQL Linked Service's can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_data_factory_linked_service_mysql.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/linkedservices/example

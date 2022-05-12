@@ -64,9 +64,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku_name` - (Optional) Sku name of the Firewall. Possible values are `AZFW_Hub` and `AZFW_VNet`.  Changing this forces a new resource to be created.
+* `sku_name` - (Optional) SKU name of the Firewall. Possible values are `AZFW_Hub` and `AZFW_VNet`.  Changing this forces a new resource to be created.
 
-* `sku_tier` - (Optional) Sku tier of the Firewall. Possible values are `Premium` and `Standard`.  Changing this forces a new resource to be created.
+* `sku_tier` - (Optional) SKU tier of the Firewall. Possible values are `Premium` and `Standard`.  Changing this forces a new resource to be created.
 
 * `firewall_policy_id` - (Optional) The ID of the Firewall Policy applied to this Firewall.
 
@@ -104,7 +104,7 @@ An `ip_configuration` block supports the following:
 
 * `public_ip_address_id` - (Required) The ID of the Public IP Address associated with the firewall.
 
--> **NOTE** The Public IP must have a `Static` allocation and `Standard` sku.
+-> **NOTE** The Public IP must have a `Static` allocation and `Standard` SKU.
 
 ---
 
@@ -118,7 +118,7 @@ A `management_ip_configuration` block supports the following:
 
 * `public_ip_address_id` - (Required) The ID of the Public IP Address associated with the firewall.
 
--> **NOTE** The Public IP must have a `Static` allocation and `Standard` sku.
+-> **NOTE** The Public IP must have a `Static` allocation and `Standard` SKU.
 
 ---
 

@@ -34,12 +34,12 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies The name of the Healthbot Service resource. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies The name of the Resource Group in which to create the Healtbot Service. CHaning this
+* `resource_group_name` - (Required) Specifies The name of the Resource Group in which to create the Healthbot Service. changing this
    forces a new resource to be created.
 
 * `location` - (Required) Specifies The Azure Region where the resource exists. CHanging this force a new resource to be created.
 
-* `sku_name` - (Required) The name which should be used for the sku of the service. Possible values are "F0" and "S1".
+* `sku_name` - (Required) The name which should be used for the SKU of the service. Possible values are "F0" and "S1".
 
 ---
 
@@ -60,7 +60,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating a Heatlthbot Service.
+* `create` - (Defaults to 30 minutes) Used when creating a Healthbot Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving a Healthbot Service.
 * `update` - (Defaults to 30 minutes) Used when updating a Healthbot Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting a Healthbot Service.

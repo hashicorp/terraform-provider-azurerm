@@ -2100,9 +2100,8 @@ func MergeUserAppSettings(systemSettings *[]web.NameValuePair, userSettings map[
 	for k, v := range userSettings {
 		// Dedupe, explicit user settings take priority over enumerated, e.g. specifying KeyVault for `AzureWebJobsStorage`
 		for i, x := range combined {
-			if strings.EqualFold(*x.Name, v) {
+			if x.Name != nil && strings.EqualFold(*x.Name, k) {
 				copy(combined[i:], combined[i+1:])
-				combined[len(combined)-1] = web.NameValuePair{}
 				combined = combined[:len(combined)-1]
 			}
 		}

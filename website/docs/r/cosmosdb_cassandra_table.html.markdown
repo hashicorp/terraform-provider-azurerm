@@ -13,14 +13,15 @@ Manages a Cassandra Table within a Cosmos DB Cassandra Keyspace.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "tflex-cosmosdb-account-rg"
+resource "azurerm_resource_group" "example" {
+  name     = "tflex-cosmosdb-account-rg"
+  location = "West Europe"
 }
 
 resource "azurerm_cosmosdb_account" "example" {
   name                = "tfex-cosmosdb-account"
-  resource_group_name = data.azurerm_resource_group.example.name
-  location            = data.azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   offer_type          = "Standard"
 
   capabilities {
@@ -32,7 +33,7 @@ resource "azurerm_cosmosdb_account" "example" {
   }
 
   geo_location {
-    location          = "West US"
+    location          = azurerm_resource_group.example.location
     failover_priority = 0
   }
 }

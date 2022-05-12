@@ -12,7 +12,7 @@ Manages as an Azure Container Group instance.
 
 ## Example Usage
 
-This example provisions a Basic Container. Other examples of the `azurerm_container_group` resource can be found in [the `./examples/container-instance` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/container-instance).
+This example provisions a Basic Container. Other examples of the `azurerm_container_group` resource can be found in [the `./examples/container-instance` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/container-instance).
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -86,9 +86,11 @@ The following arguments are supported:
 
 ~> **Note:** The `exposed_port` can only contain ports that are also exposed on one or more containers in the group. 
 
-* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public`, `Private` or `None`. Changing this forces a new resource to be created. If set to `Private`, `network_profile_id` also needs to be set.
+* `ip_address_type` - (Optional) Specifies the IP address type of the container. `Public`, `Private` or `None`. Changing this forces a new resource to be created. If set to `Private`, `network_profile_id` also needs to be set.
 
 ~> **Note:** `dns_name_label` and `os_type` set to `windows` are not compatible with `Private` `ip_address_type`
+
+* `key_vault_key_id` - (Optional) The Key Vault key URI for CMK encryption. Changing this forces a new resource to be created.
 
 * `network_profile_id` - (Optional) Network profile ID for deploying to virtual network.
 
@@ -210,7 +212,7 @@ A `gpu` block supports:
 
 * `count` - (Required) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The Sku which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
+* `sku` - (Required) The SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
 
 ---
 
