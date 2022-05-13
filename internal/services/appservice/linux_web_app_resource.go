@@ -52,6 +52,7 @@ type LinuxWebAppModel struct {
 	PossibleOutboundIPAddresses   string                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                   `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential   `tfschema:"site_credential"`
+	ZipDeployFile                 string                     `tfschema:"zip_deploy_file"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppResource{}
@@ -143,6 +144,14 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"sticky_settings": helpers.StickySettingsSchema(),
 
 		"storage_account": helpers.StorageAccountSchema(),
+
+		"zip_deploy_file": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` on the App in `app_settings`.",
+		},
 
 		"tags": tags.Schema(),
 	}
@@ -378,6 +387,12 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if webApp.ZipDeployFile != "" {
+				if err = helpers.GetCredentialsAndPublish(ctx, client, id.ResourceGroup, id.SiteName, webApp.ZipDeployFile); err != nil {
+					return err
+				}
+			}
+
 			return nil
 		},
 	}
@@ -505,6 +520,11 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
 			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
+
+			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
+			if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
+				state.ZipDeployFile = deployFile
+			}
 
 			if err := metadata.Encode(&state); err != nil {
 				return fmt.Errorf("encoding: %+v", err)
@@ -702,6 +722,12 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
 					return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("zip_deploy_file") || metadata.ResourceData.HasChange("zip_deploy_file") {
+				if err = helpers.GetCredentialsAndPublish(ctx, client, id.ResourceGroup, id.SiteName, state.ZipDeployFile); err != nil {
+					return err
 				}
 			}
 
