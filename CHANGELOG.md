@@ -11,8 +11,10 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v64.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-16631]
 * dependencies: upgrade `network` to `2021-08-01` [GH-16631]
 * `azurerm_container_group` - support for the `key_vault_key_id` property (Customer Managed Key encryption) [GH-16709]
+* `azurerm_cosmosdb_account` - support mongo version `4.2` [GH-16738]
 * `azurerm_kubernetes_cluster_node_pool` - the property `node_labels` can now be updated [GH-16360]
 * `azurerm_kubernetes_cluster` - the property `default_node_pool.node_labels` can now be updated [GH-16360]
 * `azurerm_kubernetes_cluster` - allow value `none` for `network_profile.network_plugin` [GH-16250]
