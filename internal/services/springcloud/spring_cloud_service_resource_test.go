@@ -160,6 +160,7 @@ func TestAccSpringCloudService_serviceRegistry(t *testing.T) {
 			Config: r.serviceRegistry(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_registry_id").Exists(),
 			),
 		},
 		data.ImportStep(),
