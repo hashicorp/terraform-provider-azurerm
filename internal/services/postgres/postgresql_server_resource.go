@@ -16,13 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -127,8 +125,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 					string(postgresql.OneOne),
 					string(postgresql.OneZero),
 					string(postgresql.OneZeroFullStopZero),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"administrator_login": {
@@ -148,13 +145,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			"auto_grow_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default: func() interface{} {
-					if features.ThreePointOhBeta() {
-						return true
-					}
-					return nil
-				}(),
-				Computed: !features.ThreePointOhBeta(),
+				Default:  true,
 			},
 
 			"backup_retention_days": {
@@ -168,13 +159,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Computed: !features.ThreePointOhBeta(),
-				Default: func() interface{} {
-					if !features.ThreePointOhBeta() {
-						return nil
-					}
-					return false
-				}(),
+				Default:  false,
 			},
 
 			"create_mode": {
@@ -228,12 +213,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			"ssl_minimal_tls_version_enforced": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default: func() interface{} {
-					if features.ThreePointOhBeta() {
-						return string(postgresql.TLS12)
-					}
-					return string(postgresql.TLSEnforcementDisabled)
-				}(),
+				Default:  string(postgresql.TLS12),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.TLSEnforcementDisabled),
 					string(postgresql.TLS10),
@@ -468,6 +448,11 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 		time, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 
+		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
+		if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
+			return fmt.Errorf("`public_network_access_enabled` doesn't support PointInTimeRestore mode")
+		}
+
 		props = &postgresql.ServerPropertiesForRestore{
 			CreateMode:     mode,
 			SourceServerID: &source,
@@ -475,7 +460,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 				Time: time,
 			},
 			InfrastructureEncryption: infraEncrypt,
-			PublicNetworkAccess:      publicAccess,
 			MinimalTLSVersion:        tlsMin,
 			SslEnforcement:           ssl,
 			StorageProfile:           storage,
@@ -649,11 +633,6 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	publicAccess := postgresql.PublicNetworkAccessEnumEnabled
-	if v := d.Get("public_network_access_enabled"); !v.(bool) {
-		publicAccess = postgresql.PublicNetworkAccessEnumDisabled
-	}
-
 	ssl := postgresql.SslEnforcementEnumEnabled
 	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
 		ssl = postgresql.SslEnforcementEnumDisabled
@@ -673,14 +652,26 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	properties := postgresql.ServerUpdateParameters{
 		Identity: expandedIdentity,
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
-			PublicNetworkAccess: publicAccess,
-			SslEnforcement:      ssl,
-			MinimalTLSVersion:   tlsMin,
-			StorageProfile:      expandPostgreSQLStorageProfile(d),
-			Version:             postgresql.ServerVersion(d.Get("version").(string)),
+			SslEnforcement:    ssl,
+			MinimalTLSVersion: tlsMin,
+			StorageProfile:    expandPostgreSQLStorageProfile(d),
+			Version:           postgresql.ServerVersion(d.Get("version").(string)),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if mode == postgresql.CreateModePointInTimeRestore {
+		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
+		if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
+			return fmt.Errorf("`public_network_access_enabled` doesn't support PointInTimeRestore mode")
+		}
+	} else {
+		publicAccess := postgresql.PublicNetworkAccessEnumEnabled
+		if v := d.Get("public_network_access_enabled"); !v.(bool) {
+			publicAccess = postgresql.PublicNetworkAccessEnumDisabled
+		}
+		properties.ServerUpdateParametersProperties.PublicNetworkAccess = publicAccess
 	}
 
 	oldCreateMode, newCreateMode := d.GetChange("create_mode")

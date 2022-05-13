@@ -29,7 +29,7 @@ output "database_id" {
 
 * `server_id` - The id of the MS SQL Server on which to create the database.
 
-## Attribute Reference
+## Attributes Reference
 
 * `collation` - The collation of the database. 
 

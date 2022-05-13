@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -622,10 +621,6 @@ func TestAccMsSqlDatabase_geoBackupPolicy(t *testing.T) {
 }
 
 func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
-	if !features.ThreePointOhBeta() {
-		t.Skipf("This test runs only on 3.0")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
@@ -650,10 +645,6 @@ func TestAccMsSqlDatabase_transitDataEncryption(t *testing.T) {
 }
 
 func TestAccMsSqlDatabase_errorOnDisabledEncryption(t *testing.T) {
-	if !features.ThreePointOhBeta() {
-		t.Skipf("This test runs only on 3.0")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
@@ -1408,7 +1399,8 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[3]d"
   server_id = azurerm_mssql_server.test.id
   short_term_retention_policy {
-    retention_days = 8
+    retention_days           = 8
+    backup_interval_in_hours = 12
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
@@ -1438,7 +1430,8 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[3]d"
   server_id = azurerm_mssql_server.test.id
   short_term_retention_policy {
-    retention_days = 10
+    retention_days           = 10
+    backup_interval_in_hours = 24
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)

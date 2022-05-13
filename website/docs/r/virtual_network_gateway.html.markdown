@@ -129,7 +129,7 @@ The following arguments are supported:
 
 ~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be SKU "Basic" not "Standard"
 
-~> **NOTE:** Not all SKU's (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region.
+~> **NOTE:** Not all SKUs (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region.
 
 * `type` - (Required) The type of the Virtual Network Gateway. Valid options are
   `Vpn` or `ExpressRoute`. Changing the type forces a new resource to be created.

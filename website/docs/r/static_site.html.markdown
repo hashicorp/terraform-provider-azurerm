@@ -46,7 +46,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) The Type of Managed Identity assigned to this Static Site resource. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
-* `identity_ids` - (Optional) A list of Managed Identity ID's which should be assigned to this Static Site resource.
+* `identity_ids` - (Optional) A list of Managed Identity IDs which should be assigned to this Static Site resource.
 
 ## Attributes Reference
 
@@ -54,7 +54,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Static Web App.
 
-* `api_key` - The API key of this Static Web App, which is used for later interacting with this Static Web App from other clients, e.g. Github Action.
+* `api_key` - The API key of this Static Web App, which is used for later interacting with this Static Web App from other clients, e.g. GitHub Action.
   
 * `default_host_name` - The default host name of the Static Web App.
 

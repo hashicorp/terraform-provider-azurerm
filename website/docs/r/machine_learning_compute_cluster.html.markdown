@@ -79,7 +79,7 @@ resource "azurerm_subnet" "example" {
 
 resource "azurerm_machine_learning_compute_cluster" "test" {
   name                          = "example"
-  location                      = "West Europe"
+  location                      = azurerm_resource_group.example.location
   vm_priority                   = "LowPriority"
   vm_size                       = "Standard_DS2_v2"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.example.id

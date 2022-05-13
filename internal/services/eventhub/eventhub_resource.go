@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
@@ -93,7 +92,7 @@ func resourceEventHub() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(eventhubs.EncodingCaptureDescriptionAvro),
 								string(eventhubs.EncodingCaptureDescriptionAvroDeflate),
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 						"interval_in_seconds": {
 							Type:         pluginsdk.TypeInt,

@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -173,10 +172,6 @@ resource "azurerm_consumption_budget_subscription" "test" {
 }
 
 func (ConsumptionBudgetSubscriptionResource) basicUpdate(data acceptance.TestData) string {
-	subscriptionIdKey := "id"
-	if !features.ThreePointOhBeta() {
-		subscriptionIdKey = "subscription_id"
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -186,7 +181,7 @@ data "azurerm_subscription" "current" {}
 
 resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
-  subscription_id = data.azurerm_subscription.current.%s
+  subscription_id = data.azurerm_subscription.current.id
 
   // Changed the amount from 1000 to 2000
   amount     = 3000
@@ -213,7 +208,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
     ]
   }
 }
-`, data.RandomInteger, subscriptionIdKey, consumptionBudgetTestStartDate().Format(time.RFC3339), consumptionBudgetTestStartDate().AddDate(1, 1, 0).Format(time.RFC3339))
+`, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339), consumptionBudgetTestStartDate().AddDate(1, 1, 0).Format(time.RFC3339))
 }
 
 func (ConsumptionBudgetSubscriptionResource) requiresImport(data acceptance.TestData) string {
@@ -247,10 +242,6 @@ resource "azurerm_consumption_budget_subscription" "import" {
 }
 
 func (ConsumptionBudgetSubscriptionResource) complete(data acceptance.TestData) string {
-	subscriptionIdKey := "id"
-	if !features.ThreePointOhBeta() {
-		subscriptionIdKey = "subscription_id"
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -271,7 +262,7 @@ resource "azurerm_monitor_action_group" "test" {
 
 resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
-  subscription_id = data.azurerm_subscription.current.%s
+  subscription_id = data.azurerm_subscription.current.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -346,14 +337,10 @@ resource "azurerm_consumption_budget_subscription" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, subscriptionIdKey, consumptionBudgetTestStartDate().Format(time.RFC3339), consumptionBudgetTestStartDate().AddDate(1, 1, 0).Format(time.RFC3339))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339), consumptionBudgetTestStartDate().AddDate(1, 1, 0).Format(time.RFC3339))
 }
 
 func (ConsumptionBudgetSubscriptionResource) completeUpdate(data acceptance.TestData) string {
-	subscriptionIdKey := "id"
-	if !features.ThreePointOhBeta() {
-		subscriptionIdKey = "subscription_id"
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -374,7 +361,7 @@ resource "azurerm_monitor_action_group" "test" {
 
 resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
-  subscription_id = data.azurerm_subscription.current.%s
+  subscription_id = data.azurerm_subscription.current.id
 
   // Changed the amount from 1000 to 2000
   amount     = 2000
@@ -451,5 +438,5 @@ resource "azurerm_consumption_budget_subscription" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, subscriptionIdKey, consumptionBudgetTestStartDate().Format(time.RFC3339))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
 }

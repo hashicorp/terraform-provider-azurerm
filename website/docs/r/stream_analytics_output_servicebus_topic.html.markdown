@@ -13,8 +13,9 @@ Manages a Stream Analytics Output to a ServiceBus Topic.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
 }
 
 data "azurerm_stream_analytics_job" "example" {
@@ -24,8 +25,8 @@ data "azurerm_stream_analytics_job" "example" {
 
 resource "azurerm_servicebus_namespace" "example" {
   name                = "example-namespace"
-  location            = data.azurerm_resource_group.example.location
-  resource_group_name = data.azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 }
 

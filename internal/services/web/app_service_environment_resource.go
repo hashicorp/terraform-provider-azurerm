@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
@@ -64,11 +63,8 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 	internalLoadBalancingMode := d.Get("internal_load_balancing_mode").(string)
 	internalLoadBalancingMode = strings.ReplaceAll(internalLoadBalancingMode, " ", "")
 	t := d.Get("tags").(map[string]interface{})
-	var userWhitelistedIPRangesRaw []interface{}
-	if !features.ThreePointOhBeta() {
-		userWhitelistedIPRangesRaw = d.Get("user_whitelisted_ip_ranges").(*pluginsdk.Set).List()
-	}
 
+	var userWhitelistedIPRangesRaw []interface{}
 	if v, ok := d.GetOk("allowed_user_ip_cidrs"); ok {
 		userWhitelistedIPRangesRaw = v.(*pluginsdk.Set).List()
 	}
@@ -200,10 +196,6 @@ func resourceAppServiceEnvironmentUpdate(d *pluginsdk.ResourceData, meta interfa
 		e.AppServiceEnvironment.MultiSize = utils.String(v)
 	}
 
-	if !features.ThreePointOhBeta() && d.HasChanges("user_whitelisted_ip_ranges") {
-		e.UserWhitelistedIPRanges = utils.ExpandStringSlice(d.Get("user_whitelisted_ip_ranges").(*pluginsdk.Set).List())
-	}
-
 	if d.HasChanges("allowed_user_ip_cidrs") {
 		if v, ok := d.GetOk("allowed_user_ip_cidrs"); ok {
 			e.UserWhitelistedIPRanges = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
@@ -284,9 +276,6 @@ func resourceAppServiceEnvironmentRead(d *pluginsdk.ResourceData, meta interface
 			pricingTier = convertToIsolatedSKU(*props.MultiSize)
 		}
 		d.Set("pricing_tier", pricingTier)
-		if !features.ThreePointOhBeta() {
-			d.Set("user_whitelisted_ip_ranges", props.UserWhitelistedIPRanges)
-		}
 		d.Set("allowed_user_ip_cidrs", props.UserWhitelistedIPRanges)
 		d.Set("cluster_setting", flattenClusterSettings(props.ClusterSettings))
 	}
@@ -425,7 +414,7 @@ func flattenClusterSettings(input *[]web.NameValuePair) interface{} {
 }
 
 func resourceAppServiceEnvironmentSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -497,25 +486,13 @@ func resourceAppServiceEnvironmentSchema() map[string]*pluginsdk.Schema {
 		"allowed_user_ip_cidrs": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
-			Computed: !features.ThreePointOhBeta(),
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"user_whitelisted_ip_ranges"}
-				}
-				return []string{}
-			}(),
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: helpersValidate.CIDR,
 			},
 		},
 
-		"resource_group_name": func() *pluginsdk.Schema {
-			if !features.ThreePointOhBeta() {
-				return commonschema.ResourceGroupNameOptionalComputed()
-			}
-			return commonschema.ResourceGroupName()
-		}(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"tags": tags.ForceNewSchema(),
 
@@ -545,18 +522,4 @@ func resourceAppServiceEnvironmentSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 	}
-	if !features.ThreePointOhBeta() {
-		out["user_whitelisted_ip_ranges"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			Computed:      !features.ThreePointOhBeta(),
-			ConflictsWith: []string{"allowed_user_ip_cidrs"},
-			Deprecated:    "this property has been renamed to `allowed_user_ip_cidrs` better reflect the expected ip range format",
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: helpersValidate.CIDR,
-			},
-		}
-	}
-	return out
 }

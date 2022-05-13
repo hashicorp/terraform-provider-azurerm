@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -329,24 +328,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"winrm_listener": winRmListenerSchema(),
 
-			"zone": func() *pluginsdk.Schema {
-				if !features.ThreePointOhBeta() {
-					return &pluginsdk.Schema{
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						// this has to be computed because when you are trying to assign this VM to a VMSS in VMO mode with zones,
-						// the VMO mode VMSS will assign a zone for each of its instance.
-						// and if the VMSS in not zonal, this value should be left empty
-						Computed: true,
-						ConflictsWith: []string{
-							"availability_set_id",
-						},
-					}
-				}
-
-				return commonschema.ZoneSingleOptionalForceNew()
-			}(),
+			"zone": commonschema.ZoneSingleOptionalForceNew(),
 
 			// Computed
 			"private_ip_address": {
@@ -446,7 +428,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
 	osDiskRaw := d.Get("os_disk").([]interface{})
-	osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
+	osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
+	if err != nil {
+		return fmt.Errorf("expanding `os_disk`: %+v", err)
+	}
 
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandWindowsSecrets(secretsRaw)
@@ -1112,7 +1097,11 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		shouldDeallocate = true
 
 		osDiskRaw := d.Get("os_disk").([]interface{})
-		osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
+		osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
+		if err != nil {
+			return fmt.Errorf("expanding `os_disk`: %+v", err)
+		}
+
 		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
 			OsDisk: osDisk,
 		}

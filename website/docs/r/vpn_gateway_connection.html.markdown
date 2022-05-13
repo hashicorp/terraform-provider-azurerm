@@ -161,7 +161,7 @@ A `traffic_selector_policy` block supports the following:
 
 A `propagated_route_table` block supports the following:
 
-* `route_table_ids` - (Required) A list of Route Table ID's to associated with this VPN Gateway Connection.
+* `route_table_ids` - (Required) A list of Route Table IDs to associated with this VPN Gateway Connection.
 
 * `labels` - (Optional) A list of labels to assign to this route table.
 
