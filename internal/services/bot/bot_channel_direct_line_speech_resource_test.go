@@ -151,8 +151,8 @@ resource "azurerm_bot_channel_direct_line_speech" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   cognitive_service_location   = azurerm_cognitive_account.test.location
   cognitive_service_access_key = azurerm_cognitive_account.test.primary_access_key
-  custom_speech_model_id       = "0830f48d-f592-4709-b408-d723c0973fb1"
-  custom_voice_deployment_id   = "4fc2752c-7e8e-4852-85a9-0f28fffa3edd"
+  custom_speech_model_id       = "a9316355-7b04-4468-9f6e-114419e6c9cc"
+  custom_voice_deployment_id   = "58dd86d4-31e3-4cf7-9b17-ee1d3dd77695"
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data), data.RandomInteger)
 }
@@ -188,8 +188,8 @@ resource "azurerm_bot_channel_direct_line_speech" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   cognitive_service_location   = azurerm_cognitive_account.test2.location
   cognitive_service_access_key = azurerm_cognitive_account.test2.primary_access_key
-  custom_speech_model_id       = "4560f48d-f592-4709-b408-d723c0973fb1"
-  custom_voice_deployment_id   = "8up2752c-7e8e-4852-85a9-0f28fffa3edd"
+  custom_speech_model_id       = "cf7a4202-9be3-4195-9619-5a747260626d"
+  custom_voice_deployment_id   = "b815f623-c217-4327-b765-f6e0fd7dceef"
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data), data.RandomInteger, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
