@@ -19,13 +19,14 @@ ENHANCEMENTS:
 * `azurerm_snapshot` - support for the `trusted_launch_enabled` propertyu [GH-16679]
 * `azurerm_stream_analytics_function_javascript_uda` - support for the `input.configuration_parameter` property [GH-16575]
 * `azurerm_stream_analytics_function_javascript_udf` - support for the `input.configuration_parameter` property [GH-16579]
-* `azurerm_synapse_workspace` - correctly update the `public_network_access_enabled` property [GH-16733]
+* `azurerm_linux_virtual_machine` - correctly support for the update the `diff_disk_settings.placement` property [GH-14847]
+* `azurerm_windows_virtual_machine` - correctly support for the update the `diff_disk_settings.placement` property [GH-]
+
 
 BUG FIXES:
 
 * `azurerm_app_configuration_feature` - allow successful creation of resource without specifying any optional filters [GH-16459]
 * `azurerm_mssql_managed_instance_failover_group` - correctly import resource and sent primary isntance id [GH-16705]
-
 
 ## 3.5.0 (May 05, 2022)
 
