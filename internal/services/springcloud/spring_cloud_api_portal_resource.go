@@ -61,7 +61,7 @@ func resourceSpringCloudAPIPortal() *pluginsdk.Resource {
 				},
 			},
 
-			"https_only": {
+			"https_only_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -153,7 +153,7 @@ func resourceSpringCloudAPIPortalCreateUpdate(d *pluginsdk.ResourceData, meta in
 	apiPortalResource := appplatform.APIPortalResource{
 		Properties: &appplatform.APIPortalProperties{
 			GatewayIds:    utils.ExpandStringSlice(d.Get("gateway_ids").(*pluginsdk.Set).List()),
-			HTTPSOnly:     utils.Bool(d.Get("https_only").(bool)),
+			HTTPSOnly:     utils.Bool(d.Get("https_only_enabled").(bool)),
 			Public:        utils.Bool(d.Get("public_network_access_enabled").(bool)),
 			SsoProperties: expandAPIPortalSsoProperties(d.Get("sso").([]interface{})),
 		},
@@ -202,7 +202,7 @@ func resourceSpringCloudAPIPortalRead(d *pluginsdk.ResourceData, meta interface{
 	}
 	if props := resp.Properties; props != nil {
 		d.Set("gateway_ids", utils.FlattenStringSlice(props.GatewayIds))
-		d.Set("https_only", props.HTTPSOnly)
+		d.Set("https_only_enabled", props.HTTPSOnly)
 		d.Set("public_network_access_enabled", props.Public)
 		if err := d.Set("sso", flattenAPIPortalSsoProperties(props.SsoProperties, d.Get("sso").([]interface{}))); err != nil {
 			return fmt.Errorf("setting `sso`: %+v", err)
