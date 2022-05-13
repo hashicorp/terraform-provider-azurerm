@@ -54,7 +54,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	gatewayClient := appplatform.NewGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayClient.Client, o.ResourceManagerAuthorizer)
-  
+
 	gatewayCustomDomainClient := appplatform.NewGatewayCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayCustomDomainClient.Client, o.ResourceManagerAuthorizer)
 
