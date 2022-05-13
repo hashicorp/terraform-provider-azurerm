@@ -88,6 +88,10 @@ The following arguments are supported:
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
+* `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Windows Web App.
+
+~> **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`. Refer to the [Azure docs](https://docs.microsoft.com/en-us/azure/app-service/deploy-run-package) for further details.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Web App.
 
 ---
