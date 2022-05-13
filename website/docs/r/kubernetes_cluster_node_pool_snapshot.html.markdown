@@ -19,12 +19,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "example" {
-  name     = "snapshots-rg"
+  name     = "example"
   location = "West Europe"
 }
 
 resource "azurerm_kubernetes_cluster" "example" {
-  name                = "acctestaks"
+  name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   dns_prefix          = "acctestaks"
@@ -48,7 +48,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "example" {
 }
 
 resource "azurerm_kubernetes_cluster_node_pool_snapshot" "example" {
-  name                = "acctestsnapshot"
+  name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   node_pool_id        = azurerm_kubernetes_cluster_node_pool.example.id
