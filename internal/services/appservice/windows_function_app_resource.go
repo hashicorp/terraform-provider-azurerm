@@ -45,7 +45,7 @@ type WindowsFunctionAppModel struct {
 	BuiltinLogging              bool                                   `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled           bool                                   `tfschema:"client_certificate_enabled"`
 	ClientCertMode              string                                 `tfschema:"client_certificate_mode"`
-	StorageAccounts             []helpers.StorageAccount             `tfschema:"storage_account"`
+	StorageAccounts             []helpers.StorageAccount               `tfschema:"storage_account"`
 	ConnectionStrings           []helpers.ConnectionString             `tfschema:"connection_string"`
 	DailyMemoryTimeQuota        int                                    `tfschema:"daily_memory_time_quota"`
 	Enabled                     bool                                   `tfschema:"enabled"`
@@ -494,7 +494,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-            storageConfig := helpers.ExpandStorageConfig(functionApp.StorageAccounts)
+			storageConfig := helpers.ExpandStorageConfig(functionApp.StorageAccounts)
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageConfig); err != nil {
 					if err != nil {
@@ -560,7 +560,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Sticky Settings for Windows %s: %+v", id, err)
 			}
 
-            storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
+			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading Storage Account information for WIndows %s: %+v", id, err)
 			}
@@ -740,7 +740,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
-            if metadata.ResourceData.HasChange("storage_account") {
+			if metadata.ResourceData.HasChange("storage_account") {
 				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
 					return fmt.Errorf("updating Storage Accounts for Windows %s: %+v", id, err)
