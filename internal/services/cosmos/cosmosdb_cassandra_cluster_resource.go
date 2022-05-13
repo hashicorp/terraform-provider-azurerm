@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -68,6 +69,50 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"authentication_method": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(documentdb.AuthenticationMethodCassandra),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(documentdb.AuthenticationMethodNone),
+					string(documentdb.AuthenticationMethodCassandra),
+				}, false),
+			},
+
+			"identity": commonschema.SystemAssignedIdentityOptional(),
+
+			"prometheus_endpoint": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"ip_address": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			"repair_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"version": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "3.11",
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"3.11",
+					"4.0",
+				}, false),
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -93,11 +138,20 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_cluster", id.ID())
 	}
 
+	expandedIdentity, err := expandCassandraClusterIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	body := documentdb.ClusterResource{
+		Identity: expandedIdentity,
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: &documentdb.ClusterResourceProperties{
+			AuthenticationMethod:          documentdb.AuthenticationMethod(d.Get("authentication_method").(string)),
+			CassandraVersion:              utils.String(d.Get("version").(string)),
 			DelegatedManagementSubnetID:   utils.String(d.Get("delegated_management_subnet_id").(string)),
 			InitialCassandraAdminPassword: utils.String(d.Get("default_admin_password").(string)),
+			RepairEnabled:                 utils.Bool(d.Get("repair_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -143,8 +197,18 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 	if props := resp.Properties; props != nil {
 		if res := props; res != nil {
 			d.Set("delegated_management_subnet_id", props.DelegatedManagementSubnetID)
+			d.Set("authentication_method", string(props.AuthenticationMethod))
+			d.Set("repair_enabled", props.RepairEnabled)
+			d.Set("version", props.CassandraVersion)
 		}
 	}
+
+	if v := resp.Identity; v != nil {
+		if err := d.Set("identity", flattenCassandraClusterIdentity(v)); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+	}
+
 	// The "default_admin_password" is not returned in GET response, hence setting it from config.
 	d.Set("default_admin_password", d.Get("default_admin_password").(string))
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -160,17 +224,26 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	id := parse.NewCassandraClusterID(subscriptionId, resourceGroupName, name)
 
+	expandedIdentity, err := expandCassandraClusterIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	body := documentdb.ClusterResource{
+		Identity: expandedIdentity,
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: &documentdb.ClusterResourceProperties{
+			AuthenticationMethod:          documentdb.AuthenticationMethod(d.Get("authentication_method").(string)),
+			CassandraVersion:              utils.String(d.Get("version").(string)),
 			DelegatedManagementSubnetID:   utils.String(d.Get("delegated_management_subnet_id").(string)),
 			InitialCassandraAdminPassword: utils.String(d.Get("default_admin_password").(string)),
+			RepairEnabled:                 utils.Bool(d.Get("repair_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	// Though there is update method but Service API complains it isn't implemented
-	_, err := client.CreateUpdate(ctx, id.ResourceGroup, id.Name, body)
+	_, err = client.CreateUpdate(ctx, id.ResourceGroup, id.Name, body)
 	if err != nil {
 		return fmt.Errorf("updating %q: %+v", id, err)
 	}
@@ -232,5 +305,33 @@ func cosmosdbCassandraClusterStateRefreshFunc(ctx context.Context, client *docum
 		}
 		return nil, "", fmt.Errorf("unable to read provisioning state")
 	}
+}
 
+func expandCassandraClusterIdentity(input []interface{}) (*documentdb.ManagedCassandraManagedServiceIdentity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
+	}
+
+	return &documentdb.ManagedCassandraManagedServiceIdentity{
+		Type: documentdb.ManagedCassandraResourceIdentityType(string(expanded.Type)),
+	}, nil
+}
+
+func flattenCassandraClusterIdentity(input *documentdb.ManagedCassandraManagedServiceIdentity) []interface{} {
+	var transform *identity.SystemAssigned
+
+	if input != nil {
+		transform = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+	}
+
+	return identity.FlattenSystemAssigned(transform)
 }

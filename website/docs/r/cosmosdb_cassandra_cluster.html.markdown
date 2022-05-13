@@ -58,8 +58,6 @@ resource "azurerm_cosmosdb_cassandra_cluster" "example" {
   location                       = azurerm_resource_group.example.location
   delegated_management_subnet_id = azurerm_subnet.example.id
   default_admin_password         = "Password1234"
-
-  depends_on = [azurerm_role_assignment.example]
 }
 ```
 
@@ -77,11 +75,25 @@ The following arguments are supported:
 
 * `default_admin_password` - (Required) The initial admin password for this Cassandra Cluster.
 
+* `authentication_method` - (Optional) The authentication method that is used to authenticate clients. Possible values are `None` and `Cassandra`. Defaults to `Cassandra`.
+
+* `identity` - (Optional) An `identity` block as defined below.
+
+* `version` - (Optional) The version of Cassandra what the Cluster converges to run. Possible values are `3.11` and `4.0`. Defaults to `3.11`. Changing this forces a new Cassandra Cluster to be created.
+
+* `repair_enabled` - (Optional) Is the automatic repair enabled on the Cassandra Cluster?
+
 * `tags` - (Optional) A mapping of tags assigned to the resource.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cassandra Cluster. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Cassandra Cluster.
 
