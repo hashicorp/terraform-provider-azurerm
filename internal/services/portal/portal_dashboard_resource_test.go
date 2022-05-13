@@ -193,7 +193,7 @@ resource "azurerm_portal_dashboard" "test" {
   location             = azurerm_resource_group.test.location
   dashboard_properties = <<DASH
 {
-   "lenses": {
+    "lenses": {
         "0": {
             "order": 0,
             "parts": {
@@ -217,10 +217,10 @@ resource "azurerm_portal_dashboard" "test" {
                             }
                         }
                     }
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    }
 }
 DASH
 
