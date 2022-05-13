@@ -6,6 +6,7 @@ FEATURES:
 * **New Resource**: `azurerm_managed_disk_sas_token` [GH-15558]
 * **New Resource**: `azurerm_spring_cloud_gateway` [GH-16175]
 * **New Resource**: `azurerm_spring_cloud_build_pack_binding` [GH-16673]
+* **New Resource**: `azurerm_spring_cloud_gateway_custom_domain` [GH-16720]
 * **New Resource**: `azurerm_stream_analytics_output_powerbi` [GH-16439]
 
 ENHANCEMENTS:
