@@ -77,9 +77,13 @@ The following arguments are supported:
 
 * `authentication_method` - (Optional) The authentication method that is used to authenticate clients. Possible values are `None` and `Cassandra`. Defaults to `Cassandra`.
 
-* `identity` - (Optional) An `identity` block as defined below.
+* `client_certificate` - (Optional) An `client_certificate` block as defined below.
 
-* `prometheus_endpoint` - (Optional) An `prometheus_endpoint` block as defined below.
+* `external_gossip_certificate` - (Optional) An `external_gossip_certificate` block as defined below.
+
+* `external_seed_node` - (Optional) An `external_seed_node` block as defined below.
+
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `version` - (Optional) The version of Cassandra what the Cluster converges to run. Possible values are `3.11` and `4.0`. Defaults to `3.11`. Changing this forces a new Cassandra Cluster to be created.
 
@@ -89,15 +93,27 @@ The following arguments are supported:
 
 ---
 
-A `identity` block supports the following:
+A `client_certificate` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cassandra Cluster. The only possible value is `SystemAssigned`.
+* `pem` - (Required) A list of TLS certificates that is used to authorize client connecting to the Cassandra Cluster.
 
 ---
 
-A `prometheus_endpoint` block supports the following:
+A `external_gossip_certificate` block supports the following:
 
-* `ip_address` - (Required) The Host Name or IP Address where the prometheus endpoint containing data about the managed Cassandra nodes can be reached.
+* `pem` - (Required) A list of TLS certificates that is used to authorize gossip from unmanaged Cassandra Data Center.
+
+---
+
+A `external_seed_node` block supports the following:
+
+* `ip_address` - (Required) A list of IP Addresses of the seed nodes in unmanaged the Cassandra Data Center which will be added to the seed node lists of all managed nodes.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cassandra Cluster. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 

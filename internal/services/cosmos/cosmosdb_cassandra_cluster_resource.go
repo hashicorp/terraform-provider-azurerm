@@ -3,6 +3,7 @@ package cosmos
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/validate"
 	"log"
 	"time"
 
@@ -79,23 +80,49 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
-
-			"prometheus_endpoint": {
+			"client_certificate": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"pem": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.IsCert,
+						},
+					},
+				},
+			},
+
+			"external_gossip_certificate": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"pem": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.IsCert,
+						},
+					},
+				},
+			},
+
+			"external_seed_node": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ip_address": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 					},
 				},
 			},
+
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"repair_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -157,8 +184,16 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if v, ok := d.GetOk("prometheus_endpoint"); ok {
-		body.Properties.PrometheusEndpoint = expandCassandraClusterPrometheusEndpoint(v.([]interface{}))
+	if v, ok := d.GetOk("client_certificate"); ok {
+		body.Properties.ClientCertificates = expandCassandraClusterCertificate(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("external_gossip_certificate"); ok {
+		body.Properties.ExternalGossipCertificates = expandCassandraClusterCertificate(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("external_seed_node"); ok {
+		body.Properties.ExternalSeedNodes = expandCassandraClusterExternalSeedNode(v.([]interface{}))
 	}
 
 	future, err := client.CreateUpdate(ctx, id.ResourceGroup, id.Name, body)
@@ -206,8 +241,16 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("repair_enabled", props.RepairEnabled)
 			d.Set("version", props.CassandraVersion)
 
-			if err := d.Set("prometheus_endpoint", flattenCassandraClusterPrometheusEndpoint(props.PrometheusEndpoint)); err != nil {
-				return fmt.Errorf("setting `prometheus_endpoint`: %v", err)
+			if err := d.Set("client_certificate", flattenCassandraClusterCertificate(props.ClientCertificates)); err != nil {
+				return fmt.Errorf("setting `client_certificate`: %+v", err)
+			}
+
+			if err := d.Set("external_gossip_certificate", flattenCassandraClusterCertificate(props.ExternalGossipCertificates)); err != nil {
+				return fmt.Errorf("setting `external_gossip_certificate`: %+v", err)
+			}
+
+			if err := d.Set("external_seed_node", flattenCassandraClusterExternalSeedNode(props.ExternalSeedNodes)); err != nil {
+				return fmt.Errorf("setting `external_seed_node`: %+v", err)
 			}
 		}
 	}
@@ -251,8 +294,16 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if v, ok := d.GetOk("prometheus_endpoint"); ok {
-		body.Properties.PrometheusEndpoint = expandCassandraClusterPrometheusEndpoint(v.([]interface{}))
+	if v, ok := d.GetOk("client_certificate"); ok {
+		body.Properties.ClientCertificates = expandCassandraClusterCertificate(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("external_gossip_certificate"); ok {
+		body.Properties.ExternalGossipCertificates = expandCassandraClusterCertificate(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("external_seed_node"); ok {
+		body.Properties.ExternalSeedNodes = expandCassandraClusterExternalSeedNode(v.([]interface{}))
 	}
 
 	// Though there is update method but Service API complains it isn't implemented
@@ -331,18 +382,72 @@ func expandCassandraClusterIdentity(input []interface{}) (*documentdb.ManagedCas
 	}, nil
 }
 
-func expandCassandraClusterPrometheusEndpoint(input []interface{}) *documentdb.SeedNode {
-	if len(input) == 0 {
-		return nil
+func expandCassandraClusterCertificate(input []interface{}) *[]documentdb.Certificate {
+	results := make([]documentdb.Certificate, 0)
+	for _, seedNode := range input {
+		v := seedNode.(map[string]interface{})
+
+		result := documentdb.Certificate{
+			Pem: utils.String(v["pem"].(string)),
+		}
+		results = append(results, result)
 	}
 
-	v := input[0].(map[string]interface{})
+	return &results
+}
 
-	result := documentdb.SeedNode{
-		IPAddress: utils.String(v["ip_address"].(string)),
+func expandCassandraClusterExternalSeedNode(input []interface{}) *[]documentdb.SeedNode {
+	results := make([]documentdb.SeedNode, 0)
+	for _, seedNode := range input {
+		v := seedNode.(map[string]interface{})
+
+		result := documentdb.SeedNode{
+			IPAddress: utils.String(v["ip_address"].(string)),
+		}
+		results = append(results, result)
 	}
 
-	return &result
+	return &results
+}
+
+func flattenCassandraClusterCertificate(input *[]documentdb.Certificate) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		var pem string
+		if v.Pem != nil {
+			pem = *v.Pem
+		}
+
+		results = append(results, map[string]interface{}{
+			"pem": pem,
+		})
+	}
+
+	return results
+}
+
+func flattenCassandraClusterExternalSeedNode(input *[]documentdb.SeedNode) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		var ipAddress string
+		if v.IPAddress != nil {
+			ipAddress = *v.IPAddress
+		}
+
+		results = append(results, map[string]interface{}{
+			"ip_address": ipAddress,
+		})
+	}
+
+	return results
 }
 
 func flattenCassandraClusterIdentity(input *documentdb.ManagedCassandraManagedServiceIdentity) []interface{} {
@@ -361,21 +466,4 @@ func flattenCassandraClusterIdentity(input *documentdb.ManagedCassandraManagedSe
 	}
 
 	return identity.FlattenSystemAssigned(transform)
-}
-
-func flattenCassandraClusterPrometheusEndpoint(input *documentdb.SeedNode) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var ipAddress string
-	if input.IPAddress != nil {
-		ipAddress = *input.IPAddress
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"ip_address": ipAddress,
-		},
-	}
 }

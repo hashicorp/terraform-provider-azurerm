@@ -82,6 +82,13 @@ func testAccCassandraCluster_update(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_admin_password"),
+		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -90,6 +97,13 @@ func testAccCassandraCluster_update(t *testing.T) {
 		data.ImportStep("default_admin_password"),
 		{
 			Config: r.update(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_admin_password"),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -142,8 +156,16 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   version                        = "3.11"
   repair_enabled                 = true
 
-  prometheus_endpoint {
-    ip_address = "10.0.2.5"
+  client_certificate {
+    pem = file("testdata/cert.pem")
+  }
+
+  external_gossip_certificate {
+    pem = file("testdata/cert.pem")
+  }
+
+  external_seed_node {
+    ip_address = "10.52.221.2"
   }
 
   identity {
@@ -173,8 +195,16 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   version                        = "3.11"
   repair_enabled                 = false
 
-  prometheus_endpoint {
-    ip_address = "10.0.3.6"
+  client_certificate {
+    pem = file("testdata/cert2.pem")
+  }
+
+  external_gossip_certificate {
+    pem = file("testdata/cert2.pem")
+  }
+
+  external_seed_node {
+    ip_address = "10.52.221.5"
   }
 
   tags = {
