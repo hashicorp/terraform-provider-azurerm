@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
 	signalrValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
@@ -94,20 +93,10 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	upstreamSettings := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
 
 	expandedFeatures := make([]signalr.SignalRFeature, 0)
-	if !features.ThreePointOhBeta() {
-		var featureFlags []interface{}
-		if v, ok := d.GetOk("features"); ok {
-			featureFlags = v.(*pluginsdk.Set).List()
-		}
-		if len(featureFlags) > 0 {
-			expandedFeatures = *expandSignalRFeatures(featureFlags)
-		}
-	} else {
-		expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsEnabled)))
-		expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsEnabled)))
-		expandedFeatures = append(expandedFeatures, signalRFeature("EnableLiveTrace", strconv.FormatBool(liveTraceEnabled)))
-		expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
-	}
+	expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsEnabled)))
+	expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsEnableMessagingLogs, strconv.FormatBool(messagingLogsEnabled)))
+	expandedFeatures = append(expandedFeatures, signalRFeature("EnableLiveTrace", strconv.FormatBool(liveTraceEnabled)))
+	expandedFeatures = append(expandedFeatures, signalRFeature(signalr.FeatureFlagsServiceMode, serviceMode))
 
 	// Upstream configurations are only allowed when the SignalR service is in `Serverless` mode
 	if len(upstreamSettings) > 0 && !signalRIsInServerlessMode(&expandedFeatures) {
@@ -175,12 +164,6 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("public_port", props.PublicPort)
 			d.Set("server_port", props.ServerPort)
 
-			if !features.ThreePointOhBeta() {
-				if err := d.Set("features", flattenSignalRFeatures(props.Features)); err != nil {
-					return fmt.Errorf("setting `features`: %+v", err)
-				}
-			}
-
 			connectivityLogsEnabled := false
 			messagingLogsEnabled := false
 			liveTraceEnabled := false
@@ -246,14 +229,6 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if d.HasChange("cors") {
 			corsRaw := d.Get("cors").([]interface{})
 			resourceType.Properties.Cors = expandSignalRCors(corsRaw)
-		}
-
-		if !features.ThreePointOhBeta() && d.HasChange("features") {
-			var featuresRaw []interface{}
-			if v, ok := d.GetOk("features"); ok {
-				featuresRaw = v.(*pluginsdk.Set).List()
-			}
-			resourceType.Properties.Features = expandSignalRFeatures(featuresRaw)
 		}
 
 		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "service_mode", "live_trace_enabled") {
@@ -354,35 +329,11 @@ func signalRIsInServerlessMode(features *[]signalr.SignalRFeature) bool {
 	return false
 }
 
-func expandSignalRFeatures(input []interface{}) *[]signalr.SignalRFeature {
-	features := make([]signalr.SignalRFeature, 0)
-	for _, featureValue := range input {
-		value := featureValue.(map[string]interface{})
-		features = append(features, signalRFeature(signalr.FeatureFlags(value["flag"].(string)), value["value"].(string)))
-	}
-	return &features
-}
-
 func signalRFeature(featureFlag signalr.FeatureFlags, value string) signalr.SignalRFeature {
 	return signalr.SignalRFeature{
 		Flag:  featureFlag,
 		Value: value,
 	}
-}
-
-func flattenSignalRFeatures(features *[]signalr.SignalRFeature) []interface{} {
-	if features == nil {
-		return []interface{}{}
-	}
-
-	result := make([]interface{}, 0)
-	for _, feature := range *features {
-		result = append(result, map[string]interface{}{
-			"flag":  string(feature.Flag),
-			"value": feature.Value,
-		})
-	}
-	return result
 }
 
 func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSettings {
@@ -507,7 +458,7 @@ func flattenSignalRServiceSku(input *signalr.ResourceSku) []interface{} {
 }
 
 func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -546,73 +497,25 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		"connectivity_logs_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: !features.ThreePointOhBeta(),
-			Default: func() interface{} {
-				if features.ThreePointOhBeta() {
-					return false
-				}
-				return nil
-			}(),
-			ConflictsWith: func() []string {
-				if features.ThreePointOhBeta() {
-					return nil
-				}
-				return []string{"features"}
-			}(),
+			Default:  false,
 		},
 
 		"messaging_logs_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: !features.ThreePointOhBeta(),
-			Default: func() interface{} {
-				if features.ThreePointOhBeta() {
-					return false
-				}
-				return nil
-			}(),
-			ConflictsWith: func() []string {
-				if features.ThreePointOhBeta() {
-					return nil
-				}
-				return []string{"features"}
-			}(),
+			Default:  false,
 		},
 
 		"live_trace_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: !features.ThreePointOhBeta(),
-			Default: func() interface{} {
-				if features.ThreePointOhBeta() {
-					return false
-				}
-				return nil
-			}(),
-			ConflictsWith: func() []string {
-				if features.ThreePointOhBeta() {
-					return nil
-				}
-				return []string{"features"}
-			}(),
+			Default:  false,
 		},
 
 		"service_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: !features.ThreePointOhBeta(),
-			Default: func() interface{} {
-				if features.ThreePointOhBeta() {
-					return "Default"
-				}
-				return nil
-			}(),
-			ConflictsWith: func() []string {
-				if features.ThreePointOhBeta() {
-					return nil
-				}
-				return []string{"features"}
-			}(),
+			Default:  "Default",
 			ValidateFunc: validation.StringInSlice([]string{
 				"Serverless",
 				"Classic",
@@ -724,35 +627,4 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-	if !features.ThreePointOhBeta() {
-		schema["features"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeSet,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "Deprecated in favour of `connectivity_logs_enabled`, `messaging_logs_enabled`, `live_trace_enabled` and `service_mode`",
-			ConflictsWith: []string{
-				"connectivity_logs_enabled", "messaging_logs_enabled", "live_trace_enabled", "service_mode",
-			},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"flag": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(signalr.FeatureFlagsEnableConnectivityLogs),
-							string(signalr.FeatureFlagsEnableMessagingLogs),
-							string(signalr.FeatureFlagsServiceMode),
-							"EnableLiveTrace",
-						}, false),
-					},
-
-					"value": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-				},
-			},
-		}
-	}
-	return schema
 }

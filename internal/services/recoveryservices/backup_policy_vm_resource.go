@@ -13,10 +13,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -569,7 +567,7 @@ func resourceBackupProtectionPolicyVMRefreshFunc(ctx context.Context, client *ba
 }
 
 func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -609,13 +607,12 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"frequency": {
-						Type:             pluginsdk.TypeString,
-						Required:         true,
-						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						Type:     pluginsdk.TypeString,
+						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(backup.ScheduleRunTypeDaily),
 							string(backup.ScheduleRunTypeWeekly),
-						}, !features.ThreePointOhBeta()),
+						}, false),
 					},
 
 					"time": { // applies to all backup schedules & retention times (they all must be the same)
@@ -700,15 +697,14 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 						Required: true,
 						Set:      set.HashStringIgnoreCase,
 						Elem: &pluginsdk.Schema{
-							Type:             pluginsdk.TypeString,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(backup.WeekOfMonthFirst),
 								string(backup.WeekOfMonthSecond),
 								string(backup.WeekOfMonthThird),
 								string(backup.WeekOfMonthFourth),
 								string(backup.WeekOfMonthLast),
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 					},
 
@@ -754,15 +750,14 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 						Required: true,
 						Set:      set.HashStringIgnoreCase,
 						Elem: &pluginsdk.Schema{
-							Type:             pluginsdk.TypeString,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(backup.WeekOfMonthFirst),
 								string(backup.WeekOfMonthSecond),
 								string(backup.WeekOfMonthThird),
 								string(backup.WeekOfMonthFourth),
 								string(backup.WeekOfMonthLast),
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 					},
 
@@ -780,10 +775,4 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		schema["tags"] = tags.SchemaDeprecatedUnsupported()
-	}
-
-	return schema
 }
