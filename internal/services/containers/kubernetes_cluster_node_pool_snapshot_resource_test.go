@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type kubernetesNodePoolSnapshotResource struct{}
+type kubernetesClusterNodePoolSnapshotResource struct{}
 
-func TestAcckubernetesNodePoolSnapshot_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_node_pool_snapshot", "test")
-	r := kubernetesNodePoolSnapshotResource{}
+func TestAcckubernetesClusterNodePoolSnapshot_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool_snapshot", "test")
+	r := kubernetesClusterNodePoolSnapshotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,9 +31,9 @@ func TestAcckubernetesNodePoolSnapshot_basic(t *testing.T) {
 	})
 }
 
-func TestAcckubernetesNodePoolSnapshot_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_node_pool_snapshot", "test")
-	r := kubernetesNodePoolSnapshotResource{}
+func TestAcckubernetesClusterNodePoolSnapshot_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool_snapshot", "test")
+	r := kubernetesClusterNodePoolSnapshotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,9 +46,9 @@ func TestAcckubernetesNodePoolSnapshot_complete(t *testing.T) {
 	})
 }
 
-func TestAcckubernetesNodePoolSnapshot_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_node_pool_snapshot", "test")
-	r := kubernetesNodePoolSnapshotResource{}
+func TestAcckubernetesClusterNodePoolSnapshot_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool_snapshot", "test")
+	r := kubernetesClusterNodePoolSnapshotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -59,12 +59,12 @@ func TestAcckubernetesNodePoolSnapshot_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_kubernetes_node_pool_snapshot"),
+			ExpectError: acceptance.RequiresImportError("azurerm_kubernetes_cluster_node_pool_snapshot"),
 		},
 	})
 }
 
-func (t kubernetesNodePoolSnapshotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t kubernetesClusterNodePoolSnapshotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.NodePoolSnapshotID(state.ID)
 	if err != nil {
 		return nil, err
@@ -78,27 +78,27 @@ func (t kubernetesNodePoolSnapshotResource) Exists(ctx context.Context, clients 
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r kubernetesNodePoolSnapshotResource) basic(data acceptance.TestData) string {
+func (r kubernetesClusterNodePoolSnapshotResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_kubernetes_node_pool_snapshot" "test" {
+resource "azurerm_kubernetes_cluster_node_pool_snapshot" "test" {
   name                = "acctestss%d"
-  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   node_pool_id        = azurerm_kubernetes_cluster_node_pool.test.id
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r kubernetesNodePoolSnapshotResource) complete(data acceptance.TestData) string {
+func (r kubernetesClusterNodePoolSnapshotResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_kubernetes_node_pool_snapshot" "test" {
+resource "azurerm_kubernetes_cluster_node_pool_snapshot" "test" {
   name                = "acctestss%d"
-  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   node_pool_id        = azurerm_kubernetes_cluster_node_pool.test.id
   tags = {
     environment = "production"
@@ -107,20 +107,20 @@ resource "azurerm_kubernetes_node_pool_snapshot" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r kubernetesNodePoolSnapshotResource) requiresImport(data acceptance.TestData) string {
+func (r kubernetesClusterNodePoolSnapshotResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_kubernetes_node_pool_snapshot" "import" {
-  name                = azurerm_kubernetes_node_pool_snapshot.test.name
-  location            = azurerm_kubernetes_node_pool_snapshot.test.location
-  resource_group_name = azurerm_kubernetes_node_pool_snapshot.test.resource_group_name
-  node_pool_id        = azurerm_kubernetes_node_pool_snapshot.test.node_pool_id
+resource "azurerm_kubernetes_cluster_node_pool_snapshot" "import" {
+  name                = azurerm_kubernetes_cluster_node_pool_snapshot.test.name
+  resource_group_name = azurerm_kubernetes_cluster_node_pool_snapshot.test.resource_group_name
+  location            = azurerm_kubernetes_cluster_node_pool_snapshot.test.location
+  node_pool_id        = azurerm_kubernetes_cluster_node_pool_snapshot.test.node_pool_id
 }
 `, r.basic(data))
 }
 
-func (kubernetesNodePoolSnapshotResource) template(data acceptance.TestData) string {
+func (kubernetesClusterNodePoolSnapshotResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -133,8 +133,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
