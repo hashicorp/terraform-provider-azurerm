@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `route` - (Optional) One or more `route` blocks as defined below.
 
-* `sku` - (Optional) The sku of the Virtual Hub. Possible values are `Basic` and `Standard`. Changing this forces a new resource to be created.
+* `sku` - (Optional) The SKU of the Virtual Hub. Possible values are `Basic` and `Standard`. Changing this forces a new resource to be created.
 
 * `virtual_wan_id` - (Optional) The ID of a Virtual WAN within which the Virtual Hub should be created. Changing this forces a new resource to be created.
 
@@ -72,6 +72,10 @@ The following attributes are exported:
 * `id` - The ID of the Virtual Hub.
 
 * `default_route_table_id` - The ID of the default Route Table in the Virtual Hub.
+
+* `virtual_router_asn` - The Autonomous System Number of the Virtual Hub BGP router.
+
+* `virtual_router_ips` - The IP addresses of the Virtual Hub BGP router.
 
 ## Timeouts
 

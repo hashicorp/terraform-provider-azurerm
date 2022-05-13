@@ -289,8 +289,12 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				Tags: tags.FromTypedObject(model.Tags),
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, envelope); err != nil {
+			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, envelope)
+			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 			}
 
 			createWait := pluginsdk.StateChangeConf{
@@ -463,8 +467,12 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("setting Allow New Private Endpoint Connections on %s: %+v", id, err)
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, existing); err != nil {
+			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, existing)
+			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for update of %q: %+v", id, err)
 			}
 
 			return nil

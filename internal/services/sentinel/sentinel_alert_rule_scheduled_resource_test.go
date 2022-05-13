@@ -66,7 +66,7 @@ func TestAccSentinelAlertRuleScheduled_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -172,7 +172,7 @@ func (r SentinelAlertRuleScheduledResource) complete(data acceptance.TestData) s
 resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   name                       = "acctest-SentinelAlertRule-Sche-%d"
   log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
-  display_name               = "Updated Rule"
+  display_name               = "Complete Rule"
   description                = "Some Description"
   tactics                    = ["Collection", "CommandAndControl"]
   severity                   = "Low"
@@ -184,21 +184,60 @@ resource "azurerm_sentinel_alert_rule_scheduled" "test" {
       lookback_duration       = "P7D"
       reopen_closed_incidents = true
       entity_matching_method  = "Selected"
-      group_by                = ["Account", "Host"]
+      group_by_entities       = ["Host"]
+      group_by_alert_details  = ["DisplayName"]
+      group_by_custom_details = ["OperatingSystemType", "OperatingSystemName"]
     }
   }
-  query                = <<QUERY
-AzureActivity |
-  where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
-  where ActivityStatus == "Succeeded" |
-  make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(3d), now(), 1d) by Caller
-QUERY
+  query                = "Heartbeat"
   query_frequency      = "PT20M"
   query_period         = "PT40M"
   trigger_operator     = "Equal"
   trigger_threshold    = 5
   suppression_enabled  = true
   suppression_duration = "PT40M"
+  alert_details_override {
+    description_format   = "Alert from {{Compute}}"
+    display_name_format  = "Suspicious activity was made by {{ComputerIP}}"
+    severity_column_name = "Computer"
+    tactics_column_name  = "Computer"
+  }
+  entity_mapping {
+    entity_type = "Host"
+    field_mapping {
+      identifier  = "FullName"
+      column_name = "Computer"
+    }
+  }
+  entity_mapping {
+    entity_type = "IP"
+    field_mapping {
+      identifier  = "Address"
+      column_name = "ComputerIP"
+    }
+  }
+  custom_details = {
+    OperatingSystemName = "OSName"
+    OperatingSystemType = "OSType"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SentinelAlertRuleScheduledResource) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_scheduled" "test" {
+  name                       = "acctest-SentinelAlertRule-Sche-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  display_name               = "Updated Complete Rule"
+  severity                   = "High"
+  query                      = "Heartbeat"
+  custom_details = {
+    OperatingSystemName = "OSName"
+    OperatingSystemType = "OSType"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -222,17 +261,13 @@ func (r SentinelAlertRuleScheduledResource) alertRuleTemplateGuid(data acceptanc
 %s
 
 resource "azurerm_sentinel_alert_rule_scheduled" "test" {
-  name                       = "acctest-SentinelAlertRule-Sche-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
-  display_name               = "Some Rule"
-  severity                   = "Low"
-  alert_rule_template_guid   = "65360bb0-8986-4ade-a89d-af3cf44d28aa"
-  query                      = <<QUERY
-AzureActivity |
-  where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
-  where ActivityStatus == "Succeeded" |
-  make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
-QUERY
+  name                        = "acctest-SentinelAlertRule-Sche-%d"
+  log_analytics_workspace_id  = azurerm_log_analytics_solution.test.workspace_resource_id
+  display_name                = "Some Rule"
+  severity                    = "Low"
+  alert_rule_template_guid    = "09ec8fa2-b25f-4696-bfae-05a7b85d7b9e"
+  alert_rule_template_version = "1.2.1"
+  query                       = "Heartbeat"
 }
 `, r.template(data), data.RandomInteger)
 }

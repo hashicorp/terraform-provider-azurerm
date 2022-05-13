@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -70,6 +70,12 @@ func resourceStreamAnalyticsFunctionUDA() *pluginsdk.Resource {
 								"record",
 							}, false),
 						},
+
+						"configuration_parameter": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -132,10 +138,10 @@ func resourceStreamAnalyticsFunctionUDACreate(d *pluginsdk.ResourceData, meta in
 
 	props := streamanalytics.Function{
 		Properties: &streamanalytics.AggregateFunctionProperties{
-			Type: streamanalytics.TypeAggregate,
+			Type: streamanalytics.TypeBasicFunctionPropertiesTypeAggregate,
 			FunctionConfiguration: &streamanalytics.FunctionConfiguration{
 				Binding: &streamanalytics.JavaScriptFunctionBinding{
-					Type: streamanalytics.TypeMicrosoftStreamAnalyticsJavascriptUdf,
+					Type: streamanalytics.TypeBasicFunctionBindingTypeMicrosoftStreamAnalyticsJavascriptUdf,
 					JavaScriptFunctionBindingProperties: &streamanalytics.JavaScriptFunctionBindingProperties{
 						Script: utils.String(d.Get("script").(string)),
 					},
@@ -220,10 +226,10 @@ func resourceStreamAnalyticsFunctionUDAUpdate(d *pluginsdk.ResourceData, meta in
 
 	props := streamanalytics.Function{
 		Properties: &streamanalytics.AggregateFunctionProperties{
-			Type: streamanalytics.TypeAggregate,
+			Type: streamanalytics.TypeBasicFunctionPropertiesTypeAggregate,
 			FunctionConfiguration: &streamanalytics.FunctionConfiguration{
 				Binding: &streamanalytics.JavaScriptFunctionBinding{
-					Type: streamanalytics.TypeMicrosoftStreamAnalyticsJavascriptUdf,
+					Type: streamanalytics.TypeBasicFunctionBindingTypeMicrosoftStreamAnalyticsJavascriptUdf,
 					JavaScriptFunctionBindingProperties: &streamanalytics.JavaScriptFunctionBindingProperties{
 						Script: utils.String(d.Get("script").(string)),
 					},
@@ -267,7 +273,8 @@ func expandStreamAnalyticsFunctionUDAInputs(input []interface{}) *[]streamanalyt
 		v := raw.(map[string]interface{})
 		variableType := v["type"].(string)
 		outputs = append(outputs, streamanalytics.FunctionInput{
-			DataType: utils.String(variableType),
+			DataType:                 utils.String(variableType),
+			IsConfigurationParameter: utils.Bool(v["configuration_parameter"].(bool)),
 		})
 	}
 
@@ -287,8 +294,14 @@ func flattenStreamAnalyticsFunctionUDAInputs(input *[]streamanalytics.FunctionIn
 			variableType = *v.DataType
 		}
 
+		var isConfigurationParameter bool
+		if v.IsConfigurationParameter != nil {
+			isConfigurationParameter = *v.IsConfigurationParameter
+		}
+
 		outputs = append(outputs, map[string]interface{}{
-			"type": variableType,
+			"type":                    variableType,
+			"configuration_parameter": isConfigurationParameter,
 		})
 	}
 

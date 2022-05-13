@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -45,216 +44,210 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: func() map[string]*pluginsdk.Schema {
-			s := map[string]*pluginsdk.Schema{
-				"name": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-				},
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 
-				"location": azure.SchemaLocation(),
+			"location": azure.SchemaLocation(),
 
-				"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-				"storage_account_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.StorageAccountTypesStandardLRS),
-						string(compute.StorageAccountTypesStandardSSDZRS),
-						string(compute.StorageAccountTypesPremiumLRS),
-						string(compute.StorageAccountTypesPremiumZRS),
-						string(compute.StorageAccountTypesStandardSSDLRS),
-						string(compute.StorageAccountTypesUltraSSDLRS),
-					}, false),
-					DiffSuppressFunc: suppress.CaseDifference,
-				},
+			"storage_account_type": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.StorageAccountTypesStandardLRS),
+					string(compute.StorageAccountTypesStandardSSDZRS),
+					string(compute.StorageAccountTypesPremiumLRS),
+					string(compute.StorageAccountTypesPremiumZRS),
+					string(compute.StorageAccountTypesStandardSSDLRS),
+					string(compute.StorageAccountTypesUltraSSDLRS),
+				}, false),
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
 
-				"create_option": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.DiskCreateOptionCopy),
-						string(compute.DiskCreateOptionEmpty),
-						string(compute.DiskCreateOptionFromImage),
-						string(compute.DiskCreateOptionImport),
-						string(compute.DiskCreateOptionRestore),
-					}, false),
-				},
+			"create_option": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.DiskCreateOptionCopy),
+					string(compute.DiskCreateOptionEmpty),
+					string(compute.DiskCreateOptionFromImage),
+					string(compute.DiskCreateOptionImport),
+					string(compute.DiskCreateOptionRestore),
+				}, false),
+			},
 
-				"logical_sector_size": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					ForceNew: true,
-					ValidateFunc: validation.IntInSlice([]int{
-						512,
-						4096,
-					}),
-					Computed: true,
-				},
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
-				"source_uri": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
-					ForceNew: true,
-				},
+			"logical_sector_size": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.IntInSlice([]int{
+					512,
+					4096,
+				}),
+				Computed: true,
+			},
 
-				"source_resource_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
-				},
+			"source_uri": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
 
-				"storage_account_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true, // Not supported by disk update
-					ValidateFunc: azure.ValidateResourceID,
-				},
+			"source_resource_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 
-				"image_reference_id": {
-					Type:          pluginsdk.TypeString,
-					Optional:      true,
-					ForceNew:      true,
-					ConflictsWith: []string{"gallery_image_reference_id"},
-				},
+			"storage_account_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true, // Not supported by disk update
+				ValidateFunc: azure.ValidateResourceID,
+			},
 
-				"gallery_image_reference_id": {
-					Type:          pluginsdk.TypeString,
-					Optional:      true,
-					ForceNew:      true,
-					ValidateFunc:  validate.SharedImageVersionID,
-					ConflictsWith: []string{"image_reference_id"},
-				},
+			"image_reference_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"gallery_image_reference_id"},
+			},
 
-				"os_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.OperatingSystemTypesWindows),
-						string(compute.OperatingSystemTypesLinux),
-					}, !features.ThreePointOhBeta()),
-					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-				},
+			"gallery_image_reference_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.SharedImageVersionID,
+				ConflictsWith: []string{"image_reference_id"},
+			},
 
-				"disk_size_gb": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validate.ManagedDiskSizeGB,
-				},
+			"os_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.OperatingSystemTypesWindows),
+					string(compute.OperatingSystemTypesLinux),
+				}, false),
+				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			},
 
-				"disk_iops_read_write": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntAtLeast(1),
-				},
+			"disk_size_gb": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validate.ManagedDiskSizeGB,
+			},
 
-				"disk_mbps_read_write": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntAtLeast(1),
-				},
+			"disk_iops_read_write": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
 
-				"disk_iops_read_only": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntAtLeast(1),
-				},
+			"disk_mbps_read_write": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
 
-				"disk_mbps_read_only": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntAtLeast(1),
-				},
+			"disk_iops_read_only": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
 
-				"disk_encryption_set_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
-					//       https://github.com/Azure/azure-rest-api-specs/issues/8132
-					DiffSuppressFunc: suppress.CaseDifference,
-					ValidateFunc:     validate.DiskEncryptionSetID,
-				},
+			"disk_mbps_read_only": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
 
-				"encryption_settings": encryptionSettingsSchema(),
+			"disk_encryption_set_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
+				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     validate.DiskEncryptionSetID,
+			},
 
-				"network_access_policy": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.NetworkAccessPolicyAllowAll),
-						string(compute.NetworkAccessPolicyAllowPrivate),
-						string(compute.NetworkAccessPolicyDenyAll),
-					}, false),
-				},
-				"disk_access_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
-					//       https://github.com/Azure/azure-rest-api-specs/issues/14192
-					DiffSuppressFunc: suppress.CaseDifference,
-					ValidateFunc:     azure.ValidateResourceID,
-				},
+			"encryption_settings": encryptionSettingsSchema(),
 
-				"public_network_access_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-				},
+			"network_access_policy": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.NetworkAccessPolicyAllowAll),
+					string(compute.NetworkAccessPolicyAllowPrivate),
+					string(compute.NetworkAccessPolicyDenyAll),
+				}, false),
+			},
+			"disk_access_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
+				//       https://github.com/Azure/azure-rest-api-specs/issues/14192
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     azure.ValidateResourceID,
+			},
 
-				"tier": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
-				},
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
-				"max_shares": {
-					Type:         schema.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntBetween(2, 10),
-				},
+			"tier": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 
-				"trusted_launch_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					ForceNew: true,
-				},
+			"max_shares": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(2, 10),
+			},
 
-				"hyper_v_generation": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true, // Not supported by disk update
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.HyperVGenerationV1),
-						string(compute.HyperVGenerationV2),
-					}, false),
-				},
+			"trusted_launch_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
 
-				"on_demand_bursting_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-				},
+			"hyper_v_generation": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true, // Not supported by disk update
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.HyperVGenerationV1),
+					string(compute.HyperVGenerationV2),
+				}, false),
+			},
 
-				"tags": tags.Schema(),
-			}
+			"on_demand_bursting_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
 
-			if features.ThreePointOhBeta() {
-				s["zone"] = commonschema.ZoneSingleOptional()
-			} else {
-				s["zones"] = azure.SchemaSingleZone()
-			}
+			"zone": commonschema.ZoneSingleOptionalForceNew(),
 
-			return s
-		}(),
+			"tags": tags.Schema(),
+		},
 	}
 }
 
@@ -464,23 +457,20 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	createDisk := compute.Disk{
-		Name:           &name,
-		Location:       &location,
-		DiskProperties: props,
+		Name:             &name,
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         &location,
+		DiskProperties:   props,
 		Sku: &compute.DiskSku{
 			Name: skuName,
 		},
 		Tags: tags.Expand(t),
 	}
 
-	if features.ThreePointOhBeta() {
-		if zone, ok := d.GetOk("zone"); ok {
-			createDisk.Zones = &[]string{
-				zone.(string),
-			}
+	if zone, ok := d.GetOk("zone"); ok {
+		createDisk.Zones = &[]string{
+			zone.(string),
 		}
-	} else {
-		createDisk.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, createDisk)
@@ -823,18 +813,15 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	if features.ThreePointOhBeta() {
-		zone := ""
-		if resp.Zones != nil && len(*resp.Zones) > 0 {
-			z := *resp.Zones
-			zone = z[0]
-		}
-		d.Set("zone", zone)
-	} else {
-		d.Set("zones", utils.FlattenStringSlice(resp.Zones))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
+
+	zone := ""
+	if resp.Zones != nil && len(*resp.Zones) > 0 {
+		z := *resp.Zones
+		zone = z[0]
 	}
+	d.Set("zone", zone)
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("storage_account_type", string(sku.Name))

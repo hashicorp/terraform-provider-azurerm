@@ -37,6 +37,7 @@ output "public_ip_prefix" {
 * `sku` - The SKU of the Public IP Prefix.
 * `prefix_length` - The number of bits of the prefix.
 * `tags` - A mapping of tags to assigned to the resource.
+* `zones` - A list of Availability Zones in which this Public IP Prefix is located.
 
 ## Timeouts
 

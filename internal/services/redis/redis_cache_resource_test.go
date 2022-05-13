@@ -585,9 +585,9 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    maxmemory_reserved              = 2
-    maxfragmentationmemory_reserved = 2
-    maxmemory_delta                 = 2
+    maxmemory_reserved              = 642
+    maxfragmentationmemory_reserved = 642
+    maxmemory_delta                 = 642
     maxmemory_policy                = "allkeys-lru"
   }
 }
@@ -616,9 +616,9 @@ resource "azurerm_redis_cache" "test" {
   shard_count         = 3
 
   redis_configuration {
-    maxmemory_reserved              = 2
-    maxfragmentationmemory_reserved = 2
-    maxmemory_delta                 = 2
+    maxmemory_reserved              = 642
+    maxfragmentationmemory_reserved = 642
+    maxmemory_delta                 = 642
     maxmemory_policy                = "allkeys-lru"
   }
 }
@@ -647,9 +647,9 @@ resource "azurerm_redis_cache" "test" {
   shard_count         = 3
 
   redis_configuration {
-    maxmemory_reserved              = 2
-    maxfragmentationmemory_reserved = 2
-    maxmemory_delta                 = 2
+    maxmemory_reserved              = 1328
+    maxfragmentationmemory_reserved = 1328
+    maxmemory_delta                 = 1328
     maxmemory_policy                = "allkeys-lru"
   }
 }
@@ -814,8 +814,8 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    maxmemory_reserved = 2
-    maxmemory_delta    = 2
+    maxmemory_reserved = 642
+    maxmemory_delta    = 642
     maxmemory_policy   = "allkeys-lru"
   }
 
@@ -914,7 +914,7 @@ resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_redis_cache" "test" {
@@ -954,7 +954,7 @@ resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_redis_cache" "test" {
@@ -995,7 +995,7 @@ resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_redis_cache" "test" {
@@ -1036,7 +1036,7 @@ resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_redis_cache" "test" {

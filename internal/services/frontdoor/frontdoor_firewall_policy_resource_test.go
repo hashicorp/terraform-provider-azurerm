@@ -208,6 +208,10 @@ resource "azurerm_frontdoor_firewall_policy" "test" {
     type    = "BotProtection"
     version = "preview-0.1"
   }
+
+  tags = {
+    ENV = "Test"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

@@ -106,7 +106,7 @@ The following arguments are supported:
 
 `publish_content_link` supports the following:
 
-* `uri` - (Required) The uri of the runbook content.
+* `uri` - (Required) The URI of the runbook content.
 
 ## Attributes Reference
 

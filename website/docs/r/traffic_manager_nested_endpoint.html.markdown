@@ -126,7 +126,7 @@ A `custom_header` block supports the following:
 
 * `name` - (Required) The name of the custom header.
 
-* `value` - (Required) The value of custom header. Applicable for Http and Https protocol.
+* `value` - (Required) The value of custom header. Applicable for HTTP and HTTPS protocol.
 
 ---
 

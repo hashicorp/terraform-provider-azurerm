@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -143,7 +143,7 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 		Database:    utils.String(d.Get("database").(string)),
 		User:        utils.String(d.Get("username").(string)),
 		Password:    utils.String(d.Get("password").(string)),
-		RefreshType: utils.String(refreshType),
+		RefreshType: streamanalytics.RefreshType(refreshType),
 	}
 
 	if v, ok := d.GetOk("refresh_interval_duration"); ok {
@@ -161,10 +161,10 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 	props := streamanalytics.Input{
 		Name: utils.String(id.InputName),
 		Properties: &streamanalytics.ReferenceInputProperties{
-			Type: streamanalytics.TypeReference,
+			Type: streamanalytics.TypeBasicInputPropertiesTypeReference,
 			Datasource: &streamanalytics.AzureSQLReferenceInputDataSource{
-				Type:       streamanalytics.TypeBasicReferenceInputDataSourceTypeMicrosoftSQLServerDatabase,
-				Properties: properties,
+				Type: streamanalytics.TypeBasicReferenceInputDataSourceTypeMicrosoftSQLServerDatabase,
+				AzureSQLReferenceInputDataSourceProperties: properties,
 			},
 		},
 	}
@@ -214,13 +214,13 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 			return fmt.Errorf("converting Reference Input MS SQL to a MS SQL Stream Input: %+v", err)
 		}
 
-		d.Set("server", inputDataSource.Properties.Server)
-		d.Set("database", inputDataSource.Properties.Database)
-		d.Set("username", inputDataSource.Properties.User)
-		d.Set("refresh_type", inputDataSource.Properties.RefreshType)
-		d.Set("refresh_interval_duration", inputDataSource.Properties.RefreshRate)
-		d.Set("full_snapshot_query", inputDataSource.Properties.FullSnapshotQuery)
-		d.Set("delta_snapshot_query", inputDataSource.Properties.DeltaSnapshotQuery)
+		d.Set("server", inputDataSource.AzureSQLReferenceInputDataSourceProperties.Server)
+		d.Set("database", inputDataSource.AzureSQLReferenceInputDataSourceProperties.Database)
+		d.Set("username", inputDataSource.AzureSQLReferenceInputDataSourceProperties.User)
+		d.Set("refresh_type", inputDataSource.AzureSQLReferenceInputDataSourceProperties.RefreshType)
+		d.Set("refresh_interval_duration", inputDataSource.AzureSQLReferenceInputDataSourceProperties.RefreshRate)
+		d.Set("full_snapshot_query", inputDataSource.AzureSQLReferenceInputDataSourceProperties.FullSnapshotQuery)
+		d.Set("delta_snapshot_query", inputDataSource.AzureSQLReferenceInputDataSourceProperties.DeltaSnapshotQuery)
 	}
 	return nil
 }

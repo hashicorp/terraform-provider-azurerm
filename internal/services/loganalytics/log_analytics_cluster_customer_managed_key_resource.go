@@ -3,8 +3,9 @@ package loganalytics
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -32,12 +33,15 @@ func resourceLogAnalyticsClusterCustomerManagedKey() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		// TODO: 3.0 - state migration to remove `/CMK` from the ID?
-
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.LogAnalyticsClusterID(id)
 			return err
 		}),
+
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ClusterCustomerManagedKeyV0ToV1{},
+		}),
+		SchemaVersion: 1,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"log_analytics_cluster_id": {
@@ -58,46 +62,33 @@ func resourceLogAnalyticsClusterCustomerManagedKey() *pluginsdk.Resource {
 
 func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	clusterIdRaw := d.Get("log_analytics_cluster_id").(string)
-	clusterId, err := parse.LogAnalyticsClusterID(clusterIdRaw)
+	id, err := parse.LogAnalyticsClusterID(clusterIdRaw)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, clusterId.ResourceGroup, clusterId.ClusterName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Log Analytics Cluster %q (resource group %q) was not found", clusterId.ClusterName, clusterId.ResourceGroup)
+			return fmt.Errorf("%s was not found", *id)
 		}
-		return fmt.Errorf("failed to get details of Log Analytics Cluster %q (resource group %q): %+v", clusterId.ClusterName, clusterId.ResourceGroup, err)
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if resp.ClusterProperties != nil && resp.ClusterProperties.KeyVaultProperties != nil {
+	if props := resp.ClusterProperties; props != nil && props.KeyVaultProperties != nil {
 		keyProps := *resp.ClusterProperties.KeyVaultProperties
 		if keyProps.KeyName != nil && *keyProps.KeyName != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_cluster_customer_managed_key", fmt.Sprintf("%s/CMK", clusterIdRaw))
+			return tf.ImportAsExistsError("azurerm_log_analytics_cluster_customer_managed_key", id.ID())
 		}
 	}
-
-	d.SetId(fmt.Sprintf("%s/CMK", clusterIdRaw))
-	return resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d, meta)
-}
-
-func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LogAnalytics.ClusterClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
 	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Get("key_vault_key_id").(string))
 	if err != nil {
-		return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
-	}
-
-	clusterId, err := parse.LogAnalyticsClusterID(d.Get("log_analytics_cluster_id").(string))
-	if err != nil {
-		return err
+		return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
 	}
 
 	clusterPatch := operationalinsights.ClusterPatch{
@@ -110,16 +101,57 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 		},
 	}
 
-	if _, err := client.Update(ctx, clusterId.ResourceGroup, clusterId.ClusterName, clusterPatch); err != nil {
-		return fmt.Errorf("updating Log Analytics Cluster %q (Resource Group %q): %+v", clusterId.ClusterName, clusterId.ResourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.ClusterName, clusterPatch); err != nil {
+		return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
 	}
 
-	updateWait, err := logAnalyticsClusterWaitForState(ctx, meta, clusterId.ResourceGroup, clusterId.ClusterName)
+	updateWait, err := logAnalyticsClusterWaitForState(ctx, meta, id.ResourceGroup, id.ClusterName)
 	if err != nil {
 		return err
 	}
 	if _, err := updateWait.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", clusterId.ClusterName, clusterId.ResourceGroup, err)
+		return fmt.Errorf("waiting for %s to finish adding Customer Managed Key: %+v", *id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceLogAnalyticsClusterCustomerManagedKeyRead(d, meta)
+}
+
+func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).LogAnalytics.ClusterClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.LogAnalyticsClusterID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Get("key_vault_key_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
+	}
+
+	clusterPatch := operationalinsights.ClusterPatch{
+		ClusterPatchProperties: &operationalinsights.ClusterPatchProperties{
+			KeyVaultProperties: &operationalinsights.KeyVaultProperties{
+				KeyVaultURI: utils.String(keyId.KeyVaultBaseUrl),
+				KeyName:     utils.String(keyId.Name),
+				KeyVersion:  utils.String(keyId.Version),
+			},
+		},
+	}
+
+	if _, err := client.Update(ctx, id.ResourceGroup, id.ClusterName, clusterPatch); err != nil {
+		return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
+	}
+
+	updateWait, err := logAnalyticsClusterWaitForState(ctx, meta, id.ResourceGroup, id.ClusterName)
+	if err != nil {
+		return err
+	}
+	if _, err := updateWait.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for update of Customer Managed Key for %s: %+v", *id, err)
 	}
 
 	return resourceLogAnalyticsClusterCustomerManagedKeyRead(d, meta)
@@ -130,25 +162,22 @@ func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	idRaw := strings.TrimRight(d.Id(), "/CMK")
-
-	id, err := parse.LogAnalyticsClusterID(idRaw)
+	id, err := parse.LogAnalyticsClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	d.Set("log_analytics_cluster_id", idRaw)
-
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Log Analytics %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Log Analytics Cluster %q (Resource Group %q): %+v", id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	keyVaultKeyId := ""
 	if props := resp.ClusterProperties; props != nil {
 		if kvProps := props.KeyVaultProperties; kvProps != nil {
 			var keyVaultUri, keyName, keyVersion string
@@ -165,13 +194,21 @@ func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData
 			if kvProps.KeyVersion != nil {
 				keyVersion = *kvProps.KeyVersion
 			}
-			keyVaultKeyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, "keys", keyName, keyVersion)
+			keyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, "keys", keyName, keyVersion)
 			if err != nil {
 				return err
 			}
-			d.Set("key_vault_key_id", keyVaultKeyId.ID())
+			keyVaultKeyId = keyId.ID()
 		}
 	}
+
+	if keyVaultKeyId == "" {
+		log.Printf("[DEBUG] %s has no Customer Managed Key - removing from state", *id)
+		return nil
+	}
+
+	d.Set("log_analytics_cluster_id", d.Id())
+	d.Set("key_vault_key_id", keyVaultKeyId)
 
 	return nil
 }
@@ -181,7 +218,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterId, err := parse.LogAnalyticsClusterID(d.Get("log_analytics_cluster_id").(string))
+	id, err := parse.LogAnalyticsClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -196,16 +233,16 @@ func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceDa
 		},
 	}
 
-	if _, err = client.Update(ctx, clusterId.ResourceGroup, clusterId.ClusterName, clusterPatch); err != nil {
-		return fmt.Errorf("removing Log Analytics Cluster Customer Managed Key from cluster %q (resource group %q)", clusterId.ClusterName, clusterId.ResourceGroup)
+	if _, err = client.Update(ctx, id.ResourceGroup, id.ClusterName, clusterPatch); err != nil {
+		return fmt.Errorf("removing Customer Managed Key from %s: %+v", *id, err)
 	}
 
-	deleteWait, err := logAnalyticsClusterWaitForState(ctx, meta, clusterId.ResourceGroup, clusterId.ClusterName)
+	deleteWait, err := logAnalyticsClusterWaitForState(ctx, meta, id.ResourceGroup, id.ClusterName)
 	if err != nil {
 		return err
 	}
 	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", clusterId.ClusterName, clusterId.ResourceGroup, err)
+		return fmt.Errorf("waiting for removal of Customer Managed Key from %s: %+v", *id, err)
 	}
 
 	return nil

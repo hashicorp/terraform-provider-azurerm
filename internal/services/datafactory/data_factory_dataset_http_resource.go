@@ -196,7 +196,6 @@ func resourceDataFactoryDatasetHTTPCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	description := d.Get("description").(string)
-	// TODO
 	httpTableset := datafactory.HTTPDataset{
 		HTTPDatasetTypeProperties: &httpDatasetProperties,
 		LinkedServiceName:         linkedService,

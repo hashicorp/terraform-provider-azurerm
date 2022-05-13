@@ -1,6 +1,7 @@
 package eventhub
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	legacyIdentity "github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
@@ -39,9 +39,9 @@ var (
 
 func resourceEventHubNamespace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubNamespaceCreateUpdate,
+		Create: resourceEventHubNamespaceCreate,
 		Read:   resourceEventHubNamespaceRead,
-		Update: resourceEventHubNamespaceCreateUpdate,
+		Update: resourceEventHubNamespaceUpdate,
 		Delete: resourceEventHubNamespaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -76,7 +76,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 					string(namespaces.SkuNameBasic),
 					string(namespaces.SkuNameStandard),
 					string(namespaces.SkuNamePremium),
-				}, !features.ThreePointOhBeta()),
+				}, false),
 			},
 
 			"capacity": {
@@ -137,11 +137,14 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 						},
 
 						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
+						// Returned value of the `virtual_network_rule` array does not honor the input order,
+						// possibly a service design, thus changed to TypeSet
 						"virtual_network_rule": {
-							Type:       pluginsdk.TypeList,
+							Type:       pluginsdk.TypeSet,
 							Optional:   true,
 							MaxItems:   128,
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
+							Set:        resourceVnetRuleHash,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									// the API returns the subnet ID's resource group name in lowercase
@@ -246,7 +249,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -254,18 +257,96 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace creation.")
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
-		if existing.Model != nil {
-			return tf.ImportAsExistsError("azurerm_eventhub_namespace", id.ID())
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
+
+	if existing.Model != nil {
+		return tf.ImportAsExistsError("azurerm_eventhub_namespace", id.ID())
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	sku := d.Get("sku").(string)
+	capacity := int32(d.Get("capacity").(int))
+	t := d.Get("tags").(map[string]interface{})
+	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
+	zoneRedundant := d.Get("zone_redundant").(bool)
+
+	identity, err := expandEventHubIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	parameters := namespaces.EHNamespace{
+		Location: &location,
+		Sku: &namespaces.Sku{
+			Name: namespaces.SkuName(sku),
+			Tier: func() *namespaces.SkuTier {
+				v := namespaces.SkuTier(sku)
+				return &v
+			}(),
+			Capacity: utils.Int64(int64(capacity)),
+		},
+		Identity: identity,
+		Properties: &namespaces.EHNamespaceProperties{
+			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
+			ZoneRedundant:        utils.Bool(zoneRedundant),
+		},
+		Tags: tags.Expand(t),
+	}
+
+	if v := d.Get("dedicated_cluster_id").(string); v != "" {
+		parameters.Properties.ClusterArmId = utils.String(v)
+	}
+
+	if v, ok := d.GetOk("maximum_throughput_units"); ok {
+		parameters.Properties.MaximumThroughputUnits = utils.Int64(int64(v.(int)))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	ruleSets, hasRuleSets := d.GetOk("network_rulesets")
+	if hasRuleSets {
+		rulesets := networkrulesets.NetworkRuleSet{
+			Properties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
+		}
+
+		// cannot use network rulesets with the basic SKU
+		if parameters.Sku.Name != namespaces.SkuNameBasic {
+			ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
+			namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+			if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
+				return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
+			}
+		} else if rulesets.Properties != nil {
+			props := rulesets.Properties
+			// so if the user has specified the non default rule sets throw a validation error
+			if *props.DefaultAction != networkrulesets.DefaultActionDeny ||
+				(props.IpRules != nil && len(*props.IpRules) > 0) ||
+				(props.VirtualNetworkRules != nil && len(*props.VirtualNetworkRules) > 0) {
+				return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
+			}
+		}
+	}
+
+	return resourceEventHubNamespaceRead(d, meta)
+}
+
+func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Eventhub.NamespacesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace update.")
+
+	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
@@ -314,8 +395,8 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		parameters.Properties.MaximumThroughputUnits = utils.Int64(0)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if _, err := client.Update(ctx, id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -502,10 +583,11 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 		ruleset.TrustedServiceAccessEnabled = utils.Bool(v.(bool))
 	}
 
-	if v, ok := block["virtual_network_rule"].([]interface{}); ok {
-		if len(v) > 0 {
+	if v, ok := block["virtual_network_rule"]; ok {
+		value := v.(*pluginsdk.Set).List()
+		if len(value) > 0 {
 			var rules []networkrulesets.NWRuleSetVirtualNetworkRules
-			for _, r := range v {
+			for _, r := range value {
 				rblock := r.(map[string]interface{})
 				rules = append(rules, networkrulesets.NWRuleSetVirtualNetworkRules{
 					Subnet: &networkrulesets.Subnet{
@@ -618,4 +700,20 @@ func flattenEventHubIdentity(input *legacyIdentity.SystemUserAssignedIdentityMap
 		PrincipalId: legacyConfig.PrincipalId,
 		TenantId:    legacyConfig.TenantId,
 	})
+}
+
+// The resource id of subnet_id that's being returned by API is always lower case &
+// the default caseDiff suppress func is not working in TypeSet
+func resourceVnetRuleHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		if v, ok := m["subnet_id"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
+		}
+		if v, ok := m["ignore_missing_virtual_network_service_endpoint"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+	}
+	return pluginsdk.HashString(buf.String())
 }

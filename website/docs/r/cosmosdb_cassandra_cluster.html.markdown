@@ -10,6 +10,12 @@ description: |-
 
 Manages a Cassandra Cluster.
 
+~> ** NOTE: ** In order for the `Azure Managed Instances for Apache Cassandra` to work properly the product requires the `Azure Cosmos DB` Application ID to be present and working in your tenant. If the `Azure Cosmos DB` Application ID is missing in your environment you will need to have an administrator of your tenant run the following command to add the `Azure Cosmos DB` Application ID to your tenant:
+
+```powershell
+New-AzADServicePrincipal -ApplicationId a232010e-820c-4083-83bb-3ace5fc29d0b
+```
+
 ## Example Usage
 
 ```hcl
@@ -36,10 +42,14 @@ resource "azurerm_subnet" "example" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
+data "azuread_service_principal" "example" {
+  display_name = "Azure Cosmos DB"
+}
+
 resource "azurerm_role_assignment" "example" {
   scope                = azurerm_virtual_network.example.id
   role_definition_name = "Network Contributor"
-  principal_id         = "e5007d2c-4b13-4a74-9b6a-605d99f03501"
+  principal_id         = data.azuread_service_principal.example.object_id
 }
 
 resource "azurerm_cosmosdb_cassandra_cluster" "example" {
@@ -48,6 +58,8 @@ resource "azurerm_cosmosdb_cassandra_cluster" "example" {
   location                       = azurerm_resource_group.example.location
   delegated_management_subnet_id = azurerm_subnet.example.id
   default_admin_password         = "Password1234"
+
+  depends_on = [azurerm_role_assignment.example]
 }
 ```
 
@@ -65,6 +77,8 @@ The following arguments are supported:
 
 * `default_admin_password` - (Required) The initial admin password for this Cassandra Cluster.
 
+* `tags` - (Optional) A mapping of tags assigned to the resource.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -77,6 +91,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cassandra Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cassandra Cluster.
+* `update` - (Defaults to 30 minutes) Used when updating the Cassandra Cluster.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Cassandra Cluster.
 
 ## Import
