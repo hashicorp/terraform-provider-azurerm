@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -146,12 +145,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default: func() interface{} {
-					if features.ThreePointOhBeta() {
-						return "1.2"
-					}
-					return nil
-				}(),
+				Default:  "1.2",
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
 					"1.1",
@@ -198,7 +192,6 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -292,24 +285,12 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("issuing create request for Connection Policy %s: %+v", id.String(), err)
 	}
 
-	auditingProps := sql.ExtendedServerBlobAuditingPolicy{}
-
-	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
-	if err != nil {
-		return fmt.Errorf("issuing create request for Blob Auditing Policies %s: %+v", id.String(), err)
-	}
-
-	if err = auditingFuture.WaitForCompletionRef(ctx, auditingClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Blob Auditing Policies %s: %+v", id.String(), err)
-	}
-
 	return resourceMsSqlServerRead(d, meta)
 }
 
 func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
 	aadOnlyAuthentictionsClient := meta.(*clients.Client).MSSQL.ServerAzureADOnlyAuthenticationsClient
@@ -433,17 +414,6 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 	if _, err = connectionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, connection); err != nil {
 		return fmt.Errorf("issuing update request for Connection Policy %s: %+v", id.String(), err)
-	}
-
-	auditingProps := sql.ExtendedServerBlobAuditingPolicy{}
-
-	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
-	if err != nil {
-		return fmt.Errorf("issuing update request for Blob Auditing Policies %s: %+v", id.String(), err)
-	}
-
-	if err = auditingFuture.WaitForCompletionRef(ctx, auditingClient.Client); err != nil {
-		return fmt.Errorf("waiting for update of Blob Auditing Policies %s: %+v", id.String(), err)
 	}
 
 	return resourceMsSqlServerRead(d, meta)

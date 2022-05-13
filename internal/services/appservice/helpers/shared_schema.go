@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	appserviceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -57,10 +57,10 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.Any(
-						validate.IPv4Address,
-						validate.CIDR,
+						validation.IsCIDR,
+						validation.IsIPAddress,
 					),
-					Description: "The CIDR notation of the IP or IP Range to match. For example: `10.0.0.0/24` or `192.168.10.1/32`",
+					Description: "The CIDR notation of the IP or IP Range to match. For example: `10.0.0.0/24` or `192.168.10.1/32` or `fe80::/64`",
 				},
 
 				"service_tag": {
@@ -1460,7 +1460,7 @@ func FlattenIpRestrictions(ipRestrictionsList *[]web.IPSecurityRestriction) []Ip
 			if *v.IPAddress == "Any" {
 				continue
 			}
-			ipRestriction.IpAddress = *v.IPAddress
+
 			if v.Tag == web.IPFilterTagServiceTag {
 				ipRestriction.ServiceTag = *v.IPAddress
 			} else {
@@ -1534,4 +1534,102 @@ func FlattenSiteCredentials(input web.User) []SiteCredential {
 	})
 
 	return result
+}
+
+type StickySettings struct {
+	AppSettingNames       []string `tfschema:"app_setting_names"`
+	ConnectionStringNames []string `tfschema:"connection_string_names"`
+}
+
+func StickySettingsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"app_setting_names": {
+					Type:     pluginsdk.TypeList,
+					MinItems: 1,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: appserviceValidate.AppSettingName,
+					},
+					AtLeastOneOf: []string{
+						"sticky_settings.0.app_setting_names",
+						"sticky_settings.0.connection_string_names",
+					},
+				},
+
+				"connection_string_names": {
+					Type:     pluginsdk.TypeList,
+					MinItems: 1,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: appserviceValidate.AppSettingName,
+					},
+					AtLeastOneOf: []string{
+						"sticky_settings.0.app_setting_names",
+						"sticky_settings.0.connection_string_names",
+					},
+				},
+			},
+		},
+	}
+}
+
+func StickySettingsComputedSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"app_setting_names": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"connection_string_names": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
+func ExpandStickySettings(input []StickySettings) *web.SlotConfigNames {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &web.SlotConfigNames{
+		AppSettingNames:       &input[0].AppSettingNames,
+		ConnectionStringNames: &input[0].ConnectionStringNames,
+	}
+}
+
+func FlattenStickySettings(input *web.SlotConfigNames) []StickySettings {
+	result := StickySettings{}
+	if input == nil || (input.AppSettingNames == nil && input.ConnectionStringNames == nil) || (len(*input.AppSettingNames) == 0 && len(*input.ConnectionStringNames) == 0) {
+		return []StickySettings{}
+	}
+
+	if input.AppSettingNames != nil && len(*input.AppSettingNames) > 0 {
+		result.AppSettingNames = *input.AppSettingNames
+	}
+
+	if input.ConnectionStringNames != nil && len(*input.ConnectionStringNames) > 0 {
+		result.ConnectionStringNames = *input.ConnectionStringNames
+	}
+
+	return []StickySettings{result}
 }

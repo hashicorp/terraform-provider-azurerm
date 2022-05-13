@@ -55,6 +55,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `sku_name` - The SKU for the Service Plan.
 
+* `zone_balancing_enabled` - Is the Service Plan balance across Availability Zones in the region?
+
 * `tags` - A mapping of tags assigned to the Service Plan.
 
 ## Timeouts

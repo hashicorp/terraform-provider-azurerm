@@ -13,21 +13,21 @@ Manages a Logic App Integration Account Agreement.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_logic_app_integration_account" "test" {
   name                = "example-ia"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku_name            = "Standard"
 }
 
 resource "azurerm_logic_app_integration_account_partner" "host" {
   name                     = "example-hostpartner"
-  resource_group_name      = azurerm_resource_group.test.name
+  resource_group_name      = azurerm_resource_group.example.name
   integration_account_name = azurerm_logic_app_integration_account.test.name
 
   business_identity {
@@ -38,7 +38,7 @@ resource "azurerm_logic_app_integration_account_partner" "host" {
 
 resource "azurerm_logic_app_integration_account_partner" "guest" {
   name                     = "example-guestpartner"
-  resource_group_name      = azurerm_resource_group.test.name
+  resource_group_name      = azurerm_resource_group.example.name
   integration_account_name = azurerm_logic_app_integration_account.test.name
 
   business_identity {
@@ -49,7 +49,7 @@ resource "azurerm_logic_app_integration_account_partner" "guest" {
 
 resource "azurerm_logic_app_integration_account_agreement" "test" {
   name                     = "example-agreement"
-  resource_group_name      = azurerm_resource_group.test.name
+  resource_group_name      = azurerm_resource_group.example.name
   integration_account_name = azurerm_logic_app_integration_account.test.name
   agreement_type           = "AS2"
   host_partner_name        = azurerm_logic_app_integration_account_partner.host.name

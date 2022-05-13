@@ -10,7 +10,7 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	AppsClient := iotcentral.NewAppsClient(o.SubscriptionId)
+	AppsClient := iotcentral.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AppsClient.Client, o.ResourceManagerAuthorizer)
 	return &Client{
 		AppsClient: &AppsClient,

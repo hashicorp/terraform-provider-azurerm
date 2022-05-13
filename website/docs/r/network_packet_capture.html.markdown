@@ -130,7 +130,7 @@ The following arguments are supported:
 
 * `target_resource_id` - (Required) The ID of the Resource to capture packets from. Changing this forces a new resource to be created.
 
-~> **NOTE:** Currently only Virtual Machines ID's are supported.
+~> **NOTE:** Currently only Virtual Machines IDs are supported.
 
 * `maximum_bytes_per_packet` - (Optional) The number of bytes captured per packet. The remaining bytes are truncated. Defaults to `0` (Entire Packet Captured). Changing this forces a new resource to be created.
 
@@ -146,7 +146,7 @@ The following arguments are supported:
 
 A `storage_location` block contains:
 
-* `file_path` - (Optional) A valid local path on the targeting VM. Must include the name of the capture file (*.cap). For linux virtual machine it must start with `/var/captures`.
+* `file_path` - (Optional) A valid local path on the targeting VM. Must include the name of the capture file (*.cap). For Linux virtual machine it must start with `/var/captures`.
 
 * `storage_account_id` - (Optional) The ID of the storage account to save the packet capture session
 

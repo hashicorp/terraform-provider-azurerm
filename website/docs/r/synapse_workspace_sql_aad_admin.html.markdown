@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_synapse_workspace_aad_admin
 
-Manages an Azure Active Directory Sql Administrator setting for a Synapse Workspace
+Manages an Azure Active Directory SQL Administrator setting for a Synapse Workspace
 
 ## Example Usage
 

@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -16,33 +15,6 @@ import (
 )
 
 func dataSourceNetAppVolume() *pluginsdk.Resource {
-	dataProtectionReplicationSchema := map[string]*pluginsdk.Schema{
-		"endpoint_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"remote_volume_location": commonschema.LocationComputed(),
-
-		"remote_volume_resource_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"replication_frequency": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
-
-	if !features.ThreePointOhBeta() {
-		dataProtectionReplicationSchema["replication_schedule"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "This property is not in use and will be removed in version 3.0 of the provider. Please use `replication_frequency` instead",
-		}
-	}
-
 	return &pluginsdk.Resource{
 		Read: dataSourceNetAppVolumeRead,
 
@@ -116,7 +88,24 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
-					Schema: dataProtectionReplicationSchema,
+					Schema: map[string]*pluginsdk.Schema{
+						"endpoint_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"remote_volume_location": commonschema.LocationComputed(),
+
+						"remote_volume_resource_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"replication_frequency": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
 				},
 			},
 		},

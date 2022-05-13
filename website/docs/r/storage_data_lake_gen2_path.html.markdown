@@ -55,9 +55,9 @@ The following arguments are supported:
 
 * `resource` - (Required) Specifies the type for path to create. Currently only `directory` is supported.
 
-* `owner` - (Optional) Specifies the Object ID of the Azure Active Directory User to make the owning user.
+* `owner` - (Optional) Specifies the Object ID of the Azure Active Directory User to make the owning user. Possible values also include `$superuser`.
 
-* `group` - (Optional) Specifies the Object ID of the Azure Active Directory Group to make the owning group.
+* `group` - (Optional) Specifies the Object ID of the Azure Active Directory Group to make the owning group. Possible values also include `$superuser`.
 
 * `ace` - (Required) One or more `ace` blocks as defined below to specify the entries for the ACL for the path.
 

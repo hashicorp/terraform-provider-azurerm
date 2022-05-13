@@ -29,8 +29,13 @@ The following arguments are supported:
 
 ---
 
- An `identity` block supports the following:
+An `identity` block exports the following:
 
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+* `type` - The identity type of this Managed Service Identity.
 
 ## Attributes Reference
 

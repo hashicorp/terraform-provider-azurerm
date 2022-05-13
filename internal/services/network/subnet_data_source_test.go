@@ -109,8 +109,6 @@ func TestAccDataSourceSubnet_serviceEndpoints(t *testing.T) {
 				check.That(data.ResourceName).Key("network_security_group_id").HasValue(""),
 				check.That(data.ResourceName).Key("route_table_id").HasValue(""),
 				check.That(data.ResourceName).Key("service_endpoints.#").HasValue("2"),
-				check.That(data.ResourceName).Key("service_endpoints.0").HasValue("Microsoft.Sql"),
-				check.That(data.ResourceName).Key("service_endpoints.1").HasValue("Microsoft.Storage"),
 			),
 		},
 	})

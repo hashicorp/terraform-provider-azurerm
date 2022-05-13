@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_managed_disk" "example" {
   name                 = "acctestmd"
-  location             = "West US 2"
+  location             = azurerm_resource_group.example.location
   resource_group_name  = azurerm_resource_group.example.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
@@ -42,7 +42,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_managed_disk" "source" {
   name                 = "acctestmd1"
-  location             = "West US 2"
+  location             = azurerm_resource_group.example.location
   resource_group_name  = azurerm_resource_group.example.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
@@ -55,7 +55,7 @@ resource "azurerm_managed_disk" "source" {
 
 resource "azurerm_managed_disk" "copy" {
   name                 = "acctestmd2"
-  location             = "West US 2"
+  location             = azurerm_resource_group.example.location
   resource_group_name  = azurerm_resource_group.example.name
   storage_account_type = "Standard_LRS"
   create_option        = "Copy"
@@ -149,7 +149,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `zones` - (Optional) A collection containing the availability zone to allocate the Managed Disk in.
+* `zone` - (Optional) Specifies the Availability Zone in which this Managed Disk should be located. Changing this property forces a new resource to be created.
 
 ~> **Note:** Availability Zones are [only supported in select regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 

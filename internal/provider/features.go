@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"os"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,6 +43,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"disable_generated_rule": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Default:  false,
 					},
 				},
 			},
@@ -179,14 +182,17 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"delete_os_disk_on_deletion": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Default:  false,
 					},
 					"graceful_shutdown": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Default:  false,
 					},
 					"skip_shutdown_and_force_delete": {
 						Type:     schema.TypeBool,
 						Optional: true,
+						Default:  false,
 					},
 				},
 			},
@@ -201,6 +207,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"force_delete": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Default:  false,
 					},
 					"roll_instances_when_required": {
 						Type:     pluginsdk.TypeBool,
@@ -209,6 +216,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"scale_to_zero_before_deletion": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Default:  false,
 					},
 				},
 			},
@@ -223,6 +231,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"prevent_deletion_if_contains_resources": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Default:  os.Getenv("TF_ACC") == "",
 					},
 				},
 			},

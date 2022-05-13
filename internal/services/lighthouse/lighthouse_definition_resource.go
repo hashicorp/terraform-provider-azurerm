@@ -187,8 +187,12 @@ func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	// NOTE: this API call uses DefinitionId then Scope - check in the future
-	if _, err := client.CreateOrUpdate(ctx, id.LighthouseDefinitionID, id.Scope, parameters); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.LighthouseDefinitionID, id.Scope, parameters)
+	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

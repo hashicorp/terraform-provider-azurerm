@@ -15,7 +15,7 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	analyticsItemsClient := insights.NewAnalyticsItemsClient(o.SubscriptionId)
+	analyticsItemsClient := insights.NewAnalyticsItemsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&analyticsItemsClient.Client, o.ResourceManagerAuthorizer)
 
 	apiKeysClient := insights.NewAPIKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

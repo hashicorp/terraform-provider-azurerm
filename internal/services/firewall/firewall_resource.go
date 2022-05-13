@@ -13,11 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
@@ -66,9 +65,7 @@ func resourceFirewall() *pluginsdk.Resource {
 			//lintignore:S013
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
-				Required: features.ThreePointOhBeta(),
-				Optional: !features.ThreePointOhBeta(),
-				Computed: !features.ThreePointOhBeta(),
+				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.AzureFirewallSkuNameAZFWHub),
@@ -79,9 +76,7 @@ func resourceFirewall() *pluginsdk.Resource {
 			//lintignore:S013
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
-				Required: features.ThreePointOhBeta(),
-				Optional: !features.ThreePointOhBeta(),
-				Computed: !features.ThreePointOhBeta(),
+				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.AzureFirewallSkuTierPremium),
@@ -158,24 +153,12 @@ func resourceFirewall() *pluginsdk.Resource {
 			"threat_intel_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default: func() interface{} {
-					if features.ThreePointOhBeta() {
-						return nil
-					}
-					return string(network.AzureFirewallThreatIntelModeAlert)
-				}(),
-				Computed: features.ThreePointOhBeta(),
-				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-					out := []string{
-						string(network.AzureFirewallThreatIntelModeOff),
-						string(network.AzureFirewallThreatIntelModeAlert),
-						string(network.AzureFirewallThreatIntelModeDeny),
-					}
-					if !features.ThreePointOhBeta() {
-						out = append(out, "")
-					}
-					return validation.StringInSlice(out, false)
-				}(),
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.AzureFirewallThreatIntelModeOff),
+					string(network.AzureFirewallThreatIntelModeAlert),
+					string(network.AzureFirewallThreatIntelModeDeny),
+				}, false),
 			},
 
 			"dns_servers": {
@@ -231,59 +214,10 @@ func resourceFirewall() *pluginsdk.Resource {
 				},
 			},
 
-			"zones": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return azure.SchemaZones()
-				}
-
-				return commonschema.ZonesMultipleOptionalForceNew()
-			}(),
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 			"tags": tags.Schema(),
 		},
-	}
-
-	if features.ThreePointOhBeta() {
-		resource.Schema["sku_tier"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(network.AzureFirewallSkuTierPremium),
-				string(network.AzureFirewallSkuTierStandard),
-			}, false),
-		}
-		resource.Schema["sku_name"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(network.AzureFirewallSkuNameAZFWHub),
-				string(network.AzureFirewallSkuNameAZFWVNet),
-			}, false),
-		}
-	} else {
-		resource.Schema["sku_name"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(network.AzureFirewallSkuNameAZFWHub),
-				string(network.AzureFirewallSkuNameAZFWVNet),
-			}, false),
-		}
-
-		resource.Schema["sku_tier"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(network.AzureFirewallSkuTierPremium),
-				string(network.AzureFirewallSkuTierStandard),
-			}, false),
-		}
 	}
 
 	return &resource
@@ -332,13 +266,9 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 	}
 
-	if features.ThreePointOhBeta() {
-		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
-		if len(zones) > 0 {
-			parameters.Zones = &zones
-		}
-	} else {
-		parameters.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
+	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		parameters.Zones = &zones
 	}
 
 	m := d.Get("management_ip_configuration").([]interface{})
@@ -374,14 +304,14 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		parameters.AzureFirewallPropertiesFormat.HubIPAddresses = hubIpAddresses
 	}
 
-	if skuName := d.Get("sku_name").(string); features.ThreePointOhBeta() || skuName != "" {
+	if skuName := d.Get("sku_name").(string); skuName != "" {
 		if parameters.Sku == nil {
 			parameters.Sku = &network.AzureFirewallSku{}
 		}
 		parameters.Sku.Name = network.AzureFirewallSkuName(skuName)
 	}
 
-	if skuTier := d.Get("sku_tier").(string); features.ThreePointOhBeta() || skuTier != "" {
+	if skuTier := d.Get("sku_tier").(string); skuTier != "" {
 		if parameters.Sku == nil {
 			parameters.Sku = &network.AzureFirewallSku{}
 		}

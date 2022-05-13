@@ -160,7 +160,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the Azure Function receiver.
 * `function_app_resource_id` - (Required) The Azure resource ID of the function app.
 * `function_name` - (Required) The function name in the function app.
-* `http_trigger_url` - (Required) The http trigger url where http request sent to.
+* `http_trigger_url` - (Required) The HTTP trigger url where HTTP request sent to.
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 
 ---
@@ -196,7 +196,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the logic app receiver.
 * `resource_id` - (Required) The Azure resource ID of the logic app.
-* `callback_url` - (Required) The callback url where http request sent to.
+* `callback_url` - (Required) The callback url where HTTP request sent to.
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 
 ---
@@ -228,9 +228,9 @@ The following arguments are supported:
 
 `aad_auth` supports the following:.
 
-* `object_id` - (Required) The webhook application object Id for aad auth.
-* `identifier_uri` - (Optional) The identifier uri for aad auth.
-* `tenant_id` - (Optional) The tenant id for aad auth.
+* `object_id` - (Required) The webhook application object Id for AAD auth.
+* `identifier_uri` - (Optional) The identifier URI for AAD auth.
+* `tenant_id` - (Optional) The tenant id for AAD auth.
 
 ## Attributes Reference
 

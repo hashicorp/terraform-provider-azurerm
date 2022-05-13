@@ -38,10 +38,10 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "example" {
 }
 ```
 
-## Example Usage with SAS Uri and SAS Token.
+## Example Usage with SAS URI and SAS Token.
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
@@ -51,14 +51,14 @@ data "azurerm_client_config" "current" {
 
 resource "azurerm_data_factory" "test" {
   name                = "example"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_key_vault" "test" {
   name                = "example"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 }
@@ -73,8 +73,21 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name            = "example"
   data_factory_id = azurerm_data_factory.test.id
 
-  sas_uri = "https://storageaccountname.blob.core.windows.net"
+  sas_uri = "https://example.blob.core.windows.net"
   key_vault_sas_token {
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "secret"
+  }
+}
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name            = "example"
+  data_factory_id = azurerm_data_factory.test.id
+
+  service_endpoint     = "https://example.blob.core.windows.net"
+  service_principal_id = "00000000-0000-0000-0000-000000000000"
+  tenant_id            = "00000000-0000-0000-0000-000000000000"
+  service_principal_linked_key_vault_key {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
   }
@@ -113,17 +126,31 @@ A `key_vault_sas_token` block supports the following:
 
 * `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
 
-* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores the sas token.
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores the SAS token.
 
 ---
 
-* `service_endpoint` - (Optional) The Service Endpoint. Conflicts with `connection_string` and `sas_uri`. Required with `use_managed_identity`.
+* `service_principal_linked_key_vault_key` - (Optional) A `service_principal_linked_key_vault_key` block as defined below. Use this argument to store Service Principal key in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
+
+---
+
+A `service_principal_linked_key_vault_key` block supports the following:
+
+* `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores the Service Principal key.
+
+---
+
+* `service_endpoint` - (Optional) The Service Endpoint. Conflicts with `connection_string` and `sas_uri`.
 
 * `use_managed_identity` - (Optional) Whether to use the Data Factory's managed identity to authenticate against the Azure Blob Storage account. Incompatible with `service_principal_id` and `service_principal_key`.
 
-* `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure Blob Storage account. Required if `service_principal_key` is set.
+* `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure Blob Storage account.
 
-* `service_principal_key` - (Optional) The service principal key in which to authenticate against the AAzure Blob Storage account.  Required if `service_principal_id` is set.
+* `service_principal_key` - (Optional) The service principal key in which to authenticate against the AAzure Blob Storage account.
+
+* `storage_kind` - (Optional) Specify the kind of the storage account. Allowed values are `Storage`, `StorageV2`, `BlobStorage` and `BlockBlobStorage`.
 
 * `tenant_id` - (Optional) The tenant id or name in which to authenticate against the Azure Blob Storage account.
 

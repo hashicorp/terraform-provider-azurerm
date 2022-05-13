@@ -98,25 +98,25 @@ resource "azurerm_private_endpoint" "example" {
 Using a Private Link Service Alias with existing resources:
 
 ```hcl
-data "azurerm_resource_group" "rg" {
+data "azurerm_resource_group" "example" {
   name = "example-resources"
 }
 
 data "azurerm_virtual_network" "vnet" {
   name                = "example-network"
-  resource_group_name = data.azurerm_resource_group.rg.name
+  resource_group_name = data.azurerm_resource_group.example.name
 }
 
 data "azurerm_subnet" "subnet" {
   name                 = "default"
   virtual_network_name = data.azurerm_virtual_network.vnet.name
-  resource_group_name  = data.azurerm_resource_group.rg.name
+  resource_group_name  = data.azurerm_resource_group.example.name
 }
 
 resource "azurerm_private_endpoint" "example" {
   name                = "example-endpoint"
-  location            = data.azurerm_resource_group.rg.location
-  resource_group_name = data.azurerm_resource_group.rg.name
+  location            = data.azurerm_resource_group.example.location
+  resource_group_name = data.azurerm_resource_group.example.name
   subnet_id           = data.azurerm_subnet.subnet.id
 
   private_service_connection {
@@ -175,7 +175,7 @@ A `private_service_connection` supports the following:
 | Resource Type                 | SubResource Name | Secondary SubResource Name |
 | ----------------------------- | ---------------- | -------------------------- |
 | Data Lake File System Gen2    | dfs              | dfs_secondary              |
-| Sql Database / Data Warehouse | sqlServer        |                            |
+| SQL Database / Data Warehouse | sqlServer        |                            |
 | SQL Managed Instance          | managedInstance  |                            |
 | Storage Account               | blob             | blob_secondary             |
 | Storage Account               | file             | file_secondary             |

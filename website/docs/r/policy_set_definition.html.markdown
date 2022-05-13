@@ -64,9 +64,9 @@ The following arguments are supported:
 
 ~> **NOTE:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `name` or `group_id` attribute, but not `id`.
 
-* `metadata` - (Optional) The metadata for the policy set definition. This is a json object representing additional metadata that should be stored with the policy definition.
+* `metadata` - (Optional) The metadata for the policy set definition. This is a JSON object representing additional metadata that should be stored with the policy definition.
 
-* `parameters` - (Optional) Parameters for the policy set definition. This field is a json object that allows you to parameterize your policy definition.
+* `parameters` - (Optional) Parameters for the policy set definition. This field is a JSON object that allows you to parameterize your policy definition.
 
 ---
 

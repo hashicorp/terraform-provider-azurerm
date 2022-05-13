@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -117,8 +116,7 @@ func resourceSqlServer() *pluginsdk.Resource {
 									"Access_Anomaly",
 									"Data_Exfiltration",
 									"Unsafe_Action",
-								}, !features.ThreePointOhBeta()),
-								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+								}, false),
 							},
 						},
 
@@ -145,15 +143,14 @@ func resourceSqlServer() *pluginsdk.Resource {
 						},
 
 						"state": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-							Default:          string(sql.SecurityAlertPolicyStateDisabled),
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(sql.SecurityAlertPolicyStateDisabled),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sql.SecurityAlertPolicyStateDisabled),
 								string(sql.SecurityAlertPolicyStateEnabled),
 								string(sql.SecurityAlertPolicyStateNew), // Only kept for backward compatibility - TODO investigate if we can remove this in 4.0
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 
 						"storage_account_access_key": {
@@ -198,7 +195,6 @@ func resourceSqlServer() *pluginsdk.Resource {
 func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).Sql.ServerConnectionPoliciesClient
 	secPolicyClient := meta.(*clients.Client).Sql.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -268,15 +264,6 @@ func resourceSqlServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	if _, err = connectionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, connection); err != nil {
 		return fmt.Errorf("creating/updating Connection Policy for %s: %+v", id, err)
-	}
-
-	auditingProps := sql.ExtendedServerBlobAuditingPolicy{}
-	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, auditingProps)
-	if err != nil {
-		return fmt.Errorf("creating/updating Auditing Policy for %s: %+v", id, err)
-	}
-	if err := auditingFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Auditing Policy for %s: %+v", id, err)
 	}
 
 	policyInput := expandSqlServerThreatDetectionPolicy(d)
