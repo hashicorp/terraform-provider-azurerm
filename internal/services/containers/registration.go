@@ -43,7 +43,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_container_registry_scope_map":  resourceContainerRegistryScopeMap(),
 		"azurerm_kubernetes_cluster":            resourceKubernetesCluster(),
 		"azurerm_kubernetes_cluster_node_pool":  resourceKubernetesClusterNodePool(),
-		"azurerm_snapshots":                     resourceSnapshots(),
+		"azurerm_kubernetes_node_pool_snapshot": resourcekubernetesNodePoolSnapshot(),
 	}
 }
 

@@ -9,42 +9,42 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type SnapshotsId struct {
+type NodePoolSnapshotId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	SnapshotName   string
 }
 
-func NewSnapshotsID(subscriptionId, resourceGroup, snapshotName string) SnapshotsId {
-	return SnapshotsId{
+func NewNodePoolSnapshotID(subscriptionId, resourceGroup, snapshotName string) NodePoolSnapshotId {
+	return NodePoolSnapshotId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		SnapshotName:   snapshotName,
 	}
 }
 
-func (id SnapshotsId) String() string {
+func (id NodePoolSnapshotId) String() string {
 	segments := []string{
 		fmt.Sprintf("Snapshot Name %q", id.SnapshotName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Snapshots", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Node Pool Snapshot", segmentsStr)
 }
 
-func (id SnapshotsId) ID() string {
+func (id NodePoolSnapshotId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/snapshots/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SnapshotName)
 }
 
-// SnapshotsID parses a Snapshots ID into an SnapshotsId struct
-func SnapshotsID(input string) (*SnapshotsId, error) {
+// NodePoolSnapshotID parses a NodePoolSnapshot ID into an NodePoolSnapshotId struct
+func NodePoolSnapshotID(input string) (*NodePoolSnapshotId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := SnapshotsId{
+	resourceId := NodePoolSnapshotId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}

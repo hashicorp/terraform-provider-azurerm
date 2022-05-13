@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = SnapshotsId{}
+var _ resourceids.Id = NodePoolSnapshotId{}
 
-func TestSnapshotsIDFormatter(t *testing.T) {
-	actual := NewSnapshotsID("12345678-1234-9876-4563-123456789012", "resGroup1", "snapshot1").ID()
+func TestNodePoolSnapshotIDFormatter(t *testing.T) {
+	actual := NewNodePoolSnapshotID("12345678-1234-9876-4563-123456789012", "resGroup1", "snapshot1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/snapshots/snapshot1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestSnapshotsID(t *testing.T) {
+func TestNodePoolSnapshotID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *SnapshotsId
+		Expected *NodePoolSnapshotId
 	}{
 
 		{
@@ -70,7 +70,7 @@ func TestSnapshotsID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/snapshots/snapshot1",
-			Expected: &SnapshotsId{
+			Expected: &NodePoolSnapshotId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				SnapshotName:   "snapshot1",
@@ -87,7 +87,7 @@ func TestSnapshotsID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := SnapshotsID(v.Input)
+		actual, err := NodePoolSnapshotID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
