@@ -109,6 +109,14 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 				},
 			},
 
+			"inbound_nat_rules": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"load_balancing_rules": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -123,54 +131,8 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
-<<<<<<< HEAD
-
-				"inbound_nat_rules": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
-				},
-			}
-
-			if !features.ThreePointOhBeta() {
-				s["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
-				s["backend_address"] = &pluginsdk.Schema{
-					Type:       pluginsdk.TypeSet,
-					Optional:   true,
-					Deprecated: "This field is non-functional and will be removed in version 3.0 of the Azure Provider - use the separate `azurerm_lb_backend_address_pool_address` resource instead.",
-					MinItems:   1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-
-							"virtual_network_id": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: networkValidate.VirtualNetworkID,
-							},
-
-							"ip_address": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.IsIPAddress,
-							},
-						},
-					},
-				}
-			}
-
-			return s
-		}(),
-=======
 			},
 		},
->>>>>>> upstream/main
 	}
 }
 
