@@ -1769,6 +1769,15 @@ resource "azurerm_container_group" "test" {
       sku   = "K80"
     }
 
+    cpu_limit    = "1"
+    memory_limit = "1.5"
+
+    gpu_limit {
+      count = 1
+      sku   = "K80"
+    }
+
+
     volume {
       name       = "logs"
       mount_path = "/aci/logs"
