@@ -149,13 +149,13 @@ The `sqltempdb_storage_settings` block supports the following:
 
 * `data_file_count` - (Optional) SQL Server default file count - Default 8
 
-* `data_file_size` - (Optional) SQL Server default file size - Default 256
+* `data_file_size_mb` - (Optional) SQL Server default file size - Default 256
 
-* `data_growth` - (Optional) SQL Server default file size - Default 512
+* `data_file_growth_in_mb` - (Optional) SQL Server default file size - Default 512
 
-* `log_file_size` - (Optional) SQL Server default file size - Default 256
+* `log_file_size_mb` - (Optional) SQL Server default file size - Default 256
 
-* `log_growth` - (Optional) SQL Server default file size - Default 512
+* `log_file_growth_mb` - (Optional) SQL Server default file size - Default 512
 
 ## Attributes Reference
 
