@@ -11,6 +11,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: upgrade `network` to `2021-08-01` [GH-16631]
 * `azurerm_container_group` - support for the `key_vault_key_id` property (Customer Managed Key encryption) [GH-16709]
 * `azurerm_kubernetes_cluster_node_pool` - the property `node_labels` can now be updated [GH-16360]
 * `azurerm_kubernetes_cluster` - the property `default_node_pool.node_labels` can now be updated [GH-16360]
@@ -21,8 +22,8 @@ ENHANCEMENTS:
 * `azurerm_stream_analytics_function_javascript_uda` - support for the `input.configuration_parameter` property [GH-16575]
 * `azurerm_stream_analytics_function_javascript_udf` - support for the `input.configuration_parameter` property [GH-16579]
 * `azurerm_linux_virtual_machine` - correctly support for the update the `diff_disk_settings.placement` property [GH-14847]
-* `azurerm_windows_virtual_machine` - correctly support for the update the `diff_disk_settings.placement` property [GH-]
-
+* `azurerm_virtual_network_gateway_connection` - support for the `custom_bgp_addresses` property [GH-16631]
+* `azurerm_windows_virtual_machine` - correctly support for the update the `diff_disk_settings.placement` property [GH-14847]
 
 BUG FIXES:
 
