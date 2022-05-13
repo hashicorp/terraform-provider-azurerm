@@ -89,8 +89,9 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ip_address": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -156,6 +157,10 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if v, ok := d.GetOk("prometheus_endpoint"); ok {
+		body.Properties.PrometheusEndpoint = expandCassandraClusterPrometheusEndpoint(v.([]interface{}))
+	}
+
 	future, err := client.CreateUpdate(ctx, id.ResourceGroup, id.Name, body)
 	if err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
@@ -200,6 +205,10 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("authentication_method", string(props.AuthenticationMethod))
 			d.Set("repair_enabled", props.RepairEnabled)
 			d.Set("version", props.CassandraVersion)
+
+			if err := d.Set("prometheus_endpoint", flattenCassandraClusterPrometheusEndpoint(props.PrometheusEndpoint)); err != nil {
+				return fmt.Errorf("setting `prometheus_endpoint`: %v", err)
+			}
 		}
 	}
 
@@ -240,6 +249,10 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 			RepairEnabled:                 utils.Bool(d.Get("repair_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("prometheus_endpoint"); ok {
+		body.Properties.PrometheusEndpoint = expandCassandraClusterPrometheusEndpoint(v.([]interface{}))
 	}
 
 	// Though there is update method but Service API complains it isn't implemented
@@ -318,6 +331,20 @@ func expandCassandraClusterIdentity(input []interface{}) (*documentdb.ManagedCas
 	}, nil
 }
 
+func expandCassandraClusterPrometheusEndpoint(input []interface{}) *documentdb.SeedNode {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	result := documentdb.SeedNode{
+		IPAddress: utils.String(v["ip_address"].(string)),
+	}
+
+	return &result
+}
+
 func flattenCassandraClusterIdentity(input *documentdb.ManagedCassandraManagedServiceIdentity) []interface{} {
 	var transform *identity.SystemAssigned
 
@@ -334,4 +361,21 @@ func flattenCassandraClusterIdentity(input *documentdb.ManagedCassandraManagedSe
 	}
 
 	return identity.FlattenSystemAssigned(transform)
+}
+
+func flattenCassandraClusterPrometheusEndpoint(input *documentdb.SeedNode) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var ipAddress string
+	if input.IPAddress != nil {
+		ipAddress = *input.IPAddress
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"ip_address": ipAddress,
+		},
+	}
 }

@@ -142,6 +142,10 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   version                        = "3.11"
   repair_enabled                 = true
 
+  prometheus_endpoint {
+    ip_address = "10.0.2.5"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -168,6 +172,10 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   authentication_method          = "None"
   version                        = "3.11"
   repair_enabled                 = false
+
+  prometheus_endpoint {
+    ip_address = "10.0.3.6"
+  }
 
   tags = {
     Env = "Test2"
