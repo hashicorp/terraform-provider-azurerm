@@ -45,6 +45,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Cosmos is only available in certain locations
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
 
+        //Confidential Ledger
+        "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
+
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5),
 

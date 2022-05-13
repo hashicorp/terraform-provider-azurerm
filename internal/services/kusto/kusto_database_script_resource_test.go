@@ -93,6 +93,9 @@ func TestAccKustoScript_multiple(t *testing.T) {
 			Config: r.multiple(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(fmt.Sprintf("%s%d", data.ResourceName, 2)).ExistsInAzure(r),
+				check.That(fmt.Sprintf("%s%d", data.ResourceName, 3)).ExistsInAzure(r),
+				check.That(fmt.Sprintf("%s%d", data.ResourceName, 4)).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("sas_token"),
@@ -234,6 +237,27 @@ func (r KustoScriptResource) multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_kusto_database" "test2" {
+  name                = "acctest-kd-2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_name        = azurerm_kusto_cluster.test.name
+}
+
+resource "azurerm_kusto_database" "test3" {
+  name                = "acctest-kd-3-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_name        = azurerm_kusto_cluster.test.name
+}
+
+resource "azurerm_kusto_database" "test4" {
+  name                = "acctest-kd-4-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_name        = azurerm_kusto_cluster.test.name
+}
+
 resource "azurerm_kusto_script" "test" {
   name        = "acctest-ks-%d"
   database_id = azurerm_kusto_database.test.id
@@ -243,9 +267,24 @@ resource "azurerm_kusto_script" "test" {
 
 resource "azurerm_kusto_script" "test2" {
   name        = "acctest-ks-2-%d"
-  database_id = azurerm_kusto_database.test.id
+  database_id = azurerm_kusto_database.test2.id
   url         = azurerm_storage_blob.test.id
   sas_token   = data.azurerm_storage_account_blob_container_sas.test.sas
 }
-`, template, data.RandomInteger, data.RandomInteger)
+
+resource "azurerm_kusto_script" "test3" {
+  name        = "acctest-ks-3-%d"
+  database_id = azurerm_kusto_database.test3.id
+  url         = azurerm_storage_blob.test.id
+  sas_token   = data.azurerm_storage_account_blob_container_sas.test.sas
+}
+
+resource "azurerm_kusto_script" "test4" {
+  name        = "acctest-ks-4-%d"
+  database_id = azurerm_kusto_database.test4.id
+  url         = azurerm_storage_blob.test.id
+  sas_token   = data.azurerm_storage_account_blob_container_sas.test.sas
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger,
+		data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

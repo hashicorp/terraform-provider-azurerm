@@ -39,7 +39,7 @@ output "virtual_network_gateway_connection_id" {
     (Site-to-Site), `ExpressRoute` (ExpressRoute), and `Vnet2Vnet` (VNet-to-VNet).
 
 * `virtual_network_gateway_id` - The ID of the Virtual Network Gateway
-    in which the connection is created. 
+    in which the connection is created.
 
 * `authorization_key` - The authorization key associated with the
     Express Route Circuit. This field is present only if the type is an
@@ -52,25 +52,29 @@ output "virtual_network_gateway_connection_id" {
 
 * `peer_virtual_network_gateway_id` - The ID of the peer virtual
     network gateway when a VNet-to-VNet connection (i.e. when `type`
-    is `Vnet2Vnet`). 
+    is `Vnet2Vnet`).
 
-* `local_azure_ip_address_enabled` - Use private local Azure IP for the connection. 
+* `local_azure_ip_address_enabled` - Use private local Azure IP for the connection.
 
 * `local_network_gateway_id` - The ID of the local network gateway
     when a Site-to-Site connection (i.e. when `type` is `IPsec`).
 
 * `routing_weight` - The routing weight.
 
-* `shared_key` - The shared IPSec key. 
+* `shared_key` - The shared IPSec key.
 
 * `enable_bgp` - If `true`, BGP (Border Gateway Protocol) is enabled
-    for this connection. 
+    for this connection.
+
+* `custom_bgp_addresses` - (Optional) A `custom_bgp_addresses` (Border Gateway Protocol custom IP Addresses) block which is documented below.
+    The block can only be used on `IPSec` / `activeactive` connections,
+    For details about see [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-howto-aws-bgp).
 
 * `express_route_gateway_bypass` - If `true`, data packets will bypass ExpressRoute Gateway for data forwarding. This is only valid for ExpressRoute connections.
 
 * `use_policy_based_traffic_selectors` - If `true`, policy-based traffic
     selectors are enabled for this connection. Enabling policy-based traffic
-    selectors requires an `ipsec_policy` block. 
+    selectors requires an `ipsec_policy` block.
 
 * `ipsec_policy` (Optional) A `ipsec_policy` block which is documented below.
     Only a single policy can be defined for a connection. For details on
@@ -81,6 +85,10 @@ output "virtual_network_gateway_connection_id" {
   For details about traffic selectors refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-connect-multiple-policybased-rm-ps).
 
 * `tags` - A mapping of tags to assign to the resource.
+
+The `custom_bgp_addresses` block supports:
+* `primary` (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (first one)
+* `secondary` (Required) single IP address that is part of the `azurerm_virtual_network_gateway` ip_configuration (second one)
 
 The `ipsec_policy` block supports:
 
@@ -105,7 +113,7 @@ The `ipsec_policy` block supports:
     or `None`.
 
 * `sa_datasize` - The IPSec SA payload size in KB. Must be at least
-    `1024` KB. 
+    `1024` KB.
 
 * `sa_lifetime` - The IPSec SA lifetime in seconds. Must be at least
     `300` seconds.

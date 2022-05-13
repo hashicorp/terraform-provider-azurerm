@@ -72,6 +72,8 @@ An `input` block supports the following:
 
 * `type` - The input data type of this JavaScript Function. Possible values include `any`, `array`, `bigint`, `datetime`, `float`, `nvarchar(max)` and `record`.
 
+* `configuration_parameter` - (Optional) Is this input parameter a configuration parameter? Defaults to `false`.
+
 ---
 
 An `output` block supports the following:

@@ -147,6 +147,25 @@ func TestAccDataSourceKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_advancedNetworkingNone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.advancedNetworkingNoneConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("none"),
+				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.dns_service_ip").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.docker_bridge_cidr").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.service_cidr").Exists(),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
@@ -591,6 +610,17 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.advancedNetworkingConfig(data, "azure"))
+}
+
+func (KubernetesClusterDataSource) advancedNetworkingNoneConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.advancedNetworkingConfig(data, "none"))
 }
 
 func (KubernetesClusterDataSource) advancedNetworkingAzureCalicoPolicyConfig(data acceptance.TestData) string {
