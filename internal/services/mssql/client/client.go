@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
-	"github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2021-11-01-preview/sqlvirtualmachine"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -23,6 +23,7 @@ type Client struct {
 	LongTermRetentionPoliciesClient                    *sql.LongTermRetentionPoliciesClient
 	ManagedDatabasesClient                             *sql.ManagedDatabasesClient
 	ManagedInstancesClient                             *sql.ManagedInstancesClient
+	ManagedInstanceVulnerabilityAssessmentsClient      *sql.ManagedInstanceVulnerabilityAssessmentsClient
 	OutboundFirewallRulesClient                        *sql.OutboundFirewallRulesClient
 	ManagedInstanceAdministratorsClient                *sql.ManagedInstanceAdministratorsClient
 	ManagedInstanceAzureADOnlyAuthenticationsClient    *sql.ManagedInstanceAzureADOnlyAuthenticationsClient
@@ -96,6 +97,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	managedInstanceAzureADOnlyAuthenticationsClient := sql.NewManagedInstanceAzureADOnlyAuthenticationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstanceAzureADOnlyAuthenticationsClient.Client, o.ResourceManagerAuthorizer)
 
+	managedInstanceVulnerabilityAssessmentsClient := sql.NewManagedInstanceVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedInstanceVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
+
 	outboundFirewallRulesClient := sql.NewOutboundFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&outboundFirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -157,6 +161,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ManagedInstanceAdministratorsClient:             &managedInstancesAdministratorsClient,
 		ManagedInstanceAzureADOnlyAuthenticationsClient: &managedInstanceAzureADOnlyAuthenticationsClient,
 		ManagedInstancesClient:                          &managedInstancesClient,
+		ManagedInstanceVulnerabilityAssessmentsClient:   &managedInstanceVulnerabilityAssessmentsClient,
 		OutboundFirewallRulesClient:                     &outboundFirewallRulesClient,
 		ReplicationLinksClient:                          &replicationLinksClient,
 		RestorableDroppedDatabasesClient:                &restorableDroppedDatabasesClient,

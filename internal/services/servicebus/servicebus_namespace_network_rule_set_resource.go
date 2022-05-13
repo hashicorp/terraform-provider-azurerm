@@ -7,10 +7,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	validateNetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -49,21 +47,13 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 }
 
 func resourceServicebusNamespaceNetworkRuleSetSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		//lintignore: S013
 		"namespace_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     features.ThreePointOhBeta(),
-			Optional:     !features.ThreePointOhBeta(),
-			Computed:     !features.ThreePointOhBeta(),
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.NamespaceID,
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"namespace_name", "resource_group_name"}
-				}
-				return []string{}
-			}(),
 		},
 
 		"default_action": {
@@ -118,34 +108,10 @@ func resourceServicebusNamespaceNetworkRuleSetSchema() map[string]*pluginsdk.Sch
 			},
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		s["namespace_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ValidateFunc:  validate.NamespaceName,
-			Deprecated:    `Deprecated in favor of "namespace_id"`,
-			ConflictsWith: []string{"namespace_id"},
-		}
-
-		s["resource_group_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ValidateFunc:  resourcegroups.ValidateName,
-			Deprecated:    `Deprecated in favor of "namespace_id"`,
-			ConflictsWith: []string{"namespace_id"},
-		}
-	}
-	return s
 }
 
 func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -153,8 +119,6 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 	if namespaceIdLit := d.Get("namespace_id").(string); namespaceIdLit != "" {
 		namespaceId, _ := parse.NamespaceID(namespaceIdLit)
 		resourceId = parse.NewNamespaceNetworkRuleSetID(namespaceId.SubscriptionId, namespaceId.ResourceGroup, namespaceId.Name, namespaceNetworkRuleSetName)
-	} else if !features.ThreePointOhBeta() {
-		resourceId = parse.NewNamespaceNetworkRuleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), namespaceNetworkRuleSetName)
 	}
 
 	if d.IsNewResource() {
@@ -223,12 +187,7 @@ func resourceServiceBusNamespaceNetworkRuleSetRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("failed to read Service Bus Namespace Network Rule Set %q (Namespace %q / Resource Group %q): %+v", id.NetworkrulesetName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
-	if !features.ThreePointOhBeta() {
-		d.Set("namespace_name", id.NamespaceName)
-		d.Set("resource_group_name", id.ResourceGroup)
-	}
 	d.Set("namespace_id", parse.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName).ID())
-
 	if props := resp.NetworkRuleSetProperties; props != nil {
 		d.Set("default_action", string(props.DefaultAction))
 		d.Set("trusted_services_allowed", props.TrustedServiceAccessEnabled)

@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -86,7 +85,7 @@ func resourceImage() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.OperatingSystemTypesLinux),
 								string(compute.OperatingSystemTypesWindows),
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 
 						"os_state": {
@@ -96,7 +95,7 @@ func resourceImage() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.OperatingSystemStateTypesGeneralized),
 								string(compute.OperatingSystemStateTypesSpecialized),
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 
 						"managed_disk_id": {
@@ -124,7 +123,7 @@ func resourceImage() *pluginsdk.Resource {
 								string(compute.CachingTypesNone),
 								string(compute.CachingTypesReadOnly),
 								string(compute.CachingTypesReadWrite),
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 
 						"size_gb": {
@@ -169,7 +168,7 @@ func resourceImage() *pluginsdk.Resource {
 								string(compute.CachingTypesNone),
 								string(compute.CachingTypesReadOnly),
 								string(compute.CachingTypesReadWrite),
-							}, !features.ThreePointOhBeta()),
+							}, false),
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 						},
 

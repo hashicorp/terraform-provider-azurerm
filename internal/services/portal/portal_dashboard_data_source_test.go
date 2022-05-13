@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type PortalDashboardDataSource struct{}
@@ -56,35 +55,27 @@ func TestAccDataSourcePortalDashboard_displayName(t *testing.T) {
 }
 
 func (PortalDashboardDataSource) basic(data acceptance.TestData) string {
-	resourceName := "azurerm_portal_dashboard"
-	if !features.ThreePointOhBeta() {
-		resourceName = "azurerm_dashboard"
-	}
 	return fmt.Sprintf(`
 
 %s
 
 data "azurerm_portal_dashboard" "test" {
-  name                = %s.test.name
+  name                = azurerm_portal_dashboard.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, PortalDashboardResource{}.basic(data), resourceName)
+`, PortalDashboardResource{}.basic(data))
 }
 
 func (PortalDashboardDataSource) complete(data acceptance.TestData) string {
-	resourceName := "azurerm_portal_dashboard"
-	if !features.ThreePointOhBeta() {
-		resourceName = "azurerm_dashboard"
-	}
 	return fmt.Sprintf(`
 
 %s
 
 data "azurerm_portal_dashboard" "test" {
-  name                = %s.test.name
+  name                = azurerm_portal_dashboard.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, PortalDashboardResource{}.complete(data), resourceName)
+`, PortalDashboardResource{}.complete(data))
 }
 
 func (PortalDashboardDataSource) displayName(data acceptance.TestData) string {

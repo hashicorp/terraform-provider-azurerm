@@ -10,12 +10,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	legacyIdentity "github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/parse"
@@ -121,7 +119,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get(outboundNetworkAccessRestrictedName()).(bool)),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
@@ -204,7 +202,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get(outboundNetworkAccessRestrictedName()).(bool)),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
@@ -313,7 +311,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 				outboundNetworkAccessRestricted = *props.RestrictOutboundNetworkAccess
 			}
 			//lintignore:R001
-			d.Set(outboundNetworkAccessRestrictedName(), outboundNetworkAccessRestricted)
+			d.Set("outbound_network_access_restricted", outboundNetworkAccessRestricted)
 
 			localAuthEnabled := true
 			if props.DisableLocalAuth != nil {
@@ -424,18 +422,6 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	networkRules := make([]cognitiveservicesaccounts.VirtualNetworkRule, 0)
-	if !features.ThreePointOhBeta() && d.HasChange("network_acls.0.virtual_network_subnet_ids") {
-		networkRulesRaw := v["virtual_network_subnet_ids"]
-		for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
-			rawId := v.(string)
-			subnetIds = append(subnetIds, rawId)
-			rule := cognitiveservicesaccounts.VirtualNetworkRule{
-				Id: rawId,
-			}
-			networkRules = append(networkRules, rule)
-		}
-	}
-
 	networkRulesRaw := v["virtual_network_rules"]
 	for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
 		value := v.(map[string]interface{})
@@ -570,16 +556,12 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 			})
 		}
 	}
-	out := map[string]interface{}{
+
+	return []interface{}{map[string]interface{}{
 		"default_action":        input.DefaultAction,
 		"ip_rules":              pluginsdk.NewSet(pluginsdk.HashString, ipRules),
 		"virtual_network_rules": virtualNetworkRules,
-	}
-	if !features.ThreePointOhBeta() {
-		out["virtual_network_subnet_ids"] = pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkSubnetIds)
-	}
-
-	return []interface{}{out}
+	}}
 }
 
 func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwnedStorage) []interface{} {
@@ -764,21 +746,9 @@ func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"virtual_network_rules": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Computed: !features.ThreePointOhBeta(),
-						ConflictsWith: func() []string {
-							if features.ThreePointOhBeta() {
-								return []string{}
-							}
-							return []string{"network_acls.0.virtual_network_subnet_ids"}
-						}(),
-						ConfigMode: func() schema.SchemaConfigMode {
-							if features.ThreePointOhBeta() {
-								return pluginsdk.SchemaConfigModeAuto
-							}
-							return pluginsdk.SchemaConfigModeAttr
-						}(),
+						Type:       pluginsdk.TypeSet,
+						Optional:   true,
+						ConfigMode: pluginsdk.SchemaConfigModeAuto,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"subnet_id": {
@@ -797,7 +767,7 @@ func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		outboundNetworkAccessRestrictedName(): {
+		"outbound_network_access_restricted": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -860,23 +830,5 @@ func resourceCognitiveAccountSchema() map[string]*pluginsdk.Schema {
 			Sensitive: true,
 		},
 	}
-	if !features.ThreePointOhBeta() {
-		s := schema["network_acls"].Elem.(*pluginsdk.Resource)
-		s.Schema["virtual_network_subnet_ids"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"network_acls.0.virtual_network_rules"},
-			Deprecated:    "Deprecated in favour of `virtual_network_rules`",
-			Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
-		}
-	}
 	return schema
-}
-
-func outboundNetworkAccessRestrictedName() string {
-	if !features.ThreePointOhBeta() {
-		return "outbound_network_access_restrited"
-	}
-	return "outbound_network_access_restricted"
 }

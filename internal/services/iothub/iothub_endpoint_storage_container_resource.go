@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
@@ -47,7 +46,7 @@ func resourceIotHubEndpointStorageContainer() *pluginsdk.Resource {
 }
 
 func resourceIothubEndpointStorageContainerSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -60,17 +59,9 @@ func resourceIothubEndpointStorageContainerSchema() map[string]*pluginsdk.Schema
 		//lintignore: S013
 		"iothub_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     features.ThreePointOhBeta(),
-			Optional:     !features.ThreePointOhBeta(),
+			Required:     true,
 			ForceNew:     true,
-			Computed:     !features.ThreePointOhBeta(),
 			ValidateFunc: iothubValidate.IotHubID,
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"iothub_name"}
-				}
-				return []string{}
-			}(),
 		},
 
 		"container_name": {
@@ -151,20 +142,6 @@ func resourceIothubEndpointStorageContainerSchema() map[string]*pluginsdk.Schema
 			}, true),
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		out["iothub_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			Computed:      true,
-			ValidateFunc:  iothubValidate.IoTHubName,
-			Deprecated:    "Deprecated in favour of `iothub_id`",
-			ConflictsWith: []string{"iothub_id"},
-		}
-	}
-
-	return out
 }
 
 func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -175,20 +152,13 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
 	endpointRG := d.Get("resource_group_name").(string)
-	iotHubRG := endpointRG
 
-	var iotHubName string
-	if !features.ThreePointOhBeta() {
-		iotHubName = d.Get("iothub_name").(string)
+	iotHubId, err := parse.IotHubID(d.Get("iothub_id").(string))
+	if err != nil {
+		return err
 	}
-	if iotHubName == "" {
-		id, err := parse.IotHubID(d.Get("iothub_id").(string))
-		if err != nil {
-			return err
-		}
-		iotHubName = id.Name
-		iotHubRG = id.ResourceGroup
-	}
+	iotHubName := iotHubId.Name
+	iotHubRG := iotHubId.ResourceGroup
 
 	id := parse.NewEndpointStorageContainerID(subscriptionId, iotHubRG, iotHubName, d.Get("name").(string))
 
@@ -312,9 +282,6 @@ func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.Set("name", id.EndpointName)
-	if !features.ThreePointOhBeta() {
-		d.Set("iothub_name", id.IotHubName)
-	}
 
 	iotHubId := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
 	d.Set("iothub_id", iotHubId.ID())

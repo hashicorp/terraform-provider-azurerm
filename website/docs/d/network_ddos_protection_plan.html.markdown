@@ -42,7 +42,7 @@ The following attributes are exported:
 
 * `tags` - A mapping of tags assigned to the resource.
 
-* `virtual_network_ids` - A list of ID's of the Virtual Networks associated with this DDoS Protection Plan.
+* `virtual_network_ids` - A list of IDs of the Virtual Networks associated with this DDoS Protection Plan.
 
 ## Timeouts
 

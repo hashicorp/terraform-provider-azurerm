@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Defines which tier to use. Options are basic, standard or premium. Changing this forces a new resource to be created.
+* `sku` - (Required) Defines which tier to use. Options are `Basic`, `Standard` or `Premium`. Please note that setting this field to `Premium` will force the creation of a new resource.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
