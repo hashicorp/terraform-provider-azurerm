@@ -20,7 +20,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - the property `default_node_pool.node_labels` can now be updated [GH-16360]
 * `azurerm_kubernetes_cluster` - allow value `none` for `network_profile.network_plugin` [GH-16250]
 * `azurerm_kusto_script` - lock kusto cluster so multiple scripts can be applied [GH-16690]
-* `azurerm_storage_share` - add `access_tier` attribute [GH-16462]
+* `azurerm_storage_share` - support the `access_tier` attribute [GH-16462]
 * `azurerm_snapshot` - support for the `trusted_launch_enabled` propertyu [GH-16679]
 * `azurerm_stream_analytics_function_javascript_uda` - support for the `input.configuration_parameter` property [GH-16575]
 * `azurerm_stream_analytics_function_javascript_udf` - support for the `input.configuration_parameter` property [GH-16579]
