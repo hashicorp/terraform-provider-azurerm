@@ -994,13 +994,13 @@ func TestAccWindowsWebApp_stickySettingsUpdate(t *testing.T) {
 
 // Deployments
 
-func TestAccWindowsWebApp_deployFromLocalFile(t *testing.T) {
+func TestAccWindowsWebApp_zipDeploy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.deployLocalFile(data),
+			Config: r.zipDeploy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2582,7 +2582,7 @@ resource "azurerm_windows_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r WindowsWebAppResource) deployLocalFile(data acceptance.TestData) string {
+func (r WindowsWebAppResource) zipDeploy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2611,45 +2611,6 @@ resource "azurerm_windows_web_app" "test" {
   zip_deploy_file = "./testdata/dotnet-zipdeploy.zip"
 }
 `, r.baseTemplate(data), data.RandomInteger)
-}
-
-func (r WindowsWebAppResource) deployURL(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "dotnet-zipdeploy.zip"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source                 = "./testdata/dotnet-zipdeploy.zip"
-}
-
-resource "azurerm_windows_web_app" "test" {
-  name                = "acctestWA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  app_settings = {
-    WEBSITE_RUN_FROM_PACKAGE       = "1"
-    SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
-  }
-
-  site_config {
-    application_stack {
-      dotnet_version = "v6.0"
-      current_stack  = "dotnet"
-    }
-  }
-
-  zip_deploy_url = "${azurerm_storage_blob.test.url}${data.azurerm_storage_account_sas.test.sas}"
-}
-`, r.templateWithStorageAccount(data), data.RandomInteger)
 }
 
 // Templates

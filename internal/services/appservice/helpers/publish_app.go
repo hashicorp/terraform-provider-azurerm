@@ -48,8 +48,56 @@ func GetCredentialsAndPublish(ctx context.Context, client *web.AppsClient, resou
 	return nil
 }
 
+func GetCredentialsAndPublishSlot(ctx context.Context, client *web.AppsClient, resourceGroup string, siteName string, sourceFile string, slotName string) error {
+	site, err := client.GetSlot(ctx, resourceGroup, siteName, slotName)
+	if err != nil || site.SiteProperties == nil {
+		return fmt.Errorf("reading site %s to perform zip deploy: %+v", siteName, err)
+	}
+	props := *site.SiteProperties
+	if sslStates := props.HostNameSslStates; sslStates != nil {
+		for _, v := range *sslStates {
+			if v.Name != nil && *v.Name != "" && v.HostType == web.HostTypeRepository {
+				user, passwd, err := GetSitePublishingCredentialsSlot(ctx, client, resourceGroup, siteName, slotName)
+				if err != nil {
+					return err
+				}
+				httpsHost := fmt.Sprintf("https://%s", *v.Name)
+
+				if err := PublishZipDeployLocalFileKuduPush(ctx, httpsHost, *user, *passwd, client.UserAgent, sourceFile); err != nil {
+					return fmt.Errorf("publishing source (%s) to site %s (Resource Group %s): %+v", sourceFile, siteName, resourceGroup, err)
+				}
+
+				continue
+			}
+		}
+	} else {
+		return fmt.Errorf("could not determine SCM Site name for Site %s (Resource Group %s) for Zip Deployment", siteName, resourceGroup)
+	}
+
+	return nil
+}
+
 func GetSitePublishingCredentials(ctx context.Context, client *web.AppsClient, resourceGroup string, siteName string) (user *string, passwd *string, err error) {
 	siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, resourceGroup, siteName)
+	if err != nil {
+		return nil, nil, fmt.Errorf("listing Site Publishing Credential information for %s (Resource Group %s): %+v", siteName, resourceGroup, err)
+	}
+	if err := siteCredentialsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return nil, nil, fmt.Errorf("waiting for Site Publishing Credential information for %s (Resource Group %s): %+v", siteName, resourceGroup, err)
+	}
+
+	siteCredentials, err := siteCredentialsFuture.Result(*client)
+	if err != nil {
+		return nil, nil, fmt.Errorf("reading Site Publishing Credential information for %s (Resource Group %s): %+v", siteName, resourceGroup, err)
+	}
+	if siteCredentials.PublishingUserName == nil || siteCredentials.PublishingPassword == nil {
+		return nil, nil, fmt.Errorf("site credentials for Site %s (Resource Group %s) were empty", siteName, resourceGroup)
+	}
+	return siteCredentials.PublishingUserName, siteCredentials.PublishingPassword, err
+}
+
+func GetSitePublishingCredentialsSlot(ctx context.Context, client *web.AppsClient, resourceGroup string, siteName string, slotName string) (user *string, passwd *string, err error) {
+	siteCredentialsFuture, err := client.ListPublishingCredentialsSlot(ctx, resourceGroup, siteName, slotName)
 	if err != nil {
 		return nil, nil, fmt.Errorf("listing Site Publishing Credential information for %s (Resource Group %s): %+v", siteName, resourceGroup, err)
 	}

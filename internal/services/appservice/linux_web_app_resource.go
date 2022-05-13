@@ -43,6 +43,7 @@ type LinuxWebAppModel struct {
 	SiteConfig                    []helpers.SiteConfigLinux  `tfschema:"site_config"`
 	StorageAccounts               []helpers.StorageAccount   `tfschema:"storage_account"`
 	ConnectionStrings             []helpers.ConnectionString `tfschema:"connection_string"`
+	ZipDeployFile                 string                     `tfschema:"zip_deploy_file"`
 	Tags                          map[string]string          `tfschema:"tags"`
 	CustomDomainVerificationId    string                     `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string                     `tfschema:"default_hostname"`
@@ -52,7 +53,6 @@ type LinuxWebAppModel struct {
 	PossibleOutboundIPAddresses   string                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                   `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential   `tfschema:"site_credential"`
-	ZipDeployFile                 string                     `tfschema:"zip_deploy_file"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppResource{}

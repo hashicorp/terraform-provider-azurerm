@@ -1071,13 +1071,13 @@ func TestAccLinuxWebApp_stickySettingsUpdate(t *testing.T) {
 
 // Deployments
 
-func TestAccLinuxWebApp_deployFromLocalFile(t *testing.T) {
+func TestAccLinuxWebApp_zipDeploy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.deployLocalFile(data),
+			Config: r.zipDeploy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2594,7 +2594,7 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppResource) deployLocalFile(data acceptance.TestData) string {
+func (r LinuxWebAppResource) zipDeploy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
