@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -46,272 +46,197 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: func() map[string]*pluginsdk.Schema {
-			s := map[string]*pluginsdk.Schema{
-				"name": {
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ClusterName,
+			},
+
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"location": commonschema.Location(),
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"sku": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(kusto.AzureSkuNameDevNoSLAStandardD11V2),
+								string(kusto.AzureSkuNameDevNoSLAStandardE2aV4),
+								string(kusto.AzureSkuNameStandardD11V2),
+								string(kusto.AzureSkuNameStandardD12V2),
+								string(kusto.AzureSkuNameStandardD13V2),
+								string(kusto.AzureSkuNameStandardD14V2),
+								string(kusto.AzureSkuNameStandardDS13V21TBPS),
+								string(kusto.AzureSkuNameStandardDS13V22TBPS),
+								string(kusto.AzureSkuNameStandardDS14V23TBPS),
+								string(kusto.AzureSkuNameStandardDS14V24TBPS),
+								string(kusto.AzureSkuNameStandardE16asV43TBPS),
+								string(kusto.AzureSkuNameStandardE16asV44TBPS),
+								string(kusto.AzureSkuNameStandardE16aV4),
+								string(kusto.AzureSkuNameStandardE2aV4),
+								string(kusto.AzureSkuNameStandardE4aV4),
+								string(kusto.AzureSkuNameStandardE64iV3),
+								string(kusto.AzureSkuNameStandardE8asV41TBPS),
+								string(kusto.AzureSkuNameStandardE8asV42TBPS),
+								string(kusto.AzureSkuNameStandardE8aV4),
+								string(kusto.AzureSkuNameStandardL16s),
+								string(kusto.AzureSkuNameStandardL4s),
+								string(kusto.AzureSkuNameStandardL8s),
+								string(kusto.AzureSkuNameStandardL16sV2),
+								string(kusto.AzureSkuNameStandardL8sV2),
+							}, false),
+						},
+
+						"capacity": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntBetween(1, 1000),
+						},
+					},
+				},
+			},
+
+			"trusted_external_tenants": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: validate.ClusterName,
+					ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice([]string{"*"}, false)),
 				},
+			},
 
-				"resource_group_name": commonschema.ResourceGroupName(),
-
-				"location": commonschema.Location(),
-
-				"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
-
-				"sku": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(kusto.AzureSkuNameDevNoSLAStandardD11V2),
-									string(kusto.AzureSkuNameDevNoSLAStandardE2aV4),
-									string(kusto.AzureSkuNameStandardD11V2),
-									string(kusto.AzureSkuNameStandardD12V2),
-									string(kusto.AzureSkuNameStandardD13V2),
-									string(kusto.AzureSkuNameStandardD14V2),
-									string(kusto.AzureSkuNameStandardDS13V21TBPS),
-									string(kusto.AzureSkuNameStandardDS13V22TBPS),
-									string(kusto.AzureSkuNameStandardDS14V23TBPS),
-									string(kusto.AzureSkuNameStandardDS14V24TBPS),
-									string(kusto.AzureSkuNameStandardE16asV43TBPS),
-									string(kusto.AzureSkuNameStandardE16asV44TBPS),
-									string(kusto.AzureSkuNameStandardE16aV4),
-									string(kusto.AzureSkuNameStandardE2aV4),
-									string(kusto.AzureSkuNameStandardE4aV4),
-									string(kusto.AzureSkuNameStandardE64iV3),
-									string(kusto.AzureSkuNameStandardE8asV41TBPS),
-									string(kusto.AzureSkuNameStandardE8asV42TBPS),
-									string(kusto.AzureSkuNameStandardE8aV4),
-									string(kusto.AzureSkuNameStandardL16s),
-									string(kusto.AzureSkuNameStandardL4s),
-									string(kusto.AzureSkuNameStandardL8s),
-									string(kusto.AzureSkuNameStandardL16sV2),
-									string(kusto.AzureSkuNameStandardL8sV2),
-								}, false),
-							},
-
-							"capacity": {
-								Type:         pluginsdk.TypeInt,
-								Optional:     true,
-								Computed:     true,
-								ValidateFunc: validation.IntBetween(1, 1000),
-							},
+			"optimized_auto_scale": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"minimum_instances": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 1000),
+						},
+						"maximum_instances": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 					},
 				},
+			},
 
-				"trusted_external_tenants": {
-					Type:       pluginsdk.TypeList,
-					Optional:   true,
-					Computed:   true,
-					ConfigMode: pluginsdk.SchemaConfigModeAttr,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-						ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice(func() []string {
-							if features.ThreePointOhBeta() {
-								return []string{"*"}
-							}
-							return []string{"MyTenantOnly", "*"}
-						}(), false)),
-					},
-				},
-
-				"optimized_auto_scale": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"minimum_instances": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: validation.IntBetween(0, 1000),
-							},
-							"maximum_instances": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: validation.IntBetween(0, 1000),
-							},
+			"virtual_network_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"engine_public_ip_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"data_management_public_ip_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
+			},
 
-				"virtual_network_configuration": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					ForceNew: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"subnet_id": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: azure.ValidateResourceID,
-							},
-							"engine_public_ip_id": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: azure.ValidateResourceID,
-							},
-							"data_management_public_ip_id": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: azure.ValidateResourceID,
-							},
-						},
-					},
-				},
-
-				"language_extensions": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(kusto.LanguageExtensionNamePYTHON),
-							string(kusto.LanguageExtensionNameR),
-						}, false),
-					},
-				},
-
-				"engine": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
-					Default:  string(kusto.EngineTypeV2),
+			"language_extensions": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(kusto.EngineTypeV2),
-						string(kusto.EngineTypeV3),
+						string(kusto.LanguageExtensionNamePYTHON),
+						string(kusto.LanguageExtensionNameR),
 					}, false),
 				},
+			},
 
-				"uri": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+			"engine": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(kusto.EngineTypeV2),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.EngineTypeV2),
+					string(kusto.EngineTypeV3),
+				}, false),
+			},
 
-				"data_ingestion_uri": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+			"uri": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"public_network_access_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-				},
+			"data_ingestion_uri": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"double_encryption_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					ForceNew: true,
-				},
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
-				"zones": func() *pluginsdk.Schema {
-					if !features.ThreePointOhBeta() {
-						return azure.SchemaZones()
-					}
+			"double_encryption_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
 
-					return commonschema.ZonesMultipleOptionalForceNew()
-				}(),
+			"auto_stop_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
-				"tags": tags.Schema(),
-			}
+			"disk_encryption_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 
-			if !features.ThreePointOhBeta() {
-				s["enable_auto_stop"] = &schema.Schema{
-					Type:          pluginsdk.TypeBool,
-					Optional:      true,
-					Computed:      true,
-					Deprecated:    "This property has been renamed to auto_stop_enabled to be more consistent with the rest of the provider and will be removed in v3.0 of the provider",
-					ConflictsWith: []string{"auto_stop_enabled"},
-				}
+			"streaming_ingestion_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 
-				s["auto_stop_enabled"] = &schema.Schema{
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Computed: true,
-				}
+			"purge_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 
-				s["enable_disk_encryption"] = &schema.Schema{
-					Type:          pluginsdk.TypeBool,
-					Optional:      true,
-					Computed:      true,
-					Deprecated:    "This property has been renamed to disk_encryption_enabled to be more consistent with the rest of the provider and will be removed in v3.0 of the provider",
-					ConflictsWith: []string{"disk_encryption_enabled"},
-				}
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
-				s["disk_encryption_enabled"] = &schema.Schema{
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Computed: true,
-				}
-
-				s["enable_streaming_ingest"] = &schema.Schema{
-					Type:          pluginsdk.TypeBool,
-					Optional:      true,
-					Computed:      true,
-					Deprecated:    "This property has been renamed to streaming_ingestion_enabled to be more consistent with the rest of the provider and will be removed in v3.0 of the provider",
-					ConflictsWith: []string{"streaming_ingestion_enabled"},
-				}
-
-				s["streaming_ingestion_enabled"] = &schema.Schema{
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Computed: true,
-				}
-
-				s["enable_purge"] = &schema.Schema{
-					Type:          pluginsdk.TypeBool,
-					Optional:      true,
-					Computed:      true,
-					Deprecated:    "This property has been renamed to purge_enabled to be more consistent with the rest of the provider and will be removed in v3.0 of the provider",
-					ConflictsWith: []string{"purge_enabled"},
-				}
-
-				s["purge_enabled"] = &schema.Schema{
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Computed: true,
-				}
-
-			} else {
-
-				s["auto_stop_enabled"] = &schema.Schema{
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-				}
-
-				s["disk_encryption_enabled"] = &schema.Schema{
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				}
-
-				s["streaming_ingestion_enabled"] = &schema.Schema{
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				}
-
-				s["purge_enabled"] = &schema.Schema{
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				}
-			}
-
-			return s
-		}(),
+			"tags": tags.Schema(),
+		},
 	}
 }
 
@@ -336,6 +261,9 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 			return tf.ImportAsExistsError("azurerm_kusto_cluster", id.ID())
 		}
 	}
+
+	locks.ByID(id.Name)
+	defer locks.UnlockByID(id.Name)
 
 	sku, err := expandKustoClusterSku(d.Get("sku").([]interface{}))
 	if err != nil {
@@ -370,61 +298,21 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		publicNetworkAccess = kusto.PublicNetworkAccessDisabled
 	}
 
-	clusterProperties := kusto.ClusterProperties{}
-	if !features.ThreePointOhBeta() {
-
-		clusterProperties = kusto.ClusterProperties{
-			OptimizedAutoscale:     optimizedAutoScale,
-			EnableAutoStop:         utils.Bool(d.Get("enable_auto_stop").(bool)),
-			EnableDiskEncryption:   utils.Bool(d.Get("enable_disk_encryption").(bool)),
-			EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
-			EnableStreamingIngest:  utils.Bool(d.Get("enable_streaming_ingest").(bool)),
-			EnablePurge:            utils.Bool(d.Get("enable_purge").(bool)),
-			EngineType:             engine,
-			PublicNetworkAccess:    publicNetworkAccess,
-		}
-
-		// nolint staticcheck
-		if v, ok := d.GetOkExists("auto_stop_enabled"); ok {
-			clusterProperties.EnableAutoStop = utils.Bool(v.(bool))
-		}
-		// nolint staticcheck
-		if v, ok := d.GetOkExists("disk_encryption_enabled"); ok {
-			clusterProperties.EnableDiskEncryption = utils.Bool(v.(bool))
-		}
-		// nolint staticcheck
-		if v, ok := d.GetOkExists("streaming_ingestion_enabled"); ok {
-			clusterProperties.EnableStreamingIngest = utils.Bool(v.(bool))
-		}
-		// nolint staticcheck
-		if v, ok := d.GetOkExists("purge_enabled"); ok {
-			clusterProperties.EnablePurge = utils.Bool(v.(bool))
-		}
-	} else {
-		clusterProperties = kusto.ClusterProperties{
-			OptimizedAutoscale:     optimizedAutoScale,
-			EnableAutoStop:         utils.Bool(d.Get("auto_stop_enabled").(bool)),
-			EnableDiskEncryption:   utils.Bool(d.Get("disk_encryption_enabled").(bool)),
-			EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
-			EnableStreamingIngest:  utils.Bool(d.Get("streaming_ingestion_enabled").(bool)),
-			EnablePurge:            utils.Bool(d.Get("purge_enabled").(bool)),
-			EngineType:             engine,
-			PublicNetworkAccess:    publicNetworkAccess,
-		}
+	clusterProperties := kusto.ClusterProperties{
+		OptimizedAutoscale:     optimizedAutoScale,
+		EnableAutoStop:         utils.Bool(d.Get("auto_stop_enabled").(bool)),
+		EnableDiskEncryption:   utils.Bool(d.Get("disk_encryption_enabled").(bool)),
+		EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
+		EnableStreamingIngest:  utils.Bool(d.Get("streaming_ingestion_enabled").(bool)),
+		EnablePurge:            utils.Bool(d.Get("purge_enabled").(bool)),
+		EngineType:             engine,
+		PublicNetworkAccess:    publicNetworkAccess,
+		TrustedExternalTenants: expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{})),
 	}
 
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
 		vnet := expandKustoClusterVNET(v.([]interface{}))
 		clusterProperties.VirtualNetworkConfiguration = vnet
-	}
-
-	if v, ok := d.GetOk("trusted_external_tenants"); ok && !features.ThreePointOhBeta() {
-		trustedExternalTenants := expandTrustedExternalTenants(v.([]interface{}))
-		clusterProperties.TrustedExternalTenants = trustedExternalTenants
-	}
-	if features.ThreePointOhBeta() {
-		trustedExternalTenants := expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{}))
-		clusterProperties.TrustedExternalTenants = trustedExternalTenants
 	}
 
 	expandedIdentity, err := expandClusterIdentity(d.Get("identity").([]interface{}))
@@ -441,13 +329,9 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		Tags:              tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if features.ThreePointOhBeta() {
-		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
-		if len(zones) > 0 {
-			kustoCluster.Zones = &zones
-		}
-	} else {
-		kustoCluster.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
+	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		kustoCluster.Zones = &zones
 	}
 
 	ifMatch := ""
@@ -548,12 +432,6 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if props := resp.ClusterProperties; props != nil {
-		if !features.ThreePointOhBeta() {
-			d.Set("enable_auto_stop", props.EnableAutoStop)
-			d.Set("enable_disk_encryption", props.EnableDiskEncryption)
-			d.Set("enable_streaming_ingest", props.EnableStreamingIngest)
-			d.Set("enable_purge", props.EnablePurge)
-		}
 		d.Set("double_encryption_enabled", props.EnableDoubleEncryption)
 		d.Set("trusted_external_tenants", flattenTrustedExternalTenants(props.TrustedExternalTenants))
 		d.Set("auto_stop_enabled", props.EnableAutoStop)

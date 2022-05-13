@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
@@ -118,21 +117,11 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifferenceV2Only, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
-							ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-								keys := []string{
-									string(documentdb.IndexingModeConsistent),
-									string(documentdb.IndexingModeNone),
-									string(documentdb.IndexingModeLazy),
-								}
-								if !features.ThreePointOhBeta() {
-									keys = []string{
-										"Consistent",
-										"Lazy",
-										"None",
-									}
-								}
-								return validation.StringInSlice(keys, false)
-							}(),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(documentdb.IndexingModeConsistent),
+								string(documentdb.IndexingModeNone),
+								string(documentdb.IndexingModeLazy),
+							}, false),
 						},
 
 						"included_paths": {

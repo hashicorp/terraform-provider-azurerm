@@ -13,6 +13,11 @@ Allows you to set a user, group or service principal as the AAD Administrator fo
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
+}
+
 resource "azurerm_mssql_managed_instance" "example" {
   name                = "managedsqlinstance"
   resource_group_name = azurerm_resource_group.example.name

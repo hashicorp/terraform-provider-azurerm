@@ -129,7 +129,7 @@ resource "azurerm_function_app" "example" {
   version                    = "~3"
 }
 ```
-~> **Note:** Version `~3` is required for Linux Function Apps.
+~> **Note:** Version `~3` or `~4` is required for Linux Function Apps.
 
 ## Example Usage (Python in a Consumption Plan)
 
@@ -191,7 +191,7 @@ resource "azurerm_function_app" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Function App. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Function App. Changing this forces a new resource to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftweb)
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Function App.
 
@@ -375,9 +375,9 @@ A `facebook` block supports the following:
 
 * `app_id` - (Required) The App ID of the Facebook app used for login
 
-* `app_secret` - (Required) The App Secret of the Facebook app used for Facebook Login.
+* `app_secret` - (Required) The App Secret of the Facebook app used for Facebook login.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook Login authentication. https://developers.facebook.com/docs/facebook-login
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook login authentication. https://developers.facebook.com/docs/facebook-login
 
 ---
 

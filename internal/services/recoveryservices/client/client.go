@@ -2,8 +2,8 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-07-01/backup"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-08-01/recoveryservices"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -17,7 +17,7 @@ type Client struct {
 	BackupOperationStatusesClient             *backup.OperationStatusesClient
 	VaultsClient                              *recoveryservices.VaultsClient
 	VaultsConfigsClient                       *backup.ResourceVaultConfigsClient // Not sure why this is in backup, but https://github.com/Azure/azure-sdk-for-go/issues/7279
-	StorageConfigsClient                      *backup.ResourceStorageConfigsClient
+	StorageConfigsClient                      *backup.ResourceStorageConfigsNonCRRClient
 	FabricClient                              func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient
 	ProtectionContainerClient                 func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainersClient
 	ReplicationPoliciesClient                 func(resourceGroupName string, vaultName string) siterecovery.ReplicationPoliciesClient
@@ -30,7 +30,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	vaultConfigsClient := backup.NewResourceVaultConfigsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vaultConfigsClient.Client, o.ResourceManagerAuthorizer)
 
-	storageConfigsClient := backup.NewResourceStorageConfigsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	storageConfigsClient := backup.NewResourceStorageConfigsNonCRRClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&storageConfigsClient.Client, o.ResourceManagerAuthorizer)
 
 	vaultsClient := recoveryservices.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

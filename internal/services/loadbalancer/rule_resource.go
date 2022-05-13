@@ -8,10 +8,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -172,19 +171,12 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 						backendAddressPoolIds = append(backendAddressPoolIds, *p.ID)
 					}
 				}
-				if len(backendAddressPoolIds) == 1 {
-					backendAddressPoolId = backendAddressPoolIds[0].(string)
-				}
 			}
 		} else {
 			if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {
 				backendAddressPoolId = *props.BackendAddressPool.ID
 				backendAddressPoolIds = []interface{}{backendAddressPoolId}
 			}
-		}
-		if !features.ThreePointOhBeta() {
-
-			d.Set("backend_address_pool_id", backendAddressPoolId)
 		}
 		d.Set("backend_address_pool_ids", backendAddressPoolIds)
 
@@ -309,21 +301,6 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *network.LoadBa
 	if lb.Sku != nil && lb.Sku.Name == network.LoadBalancerSkuNameGateway {
 		isGateway = true
 	}
-	if !features.ThreePointOhBeta() {
-		if v := d.Get("backend_address_pool_id").(string); v != "" {
-			if isGateway {
-				properties.BackendAddressPools = &[]network.SubResource{
-					{
-						ID: &v,
-					},
-				}
-			} else {
-				properties.BackendAddressPool = &network.SubResource{
-					ID: &v,
-				}
-			}
-		}
-	}
 
 	if l := d.Get("backend_address_pool_ids").([]interface{}); len(l) != 0 {
 		if isGateway {
@@ -358,7 +335,7 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *network.LoadBa
 }
 
 func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -387,19 +364,12 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 		"backend_address_pool_ids": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: !features.ThreePointOhBeta(),
 			MinItems: 1,
 			MaxItems: 2, // Only Gateway SKU LB can have 2 backend address pools
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: loadBalancerValidate.LoadBalancerBackendAddressPoolID,
 			},
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"backend_address_pool_id"}
-				}
-				return []string{}
-			}(),
 		},
 
 		"protocol": {
@@ -410,7 +380,7 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 				string(network.TransportProtocolAll),
 				string(network.TransportProtocolTCP),
 				string(network.TransportProtocolUDP),
-			}, !features.ThreePointOhBeta()),
+			}, false),
 		},
 
 		"frontend_port": {
@@ -463,16 +433,4 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		out["backend_address_pool_id"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			Deprecated:    "This property has been deprecated by `backend_address_pool_ids` and will be removed in the next major version of the provider",
-			ConflictsWith: []string{"backend_address_pool_ids"},
-		}
-
-	}
-	return out
 }

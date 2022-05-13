@@ -1956,6 +1956,18 @@ resource "azurerm_linux_web_app" "test" {
         x_forwarded_host  = ["example.com", "anotherexample.com"]
       }
     }
+    ip_restriction {
+      ip_address = "fe80::/64"
+      name       = "test-restriction-v6"
+      priority   = 124
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da", "6bde7211-57bc-4476-866a-c9676e22b9d7"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64", "9.9.9.8/32"]
+        x_forwarded_host  = ["example.com", "anotherexample.com"]
+      }
+    }
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)

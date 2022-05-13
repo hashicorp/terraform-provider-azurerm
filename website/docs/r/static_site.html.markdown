@@ -46,7 +46,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) The Type of Managed Identity assigned to this Static Site resource. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
-* `identity_ids` - (Optional) A list of Managed Identity ID's which should be assigned to this Static Site resource.
+* `identity_ids` - (Optional) A list of Managed Identity IDs which should be assigned to this Static Site resource.
 
 ## Attributes Reference
 
