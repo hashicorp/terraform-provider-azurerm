@@ -633,8 +633,9 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type   = "PAYG"
 
   storage_configuration {
-    disk_type             = "NEW"
-    storage_workload_type = "OLTP"
+    disk_type             	  = "NEW"
+    storage_workload_type 	  = "OLTP"
+    system_db_on_datadisk_enabled = true
 
     data_settings {
       luns              = [0]
@@ -649,6 +650,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     temp_db_settings {
       luns              = [0]
       default_file_path = "F:\\SQLTemp"
+      log_file_size_mb  = 512
     }
   }
 }
