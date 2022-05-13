@@ -428,7 +428,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
 	osDiskRaw := d.Get("os_disk").([]interface{})
-	osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
+	osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
+	if err != nil {
+		return fmt.Errorf("expanding `os_disk`: %+v", err)
+	}
 
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandWindowsSecrets(secretsRaw)
@@ -1094,7 +1097,11 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		shouldDeallocate = true
 
 		osDiskRaw := d.Get("os_disk").([]interface{})
-		osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
+		osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesWindows)
+		if err != nil {
+			return fmt.Errorf("expanding `os_disk`: %+v", err)
+		}
+
 		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
 			OsDisk: osDisk,
 		}

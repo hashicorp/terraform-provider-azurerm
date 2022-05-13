@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -261,31 +259,6 @@ resource "azurerm_machine_learning_compute_instance" "test" {
 
 func (r ComputeInstanceResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	template := r.template(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_machine_learning_compute_instance" "test" {
-  name                          = "acctest%d"
-  location                      = azurerm_resource_group.test.location
-  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  virtual_machine_size          = "STANDARD_DS2_V2"
-  identity {
-    type = "SystemAssigned,UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id,
-    ]
-  }
-}
-`, template, data.RandomInteger, data.RandomIntOfLength(8))
-	}
-
 	return fmt.Sprintf(`
 %s
 

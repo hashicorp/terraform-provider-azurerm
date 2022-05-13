@@ -16,12 +16,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -81,13 +79,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 			"auto_grow_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: !features.ThreePointOhBeta(),
-				Default: func() interface{} {
-					if features.ThreePointOhBeta() {
-						return true
-					}
-					return nil
-				}(),
+				Default:  true,
 			},
 
 			"backup_retention_days": {
@@ -185,12 +177,7 @@ func resourceMySqlServer() *pluginsdk.Resource {
 			"ssl_minimal_tls_version_enforced": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default: func() interface{} {
-					if features.ThreePointOhBeta() {
-						return string(mysql.TLS12)
-					}
-					return string(mysql.TLSEnforcementDisabled)
-				}(),
+				Default:  string(mysql.TLS12),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.TLSEnforcementDisabled),
 					string(mysql.TLS10),
@@ -316,9 +303,8 @@ func resourceMySqlServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.FiveFullStopSeven),
 					string(mysql.EightFullStopZero),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-				ForceNew:         true,
+				}, false),
+				ForceNew: true,
 			},
 		},
 

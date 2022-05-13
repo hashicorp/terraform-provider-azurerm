@@ -77,6 +77,8 @@ The following arguments are supported:
 
 * `default_admin_password` - (Required) The initial admin password for this Cassandra Cluster.
 
+* `tags` - (Optional) A mapping of tags assigned to the resource.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -89,6 +91,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cassandra Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cassandra Cluster.
+* `update` - (Defaults to 30 minutes) Used when updating the Cassandra Cluster.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Cassandra Cluster.
 
 ## Import
