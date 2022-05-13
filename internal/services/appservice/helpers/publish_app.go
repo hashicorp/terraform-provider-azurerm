@@ -4,17 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 const (
-	zipDeployUnknown  = 0
 	zipDeployError    = 3
 	zipDeployComplete = 4
 )
@@ -141,7 +140,7 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
 		if resp.StatusCode == http.StatusConflict {
-			return fmt.Errorf("publising Zip Deployment failed with %s %s - Another operation is in progress or your application is not configured for Zip deployments", resp.StatusCode, resp.Status)
+			return fmt.Errorf("publising Zip Deployment failed with %s - Another operation is in progress or your application is not configured for Zip deployments", resp.Status)
 		}
 		return fmt.Errorf("publishing failed with status code %s", resp.Status)
 	}
@@ -197,9 +196,9 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 		if statusRaw, ok := body["status"]; ok && statusRaw != nil {
 			if status, ok := statusRaw.(float64); ok {
 				switch status {
-				case 3:
+				case zipDeployError:
 					return nil, "", fmt.Errorf("zip deployment failed")
-				case 4:
+				case zipDeployComplete:
 					return status, "complete", nil
 				default:
 					return status, "pending", nil
