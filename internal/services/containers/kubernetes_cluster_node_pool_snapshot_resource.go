@@ -117,7 +117,7 @@ func resourceKubernetesClusterNodePoolSnapshotRead(d *pluginsdk.ResourceData, me
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SnapshotName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading kubernetes node pool snapshot %q - removing from state", d.Id())
+			log.Printf("[INFO] Error reading kubernetes cluster node pool snapshot %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
