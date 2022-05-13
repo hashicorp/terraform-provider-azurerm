@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestSnapshotsID(t *testing.T) {
+func TestNodePoolSnapshotID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -66,7 +66,7 @@ func TestSnapshotsID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := SnapshotsID(tc.Input, "test")
+		_, errors := NodePoolSnapshotID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

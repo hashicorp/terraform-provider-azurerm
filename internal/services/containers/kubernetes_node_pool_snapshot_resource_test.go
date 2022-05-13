@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SnapshotsResource struct{}
+type kubernetesNodePoolSnapshotResource struct{}
 
-func TestAccSnapshots_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_snapshots", "test")
-	r := SnapshotsResource{}
+func TestAcckubernetesNodePoolSnapshot_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_node_pool_snapshot", "test")
+	r := kubernetesNodePoolSnapshotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -31,9 +31,9 @@ func TestAccSnapshots_basic(t *testing.T) {
 	})
 }
 
-func TestAccSnapshots_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_snapshots", "test")
-	r := SnapshotsResource{}
+func TestAcckubernetesNodePoolSnapshot_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_node_pool_snapshot", "test")
+	r := kubernetesNodePoolSnapshotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,9 +46,9 @@ func TestAccSnapshots_complete(t *testing.T) {
 	})
 }
 
-func TestAccSnapshots_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_snapshots", "test")
-	r := SnapshotsResource{}
+func TestAcckubernetesNodePoolSnapshot_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_node_pool_snapshot", "test")
+	r := kubernetesNodePoolSnapshotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -59,13 +59,13 @@ func TestAccSnapshots_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_snapshots"),
+			ExpectError: acceptance.RequiresImportError("azurerm_kubernetes_node_pool_snapshot"),
 		},
 	})
 }
 
-func (t SnapshotsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SnapshotsID(state.ID)
+func (t kubernetesNodePoolSnapshotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := parse.NodePoolSnapshotID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -78,56 +78,54 @@ func (t SnapshotsResource) Exists(ctx context.Context, clients *clients.Client, 
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r SnapshotsResource) basic(data acceptance.TestData) string {
+func (r kubernetesNodePoolSnapshotResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
-resource "azurerm_snapshots" "test" {
+resource "azurerm_kubernetes_node_pool_snapshot" "test" {
   name                = "acctestss%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  source_resource_id  = azurerm_kubernetes_cluster_node_pool.test.id
+  node_pool_id        = azurerm_kubernetes_cluster_node_pool.test.id
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SnapshotsResource) complete(data acceptance.TestData) string {
+func (r kubernetesNodePoolSnapshotResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
-resource "azurerm_snapshots" "test" {
+resource "azurerm_kubernetes_node_pool_snapshot" "test" {
   name                = "acctestss%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  source_resource_id  = azurerm_kubernetes_cluster_node_pool.test.id
-  snapshot_type       = "NodePool"
+  node_pool_id        = azurerm_kubernetes_cluster_node_pool.test.id
+  tags = {
+    environment = "production"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SnapshotsResource) requiresImport(data acceptance.TestData) string {
+func (r kubernetesNodePoolSnapshotResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_snapshots" "import" {
-  name                = azurerm_snapshots.test.name
-  location            = azurerm_snapshots.test.location
-  resource_group_name = azurerm_snapshots.test.resource_group_name
-  source_resource_id  = azurerm_snapshots.test.source_resource_id
+resource "azurerm_kubernetes_node_pool_snapshot" "import" {
+  name                = azurerm_kubernetes_node_pool_snapshot.test.name
+  location            = azurerm_kubernetes_node_pool_snapshot.test.location
+  resource_group_name = azurerm_kubernetes_node_pool_snapshot.test.resource_group_name
+  node_pool_id        = azurerm_kubernetes_node_pool_snapshot.test.node_pool_id
 }
 `, r.basic(data))
 }
 
-func (SnapshotsResource) template(data acceptance.TestData) string {
+func (kubernetesNodePoolSnapshotResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
   location = "%s"

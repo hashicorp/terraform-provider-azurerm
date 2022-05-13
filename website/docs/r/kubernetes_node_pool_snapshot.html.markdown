@@ -1,19 +1,23 @@
 ---
 subcategory: "Container"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_snapshots"
+page_title: "Azure Resource Manager: azurerm_kubernetes_node_pool_snapshot"
 description: |-
-  Manages a kubernetes Snapshots.
+  Manages a Kubernetes Node Pool Snapshot.
 
 ---
 
-# azurerm_snapshots
+# azurerm_kubernetes_node_pool_snapshot
 
-Manages a kubernetes Snapshots.
+Manages a Kubernetes Node Pool Snapshot
 
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "snapshots-rg"
   location = "West Europe"
@@ -43,12 +47,14 @@ resource "azurerm_kubernetes_cluster_node_pool" "example" {
   node_count            = 1
 }
 
-resource "azurerm_snapshots" "example" {
-  name                = "acctestss"
+resource "azurerm_kubernetes_node_pool_snapshot" "example" {
+  name                = "acctestsnapshot"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  source_resource_id  = azurerm_kubernetes_cluster_node_pool.example.id
-  snapshot_type       = "NodePool"
+  node_pool_id        = azurerm_kubernetes_cluster_node_pool.example.id
+  tags = {
+    environment = "production"
+  }
 }
 ```
 
@@ -62,9 +68,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `source_resource_id` - (Required) This is the ARM ID of the source object to be used to create the target object. Changing this forces a new resource to be created.
-
-* `snapshot_type` - (Optional) Possible values include: 'SnapshotTypeNodePool'.
+* `node_pool_id` - (Required) This is the ARM ID of the source object to be used to create the target object. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -72,7 +76,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Snapshots ID.
+* `id` - The Kubernetes Node Pool Snapshot ID.
 
 ## Timeouts
 
@@ -85,8 +89,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Snapshots can be imported using the `resource id`, e.g.
+Kubernetes Node Pool Snapshot can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_snapshots.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/snapshots/snapshot1
+terraform import azurerm_kubernetes_node_pool_snapshot.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/snapshots/snapshot1
 ```
