@@ -58,8 +58,6 @@ The following arguments are supported:
 
 * `disk_encryption_enabled` - (Optional) Specifies if the cluster's disks are encrypted.
 
-* `restrict_outbound_network_access` - (Optional) Whether outbound network access is restricted for this server. Defaults to `false`.
-
 * `streaming_ingestion_enabled` - (Optional) Specifies if the streaming ingest is enabled.
 
 * `public_network_access_enabled` - (Optional) Is the public network access enabled? Defaults to `true`.
@@ -71,6 +69,8 @@ The following arguments are supported:
 * `language_extensions` - (Optional) An list of `language_extensions` to enable. Valid values are: `PYTHON` and `R`.
 
 * `optimized_auto_scale` - (Optional) An `optimized_auto_scale` block as defined below.
+
+* `outbound_network_access_restricted` - (Optional) Whether outbound network access is restricted for this server. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
