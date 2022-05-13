@@ -197,5 +197,7 @@ func dataSourceElasticsearchRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("setting `logs`: %+v", err)
 	}
 
+	d.SetId(id.ID())
+
 	return nil
 }
