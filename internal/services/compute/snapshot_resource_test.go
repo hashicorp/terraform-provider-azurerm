@@ -125,6 +125,22 @@ func TestAccSnapshot_fromUnmanagedDisk(t *testing.T) {
 	})
 }
 
+func TestAccSnapshot_trustedLaunch(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	r := SnapshotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.trustedLaunch(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("trusted_launch_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("source_uri"),
+	})
+}
+
 func (t SnapshotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SnapshotID(state.ID)
 	if err != nil {
@@ -496,4 +512,44 @@ resource "azurerm_snapshot" "test" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (SnapshotResource) trustedLaunch(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_platform_image" "test" {
+  location  = "%[2]s"
+  publisher = "Canonical"
+  offer     = "UbuntuServer"
+  sku       = "18_04-LTS-gen2"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                   = "acctestd-%[1]d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  os_type                = "Linux"
+  create_option          = "FromImage"
+  image_reference_id     = data.azurerm_platform_image.test.id
+  storage_account_type   = "Standard_LRS"
+  hyper_v_generation     = "V2"
+  trusted_launch_enabled = true
+}
+
+resource "azurerm_snapshot" "test" {
+  name                = "acctestss_%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  create_option       = "Copy"
+  source_uri          = azurerm_managed_disk.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

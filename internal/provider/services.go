@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers"
@@ -153,6 +154,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			cognitive.Registration{},
 			communication.Registration{},
 			compute.Registration{},
+			confidentialledger.Registration{},
 			connections.Registration{},
 			containers.Registration{},
 			consumption.Registration{},

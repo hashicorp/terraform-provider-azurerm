@@ -16,13 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -127,8 +125,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 					string(postgresql.OneOne),
 					string(postgresql.OneZero),
 					string(postgresql.OneZeroFullStopZero),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"administrator_login": {
@@ -148,13 +145,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			"auto_grow_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default: func() interface{} {
-					if features.ThreePointOhBeta() {
-						return true
-					}
-					return nil
-				}(),
-				Computed: !features.ThreePointOhBeta(),
+				Default:  true,
 			},
 
 			"backup_retention_days": {
@@ -168,13 +159,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Computed: !features.ThreePointOhBeta(),
-				Default: func() interface{} {
-					if !features.ThreePointOhBeta() {
-						return nil
-					}
-					return false
-				}(),
+				Default:  false,
 			},
 
 			"create_mode": {
@@ -228,12 +213,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			"ssl_minimal_tls_version_enforced": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default: func() interface{} {
-					if features.ThreePointOhBeta() {
-						return string(postgresql.TLS12)
-					}
-					return string(postgresql.TLSEnforcementDisabled)
-				}(),
+				Default:  string(postgresql.TLS12),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.TLSEnforcementDisabled),
 					string(postgresql.TLS10),

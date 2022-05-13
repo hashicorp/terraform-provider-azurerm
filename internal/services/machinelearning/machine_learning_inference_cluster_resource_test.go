@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -349,32 +347,6 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 
 func (r InferenceClusterResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	template := r.templateDevTest(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_machine_learning_inference_cluster" "test" {
-  name                          = "AIC-%d"
-  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  location                      = azurerm_resource_group.test.location
-  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
-  cluster_purpose               = "DevTest"
-  identity {
-    type = "SystemAssigned,UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id,
-    ]
-  }
-}
-`, template, data.RandomInteger, data.RandomIntOfLength(8))
-	}
-
 	return fmt.Sprintf(`
 %s
 

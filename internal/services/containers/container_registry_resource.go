@@ -12,12 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -61,10 +59,6 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			sku := d.Get("sku").(string)
 
 			hasGeoReplications := false
-			if !features.ThreePointOhBeta() {
-				geoReplicationLocations := d.Get("georeplication_locations").(*pluginsdk.Set)
-				hasGeoReplications = geoReplicationLocations.Len() > 0
-			}
 			geoReplications := d.Get("georeplications").([]interface{})
 			hasGeoReplicationsApplied := hasGeoReplications || len(geoReplications) > 0
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
@@ -256,12 +250,6 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	// the ACR is being created so no previous geo-replication locations
 	var oldGeoReplicationLocations, newGeoReplicationLocations []containerregistry.Replication
 	newGeoReplicationLocations = expandReplications(geoReplications)
-	if !features.ThreePointOhBeta() {
-		geoReplicationLocations := d.Get("georeplication_locations").(*pluginsdk.Set)
-		if geoReplicationLocations != nil && geoReplicationLocations.Len() > 0 {
-			newGeoReplicationLocations = expandReplicationsFromLocations(geoReplicationLocations.List())
-		}
-	}
 	// geo replications have been specified
 	if len(newGeoReplicationLocations) > 0 {
 		err = applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, oldGeoReplicationLocations, newGeoReplicationLocations)
@@ -354,14 +342,6 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	var hasNewGeoReplicationLocations bool
 	oldGeoReplicationLocations := make([]interface{}, 0)
 	newGeoReplicationLocations := make([]interface{}, 0)
-
-	if !features.ThreePointOhBeta() {
-		hasGeoReplicationLocationsChanges = d.HasChange("georeplication_locations")
-		old, new := d.GetChange("georeplication_locations")
-		oldGeoReplicationLocations = old.(*pluginsdk.Set).List()
-		newGeoReplicationLocations := new.(*pluginsdk.Set).List()
-		hasNewGeoReplicationLocations = len(newGeoReplicationLocations) > 0
-	}
 
 	// geo replication is only supported by Premium Sku
 	hasGeoReplicationsApplied := hasNewGeoReplicationLocations || len(newReplications) > 0
@@ -684,11 +664,6 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 	sort.Slice(geoReplications, func(i, j int) bool {
 		return geoReplications[i].(map[string]interface{})["location"].(string) < geoReplications[j].(map[string]interface{})["location"].(string)
 	})
-
-	if !features.ThreePointOhBeta() {
-		d.Set("georeplication_locations", geoReplicationLocations)
-		d.Set("storage_account_id", "")
-	}
 
 	d.Set("georeplications", geoReplications)
 
@@ -1015,7 +990,7 @@ func flattenExportPolicy(p *containerregistry.Policies) bool {
 }
 
 func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -1035,7 +1010,7 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 				string(containerregistry.SkuNameBasic),
 				string(containerregistry.SkuNameStandard),
 				string(containerregistry.SkuNamePremium),
-			}, !features.ThreePointOhBeta()),
+			}, false),
 		},
 
 		"admin_enabled": {
@@ -1047,21 +1022,9 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		"georeplications": {
 			// Don't make this a TypeSet since TypeSet has bugs when there is a nested property using `StateFunc`.
 			// See: https://github.com/hashicorp/terraform-plugin-sdk/issues/160
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: !features.ThreePointOhBeta(),
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"georeplication_locations"}
-				}
-				return []string{}
-			}(),
-			ConfigMode: func() schema.SchemaConfigMode {
-				if !features.ThreePointOhBeta() {
-					return pluginsdk.SchemaConfigModeAttr
-				}
-				return pluginsdk.SchemaConfigModeAuto
-			}(),
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAuto,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"location": commonschema.LocationWithoutForceNew(),
@@ -1278,32 +1241,4 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-
-		out["storage_account_id"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Computed:   true,
-			ForceNew:   true,
-			Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
-		}
-
-		out["georeplication_locations"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			Deprecated:    "Deprecated in favour of `georeplications`",
-			Computed:      true,
-			ConflictsWith: []string{"georeplications"},
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			Set: func(input interface{}) int {
-				return pluginsdk.HashString(location.Normalize(input.(string)))
-			},
-		}
-	}
-
-	return out
 }

@@ -1,3 +1,32 @@
+## 3.6.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource**: `azurerm_confidential_ledger` [GH-15420]
+* **New Resource**: `azurerm_managed_disk_sas_token` [GH-15558]
+* **New Resource**: `azurerm_spring_cloud_gateway` [GH-16175]
+* **New Resource**: `azurerm_spring_cloud_build_pack_binding` [GH-16673]
+* **New Resource**: `azurerm_stream_analytics_output_powerbi` [GH-16439]
+
+ENHANCEMENTS:
+
+* `azurerm_container_group` - support for the `key_vault_key_id` property (Customer Managed Key encryption) [GH-16709]
+* `azurerm_kubernetes_cluster_node_pool` - the property `node_labels` can now be updated [GH-16360]
+* `azurerm_kubernetes_cluster` - the property `default_node_pool.node_labels` can now be updated [GH-16360]
+* `azurerm_kubernetes_cluster` - allow value `none` for `network_profile.network_plugin` [GH-16250]
+* `azurerm_kusto_script` - lock kusto cluster so multiple scripts can be applied [GH-16690]
+* `azurerm_storage_share` - add `access_tier` attribute [GH-16462]
+* `azurerm_snapshot` - support for the `trusted_launch_enabled` propertyu [GH-16679]
+* `azurerm_stream_analytics_function_javascript_uda` - support for the `input.configuration_parameter` property [GH-16575]
+* `azurerm_stream_analytics_function_javascript_udf` - support for the `input.configuration_parameter` property [GH-16579]
+* `azurerm_synapse_workspace` - correctly update the `public_network_access_enabled` property [GH-16733]
+
+BUG FIXES:
+
+* `azurerm_app_configuration_feature` - allow successful creation of resource without specifying any optional filters [GH-16459]
+* `azurerm_mssql_managed_instance_failover_group` - correctly import resource and sent primary isntance id [GH-16705]
+
+
 ## 3.5.0 (May 05, 2022)
 
 FEATURES:
