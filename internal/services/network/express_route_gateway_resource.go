@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -92,6 +92,13 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 	t := d.Get("tags").(map[string]interface{})
 
 	minScaleUnits := int32(d.Get("scale_units").(int))
+
+	erConnectionsClient := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
+	erConnections, err := erConnectionsClient.List(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf(" get Gateway Connections error %s: %+v", id, err)
+	}
+
 	parameters := network.ExpressRouteGateway{
 		Location: utils.String(location),
 		ExpressRouteGatewayProperties: &network.ExpressRouteGatewayProperties{
@@ -103,6 +110,7 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 			VirtualHub: &network.VirtualHubID{
 				ID: &virtualHubId,
 			},
+			ExpressRouteConnections: erConnections.Value,
 		},
 		Tags: tags.Expand(t),
 	}

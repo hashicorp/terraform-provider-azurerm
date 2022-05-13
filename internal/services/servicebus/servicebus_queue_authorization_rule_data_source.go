@@ -153,6 +153,7 @@ func dataSourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	d.Set("queue_name", id.QueueName)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("queue_id", parse.NewQueueID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.QueueName).ID())
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
 		listen, send, manage := flattenAuthorizationRuleRights(properties.Rights)

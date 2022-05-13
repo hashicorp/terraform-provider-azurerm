@@ -28,7 +28,7 @@ type AnalyticalStorageConfiguration struct {
 
 // APIProperties ...
 type APIProperties struct {
-	// ServerVersion - Describes the ServerVersion of an a MongoDB account. Possible values include: 'ServerVersionThreeFullStopTwo', 'ServerVersionThreeFullStopSix', 'ServerVersionFourFullStopZero'
+	// ServerVersion - Describes the ServerVersion of an a MongoDB account. Possible values include: 'ServerVersionThreeFullStopTwo', 'ServerVersionThreeFullStopSix', 'ServerVersionFourFullStopZero', 'ServerVersionFourFullStopTwo'
 	ServerVersion ServerVersion `json:"serverVersion,omitempty"`
 }
 

@@ -90,6 +90,8 @@ The following arguments are supported:
 
 ~> **Note:** `dns_name_label` and `os_type` set to `windows` are not compatible with `Private` `ip_address_type`
 
+* `key_vault_key_id` - (Optional) The Key Vault key URI for CMK encryption. Changing this forces a new resource to be created.
+
 * `network_profile_id` - (Optional) Network profile ID for deploying to virtual network.
 
 * `image_registry_credential` - (Optional) A `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
