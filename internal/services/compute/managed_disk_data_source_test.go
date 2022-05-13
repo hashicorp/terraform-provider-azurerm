@@ -52,22 +52,22 @@ func TestAccDataSourceManagedDisk_basic_withUltraSSD(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceManagedDisk_encryptionSettings(t *testing.T) {
+func TestAccDataSourceManagedDisk_encryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_managed_disk", "test")
 	r := ManagedDiskDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.encryptionSettings(data),
+			Config: r.encryption(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("encryption_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("encryption_settings.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.#").HasValue("1"),
-				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.0.secret_url").Exists(),
-				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.0.source_vault_id").Exists(),
-				check.That(data.ResourceName).Key("encryption_settings.0.key_encryption_key.#").HasValue("1"),
-				check.That(data.ResourceName).Key("encryption_settings.0.key_encryption_key.0.key_url").Exists(),
-				check.That(data.ResourceName).Key("encryption_settings.0.key_encryption_key.0.source_vault_id").Exists(),
+				check.That(data.ResourceName).Key("encryption.#").HasValue("1"),
+				check.That(data.ResourceName).Key("encryption.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("encryption.0.disk_encryption_key.#").HasValue("1"),
+				check.That(data.ResourceName).Key("encryption.0.disk_encryption_key.0.secret_url").Exists(),
+				check.That(data.ResourceName).Key("encryption.0.disk_encryption_key.0.source_vault_id").Exists(),
+				check.That(data.ResourceName).Key("encryption.0.key_encryption_key.#").HasValue("1"),
+				check.That(data.ResourceName).Key("encryption.0.key_encryption_key.0.key_url").Exists(),
+				check.That(data.ResourceName).Key("encryption.0.key_encryption_key.0.source_vault_id").Exists(),
 			),
 		},
 	})
@@ -139,7 +139,7 @@ data "azurerm_managed_disk" "test" {
 `, resourceGroupName, data.Locations.Primary, name)
 }
 
-func (ManagedDiskDataSource) encryptionSettings(data acceptance.TestData) string {
+func (ManagedDiskDataSource) encryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

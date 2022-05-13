@@ -55,7 +55,7 @@ func dataSourceManagedDisk() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"encryption_settings": {
+			"encryption": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
@@ -194,8 +194,8 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 		d.Set("disk_encryption_set_id", diskEncryptionSetId)
 
-		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
-			return fmt.Errorf("setting `encryption_settings`: %+v", err)
+		if err := d.Set("encryption", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+			return fmt.Errorf("setting `encryption`: %+v", err)
 		}
 	}
 
