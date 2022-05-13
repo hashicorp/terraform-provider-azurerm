@@ -875,11 +875,16 @@ func expandSqlVirtualMachineTempDbSettings(input []interface{}) *sqlvirtualmachi
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	dataStorageSettings := input[0].(map[string]interface{})
+	tempDbSettings := input[0].(map[string]interface{})
 
 	return &sqlvirtualmachine.SQLTempDbSettings{
-		Luns:            expandSqlVirtualMachineStorageSettingsLuns(dataStorageSettings["luns"].([]interface{})),
-		DefaultFilePath: utils.String(dataStorageSettings["default_file_path"].(string)),
+		luns:              	expandSqlVirtualMachineStorageSettingsLuns(tempDbSettings["luns"].([]interface{})),
+		data_file_count:   	utils.Int32(int32(tempDbSettings.Get("data_file_count").(int))),
+		data_file_size_mb: 	utils.Int32(int32(tempDbSettings.Get("data_file_size_mb").(int))),
+		data_file_growth_in_mb: utils.Int32(int32(tempDbSettings.Get("data_file_growth_in_mb").(int))),
+		default_file_path: 	utils.String(tempDbSettings["default_file_path"].(string)),
+		log_file_size_mb: 	utils.Int32(int32(tempDbSettings.Get("log_file_size_mb").(int))),
+		log_file_growth_mb: 	utils.Int32(int32(tempDbSettings.Get("log_file_growth_mb").(int)))
 	}
 }
 
@@ -889,12 +894,32 @@ func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachine.SQLTempDbSe
 	}
 	attrs := make(map[string]interface{})
 
-	if input.Luns != nil {
-		attrs["luns"] = *input.Luns
+	if input.luns != nil {
+		attrs["luns"] = *input.luns
 	}
 
-	if input.DefaultFilePath != nil {
-		attrs["default_file_path"] = *input.DefaultFilePath
+	if input.data_file_count != nil {
+		attrs["data_file_count"] = *input.data_file_count
+	}
+
+	if input.data_file_size_mb != nil {
+		attrs["data_file_size_mb"] = *input.data_file_size_mb
+	}
+
+	if input.data_file_growth_in_mb != nil {
+		attrs["data_file_growth_in_mb"] = *input.data_file_growth_in_mb
+	}
+
+	if input.default_file_path != nil {
+		attrs["default_file_path"] = *input.default_file_path
+	}
+
+	if input.log_file_size_mb != nil {
+		attrs["log_file_size_mb"] = *input.log_file_size_mb
+	}
+
+	if input.log_file_growth_mb != nil {
+		attrs["log_file_growth_mb"] = *input.log_file_growth_mb
 	}
 
 	return []interface{}{attrs}
