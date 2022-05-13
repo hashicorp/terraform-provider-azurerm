@@ -18,12 +18,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourcekubernetesNodePoolSnapshot() *pluginsdk.Resource {
+func resourceKubernetesClusterNodePoolSnapshot() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcekubernetesNodePoolSnapshotCreateUpdate,
-		Read:   resourcekubernetesNodePoolSnapshotRead,
-		Update: resourcekubernetesNodePoolSnapshotCreateUpdate,
-		Delete: resourcekubernetesNodePoolSnapshotDelete,
+		Create: resourceKubernetesClusterNodePoolSnapshotCreateUpdate,
+		Read:   resourceKubernetesClusterNodePoolSnapshotRead,
+		Update: resourceKubernetesClusterNodePoolSnapshotCreateUpdate,
+		Delete: resourceKubernetesClusterNodePoolSnapshotDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.NodePoolSnapshotID(id)
@@ -45,9 +45,9 @@ func resourcekubernetesNodePoolSnapshot() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"location": azure.SchemaLocation(),
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"location": azure.SchemaLocation(),
 
 			"node_pool_id": {
 				Type:         pluginsdk.TypeString,
@@ -61,7 +61,7 @@ func resourcekubernetesNodePoolSnapshot() *pluginsdk.Resource {
 	}
 }
 
-func resourcekubernetesNodePoolSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.SnapshotsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -80,7 +80,7 @@ func resourcekubernetesNodePoolSnapshotCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_kubernetes_node_pool_snapshot", id.ID())
+			return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool_snapshot", id.ID())
 		}
 	}
 
@@ -101,10 +101,10 @@ func resourcekubernetesNodePoolSnapshotCreateUpdate(d *pluginsdk.ResourceData, m
 
 	d.SetId(id.ID())
 
-	return resourcekubernetesNodePoolSnapshotRead(d, meta)
+	return resourceKubernetesClusterNodePoolSnapshotRead(d, meta)
 }
 
-func resourcekubernetesNodePoolSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.SnapshotsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,7 +140,7 @@ func resourcekubernetesNodePoolSnapshotRead(d *pluginsdk.ResourceData, meta inte
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourcekubernetesNodePoolSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.SnapshotsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

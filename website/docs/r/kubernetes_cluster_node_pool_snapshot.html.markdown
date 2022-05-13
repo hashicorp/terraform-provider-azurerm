@@ -1,15 +1,15 @@
 ---
 subcategory: "Container"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_kubernetes_node_pool_snapshot"
+page_title: "Azure Resource Manager: azurerm_kubernetes_cluster_node_pool_snapshot"
 description: |-
-  Manages a Kubernetes Node Pool Snapshot.
+  Manages a Kubernetes Cluster Node Pool Snapshot.
 
 ---
 
-# azurerm_kubernetes_node_pool_snapshot
+# azurerm_kubernetes_cluster_node_pool_snapshot
 
-Manages a Kubernetes Node Pool Snapshot
+Manages a Kubernetes Cluster Node Pool Snapshot
 
 ## Example Usage
 
@@ -25,8 +25,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_kubernetes_cluster" "example" {
   name                = "acctestaks"
-  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   dns_prefix          = "acctestaks"
 
   default_node_pool {
@@ -47,10 +47,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "example" {
   node_count            = 1
 }
 
-resource "azurerm_kubernetes_node_pool_snapshot" "example" {
+resource "azurerm_kubernetes_cluster_node_pool_snapshot" "example" {
   name                = "acctestsnapshot"
-  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   node_pool_id        = azurerm_kubernetes_cluster_node_pool.example.id
   tags = {
     environment = "production"
@@ -76,7 +76,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Kubernetes Node Pool Snapshot ID.
+* `id` - The Kubernetes Cluster Node Pool Snapshot ID.
 
 ## Timeouts
 
@@ -89,8 +89,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Kubernetes Node Pool Snapshot can be imported using the `resource id`, e.g.
+Kubernetes Cluster Node Pool Snapshot can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kubernetes_node_pool_snapshot.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/snapshots/snapshot1
+terraform import azurerm_kubernetes_cluster_node_pool_snapshot.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/snapshots/snapshot1
 ```
