@@ -209,7 +209,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   managed_rule {
     type    = "BotProtection"
     version = "preview-0.1"
-		action  = "Log"
+    action  = "Log"
   }
 }
 `, tmp, data.RandomInteger)

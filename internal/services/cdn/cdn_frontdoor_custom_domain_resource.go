@@ -121,7 +121,7 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 			// TODO: can this be removed?
 			// WS: Removed
 
-			// TODO: we should probably make these top-levle fields
+			// TODO: we should probably make these top-level fields
 			// WS: Fixed
 
 			"expiration_date": {

@@ -18,7 +18,7 @@ import (
 )
 
 // TODO: this needs discussing
-// WS: We need to sequence the writting of the CNAME record and we can't write the CNAME record to
+// WS: We need to sequence the writing of the CNAME record and we can't write the CNAME record to
 // DNS until the certificate has been deployed which is why I exposed this resource
 
 func resourceCdnFrontdoorCustomDomainSecretValidator() *pluginsdk.Resource {
