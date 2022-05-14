@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-08-27/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -197,6 +197,13 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"public_ip_type": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      "IPv4",
+				ValidateFunc: validation.StringInSlice([]string{"IPv4", "DualStack"}, false),
+			},
+
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -308,6 +315,14 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		EngineType:             engine,
 		PublicNetworkAccess:    publicNetworkAccess,
 		TrustedExternalTenants: expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{})),
+	}
+
+	if v, ok := d.GetOk("public_ip_type"); ok {
+		if v == "DualStack" {
+			clusterProperties.PublicIPType = kusto.PublicIPTypeDualStack
+		} else {
+			clusterProperties.PublicIPType = kusto.PublicIPTypeIPv4
+		}
 	}
 
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
@@ -443,6 +458,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("uri", props.URI)
 		d.Set("data_ingestion_uri", props.DataIngestionURI)
 		d.Set("engine", props.EngineType)
+		d.Set("public_ip_type", props.PublicIPType)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

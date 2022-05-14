@@ -400,6 +400,7 @@ resource "azurerm_kusto_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   resource_group_name           = azurerm_resource_group.test.name
   public_network_access_enabled = false
+  public_ip_type = "DualStack"
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
