@@ -39,9 +39,10 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.CdnFrontdoorOriginName,
 			},
 
 			"cdn_frontdoor_origin_group_id": {
@@ -97,7 +98,7 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 			"origin_host_header": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: IsValidDomain,
+				ValidateFunc: validation.Any(validation.IsIPv6Address, validation.IsIPv4Address, validation.StringIsNotEmpty),
 			},
 
 			"priority": {
@@ -120,6 +121,15 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						// TODO: does this want to be normalized?
+						// WS: Fixed
+						"location": azure.SchemaLocation(),
+
+						"private_link_target_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
 
 						"request_message": {
 							Type:         pluginsdk.TypeString,
@@ -128,31 +138,13 @@ func resourceCdnFrontdoorOrigin() *pluginsdk.Resource {
 							ValidateFunc: validation.StringLenBetween(1, 140),
 						},
 
-						"location": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							// TODO: does this want to be normalized?
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
 						"target_type": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringInSlice(ValidPrivateLinkTargetTypes(), false),
-						},
-
-						"private_link_target_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: validation.StringInSlice(cdnFrontdoorPrivateLinkTargetTypes(), false),
 						},
 					},
 				},
-			},
-
-			"cdn_frontdoor_origin_group_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
 			},
 		},
 	}
@@ -184,6 +176,7 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	// I need to get the profile SKU so I know if it is valid or not to define a private link as
 	// private links are only allowed in the premium sku...
 	profileId := parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
+
 	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
 	if err != nil {
 		if utils.ResponseWasNotFound(profile.Response) {
@@ -192,6 +185,7 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 
 		return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
 	}
+
 	if profile.Sku == nil {
 		return fmt.Errorf("retrieving parent %s: `sku` was nil", profileId)
 	}
@@ -201,7 +195,7 @@ func resourceCdnFrontdoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	props := &cdn.AFDOriginProperties{
 		// AzureOrigin is currently not used, service team asked me to temporarily remove it from the resource
 		// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
-		EnabledState:                convertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
+		EnabledState:                convertCdnFrontdoorBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
 		EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
 		HostName:                    utils.String(d.Get("host_name").(string)),
 		HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
@@ -269,12 +263,11 @@ func resourceCdnFrontdoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("private_link", flattenPrivateLinkSettings(props.SharedPrivateLinkResource))
 		}
 
-		d.Set("health_probes_enabled", convertEnabledStateToBool(&props.EnabledState))
+		d.Set("health_probes_enabled", convertCdnFrontdoorEnabledStateToBool(&props.EnabledState))
 		d.Set("certificate_name_check_enabled", props.EnforceCertificateNameCheck)
 		d.Set("host_name", props.HostName)
 		d.Set("http_port", props.HTTPPort)
 		d.Set("https_port", props.HTTPSPort)
-		d.Set("cdn_frontdoor_origin_group_name", props.OriginGroupName)
 		d.Set("origin_host_header", props.OriginHostHeader)
 		d.Set("priority", props.Priority)
 		d.Set("weight", props.Weight)
@@ -316,7 +309,7 @@ func resourceCdnFrontdoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	props := cdn.AFDOriginUpdateParameters{
 		AFDOriginUpdatePropertiesParameters: &cdn.AFDOriginUpdatePropertiesParameters{
 			// AzureOrigin:                 expandResourceReference(d.Get("cdn_frontdoor_origin_id").(string)),
-			EnabledState:                convertBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
+			EnabledState:                convertCdnFrontdoorBoolToEnabledState(d.Get("health_probes_enabled").(bool)),
 			EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
 			HostName:                    utils.String(d.Get("host_name").(string)),
 			HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
@@ -362,6 +355,9 @@ func resourceCdnFrontdoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 	// It looks like Frontdoor does remove the Private link, I just need to poll here until it is removed...
 	// Investigate this further...
 	// TODO: what's the deal with this? ^
+	// WS: There is a bug in the service code, for only the load balancer scenario, the private link connection is not removed until the
+	// origin is totally destroyed. The workaround for this issue is to put a depends_on the private link service to the origin so the origin
+	// will be deleted first before the private link service is destroyed.
 	id, err := parse.FrontdoorOriginID(d.Id())
 	if err != nil {
 		return err
@@ -381,11 +377,14 @@ func resourceCdnFrontdoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 
 func expandPrivateLinkSettings(input []interface{}, skuName cdn.SkuName, enableCertNameCheck bool) (*cdn.SharedPrivateLinkResourceProperties, error) {
 	if len(input) == 0 {
-		return &cdn.SharedPrivateLinkResourceProperties{}, nil
+		// TODO: Should this return an empty object?
+		// WS: This cannot return an empty object, the service team requires this to be set to nil else you will get the following error during creation:
+		// Property 'AfdOrigin.SharedPrivateLinkResource.PrivateLink' is required but it was not set; Property 'AfdOrigin.SharedPrivateLinkResource.RequestMessage' is required but it was not set
+		return nil, nil
 	}
 
 	if skuName != cdn.SkuNamePremiumAzureFrontDoor {
-		return nil, fmt.Errorf("the `private_link` field can only be configured when the Frontdoor Profile is using a Premium SKU - but got %q", string(skuName))
+		return nil, fmt.Errorf("the `private_link` field can only be configured when the Frontdoor Profile is using a %q SKU, got %q", cdn.SkuNamePremiumAzureFrontDoor, skuName)
 	}
 
 	if !enableCertNameCheck {
@@ -400,13 +399,13 @@ func expandPrivateLinkSettings(input []interface{}, skuName cdn.SkuName, enableC
 	_, err := privateLinkServiceParse.PrivateLinkServiceID(settings["private_link_target_id"].(string))
 	if err != nil && targetType == "" {
 		// It is not a Load Balancer and the Target Type is empty, which is invalid...
-		return nil, fmt.Errorf("the %[1]q block requires that you define the %[2]q field if the %[1]q is not a Load Balancer, expected %[3]s got %[4]q", "private_link", "target_type", strings.Join(ValidPrivateLinkTargetTypes(), ", "), targetType)
+		return nil, fmt.Errorf("the %[1]q block requires that you define the %[2]q field if the %[1]q is not a Load Balancer, expected %[3]s but got %[4]q", "private_link", "target_type", strings.Join(cdnFrontdoorPrivateLinkTargetTypes(), ", "), targetType)
 	}
 
 	config := input[0].(map[string]interface{})
 
 	resourceId := config["private_link_target_id"].(string)
-	location := config["location"].(string)
+	location := azure.NormalizeLocation(config["location"].(string))
 	groupId := config["target_type"].(string)
 	requestMessage := config["request_message"].(string)
 

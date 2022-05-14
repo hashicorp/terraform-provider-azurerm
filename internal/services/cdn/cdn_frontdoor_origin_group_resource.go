@@ -36,9 +36,10 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.CdnFrontdoorOriginGroupName,
 			},
 
 			"cdn_frontdoor_profile_id": {
@@ -72,23 +73,23 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 
 						"protocol": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(cdn.ProbeProtocolHTTP),
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cdn.ProbeProtocolHTTP),
 								string(cdn.ProbeProtocolHTTPS),
-								string(cdn.ProbeProtocolNotSet), // TODO: what does this do? feels like we should remove this, the default & make it required?
+								// TODO: what does this do? feels like we should remove this, the default & make it required?
+								// WS: Fixed
 							}, false),
 						},
 
 						"request_type": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(cdn.HealthProbeRequestTypeHEAD),
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cdn.HealthProbeRequestTypeGET),
 								string(cdn.HealthProbeRequestTypeHEAD),
-								string(cdn.HealthProbeRequestTypeNotSet), // TODO: what does this do? feels like we should remove this, the default & make it required?
+								// TODO: what does this do? feels like we should remove this, the default & make it required?
+								// WS: Fixed
 							}, false),
 						},
 					},
@@ -110,7 +111,7 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 
-						"sample_count": {
+						"sample_size": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      4,
@@ -125,11 +126,6 @@ func resourceCdnFrontdoorOriginGroup() *pluginsdk.Resource {
 						},
 					},
 				},
-			},
-
-			"cdn_frontdoor_profile_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
 			},
 
 			"session_affinity_enabled": {
@@ -177,7 +173,7 @@ func resourceCdnFrontdoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 		AFDOriginGroupProperties: &cdn.AFDOriginGroupProperties{
 			HealthProbeSettings:   expandCdnFrontdoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
 			LoadBalancingSettings: expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
-			SessionAffinityState:  convertBoolToEnabledState(d.Get("session_affinity_enabled").(bool)),
+			SessionAffinityState:  convertCdnFrontdoorBoolToEnabledState(d.Get("session_affinity_enabled").(bool)),
 			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: utils.Int32(int32(d.Get("restore_traffic_time_to_healed_or_new_endpoint_in_minutes").(int))),
 		},
 	}
@@ -227,9 +223,9 @@ func resourceCdnFrontdoorOriginGroupRead(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		// TODO: BLOCKER - BUG: API does not return the profile name, pull it from the ID
-		d.Set("cdn_frontdoor_profile_name", id.ProfileName)
+		// WS: Fixed, removed computed value
 
-		d.Set("session_affinity_enabled", convertEnabledStateToBool(&props.SessionAffinityState))
+		d.Set("session_affinity_enabled", convertCdnFrontdoorEnabledStateToBool(&props.SessionAffinityState))
 		d.Set("restore_traffic_time_to_healed_or_new_endpoint_in_minutes", props.TrafficRestorationTimeToHealedOrNewEndpointsInMinutes)
 	}
 
@@ -261,7 +257,7 @@ func resourceCdnFrontdoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if d.HasChange("session_affinity_enabled") {
-		params.SessionAffinityState = convertBoolToEnabledState(d.Get("session_affinity_enabled").(bool))
+		params.SessionAffinityState = convertCdnFrontdoorBoolToEnabledState(d.Get("session_affinity_enabled").(bool))
 	}
 
 	payload := cdn.AFDOriginGroupUpdateParameters{
@@ -327,7 +323,7 @@ func expandCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input []interf
 
 	return &cdn.LoadBalancingSettingsParameters{
 		AdditionalLatencyInMilliseconds: utils.Int32(int32(v["additional_latency_in_milliseconds"].(int))),
-		SampleSize:                      utils.Int32(int32(v["sample_count"].(int))),
+		SampleSize:                      utils.Int32(int32(v["sample_size"].(int))),
 		SuccessfulSamplesRequired:       utils.Int32(int32(v["successful_samples_required"].(int))),
 	}
 }
@@ -354,7 +350,7 @@ func flattenCdnFrontdoorOriginGroupLoadBalancingSettingsParameters(input *cdn.Lo
 	return []interface{}{
 		map[string]interface{}{
 			"additional_latency_in_milliseconds": additionalLatencyInMilliseconds,
-			"sample_count":                       sampleSize, // TODO: why isn't this called "sample_size"?
+			"sample_size":                        sampleSize, // TODO: why isn't this called "sample_size"? WS: Because KT told me to change it to sample_count in her PR review. I have reverted this back to sample_size.
 			"successful_samples_required":        successfulSamplesRequired,
 		},
 	}

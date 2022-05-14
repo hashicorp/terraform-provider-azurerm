@@ -123,6 +123,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   managed_rule {
     type    = "Microsoft_BotManagerRuleSet"
     version = "1.0"
+    action  = "Log"
   }
 }
 ```
@@ -202,6 +203,8 @@ A `managed_rule` block supports the following:
 * `type` - (Required) The name of the managed rule to use with this resource.
 
 * `version` - (Required) The version on the managed rule to use with this resource.
+
+* `action` - (Optional) The action to perform when the managed rule is matched. Possible values are `Block`, `Log`, or `Redirect`.
 
 * `exclusion` - (Optional) One or more `exclusion` blocks as defined below.
 

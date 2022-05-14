@@ -20,6 +20,9 @@ import (
 )
 
 // TODO: why is this using the Legacy API call?
+// WS: Because only 3 versions the legacy API supports the correct sku field.
+// The service team made the call to reuse the existing legacy API and extend the
+// sku values in lieu of creating a whole new WAF resource for AFDx.
 
 func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -45,7 +48,7 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidatedLegacyFrontdoorWAFName,
+				ValidateFunc: validate.LegacyFrontdoorWAFName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -105,7 +108,7 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 			"custom_block_response_body": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: ValidateLegacyCustomBlockResponseBody,
+				ValidateFunc: validate.LegacyCustomBlockResponseBody,
 			},
 
 			"custom_rule": {
@@ -171,6 +174,9 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									// TODO - rename to "variable" for consistency
+									// WS: The existing frontdoor firewall policy also calls this field "match_variable"
+									// I feel it would be confusing to our customers if we called it "variable" in one
+									// and "match_variable" in the other one.
 									"match_variable": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
@@ -188,6 +194,9 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 									},
 
 									// TODO - rename to "value" for consistency
+									// WS: The existing frontdoor firewall policy also calls this field "match_values"
+									// I feel it would be confusing to our customers if we called it "value" in one
+									// and "match_values" in the other one.
 									"match_values": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
@@ -268,6 +277,16 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"action": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(frontdoor.ManagedRuleSetActionTypeLog),
+								string(frontdoor.ManagedRuleSetActionTypeBlock),
+								string(frontdoor.ManagedRuleSetActionTypeRedirect),
+							}, false),
 						},
 
 						"exclusion": {
@@ -412,10 +431,9 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(frontdoor.ActionTypeAllow),
-														string(frontdoor.ActionTypeBlock),
-														string(frontdoor.ActionTypeLog),
-														string(frontdoor.ActionTypeRedirect),
+														string(frontdoor.ManagedRuleSetActionTypeLog),
+														string(frontdoor.ManagedRuleSetActionTypeBlock),
+														string(frontdoor.ManagedRuleSetActionTypeRedirect),
 													}, false),
 												},
 											},
@@ -458,7 +476,7 @@ func resourceCdnFrontdoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	customBlockResponseStatusCode := d.Get("custom_block_response_status_code").(int)
 	customBlockResponseBody := d.Get("custom_block_response_body").(string)
 	customRules := d.Get("custom_rule").([]interface{})
-	managedRules := expandFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
+	managedRules := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
 
 	if sku != string(frontdoor.SkuNamePremiumAzureFrontDoor) && managedRules != nil {
 		return fmt.Errorf("the `managed_rule` field is only supported with the %q sku, got %q", frontdoor.SkuNamePremiumAzureFrontDoor, sku)
@@ -477,9 +495,9 @@ func resourceCdnFrontdoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 				EnabledState: enabled,
 				Mode:         mode,
 			},
-			CustomRules: expandFrontDoorFirewallCustomRules(customRules),
+			CustomRules: expandCdnFrontDoorFirewallCustomRules(customRules),
 		},
-		Tags: ConvertCdnFrontdoorTags(tags.Expand(t)),
+		Tags: convertCdnFrontdoorTags(tags.Expand(t)),
 	}
 
 	if managedRules != nil {
@@ -557,14 +575,15 @@ func resourceCdnFrontdoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("custom_rule") {
-		props.CustomRules = expandFrontDoorFirewallCustomRules(d.Get("custom_rule").([]interface{}))
+		props.CustomRules = expandCdnFrontDoorFirewallCustomRules(d.Get("custom_rule").([]interface{}))
 	}
 
 	if d.HasChange("managed_rule") {
-		managedRules := expandFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
+		managedRules := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
 		// TODO: shouldn't this be checking the number of rules?
+		// WS: I don't think that is necessary since the schema limits this to 100 rules.
 		if existing.Sku.Name != frontdoor.SkuNamePremiumAzureFrontDoor && managedRules != nil {
-			return fmt.Errorf("the `managed_rule` field is only supported when using the sku %q but using %q", frontdoor.SkuNamePremiumAzureFrontDoor, existing.Sku.Name)
+			return fmt.Errorf("the `managed_rule` field is only supported when using the sku %q, got %q", frontdoor.SkuNamePremiumAzureFrontDoor, existing.Sku.Name)
 		}
 		if managedRules != nil {
 			props.ManagedRules = managedRules
@@ -573,7 +592,7 @@ func resourceCdnFrontdoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	if d.HasChange("tags") {
 		t := d.Get("tags").(map[string]interface{})
-		existing.Tags = ConvertCdnFrontdoorTags(tags.Expand(t))
+		existing.Tags = convertCdnFrontdoorTags(tags.Expand(t))
 	}
 
 	existing.WebApplicationFirewallPolicyProperties = &props
@@ -611,10 +630,6 @@ func resourceCdnFrontdoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	//if profileId := d.Get("cdn_frontdoor_profile_id").(string); profileId != "" {
-	//	d.Set("cdn_frontdoor_profile_id", profileId)
-	//}
-
 	skuName := ""
 	if sku := resp.Sku; sku != nil {
 		skuName = string(sku.Name)
@@ -634,20 +649,20 @@ func resourceCdnFrontdoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
 		}
 
-		if err := d.Set("custom_rule", flattenFrontDoorFirewallCustomRules(properties.CustomRules)); err != nil {
+		if err := d.Set("custom_rule", flattenCdnFrontDoorFirewallCustomRules(properties.CustomRules)); err != nil {
 			return fmt.Errorf("flattening `custom_rule`: %+v", err)
 		}
 
-		if err := d.Set("frontend_endpoint_ids", flattenFrontendEndpointLinkSlice(properties.FrontendEndpointLinks)); err != nil {
+		if err := d.Set("frontend_endpoint_ids", flattenCdnFrontdoorFrontendEndpointLinkSlice(properties.FrontendEndpointLinks)); err != nil {
 			return fmt.Errorf("flattening `frontend_endpoint_ids`: %+v", err)
 		}
 
-		if err := d.Set("managed_rule", flattenFrontDoorFirewallManagedRules(properties.ManagedRules)); err != nil {
+		if err := d.Set("managed_rule", flattenCdnFrontDoorFirewallManagedRules(properties.ManagedRules)); err != nil {
 			return fmt.Errorf("flattening `managed_rule`: %+v", err)
 		}
 	}
 
-	if err := tags.FlattenAndSet(d, ConvertCdnFrontdoorTagsToTagsFlatten(resp.Tags)); err != nil {
+	if err := tags.FlattenAndSet(d, convertCdnFrontdoorTagsToTagsFlatten(resp.Tags)); err != nil {
 		return err
 	}
 
@@ -676,10 +691,11 @@ func resourceCdnFrontdoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func expandFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.CustomRuleList {
+func expandCdnFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.CustomRuleList {
 	if len(input) == 0 {
 		// TODO: shouldn't this be returning an empty object, so the nested item gets cleared out?
-		return nil
+		// WS: Fixed
+		return &frontdoor.CustomRuleList{}
 	}
 
 	output := make([]frontdoor.CustomRule, 0)
@@ -697,7 +713,7 @@ func expandFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.CustomRu
 		ruleType := custom["type"].(string)
 		rateLimitDurationInMinutes := int32(custom["rate_limit_duration_in_minutes"].(int))
 		rateLimitThreshold := int32(custom["rate_limit_threshold"].(int))
-		matchConditions := expandFrontDoorFirewallMatchConditions(custom["match_condition"].([]interface{}))
+		matchConditions := expandCdnFrontDoorFirewallMatchConditions(custom["match_condition"].([]interface{}))
 		action := custom["action"].(string)
 
 		output = append(output, frontdoor.CustomRule{
@@ -717,13 +733,13 @@ func expandFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.CustomRu
 	}
 }
 
-func expandFrontDoorFirewallMatchConditions(input []interface{}) []frontdoor.MatchCondition {
+func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []frontdoor.MatchCondition {
+	result := make([]frontdoor.MatchCondition, 0)
 	if len(input) == 0 {
 		// TODO: shouldn't this be returning an empty slice?
-		return nil
+		// WS: Fixed
+		return result
 	}
-
-	result := make([]frontdoor.MatchCondition, 0)
 
 	for _, v := range input {
 		match := v.(map[string]interface{})
@@ -739,7 +755,7 @@ func expandFrontDoorFirewallMatchConditions(input []interface{}) []frontdoor.Mat
 			Operator:        frontdoor.Operator(operator),
 			NegateCondition: &negateCondition,
 			MatchValue:      utils.ExpandStringSlice(matchValues),
-			Transforms:      expandFrontDoorFirewallTransforms(transforms),
+			Transforms:      expandCdnFrontDoorFirewallTransforms(transforms),
 		}
 
 		if matchVariable != "" {
@@ -755,13 +771,14 @@ func expandFrontDoorFirewallMatchConditions(input []interface{}) []frontdoor.Mat
 	return result
 }
 
-func expandFrontDoorFirewallTransforms(input []interface{}) *[]frontdoor.TransformType {
+func expandCdnFrontDoorFirewallTransforms(input []interface{}) *[]frontdoor.TransformType {
+	result := make([]frontdoor.TransformType, 0)
 	if len(input) == 0 {
 		// TODO: shouldn't this be returning an empty slice?
-		return nil
+		// WS: Fixed
+		return &result
 	}
 
-	result := make([]frontdoor.TransformType, 0)
 	for _, v := range input {
 		result = append(result, frontdoor.TransformType(v.(string)))
 	}
@@ -769,43 +786,53 @@ func expandFrontDoorFirewallTransforms(input []interface{}) *[]frontdoor.Transfo
 	return &result
 }
 
-func expandFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.ManagedRuleSetList {
+func expandCdnFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.ManagedRuleSetList {
 	if len(input) == 0 {
 		// TODO: shouldn't this be an empty object?
-		return nil
+		// WS: Fixed
+		return &frontdoor.ManagedRuleSetList{}
 	}
 
-	out := make([]frontdoor.ManagedRuleSet, 0)
+	result := make([]frontdoor.ManagedRuleSet, 0)
 	for _, mr := range input {
 		managedRule := mr.(map[string]interface{})
 
 		ruleType := managedRule["type"].(string)
 		version := managedRule["version"].(string)
+		action := managedRule["action"].(string)
 		overrides := managedRule["override"].([]interface{})
-		exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(managedRule["exclusion"].([]interface{}))
-		ruleGroupOverrides := expandFrontDoorFirewallManagedRuleGroupOverride(overrides)
+		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(managedRule["exclusion"].([]interface{}))
+		ruleGroupOverrides := expandCdnFrontDoorFirewallManagedRuleGroupOverride(overrides)
 
-		out = append(out, frontdoor.ManagedRuleSet{
+		managedRuleSet := frontdoor.ManagedRuleSet{
 			// TODO: RuleSetAction is also available here?
+			// WS: Fixed, exposed RuleSetAction
 			Exclusions:         exclusions,
 			RuleGroupOverrides: ruleGroupOverrides,
 			RuleSetType:        &ruleType,
 			RuleSetVersion:     &version,
-		})
+		}
+
+		if action != "" {
+			managedRuleSet.RuleSetAction = frontdoor.ManagedRuleSetActionType(action)
+		}
+
+		result = append(result, managedRuleSet)
 	}
 
 	return &frontdoor.ManagedRuleSetList{
-		ManagedRuleSets: &out,
+		ManagedRuleSets: &result,
 	}
 }
 
-func expandFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[]frontdoor.ManagedRuleExclusion {
+func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[]frontdoor.ManagedRuleExclusion {
+	results := make([]frontdoor.ManagedRuleExclusion, 0)
 	if len(input) == 0 {
 		// TODO: shouldn't this be returning an empty slice so we can nil it out?
-		return nil
+		// WS: Fixed
+		return &results
 	}
 
-	out := make([]frontdoor.ManagedRuleExclusion, 0)
 	for _, v := range input {
 		exclusion := v.(map[string]interface{})
 
@@ -813,47 +840,49 @@ func expandFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[]fr
 		operator := exclusion["operator"].(string)
 		selector := exclusion["selector"].(string)
 
-		out = append(out, frontdoor.ManagedRuleExclusion{
+		results = append(results, frontdoor.ManagedRuleExclusion{
 			MatchVariable:         frontdoor.ManagedRuleExclusionMatchVariable(matchVariable),
 			SelectorMatchOperator: frontdoor.ManagedRuleExclusionSelectorMatchOperator(operator),
 			Selector:              &selector,
 		})
 	}
 
-	return &out
+	return &results
 }
 
-func expandFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]frontdoor.ManagedRuleGroupOverride {
+func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]frontdoor.ManagedRuleGroupOverride {
+	result := make([]frontdoor.ManagedRuleGroupOverride, 0)
 	if len(input) == 0 {
 		// TODO: shouldn't this be returning an empty slice?
-		return nil
+		// WS: Fixed
+		return &result
 	}
 
-	out := make([]frontdoor.ManagedRuleGroupOverride, 0)
 	for _, v := range input {
 		override := v.(map[string]interface{})
 
-		exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(override["exclusion"].([]interface{}))
+		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(override["exclusion"].([]interface{}))
 		ruleGroupName := override["rule_group_name"].(string)
-		rules := expandFrontDoorFirewallRuleOverride(override["rule"].([]interface{}))
+		rules := expandCdnFrontDoorFirewallRuleOverride(override["rule"].([]interface{}))
 
-		out = append(out, frontdoor.ManagedRuleGroupOverride{
+		result = append(result, frontdoor.ManagedRuleGroupOverride{
 			Exclusions:    exclusions,
 			RuleGroupName: &ruleGroupName,
 			Rules:         rules,
 		})
 	}
 
-	return &out
+	return &result
 }
 
-func expandFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.ManagedRuleOverride {
+func expandCdnFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.ManagedRuleOverride {
+	result := make([]frontdoor.ManagedRuleOverride, 0)
 	if len(input) == 0 {
 		// TODO: shouldn't this be returning an empty slice?
-		return nil
+		// WS: Fixed
+		return &result
 	}
 
-	out := make([]frontdoor.ManagedRuleOverride, 0)
 	for _, v := range input {
 		rule := v.(map[string]interface{})
 
@@ -863,9 +892,9 @@ func expandFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.Manag
 		}
 		ruleId := rule["rule_id"].(string)
 		action := frontdoor.ActionType(rule["action"].(string))
-		exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(rule["exclusion"].([]interface{}))
+		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(rule["exclusion"].([]interface{}))
 
-		out = append(out, frontdoor.ManagedRuleOverride{
+		result = append(result, frontdoor.ManagedRuleOverride{
 			RuleID:       &ruleId,
 			EnabledState: enabled,
 			Action:       action,
@@ -873,10 +902,10 @@ func expandFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.Manag
 		})
 	}
 
-	return &out
+	return &result
 }
 
-func flattenFrontDoorFirewallCustomRules(input *frontdoor.CustomRuleList) []interface{} {
+func flattenCdnFrontDoorFirewallCustomRules(input *frontdoor.CustomRuleList) []interface{} {
 	if input == nil || input.Rules == nil {
 		return []interface{}{}
 	}
@@ -921,7 +950,7 @@ func flattenFrontDoorFirewallCustomRules(input *frontdoor.CustomRuleList) []inte
 		results = append(results, map[string]interface{}{
 			"action":                         action,
 			"enabled":                        enabled,
-			"match_condition":                flattenFrontDoorFirewallMatchConditions(v.MatchConditions),
+			"match_condition":                flattenCdnFrontDoorFirewallMatchConditions(v.MatchConditions),
 			"rate_limit_duration_in_minutes": rateLimitDurationInMinutes,
 			"rate_limit_threshold":           rateLimitThreshold,
 			"priority":                       priority,
@@ -933,7 +962,7 @@ func flattenFrontDoorFirewallCustomRules(input *frontdoor.CustomRuleList) []inte
 	return results
 }
 
-func flattenFrontDoorFirewallMatchConditions(input *[]frontdoor.MatchCondition) []interface{} {
+func flattenCdnFrontDoorFirewallMatchConditions(input *[]frontdoor.MatchCondition) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -953,17 +982,17 @@ func flattenFrontDoorFirewallMatchConditions(input *[]frontdoor.MatchCondition) 
 		results = append(results, map[string]interface{}{
 			"match_variable":     string(v.MatchVariable),
 			"match_values":       v.MatchValue,
-			"negation_condition": negateCondition, // TODO: why isn't this negate_condition in the schema?
+			"negation_condition": negateCondition, // TODO: why isn't this negate_condition in the schema? WS: For consistency with all of the other existing firewall policies(e.g. web application and legacy frontdoor).
 			"operator":           string(v.Operator),
 			"selector":           selector,
-			"transforms":         flattenTransformSlice(v.Transforms),
+			"transforms":         flattenCdnFrontdoorTransformSlice(v.Transforms),
 		})
 	}
 
 	return results
 }
 
-func flattenFrontDoorFirewallManagedRules(input *frontdoor.ManagedRuleSetList) []interface{} {
+func flattenCdnFrontDoorFirewallManagedRules(input *frontdoor.ManagedRuleSetList) []interface{} {
 	if input == nil || input.ManagedRuleSets == nil {
 		return []interface{}{}
 	}
@@ -981,19 +1010,25 @@ func flattenFrontDoorFirewallManagedRules(input *frontdoor.ManagedRuleSetList) [
 		}
 
 		// TODO: actions are also returned from the API?
+		// WS: Fixed
+		ruleSetAction := ""
+		if r.RuleSetAction != "" {
+			ruleSetAction = string(r.RuleSetAction)
+		}
 
 		results = append(results, map[string]interface{}{
-			"exclusion": flattenFrontDoorFirewallExclusions(r.Exclusions),
-			"override":  flattenFrontDoorFirewallOverrides(r.RuleGroupOverrides),
+			"exclusion": flattenCdnFrontDoorFirewallExclusions(r.Exclusions),
+			"override":  flattenCdnFrontDoorFirewallOverrides(r.RuleGroupOverrides),
 			"type":      ruleSetType,
 			"version":   ruleSetVersion,
+			"action":    ruleSetAction,
 		})
 	}
 
 	return results
 }
 
-func flattenFrontDoorFirewallExclusions(input *[]frontdoor.ManagedRuleExclusion) []interface{} {
+func flattenCdnFrontDoorFirewallExclusions(input *[]frontdoor.ManagedRuleExclusion) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -1025,7 +1060,7 @@ func flattenFrontDoorFirewallExclusions(input *[]frontdoor.ManagedRuleExclusion)
 	return results
 }
 
-func flattenFrontDoorFirewallOverrides(input *[]frontdoor.ManagedRuleGroupOverride) []interface{} {
+func flattenCdnFrontDoorFirewallOverrides(input *[]frontdoor.ManagedRuleGroupOverride) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -1039,15 +1074,15 @@ func flattenFrontDoorFirewallOverrides(input *[]frontdoor.ManagedRuleGroupOverri
 
 		results = append(results, map[string]interface{}{
 			"rule_group_name": ruleGroupName,
-			"exclusion":       flattenFrontDoorFirewallExclusions(v.Exclusions),
-			"rule":            flattenFrontDoorFirewallRules(v.Rules),
+			"exclusion":       flattenCdnFrontDoorFirewallExclusions(v.Exclusions),
+			"rule":            flattenCdnFrontDoorFirewallRules(v.Rules),
 		})
 	}
 
 	return results
 }
 
-func flattenFrontDoorFirewallRules(input *[]frontdoor.ManagedRuleOverride) []interface{} {
+func flattenCdnFrontDoorFirewallRules(input *[]frontdoor.ManagedRuleOverride) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -1072,7 +1107,7 @@ func flattenFrontDoorFirewallRules(input *[]frontdoor.ManagedRuleOverride) []int
 		results = append(results, map[string]interface{}{
 			"action":    action,
 			"enabled":   enabled,
-			"exclusion": flattenFrontDoorFirewallExclusions(v.Exclusions),
+			"exclusion": flattenCdnFrontDoorFirewallExclusions(v.Exclusions),
 			"rule_id":   ruleId,
 		})
 	}

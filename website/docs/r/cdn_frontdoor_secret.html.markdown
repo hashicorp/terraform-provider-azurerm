@@ -94,7 +94,7 @@ resource "azurerm_cdn_frontdoor_secret" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Secret. Changing this forces a new Frontdoor Secret to be created.
+* `name` - (Required) The name which should be used for this Frontdoor Secret. Possible values must start with a letter or a number, only contain letters, numbers and hyphens and have a length of between 2 and 260 characters. Changing this forces a new Frontdoor Secret to be created.
 
 * `cdn_frontdoor_profile_id` - (Required) The Resource ID of the Frontdoor Profile. Changing this forces a new Frontdoor Secret to be created.
 

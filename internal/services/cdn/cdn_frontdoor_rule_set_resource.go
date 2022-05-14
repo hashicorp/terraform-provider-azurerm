@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -38,7 +37,8 @@ func resourceCdnFrontdoorRuleSet() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				// TODO: there's validation requirements in the test limiting this to 8 random chars, can we match that here?
-				ValidateFunc: validation.StringIsNotEmpty,
+				// WS: Fixed
+				ValidateFunc: validate.CdnFrontdoorRuleSetName,
 			},
 
 			"cdn_frontdoor_profile_id": {

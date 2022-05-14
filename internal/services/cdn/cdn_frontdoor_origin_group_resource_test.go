@@ -123,7 +123,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_count                       = 16
+    sample_size                        = 16
     successful_samples_required        = 3
   }
 }
@@ -141,7 +141,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "import" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_count                       = 16
+    sample_size                        = 16
     successful_samples_required        = 3
   }
 }
@@ -173,7 +173,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_count                       = 16
+    sample_size                        = 16
     successful_samples_required        = 3
   }
 }
@@ -205,7 +205,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
 
   load_balancing {
     additional_latency_in_milliseconds = 32
-    sample_count                       = 32
+    sample_size                        = 32
     successful_samples_required        = 5
   }
 }

@@ -62,17 +62,14 @@ func resourceCdnFrontdoorEndpoint() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			// BUG: Not currently exposed in swagger
 			// "origin_response_timeout_seconds": {
 			// 	Type:     pluginsdk.TypeInt,
 			// 	Optional: true,
 			// 	Default:  60,
 			// },
-
 			// TODO: why are we exposing this? it's available from the FrontDoorProfile (which users will be referencing, above) so seems unnecessary?
-			"cdn_frontdoor_profile_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
+			// WS: Fixed
 
 			"tags": tags.Schema(),
 		},
@@ -106,8 +103,7 @@ func resourceCdnFrontdoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 		Name:     utils.String(d.Get("name").(string)),
 		Location: utils.String(location.Normalize("global")),
 		AFDEndpointProperties: &cdn.AFDEndpointProperties{
-			EnabledState: convertBoolToEnabledState(d.Get("enabled").(bool)),
-			// OriginResponseTimeoutSeconds: d.Get("origin_response_timeout_seconds").(int),
+			EnabledState: convertCdnFrontdoorBoolToEnabledState(d.Get("enabled").(bool)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -149,15 +145,8 @@ func resourceCdnFrontdoorEndpointRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.AFDEndpointProperties; props != nil {
-		d.Set("enabled", convertEnabledStateToBool(&props.EnabledState))
+		d.Set("enabled", convertCdnFrontdoorEnabledStateToBool(&props.EnabledState))
 		d.Set("host_name", props.HostName)
-
-		// BUG: Profile Name is not being returned by the API pull it from the ID
-		d.Set("cdn_frontdoor_profile_name", id.ProfileName)
-
-		// BUG API does not currently expose this field so temporarily hardcoding to default value
-		// d.Set("origin_response_timeout_seconds", props.OriginResponseTimeoutSeconds)
-		// d.Set("origin_response_timeout_seconds", 60)
 	}
 
 	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
@@ -181,7 +170,7 @@ func resourceCdnFrontdoorEndpointUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if d.HasChange("enabled") {
 		props.AFDEndpointPropertiesUpdateParameters = &cdn.AFDEndpointPropertiesUpdateParameters{
-			EnabledState: convertBoolToEnabledState(d.Get("enabled").(bool)),
+			EnabledState: convertCdnFrontdoorBoolToEnabledState(d.Get("enabled").(bool)),
 			// TODO: support `origin_response_timeout_seconds` in time
 			// OriginResponseTimeoutSeconds: utils.Int64(int64(d.Get("origin_response_timeout_seconds").(int))),
 		}

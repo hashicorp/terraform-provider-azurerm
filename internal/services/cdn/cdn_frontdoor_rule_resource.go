@@ -57,7 +57,7 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateCdnFrontdoorRuleName,
+				ValidateFunc: validate.CdnFrontdoorRuleName,
 			},
 
 			"cdn_frontdoor_rule_set_id": {
@@ -125,7 +125,7 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 									"destination_path": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: ValidateCdnFrontdoorUrlRedirectActionDestinationPath,
+										ValidateFunc: validate.CdnFrontdoorUrlRedirectActionDestinationPath,
 									},
 
 									"destination_hostname": {
@@ -138,7 +138,7 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "",
-										ValidateFunc: ValidateCdnFrontdoorUrlRedirectActionQueryString,
+										ValidateFunc: validate.CdnFrontdoorUrlRedirectActionQueryString,
 									},
 
 									"destination_fragment": {
@@ -325,7 +325,7 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 									"cache_duration": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: ValidateCdnFrontdoorCacheDuration,
+										ValidateFunc: validate.CdnFrontdoorCacheDuration,
 									},
 								},
 							},
@@ -348,9 +348,9 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperatorRemoteAddress(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorMatchValues(),
+									"operator":         schemaCdnFrontdoorOperatorRemoteAddress(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorMatchValues(),
 								},
 							},
 						},
@@ -361,9 +361,9 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperatorEqualOnly(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorRequestMethodMatchValues(),
+									"operator":         schemaCdnFrontdoorOperatorEqualOnly(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorRequestMethodMatchValues(),
 								},
 							},
 						},
@@ -374,10 +374,10 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperator(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorMatchValues(),
-									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
+									"operator":         schemaCdnFrontdoorOperator(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorMatchValues(),
+									"transforms":       schemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -395,10 +395,10 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									"operator":         SchemaCdnFrontdoorOperator(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorMatchValues(),
-									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
+									"operator":         schemaCdnFrontdoorOperator(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorMatchValues(),
+									"transforms":       schemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -409,10 +409,10 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperator(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorMatchValues(),
-									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
+									"operator":         schemaCdnFrontdoorOperator(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorMatchValues(),
+									"transforms":       schemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -431,10 +431,10 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									"operator":         SchemaCdnFrontdoorOperator(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorMatchValues(),
-									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
+									"operator":         schemaCdnFrontdoorOperator(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorMatchValues(),
+									"transforms":       schemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -445,10 +445,10 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperator(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorMatchValuesRequired(),
-									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
+									"operator":         schemaCdnFrontdoorOperator(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorMatchValuesRequired(),
+									"transforms":       schemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -459,9 +459,9 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperatorEqualOnly(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorProtocolMatchValues(),
+									"operator":         schemaCdnFrontdoorOperatorEqualOnly(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorProtocolMatchValues(),
 								},
 							},
 						},
@@ -472,10 +472,10 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperator(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorUrlPathConditionMatchValues(),
-									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
+									"operator":         schemaCdnFrontdoorOperator(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorUrlPathConditionMatchValues(),
+									"transforms":       schemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -486,10 +486,10 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperator(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorMatchValuesRequired(),
-									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
+									"operator":         schemaCdnFrontdoorOperator(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorMatchValuesRequired(),
+									"transforms":       schemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -500,10 +500,10 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperator(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorMatchValuesRequired(),
-									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
+									"operator":         schemaCdnFrontdoorOperator(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorMatchValuesRequired(),
+									"transforms":       schemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -514,9 +514,9 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperatorEqualOnly(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorHttpVersionMatchValues(),
+									"operator":         schemaCdnFrontdoorOperatorEqualOnly(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorHttpVersionMatchValues(),
 								},
 							},
 						},
@@ -535,10 +535,10 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
-									"operator":         SchemaCdnFrontdoorOperator(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorMatchValues(),
-									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
+									"operator":         schemaCdnFrontdoorOperator(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorMatchValues(),
+									"transforms":       schemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -549,9 +549,9 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperatorEqualOnly(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorIsDeviceMatchValues(),
+									"operator":         schemaCdnFrontdoorOperatorEqualOnly(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorIsDeviceMatchValues(),
 								},
 							},
 						},
@@ -563,9 +563,9 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperatorSocketAddress(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorMatchValues(),
+									"operator":         schemaCdnFrontdoorOperatorSocketAddress(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorMatchValues(),
 								},
 							},
 						},
@@ -577,9 +577,9 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperator(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorMatchValues(),
+									"operator":         schemaCdnFrontdoorOperator(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorMatchValues(),
 								},
 							},
 						},
@@ -591,9 +591,9 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperator(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorServerPortMatchValues(),
+									"operator":         schemaCdnFrontdoorOperator(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorServerPortMatchValues(),
 								},
 							},
 						},
@@ -608,10 +608,10 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperator(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorMatchValues(),
-									"transforms":       SchemaCdnFrontdoorRuleTransforms(),
+									"operator":         schemaCdnFrontdoorOperator(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorMatchValues(),
+									"transforms":       schemaCdnFrontdoorRuleTransforms(),
 								},
 							},
 						},
@@ -623,9 +623,9 @@ func resourceCdnFrontdoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         SchemaCdnFrontdoorOperatorEqualOnly(),
-									"negate_condition": SchemaCdnFrontdoorNegateCondition(),
-									"match_values":     SchemaCdnFrontdoorSslProtocolMatchValues(),
+									"operator":         schemaCdnFrontdoorOperatorEqualOnly(),
+									"negate_condition": schemaCdnFrontdoorNegateCondition(),
+									"match_values":     schemaCdnFrontdoorSslProtocolMatchValues(),
 								},
 							},
 						},
@@ -869,7 +869,7 @@ func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliver
 	}
 
 	// validate action block
-	if err := validateActionsBlock(results); err != nil {
+	if err := validate.CdnFrontdoorActionsBlock(results); err != nil {
 		return nil, err
 	}
 
@@ -955,11 +955,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -973,11 +971,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -991,11 +987,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1009,11 +1003,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1027,11 +1019,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1045,11 +1035,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1063,11 +1051,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1081,11 +1067,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1099,11 +1083,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1117,11 +1099,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1135,11 +1115,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1153,11 +1131,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1171,11 +1147,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1189,11 +1163,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1207,11 +1179,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1225,11 +1195,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1243,11 +1211,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1261,11 +1227,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1279,11 +1243,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				return nil, err
 			}
 
-			if flattened != nil {
-				result[conditionMapping.ConfigName] = flattened
-				keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[conditionMapping.ConfigName] = flattened
+			keys[conditionMapping.ConfigName] = conditionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1310,12 +1272,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 				output[key] = append(output[key], condition[key])
 			}
 		}
-
-		// log.Printf("\n\n\n\n\n\n\n\n\n\nXXXX-XX-XXTXX:XX:XX.XXX-0700 [DEBUG] plugin.terraform-provider-azurerm: Flatten Conditions ***************************************************\n")
-		// log.Printf("  output  == %+v\n", output)
-		// log.Printf(" \n\n\n")
-		// log.Printf("  results == %+v\n\n", results)
-		// log.Printf("***************************************************\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 
 		return []interface{}{output}, nil
 	}
@@ -1344,11 +1300,9 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 
 			actionMapping := m.RouteConfigurationOverride
 
-			if len(flattened) > 0 {
-				result[actionMapping.ConfigName] = flattened
-				keys[actionMapping.ConfigName] = actionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[actionMapping.ConfigName] = flattened
+			keys[actionMapping.ConfigName] = actionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1362,11 +1316,9 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 
 			actionMapping := m.RequestHeader
 
-			if len(flattened) > 0 {
-				result[actionMapping.ConfigName] = flattened
-				keys[actionMapping.ConfigName] = actionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[actionMapping.ConfigName] = flattened
+			keys[actionMapping.ConfigName] = actionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1380,11 +1332,9 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 
 			actionMapping := m.ResponseHeader
 
-			if len(flattened) > 0 {
-				result[actionMapping.ConfigName] = flattened
-				keys[actionMapping.ConfigName] = actionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[actionMapping.ConfigName] = flattened
+			keys[actionMapping.ConfigName] = actionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1398,11 +1348,9 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 
 			actionMapping := m.URLRedirect
 
-			if len(flattened) > 0 {
-				result[actionMapping.ConfigName] = flattened
-				keys[actionMapping.ConfigName] = actionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[actionMapping.ConfigName] = flattened
+			keys[actionMapping.ConfigName] = actionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1416,11 +1364,9 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 
 			actionMapping := m.URLRewrite
 
-			if len(flattened) > 0 {
-				result[actionMapping.ConfigName] = flattened
-				keys[actionMapping.ConfigName] = actionMapping.ConfigName
-				results = append(results, result)
-			}
+			result[actionMapping.ConfigName] = flattened
+			keys[actionMapping.ConfigName] = actionMapping.ConfigName
+			results = append(results, result)
 
 			continue
 		}
@@ -1447,12 +1393,6 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 				output[key] = append(output[key], action[key])
 			}
 		}
-
-		// log.Printf("\n\n\n\n\n\n\n\n\n\nXXXX-XX-XXTXX:XX:XX.XXX-0700 [DEBUG] plugin.terraform-provider-azurerm: Flatten Actions ***************************************************\n")
-		// log.Printf("  output  == %+v\n", output)
-		// log.Printf(" \n\n\n")
-		// log.Printf("  results == %+v\n\n", results)
-		// log.Printf("***************************************************\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 
 		return []interface{}{output}, nil
 	}

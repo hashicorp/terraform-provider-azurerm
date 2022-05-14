@@ -39,7 +39,7 @@ resource "azurerm_cdn_frontdoor_endpoint" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Endpoint. Changing this forces a new Frontdoor Endpoint to be created.
+* `name` - (Required) The name which should be used for this Frontdoor Endpoint. Possible values must be between 2 and 46 characters in length, begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens. Changing this forces a new Frontdoor Endpoint to be created.
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Endpoint to be created.
 
@@ -58,8 +58,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Frontdoor Endpoint.
 
 * `host_name` - The host name of the Frontdoor Endpoint structured as `\[endpointName\].\[DNSZone\]`(e.g. contoso.azureedge.net).
-
-* `frontdoor_profile_name` - The name of the Frontdoor Profile which holds the endpoint.
 
 ## Timeouts
 

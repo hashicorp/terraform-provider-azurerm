@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -42,12 +43,13 @@ func resourceCdnFrontdoorProfile() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateCdnFrontdoorName,
+				ValidateFunc: validate.CdnFrontdoorName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			// TODO: how is this different to the Resource ID?
+			// WS: This is the UUID of the actual Frontdoor service which is returned by the RP. Maybe I should change the name of the field to make it more clear that this is different than the ID field?
 			"cdn_frontdoor_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,

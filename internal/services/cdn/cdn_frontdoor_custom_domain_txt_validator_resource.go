@@ -157,7 +157,6 @@ func resourceCdnFrontdoorCustomDomainTxtValidatorRead(d *pluginsdk.ResourceData,
 
 func resourceCdnFrontdoorCustomDomainTxtValidatorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	// TODO: Delete doesn't really make sense since this is a fake resource I need to think about this...
-
 	d.SetId("")
 	return nil
 }

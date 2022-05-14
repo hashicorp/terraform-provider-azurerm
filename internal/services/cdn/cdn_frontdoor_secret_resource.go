@@ -42,6 +42,8 @@ func resourceCdnFrontdoorSecret() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				// TODO: validation
+				// WS: Fixed
+				ValidateFunc: validate.CdnFrontdoorSecretName,
 			},
 
 			"cdn_frontdoor_profile_id": {
@@ -170,7 +172,7 @@ func resourceCdnFrontdoorSecretRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if props := resp.SecretProperties; props != nil {
 		var customerCertificate []interface{}
-		if customerCertificate, err = flattenSecretSecretParameters(props.Parameters); err != nil {
+		if customerCertificate, err = flattenSecretSecretParameters(ctx, props.Parameters, meta); err != nil {
 			return fmt.Errorf("flattening `secret_parameters`: %+v", err)
 		}
 
@@ -223,7 +225,9 @@ func expandCdnFrontdoorBasicSecretParameters(ctx context.Context, input []interf
 	return customerCertificate, nil
 }
 
-func flattenSecretSecretParameters(input cdn.BasicSecretParameters) ([]interface{}, error) {
+func flattenSecretSecretParameters(ctx context.Context, input cdn.BasicSecretParameters, meta interface{}) ([]interface{}, error) {
+	client := meta.(*clients.Client).KeyVault
+
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results, nil
@@ -265,22 +269,30 @@ func flattenSecretSecretParameters(input cdn.BasicSecretParameters) ([]interface
 		// TODO: BLOCKER - `vault.azure.net` is Azure Public, this needs to support all Azure Environments
 		// there's a method on the Key Vault Clients struct to obtain the Key Vault URI from the ARM ID
 		// which we can use here
+		// WS: Fixed
+		keyVaultId := keyVaultParse.NewVaultID(secretSourceId.SubscriptionId, secretSourceId.ResourceGroup, secretSourceId.VaultName)
+		keyVaultBaseUri, err := client.BaseUriForKeyVault(ctx, keyVaultId)
+		if err != nil {
+			return nil, fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", secretSourceId.SecretName, keyVaultId, err)
+		}
 
 		if useLatest {
 			// Build the versionless certificate id
-			keyVaultCertificateId = fmt.Sprintf("https://%s.vault.azure.net/certificates/%s", secretSourceId.VaultName, secretSourceId.SecretName)
+			keyVaultCertificateId = fmt.Sprintf("%scertificates/%s", *keyVaultBaseUri, secretSourceId.SecretName)
 		} else {
 			// Build the certificate id with the version information
-			keyVaultCertificateId = fmt.Sprintf("https://%s.vault.azure.net/certificates/%s/%s", secretSourceId.VaultName, secretSourceId.SecretName, certificateVersion)
+			keyVaultCertificateId = fmt.Sprintf("%scertificates/%s/%s", *keyVaultBaseUri, secretSourceId.SecretName, certificateVersion)
 		}
 	}
 
 	// TODO: all nested fields need a value set into the state
-
+	// WS: Fixed
 	fields["key_vault_certificate_id"] = keyVaultCertificateId
 
 	if customerCertificate.SubjectAlternativeNames != nil {
 		fields["subject_alternative_names"] = utils.FlattenStringSlice(customerCertificate.SubjectAlternativeNames)
+	} else {
+		fields["subject_alternative_names"] = make([]string, 0)
 	}
 
 	result["customer_certificate"] = []interface{}{fields}

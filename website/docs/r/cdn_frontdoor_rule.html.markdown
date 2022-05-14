@@ -50,7 +50,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_count                       = 16
+    sample_size                        = 16
     successful_samples_required        = 3
   }
 }
@@ -145,7 +145,7 @@ resource "azurerm_cdn_frontdoor_rule" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Rule. Changing this forces a new Frontdoor Rule to be created.
+* `name` - (Required) The name which should be used for this Frontdoor Rule. Possible values must be between 1 and 260 characters in length, begin with a letter and may contain only letters and numbers. Changing this forces a new Frontdoor Rule to be created.
 
 * `cdn_frontdoor_rule_set_id` - (Required) The resource ID of the Frontdoor Rule Set for this Frontdoor Rule. Changing this forces a new Frontdoor Rule to be created.
 
@@ -327,7 +327,7 @@ The `server_port_condition` identifies requests based on which port of the Front
 
 * `negate_condition` - (Optional) If `true` operator becomes the opposite of its value, for more information see `Condition Operator List` as defined below. Possible values `true` or `false`. Defaults to `false`.
 
-* `match_values` - (Optional) One or more integer values(e.g. "1") representing the value of the client port to match. Possible values include `80` or `443`. Defaults to `80`. If multiple values are specified, they're evaluated using `OR` logic.
+* `match_values` - (Required) One or more integer values(e.g. "1") representing the value of the client port to match. Possible values include `80` or `443`. If multiple values are specified, they're evaluated using `OR` logic.
 
 ---
 

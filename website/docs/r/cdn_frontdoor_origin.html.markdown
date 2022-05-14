@@ -104,7 +104,7 @@ resource "azurerm_cdn_frontdoor_origin" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Origin. Changing this forces a new Frontdoor Origin to be created.
+* `name` - (Required) The name which should be used for this Frontdoor Origin. Possible values must be between 2 and 90 characters in length, begin with a letter or number, end with a letter or number and may contain only letters, numbers and hyphens. Changing this forces a new Frontdoor Origin to be created.
 
 * `cdn_frontdoor_origin_group_id` - (Required) The ID of the Frontdoor Origin Group. Changing this forces a new Frontdoor Origin Group to be created.
 
@@ -160,8 +160,6 @@ A `private_link` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Frontdoor Origin.
-
-* `origin_group_name` - The name of the origin group which contains this Frontdoor Origin.
 
 ## Timeouts
 

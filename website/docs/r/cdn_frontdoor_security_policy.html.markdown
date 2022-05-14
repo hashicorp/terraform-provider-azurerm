@@ -47,13 +47,13 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
       match_variable     = "RemoteAddr"
       operator           = "IPMatch"
       negation_condition = false
-      match_values       = ["192.168.1.0/24", "10.0.0.0/24"]
+      match_values       = ["192.168.1.0/24", "10.0.1.0/24"]
     }
   }
 }
 
 resource "azurerm_cdn_frontdoor_security_policy" "example" {
-  name                     = "ExampleSecurityPolicy"
+  name                     = "Example-Security-Policy"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
   cdn_frontdoor_origin_id  = azurerm_cdn_frontdoor_origin.example.id
 
@@ -75,7 +75,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Security Policy. Changing this forces a new Frontdoor Security Policy to be created.
+* `name` - (Required) The name which should be used for this Frontdoor Security Policy. Possible values must not be an empty string. Changing this forces a new Frontdoor Security Policy to be created.
 
 * `cdn_frontdoor_profile_id` - (Required) The Frontdoor Profile Resource Id that is linked to this Frontdoor Security Policy. Changing this forces a new Frontdoor Security Policy to be created.
 

@@ -75,7 +75,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_count                       = 16
+    sample_size                        = 16
     successful_samples_required        = 3
   }
 }
@@ -136,7 +136,7 @@ resource "azurerm_dns_txt_record" "fabrikam" {
   ttl                 = 3600
 
   record {
-    value = azurerm_cdn_frontdoor_custom_domain.test.validation_properties.0.validation_token
+    value = azurerm_cdn_frontdoor_custom_domain.test.validation_token
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

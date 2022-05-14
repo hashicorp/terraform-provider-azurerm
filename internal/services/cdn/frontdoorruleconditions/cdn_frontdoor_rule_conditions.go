@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -445,13 +446,15 @@ func ExpandCdnFrontdoorRequestMethodCondition(input []interface{}) (*[]cdn.Basic
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
+		matchValuesRaw := item["match_values"].(*pluginsdk.Set).List()
+
 		condition := cdn.DeliveryRuleRequestMethodCondition{
 			Name: conditionMapping.Name,
 			Parameters: &cdn.RequestMethodMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
 				Operator:        utils.String(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     utils.ExpandStringSlice(matchValuesRaw),
 			},
 		}
 
@@ -482,8 +485,9 @@ func ExpandCdnFrontdoorQueryStringCondition(input []interface{}) (*[]cdn.BasicDe
 			},
 		}
 
-		if transforms := item["transforms"].([]interface{}); len(transforms) != 0 {
-			expanded := expandNormalizeCdnFrontdoorTransforms(transforms)
+		transformsRaw := item["transforms"].(*pluginsdk.Set).List()
+		if len(transformsRaw) != 0 {
+			expanded := expandNormalizeCdnFrontdoorTransforms(transformsRaw)
 			condition.Parameters.Transforms = &expanded
 		}
 
@@ -515,8 +519,9 @@ func ExpandCdnFrontdoorPostArgsCondition(input []interface{}) (*[]cdn.BasicDeliv
 			},
 		}
 
-		if transforms := item["transforms"].([]interface{}); len(transforms) != 0 {
-			expanded := expandNormalizeCdnFrontdoorTransforms(transforms)
+		transformsRaw := item["transforms"].(*pluginsdk.Set).List()
+		if len(transformsRaw) != 0 {
+			expanded := expandNormalizeCdnFrontdoorTransforms(transformsRaw)
 			condition.Parameters.Transforms = &expanded
 		}
 
@@ -547,8 +552,9 @@ func ExpandCdnFrontdoorRequestUriCondition(input []interface{}) (*[]cdn.BasicDel
 			},
 		}
 
-		if transforms := item["transforms"].([]interface{}); len(transforms) != 0 {
-			expanded := expandNormalizeCdnFrontdoorTransforms(transforms)
+		transformsRaw := item["transforms"].(*pluginsdk.Set).List()
+		if len(transformsRaw) != 0 {
+			expanded := expandNormalizeCdnFrontdoorTransforms(transformsRaw)
 			condition.Parameters.Transforms = &expanded
 		}
 
@@ -580,8 +586,9 @@ func ExpandCdnFrontdoorRequestHeaderCondition(input []interface{}) (*[]cdn.Basic
 			},
 		}
 
-		if transforms := item["transforms"].([]interface{}); len(transforms) != 0 {
-			expanded := expandNormalizeCdnFrontdoorTransforms(transforms)
+		transformsRaw := item["transforms"].(*pluginsdk.Set).List()
+		if len(transformsRaw) != 0 {
+			expanded := expandNormalizeCdnFrontdoorTransforms(transformsRaw)
 			condition.Parameters.Transforms = &expanded
 		}
 
@@ -612,8 +619,9 @@ func ExpandCdnFrontdoorRequestBodyCondition(input []interface{}) (*[]cdn.BasicDe
 			},
 		}
 
-		if transforms := item["transforms"].([]interface{}); len(transforms) != 0 {
-			expanded := expandNormalizeCdnFrontdoorTransforms(transforms)
+		transformsRaw := item["transforms"].(*pluginsdk.Set).List()
+		if len(transformsRaw) != 0 {
+			expanded := expandNormalizeCdnFrontdoorTransforms(transformsRaw)
 			condition.Parameters.Transforms = &expanded
 		}
 
@@ -671,8 +679,9 @@ func ExpandCdnFrontdoorUrlPathCondition(input []interface{}) (*[]cdn.BasicDelive
 			},
 		}
 
-		if transforms := item["transforms"].([]interface{}); len(transforms) != 0 {
-			expanded := expandNormalizeCdnFrontdoorTransforms(transforms)
+		transformsRaw := item["transforms"].(*pluginsdk.Set).List()
+		if len(transformsRaw) != 0 {
+			expanded := expandNormalizeCdnFrontdoorTransforms(transformsRaw)
 			condition.Parameters.Transforms = &expanded
 		}
 
@@ -703,8 +712,9 @@ func ExpandCdnFrontdoorUrlFileExtensionCondition(input []interface{}) (*[]cdn.Ba
 			},
 		}
 
-		if transforms := item["transforms"].([]interface{}); len(transforms) != 0 {
-			expanded := expandNormalizeCdnFrontdoorTransforms(transforms)
+		transformsRaw := item["transforms"].(*pluginsdk.Set).List()
+		if len(transformsRaw) != 0 {
+			expanded := expandNormalizeCdnFrontdoorTransforms(transformsRaw)
 			condition.Parameters.Transforms = &expanded
 		}
 
@@ -735,8 +745,9 @@ func ExpandCdnFrontdoorUrlFileNameCondition(input []interface{}) (*[]cdn.BasicDe
 			},
 		}
 
-		if transforms := item["transforms"].([]interface{}); len(transforms) != 0 {
-			expanded := expandNormalizeCdnFrontdoorTransforms(transforms)
+		transformsRaw := item["transforms"].(*pluginsdk.Set).List()
+		if len(transformsRaw) != 0 {
+			expanded := expandNormalizeCdnFrontdoorTransforms(transformsRaw)
 			condition.Parameters.Transforms = &expanded
 		}
 
@@ -757,13 +768,15 @@ func ExpandCdnFrontdoorHttpVersionCondition(input []interface{}) (*[]cdn.BasicDe
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
+		matchValuesRaw := item["match_values"].(*pluginsdk.Set).List()
+
 		condition := cdn.DeliveryRuleHTTPVersionCondition{
 			Name: conditionMapping.Name,
 			Parameters: &cdn.HTTPVersionMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
 				Operator:        utils.String(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     utils.ExpandStringSlice(matchValuesRaw),
 			},
 		}
 
@@ -920,13 +933,15 @@ func ExpandCdnFrontdoorServerPortCondition(input []interface{}) (*[]cdn.BasicDel
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
+		matchValuesRaw := item["match_values"].(*pluginsdk.Set).List()
+
 		condition := cdn.DeliveryRuleServerPortCondition{
 			Name: conditionMapping.Name,
 			Parameters: &cdn.ServerPortMatchConditionParameters{
 				TypeName:        utils.String(conditionMapping.TypeName),
 				Operator:        cdn.ServerPortOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     utils.ExpandStringSlice(matchValuesRaw),
 			},
 		}
 
@@ -957,8 +972,9 @@ func ExpandCdnFrontdoorHostNameCondition(input []interface{}) (*[]cdn.BasicDeliv
 			},
 		}
 
-		if transforms := item["transforms"].([]interface{}); len(transforms) != 0 {
-			expanded := expandNormalizeCdnFrontdoorTransforms(transforms)
+		transformsRaw := item["transforms"].(*pluginsdk.Set).List()
+		if len(transformsRaw) != 0 {
+			expanded := expandNormalizeCdnFrontdoorTransforms(transformsRaw)
 			condition.Parameters.Transforms = &expanded
 		}
 
@@ -982,7 +998,9 @@ func ExpandCdnFrontdoorSslProtocolCondition(input []interface{}) (*[]cdn.BasicDe
 
 		matchValues := make([]cdn.SslProtocol, 0)
 		validationMatchValues := make([]string, 0)
-		for _, value := range item["match_values"].([]interface{}) {
+		matchValuesRaw := item["match_values"].(*pluginsdk.Set).List()
+
+		for _, value := range matchValuesRaw {
 			matchValues = append(matchValues, cdn.SslProtocol(value.(string)))
 			validationMatchValues = append(validationMatchValues, value.(string))
 		}

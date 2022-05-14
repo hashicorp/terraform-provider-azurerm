@@ -33,7 +33,7 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Frontdoor Profile. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Frontdoor Profile. Possible values must be between 2 and 90 characters in length, begin with a letter or number, end with a letter or number and may contain only letters, numbers and hyphens. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Frontdoor Profile.
 

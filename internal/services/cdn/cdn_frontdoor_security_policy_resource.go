@@ -40,6 +40,8 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				// TODO: validation
+				// WS: There are literally no rules to what this string can be. Fixed
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"cdn_frontdoor_profile_id": {

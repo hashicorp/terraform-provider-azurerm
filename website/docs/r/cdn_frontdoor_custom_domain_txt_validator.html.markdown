@@ -58,7 +58,7 @@ resource "azurerm_dns_txt_record" "contoso" {
   ttl                 = 3600
 
   record {
-    value = azurerm_cdn_frontdoor_custom_domain.contoso.validation_properties.0.validation_token
+    value = azurerm_cdn_frontdoor_custom_domain.contoso.validation_token
   }
 }
 

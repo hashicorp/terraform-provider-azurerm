@@ -45,7 +45,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Custom Domain. Changing this forces a new Frontdoor Custom Domain to be created.
+* `name` - (Required) The name which should be used for this Frontdoor Custom Domain. Possible values must be between 2 and 260 characters in length, must begin with a letter or number, end with a letter or number and contain only letters, numbers and hyphens. Changing this forces a new Frontdoor Custom Domain to be created.
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Profile to be created.
 
@@ -75,19 +75,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Frontdoor Custom Domain.
 
-* `deployment_status` - 
-
 * `domain_validation_state` - Provisioning substate shows the progress of custom HTTPS enabling/disabling process.
-
-* `cdn_frontdoor_profile_name` - The name of the Frontdoor Profile which holds the domain.
-
-* `provisioning_state` - Provisioning status
-
-* `validation_properties` - A `validation_properties` block as defined below.
-
----
-
-A `validation_properties` block exports the following:
 
 * `expiration_date` - The date time that the token expires
 

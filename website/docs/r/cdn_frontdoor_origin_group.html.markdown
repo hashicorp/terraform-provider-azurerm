@@ -39,7 +39,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 
   load_balancing {
     additional_latency_in_milliseconds = 0
-    sample_count                       = 16
+    sample_size                        = 16
     successful_samples_required        = 3
   }
 }
@@ -49,7 +49,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Origin Group. Changing this forces a new Frontdoor Origin Group to be created.
+* `name` - (Required) The name which should be used for this Frontdoor Origin Group. Possible values must be between 2 and 90 characters in length, begin with a letter or number, end with a letter or number and may contain only letters, numbers and hyphens. Changing this forces a new Frontdoor Origin Group to be created.
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Origin Group to be created.
 
@@ -67,13 +67,13 @@ The following arguments are supported:
 
 A `health_probe` block supports the following:
 
+* `protocol` - (Required) Protocol to use for health probe. Possible values are `Http` or `Https`.
+
+* `request_type` - (Required) The type of health probe request that is made. Possible values are `GET` or `HEAD`.
+
 * `interval_in_seconds` - (Optional) The number of seconds between health probes. Default is `100` seconds. Possible values are between `5` and `31536000` seconds(inclusive).
 
 * `path` - (Optional) The path relative to the origin that is used to determine the health of the origin. Defaults to `/`.
-
-* `protocol` - (Optional) Protocol to use for health probe. Possible values are `Http`, `Https` or `NotSet`. Defaults to `Http`.
-
-* `request_type` - (Optional) The type of health probe request that is made. Possible values are `GET`, `HEAD` or `NotSet`. Defaults to `HEAD`.
 
 ---
 
@@ -81,7 +81,7 @@ A `load_balancing` block supports the following:
 
 * `additional_latency_in_milliseconds` - (Optional) The additional latency in milliseconds for probes to fall into the lowest latency bucket. Possible values are between `0` and `1000` seconds(inclusive). Defaults to `50`.
 
-* `sample_count` - (Optional) The number of samples to consider for load balancing decisions. Possible values are between `0` and `255`(inclusive). Defaults to `4`.
+* `sample_size` - (Optional) The number of samples to consider for load balancing decisions. Possible values are between `0` and `255`(inclusive). Defaults to `4`.
 
 * `successful_samples_required` - (Optional) The number of samples within the sample period that must succeed. Possible values are between `0` and `255`(inclusive). Defaults to `3`.
 
@@ -92,8 +92,6 @@ A `load_balancing` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Frontdoor Origin Group.
-
-* `cdn_frontdoor_profile_name` - The name of the profile which holds the origin group.
 
 ## Timeouts
 

@@ -33,7 +33,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Frontdoor Rule Set. Changing this forces a new Frontdoor Rule Set to be created.
+* `name` - (Required) The name which should be used for this Frontdoor Rule Set. Possible values must be between 1 and 60 characters in length, begin with a letter and may contain only letters and numbers. Changing this forces a new Frontdoor Rule Set to be created.
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Frontdoor Profile. Changing this forces a new Frontdoor Rule Set to be created.
 

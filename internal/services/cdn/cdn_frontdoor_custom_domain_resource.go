@@ -6,11 +6,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
 	track1 "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
+	dnsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -26,6 +26,7 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			// TODO: these timeouts need adjusting..?
+			// WS: No, these are correct as this is currently a manual step.
 			Create: pluginsdk.DefaultTimeout(12 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(24 * time.Hour),
@@ -43,6 +44,8 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				// TODO: missing validation
+				// WS: Fixed
+				ValidateFunc: validate.CdnFrontdoorCustomDomainName,
 			},
 
 			"cdn_frontdoor_profile_id": {
@@ -56,7 +59,8 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				// TODO: this should be validating the DNS Zone ID - if this could be both Public or Private we can validate that
-				ValidateFunc: azure.ValidateResourceID,
+				// WS: Fixed
+				ValidateFunc: dnsValidate.DnsZoneID,
 			},
 
 			"domain_validation_state": {
@@ -115,29 +119,19 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 			},
 
 			// TODO: can this be removed?
-			"cdn_frontdoor_profile_name": {
+			// WS: Removed
+
+			// TODO: we should probably make these top-levle fields
+			// WS: Fixed
+
+			"expiration_date": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
-			"validation_properties": {
-				Type:     pluginsdk.TypeList,
+			"validation_token": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
-
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						// TODO: we should probably make these top-levle fields
-						"expiration_date": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"validation_token": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
 			},
 		},
 	}
@@ -171,9 +165,9 @@ func resourceCdnFrontdoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	props := track1.AFDDomain{
 		AFDDomainProperties: &track1.AFDDomainProperties{
 			HostName:                           utils.String(d.Get("host_name").(string)),
-			AzureDNSZone:                       expandResourceReference(d.Get("dns_zone_id").(string)),
-			PreValidatedCustomDomainResourceID: expandResourceReference(d.Get("pre_validated_cdn_frontdoor_custom_domain_id").(string)),
-			TLSSettings:                        expandCustomDomainAFDDomainHttpsParameters(d.Get("tls").([]interface{})),
+			AzureDNSZone:                       expandCdnFrontdoorResourceReference(d.Get("dns_zone_id").(string)),
+			PreValidatedCustomDomainResourceID: expandCdnFrontdoorResourceReference(d.Get("pre_validated_cdn_frontdoor_custom_domain_id").(string)),
+			TLSSettings:                        expandCdnFrontdoorCustomDomainHttpsParameters(d.Get("tls").([]interface{})),
 		},
 	}
 
@@ -215,13 +209,14 @@ func resourceCdnFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 	if props := resp.AFDDomainProperties; props != nil {
 		d.Set("domain_validation_state", props.DomainValidationState)
 		d.Set("host_name", props.HostName)
-		d.Set("cdn_frontdoor_profile_name", id.ProfileName) // TODO: this either needs to be returned from the API or removed
+		// TODO: this either needs to be returned from the API or removed
+		// WS: Fixed. Removed.
 
-		if err := d.Set("dns_zone_id", flattenResourceReference(props.AzureDNSZone)); err != nil {
+		if err := d.Set("dns_zone_id", flattenCdnFrontdoorResourceReference(props.AzureDNSZone)); err != nil {
 			return fmt.Errorf("setting `dns_zone_id`: %+v", err)
 		}
 
-		if err := d.Set("pre_validated_cdn_frontdoor_custom_domain_id", flattenResourceReference(props.PreValidatedCustomDomainResourceID)); err != nil {
+		if err := d.Set("pre_validated_cdn_frontdoor_custom_domain_id", flattenCdnFrontdoorResourceReference(props.PreValidatedCustomDomainResourceID)); err != nil {
 			return fmt.Errorf("setting `pre_validated_cdn_frontdoor_custom_domain_id`: %+v", err)
 		}
 
@@ -229,8 +224,9 @@ func resourceCdnFrontdoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 			return fmt.Errorf("setting `tls`: %+v", err)
 		}
 
-		if err := d.Set("validation_properties", flattenCustomDomainDomainValidationProperties(props.ValidationProperties)); err != nil {
-			return fmt.Errorf("setting `validation_properties`: %+v", err)
+		if validationProps := props.ValidationProperties; validationProps != nil {
+			d.Set("expiration_date", validationProps.ExpirationDate)
+			d.Set("validation_token", validationProps.ValidationToken)
 		}
 	}
 
@@ -249,9 +245,9 @@ func resourceCdnFrontdoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 
 	props := track1.AFDDomainUpdateParameters{
 		AFDDomainUpdatePropertiesParameters: &track1.AFDDomainUpdatePropertiesParameters{
-			AzureDNSZone:                       expandResourceReference(d.Get("dns_zone_id").(string)),
-			PreValidatedCustomDomainResourceID: expandResourceReference(d.Get("pre_validated_cdn_frontdoor_custom_domain_id").(string)),
-			TLSSettings:                        expandCustomDomainAFDDomainHttpsParameters(d.Get("tls").([]interface{})),
+			AzureDNSZone:                       expandCdnFrontdoorResourceReference(d.Get("dns_zone_id").(string)),
+			PreValidatedCustomDomainResourceID: expandCdnFrontdoorResourceReference(d.Get("pre_validated_cdn_frontdoor_custom_domain_id").(string)),
+			TLSSettings:                        expandCdnFrontdoorCustomDomainHttpsParameters(d.Get("tls").([]interface{})),
 		},
 	}
 
@@ -289,10 +285,11 @@ func resourceCdnFrontdoorCustomDomainDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandCustomDomainAFDDomainHttpsParameters(input []interface{}) *track1.AFDDomainHTTPSParameters {
+func expandCdnFrontdoorCustomDomainHttpsParameters(input []interface{}) *track1.AFDDomainHTTPSParameters {
 	if len(input) == 0 || input[0] == nil {
 		// TODO: why is this returning nil and not an empty object?
-		return nil
+		// WS: Fixed
+		return &track1.AFDDomainHTTPSParameters{}
 	}
 
 	v := input[0].(map[string]interface{})
@@ -300,7 +297,7 @@ func expandCustomDomainAFDDomainHttpsParameters(input []interface{}) *track1.AFD
 	return &track1.AFDDomainHTTPSParameters{
 		CertificateType:   track1.AfdCertificateType(v["certificate_type"].(string)),
 		MinimumTLSVersion: track1.AfdMinimumTLSVersion(v["minimum_tls_version"].(string)),
-		Secret:            expandResourceReference(v["cdn_frontdoor_secret_id"].(string)),
+		Secret:            expandCdnFrontdoorResourceReference(v["cdn_frontdoor_secret_id"].(string)),
 	}
 }
 
@@ -311,30 +308,9 @@ func flattenCustomDomainAFDDomainHttpsParameters(input *track1.AFDDomainHTTPSPar
 
 	return []interface{}{
 		map[string]interface{}{
-			"cdn_frontdoor_secret_id": flattenResourceReference(input.Secret),
+			"cdn_frontdoor_secret_id": flattenCdnFrontdoorResourceReference(input.Secret),
 			"certificate_type":        string(input.CertificateType),
 			"minimum_tls_version":     string(input.MinimumTLSVersion),
-		},
-	}
-}
-
-func flattenCustomDomainDomainValidationProperties(input *track1.DomainValidationProperties) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	expirationDate := ""
-	if input.ExpirationDate != nil {
-		expirationDate = *input.ExpirationDate
-	}
-	validationToken := ""
-	if input.ValidationToken != nil {
-		validationToken = *input.ValidationToken
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"expiration_date":  expirationDate,
-			"validation_token": validationToken,
 		},
 	}
 }
