@@ -84,7 +84,7 @@ func (rup *RouteUpdateParameters) UnmarshalJSON(body []byte) error {
 		return err
 	}
 	for k, v := range m {
-		switch k {
+		switch k { // nolint gocritic
 		case "properties":
 			if v != nil {
 				var routeUpdatePropertiesParameters RouteUpdatePropertiesParameters
@@ -92,6 +92,7 @@ func (rup *RouteUpdateParameters) UnmarshalJSON(body []byte) error {
 				if err != nil {
 					return err
 				}
+
 				rup.RouteUpdatePropertiesParameters = &routeUpdatePropertiesParameters
 			}
 		}
