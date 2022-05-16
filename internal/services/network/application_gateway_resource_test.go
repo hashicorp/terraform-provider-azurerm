@@ -1343,6 +1343,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -1421,6 +1422,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -1511,6 +1513,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomString, data.RandomInteger, data.RandomInteger)
@@ -1591,6 +1594,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -1673,6 +1677,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, minCapacity, maxCapacity)
@@ -1754,6 +1759,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -1825,6 +1831,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -1896,6 +1903,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -1956,6 +1964,7 @@ resource "azurerm_application_gateway" "import" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.basic(data))
@@ -2036,6 +2045,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -2184,6 +2194,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -2358,6 +2369,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -2430,6 +2442,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, forceFirewallPolicyAssociation)
@@ -2517,6 +2530,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -2620,6 +2634,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -2739,6 +2754,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -2858,6 +2874,7 @@ resource "azurerm_application_gateway" "test" {
     rule_type          = "PathBasedRouting"
     url_path_map_name  = local.url_path_map_name
     http_listener_name = local.listener_name
+    priority           = 1
   }
 
   url_path_map {
@@ -2954,6 +2971,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -3041,6 +3059,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -3112,6 +3131,7 @@ resource "azurerm_application_gateway" "test" {
     rule_type          = "PathBasedRouting"
     url_path_map_name  = local.url_path_map_name
     http_listener_name = local.listener_name
+    priority           = 1
   }
 
   url_path_map {
@@ -3216,6 +3236,7 @@ resource "azurerm_application_gateway" "test" {
     rule_type                   = "Basic"
     http_listener_name          = local.listener_name
     redirect_configuration_name = local.redirect_configuration_name
+    priority                    = 1
   }
 
   redirect_configuration {
@@ -3311,6 +3332,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name          = local.listener_name
     backend_address_pool_name   = local.backend_address_pool_name
     redirect_configuration_name = local.redirect_configuration_name
+    priority                    = 1
   }
 
   redirect_configuration {
@@ -3408,6 +3430,7 @@ resource "azurerm_application_gateway" "test" {
     rule_type          = "PathBasedRouting"
     url_path_map_name  = local.url_path_map_name
     http_listener_name = local.listener_name
+    priority           = 1
   }
 
   url_path_map {
@@ -3550,6 +3573,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -3656,6 +3680,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -3739,6 +3764,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -3830,6 +3856,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -3902,6 +3929,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, hostName, pick)
@@ -3982,6 +4010,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -4053,6 +4082,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -4197,6 +4227,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 
   ssl_certificate {
@@ -4346,6 +4377,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 
   ssl_certificate {
@@ -4423,6 +4455,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 
   ssl_certificate {
@@ -4501,6 +4534,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 
   ssl_certificate {
@@ -4579,6 +4613,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 
   ssl_certificate {
@@ -4698,6 +4733,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 
   ssl_certificate {
@@ -4781,6 +4817,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 
   ssl_certificate {
@@ -4873,6 +4910,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -4949,6 +4987,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -5051,6 +5090,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -5148,6 +5188,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -5264,6 +5305,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -5358,6 +5400,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -5440,6 +5483,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -5523,6 +5567,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -5604,6 +5649,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -5731,6 +5777,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -5813,6 +5860,7 @@ resource "azurerm_application_gateway" "test" {
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
     rewrite_rule_set_name      = local.rewrite_rule_set_name
+    priority                   = 1
   }
 
   rewrite_rule_set {
@@ -5927,6 +5975,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name          = local.listener_name
     redirect_configuration_name = local.redirect_configuration_name
     rewrite_rule_set_name       = local.rewrite_rule_set_name
+    priority                    = 1
   }
 
   rewrite_rule_set {
@@ -6049,6 +6098,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name          = local.listener_name
     redirect_configuration_name = local.redirect_configuration_name
     rewrite_rule_set_name       = local.rewrite_rule_set_name
+    priority                    = 1
   }
 
   rewrite_rule_set {
@@ -6154,6 +6204,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -6224,6 +6275,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -6301,6 +6353,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -6379,6 +6432,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -6468,6 +6522,7 @@ resource "azurerm_application_gateway" "test" {
     rule_type          = "PathBasedRouting"
     url_path_map_name  = local.url_path_map_name
     http_listener_name = local.listener_name
+    priority           = 1
   }
 
   url_path_map {
@@ -6579,6 +6634,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -6661,6 +6717,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 
   ssl_profile {
@@ -6757,6 +6814,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 
   ssl_profile {
@@ -6855,6 +6913,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 
   ssl_profile {
@@ -6959,6 +7018,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 
   ssl_profile {
@@ -7062,6 +7122,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 
   ssl_profile {
@@ -7162,6 +7223,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -7477,6 +7539,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -7548,6 +7611,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, enableFips)
@@ -7626,6 +7690,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -7699,6 +7764,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -7840,13 +7906,13 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_settings {
-    name                                = local.setting_name
-    port                                = 80
-    protocol                            = "Tls"
-    host_name                           = "example.com"
-    timeout                             = 10
-    trusted_root_certificate_names      = [local.auth_cert_name]
-    probe_name                          = local.probe_name
+    name                           = local.setting_name
+    port                           = 80
+    protocol                       = "Tls"
+    host_name                      = "example.com"
+    timeout                        = 10
+    trusted_root_certificate_names = [local.auth_cert_name]
+    probe_name                     = local.probe_name
   }
 
   probe {
