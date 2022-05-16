@@ -61,7 +61,6 @@ resource "azurerm_mssql_managed_instance" "secondary" {
 
 resource "azurerm_mssql_managed_instance_failover_group" "example" {
   name                        = "example-failover-group"
-  resource_group_name         = azurerm_resource_group.primary.name
   location                    = azurerm_mssql_managed_instance.primary.location
   managed_instance_id         = azurerm_mssql_managed_instance.primary.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id
@@ -78,8 +77,6 @@ resource "azurerm_mssql_managed_instance_failover_group" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Managed Instance Failover Group. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Managed Instance Failover Group should exist. Changing this forces a new resource to be created.
 
 * `location` - The Azure Region where the Managed Instance Failover Group should exist. Changing this forces a new resource to be created.
 

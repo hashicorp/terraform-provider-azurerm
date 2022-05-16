@@ -3,12 +3,12 @@ package mssql_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -72,7 +72,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) basic(data acceptance.TestDat
 
 resource "azurerm_mssql_managed_instance_failover_group" "test" {
   name                        = "acctest-fog-%[2]d"
-  resource_group_name         = azurerm_resource_group.test.name
   location                    = "%[3]s"
   managed_instance_id         = azurerm_mssql_managed_instance.test.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id
@@ -95,7 +94,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) update(data acceptance.TestDa
 
 resource "azurerm_mssql_managed_instance_failover_group" "test" {
   name                        = "acctest-fog-%[2]d"
-  resource_group_name         = azurerm_resource_group.test.name
   location                    = "%[3]s"
   managed_instance_id         = azurerm_mssql_managed_instance.test.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id

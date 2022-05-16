@@ -232,6 +232,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQL.InstanceFailoverGroupsClient
+			instancesClient := metadata.Client.MSSQL.ManagedInstancesClient
 
 			id, err := parse.InstanceFailoverGroupID(metadata.ResourceData.Id())
 			if err != nil {
@@ -242,6 +243,21 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 			var state MsSqlManagedInstanceFailoverGroupModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
+			}
+
+			managedInstanceId, err := parse.ManagedInstanceID(state.ManagedInstanceId)
+			if err != nil {
+				return fmt.Errorf("parsing `managed_instance_id`: %v", err)
+			}
+
+			partnerId, err := parse.ManagedInstanceID(state.PartnerManagedInstanceId)
+			if err != nil {
+				return err
+			}
+
+			partner, err := instancesClient.Get(ctx, partnerId.ResourceGroup, partnerId.Name, "")
+			if err != nil || partner.Location == nil || *partner.Location == "" {
+				return fmt.Errorf("checking for existence and region of Partner of %q: %+v", id, err)
 			}
 
 			readOnlyFailoverPolicy := sql.ReadOnlyEndpointFailoverPolicyDisabled
@@ -255,6 +271,17 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 						FailoverPolicy: readOnlyFailoverPolicy,
 					},
 					ReadWriteEndpoint: &sql.InstanceFailoverGroupReadWriteEndpoint{},
+					PartnerRegions: &[]sql.PartnerRegionInfo{
+						{
+							Location: partner.Location,
+						},
+					},
+					ManagedInstancePairs: &[]sql.ManagedInstancePairInfo{
+						{
+							PrimaryManagedInstanceID: utils.String(managedInstanceId.ID()),
+							PartnerManagedInstanceID: utils.String(partnerId.ID()),
+						},
+					},
 				},
 			}
 
