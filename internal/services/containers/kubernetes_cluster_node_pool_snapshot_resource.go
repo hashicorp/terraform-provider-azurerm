@@ -68,8 +68,6 @@ func resourceKubernetesClusterNodePoolSnapshotCreateUpdate(d *pluginsdk.Resource
 	defer cancel()
 
 	id := parse.NewNodePoolSnapshotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.SnapshotName)
@@ -85,14 +83,14 @@ func resourceKubernetesClusterNodePoolSnapshotCreateUpdate(d *pluginsdk.Resource
 	}
 
 	parameters := containerservice.Snapshot{
-		Location: &location,
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		SnapshotProperties: &containerservice.SnapshotProperties{
 			SnapshotType: containerservice.SnapshotTypeNodePool,
 			CreationData: &containerservice.CreationData{
 				SourceResourceID: utils.String(d.Get("node_pool_id").(string)),
 			},
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SnapshotName, parameters); err != nil {
