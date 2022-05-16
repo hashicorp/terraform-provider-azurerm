@@ -163,10 +163,10 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 
-   depends_on = [
-     azurerm_key_vault_access_policy.current_user,
-     azurerm_key_vault_access_policy.system_identity
-   ]
+  depends_on = [
+    azurerm_key_vault_access_policy.current_user,
+    azurerm_key_vault_access_policy.system_identity
+  ]
 }
 
 resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
@@ -180,11 +180,11 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
   availability_zones_enabled      = false
   disk_sku                        = "P30"
   backup_storage_customer_key_uri = azurerm_key_vault_key.test.id
-  base64_encoded_yaml_fragment   = "Y29tcGFjdGlvbl90aHJvdWdocHV0X21iX3Blcl9zZWM6IDMyCmNvbXBhY3Rpb25fbGFyZ2VfcGFydGl0aW9uX3dhcm5pbmdfdGhyZXNob2xkX21iOiAxMDA="
+  base64_encoded_yaml_fragment    = "Y29tcGFjdGlvbl90aHJvdWdocHV0X21iX3Blcl9zZWM6IDMyCmNvbXBhY3Rpb25fbGFyZ2VfcGFydGl0aW9uX3dhcm5pbmdfdGhyZXNob2xkX21iOiAxMDA="
 
   depends_on = [
-     azurerm_key_vault_key.test
-   ]
+    azurerm_key_vault_key.test
+  ]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, nodeCount)
 }
@@ -254,10 +254,10 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 
-   depends_on = [
-     azurerm_key_vault_access_policy.current_user,
-     azurerm_key_vault_access_policy.system_identity
-   ]
+  depends_on = [
+    azurerm_key_vault_access_policy.current_user,
+    azurerm_key_vault_access_policy.system_identity
+  ]
 }
 
 resource "azurerm_key_vault_key" "test2" {
@@ -275,7 +275,7 @@ resource "azurerm_key_vault_key" "test2" {
     "wrapKey",
   ]
 
-   depends_on = [azurerm_key_vault_key.test]
+  depends_on = [azurerm_key_vault_key.test]
 }
 
 resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
@@ -290,9 +290,9 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
   base64_encoded_yaml_fragment   = "Z29tcGFjdGlvbl90aHJvdWdocHV0X21iX3Blcl9zZWM6IDMyCmNvbXBhY3Rpb25fbGFyZ2VfcGFydGl0aW9uX3dhcm5pbmdfdGhyZXNob2xkX21iOiAxMDA="
 
   depends_on = [
-     azurerm_key_vault_key.test,
-     azurerm_key_vault_key.test2
-   ]
+    azurerm_key_vault_key.test,
+    azurerm_key_vault_key.test2
+  ]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, nodeCount)
 }
