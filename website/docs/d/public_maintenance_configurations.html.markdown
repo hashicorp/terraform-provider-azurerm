@@ -14,13 +14,13 @@ Use this data source to access information about existing Public Maintenance Con
 
 ```hcl
 data "azurerm_public_maintenance_configurations" "existing" {
-  location_filter     = "westeurope"
-  scope_filter        = "SQLManagedInstance"
+  location_filter    = "westeurope"
+  scope_filter       = "SQLManagedInstance"
   recur_every_filter = "weekMondayToThursday"
 }
 
 output "name" {
-  value = azurerm_public_maintenance_configurations.existing.name
+  value = data.azurerm_public_maintenance_configurations.existing.public_maintenance_configurations[0].name
 }
 ```
 
