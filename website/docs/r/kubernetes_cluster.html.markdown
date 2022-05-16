@@ -672,17 +672,15 @@ A `windows_profile` block supports the following:
 
 * `license` - (Optional) Specifies the type of on-premise license which should be used for Node Pool Windows Virtual Machine. At this time the only possible value is `Windows_Server`.
 
-* `gmsa_profile`- (Optional) A `gmsa_profile` block as defined below
+* `gmsa`- (Optional) A `gmsa` block as defined below
 
 ---
 
-A `gmsa_profile` block supports the following:
+A `gmsa` block supports the following:
 
-* `enabled` - (Required) Specifies whether to enable Windows gMSA in the managed cluster.
+* `gmsa_dns_Server` - (Optional) Specifies the DNS server for Windows gMSA. Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
 
-* `dns_Server` - (Optional) Specifies the DNS server for Windows gMSA. Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
-
-* `root_domain_name` - (Optional) Specifies the root domain name for Windows gMSA. Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
+* `gmsa_root_domain_name` - (Optional) Specifies the root domain name for Windows gMSA. Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
 
 ---
 

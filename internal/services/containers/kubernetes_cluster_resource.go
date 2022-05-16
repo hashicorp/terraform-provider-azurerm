@@ -830,21 +830,17 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								string(containerservice.LicenseTypeWindowsServer),
 							}, false),
 						},
-						"gmsa_profile": {
+						"gmsa": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"dns_server": {
+									"gmsa_dns_server": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									"root_domain_name": {
+									"gmsa_root_domain_name": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -2101,7 +2097,7 @@ func expandKubernetesClusterWindowsProfile(input []interface{}) *containerservic
 		license = containerservice.LicenseType(v)
 	}
 
-	gmsaProfile := expandGmsaProfile(config["gmsa_profile"].([]interface{}))
+	gmsaProfile := expandGmsaProfile(config["gmsa"].([]interface{}))
 
 	return &containerservice.ManagedClusterWindowsProfile{
 		AdminUsername: utils.String(config["admin_username"].(string)),
@@ -2117,15 +2113,11 @@ func expandGmsaProfile(input []interface{}) *containerservice.WindowsGmsaProfile
 	}
 
 	config := input[0].(map[string]interface{})
-	enabled := false
-	if config["enabled"] != nil {
-		enabled = config["enabled"].(bool)
-	}
 
 	return &containerservice.WindowsGmsaProfile{
-		Enabled:        &enabled,
-		DNSServer:      utils.String(config["dns_server"].(string)),
-		RootDomainName: utils.String(config["root_domain_name"].(string)),
+		Enabled:        utils.Bool(true),
+		DNSServer:      utils.String(config["gmsa_dns_server"].(string)),
+		RootDomainName: utils.String(config["gmsa_root_domain_name"].(string)),
 	}
 
 }
@@ -2158,7 +2150,7 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 			"admin_password": adminPassword,
 			"admin_username": adminUsername,
 			"license":        license,
-			"gmsa_profile":   gmsaProfile,
+			"gmsa":           gmsaProfile,
 		},
 	}
 }
@@ -2166,11 +2158,6 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 func flattenGmsaProfile(profile *containerservice.WindowsGmsaProfile) []interface{} {
 	if profile == nil {
 		return []interface{}{}
-	}
-
-	enabled := false
-	if value := profile.Enabled; value != nil {
-		enabled = *value
 	}
 
 	dnsServer := ""
@@ -2182,11 +2169,11 @@ func flattenGmsaProfile(profile *containerservice.WindowsGmsaProfile) []interfac
 	if domain := profile.RootDomainName; domain != nil {
 		rootDomainName = *domain
 	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"enabled":          enabled,
-			"dns_server":       dnsServer,
-			"root_domain_name": rootDomainName,
+			"gmsa_dns_server":       dnsServer,
+			"gmsa_root_domain_name": rootDomainName,
 		},
 	}
 }
