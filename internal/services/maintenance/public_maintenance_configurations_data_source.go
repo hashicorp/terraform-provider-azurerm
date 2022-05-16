@@ -46,7 +46,7 @@ func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"recur_window_filter": {
+			"recur_every_filter": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -88,7 +88,7 @@ func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
-						"recur_window": {
+						"recur_every": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -114,31 +114,33 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 
 	filteredPublicConfigs := make([]interface{}, 0)
 
-	recurWindowFilter := d.Get("recur_window_filter").(string)
-	if recurWindowFilter == recurFridayToSunday {
-		recurWindowFilter = "week Friday, Saturday, Sunday"
-	}
-	if recurWindowFilter == recurMondayToThursday {
-		recurWindowFilter = "week Monday, Tuesday, Wednesday, Thursday"
+	recurEveryFilter := d.Get("recur_every_filter").(string)
+	if recurEveryFilter == recurFridayToSunday {
+		recurEveryFilter = "week Friday, Saturday, Sunday"
+	} else if recurEveryFilter == recurMondayToThursday {
+		recurEveryFilter = "week Monday, Tuesday, Wednesday, Thursday"
 	}
 
 	locationFilter := d.Get("location_filter").(string)
 	scopeFilter := d.Get("scope_filter").(string)
+
 	for _, maintenanceConfig := range *resp.Value {
 
-		var configLocation, configRecurWindow, configScope string
+		var configLocation, configRecurEvery, configScope string
 		if maintenanceConfig.Location != nil {
 			configLocation = *maintenanceConfig.Location
 		}
-		if maintenanceConfig.ConfigurationProperties != nil && maintenanceConfig.ConfigurationProperties.Window != nil && maintenanceConfig.ConfigurationProperties.Window.RecurEvery != nil {
-			configRecurWindow = *maintenanceConfig.ConfigurationProperties.Window.RecurEvery
-		}
-		if maintenanceConfig.ConfigurationProperties != nil && string(maintenanceConfig.ConfigurationProperties.MaintenanceScope) != "" {
-			configScope = string(maintenanceConfig.ConfigurationProperties.MaintenanceScope)
+		if props := maintenanceConfig.ConfigurationProperties; props != nil {
+			if props.Window != nil && props.Window.RecurEvery != nil {
+				configRecurEvery = *props.Window.RecurEvery
+			}
+			if string(props.MaintenanceScope) != "" {
+				configScope = string(props.MaintenanceScope)
+			}
 		}
 
 		if locationFilter == "" || locationFilter == configLocation {
-			if recurWindowFilter == "" || recurWindowFilter == configRecurWindow {
+			if recurEveryFilter == "" || recurEveryFilter == configRecurEvery {
 				if scopeFilter == "" || scopeFilter == configScope {
 					filteredPublicConfigs = append(filteredPublicConfigs, flattenPublicMaintenanceConfiguration(maintenanceConfig))
 				}
@@ -160,7 +162,7 @@ func flattenPublicMaintenanceConfiguration(config maintenance.Configuration) map
 	output["location"] = *config.Location
 	output["maintenance_scope"] = string(config.MaintenanceScope)
 
-	var description, recurWindow, timeZone, duration string
+	var description, recurEvery, timeZone, duration string
 	if props := config.ConfigurationProperties; props != nil {
 		if props.ExtensionProperties != nil {
 			if configDescription, ok := props.ExtensionProperties["description"]; ok {
@@ -169,7 +171,7 @@ func flattenPublicMaintenanceConfiguration(config maintenance.Configuration) map
 		}
 		if props.Window != nil {
 			if props.Window.RecurEvery != nil {
-				recurWindow = *props.Window.RecurEvery
+				recurEvery = *props.Window.RecurEvery
 			}
 			if props.Window.TimeZone != nil {
 				timeZone = *props.Window.TimeZone
@@ -177,12 +179,11 @@ func flattenPublicMaintenanceConfiguration(config maintenance.Configuration) map
 			if props.Window.Duration != nil {
 				duration = *props.Window.Duration
 			}
-
 		}
 	}
 
 	output["description"] = description
-	output["recur_window"] = recurWindow
+	output["recur_every"] = recurEvery
 	output["time_zone"] = timeZone
 	output["duration"] = duration
 
