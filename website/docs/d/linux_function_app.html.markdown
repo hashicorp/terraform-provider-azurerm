@@ -63,7 +63,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `enabled` - Is the Function App enabled?
 
-* `force_disable_content_share` - Are the settings for linking the Function App to storage suppressed?
+* `content_share_force_disabled` - Are the settings for linking the Function App to storage suppressed?
 
 * `functions_extension_version` - The runtime version associated with the Function App.
 
