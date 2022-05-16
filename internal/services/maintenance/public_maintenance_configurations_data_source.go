@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-const recurMondayToThursday = "weekMondayToThursday"
-const recurFridayToSunday = "weekFridayToSunday"
+const recurMondayToThursday = "Monday-Thursday"
+const recurFridayToSunday = "Friday-Sunday"
 
 func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -26,7 +26,7 @@ func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 
-			"location_filter": {
+			"location": {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				StateFunc: azure.NormalizeLocation,
@@ -121,34 +121,46 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 		recurEveryFilter = "week Monday, Tuesday, Wednesday, Thursday"
 	}
 
-	locationFilter := d.Get("location_filter").(string)
+	locationFilter := azure.NormalizeLocation(d.Get("location").(string))
 	scopeFilter := d.Get("scope_filter").(string)
 
-	for _, maintenanceConfig := range *resp.Value {
+	if resp.Value != nil {
+		for _, maintenanceConfig := range *resp.Value {
 
-		var configLocation, configRecurEvery, configScope string
-		if maintenanceConfig.Location != nil {
-			configLocation = *maintenanceConfig.Location
-		}
-		if props := maintenanceConfig.ConfigurationProperties; props != nil {
-			if props.Window != nil && props.Window.RecurEvery != nil {
-				configRecurEvery = *props.Window.RecurEvery
+			var configLocation, configRecurEvery, configScope string
+			if maintenanceConfig.Location != nil {
+				configLocation = azure.NormalizeLocation(*maintenanceConfig.Location)
 			}
-			if string(props.MaintenanceScope) != "" {
-				configScope = string(props.MaintenanceScope)
-			}
-		}
-
-		if locationFilter == "" || locationFilter == configLocation {
-			if recurEveryFilter == "" || recurEveryFilter == configRecurEvery {
-				if scopeFilter == "" || scopeFilter == configScope {
-					filteredPublicConfigs = append(filteredPublicConfigs, flattenPublicMaintenanceConfiguration(maintenanceConfig))
+			if props := maintenanceConfig.ConfigurationProperties; props != nil {
+				if props.Window != nil && props.Window.RecurEvery != nil {
+					configRecurEvery = *props.Window.RecurEvery
+				}
+				if string(props.MaintenanceScope) != "" {
+					configScope = string(props.MaintenanceScope)
 				}
 			}
+
+			if locationFilter != "" && locationFilter != configLocation {
+				continue
+			}
+			if recurEveryFilter != "" && recurEveryFilter != configRecurEvery {
+				continue
+			}
+			if scopeFilter != "" && scopeFilter != configScope {
+				continue
+			}
+
+			filteredPublicConfigs = append(filteredPublicConfigs, flattenPublicMaintenanceConfiguration(maintenanceConfig))
 		}
 	}
 
-	d.Set("public_maintenance_configurations", filteredPublicConfigs)
+	if len(filteredPublicConfigs) == 0 {
+		return fmt.Errorf("no Public Maintenance Configurations were found")
+	}
+
+	if err := d.Set("public_maintenance_configurations", filteredPublicConfigs); err != nil {
+		return fmt.Errorf("setting `public_maintenance_configurations`: %+v", err)
+	}
 
 	d.SetId(time.Now().UTC().String())
 	return nil
@@ -157,9 +169,21 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 func flattenPublicMaintenanceConfiguration(config maintenance.Configuration) map[string]interface{} {
 	output := make(map[string]interface{})
 
-	output["name"] = *config.Name
-	output["id"] = *config.ID
-	output["location"] = *config.Location
+	output["name"] = ""
+	if config.Name != nil {
+		output["name"] = *config.Name
+	}
+
+	output["id"] = ""
+	if config.ID != nil {
+		output["id"] = *config.ID
+	}
+
+	output["location"] = ""
+	if config.Location != nil {
+		output["location"] = azure.NormalizeLocation(*config.Location)
+	}
+
 	output["maintenance_scope"] = string(config.MaintenanceScope)
 
 	var description, recurEvery, timeZone, duration string

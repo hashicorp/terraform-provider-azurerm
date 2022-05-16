@@ -14,9 +14,9 @@ Use this data source to access information about existing Public Maintenance Con
 
 ```hcl
 data "azurerm_public_maintenance_configurations" "existing" {
-  location_filter    = "westeurope"
+  location           = "West Europe"
   scope_filter       = "SQLManagedInstance"
-  recur_every_filter = "weekMondayToThursday"
+  recur_every_filter = "Monday-Thursday"
 }
 
 output "name" {
@@ -26,11 +26,11 @@ output "name" {
 
 ## Argument Reference
 
-* `location_filter` - The Azure location to filter the list of Public Maintenance Configurations against.
+* `location` - The Azure location to filter the list of Public Maintenance Configurations against.
 
 * `scope_filter` - The scope to filter the list of Public Maintenance Configurations against. Possible values are `All`, `Extension`, `Host`, `InGuestPatch`, `OSImage`, `SQLDB` and `SQLManagedInstance`.
 
-* `recur_every_filter` - The recurring window to filter the list of Public Maintenance Configurations against. Possible values are `weekMondayToThursday` and `weekFridayToSunday`
+* `recur_every_filter` - The recurring window to filter the list of Public Maintenance Configurations against. Possible values are `Monday-Thursday` and `Friday-Sunday`
 
 ## Attributes Reference
 

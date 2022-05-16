@@ -59,9 +59,9 @@ func TestAccDataSourcePublicMaintenanceConfigurations_recurEvery(t *testing.T) {
 func (PublicMaintenanceConfigurationsDataSource) allFilters() string {
 	return fmt.Sprintf(`
 data "azurerm_public_maintenance_configurations" "test" {
-  location_filter    = "westeurope"
+  location           = "West Europe"
   scope_filter       = "SQLManagedInstance"
-  recur_every_filter = "weekMondayToThursday"
+  recur_every_filter = "Monday-Thursday"
 }
 `)
 }
@@ -78,7 +78,7 @@ func (PublicMaintenanceConfigurationsDataSource) recurEvery() string {
 	return fmt.Sprintf(`
 data "azurerm_public_maintenance_configurations" "test" {
   scope_filter       = "SQLManagedInstance"
-  recur_every_filter = "weekFridayToSunday"
+  recur_every_filter = "Friday-Sunday"
 }
 `)
 }
