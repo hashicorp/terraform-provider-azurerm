@@ -125,15 +125,19 @@ The following arguments are supported:
 
 * `backend_address_pool` - (Required) One or more `backend_address_pool` blocks as defined below.
 
-* `backend_http_settings` - (Required) One or more `backend_http_settings` blocks as defined below.
-
 * `frontend_ip_configuration` - (Required) One or more `frontend_ip_configuration` blocks as defined below.
 
 * `frontend_port` - (Required) One or more `frontend_port` blocks as defined below.
 
 * `gateway_ip_configuration` - (Required) One or more `gateway_ip_configuration` blocks as defined below.
 
-* `http_listener` - (Required) One or more `http_listener` blocks as defined below.
+* `backend_http_settings` - (Optional) One or more `backend_http_settings` blocks as defined below.
+
+* `backend_settings` - (Optional) One or more `backend_settings` blocks as defined below.
+
+* `http_listener` - (Optional) One or more `http_listener` blocks as defined below.
+
+* `listener` - (Optional) One or more `listener` blocks as defined below.
 
 * `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
 
@@ -141,7 +145,9 @@ The following arguments are supported:
 
 * `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
 
-* `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
+* `request_routing_rule` - (Optional) One or more `request_routing_rule` blocks as defined below.
+
+* `routing_rule` - (Optional) One or more `routing_rule` blocks as defined below.
 
 * `sku` - (Required) A `sku` block as defined below.
 
@@ -241,7 +247,7 @@ A `backend_http_settings` block supports the following:
 
 * `protocol`- (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
 
-* `request_timeout` - (Required) The request timeout in seconds, which must be between 1 and 86400 seconds.
+* `request_timeout` - (Optional) The request timeout in seconds, which must be between 1 and 86400 seconds.
 
 * `host_name` - (Optional) Host header to be sent to the backend servers. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
 
@@ -255,6 +261,24 @@ A `backend_http_settings` block supports the following:
 
 ---
 
+A `backend_settings` block supports the following:
+
+* `name` - (Required) The name of the Backend Settings Collection.
+
+* `port`- (Required) The port which should be used for this Backend Settings Collection.
+
+* `protocol`- (Required) The Protocol which should be used. Possible values are `Tcp` and `Tls`.
+
+* `host_name` - (Optional) Host header to be sent to the backend servers.
+
+* `timeout` - (Optional) The timeout in seconds, which must be between 1 and 86400 seconds.
+
+* `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
+
+* `probe_name` - (Optional) The name of an associated Probe.
+
+---
+
 A `connection_draining` block supports the following:
 
 * `enabled` - (Required) If connection draining is enabled or not.
@@ -262,7 +286,6 @@ A `connection_draining` block supports the following:
 * `drain_timeout_sec` - (Required) The number of seconds connection draining is active. Acceptable values are from `1` second to `3600` seconds.
 
 ---
-
 
 A `frontend_ip_configuration` block supports the following:
 
@@ -302,7 +325,7 @@ A `http_listener` block supports the following:
 
 * `frontend_ip_configuration_name` - (Required) The Name of the Frontend IP Configuration used for this HTTP Listener.
 
-* `frontend_port_name` - (Required) The Name of the Frontend Port use for this HTTP Listener.
+* `frontend_port_name` - (Required) The Name of the Frontend Port used for this HTTP Listener.
 
 * `host_name` - (Optional) The Hostname which should be used for this HTTP Listener. Setting this value changes Listener Type to 'Multi site'.
 
@@ -321,6 +344,22 @@ A `http_listener` block supports the following:
 * `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used for this HTTP Listener.
 
 * `ssl_profile_name` - (Optional) The name of the associated SSL Profile which should be used for this HTTP Listener.
+
+---
+
+A `listener` block supports the following:
+
+* `name` - (Required) The Name of the Listener.
+
+* `frontend_ip_configuration_name` - (Required) The Name of the Frontend IP Configuration used for this Listener.
+
+* `frontend_port_name` - (Required) The Name of the Frontend Port used for this Listener.
+
+* `protocol` - (Required) The Protocol to use for this Listener. Possible values are `Tcp` and `Tls`.
+
+* `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this Listener.
+
+* `ssl_profile_name` - (Optional) The name of the associated SSL Profile which should be used for this Listener.
 
 ---
 
@@ -393,13 +432,13 @@ A `probe` block support the following:
 
 * `name` - (Required) The Name of the Probe.
 
-* `protocol` - (Required) The Protocol used for this Probe. Possible values are `Http` and `Https`.
-
-* `path` - (Required) The Path used for this Probe.
+* `protocol` - (Required) The Protocol used for this Probe. Possible values are `Http`, `Https`, `Tcp` and `Tls`.
 
 * `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
 
 * `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 - 20 seconds.
+
+* `path` - (Optional) The Path used for this Probe. Can only be set when `protocol` is `Http` or `Https`.
 
 * `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from HTTP settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
 
@@ -434,6 +473,20 @@ A `request_routing_rule` block supports the following:
 * `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
 
 ~> **NOTE:** If you wish to use rule `priority`, you will have to specify rule-priority field values for all the existing request routing rules. Once the rule priority field is in use, any new routing rule that is created would also need to have a rule priority field value as part of its config.
+
+---
+
+A `routing_rule` block supports the following:
+
+* `name` - (Required) The Name of this Routing Rule.
+
+* `rule_type` - (Required) The Type of Routing that should be used for this Rule. Possible values are `Basic`.
+
+* `listener_name` - (Required) The Name of the Listener which should be used for this Routing Rule.
+
+* `backend_address_pool_name` - (Required) The Name of the Backend Address Pool which should be used for this Routing Rule.
+
+* `backend_settings_name` - (Required) The Name of the Backend Settings Collection which should be used for this Routing Rule.
 
 ---
 
@@ -669,6 +722,8 @@ The following attributes are exported:
 
 * `backend_http_settings` - A list of `backend_http_settings` blocks as defined below.
 
+* `backend_settings` - A list of `backend_settings` blocks as defined below.
+
 * `frontend_ip_configuration` - A list of `frontend_ip_configuration` blocks as defined below.
 
 * `frontend_port` - A list of `frontend_port` blocks as defined below.
@@ -679,6 +734,8 @@ The following attributes are exported:
 
 * `http_listener` - A list of `http_listener` blocks as defined below.
 
+* `listener` - A list of `listener` blocks as defined below.
+
 * `private_endpoint_connection` - A list of `private_endpoint_connection` blocks as defined below.
 
 * `private_link_configuration` - A list of `private_link_configuration` blocks as defined below.
@@ -686,6 +743,8 @@ The following attributes are exported:
 * `probe` - A `probe` block as defined below.
 
 * `request_routing_rule` - A list of `request_routing_rule` blocks as defined below.
+
+* `routing_rule` - A list of `routing_rule` blocks as defined below.
 
 * `ssl_certificate` - A list of `ssl_certificate` blocks as defined below.
 
@@ -723,6 +782,14 @@ A `backend_http_settings` block exports the following:
 
 ---
 
+A `backend_settings` block exports the following:
+
+* `id` - The ID of the Backend Settings Configuration.
+
+* `probe_id` - The ID of the associated Probe.
+
+---
+
 A `frontend_ip_configuration` block exports the following:
 
 * `id` - The ID of the Frontend IP Configuration.
@@ -746,6 +813,20 @@ A `gateway_ip_configuration` block exports the following:
 A `http_listener` block exports the following:
 
 * `id` - The ID of the HTTP Listener.
+
+* `frontend_ip_configuration_id` - The ID of the associated Frontend Configuration.
+
+* `frontend_port_id` - The ID of the associated Frontend Port.
+
+* `ssl_certificate_id` - The ID of the associated SSL Certificate.
+
+* `ssl_profile_id` - The ID of the associated SSL Certificate.
+
+---
+
+A `listener` block exports the following:
+
+* `id` - The ID of the Listener.
 
 * `frontend_ip_configuration_id` - The ID of the associated Frontend Configuration.
 
@@ -806,6 +887,18 @@ A `request_routing_rule` block exports the following:
 * `rewrite_rule_set_id` - The ID of the associated Rewrite Rule Set.
 
 * `url_path_map_id` - The ID of the associated URL Path Map.
+
+---
+
+A `routing_rule` block exports the following:
+
+* `id` - The ID of the Routing Rule.
+
+* `listener_id` - The ID of the associated Listener.
+
+* `backend_address_pool_id` - The ID of the associated Backend Address Pool.
+
+* `backend_settings_id` - The ID of the associated Backend Settings Configuration.
 
 ---
 
