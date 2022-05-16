@@ -27,7 +27,7 @@ resource "azurerm_postgresql_server" "example" {
   administrator_login_password = "H@Sh1CoR3!"
 
   sku_name   = "GP_Gen5_4"
-  version    = "9.6"
+  version    = "11"
   storage_mb = 640000
 
   backup_retention_days        = 7
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `version` - (Required) Specifies the version of PostgreSQL to use. Valid values are `9.5`, `9.6`, `10`, `10.0`, and `11`. Changing this forces a new resource to be created.
 
-* `administrator_login` - (Optional) The Administrator Login for the PostgreSQL Server. Required when `create_mode` is `Default`. Changing this forces a new resource to be created.
+* `administrator_login` - (Optional) The Administrator login for the PostgreSQL Server. Required when `create_mode` is `Default`. Changing this forces a new resource to be created.
 
 * `administrator_login_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Server. Required when `create_mode` is `Default`.
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `create_mode` - (Optional) The creation mode. Can be used to restore or replicate existing servers. Possible values are `Default`, `Replica`, `GeoRestore`, and `PointInTimeRestore`. Defaults to `Default.`
 
-* `creation_source_server_id` - (Optional) For creation modes other then default the source server ID to use.
+* `creation_source_server_id` - (Optional) For creation modes other than `Default`, the source server ID to use.
 
 * `geo_redundant_backup_enabled` - (Optional) Turn Geo-redundant server backups on/off. This allows you to choose between locally redundant or geo-redundant backup storage in the General Purpose and Memory Optimized tiers. When the backups are stored in geo-redundant backup storage, they are not only stored within the region in which your server is hosted, but are also replicated to a paired data center. This provides better protection and ability to restore your server in a different region in the event of a disaster. This is not support for the Basic tier. Changing this forces a new resource to be created.
 
@@ -78,6 +78,8 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
+-> **NOTE:** `public_network_access_enabled` doesn't support PointInTimeRestore mode.
+
 * `restore_point_in_time` - (Optional) When `create_mode` is `PointInTimeRestore` the point in time to restore from `creation_source_server_id`. 
 
 * `ssl_enforcement_enabled` - (Optional) Specifies if SSL should be enforced on connections. Possible values are `true` and `false`.
@@ -86,7 +88,7 @@ The following arguments are supported:
 
 * `ssl_minimal_tls_version_enforced` - (Optional) The minimum TLS version to support on the sever. Possible values are `TLSEnforcementDisabled`, `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLSEnforcementDisabled`.
  
-* `storage_mb` - (Optional) Max storage allowed for a server. Possible values are between `5120` MB(5GB) and `1048576` MB(1TB) for the Basic SKU and between `5120` MB(5GB) and `16777216` MB(16TB) for General Purpose/Memory Optimized SKU's. For more information see the [product documentation](https://docs.microsoft.com/en-us/azure/postgresql/concepts-pricing-tiers#storage).
+* `storage_mb` - (Optional) Max storage allowed for a server. Possible values are between `5120` MB(5GB) and `1048576` MB(1TB) for the Basic SKU and between `5120` MB(5GB) and `16777216` MB(16TB) for General Purpose/Memory Optimized SKUs. For more information see the [product documentation](https://docs.microsoft.com/en-us/azure/postgresql/concepts-pricing-tiers#storage).
 
 * `threat_detection_policy` - (Optional) Threat detection policy configuration, known in the API as Server Security Alerts Policy. The `threat_detection_policy` block supports fields documented below.
 
@@ -114,7 +116,7 @@ a `threat_detection_policy` block supports the following:
 
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account.
 
-* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
 
 
 ## Attributes Reference

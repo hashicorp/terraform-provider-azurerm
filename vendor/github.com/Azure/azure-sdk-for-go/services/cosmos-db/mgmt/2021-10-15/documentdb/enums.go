@@ -551,6 +551,8 @@ func PossibleRoleDefinitionTypeValues() []RoleDefinitionType {
 type ServerVersion string
 
 const (
+	// ServerVersionFourFullStopTwo ...
+	ServerVersionFourFullStopTwo ServerVersion = "4.2"
 	// ServerVersionFourFullStopZero ...
 	ServerVersionFourFullStopZero ServerVersion = "4.0"
 	// ServerVersionThreeFullStopSix ...
@@ -561,7 +563,7 @@ const (
 
 // PossibleServerVersionValues returns an array of possible values for the ServerVersion const type.
 func PossibleServerVersionValues() []ServerVersion {
-	return []ServerVersion{ServerVersionFourFullStopZero, ServerVersionThreeFullStopSix, ServerVersionThreeFullStopTwo}
+	return []ServerVersion{ServerVersionFourFullStopTwo, ServerVersionFourFullStopZero, ServerVersionThreeFullStopSix, ServerVersionThreeFullStopTwo}
 }
 
 // SpatialType enumerates the values for spatial type.

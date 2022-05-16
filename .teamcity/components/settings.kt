@@ -45,6 +45,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Cosmos is only available in certain locations
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
 
+        //Confidential Ledger
+        "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
+
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5),
 
@@ -93,6 +96,12 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Spring Cloud only allows a max of 10 provisioned
         "springcloud" to testConfiguration(parallelism = 5),
+
+        // SQL has quota available in certain locations
+        "sql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+
+        // StreamAnalytics has quota available in certain locations
+        "streamanalytics" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
         // Synapse is only available in certain locations
         "synapse" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),

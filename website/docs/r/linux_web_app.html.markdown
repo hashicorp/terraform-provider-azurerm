@@ -25,7 +25,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_service_plan" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "West Europe"
+  location            = azurerm_resource_group.example.location
   os_type             = "Linux"
   sku_name            = "P1v2"
 }
@@ -84,6 +84,8 @@ The following arguments are supported:
 * `logs` - (Optional) A `logs` block as defined below.
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
+* `sticky_settings` - A `sticky_settings` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Web App.
 
@@ -157,7 +159,7 @@ A `auth_settings` block supports the following:
 
 * `active_directory` - (Optional) An `active_directory` block as defined above.
 
-* `additional_login_parameters` - (Optional) Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
+* `additional_login_parameters` - (Optional) Specifies a map of login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
 
 * `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Linux Web App.
 
@@ -199,6 +201,8 @@ A `auto_heal_setting` block supports the following:
 
 A `azure_blob_storage` block supports the following:
 
+* `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
+
 * `retention_in_days` - (Required) The time in days after which to remove blobs. A value of `0` means no retention.
 
 * `sas_url` - (Required) SAS url to an Azure blob container with read/write/list/delete permissions.
@@ -239,11 +243,11 @@ A `facebook` block supports the following:
 
 * `app_id` - (Required) The App ID of the Facebook app used for login.
 
-* `app_secret` - (Optional) The App Secret of the Facebook app used for Facebook Login. Cannot be specified with `app_secret_setting_name`.
+* `app_secret` - (Optional) The App Secret of the Facebook app used for Facebook login. Cannot be specified with `app_secret_setting_name`.
 
-* `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook Login. Cannot be specified with `app_secret`.
+* `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook login. Cannot be specified with `app_secret`.
 
-* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook login authentication.
 
 ---
 
@@ -259,11 +263,11 @@ A `github` block supports the following:
 
 * `client_id` - (Required) The ID of the GitHub app used for login.
 
-* `client_secret` - (Optional) The Client Secret of the GitHub app used for GitHub Login. Cannot be specified with `client_secret_setting_name`.
+* `client_secret` - (Optional) The Client Secret of the GitHub app used for GitHub login. Cannot be specified with `client_secret_setting_name`.
 
-* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for GitHub Login. Cannot be specified with `client_secret`.
+* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for GitHub login. Cannot be specified with `client_secret`.
 
-* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub login authentication.
 
 ---
 
@@ -273,7 +277,7 @@ A `google` block supports the following:
 
 * `client_secret` - (Optional) The client secret associated with the Google web application.  Cannot be specified with `client_secret_setting_name`.
 
-* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google Login. Cannot be specified with `client_secret`.
+* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google login. Cannot be specified with `client_secret`.
 
 * `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, "openid", "profile", and "email" are used as default scopes.
 
@@ -367,7 +371,7 @@ A `schedule` block supports the following:
 
 * `frequency_interval` - (Required) How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).
 
-~> **NOTE:** Not all intervals are supported on all Linux Web App SKU's. Please refer to the official documentation for appropriate values.
+~> **NOTE:** Not all intervals are supported on all Linux Web App SKUs. Please refer to the official documentation for appropriate values.
 
 * `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day`, `Hour`
 
@@ -486,6 +490,15 @@ A `status_code` block supports the following:
 * `sub_status` - (Optional) The Request Sub Status of the Status Code.
 
 * `win32_status` - (Optional) The Win32 Status Code of the Request.
+
+---
+
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - (Optional) A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - (Optional) A list of `connection_string` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+
 
 ---
 

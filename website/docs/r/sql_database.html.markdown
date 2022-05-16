@@ -25,7 +25,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_sql_server" "example" {
   name                         = "myexamplesqlserver"
   resource_group_name          = azurerm_resource_group.example.name
-  location                     = "West US"
+  location                     = azurerm_resource_group.example.location
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
@@ -46,7 +46,7 @@ resource "azurerm_storage_account" "example" {
 resource "azurerm_sql_database" "example" {
   name                = "myexamplesqldatabase"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "West US"
+  location            = azurerm_resource_group.example.location
   server_name         = azurerm_sql_server.example.name
 
   extended_auditing_policy {
@@ -84,11 +84,11 @@ The following arguments are supported:
 
 * `restore_point_in_time` - (Optional) The point in time for the restore. Only applies if `create_mode` is `PointInTimeRestore` e.g. 2013-11-08T22:00:40Z
 
-* `edition` - (Optional) The edition of the database to be created. Applies only if `create_mode` is `Default`. Valid values are: `Basic`, `Standard`, `Premium`, `DataWarehouse`, `Business`, `BusinessCritical`, `Free`, `GeneralPurpose`, `Hyperscale`, `Premium`, `PremiumRS`, `Standard`, `Stretch`, `System`, `System2`, or `Web`. Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
+* `edition` - (Optional) The edition of the database to be created. Applies only if `create_mode` is `Default`. Valid values are: `Basic`, `Standard`, `Premium`, `DataWarehouse`, `Business`, `BusinessCritical`, `Free`, `GeneralPurpose`, `Hyperscale`, `Premium`, `PremiumRS`, `Standard`, `Stretch`, `System`, `System2`, or `Web`. Please see [Azure SQL database models](https://docs.microsoft.com/en-us/azure/azure-sql/database/purchasing-models?view=azuresql).
 
 * `collation` - (Optional) The name of the collation. Applies only if `create_mode` is `Default`.  Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`. Changing this forces a new resource to be created.
 
-* `max_size_bytes` - (Optional) The maximum size that the database can grow to. Applies only if `create_mode` is `Default`.  Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
+* `max_size_bytes` - (Optional) The maximum size that the database can grow to. Applies only if `create_mode` is `Default`.  Please see [Azure SQL database models](https://docs.microsoft.com/en-us/azure/azure-sql/database/purchasing-models?view=azuresql).
 
 * `requested_service_objective_id` - (Optional) A GUID/UUID corresponding to a configured Service Level Objective for the Azure SQL database which can be used to configure a performance level.
 .
@@ -128,14 +128,14 @@ The following arguments are supported:
 * `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
 * `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. Required if `state` is `Enabled`.
-* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs. Required if `state` is `Enabled`.
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs. Required if `state` is `Enabled`.
 
 ---
 
 A `extended_auditing_policy` block supports the following:
 
 * `storage_account_access_key` - (Optional)  Specifies the access key to use for the auditing storage account.
-* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://example.blob.core.windows.net).
 * `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
 * `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
 * `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable audit events to Log Analytics, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_log_analytics` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/sql_auditing_log_analytics). To enable audit events to Eventhub, please refer to the example which can be found in [the `./examples/sql-azure/sql_auditing_eventhub` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/sql_auditing_eventhub). 

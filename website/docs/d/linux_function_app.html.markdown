@@ -71,6 +71,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `storage_account_access_key` -  The access key used to access the backend storage account for the Function App. 
 
 * `storage_key_vault_secret_id` - The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.
@@ -141,7 +143,7 @@ An `auth_settings` block exports the following:
 
 * `active_directory` - An `active_directory` block as defined above.
 
-* `additional_login_parameters` - A map of Login Parameters sent to the OpenID Connect authorization endpoint when a user logs in.
+* `additional_login_parameters` - A map of login parameters sent to the OpenID Connect authorization endpoint when a user logs in.
 
 * `allowed_external_redirect_urls` - A list of External URLs that can be redirected to as part of logging in or logging out of the Linux Web App.
 
@@ -217,11 +219,11 @@ A `facebook` block exports the following:
 
 * `app_id` - The App ID of the Facebook app used for login.
 
-* `app_secret` - The App Secret of the Facebook app used for Facebook Login.
+* `app_secret` - The App Secret of the Facebook app used for Facebook login.
 
-* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook Login.
+* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook login.
 
-* `oauth_scopes` - Specifies a list of OAuth 2.0 scopes requested as part of Facebook Login authentication.
+* `oauth_scopes` - Specifies a list of OAuth 2.0 scopes requested as part of Facebook login authentication.
 
 ---
 
@@ -229,11 +231,11 @@ A `github` block exports the following:
 
 * `client_id` - The ID of the GitHub app used for login.
 
-* `client_secret` - The Client Secret of the GitHub app used for GitHub Login.
+* `client_secret` - The Client Secret of the GitHub app used for GitHub login.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub login.
 
-* `oauth_scopes` - Specifies a list of OAuth 2.0 scopes that are requested as part of GitHub Login authentication.
+* `oauth_scopes` - Specifies a list of OAuth 2.0 scopes that are requested as part of GitHub login authentication.
 
 ---
 
@@ -243,7 +245,7 @@ A `google` block exports the following:
 
 * `client_secret` - The client secret associated with the Google web application. 
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google Login. 
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google login. 
 
 * `oauth_scopes` - A list of OAuth 2.0 scopes that are requested as part of Google Sign-In authentication. 
 
@@ -332,6 +334,14 @@ A `scm_ip_restriction` block exports the following:
 * `service_tag` - The Service Tag used for this IP Restriction.
 
 * `virtual_network_subnet_id` - The Virtual Network Subnet ID used for this IP Restriction.
+
+---
+
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - A list of `app_setting` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - A list of `connection_string` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
 
 ---
 

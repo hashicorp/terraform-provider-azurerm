@@ -908,6 +908,88 @@ func TestAccWindowsWebApp_withAutoHealRulesStatusCodeRange(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_stickySettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.stickySettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsWebApp_stickySettingsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings").DoesNotExist(),
+				check.That(data.ResourceName).Key("sticky_settings").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.stickySettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.stickySettingsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("3"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.stickySettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.stickySettingsRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // ASE based tests - Deliberately have longer prefix to make it possible to exclude from testing unrelated changes in the app resource
 // as they take a significant amount of time to execute (anything up to 6h)
 
@@ -1580,6 +1662,11 @@ resource "azurerm_windows_web_app" "test" {
         minimum_process_execution_time = "00:05:00"
       }
     }
+  }
+
+  sticky_settings {
+    app_setting_names       = ["foo"]
+    connection_string_names = ["First", "Third"]
   }
 
   storage_account {
@@ -2332,6 +2419,145 @@ resource "azurerm_windows_web_app" "test" {
   site_config {
     container_registry_use_managed_identity       = true
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) stickySettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+    third  = "degree"
+  }
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "Third"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  sticky_settings {
+    app_setting_names       = ["foo", "secret"]
+    connection_string_names = ["First", "Third"]
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) stickySettingsRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+    third  = "degree"
+  }
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "Third"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) stickySettingsUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+    third  = "degree"
+  }
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "Third"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  sticky_settings {
+    app_setting_names       = ["foo", "secret", "third"]
+    connection_string_names = ["First", "Second", "Third"]
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)

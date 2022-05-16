@@ -46,7 +46,7 @@ The following attributes are exported:
 
 * `ip_configuration` - A `ip_configuration` block as defined below.
 
-* `dns_servers` - The list of DNS servers that the Azure Firewall will direct DNS traffic to the for name resolution.
+* `dns_servers` - The list of DNS servers that the Azure Firewall will direct DNS traffic to for name resolution.
 
 * `management_ip_configuration` - A `management_ip_configuration` block as defined below, which allows force-tunnelling of traffic to be performed by the firewall.
 

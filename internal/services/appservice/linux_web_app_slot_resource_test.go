@@ -152,6 +152,36 @@ func TestAccLinuxWebAppSlot_backupUpdate(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_scmIpRestrictionSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scmIpRestrictionSubnet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebAppSlot_scmIpRestrictionHeaders(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scmIpRestrictionHeaders(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxWebAppSlot_withConnectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
@@ -1392,6 +1422,71 @@ resource "azurerm_linux_web_app_slot" "test" {
   }
 
   site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) scmIpRestrictionSubnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%[2]d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {
+    scm_ip_restriction {
+      virtual_network_subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) scmIpRestrictionHeaders(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {
+    scm_ip_restriction {
+      action     = "Allow"
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+  }
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }

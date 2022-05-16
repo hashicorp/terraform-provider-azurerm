@@ -13,22 +13,22 @@ Manages a Backup Policy to back up PostgreSQL.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_data_protection_backup_vault" "example" {
   name                = "example-backup-vault"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
 }
 
 resource "azurerm_data_protection_backup_policy_postgresql" "example" {
   name                = "example-backup-policy"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.example.name
   vault_name          = azurerm_data_protection_backup_vault.example.name
 
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]

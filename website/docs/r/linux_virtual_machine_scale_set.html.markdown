@@ -202,6 +202,10 @@ The following arguments are supported:
 
 * `terminate_notification` - (Optional) A `terminate_notification` block as defined below.
 
+~> **Note:** This property has been deprecated in favour of the `termination_notification` property and will be removed in version 4.0 of the provider.
+
+* `termination_notification` - (Optional) A `termination_notification` block as defined below.
+
 * `upgrade_mode` - (Optional) Specifies how Upgrades (e.g. changing the Image/SKU) should be performed to Virtual Machine Instances. Possible values are `Automatic`, `Manual` and `Rolling`. Defaults to `Manual`.
 
 * `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine Scale Set.
@@ -481,6 +485,16 @@ A `terminate_notification` block supports the following:
 * `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
 
 ~> **NOTE:** For more information about the terminate notification, please [refer to this doc](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
+
+---
+
+A `termination_notification` block supports the following:
+
+* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine Scale Set? Defaults to `false`.
+
+* `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
+
+~> **NOTE:** For more information about the termination notification, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
 
 ---
 

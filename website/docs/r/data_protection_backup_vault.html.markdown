@@ -13,15 +13,15 @@ Manages a Backup Vault.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_data_protection_backup_vault" "example" {
   name                = "example-backup-vault"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
 }
