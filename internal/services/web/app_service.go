@@ -9,7 +9,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -346,10 +345,9 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 				},
 
 				"remote_debugging_version": {
-					Type:             pluginsdk.TypeString,
-					Optional:         true,
-					Computed:         true,
-					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
