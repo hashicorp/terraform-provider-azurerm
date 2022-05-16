@@ -1,12 +1,12 @@
 ---
 subcategory: "Elastic"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_elasticsearch"
+page_title: "Azure Resource Manager: azurerm_elastic_cloud_elasticsearch"
 description: |-
   Manages an Elasticsearch cluster in Elastic Cloud.
 ---
 
-# azurerm_elasticsearch
+# azurerm_elastic_cloud_elasticsearch
 
 Manages an Elasticsearch in Elastic Cloud.
 
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "test" {
   location = "West Europe"
 }
 
-resource "azurerm_elasticsearch" "test" {
+resource "azurerm_elastic_cloud_elasticsearch" "test" {
   name                        = "example-elasticsearch"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -103,5 +103,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Elasticsearch's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_elasticsearch.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Elastic/monitors/monitor1
+terraform import azurerm_elastic_cloud_elasticsearch.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Elastic/monitors/monitor1
 ```

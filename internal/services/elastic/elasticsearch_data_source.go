@@ -55,6 +55,7 @@ func dataSourceElasticsearch() *pluginsdk.Resource {
 
 			"logs": {
 				Type:     pluginsdk.TypeList,
+				Optional: true,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{

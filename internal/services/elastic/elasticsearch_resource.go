@@ -174,7 +174,7 @@ func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_elasticsearch", id.ID())
+		return tf.ImportAsExistsError("azurerm_elastic_cloud_elasticsearch", id.ID())
 	}
 
 	monitoringStatus := monitorsresource.MonitoringStatusDisabled

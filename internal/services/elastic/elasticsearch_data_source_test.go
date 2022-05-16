@@ -11,7 +11,7 @@ import (
 type ElasticsearchDataSourceTest struct{}
 
 func TestAccElasticsearchDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elasticsearch", "test")
+	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
 	r := ElasticsearchDataSourceTest{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -22,8 +22,6 @@ func TestAccElasticsearchDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("sku_name").Exists(),
 				check.That(data.ResourceName).Key("monitoring_enabled").Exists(),
-				check.That(data.ResourceName).Key("logs").Exists(),
-				check.That(data.ResourceName).Key("tags").Exists(),
 				check.That(data.ResourceName).Key("elastic_cloud_deployment_id").Exists(),
 				check.That(data.ResourceName).Key("elastic_cloud_sso_default_url").Exists(),
 				check.That(data.ResourceName).Key("elastic_cloud_user_id").Exists(),
@@ -40,9 +38,9 @@ func (ElasticsearchDataSourceTest) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_elasticsearch" "test" {
-  name                = azurerm_elasticsearch.test.name
-  resource_group_name = azurerm_elasticsearch.test.resource_group_name
+data "azurerm_elastic_cloud_elasticsearch" "test" {
+  name                = azurerm_elastic_cloud_elasticsearch.test.name
+  resource_group_name = azurerm_elastic_cloud_elasticsearch.test.resource_group_name
 }
 `, template)
 }

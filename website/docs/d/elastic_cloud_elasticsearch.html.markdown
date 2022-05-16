@@ -1,30 +1,30 @@
 ---
 subcategory: "Elastic"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_elasticsearch"
+page_title: "Azure Resource Manager: azurerm_elastic_cloud_elasticsearch"
 description: |- 
     Gets information about an existing Elasticsearch resource.
 
 ---
 
-# Data Source: azurerm_elasticsearch
+# Data Source: azurerm_elastic_cloud_elasticsearch
 
 Use this data source to access information about an existing Elasticsearch resource.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_elasticsearch" "example" {
+data "azurerm_elastic_cloud_elasticsearch" "example" {
   name                = "my-elastic-search"
   resource_group_name = "example-resources"
 }
 
 output "elasticsearch_endpoint" {
-  value = data.azurerm_elasticsearch.example.elasticsearch_service_url
+  value = data.azurerm_elastic_cloud_elasticsearch.example.elasticsearch_service_url
 }
 
 output "kibana_endpoint" {
-  value = data.azurerm_elasticsearch.example.kibana_service_url
+  value = data.azurerm_elastic_cloud_elasticsearch.example.kibana_service_url
 }
 ```
 

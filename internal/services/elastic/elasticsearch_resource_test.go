@@ -18,7 +18,7 @@ import (
 type ElasticsearchResourceTest struct{}
 
 func TestAccElasticsearch_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elasticsearch", "test")
+	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
 	r := ElasticsearchResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccElasticsearch_basic(t *testing.T) {
 }
 
 func TestAccElasticsearch_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elasticsearch", "test")
+	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
 	r := ElasticsearchResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccElasticsearch_requiresImport(t *testing.T) {
 }
 
 func TestAccElasticsearch_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elasticsearch", "test")
+	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
 	r := ElasticsearchResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccElasticsearch_complete(t *testing.T) {
 }
 
 func TestAccElasticsearch_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elasticsearch", "test")
+	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
 	r := ElasticsearchResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -94,7 +94,7 @@ func TestAccElasticsearch_update(t *testing.T) {
 }
 
 func TestAccElasticsearch_logs(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elasticsearch", "test")
+	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
 	r := ElasticsearchResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -109,7 +109,7 @@ func TestAccElasticsearch_logs(t *testing.T) {
 }
 
 func TestAccElasticsearch_logsUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elasticsearch", "test")
+	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
 	r := ElasticsearchResourceTest{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -166,7 +166,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elasticsearch" "test" {
+resource "azurerm_elastic_cloud_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -180,12 +180,12 @@ func (r ElasticsearchResourceTest) requiresImport(data acceptance.TestData) stri
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_elasticsearch" "import" {
-  name                        = azurerm_elasticsearch.test.name
-  resource_group_name         = azurerm_elasticsearch.test.resource_group_name
-  location                    = azurerm_elasticsearch.test.location
-  sku_name                    = azurerm_elasticsearch.test.sku_name
-  elastic_cloud_email_address = azurerm_elasticsearch.test.elastic_cloud_email_address
+resource "azurerm_elastic_cloud_elasticsearch" "import" {
+  name                        = azurerm_elastic_cloud_elasticsearch.test.name
+  resource_group_name         = azurerm_elastic_cloud_elasticsearch.test.resource_group_name
+  location                    = azurerm_elastic_cloud_elasticsearch.test.location
+  sku_name                    = azurerm_elastic_cloud_elasticsearch.test.sku_name
+  elastic_cloud_email_address = azurerm_elastic_cloud_elasticsearch.test.elastic_cloud_email_address
 }
 `, r.basic(data))
 }
@@ -201,7 +201,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elasticsearch" "test" {
+resource "azurerm_elastic_cloud_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -226,7 +226,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elasticsearch" "test" {
+resource "azurerm_elastic_cloud_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -252,7 +252,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elasticsearch" "test" {
+resource "azurerm_elastic_cloud_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
@@ -286,7 +286,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_elasticsearch" "test" {
+resource "azurerm_elastic_cloud_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
