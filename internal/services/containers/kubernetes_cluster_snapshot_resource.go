@@ -53,7 +53,7 @@ func resourceKubernetesClusterSnapshot() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NodePoolID,
+				ValidateFunc: validate.ClusterID,
 			},
 
 			"tags": tags.Schema(),

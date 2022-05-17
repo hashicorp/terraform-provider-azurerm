@@ -44,7 +44,7 @@ resource "azurerm_kubernetes_cluster_snapshot" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  cluster_id          = azurerm_kubernetes_cluster_snapshot.example.id
+  cluster_id          = azurerm_kubernetes_cluster.example.id
   tags = {
     environment = "production"
   }
