@@ -150,6 +150,15 @@ resource "azurerm_vpn_site" "test" {
     name = "link2"
     fqdn = "foo.com"
   }
+
+  o365_policy {
+    breakout_category {
+      allow_category_enabled    = true
+      default_category_enabled  = true
+      optimize_category_enabled = true
+    }
+  }
+
   tags = {
     ENV = "Test"
   }

@@ -137,6 +137,44 @@ func resourceVpnSite() *pluginsdk.Resource {
 				},
 			},
 
+			"o365_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"breakout_category": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"allow_category_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"default_category_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"optimize_category_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -172,6 +210,7 @@ func resourceVpnSiteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			DeviceProperties: expandVpnSiteDeviceProperties(d),
 			AddressSpace:     expandVpnSiteAddressSpace(d.Get("address_cidrs").(*pluginsdk.Set).List()),
 			VpnSiteLinks:     expandVpnSiteLinks(d.Get("link").([]interface{})),
+			O365Policy:       expandVpnSiteO365Policy(d.Get("o365_policy").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -243,6 +282,9 @@ func resourceVpnSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		if err := d.Set("link", flattenVpnSiteLinks(prop.VpnSiteLinks)); err != nil {
 			return fmt.Errorf("setting `link`")
+		}
+		if err := d.Set("o365_policy", flattenVpnSiteO365Policy(prop.O365Policy)); err != nil {
+			return fmt.Errorf("setting `o365_policy`")
 		}
 	}
 
@@ -444,6 +486,78 @@ func flattenVpnSiteVpnSiteBgpSettings(input *network.VpnLinkBgpSettings) []inter
 		map[string]interface{}{
 			"asn":             asn,
 			"peering_address": peerAddress,
+		},
+	}
+}
+
+func expandVpnSiteO365Policy(input []interface{}) *network.O365PolicyProperties {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	o365Policy := input[0].(map[string]interface{})
+
+	return &network.O365PolicyProperties{
+		BreakOutCategories: expandVpnSiteO365BreakOutCategoryPolicy(o365Policy["breakout_category"].([]interface{})),
+	}
+}
+
+func expandVpnSiteO365BreakOutCategoryPolicy(input []interface{}) *network.O365BreakOutCategoryPolicies {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	breakoutCategory := input[0].(map[string]interface{})
+
+	return &network.O365BreakOutCategoryPolicies{
+		Allow:    utils.Bool(breakoutCategory["allow_category_enabled"].(bool)),
+		Default:  utils.Bool(breakoutCategory["default_category_enabled"].(bool)),
+		Optimize: utils.Bool(breakoutCategory["optimize_category_enabled"].(bool)),
+	}
+}
+
+func flattenVpnSiteO365Policy(input *network.O365PolicyProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var breakoutCategory []interface{}
+	if input.BreakOutCategories != nil {
+		breakoutCategory = flattenVpnSiteO365BreakOutCategoryPolicy(input.BreakOutCategories)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"breakout_category": breakoutCategory,
+		},
+	}
+}
+
+func flattenVpnSiteO365BreakOutCategoryPolicy(input *network.O365BreakOutCategoryPolicies) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	isAllowed := false
+	if input.Allow != nil {
+		isAllowed = *input.Allow
+	}
+
+	isDefault := false
+	if input.Default != nil {
+		isDefault = *input.Default
+	}
+
+	isOptimized := false
+	if input.Optimize != nil {
+		isOptimized = *input.Optimize
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"allow_category_enabled":    isAllowed,
+			"default_category_enabled":  isDefault,
+			"optimize_category_enabled": isOptimized,
 		},
 	}
 }

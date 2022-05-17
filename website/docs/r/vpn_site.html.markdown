@@ -66,6 +66,8 @@ The following arguments are supported:
 
 * `device_vendor` - (Optional) The name of the VPN device vendor.
 
+* `o365_policy` - (Optional) An `o365_policy` block as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the VPN Site.
 
 ---
@@ -95,6 +97,22 @@ A `link` block supports the following:
 * `provider_name` - (Optional) The name of the physical link at the VPN Site. Example: `ATT`, `Verizon`.
 
 * `speed_in_mbps` - (Optional) The speed of the VPN device at the branch location in unit of mbps.
+
+---
+
+A `o365_policy` block supports the following:
+
+* `breakout_category` - (Optional) A `breakout_category` block as defined above.
+
+---
+
+A `breakout_category` block supports the following:
+
+* `allow_category_enabled` - (Optional) Is allow category controlled? Defaults to `false`.
+
+* `default_category_enabled` - (Optional) Is default category controlled? Defaults to `false`.
+
+* `optimize_category_enabled` - (Optional) Is optimize category controlled? Defaults to `false`.
 
 ## Attributes Reference
 
