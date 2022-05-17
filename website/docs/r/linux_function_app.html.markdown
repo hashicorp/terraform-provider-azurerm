@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the Function App enabled?
 
-* `force_disable_content_share` - (Optional) Should the settings for linking the Function App to storage be suppressed. 
+* `content_share_force_disabled` - (Optional) Should the settings for linking the Function App to storage be suppressed. 
 
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App. Defaults to `~4`.
 
