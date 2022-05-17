@@ -624,9 +624,8 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"protocol": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ApplicationGatewayProtocolTCP),
 								string(network.ApplicationGatewayProtocolTLS),
