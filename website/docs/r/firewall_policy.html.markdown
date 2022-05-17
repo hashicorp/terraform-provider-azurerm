@@ -91,7 +91,7 @@ An `insights` block supports the following:
 
 A `intrusion_detection` block supports the following:
 
-* `mode` - (Optional) In which mode you want to run intrusion detection: "Off", "Alert" or "Deny".
+* `mode` - (Optional) In which mode you want to run intrusion detection: `Off`, `Alert` or `Deny`.
 
 * `signature_overrides` - (Optional) One or more `signature_overrides` blocks as defined below.
 
@@ -111,7 +111,7 @@ A `signature_overrides` block supports the following:
 
 * `id` - (Optional) 12-digit number (id) which identifies your signature.
 
-* `state` - (Optional) state can be any of "Off", "Alert" or "Deny".
+* `state` - (Optional) state can be any of `Off`, `Alert` or `Deny`.
 
 ---
 
@@ -135,7 +135,7 @@ A `traffic_bypass` block supports the following:
 
 * `name` - (Required) The name which should be used for this bypass traffic setting.
 
-* `protocol` - (Required) The protocols any of "ANY", "TCP", "ICMP", "UDP" that shall be bypassed by intrusion detection.
+* `protocol` - (Required) The protocols any of `ANY`, `TCP`, `ICMP`, `UDP` that shall be bypassed by intrusion detection.
 
 * `description` - (Optional) The description for this bypass traffic setting.
 
