@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	purviewValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/sdk/2021-07-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -278,7 +278,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			"purview_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: purviewValidate.AccountID,
+				ValidateFunc: account.ValidateAccountID,
 			},
 
 			"sql_identity_control_enabled": {

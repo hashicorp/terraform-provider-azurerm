@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/purview/mgmt/2021-07-01/purview"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/sdk/2021-07-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,7 +29,7 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 		Delete: resourcePurviewAccountDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AccountID(id)
+			_, err := account.ParseAccountID(id)
 			return err
 		}),
 
@@ -53,50 +53,45 @@ func resourcePurviewAccountCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	id := parse.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := account.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_purview_account", id.ID())
 		}
 	}
 
-	account := purview.Account{
-		AccountProperties: &purview.AccountProperties{},
-		Location:          &location,
-		Tags:              tags.Expand(t),
+	accountConfig := account.Account{
+		Properties: &account.AccountProperties{},
+		Location:   &location,
+		Tags:       expandTags(t),
 	}
 
-	expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	account.Identity = expandedIdentity
+	accountConfig.Identity = expandedIdentity
 
+	publicNetworkAccess := account.PublicNetworkAccessDisabled
 	if d.Get("public_network_enabled").(bool) {
-		account.AccountProperties.PublicNetworkAccess = purview.PublicNetworkAccessEnabled
-	} else {
-		account.AccountProperties.PublicNetworkAccess = purview.PublicNetworkAccessDisabled
+		publicNetworkAccess = account.PublicNetworkAccessEnabled
 	}
+	accountConfig.Properties.PublicNetworkAccess = &publicNetworkAccess
 
 	if v, ok := d.GetOk("managed_resource_group_name"); ok {
-		account.AccountProperties.ManagedResourceGroupName = utils.String(v.(string))
+		accountConfig.Properties.ManagedResourceGroupName = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, account)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, id, accountConfig); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -108,14 +103,14 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AccountID(d.Id())
+	id, err := account.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -123,42 +118,60 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	if err := d.Set("managed_resources", flattenPurviewAccountManagedResources(resp.ManagedResources)); err != nil {
-		return fmt.Errorf("flattening `managed_resources`: %+v", err)
-	}
-
-	if props := resp.AccountProperties; props != nil {
-		d.Set("public_network_enabled", props.PublicNetworkAccess == purview.PublicNetworkAccessEnabled)
-
-		managedResourceGroupName := ""
-		if props.ManagedResourceGroupName != nil {
-			managedResourceGroupName = *props.ManagedResourceGroupName
+		identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+		if err != nil {
+			return err
 		}
-		d.Set("managed_resource_group_name", managedResourceGroupName)
+		if err = d.Set("identity", identity); err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
 
-		if endpoints := resp.Endpoints; endpoints != nil {
-			d.Set("catalog_endpoint", endpoints.Catalog)
-			d.Set("guardian_endpoint", endpoints.Guardian)
-			d.Set("scan_endpoint", endpoints.Scan)
+		if props := model.Properties; props != nil {
+			if err = d.Set("managed_resources", flattenPurviewAccountManagedResources(props.ManagedResources)); err != nil {
+				return fmt.Errorf("flattening `managed_resources`: %+v", err)
+			}
+
+			publicNetworkAccess := false
+			if props.PublicNetworkAccess != nil {
+				publicNetworkAccess = *props.PublicNetworkAccess == account.PublicNetworkAccessEnabled
+			}
+			d.Set("public_network_enabled", publicNetworkAccess)
+
+			managedResourceGroupName := ""
+			if props.ManagedResourceGroupName != nil {
+				managedResourceGroupName = *props.ManagedResourceGroupName
+			}
+			d.Set("managed_resource_group_name", managedResourceGroupName)
+
+			if endpoints := props.Endpoints; endpoints != nil {
+				d.Set("catalog_endpoint", endpoints.Catalog)
+				d.Set("guardian_endpoint", endpoints.Guardian)
+				d.Set("scan_endpoint", endpoints.Scan)
+			}
+		}
+
+		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
 		}
 	}
 
-	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
+	keys, err := client.ListKeys(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving Keys for %s: %+v", *id, err)
 	}
-	d.Set("atlas_kafka_endpoint_primary_connection_string", keys.AtlasKafkaPrimaryEndpoint)
-	d.Set("atlas_kafka_endpoint_secondary_connection_string", keys.AtlasKafkaSecondaryEndpoint)
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	if model := keys.Model; model != nil {
+		d.Set("atlas_kafka_endpoint_primary_connection_string", model.AtlasKafkaPrimaryEndpoint)
+		d.Set("atlas_kafka_endpoint_secondary_connection_string", model.AtlasKafkaSecondaryEndpoint)
+	}
+
+	return nil
 }
 
 func resourcePurviewAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -166,53 +179,19 @@ func resourcePurviewAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AccountID(d.Id())
+	id, err := account.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandIdentity(input []interface{}) (*purview.Identity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
-	if err != nil {
-		return nil, err
-	}
-
-	return &purview.Identity{
-		Type: purview.Type(string(expanded.Type)),
-	}, nil
-}
-
-func flattenIdentity(input *purview.Identity) interface{} {
-	var transition *identity.SystemAssigned
-
-	if input != nil {
-		transition = &identity.SystemAssigned{
-			Type: identity.Type(string(input.Type)),
-		}
-		if input.PrincipalID != nil {
-			transition.PrincipalId = *input.PrincipalID
-		}
-		if input.TenantID != nil {
-			transition.TenantId = *input.TenantID
-		}
-	}
-
-	return identity.FlattenSystemAssigned(transition)
-}
-
-func flattenPurviewAccountManagedResources(managedResources *purview.AccountPropertiesManagedResources) interface{} {
+func flattenPurviewAccountManagedResources(managedResources *account.ManagedResources) interface{} {
 	if managedResources == nil {
 		return make([]interface{}, 0)
 	}
