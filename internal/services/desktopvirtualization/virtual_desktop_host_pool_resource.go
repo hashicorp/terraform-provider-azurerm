@@ -7,11 +7,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2021-09-03-preview/desktopvirtualization"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
@@ -48,133 +46,100 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 			0: migration.HostPoolV0ToV1{},
 		}),
 
-		Schema: func() map[string]*pluginsdk.Schema {
-			s := map[string]*pluginsdk.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 
-				"location": azure.SchemaLocation(),
+			"location": azure.SchemaLocation(),
 
-				"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(desktopvirtualization.HostPoolTypePersonal),
-						string(desktopvirtualization.HostPoolTypePooled),
-					}, false),
-				},
+			"type": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(desktopvirtualization.HostPoolTypePersonal),
+					string(desktopvirtualization.HostPoolTypePooled),
+				}, false),
+			},
 
-				"load_balancer_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(desktopvirtualization.LoadBalancerTypeBreadthFirst),
-						string(desktopvirtualization.LoadBalancerTypeDepthFirst),
-						string(desktopvirtualization.LoadBalancerTypePersistent),
-					}, false),
-				},
+			"load_balancer_type": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(desktopvirtualization.LoadBalancerTypeBreadthFirst),
+					string(desktopvirtualization.LoadBalancerTypeDepthFirst),
+					string(desktopvirtualization.LoadBalancerTypePersistent),
+				}, false),
+			},
 
-				"friendly_name": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringLenBetween(1, 64),
-				},
+			"friendly_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(1, 64),
+			},
 
-				"description": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringLenBetween(1, 512),
-				},
+			"description": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(1, 512),
+			},
 
-				"validate_environment": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
+			"validate_environment": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 
-				"custom_rdp_properties": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-				},
+			"custom_rdp_properties": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
 
-				"personal_desktop_assignment_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(desktopvirtualization.PersonalDesktopAssignmentTypeAutomatic),
-						string(desktopvirtualization.PersonalDesktopAssignmentTypeDirect),
-					}, false),
-				},
+			"personal_desktop_assignment_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(desktopvirtualization.PersonalDesktopAssignmentTypeAutomatic),
+					string(desktopvirtualization.PersonalDesktopAssignmentTypeDirect),
+				}, false),
+			},
 
-				"maximum_sessions_allowed": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      999999,
-					ValidateFunc: validation.IntBetween(0, 999999),
-				},
+			"maximum_sessions_allowed": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      999999,
+				ValidateFunc: validation.IntBetween(0, 999999),
+			},
 
-				"start_vm_on_connect": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
+			"start_vm_on_connect": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 
-				"preferred_app_group_type": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					ForceNew:    true,
-					Description: "Preferred App Group type to display",
-					ValidateFunc: validation.StringInSlice([]string{
-						string(desktopvirtualization.PreferredAppGroupTypeDesktop),
-						string(desktopvirtualization.PreferredAppGroupTypeNone),
-						string(desktopvirtualization.PreferredAppGroupTypeRailApplications),
-					}, false),
-					Default: string(desktopvirtualization.PreferredAppGroupTypeDesktop),
-				},
+			"preferred_app_group_type": {
+				Type:        pluginsdk.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Preferred App Group type to display",
+				ValidateFunc: validation.StringInSlice([]string{
+					string(desktopvirtualization.PreferredAppGroupTypeDesktop),
+					string(desktopvirtualization.PreferredAppGroupTypeNone),
+					string(desktopvirtualization.PreferredAppGroupTypeRailApplications),
+				}, false),
+				Default: string(desktopvirtualization.PreferredAppGroupTypeDesktop),
+			},
 
-				"tags": tags.Schema(),
-			}
-
-			if !features.ThreePointOhBeta() {
-				s["registration_info"] = &schema.Schema{
-					Type:        pluginsdk.TypeList,
-					Optional:    true,
-					Description: "This block is now non-functional and will be removed in version 3.0 of the Azure Provider - use the `azurerm_virtual_desktop_host_pool_registration_info` resource instead.",
-					MaxItems:    1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"expiration_date": {
-								Type:       pluginsdk.TypeString,
-								Optional:   true,
-								Deprecated: "This field is now non-functional and will be removed in version 3.0 of the Azure Provider - use the `azurerm_virtual_desktop_host_pool_registration_info` resource instead.",
-							},
-
-							"reset_token": {
-								Type:     pluginsdk.TypeBool,
-								Computed: true,
-							},
-
-							"token": {
-								Type:      pluginsdk.TypeString,
-								Sensitive: true,
-								Computed:  true,
-							},
-						},
-					},
-				}
-			}
-
-			return s
-		}(),
+			"tags": tags.Schema(),
+		},
 	}
 }
 
@@ -320,10 +285,6 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("start_vm_on_connect", props.StartVMOnConnect)
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)
-
-		if !features.ThreePointOhBeta() {
-			d.Set("registration_info", []interface{}{})
-		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

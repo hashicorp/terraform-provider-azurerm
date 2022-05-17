@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
@@ -29,7 +28,7 @@ import (
 )
 
 func resourceMsSqlDatabase() *pluginsdk.Resource {
-	resourceData := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlDatabaseCreateUpdate,
 		Read:   resourceMsSqlDatabaseRead,
 		Update: resourceMsSqlDatabaseCreateUpdate,
@@ -60,9 +59,6 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-				if !features.ThreePointOhBeta() {
-					return nil
-				}
 				transparentDataEncryption := d.Get("transparent_data_encryption_enabled").(bool)
 				sku := d.Get("sku_name").(string)
 				if !strings.HasPrefix(sku, "DW") && !transparentDataEncryption {
@@ -72,19 +68,6 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				return nil
 			}),
 	}
-	if features.ThreePointOhBeta() {
-		// TODO: Update docs with the following text:
-		//
-		// * `transparent_data_encryption_enabled` - If set to true, Transparent Data Encryption will be enabled on the database.
-		// -> **NOTE:** TDE cannot be disabled on servers with SKUs other than ones starting with DW.
-
-		resourceData.Schema["transparent_data_encryption_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		}
-	}
-	return resourceData
 }
 
 func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
@@ -249,7 +232,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 			MinCapacity:                      utils.Float(d.Get("min_capacity").(float64)),
 			HighAvailabilityReplicaCount:     utils.Int32(int32(d.Get("read_replica_count").(int))),
 			SampleName:                       sql.SampleName(d.Get("sample_name").(string)),
-			RequestedBackupStorageRedundancy: expandMsSqlBackupStorageRedundancy(d.Get("storage_account_type").(string)),
+			RequestedBackupStorageRedundancy: sql.RequestedBackupStorageRedundancy(d.Get("storage_account_type").(string)),
 			ZoneRedundant:                    utils.Bool(d.Get("zone_redundant").(bool)),
 			IsLedgerOn:                       utils.Bool(ledgerEnabled),
 		},
@@ -536,7 +519,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			skuName = *props.CurrentServiceObjectiveName
 		}
 		d.Set("sku_name", skuName)
-		d.Set("storage_account_type", flattenMsSqlBackupStorageRedundancy(props.CurrentBackupStorageRedundancy))
+		d.Set("storage_account_type", string(props.CurrentBackupStorageRedundancy))
 		d.Set("zone_redundant", props.ZoneRedundant)
 		if props.IsLedgerOn != nil {
 			ledgerEnabled = *props.IsLedgerOn
@@ -596,17 +579,15 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("setting `geo_backup_enabled`: %+v", err)
 	}
 
-	if features.ThreePointOhBeta() {
-		tde, err := transparentEncryptionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-		if err != nil {
-			return fmt.Errorf("while retrieving Transparent Data Encryption status of %q: %+v", id.String(), err)
-		}
-		tdeStatus := false
-		if tde.TransparentDataEncryptionProperties != nil && tde.TransparentDataEncryptionProperties.Status == sql.TransparentDataEncryptionStatusEnabled {
-			tdeStatus = true
-		}
-		d.Set("transparent_data_encryption_enabled", tdeStatus)
+	tde, err := transparentEncryptionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		return fmt.Errorf("while retrieving Transparent Data Encryption status of %q: %+v", id.String(), err)
 	}
+	tdeStatus := false
+	if tde.TransparentDataEncryptionProperties != nil && tde.TransparentDataEncryptionProperties.Status == sql.TransparentDataEncryptionStatusEnabled {
+		tdeStatus = true
+	}
+	d.Set("transparent_data_encryption_enabled", tdeStatus)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -644,9 +625,6 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy sql
 	securityAlertPolicy := make(map[string]interface{})
 
 	securityAlertPolicy["state"] = string(properties.State)
-	if !features.ThreePointOhBeta() {
-		securityAlertPolicy["use_server_default"] = "Disabled"
-	}
 
 	securityAlertPolicy["email_account_admins"] = "Disabled"
 	if properties.EmailAccountAdmins != nil && *properties.EmailAccountAdmins {
@@ -737,36 +715,8 @@ func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) sql.Databas
 	return policy
 }
 
-func flattenMsSqlBackupStorageRedundancy(currentBackupStorageRedundancy sql.CurrentBackupStorageRedundancy) string {
-	if !features.ThreePointOhBeta() {
-		switch currentBackupStorageRedundancy {
-		case sql.CurrentBackupStorageRedundancyLocal:
-			return "LRS"
-		case sql.CurrentBackupStorageRedundancyZone:
-			return "ZRS"
-		default:
-			return "GRS"
-		}
-	}
-	return string(currentBackupStorageRedundancy)
-}
-
-func expandMsSqlBackupStorageRedundancy(storageAccountType string) sql.RequestedBackupStorageRedundancy {
-	if !features.ThreePointOhBeta() {
-		switch storageAccountType {
-		case "LRS":
-			return sql.RequestedBackupStorageRedundancyLocal
-		case "ZRS":
-			return sql.RequestedBackupStorageRedundancyZone
-		default:
-			return sql.RequestedBackupStorageRedundancyGeo
-		}
-	}
-	return sql.RequestedBackupStorageRedundancy(storageAccountType)
-}
-
 func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -824,7 +774,6 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"license_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(sql.DatabaseLicenseTypeBasePrice),
 				string(sql.DatabaseLicenseTypeLicenseIncluded),
@@ -892,11 +841,10 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			Computed:         true,
-			ValidateFunc:     validate.DatabaseSkuName(),
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validate.DatabaseSkuName(),
 		},
 
 		"creation_source_database_id": {
@@ -910,26 +858,12 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"storage_account_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default: func() string {
-				if !features.ThreePointOhBeta() {
-					return "GRS"
-				}
-				return string(sql.CurrentBackupStorageRedundancyGeo)
-			}(),
-			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-				if !features.ThreePointOhBeta() {
-					return validation.StringInSlice([]string{
-						"GRS",
-						"LRS",
-						"ZRS",
-					}, false)
-				}
-				return validation.StringInSlice([]string{
-					string(sql.CurrentBackupStorageRedundancyGeo),
-					string(sql.CurrentBackupStorageRedundancyLocal),
-					string(sql.CurrentBackupStorageRedundancyZone),
-				}, false)
-			}(),
+			Default:  string(sql.CurrentBackupStorageRedundancyGeo),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(sql.CurrentBackupStorageRedundancyGeo),
+				string(sql.CurrentBackupStorageRedundancyLocal),
+				string(sql.CurrentBackupStorageRedundancyZone),
+			}, false),
 		},
 
 		"zone_redundant": {
@@ -955,20 +889,18 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 								"Sql_Injection",
 								"Sql_Injection_Vulnerability",
 								"Access_Anomaly",
-							}, !features.ThreePointOhBeta()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 					},
 
 					"email_account_admins": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-						Default:          "Disabled",
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "Disabled",
 						ValidateFunc: validation.StringInSlice([]string{
 							"Disabled",
 							"Enabled",
-						}, !features.ThreePointOhBeta()),
+						}, false),
 					},
 
 					"email_addresses": {
@@ -987,15 +919,14 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"state": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-						Default:          string(sql.SecurityAlertPolicyStateDisabled),
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  string(sql.SecurityAlertPolicyStateDisabled),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(sql.SecurityAlertPolicyStateDisabled),
 							string(sql.SecurityAlertPolicyStateEnabled),
 							string(sql.SecurityAlertPolicyStateNew),
-						}, !features.ThreePointOhBeta()),
+						}, false),
 					},
 
 					"storage_account_access_key": {
@@ -1027,23 +958,12 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
+		"transparent_data_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		s := out["threat_detection_policy"].Elem.(*schema.Resource)
-		s.Schema["use_server_default"] = &pluginsdk.Schema{
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
-			Default:          "Disabled",
-			ValidateFunc: validation.StringInSlice([]string{
-				"Disabled",
-				"Enabled",
-			}, true),
-			Deprecated: "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
-		}
-	}
-
-	return out
 }

@@ -146,7 +146,7 @@ The following arguments are supported:
 
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on the Premium plan.
 
-* `dotnet_framework_version` - (Optional) The version of the .NET framework's CLR used in this function app. Possible values are `v4.0` (including .NET Core 2.1 and 3.1), `v5.0` and `v6.0`. [For more information on which .NET Framework version to use based on the runtime version you're targeting - please see this table](https://docs.microsoft.com/en-us/azure/azure-functions/functions-dotnet-class-library#supported-versions). Defaults to `v4.0`.
+* `dotnet_framework_version` - (Optional) The version of the .NET framework's CLR used in this function app. Possible values are `v4.0` (including .NET Core 2.1 and 3.1), `v5.0` and `v6.0`. [For more information on which .NET Framework version to use based on the runtime version you're targeting - please see this table](https://docs.microsoft.com/azure/azure-functions/functions-dotnet-class-library#supported-versions). Defaults to `v4.0`.
 
 * `cors` - (Optional) A `cors` block as defined below.
 
@@ -180,7 +180,7 @@ An `auth_settings` block supports the following:
 
 * `active_directory` - (Optional) An `active_directory` block as defined below.
 
-* `additional_login_params` - (Optional) Login parameters to send to the OpenID Connect authorization endpoint when a user logs in. Each parameter must be in the form "key=value".
+* `additional_login_params` - (Optional) login parameters to send to the OpenID Connect authorization endpoint when a user logs in. Each parameter must be in the form "key=value".
 
 * `allowed_external_redirect_urls` - (Optional) External URLs that can be redirected to as part of logging in or logging out of the app.
 
@@ -222,9 +222,9 @@ A `facebook` block supports the following:
 
 * `app_id` - (Required) The App ID of the Facebook app used for login
 
-* `app_secret` - (Required) The App Secret of the Facebook app used for Facebook Login.
+* `app_secret` - (Required) The App Secret of the Facebook app used for Facebook login.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook Login authentication. https://developers.facebook.com/docs/facebook-login
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook login authentication. https://developers.facebook.com/docs/facebook-login
 
 ---
 

@@ -41,7 +41,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "example" {
 ## Example Usage with SAS URI and SAS Token.
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
@@ -51,14 +51,14 @@ data "azurerm_client_config" "current" {
 
 resource "azurerm_data_factory" "test" {
   name                = "example"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_key_vault" "test" {
   name                = "example"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 }
@@ -73,7 +73,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name            = "example"
   data_factory_id = azurerm_data_factory.test.id
 
-  sas_uri = "https://storageaccountname.blob.core.windows.net"
+  sas_uri = "https://example.blob.core.windows.net"
   key_vault_sas_token {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
@@ -84,7 +84,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name            = "example"
   data_factory_id = azurerm_data_factory.test.id
 
-  service_endpoint     = "https://storageaccountname.blob.core.windows.net"
+  service_endpoint     = "https://example.blob.core.windows.net"
   service_principal_id = "00000000-0000-0000-0000-000000000000"
   tenant_id            = "00000000-0000-0000-0000-000000000000"
   service_principal_linked_key_vault_key {
@@ -98,7 +98,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
-* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 

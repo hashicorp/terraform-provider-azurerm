@@ -17,6 +17,11 @@ Manages a SQL Instance Failover Group.
 ~> **Note:** For a more complete example, see the [the `examples/sql-azure/managed_instance_failover_group` directory](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/managed_instance_failover_group) within the GitHub Repository.
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
+}
+
 resource "azurerm_sql_managed_instance" "primary" {
   name                         = "example-primary"
   resource_group_name          = azurerm_resource_group.primary.name

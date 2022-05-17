@@ -1022,6 +1022,12 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input web.StringD
 		case "AzureWebJobsDashboard__accountName":
 			m.BuiltinLogging = true
 
+		case "WEBSITE_RUN_FROM_PACKAGE":
+			// Keep if user explicitly set, otherwise filter out as will have been added by ADO et al
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_RUN_FROM_PACKAGE"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
+			}
+
 		default:
 			appSettings[k] = utils.NormalizeNilableString(v)
 		}

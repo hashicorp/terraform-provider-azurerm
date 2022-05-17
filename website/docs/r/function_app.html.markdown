@@ -129,7 +129,7 @@ resource "azurerm_function_app" "example" {
   version                    = "~3"
 }
 ```
-~> **Note:** Version `~3` is required for Linux Function Apps.
+~> **Note:** Version `~3` or `~4` is required for Linux Function Apps.
 
 ## Example Usage (Python in a Consumption Plan)
 
@@ -185,7 +185,7 @@ resource "azurerm_function_app" "example" {
   }
 }
 ```
-~> **Note:** The Python runtime is only supported on a Linux based hosting plan.  See [the documentation for additional information](https://docs.microsoft.com/en-us/azure/azure-functions/functions-reference-python).
+~> **Note:** The Python runtime is only supported on a Linux based hosting plan.  See [the documentation for additional information](https://docs.microsoft.com/azure/azure-functions/functions-reference-python).
 
 ## Argument Reference
 
@@ -199,7 +199,7 @@ The following arguments are supported:
 
 * `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
 
-* `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
+* `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
 ~> **NOTE:** The values for `AzureWebJobsStorage` and `FUNCTIONS_EXTENSION_VERSION` will be filled by other input arguments and shouldn't be configured separately. `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`.
 
@@ -219,7 +219,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity Id used for looking up KeyVault secrets. The identity must be assigned to the application. See [Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity) for more information.
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity Id used for looking up KeyVault secrets. The identity must be assigned to the application. See [Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity) for more information.
 
 * `os_type` - (Optional) A string indicating the Operating System type for this function app. 
 
@@ -261,7 +261,7 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as defined below.
 
-* `dotnet_framework_version` - (Optional) The version of the .NET framework's CLR used in this function app. Possible values are `v4.0` (including .NET Core 2.1 and 3.1), `v5.0` and `v6.0`. [For more information on which .NET Framework version to use based on the runtime version you're targeting - please see this table](https://docs.microsoft.com/en-us/azure/azure-functions/functions-dotnet-class-library#supported-versions). Defaults to `v4.0`.
+* `dotnet_framework_version` - (Optional) The version of the .NET framework's CLR used in this function app. Possible values are `v4.0` (including .NET Core 2.1 and 3.1), `v5.0` and `v6.0`. [For more information on which .NET Framework version to use based on the runtime version you're targeting - please see this table](https://docs.microsoft.com/azure/azure-functions/functions-dotnet-class-library#supported-versions). Defaults to `v4.0`.
 
 * `elastic_instance_minimum` - (Optional) The number of minimum instances for this function app. Only affects apps on the Premium plan.
 
@@ -375,9 +375,9 @@ A `facebook` block supports the following:
 
 * `app_id` - (Required) The App ID of the Facebook app used for login
 
-* `app_secret` - (Required) The App Secret of the Facebook app used for Facebook Login.
+* `app_secret` - (Required) The App Secret of the Facebook app used for Facebook login.
 
-* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook Login authentication. https://developers.facebook.com/docs/facebook-login
+* `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Facebook login authentication. https://developers.facebook.com/docs/facebook-login
 
 ---
 

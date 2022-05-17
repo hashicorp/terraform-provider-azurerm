@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -82,7 +81,7 @@ func SchemaApiManagementUserDataSourceName() *pluginsdk.Schema {
 }
 
 func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
-	out := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -108,16 +107,6 @@ func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
 			},
 		},
 	}
-	if !features.ThreePointOhBeta() {
-		s := out.Elem.(*pluginsdk.Resource)
-		s.Schema["sample"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "Deprecated in favour of `example`",
-		}
-	}
-	return out
 }
 
 func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apimanagement.RepresentationContract, error) {
@@ -140,12 +129,6 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 		if vs["example"] != nil {
 			examplesRaw := vs["example"].([]interface{})
 			examples = ExpandApiManagementOperationParameterExampleContract(examplesRaw)
-		} else if !features.ThreePointOhBeta() && vs["sample"] != nil {
-			defaultExample := map[string]interface{}{
-				"name":  "default",
-				"value": vs["sample"],
-			}
-			examples = ExpandApiManagementOperationParameterExampleContract([]interface{}{defaultExample})
 		}
 
 		output := apimanagement.RepresentationContract{
@@ -336,7 +319,6 @@ func SchemaApiManagementOperationParameterExampleContract() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: !features.ThreePointOhBeta(),
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
