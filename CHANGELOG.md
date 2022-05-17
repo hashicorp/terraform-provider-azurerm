@@ -1,5 +1,10 @@
 ## 3.7.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_elastic_cloud_elasticsearch` [GH-14821]
+* **New Data Source**: `azurerm_elastic_cloud_elasticsearch` [GH-14821]
+
 ENHANCEMENTS:
 
 * `azurerm_spring_cloud_app` - support for the `identity` block [GH-16280]
