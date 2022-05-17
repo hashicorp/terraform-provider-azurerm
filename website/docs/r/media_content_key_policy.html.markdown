@@ -209,7 +209,7 @@ A `policy_option` block supports the following:
 
 * `clear_key_configuration_enabled` - (Optional) Enable a configuration for non-DRM keys.
 
-* `fairplay_configuration` - (Optional) A `fairplay_configuration` block as defined above. Check license requirements here https://docs.microsoft.com/en-us/azure/media-services/latest/fairplay-license-overview.
+* `fairplay_configuration` - (Optional) A `fairplay_configuration` block as defined above. Check license requirements here https://docs.microsoft.com/azure/media-services/latest/fairplay-license-overview.
 
 * `open_restriction_enabled` - (Optional) Enable an open restriction. License or key will be delivered on every request.
 
@@ -251,7 +251,7 @@ A `token_restriction` block supports the following:
 
 * `token_type` - (Optional) The type of token. Supported values are `Jwt` or `Swt`.
 
--> **NOTE:** Each token_restriction can only have one type of primary verification key: if you want use RSA you must provide primary_rsa_token_key_exponent and primary_rsa_token_key_modulus, if you want to use symmetric you need to provide primary_symmetric_token_key and for x509 you must provide primary_x509_token_key_raw. For more information about Token access please refer to https://docs.microsoft.com/en-us/azure/media-services/latest/content-protection-overview#controlling-content-access 
+-> **NOTE:** Each token_restriction can only have one type of primary verification key: if you want use RSA you must provide primary_rsa_token_key_exponent and primary_rsa_token_key_modulus, if you want to use symmetric you need to provide primary_symmetric_token_key and for x509 you must provide primary_x509_token_key_raw. For more information about Token access please refer to https://docs.microsoft.com/azure/media-services/latest/content-protection-overview#controlling-content-access 
 
 ---
 

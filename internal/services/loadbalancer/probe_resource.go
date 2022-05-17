@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -59,10 +58,9 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:             pluginsdk.TypeString,
-				Computed:         true,
-				Optional:         true,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.ProbeProtocolHTTP),
 					string(network.ProbeProtocolHTTPS),

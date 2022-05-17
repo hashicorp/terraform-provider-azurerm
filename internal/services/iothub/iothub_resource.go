@@ -324,13 +324,11 @@ func resourceIotHub() *pluginsdk.Resource {
 						},
 
 						"encoding": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  string(devices.EncodingAvro),
-							DiffSuppressFunc: suppressWhenAny(
-								suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
-								suppress.CaseDifferenceV2Only),
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							ForceNew:         true,
+							Default:          string(devices.EncodingAvro),
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devices.EncodingAvro),
 								string(devices.EncodingAvroDeflate),
