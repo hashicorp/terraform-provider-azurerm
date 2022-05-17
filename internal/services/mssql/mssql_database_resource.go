@@ -774,7 +774,6 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"license_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(sql.DatabaseLicenseTypeBasePrice),
 				string(sql.DatabaseLicenseTypeLicenseIncluded),
@@ -842,11 +841,10 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			Computed:         true,
-			ValidateFunc:     validate.DatabaseSkuName(),
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validate.DatabaseSkuName(),
 		},
 
 		"creation_source_database_id": {

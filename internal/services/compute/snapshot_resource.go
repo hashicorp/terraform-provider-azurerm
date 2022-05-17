@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -57,7 +56,6 @@ func resourceSnapshot() *pluginsdk.Resource {
 					string(compute.DiskCreateOptionCopy),
 					string(compute.DiskCreateOptionImport),
 				}, false),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"source_uri": {
@@ -85,6 +83,11 @@ func resourceSnapshot() *pluginsdk.Resource {
 			},
 
 			"encryption_settings": encryptionSettingsSchema(),
+
+			"trusted_launch_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 
 			"tags": tags.Schema(),
 		},
@@ -205,6 +208,14 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 			return fmt.Errorf("setting `encryption_settings`: %+v", err)
 		}
+
+		trustedLaunchEnabled := false
+		if securityProfile := props.SecurityProfile; securityProfile != nil {
+			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
+				trustedLaunchEnabled = true
+			}
+		}
+		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

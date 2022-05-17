@@ -141,13 +141,28 @@ func TestAccLinuxVirtualMachine_diskOSDiskEncryptionSetUpdate(t *testing.T) {
 	})
 }
 
-func TestAccLinuxVirtualMachine_diskOSEphemeral(t *testing.T) {
+func TestAccLinuxVirtualMachine_diskOSEphemeralDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSEphemeral(data),
+			Config: r.diskOSEphemeralDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxVirtualMachine_diskOSEphemeralResourceDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSEphemeralResourceDisk(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -655,7 +670,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.diskOSDiskDiskEncryptionSetResource(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) diskOSEphemeral(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) diskOSEphemeralDefault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -680,6 +695,45 @@ resource "azurerm_linux_virtual_machine" "test" {
 
     diff_disk_settings {
       option = "Local"
+    }
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) diskOSEphemeralResourceDisk(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F4s_v2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadOnly"
+    storage_account_type = "Standard_LRS"
+
+    diff_disk_settings {
+      option    = "Local"
+      placement = "ResourceDisk"
     }
   }
 
