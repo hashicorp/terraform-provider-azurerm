@@ -48,6 +48,7 @@ func resourceCdnFrontdoorCustomDomain() *pluginsdk.Resource {
 				ValidateFunc: validate.CdnFrontdoorCustomDomainName,
 			},
 
+			// WS: I need this fake field because I need the profile name during the create operation
 			"cdn_frontdoor_profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,

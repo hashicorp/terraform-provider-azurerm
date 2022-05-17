@@ -26,7 +26,8 @@ func TestAccCdnFrontdoorSecurityPolicy_basic(t *testing.T) {
 			),
 		},
 		// TODO: we can remove these import-ignores by fixing the resource
-		data.ImportStep("azurerm_cdn_frontdoor_firewall_policy.test.cdn_frontdoor_profile_id", "azurerm_cdn_frontdoor_custom_domain.test.cdn_frontdoor_profile_id"),
+		// WS: Fixed, custom domain needs the profile id during create because it needs the name
+		data.ImportStep("azurerm_cdn_frontdoor_custom_domain.test.cdn_frontdoor_profile_id"),
 	})
 }
 
@@ -55,7 +56,8 @@ func TestAccCdnFrontdoorSecurityPolicy_complete(t *testing.T) {
 			),
 		},
 		// TODO: we can remove these import-ignores by fixing the resource
-		data.ImportStep("azurerm_cdn_frontdoor_firewall_policy.test.cdn_frontdoor_profile_id", "azurerm_cdn_frontdoor_custom_domain.test.cdn_frontdoor_profile_id"),
+		// WS: Fixed, custom domain needs the profile id during create because it needs the name
+		data.ImportStep("azurerm_cdn_frontdoor_custom_domain.test.cdn_frontdoor_profile_id"),
 	})
 }
 
@@ -87,7 +89,6 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   name                              = "accTestWAF%[1]d"
   resource_group_name               = azurerm_resource_group.test.name
-  cdn_frontdoor_profile_id          = azurerm_cdn_frontdoor_profile.test.id
   sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
   enabled                           = true
   mode                              = "Prevention"

@@ -12,7 +12,7 @@ The successful creation of this resource represents that the TLS certificate(s) 
 
 This resource is used with the `azurerm_cdn_frontdoor_custom_domain` and the `cdn_frontdoor_route` resources to verify that the certificate defined in the `azurerm_cdn_frontdoor_custom_domain` `tls_settings` field has been successfully provisioned or not. The resource will halt the provisioning of other CDN Frontdoor resources while it waits for the Frontdoor service to provision the TLS certificate to there custom domain(s) before proceeding.
 
-~> **WARNING:** This resource implements a part of the validation workflow logic for Frontdoor Custom Domains. It does not represent a real-world entity in Azure, therefore changing or deleting this resource on its own has no immediate effect on the Azure CDN Frontdoor resource itself. If you are not implementing Frontdoor Custom Domains you do not need to add this resource to your configuration file.
+~>**WARNING:** This resource implements a part of the validation workflow logic for Frontdoor Custom Domains. It does not represent a real-world entity in Azure, therefore changing or deleting this resource on its own has no immediate effect on the Azure CDN Frontdoor resource itself. If you are not implementing Frontdoor Custom Domains you do not need to add this resource to your configuration file.
 
 ## Example Usage
 

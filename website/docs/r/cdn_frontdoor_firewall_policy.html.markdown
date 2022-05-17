@@ -27,7 +27,6 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   name                              = "examplecdnfdwafpolicy"
   resource_group_name               = azurerm_resource_group.example.name
-  cdn_frontdoor_profile_id          = azurerm_cdn_frontdoor_profile.example.id
   sku_name                          = azurerm_cdn_frontdoor_profile.example.sku_name
   enabled                           = true
   mode                              = "Prevention"
@@ -135,8 +134,6 @@ The following arguments are supported:
 * `name` - (Required) The name of the policy. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
-
-* `cdn_frontdoor_profile_id` - (Required) The resource ID of the Cdn Frontdoor Profile this Cdn Frontdoor firewall policy will belong to. Changing this forces a new resource to be created.
 
 * `enabled` - (Optional) Is the Cdn Frontdoor firewall policy enabled? Defaults to `true`.
 

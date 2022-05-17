@@ -53,13 +53,6 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"cdn_frontdoor_profile_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.FrontdoorProfileID,
-			},
-
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,

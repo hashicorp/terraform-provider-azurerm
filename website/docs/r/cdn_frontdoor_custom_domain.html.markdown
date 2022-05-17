@@ -10,6 +10,8 @@ description: |-
 
 Manages a Frontdoor Custom Domain.
 
+!>**IMPORTANT:** To delete a Frontdoor Custom Domain you must first disassociate the Custom Domain from the Frontdoor Route by removing the Custom Domains ID field from the Frontdoor Route `cdn_frontdoor_custom_domain_ids` field. Once the Frontdoor Route has been updated, in Azure, you may then remove the Frontdoor Custom Domain code block from your configuration file.
+
 ## Example Usage
 
 ```hcl

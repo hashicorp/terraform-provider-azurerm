@@ -40,7 +40,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				// TODO: validation
-				// WS: There are literally no rules to what this string can be. Fixed
+				// WS: There are literally no rules for what this string can be. Fixed
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -62,7 +62,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 
 						"firewall": {
 							Type:     pluginsdk.TypeList,
-							Optional: true,
+							Required: true,
 							ForceNew: true,
 							MaxItems: 1,
 
@@ -74,11 +74,14 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 										Required: true,
 										ForceNew: true,
 										// TODO: validation for the ID type
+										// WS: Fixed
+										ValidateFunc: validate.FrontdoorPolicyID,
 									},
 
 									"association": {
 										Type:     pluginsdk.TypeList,
-										Optional: true,
+										Required: true,
+										ForceNew: true,
 										MaxItems: 1,
 
 										Elem: &pluginsdk.Resource{
@@ -87,7 +90,8 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 												// NOTE: The max number of domains vary depending on sku: 100 Standard, 500 Premium
 												"domain": {
 													Type:     pluginsdk.TypeList,
-													Optional: true,
+													Required: true,
+													ForceNew: true,
 													MaxItems: 500,
 
 													Elem: &pluginsdk.Resource{
@@ -96,6 +100,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 															"cdn_frontdoor_custom_domain_id": {
 																Type:         pluginsdk.TypeString,
 																Required:     true,
+																ForceNew:     true,
 																ValidateFunc: validate.FrontdoorCustomDomainID,
 															},
 
@@ -111,6 +116,7 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 												"patterns_to_match": {
 													Type:     pluginsdk.TypeList,
 													Required: true,
+													ForceNew: true,
 													MaxItems: 25,
 
 													Elem: &pluginsdk.Schema{
@@ -129,11 +135,6 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 					},
 				},
 			},
-
-			"cdn_frontdoor_profile_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -143,6 +144,10 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	// WS: I need to have the fake profile id field here because
+	// I need the profile name and the last I knew we wanted to get
+	// away from using the name as a field and use ID which we can parse
+	// to get the same data?
 	profileId, err := parse.FrontdoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
@@ -174,11 +179,11 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("retreving the parent %q: `sku` was nil", *profileId)
 	}
 
-	standardSku := strings.HasPrefix(strings.ToLower(string(profile.Sku.Name)), "standard")
+	isStandardSku := strings.HasPrefix(strings.ToLower(string(profile.Sku.Name)), "standard")
 	params := cdn.BasicSecurityPolicyPropertiesParameters(nil)
 
 	if secPol, ok := d.GetOk("security_policies"); ok {
-		params, err = expandCdnFrontdoorSecurityPoliciesParameters(secPol.([]interface{}), standardSku)
+		params, err = cdnfrontdoorsecurityparams.ExpandCdnFrontdoorFirewallPolicyParameters(secPol.([]interface{}), isStandardSku)
 		if err != nil {
 			return fmt.Errorf("expanding %q: %+v", "security_policies", err)
 		}
@@ -226,13 +231,12 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("cdn_frontdoor_profile_id", parse.NewFrontdoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.SecurityPolicyProperties; props != nil {
-		securityPolicy, err := flattenCdnFrontdoorSecurityPoliciesParameters(props.Parameters)
+		securityPolicy, err := cdnfrontdoorsecurityparams.FlattenCdnFrontdoorFirewallPolicyParameters(props.Parameters)
 		if err != nil {
 			return fmt.Errorf("flattening %s: %+v", id, err)
 		}
 
-		d.Set("security_policies", *securityPolicy)
-		d.Set("cdn_frontdoor_profile_name", id.ProfileName)
+		d.Set("security_policies", securityPolicy)
 	}
 
 	return nil
@@ -258,24 +262,4 @@ func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta in
 	}
 
 	return nil
-}
-
-func expandCdnFrontdoorSecurityPoliciesParameters(input []interface{}, isStandardSku bool) (cdn.BasicSecurityPolicyPropertiesParameters, error) {
-	// TODO: this method becomes superfluous
-	results, err := cdnfrontdoorsecurityparams.ExpandCdnFrontdoorFirewallPolicyParameters(input, isStandardSku)
-	if err != nil {
-		return results, err
-	}
-
-	return results, nil
-}
-
-func flattenCdnFrontdoorSecurityPoliciesParameters(input cdn.BasicSecurityPolicyPropertiesParameters) (*[]interface{}, error) {
-	// TODO: this method is superfluous?
-	results, err := cdnfrontdoorsecurityparams.FlattenCdnFrontdoorFirewallPolicyParameters(input)
-	if err != nil {
-		return nil, err
-	}
-
-	return &results, nil
 }
