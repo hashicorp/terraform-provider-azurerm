@@ -6,6 +6,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_databricks_workspace` - Handle panic when SKU field is missing [GH-16819]
 * `azurerm_express_route_gateway` - Handle gateway connections not found error [GH-16804]
 
 ## 3.6.0 (May 12, 2022)
