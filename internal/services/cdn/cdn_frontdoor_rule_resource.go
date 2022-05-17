@@ -1285,118 +1285,68 @@ func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) (
 		return results, nil
 	}
 
-	m := cdnfrontdoorruleactions.InitializeCdnFrontdoorActionMappings()
-	keys := make(map[string]string)
+	requestHeaderActions := make([]interface{}, 0)
+	responseHeaderActions := make([]interface{}, 0)
+	routeConfigOverrideActions := make([]interface{}, 0)
+	urlRedirectActions := make([]interface{}, 0)
+	urlRewriteActions := make([]interface{}, 0)
 
-	for _, BasicDeliveryRuleAction := range *input {
-		result := make(map[string]interface{})
-
+	for _, item := range *input {
 		// Route Configuration
-		if action, ok := BasicDeliveryRuleAction.AsDeliveryRuleRouteConfigurationOverrideAction(); ok {
-			flattened, err := cdnfrontdoorruleactions.FlattenCdnFrontdoorRouteConfigurationOverrideAction(action)
-			if err != nil {
-				return nil, err
-			}
-
-			actionMapping := m.RouteConfigurationOverride
-
-			result[actionMapping.ConfigName] = flattened
-			keys[actionMapping.ConfigName] = actionMapping.ConfigName
-			results = append(results, result)
-
+		if action, ok := item.AsDeliveryRuleRouteConfigurationOverrideAction(); ok {
+			flattened := cdnfrontdoorruleactions.FlattenCdnFrontdoorRouteConfigurationOverrideAction(*action)
+			routeConfigOverrideActions = append(routeConfigOverrideActions, flattened)
 			continue
 		}
 
 		// Request Header
-		if action, ok := BasicDeliveryRuleAction.AsDeliveryRuleRequestHeaderAction(); ok {
-			flattened, err := cdnfrontdoorruleactions.FlattenCdnFrontdoorRequestHeaderAction(action)
-			if err != nil {
-				return nil, err
+		if action, ok := item.AsDeliveryRuleRequestHeaderAction(); ok {
+			if action.Parameters == nil {
+				return nil, fmt.Errorf("`parameters` was nil for Delivery Rule Response Header")
 			}
-
-			actionMapping := m.RequestHeader
-
-			result[actionMapping.ConfigName] = flattened
-			keys[actionMapping.ConfigName] = actionMapping.ConfigName
-			results = append(results, result)
-
+			flattened := cdnfrontdoorruleactions.FlattenHeaderActionParameters(action.Parameters)
+			requestHeaderActions = append(requestHeaderActions, flattened)
 			continue
 		}
 
 		// Response Header
-		if action, ok := BasicDeliveryRuleAction.AsDeliveryRuleResponseHeaderAction(); ok {
-			flattened, err := cdnfrontdoorruleactions.FlattenCdnFrontdoorResponseHeaderAction(action)
-			if err != nil {
-				return nil, err
+		if action, ok := item.AsDeliveryRuleResponseHeaderAction(); ok {
+			if action.Parameters == nil {
+				return nil, fmt.Errorf("`parameters` was nil for Delivery Rule Response Header")
 			}
-
-			actionMapping := m.ResponseHeader
-
-			result[actionMapping.ConfigName] = flattened
-			keys[actionMapping.ConfigName] = actionMapping.ConfigName
-			results = append(results, result)
-
+			flattened := cdnfrontdoorruleactions.FlattenHeaderActionParameters(action.Parameters)
+			responseHeaderActions = append(responseHeaderActions, flattened)
 			continue
 		}
 
 		// URL Redirect
-		if action, ok := BasicDeliveryRuleAction.AsURLRedirectAction(); ok {
-			flattened, err := cdnfrontdoorruleactions.FlattenCdnFrontdoorUrlRedirectAction(action)
-			if err != nil {
-				return nil, err
-			}
-
-			actionMapping := m.URLRedirect
-
-			result[actionMapping.ConfigName] = flattened
-			keys[actionMapping.ConfigName] = actionMapping.ConfigName
-			results = append(results, result)
-
+		if action, ok := item.AsURLRedirectAction(); ok {
+			flattened := cdnfrontdoorruleactions.FlattenCdnFrontdoorUrlRedirectAction(*action)
+			urlRedirectActions = append(urlRedirectActions, flattened)
 			continue
 		}
 
 		// URL Rewrite
-		if action, ok := BasicDeliveryRuleAction.AsURLRewriteAction(); ok {
-			flattened, err := cdnfrontdoorruleactions.FlattenCdnFrontdoorUrlRewriteAction(action)
-			if err != nil {
-				return nil, err
-			}
-
-			actionMapping := m.URLRewrite
-
-			result[actionMapping.ConfigName] = flattened
-			keys[actionMapping.ConfigName] = actionMapping.ConfigName
-			results = append(results, result)
-
+		if action, ok := item.AsURLRewriteAction(); ok {
+			flattened := cdnfrontdoorruleactions.FlattenCdnFrontdoorUrlRewriteAction(*action)
+			urlRewriteActions = append(urlRewriteActions, flattened)
 			continue
 		}
 
-		return nil, fmt.Errorf("unknown BasicDeliveryRuleAction encountered")
+		// this would be an unknown DeliveryRuleAction type, but since we're only flattening the above, we can ignore it
 	}
 
-	output := make(map[string][]interface{})
-
-	// at this point our keys map contains the list of all actions that were flattened
-	if len(keys) > 0 {
-		// set up a bucket to hold the flattened resource
-		for key := range keys {
-			output[key] = make([]interface{}, 0)
-		}
-
-		// now loop over all of the flattened
-		// actions and add them to the
-		// right bucket in output
-		for _, actions := range results {
-			action := actions.(map[string]interface{})
-
-			for key := range action {
-				output[key] = append(output[key], action[key])
-			}
-		}
-
-		return []interface{}{output}, nil
+	if len(requestHeaderActions) == 0 && len(responseHeaderActions) == 0 && len(routeConfigOverrideActions) == 0 && len(urlRedirectActions) == 0 && len(urlRewriteActions) == 0 {
+		return []interface{}{}, nil
 	}
 
-	// this should be an empty interface at this point
-	return results, nil
+	return []interface{}{
+		map[string]interface{}{
+			"request_header_action":               requestHeaderActions,
+			"response_header_action":              responseHeaderActions,
+			"route_configuration_override_action": routeConfigOverrideActions,
+			"url_redirect_action":                 urlRedirectActions,
+			"url_rewrite_action":                  urlRewriteActions,
+		},
+	}, nil
 }

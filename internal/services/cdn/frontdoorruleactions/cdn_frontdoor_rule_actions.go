@@ -92,17 +92,19 @@ func ExpandCdnFrontdoorRequestHeaderAction(input []interface{}) (*[]cdn.BasicDel
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
+		value := item["value"].(string)
+
 		requestHeaderAction := cdn.DeliveryRuleRequestHeaderAction{
 			Name: m.RequestHeader.Name,
 			Parameters: &cdn.HeaderActionParameters{
 				TypeName:     &m.RequestHeader.TypeName,
 				HeaderAction: cdn.HeaderAction(item["header_action"].(string)),
 				HeaderName:   utils.String(item["header_name"].(string)),
-				Value:        utils.String(item["value"].(string)),
+				Value:        utils.String(value),
 			},
 		}
 
-		if headerValue := *requestHeaderAction.Parameters.Value; headerValue == "" {
+		if value == "" {
 			if requestHeaderAction.Parameters.HeaderAction == cdn.HeaderActionOverwrite || requestHeaderAction.Parameters.HeaderAction == cdn.HeaderActionAppend {
 				return nil, fmt.Errorf("the %q block is not valid, %q can not be empty if the %q is set to %q or %q", m.RequestHeader.ConfigName, "value", "header_action", "Append", "Overwrite")
 			}
@@ -233,8 +235,10 @@ func ExpandCdnFrontdoorRouteConfigurationOverrideAction(input []interface{}) (*[
 		}
 
 		routeConfigurationOverrideAction := cdn.DeliveryRuleRouteConfigurationOverrideAction{
-			Name: m.RouteConfigurationOverride.Name,
 			Parameters: &cdn.RouteConfigurationOverrideActionParameters{
+				// TODO: appears this is an SDK bug, the field `TypeName` has a single parameter defined and so should be fixed to that value in the Marshal function
+				// https://github.com/Azure/azure-rest-api-specs/blob/271c819e255b6e437fd84a429c0d7b480052e6ab/specification/cdn/resource-manager/Microsoft.Cdn/stable/2021-06-01/cdn.json#L4708-L4712
+				// we should confirm if the API sets this by default or not?
 				TypeName:            utils.String(m.RouteConfigurationOverride.TypeName),
 				OriginGroupOverride: originGroupOverride,
 				CacheConfiguration:  cacheConfiguration,
@@ -258,33 +262,19 @@ func ExpandCdnFrontdoorRouteConfigurationOverrideAction(input []interface{}) (*[
 	return &output, nil
 }
 
-func FlattenCdnFrontdoorRequestHeaderAction(input cdn.BasicDeliveryRuleAction) (map[string]interface{}, error) {
-	action, ok := input.AsDeliveryRuleRequestHeaderAction()
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule request header action")
-	}
-
-	return flattenCdnFrontdoorHeaderAction(action.Parameters), nil
-}
-
-func FlattenCdnFrontdoorResponseHeaderAction(input cdn.BasicDeliveryRuleAction) (map[string]interface{}, error) {
-	action, ok := input.AsDeliveryRuleResponseHeaderAction()
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule reesponse header action")
-	}
-
-	return flattenCdnFrontdoorHeaderAction(action.Parameters), nil
-}
-
-func flattenCdnFrontdoorHeaderAction(input *cdn.HeaderActionParameters) map[string]interface{} {
+func FlattenHeaderActionParameters(input *cdn.HeaderActionParameters) map[string]interface{} {
 	action := ""
 	name := ""
 	value := ""
 
 	if params := input; params != nil {
 		action = string(params.HeaderAction)
-		name = *params.HeaderName
-		value = *params.Value
+		if params.HeaderName != nil {
+			name = *params.HeaderName
+		}
+		if params.Value != nil {
+			value = *params.Value
+		}
 	}
 
 	return map[string]interface{}{
@@ -294,12 +284,7 @@ func flattenCdnFrontdoorHeaderAction(input *cdn.HeaderActionParameters) map[stri
 	}
 }
 
-func FlattenCdnFrontdoorUrlRedirectAction(input cdn.BasicDeliveryRuleAction) (map[string]interface{}, error) {
-	action, ok := input.AsURLRedirectAction()
-	if !ok {
-		return nil, fmt.Errorf("expected a URL redirect action")
-	}
-
+func FlattenCdnFrontdoorUrlRedirectAction(input cdn.URLRedirectAction) map[string]interface{} {
 	destinationHost := ""
 	destinationPath := ""
 	queryString := ""
@@ -307,13 +292,21 @@ func FlattenCdnFrontdoorUrlRedirectAction(input cdn.BasicDeliveryRuleAction) (ma
 	redirectType := ""
 	fragment := ""
 
-	if params := action.Parameters; params != nil {
-		destinationHost = *params.CustomHostname
-		destinationPath = *params.CustomPath
-		queryString = *params.CustomQueryString
+	if params := input.Parameters; params != nil {
+		if params.CustomHostname != nil {
+			destinationHost = *params.CustomHostname
+		}
+		if params.CustomPath != nil {
+			destinationPath = *params.CustomPath
+		}
+		if params.CustomQueryString != nil {
+			queryString = *params.CustomQueryString
+		}
 		destinationProtocol = string(params.DestinationProtocol)
 		redirectType = string(params.RedirectType)
-		fragment = *params.CustomFragment
+		if params.CustomFragment != nil {
+			fragment = *params.CustomFragment
+		}
 	}
 
 	return map[string]interface{}{
@@ -323,38 +316,33 @@ func FlattenCdnFrontdoorUrlRedirectAction(input cdn.BasicDeliveryRuleAction) (ma
 		"redirect_protocol":    destinationProtocol,
 		"redirect_type":        redirectType,
 		"destination_fragment": fragment,
-	}, nil
+	}
 }
 
-func FlattenCdnFrontdoorUrlRewriteAction(input cdn.BasicDeliveryRuleAction) (map[string]interface{}, error) {
-	action, ok := input.AsURLRewriteAction()
-	if !ok {
-		return nil, fmt.Errorf("expected a URL redirect action")
-	}
-
+func FlattenCdnFrontdoorUrlRewriteAction(input cdn.URLRewriteAction) map[string]interface{} {
 	destination := ""
 	preservePath := false
 	sourcePattern := ""
-
-	if params := action.Parameters; params != nil {
-		destination = *params.Destination
-		preservePath = *params.PreserveUnmatchedPath
-		sourcePattern = *params.SourcePattern
+	if params := input.Parameters; params != nil {
+		if params.Destination != nil {
+			destination = *params.Destination
+		}
+		if params.PreserveUnmatchedPath != nil {
+			preservePath = *params.PreserveUnmatchedPath
+		}
+		if params.SourcePattern != nil {
+			sourcePattern = *params.SourcePattern
+		}
 	}
 
 	return map[string]interface{}{
 		"destination":             destination,
 		"preserve_unmatched_path": preservePath,
 		"source_pattern":          sourcePattern,
-	}, nil
+	}
 }
 
-func FlattenCdnFrontdoorRouteConfigurationOverrideAction(input cdn.BasicDeliveryRuleAction) (map[string]interface{}, error) {
-	action, ok := input.AsDeliveryRuleRouteConfigurationOverrideAction()
-	if !ok {
-		return nil, fmt.Errorf("expected a route configuration override action")
-	}
-
+func FlattenCdnFrontdoorRouteConfigurationOverrideAction(input cdn.DeliveryRuleRouteConfigurationOverrideAction) map[string]interface{} {
 	queryStringCachingBehavior := ""
 	cacheBehavior := ""
 	compressionEnabled := false
@@ -363,14 +351,22 @@ func FlattenCdnFrontdoorRouteConfigurationOverrideAction(input cdn.BasicDelivery
 	forwardingProtocol := ""
 	originGroupId := ""
 
-	if params := action.Parameters; params != nil {
-		queryStringCachingBehavior = string(params.CacheConfiguration.QueryStringCachingBehavior)
-		cacheBehavior = string(params.CacheConfiguration.CacheBehavior)
-		compressionEnabled = (params.CacheConfiguration.IsCompressionEnabled == cdn.RuleIsCompressionEnabledEnabled)
-		cacheDuration = *params.CacheConfiguration.CacheDuration
-		queryParameters = flattenCsvToStringSlice(params.CacheConfiguration.QueryParameters)
-		forwardingProtocol = string(params.OriginGroupOverride.ForwardingProtocol)
-		originGroupId = *params.OriginGroupOverride.OriginGroup.ID
+	if params := input.Parameters; params != nil {
+		if config := params.CacheConfiguration; config != nil {
+			queryStringCachingBehavior = string(config.QueryStringCachingBehavior)
+			cacheBehavior = string(config.CacheBehavior)
+			compressionEnabled = config.IsCompressionEnabled == cdn.RuleIsCompressionEnabledEnabled
+			cacheDuration = *config.CacheDuration
+			queryParameters = flattenCsvToStringSlice(config.QueryParameters)
+		}
+
+		if override := params.OriginGroupOverride; override != nil {
+			forwardingProtocol = string(override.ForwardingProtocol)
+
+			if group := override.OriginGroup; group != nil && group.ID != nil {
+				originGroupId = *group.ID
+			}
+		}
 	}
 
 	return map[string]interface{}{
@@ -381,5 +377,5 @@ func FlattenCdnFrontdoorRouteConfigurationOverrideAction(input cdn.BasicDelivery
 		"query_string_parameters":       queryParameters,
 		"forwarding_protocol":           forwardingProtocol,
 		"cdn_frontdoor_origin_group_id": originGroupId,
-	}, nil
+	}
 }
