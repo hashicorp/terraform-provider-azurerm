@@ -277,12 +277,10 @@ resource "azurerm_dns_txt_record" "fabrikam" {
 
 resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "contoso" {
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
-  dns_txt_record_id              = azurerm_dns_txt_record.contoso.id
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "fabrikam" {
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.fabrikam.id
-  dns_txt_record_id              = azurerm_dns_txt_record.fabrikam.id
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain_secret_validator" "example" {

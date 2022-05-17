@@ -506,7 +506,7 @@ func expandCdnFrontdoorRouteResourceReferenceArray(input []interface{}) *[]cdn.R
 	results := make([]cdn.ResourceReference, 0)
 	if len(input) == 0 || input[0] == nil {
 		// TODO: shouldn't this be returning an empty slice?
-		// WS: Fixed
+		// WS: Fixed, note due to the services treatment of empty object I believe this will cause an error since it is not a nil value instead.
 		return &results
 	}
 
@@ -522,8 +522,10 @@ func expandCdnFrontdoorRouteResourceReferenceArray(input []interface{}) *[]cdn.R
 func expandCdnFrontdoorRouteCacheConfiguration(input []interface{}) *cdn.AfdRouteCacheConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		// TODO: shouldn't this be returning an empty slice?
-		// WS: Fixed
-		return &cdn.AfdRouteCacheConfiguration{}
+		// WS: No, if this is not an explicit nil you will recieve a "Unsupported QueryStringCachingBehavior type: ''.
+		// Property 'RouteV2.CacheConfiguration.QueryStringCachingBehavior' is required but it was not set" error.
+		// The Frontdoor service treats empty slices as if they are fully defined unlike other services.
+		return nil
 	}
 
 	v := input[0].(map[string]interface{})

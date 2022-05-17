@@ -64,7 +64,6 @@ resource "azurerm_dns_txt_record" "contoso" {
 
 resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "example" {
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.example.id
-  dns_txt_record_id              = azurerm_dns_txt_record.contoso.id
 }
 ```
 
@@ -74,13 +73,11 @@ The following arguments are supported:
 
 * `cdn_frontdoor_custom_domain_id` - (Required) The resource ID of the Frontdoor Custom Domain to validate. Changing this forces a new Frontdoor Custom Domain Txt Validator to be created.
 
-* `dns_txt_record_id` - (Required) The resource ID of the DNS TXT record resource. Changing this forces a new Frontdoor Custom Domain Txt Validator to be created.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Frontdoor Endpoint.
+* `id` - The ID of the Frontdoor custom domain txt validator.
 
 * `cdn_frontdoor_custom_domain_validation_state` - The state of the Frontdoor Custom Domain DNS TXT record validation process. Possible return values include `Approved`, `InternalError`, `Pending`, `PendingRevalidation`, `RefreshingValidationToken`, `Rejected`, `Submitting`, `TimedOut` and `Unknown`.
 

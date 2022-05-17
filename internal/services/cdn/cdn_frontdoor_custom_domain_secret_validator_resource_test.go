@@ -143,7 +143,6 @@ resource "azurerm_dns_txt_record" "fabrikam" {
 
 resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "fabrikam" {
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.test.id
-  dns_txt_record_id              = azurerm_dns_txt_record.fabrikam.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

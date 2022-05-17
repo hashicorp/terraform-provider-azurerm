@@ -149,7 +149,6 @@ func (r CdnFrontdoorCustomDomainTxtValidatorResource) complete(data acceptance.T
 
 resource "azurerm_cdn_frontdoor_custom_domain_txt_validator" "test" {
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.test.id
-  dns_txt_record_id              = azurerm_dns_txt_record.fabrikam.id
 }
 `, template)
 }

@@ -11,15 +11,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
-	dnsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/parse"
-	dnsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // TODO: this needs discussing
-
+// WS: We need to sequence the associating the custom domain with the route, in the new
+// Frontdoor service you have to verify domain ownership via the _dnsAuth txt record before
+// you can associate the custom domain with the Frontdoor route
 func resourceCdnFrontdoorCustomDomainTxtValidator() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCdnFrontdoorCustomDomainTxtValidatorCreate,
@@ -39,12 +39,6 @@ func resourceCdnFrontdoorCustomDomainTxtValidator() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
-			"dns_txt_record_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: dnsValidate.TxtRecordID,
-			},
 
 			"cdn_frontdoor_custom_domain_id": {
 				Type:         pluginsdk.TypeString,
@@ -66,11 +60,6 @@ func resourceCdnFrontdoorCustomDomainTxtValidatorCreate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	txtId, err := dnsParse.TxtRecordID(d.Get("dns_txt_record_id").(string))
-	if err != nil {
-		return err
-	}
-
 	customDomainId, err := parse.FrontdoorCustomDomainID(d.Get("cdn_frontdoor_custom_domain_id").(string))
 	if err != nil {
 		return err
@@ -90,7 +79,7 @@ func resourceCdnFrontdoorCustomDomainTxtValidatorCreate(d *pluginsdk.ResourceDat
 			return fmt.Errorf("checking for existing %s: %+v", *customDomainId, err)
 		}
 
-		return fmt.Errorf("creating %s: %+v", id, err)
+		return fmt.Errorf("verifying existence %s: %+v", id, err)
 	}
 
 	// DomainValidationStates: "Approved", "InternalError", "Pending", "PendingRevalidation",
@@ -115,7 +104,6 @@ func resourceCdnFrontdoorCustomDomainTxtValidatorCreate(d *pluginsdk.ResourceDat
 	}
 
 	d.SetId(id.ID())
-	d.Set("dns_txt_record_id", txtId.ID())
 	return resourceCdnFrontdoorCustomDomainTxtValidatorRead(d, meta)
 }
 
@@ -123,11 +111,6 @@ func resourceCdnFrontdoorCustomDomainTxtValidatorRead(d *pluginsdk.ResourceData,
 	client := meta.(*clients.Client).Cdn.FrontDoorCustomDomainsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	txtId, err := dnsParse.TxtRecordID(d.Get("dns_txt_record_id").(string))
-	if err != nil {
-		return err
-	}
 
 	id, err := parse.FrontdoorCustomDomainTxtID(d.Id())
 	if err != nil {
@@ -147,7 +130,6 @@ func resourceCdnFrontdoorCustomDomainTxtValidatorRead(d *pluginsdk.ResourceData,
 	}
 
 	if props := resp.AFDDomainProperties; props != nil {
-		d.Set("dns_txt_record_id", txtId.ID())
 		d.Set("cdn_frontdoor_custom_domain_id", customDomainId.ID())
 		d.Set("cdn_frontdoor_custom_domain_validation_state", props.DomainValidationState)
 	}
