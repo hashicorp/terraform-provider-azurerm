@@ -35,7 +35,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -109,7 +108,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					"Standard",
 					"Premium",
 				}, false),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"account_replication_type": {
