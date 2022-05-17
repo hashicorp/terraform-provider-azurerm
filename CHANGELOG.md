@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * `azurerm_spring_cloud_app` - support for the `identity` block [GH-16280]
 
+BUG FIXES:
+
+* `azurerm_express_route_gateway` - Handle gateway connections not found error [GH-16804]
+
 ## 3.6.0 (May 12, 2022)
 
 FEATURES:

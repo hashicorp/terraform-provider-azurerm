@@ -21,7 +21,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -887,9 +886,8 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		"location": azure.SchemaLocation(),
 
 		"sku": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(containerregistry.SkuNameBasic),
 				string(containerregistry.SkuNameStandard),

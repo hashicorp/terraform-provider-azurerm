@@ -185,7 +185,7 @@ A `private_service_connection` supports the following:
 | Web App / Function App        | sites            |                            |
 | Web App / Function App Slots  | sites-<slotName> |                            |
 
-See the product [documentation](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview#private-link-resource) for more information.
+See the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) for more information.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
 
