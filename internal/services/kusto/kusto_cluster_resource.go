@@ -200,8 +200,8 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"public_ip_type": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      "IPv4",
-				ValidateFunc: validation.StringInSlice([]string{"IPv4", "DualStack"}, false),
+				Default:      string(kusto.PublicIPTypeIPv4),
+				ValidateFunc: validation.StringInSlice([]string{string(kusto.PublicIPTypeIPv4), string(kusto.PublicIPTypeDualStack)}, false),
 			},
 
 			"public_network_access_enabled": {

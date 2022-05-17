@@ -99,6 +99,8 @@ resource "azurerm_kusto_iothub_data_connection" "test" {
   event_system_properties   = ["message-id", "sequence-number", "to"]
   mapping_rule_name         = "Json_Mapping"
   data_format               = "MULTIJSON"
+
+  database_routing = "Multi"
 }
 `, r.template(data), data.RandomInteger)
 }
