@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2021-03-01/containerinstance"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -18,11 +18,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -59,11 +60,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"ip_address_type": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Default:          string(containerinstance.ContainerGroupIPAddressTypePublic),
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(containerinstance.ContainerGroupIPAddressTypePublic),
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.ContainerGroupIPAddressTypePublic),
 					string(containerinstance.ContainerGroupIPAddressTypePrivate),
@@ -80,10 +80,9 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			},
 
 			"os_type": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.OperatingSystemTypesWindows),
 					string(containerinstance.OperatingSystemTypesLinux),
@@ -126,11 +125,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 
 			"restart_policy": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				Default:          string(containerinstance.ContainerGroupRestartPolicyAlways),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(containerinstance.ContainerGroupRestartPolicyAlways),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.ContainerGroupRestartPolicyAlways),
 					string(containerinstance.ContainerGroupRestartPolicyNever),
@@ -460,6 +458,13 @@ func resourceContainerGroup() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"key_vault_key_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: keyVaultValidate.NestedItemId,
+			},
 		},
 	}
 }
@@ -663,6 +668,18 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if keyVaultKeyId := d.Get("key_vault_key_id").(string); keyVaultKeyId != "" {
+		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyId)
+		if err != nil {
+			return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
+		}
+		containerGroup.ContainerGroupProperties.EncryptionProperties = &containerinstance.EncryptionProperties{
+			VaultBaseURL: utils.String(keyId.KeyVaultBaseUrl),
+			KeyName:      utils.String(keyId.Name),
+			KeyVersion:   utils.String(keyId.Version),
+		}
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, containerGroup)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
@@ -765,6 +782,28 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		if err := d.Set("diagnostics", flattenContainerGroupDiagnostics(d, props.Diagnostics)); err != nil {
 			return fmt.Errorf("setting `diagnostics`: %+v", err)
+		}
+
+		if kvProps := props.EncryptionProperties; kvProps != nil {
+			var keyVaultUri, keyName, keyVersion string
+			if kvProps.VaultBaseURL != nil && *kvProps.VaultBaseURL != "" {
+				keyVaultUri = *kvProps.VaultBaseURL
+			} else {
+				return fmt.Errorf("empty value returned for Key Vault URI")
+			}
+			if kvProps.KeyName != nil && *kvProps.KeyName != "" {
+				keyName = *kvProps.KeyName
+			} else {
+				return fmt.Errorf("empty value returned for Key Vault Key Name")
+			}
+			if kvProps.KeyVersion != nil {
+				keyVersion = *kvProps.KeyVersion
+			}
+			keyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, "keys", keyName, keyVersion)
+			if err != nil {
+				return err
+			}
+			d.Set("key_vault_key_id", keyId.ID())
 		}
 	}
 

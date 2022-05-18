@@ -271,10 +271,6 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("setting module error: %+v", err)
 	}
 
-	if isGeoEnabled && module != nil && evictionPolicy != databases.EvictionPolicyNoEviction {
-		return fmt.Errorf("evictionPolicy must be set to NoEviction when using RediSearch module")
-	}
-
 	parameters := databases.Database{
 		Properties: &databases.DatabaseProperties{
 			ClientProtocol:   &protocol,
@@ -431,10 +427,6 @@ func resourceRedisEnterpriseDatabaseUpdate(d *pluginsdk.ResourceData, meta inter
 	module, err := expandArmDatabaseModuleArray(d.Get("module").([]interface{}), isGeoEnabled)
 	if err != nil {
 		return fmt.Errorf("setting module error: %+v", err)
-	}
-
-	if isGeoEnabled && module != nil && evictionPolicy != databases.EvictionPolicyNoEviction {
-		return fmt.Errorf("evictionPolicy must be set to NoEviction when using RediSearch module")
 	}
 
 	parameters := databases.Database{

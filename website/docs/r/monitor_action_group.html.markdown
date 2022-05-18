@@ -224,7 +224,7 @@ The following arguments are supported:
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 * `aad_auth` - (Optional) The `aad_auth` block as defined below
 
-~> **NOTE:** Before adding a secure webhook receiver by setting `aad_auth`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/action-groups#secure-webhook).
+~> **NOTE:** Before adding a secure webhook receiver by setting `aad_auth`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/azure/azure-monitor/platform/action-groups#secure-webhook).
 
 `aad_auth` supports the following:.
 

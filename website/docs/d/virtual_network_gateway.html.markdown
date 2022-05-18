@@ -48,7 +48,7 @@ output "virtual_network_gateway_id" {
 * `default_local_network_gateway_id` -  The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
     gateway is created will be routed (*forced tunneling*). Refer to the
-    [Azure documentation on forced tunneling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
+    [Azure documentation on forced tunneling](https://docs.microsoft.com/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
 
 * `sku` - Configuration of the size and capacity of the Virtual Network Gateway.
 
@@ -61,6 +61,8 @@ output "virtual_network_gateway_id" {
 * `tags` - A mapping of tags assigned to the resource.
 
 The `ip_configuration` block supports:
+
+* `id` - The resource ID of the IP configuration.
 
 * `name` - A user-defined name of the IP configuration.
 

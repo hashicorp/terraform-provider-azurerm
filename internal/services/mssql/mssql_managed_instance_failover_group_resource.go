@@ -195,7 +195,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 					},
 					ManagedInstancePairs: &[]sql.ManagedInstancePairInfo{
 						{
-							PrimaryManagedInstanceID: utils.String(id.ID()),
+							PrimaryManagedInstanceID: utils.String(managedInstanceId.ID()),
 							PartnerManagedInstanceID: utils.String(partnerId.ID()),
 						},
 					},
@@ -298,7 +298,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			result, err := client.Get(ctx, id.ResourceGroup, state.Location, id.Name)
+			result, err := client.Get(ctx, id.ResourceGroup, id.LocationName, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(result.Response) {
 					return metadata.MarkAsGone(id)
