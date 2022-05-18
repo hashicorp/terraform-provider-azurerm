@@ -138,7 +138,7 @@ A `application_stack` block supports the following:
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `~12`, `~14`, and `~16`.
 
-* `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`.
+* `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, and `7.2`.
 
 * `use_custom_runtime` - (Optional) Should the Windows Function App use a custom runtime?
 

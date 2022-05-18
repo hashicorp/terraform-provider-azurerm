@@ -60,6 +60,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
+        // Elastic can't provision many in parallel
+        "elastic" to testConfiguration(parallelism = 1),
+
         // HPC Cache has a 4 instance per subscription quota as of early 2021
         "hpccache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
 

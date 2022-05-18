@@ -49,6 +49,8 @@ The following arguments are supported:
 
 * `service_name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created.
 
+* `addon_json` - (Optional) A JSON object that contains the addon configurations of the Spring Cloud Service.
+
 * `custom_persistent_disk` - (Optional) A `custom_persistent_disk` block as defined below.
   
 * `identity` - (Optional) An `identity` block as defined below.
