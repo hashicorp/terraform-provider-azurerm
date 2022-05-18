@@ -377,7 +377,7 @@ An `application_stack` block supports the following:
 
 * `node_version` - (Optional) The version of Node to use. Possible values include `12`, and `14`
 
-* `powershell_core_version` - (Optional) The PowerShell Core version to use. Possible values are `7`.
+* `powershell_core_version` - (Optional) The PowerShell Core version to use. Possible values are `7`, and `7.2`.
 
 * `use_custom_runtime` - (Optional) Does the Function App use a custom Application Stack?
 
