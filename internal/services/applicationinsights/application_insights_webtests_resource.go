@@ -7,8 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/azuresdkhacks"
-
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -137,7 +135,7 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 }
 
 func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := azuresdkhacks.NewWebTestsClient(meta.(*clients.Client).AppInsights.WebTestsClient)
+	client := meta.(*clients.Client).AppInsights.WebTestsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -221,7 +219,7 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 
 	log.Printf("[DEBUG] Reading AzureRM Application Insights %q", *id)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Application Insights %s was not found - removing from state!", *id)
@@ -282,7 +280,7 @@ func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta i
 
 	log.Printf("[DEBUG] Deleting AzureRM Application Insights %s", *id)
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return nil

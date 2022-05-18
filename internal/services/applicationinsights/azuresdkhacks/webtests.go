@@ -14,9 +14,9 @@ type WebTestsClient struct {
 	client *insights.WebTestsClient
 }
 
-func NewWebTestsClient(client *insights.WebTestsClient) WebTestsClient {
+func NewWebTestsClient(client insights.WebTestsClient) WebTestsClient {
 	return WebTestsClient{
-		client: client,
+		client: &client,
 	}
 }
 
@@ -59,6 +59,10 @@ func (c WebTestsClient) createOrUpdateResponder(resp *http.Response) (result ins
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
+}
+
+func (c WebTestsClient) Delete(ctx context.Context, id parse.WebTestId) (result autorest.Response, err error) {
+	return c.client.Delete(ctx, id.ResourceGroup, id.Name)
 }
 
 func (c WebTestsClient) Get(ctx context.Context, id parse.WebTestId) (result insights.WebTest, err error) {
