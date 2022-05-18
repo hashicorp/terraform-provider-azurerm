@@ -18,11 +18,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	legacyIdentity "github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/networkrulesets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-11-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -598,30 +597,29 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 	}}
 }
 
-func expandEventHubIdentity(input []interface{}) (*legacyIdentity.SystemUserAssignedIdentityMap, error) {
+func expandEventHubIdentity(input []interface{}) (*identity.SystemAndUserAssignedMap, error) {
 	expanded, err := identity.ExpandSystemAssigned(input)
 	if err != nil {
 		return nil, err
 	}
 
-	result := legacyIdentity.SystemUserAssignedIdentityMap{
-		Type:        legacyIdentity.Type(string(expanded.Type)),
-		PrincipalId: &expanded.PrincipalId,
-		TenantId:    &expanded.TenantId,
+	result := identity.SystemAndUserAssignedMap{
+		Type:        identity.Type(string(expanded.Type)),
+		PrincipalId: expanded.PrincipalId,
+		TenantId:    expanded.TenantId,
 	}
 	return &result, nil
 }
 
-func flattenEventHubIdentity(input *legacyIdentity.SystemUserAssignedIdentityMap) []interface{} {
+func flattenEventHubIdentity(input *identity.SystemAndUserAssignedMap) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-	legacyConfig := input.ToExpandedConfig()
 	return identity.FlattenSystemAssigned(&identity.SystemAssigned{
-		Type:        identity.Type(string(legacyConfig.Type)),
-		PrincipalId: legacyConfig.PrincipalId,
-		TenantId:    legacyConfig.TenantId,
+		Type:        identity.Type(string(input.Type)),
+		PrincipalId: input.PrincipalId,
+		TenantId:    input.TenantId,
 	})
 }
 

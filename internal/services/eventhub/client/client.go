@@ -10,7 +10,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/networkrulesets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-11-01/namespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-11-01/schemaregistry"
 )
 
 type Client struct {
@@ -22,6 +23,7 @@ type Client struct {
 	EventHubAuthorizationRulesClient       *authorizationruleseventhubs.AuthorizationRulesEventHubsClient
 	NamespacesClient                       *namespaces.NamespacesClient
 	NamespaceAuthorizationRulesClient      *authorizationrulesnamespaces.AuthorizationRulesNamespacesClient
+	NamespaceSchemaGroupClient             *schemaregistry.SchemaRegistryClient
 	NetworkRuleSetsClient                  *networkrulesets.NetworkRuleSetsClient
 }
 
@@ -50,6 +52,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	namespaceAuthorizationRulesClient := authorizationrulesnamespaces.NewAuthorizationRulesNamespacesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&namespaceAuthorizationRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	namespaceSchemaRegistryClient := schemaregistry.NewSchemaRegistryClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&namespaceSchemaRegistryClient.Client, o.ResourceManagerAuthorizer)
+
 	networkRuleSetsClient := networkrulesets.NewNetworkRuleSetsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&networkRuleSetsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -62,6 +67,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		EventHubAuthorizationRulesClient:       &eventHubAuthorizationRulesClient,
 		NamespacesClient:                       &namespacesClient,
 		NamespaceAuthorizationRulesClient:      &namespaceAuthorizationRulesClient,
+		NamespaceSchemaGroupClient:             &namespaceSchemaRegistryClient,
 		NetworkRuleSetsClient:                  &networkRuleSetsClient,
 	}
 }
