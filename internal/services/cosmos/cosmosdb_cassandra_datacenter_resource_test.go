@@ -19,7 +19,7 @@ func testAccCassandraDatacenter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
 	r := CassandraDatacenterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, 3),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
@@ -34,7 +34,7 @@ func testAccCassandraDatacenter_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
 	r := CassandraDatacenterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, 3),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
@@ -49,7 +49,7 @@ func testAccCassandraDatacenter_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
 	r := CassandraDatacenterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, 3),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
