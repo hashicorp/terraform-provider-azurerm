@@ -123,6 +123,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 
 			"access_tier": {
 				Type:     pluginsdk.TypeString,
+				Computed: true,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{
