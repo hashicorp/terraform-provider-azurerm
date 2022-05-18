@@ -125,9 +125,12 @@ func resourceStorageShare() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice(
-					[]string{string(shares.HotAccessTier),
+					[]string{
+						string(shares.PremiumAccessTier),
+						string(shares.HotAccessTier),
 						string(shares.CoolAccessTier),
-						string(shares.TransactionOptimizedAccessTier)}, false),
+						string(shares.TransactionOptimizedAccessTier),
+					}, false),
 			},
 		},
 	}
