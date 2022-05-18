@@ -302,7 +302,8 @@ func (CassandraDatacenterResource) template(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }
@@ -326,10 +327,14 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
+data "azuread_service_principal" "test" {
+  display_name = "Azure Cosmos DB"
+}
+
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_virtual_network.test.id
   role_definition_name = "Network Contributor"
-  principal_id         = "255f3c8e-0c3d-4f06-ba9d-2fb68af0faed"
+  principal_id         = data.azuread_service_principal.test.object_id
 }
 
 resource "azurerm_cosmosdb_cassandra_cluster" "test" {
