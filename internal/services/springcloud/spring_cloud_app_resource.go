@@ -1,6 +1,7 @@
 package springcloud
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -55,6 +56,14 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.SpringCloudServiceName,
+			},
+
+			"addon_json": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -185,10 +194,16 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
+	addonConfig, err := expandSpringCloudAppAddon(d.Get("addon_json").(string))
+	if err != nil {
+		return err
+	}
+
 	app := appplatform.AppResource{
 		Location: serviceResp.Location,
 		Identity: identity,
 		Properties: &appplatform.AppResourceProperties{
+			AddonConfigs:          addonConfig,
 			EnableEndToEndTLS:     utils.Bool(d.Get("tls_enabled").(bool)),
 			Public:                utils.Bool(d.Get("is_public").(bool)),
 			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), id),
@@ -232,9 +247,15 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
+	addonConfig, err := expandSpringCloudAppAddon(d.Get("addon_json").(string))
+	if err != nil {
+		return err
+	}
+
 	app := appplatform.AppResource{
 		Identity: identity,
 		Properties: &appplatform.AppResourceProperties{
+			AddonConfigs:          addonConfig,
 			EnableEndToEndTLS:     utils.Bool(d.Get("tls_enabled").(bool)),
 			Public:                utils.Bool(d.Get("is_public").(bool)),
 			HTTPSOnly:             utils.Bool(d.Get("https_only").(bool)),
@@ -291,7 +312,9 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("fqdn", prop.Fqdn)
 		d.Set("url", prop.URL)
 		d.Set("tls_enabled", prop.EnableEndToEndTLS)
-
+		if err := d.Set("addon_json", flattenSpringCloudAppAddon(prop.AddonConfigs)); err != nil {
+			return fmt.Errorf("setting `addon_json`: %s", err)
+		}
 		if err := d.Set("persistent_disk", flattenSpringCloudAppPersistentDisk(prop.PersistentDisk)); err != nil {
 			return fmt.Errorf("setting `persistent_disk`: %s", err)
 		}
@@ -374,9 +397,19 @@ func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.Sp
 	return &results
 }
 
+func expandSpringCloudAppAddon(input string) (map[string]map[string]interface{}, error) {
+	var addonConfig map[string]map[string]interface{}
+	if len(input) != 0 {
+		err := json.Unmarshal([]byte(input), &addonConfig)
+		if err != nil {
+			return nil, fmt.Errorf("unable to unmarshal `addon_json`: %+v", err)
+		}
+	}
+	return addonConfig, nil
+}
+
 func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties) (*[]interface{}, error) {
 	var transform *identity.SystemAndUserAssignedMap
-
 	if input != nil {
 		transform = &identity.SystemAndUserAssignedMap{
 			Type:        identity.Type(string(input.Type)),
@@ -463,4 +496,12 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 		})
 	}
 	return results
+}
+
+func flattenSpringCloudAppAddon(configs map[string]map[string]interface{}) *string {
+	if len(configs) == 0 {
+		return nil
+	}
+	addonConfig, _ := json.Marshal(configs)
+	return utils.String(string(addonConfig))
 }
