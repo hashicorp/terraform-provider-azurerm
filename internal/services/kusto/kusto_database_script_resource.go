@@ -67,6 +67,8 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 			"url": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ExactlyOneOf: []string{"url", "script_content"},
+				RequiredWith: []string{"sas_token"},
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -74,12 +76,14 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
+				RequiredWith: []string{"url"},
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"script_content": {
 				Type:         pluginsdk.TypeString,
+				ExactlyOneOf: []string{"url", "script_content"},
 				Optional:     true,
 				ForceNew:     true,
 				Sensitive:    true,
