@@ -271,6 +271,11 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"service_registry_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -496,6 +501,11 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.Set("service_registry_enabled", serviceRegistryEnabled)
+	if serviceRegistryEnabled {
+		d.Set("service_registry_id", parse.NewSpringCloudServiceRegistryID(id.SubscriptionId, id.ResourceGroup, id.SpringName, "default").ID())
+	} else {
+		d.Set("service_registry_id", "")
+	}
 
 	if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(configServer.Properties, d)); err != nil {
 		return fmt.Errorf("setting `config_server_git_setting`: %+v", err)

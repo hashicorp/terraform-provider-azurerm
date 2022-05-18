@@ -14,11 +14,12 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-12-01/redis"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2021-06-01/redis"
 
 // AccessKeys redis cache access keys.
 type AccessKeys struct {
@@ -64,7 +65,7 @@ type CheckNameAvailabilityParameters struct {
 // CommonProperties create/Update/Get common properties of the redis cache.
 type CommonProperties struct {
 	// RedisConfiguration - All Redis Settings. Few possible keys: rdb-backup-enabled,rdb-storage-connection-string,rdb-backup-frequency,maxmemory-delta,maxmemory-policy,notify-keyspace-events,maxmemory-samples,slowlog-log-slower-than,slowlog-max-len,list-max-ziplist-entries,list-max-ziplist-value,hash-max-ziplist-entries,hash-max-ziplist-value,set-max-intset-entries,zset-max-ziplist-entries,zset-max-ziplist-value etc.
-	RedisConfiguration map[string]*string `json:"redisConfiguration"`
+	RedisConfiguration *CommonPropertiesRedisConfiguration `json:"redisConfiguration,omitempty"`
 	// RedisVersion - Redis version. Only major version will be used in PUT/PATCH request with current valid values: (4, 6)
 	RedisVersion *string `json:"redisVersion,omitempty"`
 	// EnableNonSslPort - Specifies whether the non-ssl Redis server port (6379) is enabled.
@@ -114,6 +115,234 @@ func (cp CommonProperties) MarshalJSON() ([]byte, error) {
 		objectMap["publicNetworkAccess"] = cp.PublicNetworkAccess
 	}
 	return json.Marshal(objectMap)
+}
+
+// CommonPropertiesRedisConfiguration all Redis Settings. Few possible keys:
+// rdb-backup-enabled,rdb-storage-connection-string,rdb-backup-frequency,maxmemory-delta,maxmemory-policy,notify-keyspace-events,maxmemory-samples,slowlog-log-slower-than,slowlog-max-len,list-max-ziplist-entries,list-max-ziplist-value,hash-max-ziplist-entries,hash-max-ziplist-value,set-max-intset-entries,zset-max-ziplist-entries,zset-max-ziplist-value
+// etc.
+type CommonPropertiesRedisConfiguration struct {
+	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
+	AdditionalProperties map[string]interface{} `json:""`
+	// RdbBackupEnabled - Specifies whether the rdb backup is enabled
+	RdbBackupEnabled *string `json:"rdb-backup-enabled,omitempty"`
+	// RdbBackupFrequency - Specifies the frequency for creating rdb backup
+	RdbBackupFrequency *string `json:"rdb-backup-frequency,omitempty"`
+	// RdbBackupMaxSnapshotCount - Specifies the maximum number of snapshots for rdb backup
+	RdbBackupMaxSnapshotCount *string `json:"rdb-backup-max-snapshot-count,omitempty"`
+	// RdbStorageConnectionString - The storage account connection string for storing rdb file
+	RdbStorageConnectionString *string `json:"rdb-storage-connection-string,omitempty"`
+	// AofStorageConnectionString0 - First storage account connection string
+	AofStorageConnectionString0 *string `json:"aof-storage-connection-string-0,omitempty"`
+	// AofStorageConnectionString1 - Second storage account connection string
+	AofStorageConnectionString1 *string `json:"aof-storage-connection-string-1,omitempty"`
+	// MaxfragmentationmemoryReserved - Value in megabytes reserved for fragmentation per shard
+	MaxfragmentationmemoryReserved *string `json:"maxfragmentationmemory-reserved,omitempty"`
+	// MaxmemoryPolicy - The eviction strategy used when your data won't fit within its memory limit.
+	MaxmemoryPolicy *string `json:"maxmemory-policy,omitempty"`
+	// MaxmemoryReserved - Value in megabytes reserved for non-cache usage per shard e.g. failover.
+	MaxmemoryReserved *string `json:"maxmemory-reserved,omitempty"`
+	// MaxmemoryDelta - Value in megabytes reserved for non-cache usage per shard e.g. failover.
+	MaxmemoryDelta *string `json:"maxmemory-delta,omitempty"`
+	// Maxclients - READ-ONLY; The max clients config
+	Maxclients *string `json:"maxclients,omitempty"`
+	// PreferredDataArchiveAuthMethod - READ-ONLY; Preferred auth method to communicate to storage account used for data archive, specify SAS or ManagedIdentity, default value is SAS
+	PreferredDataArchiveAuthMethod *string `json:"preferred-data-archive-auth-method,omitempty"`
+	// PreferredDataPersistenceAuthMethod - READ-ONLY; Preferred auth method to communicate to storage account used for data persistence, specify SAS or ManagedIdentity, default value is SAS
+	PreferredDataPersistenceAuthMethod *string `json:"preferred-data-persistence-auth-method,omitempty"`
+	// ZonalConfiguration - READ-ONLY; Zonal Configuration
+	ZonalConfiguration *string `json:"zonal-configuration,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CommonPropertiesRedisConfiguration.
+func (cpC CommonPropertiesRedisConfiguration) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cpC.RdbBackupEnabled != nil {
+		objectMap["rdb-backup-enabled"] = cpC.RdbBackupEnabled
+	}
+	if cpC.RdbBackupFrequency != nil {
+		objectMap["rdb-backup-frequency"] = cpC.RdbBackupFrequency
+	}
+	if cpC.RdbBackupMaxSnapshotCount != nil {
+		objectMap["rdb-backup-max-snapshot-count"] = cpC.RdbBackupMaxSnapshotCount
+	}
+	if cpC.RdbStorageConnectionString != nil {
+		objectMap["rdb-storage-connection-string"] = cpC.RdbStorageConnectionString
+	}
+	if cpC.AofStorageConnectionString0 != nil {
+		objectMap["aof-storage-connection-string-0"] = cpC.AofStorageConnectionString0
+	}
+	if cpC.AofStorageConnectionString1 != nil {
+		objectMap["aof-storage-connection-string-1"] = cpC.AofStorageConnectionString1
+	}
+	if cpC.MaxfragmentationmemoryReserved != nil {
+		objectMap["maxfragmentationmemory-reserved"] = cpC.MaxfragmentationmemoryReserved
+	}
+	if cpC.MaxmemoryPolicy != nil {
+		objectMap["maxmemory-policy"] = cpC.MaxmemoryPolicy
+	}
+	if cpC.MaxmemoryReserved != nil {
+		objectMap["maxmemory-reserved"] = cpC.MaxmemoryReserved
+	}
+	if cpC.MaxmemoryDelta != nil {
+		objectMap["maxmemory-delta"] = cpC.MaxmemoryDelta
+	}
+	for k, v := range cpC.AdditionalProperties {
+		objectMap[k] = v
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for CommonPropertiesRedisConfiguration struct.
+func (cpC *CommonPropertiesRedisConfiguration) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		default:
+			if v != nil {
+				var additionalProperties interface{}
+				err = json.Unmarshal(*v, &additionalProperties)
+				if err != nil {
+					return err
+				}
+				if cpC.AdditionalProperties == nil {
+					cpC.AdditionalProperties = make(map[string]interface{})
+				}
+				cpC.AdditionalProperties[k] = additionalProperties
+			}
+		case "rdb-backup-enabled":
+			if v != nil {
+				var rdbBackupEnabled string
+				err = json.Unmarshal(*v, &rdbBackupEnabled)
+				if err != nil {
+					return err
+				}
+				cpC.RdbBackupEnabled = &rdbBackupEnabled
+			}
+		case "rdb-backup-frequency":
+			if v != nil {
+				var rdbBackupFrequency string
+				err = json.Unmarshal(*v, &rdbBackupFrequency)
+				if err != nil {
+					return err
+				}
+				cpC.RdbBackupFrequency = &rdbBackupFrequency
+			}
+		case "rdb-backup-max-snapshot-count":
+			if v != nil {
+				var rdbBackupMaxSnapshotCount string
+				err = json.Unmarshal(*v, &rdbBackupMaxSnapshotCount)
+				if err != nil {
+					return err
+				}
+				cpC.RdbBackupMaxSnapshotCount = &rdbBackupMaxSnapshotCount
+			}
+		case "rdb-storage-connection-string":
+			if v != nil {
+				var rdbStorageConnectionString string
+				err = json.Unmarshal(*v, &rdbStorageConnectionString)
+				if err != nil {
+					return err
+				}
+				cpC.RdbStorageConnectionString = &rdbStorageConnectionString
+			}
+		case "aof-storage-connection-string-0":
+			if v != nil {
+				var aofStorageConnectionString0 string
+				err = json.Unmarshal(*v, &aofStorageConnectionString0)
+				if err != nil {
+					return err
+				}
+				cpC.AofStorageConnectionString0 = &aofStorageConnectionString0
+			}
+		case "aof-storage-connection-string-1":
+			if v != nil {
+				var aofStorageConnectionString1 string
+				err = json.Unmarshal(*v, &aofStorageConnectionString1)
+				if err != nil {
+					return err
+				}
+				cpC.AofStorageConnectionString1 = &aofStorageConnectionString1
+			}
+		case "maxfragmentationmemory-reserved":
+			if v != nil {
+				var maxfragmentationmemoryReserved string
+				err = json.Unmarshal(*v, &maxfragmentationmemoryReserved)
+				if err != nil {
+					return err
+				}
+				cpC.MaxfragmentationmemoryReserved = &maxfragmentationmemoryReserved
+			}
+		case "maxmemory-policy":
+			if v != nil {
+				var maxmemoryPolicy string
+				err = json.Unmarshal(*v, &maxmemoryPolicy)
+				if err != nil {
+					return err
+				}
+				cpC.MaxmemoryPolicy = &maxmemoryPolicy
+			}
+		case "maxmemory-reserved":
+			if v != nil {
+				var maxmemoryReserved string
+				err = json.Unmarshal(*v, &maxmemoryReserved)
+				if err != nil {
+					return err
+				}
+				cpC.MaxmemoryReserved = &maxmemoryReserved
+			}
+		case "maxmemory-delta":
+			if v != nil {
+				var maxmemoryDelta string
+				err = json.Unmarshal(*v, &maxmemoryDelta)
+				if err != nil {
+					return err
+				}
+				cpC.MaxmemoryDelta = &maxmemoryDelta
+			}
+		case "maxclients":
+			if v != nil {
+				var maxclients string
+				err = json.Unmarshal(*v, &maxclients)
+				if err != nil {
+					return err
+				}
+				cpC.Maxclients = &maxclients
+			}
+		case "preferred-data-archive-auth-method":
+			if v != nil {
+				var preferredDataArchiveAuthMethod string
+				err = json.Unmarshal(*v, &preferredDataArchiveAuthMethod)
+				if err != nil {
+					return err
+				}
+				cpC.PreferredDataArchiveAuthMethod = &preferredDataArchiveAuthMethod
+			}
+		case "preferred-data-persistence-auth-method":
+			if v != nil {
+				var preferredDataPersistenceAuthMethod string
+				err = json.Unmarshal(*v, &preferredDataPersistenceAuthMethod)
+				if err != nil {
+					return err
+				}
+				cpC.PreferredDataPersistenceAuthMethod = &preferredDataPersistenceAuthMethod
+			}
+		case "zonal-configuration":
+			if v != nil {
+				var zonalConfiguration string
+				err = json.Unmarshal(*v, &zonalConfiguration)
+				if err != nil {
+					return err
+				}
+				cpC.ZonalConfiguration = &zonalConfiguration
+			}
+		}
+	}
+
+	return nil
 }
 
 // CreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
@@ -168,6 +397,8 @@ type CreateParameters struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
+	// Identity - The identity of the resource.
+	Identity *ManagedServiceIdentity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CreateParameters.
@@ -184,6 +415,9 @@ func (cp CreateParameters) MarshalJSON() ([]byte, error) {
 	}
 	if cp.Tags != nil {
 		objectMap["tags"] = cp.Tags
+	}
+	if cp.Identity != nil {
+		objectMap["identity"] = cp.Identity
 	}
 	return json.Marshal(objectMap)
 }
@@ -233,6 +467,15 @@ func (cp *CreateParameters) UnmarshalJSON(body []byte) error {
 				}
 				cp.Tags = tags
 			}
+		case "identity":
+			if v != nil {
+				var identity ManagedServiceIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				cp.Identity = &identity
+			}
 		}
 	}
 
@@ -245,10 +488,10 @@ type CreateProperties struct {
 	Sku *Sku `json:"sku,omitempty"`
 	// SubnetID - The full resource ID of a subnet in a virtual network to deploy the Redis cache in. Example format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/Microsoft.{Network|ClassicNetwork}/VirtualNetworks/vnet1/subnets/subnet1
 	SubnetID *string `json:"subnetId,omitempty"`
-	// StaticIP - Static IP address. Required when deploying a Redis cache inside an existing Azure Virtual Network.
+	// StaticIP - Static IP address. Optionally, may be specified when deploying a Redis cache inside an existing Azure Virtual Network; auto assigned by default.
 	StaticIP *string `json:"staticIP,omitempty"`
 	// RedisConfiguration - All Redis Settings. Few possible keys: rdb-backup-enabled,rdb-storage-connection-string,rdb-backup-frequency,maxmemory-delta,maxmemory-policy,notify-keyspace-events,maxmemory-samples,slowlog-log-slower-than,slowlog-max-len,list-max-ziplist-entries,list-max-ziplist-value,hash-max-ziplist-entries,hash-max-ziplist-value,set-max-intset-entries,zset-max-ziplist-entries,zset-max-ziplist-value etc.
-	RedisConfiguration map[string]*string `json:"redisConfiguration"`
+	RedisConfiguration *CommonPropertiesRedisConfiguration `json:"redisConfiguration,omitempty"`
 	// RedisVersion - Redis version. Only major version will be used in PUT/PATCH request with current valid values: (4, 6)
 	RedisVersion *string `json:"redisVersion,omitempty"`
 	// EnableNonSslPort - Specifies whether the non-ssl Redis server port (6379) is enabled.
@@ -1375,6 +1618,29 @@ func NewListResultPage(cur ListResult, getNextPage func(context.Context, ListRes
 	}
 }
 
+// ManagedServiceIdentity managed service identity (system assigned and/or user assigned identities)
+type ManagedServiceIdentity struct {
+	// PrincipalID - READ-ONLY; The service principal ID of the system assigned identity. This property will only be provided for a system assigned identity.
+	PrincipalID *uuid.UUID `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant ID of the system assigned identity. This property will only be provided for a system assigned identity.
+	TenantID *uuid.UUID `json:"tenantId,omitempty"`
+	// Type - Possible values include: 'ManagedServiceIdentityTypeNone', 'ManagedServiceIdentityTypeSystemAssigned', 'ManagedServiceIdentityTypeUserAssigned', 'ManagedServiceIdentityTypeSystemAssignedUserAssigned'
+	Type                   ManagedServiceIdentityType       `json:"type,omitempty"`
+	UserAssignedIdentities map[string]*UserAssignedIdentity `json:"userAssignedIdentities"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedServiceIdentity.
+func (msi ManagedServiceIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if msi.Type != "" {
+		objectMap["type"] = msi.Type
+	}
+	if msi.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = msi.UserAssignedIdentities
+	}
+	return json.Marshal(objectMap)
+}
+
 // NotificationListResponse the response of listUpgradeNotifications.
 type NotificationListResponse struct {
 	autorest.Response `json:"-"`
@@ -1732,11 +1998,89 @@ func NewOperationListResultPage(cur OperationListResult, getNextPage func(contex
 	}
 }
 
+// OperationStatus asynchronous operation status
+type OperationStatus struct {
+	autorest.Response `json:"-"`
+	// Properties - Additional properties from RP, only when operation is successful
+	Properties map[string]interface{} `json:"properties"`
+	// ID - Fully qualified ID for the async operation.
+	ID *string `json:"id,omitempty"`
+	// Name - Name of the async operation.
+	Name *string `json:"name,omitempty"`
+	// Status - Operation status.
+	Status *string `json:"status,omitempty"`
+	// PercentComplete - Percent of the operation that is complete.
+	PercentComplete *float64 `json:"percentComplete,omitempty"`
+	// StartTime - The start time of the operation.
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// EndTime - The end time of the operation.
+	EndTime *date.Time `json:"endTime,omitempty"`
+	// Operations - The operations list.
+	Operations *[]OperationStatusResult `json:"operations,omitempty"`
+	// Error - If present, details of the operation error.
+	Error *ErrorDetail `json:"error,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationStatus.
+func (osVar OperationStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if osVar.Properties != nil {
+		objectMap["properties"] = osVar.Properties
+	}
+	if osVar.ID != nil {
+		objectMap["id"] = osVar.ID
+	}
+	if osVar.Name != nil {
+		objectMap["name"] = osVar.Name
+	}
+	if osVar.Status != nil {
+		objectMap["status"] = osVar.Status
+	}
+	if osVar.PercentComplete != nil {
+		objectMap["percentComplete"] = osVar.PercentComplete
+	}
+	if osVar.StartTime != nil {
+		objectMap["startTime"] = osVar.StartTime
+	}
+	if osVar.EndTime != nil {
+		objectMap["endTime"] = osVar.EndTime
+	}
+	if osVar.Operations != nil {
+		objectMap["operations"] = osVar.Operations
+	}
+	if osVar.Error != nil {
+		objectMap["error"] = osVar.Error
+	}
+	return json.Marshal(objectMap)
+}
+
+// OperationStatusResult the current status of an async operation.
+type OperationStatusResult struct {
+	// ID - Fully qualified ID for the async operation.
+	ID *string `json:"id,omitempty"`
+	// Name - Name of the async operation.
+	Name *string `json:"name,omitempty"`
+	// Status - Operation status.
+	Status *string `json:"status,omitempty"`
+	// PercentComplete - Percent of the operation that is complete.
+	PercentComplete *float64 `json:"percentComplete,omitempty"`
+	// StartTime - The start time of the operation.
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// EndTime - The end time of the operation.
+	EndTime *date.Time `json:"endTime,omitempty"`
+	// Operations - The operations list.
+	Operations *[]OperationStatusResult `json:"operations,omitempty"`
+	// Error - If present, details of the operation error.
+	Error *ErrorDetail `json:"error,omitempty"`
+}
+
 // PatchSchedule response to put/get patch schedules for Redis cache.
 type PatchSchedule struct {
 	autorest.Response `json:"-"`
 	// ScheduleEntries - List of patch schedules for a Redis cache.
 	*ScheduleEntries `json:"properties,omitempty"`
+	// Location - READ-ONLY; The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource
@@ -1771,6 +2115,15 @@ func (ps *PatchSchedule) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				ps.ScheduleEntries = &scheduleEntries
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				ps.Location = &location
 			}
 		case "id":
 			if v != nil {
@@ -2250,10 +2603,10 @@ type Properties struct {
 	Sku *Sku `json:"sku,omitempty"`
 	// SubnetID - The full resource ID of a subnet in a virtual network to deploy the Redis cache in. Example format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/Microsoft.{Network|ClassicNetwork}/VirtualNetworks/vnet1/subnets/subnet1
 	SubnetID *string `json:"subnetId,omitempty"`
-	// StaticIP - Static IP address. Required when deploying a Redis cache inside an existing Azure Virtual Network.
+	// StaticIP - Static IP address. Optionally, may be specified when deploying a Redis cache inside an existing Azure Virtual Network; auto assigned by default.
 	StaticIP *string `json:"staticIP,omitempty"`
 	// RedisConfiguration - All Redis Settings. Few possible keys: rdb-backup-enabled,rdb-storage-connection-string,rdb-backup-frequency,maxmemory-delta,maxmemory-policy,notify-keyspace-events,maxmemory-samples,slowlog-log-slower-than,slowlog-max-len,list-max-ziplist-entries,list-max-ziplist-value,hash-max-ziplist-entries,hash-max-ziplist-value,set-max-intset-entries,zset-max-ziplist-entries,zset-max-ziplist-value etc.
-	RedisConfiguration map[string]*string `json:"redisConfiguration"`
+	RedisConfiguration *CommonPropertiesRedisConfiguration `json:"redisConfiguration,omitempty"`
 	// RedisVersion - Redis version. Only major version will be used in PUT/PATCH request with current valid values: (4, 6)
 	RedisVersion *string `json:"redisVersion,omitempty"`
 	// EnableNonSslPort - Specifies whether the non-ssl Redis server port (6379) is enabled.
@@ -2370,6 +2723,8 @@ type ResourceType struct {
 	*Properties `json:"properties,omitempty"`
 	// Zones - A list of availability zones denoting where the resource needs to come from.
 	Zones *[]string `json:"zones,omitempty"`
+	// Identity - The identity of the resource.
+	Identity *ManagedServiceIdentity `json:"identity,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
 	// Location - The geo-location where the resource lives
@@ -2390,6 +2745,9 @@ func (rt ResourceType) MarshalJSON() ([]byte, error) {
 	}
 	if rt.Zones != nil {
 		objectMap["zones"] = rt.Zones
+	}
+	if rt.Identity != nil {
+		objectMap["identity"] = rt.Identity
 	}
 	if rt.Tags != nil {
 		objectMap["tags"] = rt.Tags
@@ -2426,6 +2784,15 @@ func (rt *ResourceType) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				rt.Zones = &zones
+			}
+		case "identity":
+			if v != nil {
+				var identity ManagedServiceIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				rt.Identity = &identity
 			}
 		case "tags":
 			if v != nil {
@@ -2537,6 +2904,8 @@ type UpdateParameters struct {
 	*UpdateProperties `json:"properties,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
+	// Identity - The identity of the resource.
+	Identity *ManagedServiceIdentity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for UpdateParameters.
@@ -2547,6 +2916,9 @@ func (up UpdateParameters) MarshalJSON() ([]byte, error) {
 	}
 	if up.Tags != nil {
 		objectMap["tags"] = up.Tags
+	}
+	if up.Identity != nil {
+		objectMap["identity"] = up.Identity
 	}
 	return json.Marshal(objectMap)
 }
@@ -2578,6 +2950,15 @@ func (up *UpdateParameters) UnmarshalJSON(body []byte) error {
 				}
 				up.Tags = tags
 			}
+		case "identity":
+			if v != nil {
+				var identity ManagedServiceIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				up.Identity = &identity
+			}
 		}
 	}
 
@@ -2589,7 +2970,7 @@ type UpdateProperties struct {
 	// Sku - The SKU of the Redis cache to deploy.
 	Sku *Sku `json:"sku,omitempty"`
 	// RedisConfiguration - All Redis Settings. Few possible keys: rdb-backup-enabled,rdb-storage-connection-string,rdb-backup-frequency,maxmemory-delta,maxmemory-policy,notify-keyspace-events,maxmemory-samples,slowlog-log-slower-than,slowlog-max-len,list-max-ziplist-entries,list-max-ziplist-value,hash-max-ziplist-entries,hash-max-ziplist-value,set-max-intset-entries,zset-max-ziplist-entries,zset-max-ziplist-value etc.
-	RedisConfiguration map[string]*string `json:"redisConfiguration"`
+	RedisConfiguration *CommonPropertiesRedisConfiguration `json:"redisConfiguration,omitempty"`
 	// RedisVersion - Redis version. Only major version will be used in PUT/PATCH request with current valid values: (4, 6)
 	RedisVersion *string `json:"redisVersion,omitempty"`
 	// EnableNonSslPort - Specifies whether the non-ssl Redis server port (6379) is enabled.
@@ -2656,6 +3037,20 @@ type UpgradeNotification struct {
 
 // MarshalJSON is the custom marshaler for UpgradeNotification.
 func (un UpgradeNotification) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// UserAssignedIdentity user assigned identity properties
+type UserAssignedIdentity struct {
+	// PrincipalID - READ-ONLY; The principal ID of the assigned identity.
+	PrincipalID *uuid.UUID `json:"principalId,omitempty"`
+	// ClientID - READ-ONLY; The client ID of the assigned identity.
+	ClientID *uuid.UUID `json:"clientId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UserAssignedIdentity.
+func (uai UserAssignedIdentity) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
 }
