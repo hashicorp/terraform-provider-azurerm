@@ -662,7 +662,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 						"priority": {
 							Type:         pluginsdk.TypeInt,
-							Optional:     true,
+							Optional:     false,
 							ValidateFunc: validation.IntBetween(1, 20000),
 						},
 
