@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the endpoint enabled? Defaults to `true`.
 
-* `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/en-us/rest/api/trafficmanager/geographichierarchies/getdefault).
+* `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/rest/api/trafficmanager/geographichierarchies/getdefault).
 
 * `priority` - (Optional) Specifies the priority of this Endpoint, this must be
   specified for Profiles using the `Priority` traffic routing method. Supports
