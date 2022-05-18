@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -245,14 +244,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		}
 
 		metadataHost := d.Get("metadata_host").(string)
-		if !features.ThreePointOhBeta() {
-			// note: this is inline to avoid calling out deprecations for users not setting this
-			if v := d.Get("metadata_url").(string); v != "" {
-				metadataHost = v
-			} else if v := os.Getenv("ARM_METADATA_HOSTNAME"); v != "" {
-				metadataHost = v
-			}
-		}
 
 		builder := &authentication.Builder{
 			SubscriptionID:     d.Get("subscription_id").(string),

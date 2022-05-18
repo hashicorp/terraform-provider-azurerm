@@ -15,7 +15,7 @@ import (
 
 type CassandraDatacenterResource struct{}
 
-func TestAccCassandraDatacenter_basic(t *testing.T) {
+func testAccCassandraDatacenter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
 	r := CassandraDatacenterResource{}
 
@@ -30,7 +30,7 @@ func TestAccCassandraDatacenter_basic(t *testing.T) {
 	})
 }
 
-func TestAccCassandraDatacenter_complete(t *testing.T) {
+func testAccCassandraDatacenter_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
 	r := CassandraDatacenterResource{}
 
@@ -45,7 +45,7 @@ func TestAccCassandraDatacenter_complete(t *testing.T) {
 	})
 }
 
-func TestAccCassandraDatacenter_update(t *testing.T) {
+func testAccCassandraDatacenter_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
 	r := CassandraDatacenterResource{}
 

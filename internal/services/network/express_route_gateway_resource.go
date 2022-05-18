@@ -3,9 +3,11 @@ package network
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -96,7 +98,12 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 	erConnectionsClient := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
 	erConnections, err := erConnectionsClient.List(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf(" get Gateway Connections error %s: %+v", id, err)
+		// service will return 404 error if Gateway not exist
+		if v, ok := err.(autorest.DetailedError); ok && v.StatusCode == http.StatusNotFound {
+			log.Printf("[Debug]: Gateway connection not found. HTTP Code 404.")
+		} else {
+			return fmt.Errorf(" get Gateway Connections error %s: %+v", id, err)
+		}
 	}
 
 	parameters := network.ExpressRouteGateway{

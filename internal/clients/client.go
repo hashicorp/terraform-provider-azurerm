@@ -44,6 +44,7 @@ import (
 	disks "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/client"
 	dns "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/client"
 	domainservices "github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/client"
+	elastic "github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/client"
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
 	firewall "github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/client"
@@ -154,6 +155,7 @@ type Client struct {
 	Disks                 *disks.Client
 	Dns                   *dns.Client
 	DomainServices        *domainservices.Client
+	Elastic               *elastic.Client
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
 	Firewall              *firewall.Client
@@ -266,6 +268,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Disks = disks.NewClient(o)
 	client.Dns = dns.NewClient(o)
 	client.DomainServices = domainservices.NewClient(o)
+	client.Elastic = elastic.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)
 	client.Firewall = firewall.NewClient(o)
