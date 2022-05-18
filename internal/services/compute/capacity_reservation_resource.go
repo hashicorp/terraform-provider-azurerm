@@ -1,7 +1,6 @@
 package compute
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -212,23 +211,13 @@ func resourceCapacityReservationDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.CapacityReservationGroupName, id.Name); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.CapacityReservationGroupName, id.Name)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	// API has bug, which appears to be eventually consistent. Tracked by: https://github.com/Azure/azure-rest-api-specs/issues/18767
-	log.Printf("[DEBUG] Waiting for %s to be fully deleted..", *id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Exists"},
-		Target:                    []string{"NotFound"},
-		Refresh:                   capacityReservationDeleteRefreshFunc(ctx, client, *id),
-		MinTimeout:                15 * time.Second,
-		ContinuousTargetOccurence: 5,
-		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -266,20 +255,5 @@ func flattenCapacityReservationSku(input *compute.Sku) []interface{} {
 			"name":     name,
 			"capacity": capacity,
 		},
-	}
-}
-
-func capacityReservationDeleteRefreshFunc(ctx context.Context, client *compute.CapacityReservationsClient, id parse.CapacityReservationId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.CapacityReservationGroupName, id.Name, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
-				return "NotFound", "NotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
-		}
-
-		return res, "Exists", nil
 	}
 }

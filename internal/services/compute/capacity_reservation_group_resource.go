@@ -156,8 +156,14 @@ func resourceCapacityReservationGroupDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
+	// It takes several seconds to sync the cache of reservations list in Capacity Reservation Group. Delete operation requires the list to be empty, and fails before the cache sync is completed.
+	// Retry the delete operation after a minute as a workaround. Issue is tracked by: https://github.com/Azure/azure-rest-api-specs/issues/18767
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+		time.Sleep(1 * time.Minute)
+		if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+			return fmt.Errorf("deleting %s: %+v", id, err)
+		}
 	}
+
 	return nil
 }
