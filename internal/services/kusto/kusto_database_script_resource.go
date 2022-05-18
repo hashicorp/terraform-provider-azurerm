@@ -51,18 +51,6 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 				ValidateFunc: validate.DatabaseID,
 			},
 
-			"url": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"sas_token": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"continue_on_errors_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -73,6 +61,28 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"url": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"sas_token": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"script_content": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
@@ -109,12 +119,22 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	parameters := kusto.Script{
 		ScriptProperties: &kusto.ScriptProperties{
-			ContinueOnErrors:  utils.Bool(d.Get("continue_on_errors_enabled").(bool)),
-			ForceUpdateTag:    utils.String(forceUpdateTag),
-			ScriptURL:         utils.String(d.Get("url").(string)),
-			ScriptURLSasToken: utils.String(d.Get("sas_token").(string)),
+			ContinueOnErrors: utils.Bool(d.Get("continue_on_errors_enabled").(bool)),
+			ForceUpdateTag:   utils.String(forceUpdateTag),
 		},
 	}
+	if ScriptURL, ok := d.GetOk("url"); ok {
+		parameters.ScriptURL = utils.String(ScriptURL.(string))
+	}
+
+	if ScriptURLSasToken, ok := d.GetOk("sas_token"); ok {
+		parameters.ScriptURLSasToken = utils.String(ScriptURLSasToken.(string))
+	}
+
+	if ScriptContent, ok := d.GetOk("script_content"); ok {
+		parameters.ScriptContent = utils.String(ScriptContent.(string))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name, parameters)
 	if err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
