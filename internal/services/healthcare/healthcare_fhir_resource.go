@@ -31,9 +31,9 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 		Delete: resourceHealthcareApisFhirServiceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -109,7 +109,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			// can't use the registry ID due to the ID cannot be obtained when setting the property in state file
-			"acr_login_servers": {
+			"container_registry_login_server_url": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
@@ -118,7 +118,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
-			"cors_configuration": {
+			"cors": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -226,7 +226,7 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		FhirServiceProperties: &healthcareapis.FhirServiceProperties{
 			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication").([]interface{})),
-			CorsConfiguration:           expandFhirCorsConfiguration(d.Get("cors_configuration").([]interface{})),
+			CorsConfiguration:           expandFhirCorsConfiguration(d.Get("cors").([]interface{})),
 		},
 	}
 
@@ -242,7 +242,7 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	acrConfig, hasValues := d.GetOk("acr_login_servers")
+	acrConfig, hasValues := d.GetOk("container_registry_login_server_url")
 	if hasValues {
 		result := expandFhirAcrLoginServer(acrConfig.(*pluginsdk.Set).List())
 		parameters.FhirServiceProperties.AcrConfiguration = result
@@ -309,8 +309,8 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 	if props := resp.FhirServiceProperties; props != nil {
 		d.Set("access_policy_object_ids", flattenFhirAccessPolicy(props.AccessPolicies))
 		d.Set("authentication", flattenFhirAuthentication(props.AuthenticationConfiguration))
-		d.Set("cors_configuration", flattenFhirCorsConfiguration(props.CorsConfiguration))
-		d.Set("acr_login_servers", flattenFhirAcrLoginServer(props.AcrConfiguration))
+		d.Set("cors", flattenFhirCorsConfiguration(props.CorsConfiguration))
+		d.Set("container_registry_login_server_url", flattenFhirAcrLoginServer(props.AcrConfiguration))
 		if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {
 			d.Set("configuration_export_storage_account_name", props.ExportConfiguration.StorageAccountName)
 		}
@@ -346,7 +346,7 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		FhirServiceProperties: &healthcareapis.FhirServiceProperties{
 			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication").([]interface{})),
-			CorsConfiguration:           expandFhirCorsConfiguration(d.Get("cors_configuration").([]interface{})),
+			CorsConfiguration:           expandFhirCorsConfiguration(d.Get("cors").([]interface{})),
 			AccessPolicies:              expandAccessPolicy(d.Get("access_policy_object_ids").(*pluginsdk.Set).List()),
 		},
 	}
@@ -358,7 +358,7 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	acrConfig, hasValues := d.GetOk("acr_login_servers")
+	acrConfig, hasValues := d.GetOk("container_registry_login_server_url")
 	if hasValues {
 		result := expandFhirAcrLoginServer(acrConfig.(*pluginsdk.Set).List())
 		parameters.FhirServiceProperties.AcrConfiguration = result

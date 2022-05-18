@@ -43,9 +43,9 @@ The following attributes are exported:
 
 * `access_policy_object_ids` - The list of the access policies of the service instance.
 
-* `cors_configuration` - The `cors_configuration` block as defined below.
+* `cors` - The `cors` block as defined below.
 
-* `acr_login_servers` - The list of azure container registry settings used for convert data operation of the service instance.
+* `container_registry_login_server_url` - The list of azure container registry settings used for convert data operation of the service instance.
 
 * `authentication` - The `authentication` block as defined below.
 
@@ -65,7 +65,7 @@ An `identity` block exports the following:
 * `tenant_id` - The Tenant ID associated with this System Assigned Managed Service Identity.
 
 ---
-A `cors_configuration` block exports the following:
+A `cors` block exports the following:
 
 * `allowed_origins` - The set of origins to be allowed via CORS.
 * `allowed_headers` - The set of headers to be allowed via CORS.

@@ -263,9 +263,9 @@ resource "azurerm_healthcare_fhir_service" "test" {
     type = "SystemAssigned"
   }
 
-  acr_login_servers = [azurerm_container_registry.test.login_server]
+  container_registry_login_server_url = [azurerm_container_registry.test.login_server]
 
-  cors_configuration {
+  cors {
     allowed_origins     = ["https://acctest.com:123", "https://acctest1.com:3389"]
     allowed_headers     = ["*"]
     allowed_methods     = ["GET", "DELETE", "PUT"]
@@ -280,7 +280,23 @@ resource "azurerm_healthcare_fhir_service" "test" {
 
 func (r HealthcareApiFhirServiceResource) updateAcrLoginServer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {
+}
 %s
+
+resource "azurerm_container_registry" "test" {
+  name                = "acc%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%s"
+  sku                 = "Premium"
+  admin_enabled       = false
+
+  georeplications {
+    location                = "%s"
+    zone_redundancy_enabled = true
+    tags                    = {}
+  }
+}
 
 resource "azurerm_storage_account" "test" {
   name                     = "acc%d"
@@ -306,13 +322,17 @@ resource "azurerm_healthcare_fhir_service" "test" {
     audience  = "https://acctestfhir.fhir.azurehealthcareapis.com"
   }
 
+  access_policy_object_ids = [
+    data.azurerm_client_config.current.object_id
+  ]
+
   identity {
     type = "SystemAssigned"
   }
 
-  acr_login_servers = []
+  container_registry_login_server_url = []
 
-  cors_configuration {
+  cors {
     allowed_origins     = ["https://acctest.com:123", "https://acctest1.com:3389"]
     allowed_headers     = ["*"]
     allowed_methods     = ["GET", "DELETE", "PUT"]
@@ -322,7 +342,7 @@ resource "azurerm_healthcare_fhir_service" "test" {
 
   configuration_export_storage_account_name = azurerm_storage_account.test.name
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r HealthcareApiFhirServiceResource) updateCors(data acceptance.TestData) string {
@@ -377,9 +397,9 @@ resource "azurerm_healthcare_fhir_service" "test" {
     type = "SystemAssigned"
   }
 
-  acr_login_servers = [azurerm_container_registry.test.login_server]
+  container_registry_login_server_url = [azurerm_container_registry.test.login_server]
 
-  cors_configuration {
+  cors {
     allowed_origins     = ["https://acctest.com:123"]
     allowed_headers     = ["*"]
     allowed_methods     = ["GET", "DELETE"]

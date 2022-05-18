@@ -36,9 +36,9 @@ resource "azurerm_healthcare_fhir_service" "test" {
     type = "SystemAssigned"
   }
 
-  acr_login_servers = ["tfex-container_registry_login_server"]
+  container_registry_login_server_url = ["tfex-container_registry_login_server"]
 
-  cors_configuration {
+  cors {
     allowed_origins     = ["https://tfex.com:123", "https://tfex1.com:3389"]
     allowed_headers     = ["*"]
     allowed_methods     = ["GET", "DELETE", "PUT"]
@@ -66,9 +66,9 @@ The following arguments are supported:
 
 * `access_policy_object_ids` - (Optional) A list of the access policies of the service instance.
 
-* `cors_configuration` - (Optional) A `cors_configuration` block as defined below.
+* `cors` - (Optional) A `cors` block as defined below.
 
-* `acr_login_servers` - (Optional) A list of azure container registry settings used for convert data operation of the service instance.
+* `container_registry_login_server_url` - (Optional) A list of azure container registry settings used for convert data operation of the service instance.
 
 * `authentication` - (Required) An `authentication` block as defined below.
 
@@ -82,7 +82,7 @@ An `identity` block supports the following:
 * `type` - (Required) The type of identity used for the Healthcare FHIR service. Possible values are `SystemAssigned`.
 
 ---
-A `cors_configuration` block supports the following:  
+A `cors` block supports the following:  
 
 * `allowed_origins` - (Required) A set of origins to be allowed via CORS.
 * `allowed_headers` - (Required) A set of headers to be allowed via CORS.

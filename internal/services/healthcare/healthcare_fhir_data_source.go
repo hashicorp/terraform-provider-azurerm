@@ -76,7 +76,7 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedIdentityComputed(),
 
-			"acr_login_servers": {
+			"container_registry_login_server_url": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
@@ -84,7 +84,7 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 				},
 			},
 
-			"cors_configuration": {
+			"cors": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
@@ -175,8 +175,8 @@ func dataSourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta int
 	if props := resp.FhirServiceProperties; props != nil {
 		d.Set("access_policy_object_ids", flattenFhirAccessPolicy(props.AccessPolicies))
 		d.Set("authentication", flattenFhirAuthentication(props.AuthenticationConfiguration))
-		d.Set("cors_configuration", flattenFhirCorsConfiguration(props.CorsConfiguration))
-		d.Set("acr_login_servers", flattenFhirAcrLoginServer(props.AcrConfiguration))
+		d.Set("cors", flattenFhirCorsConfiguration(props.CorsConfiguration))
+		d.Set("container_registry_login_server_url", flattenFhirAcrLoginServer(props.AcrConfiguration))
 		if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {
 			d.Set("configuration_export_storage_account_name", props.ExportConfiguration.StorageAccountName)
 		}
