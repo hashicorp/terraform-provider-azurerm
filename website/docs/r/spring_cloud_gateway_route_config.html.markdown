@@ -38,16 +38,16 @@ resource "azurerm_spring_cloud_gateway_route_config" "example" {
   name                    = "example"
   spring_cloud_gateway_id = azurerm_spring_cloud_gateway.example.id
   spring_cloud_app_id     = azurerm_spring_cloud_app.example.id
-  routes {
-    description = "example description"
-    filters     = ["StripPrefix=2", "RateLimit=1,1s"]
-    order       = 1
-    predicates  = ["Path=/api5/customer/**"]
-    sso_enabled = true
-    title       = "myApp route config"
-    token_relay = true
-    uri         = "https://www.example.com"
-    tags        = ["tag1", "tag2"]
+  route {
+    description            = "example description"
+    filters                = ["StripPrefix=2", "RateLimit=1,1s"]
+    order                  = 1
+    predicates             = ["Path=/api5/customer/**"]
+    sso_validation_enabled = true
+    title                  = "myApp route config"
+    token_relay            = true
+    uri                    = "https://www.example.com"
+    classification_tags    = ["tag1", "tag2"]
   }
 }
 ```
@@ -62,13 +62,13 @@ The following arguments are supported:
 
 ---
 
-* `routes` - (Optional) One or more `routes` blocks as defined below.
+* `route` - (Optional) One or more `route` blocks as defined below.
 
 * `spring_cloud_app_id` - (Optional) The ID of the Spring Cloud App.
 
 ---
 
-A `routes` block supports the following:
+A `route` block supports the following:
 
 * `description` - (Optional) Specifies the description which will be applied to methods in the generated OpenAPI documentation.
 
@@ -78,9 +78,9 @@ A `routes` block supports the following:
 
 * `predicates` - (Optional) Specifies a list of conditions to evaluate a route for each request. Each predicate may be evaluated against request headers and parameter values. All of the predicates associated with a route must evaluate to true for the route to be matched to the request.
 
-* `sso_enabled` - (Optional) Should the sso validation be enabled?
+* `sso_validation_enabled` - (Optional) Should the sso validation be enabled?
 
-* `tags` - (Optional) Specifies the classification tags which will be applied to methods in the generated OpenAPI documentation.
+* `classification_tags` - (Optional) Specifies the classification tags which will be applied to methods in the generated OpenAPI documentation.
 
 * `title` - (Optional) Specifies the title which will be applied to methods in the generated OpenAPI documentation.
 

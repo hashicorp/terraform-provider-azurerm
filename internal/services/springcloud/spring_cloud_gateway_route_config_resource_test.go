@@ -167,16 +167,16 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
   name                    = "acctest-agrc-%d"
   spring_cloud_gateway_id = azurerm_spring_cloud_gateway.test.id
   spring_cloud_app_id     = azurerm_spring_cloud_app.test.id
-  routes {
-    description = "test description"
-    filters     = ["StripPrefix=2", "RateLimit=1,1s"]
-    order       = 1
-    predicates  = ["Path=/api5/customer/**"]
-    sso_enabled = true
-    title       = "myApp route config"
-    token_relay = true
-    uri         = "https://www.test.com"
-    tags        = ["tag1", "tag2"]
+  route {
+    description            = "test description"
+    filters                = ["StripPrefix=2", "RateLimit=1,1s"]
+    order                  = 1
+    predicates             = ["Path=/api5/customer/**"]
+    sso_validation_enabled = true
+    title                  = "myApp route config"
+    token_relay            = true
+    uri                    = "https://www.test.com"
+    classification_tags    = ["tag1", "tag2"]
   }
 }
 `, template, data.RandomInteger)

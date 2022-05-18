@@ -55,7 +55,7 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudAppID,
 			},
 
-			"routes": {
+			"route": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
@@ -89,7 +89,7 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 							},
 						},
 
-						"sso_enabled": {
+						"sso_validation_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
@@ -111,7 +111,7 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 						},
 
-						"tags": {
+						"classification_tags": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
@@ -152,7 +152,7 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 	gatewayRouteConfigResource := appplatform.GatewayRouteConfigResource{
 		Properties: &appplatform.GatewayRouteConfigProperties{
 			AppResourceID: utils.String(d.Get("spring_cloud_app_id").(string)),
-			Routes:        expandGatewayRouteConfigGatewayAPIRouteArray(d.Get("routes").(*pluginsdk.Set).List()),
+			Routes:        expandGatewayRouteConfigGatewayAPIRouteArray(d.Get("route").(*pluginsdk.Set).List()),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName, gatewayRouteConfigResource)
@@ -191,8 +191,8 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 	d.Set("spring_cloud_gateway_id", parse.NewSpringCloudGatewayID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.GatewayName).ID())
 	if props := resp.Properties; props != nil {
 		d.Set("spring_cloud_app_id", props.AppResourceID)
-		if err := d.Set("routes", flattenGatewayRouteConfigGatewayAPIRouteArray(props.Routes)); err != nil {
-			return fmt.Errorf("setting `routes`: %+v", err)
+		if err := d.Set("route", flattenGatewayRouteConfigGatewayAPIRouteArray(props.Routes)); err != nil {
+			return fmt.Errorf("setting `route`: %+v", err)
 		}
 	}
 	return nil
@@ -227,12 +227,12 @@ func expandGatewayRouteConfigGatewayAPIRouteArray(input []interface{}) *[]apppla
 			Title:       utils.String(v["title"].(string)),
 			Description: utils.String(v["description"].(string)),
 			URI:         utils.String(v["uri"].(string)),
-			SsoEnabled:  utils.Bool(v["sso_enabled"].(bool)),
+			SsoEnabled:  utils.Bool(v["sso_validation_enabled"].(bool)),
 			TokenRelay:  utils.Bool(v["token_relay"].(bool)),
 			Predicates:  utils.ExpandStringSlice(v["predicates"].(*pluginsdk.Set).List()),
 			Filters:     utils.ExpandStringSlice(v["filters"].(*pluginsdk.Set).List()),
 			Order:       utils.Int32(int32(v["order"].(int))),
-			Tags:        utils.ExpandStringSlice(v["tags"].(*pluginsdk.Set).List()),
+			Tags:        utils.ExpandStringSlice(v["classification_tags"].(*pluginsdk.Set).List()),
 		})
 	}
 	return &results
@@ -270,15 +270,15 @@ func flattenGatewayRouteConfigGatewayAPIRouteArray(input *[]appplatform.GatewayA
 			uri = *item.URI
 		}
 		results = append(results, map[string]interface{}{
-			"description": description,
-			"filters":     utils.FlattenStringSlice(item.Filters),
-			"order":       order,
-			"predicates":  utils.FlattenStringSlice(item.Predicates),
-			"sso_enabled": ssoEnabled,
-			"title":       title,
-			"token_relay": tokenRelay,
-			"uri":         uri,
-			"tags":        utils.FlattenStringSlice(item.Tags),
+			"description":            description,
+			"filters":                utils.FlattenStringSlice(item.Filters),
+			"order":                  order,
+			"predicates":             utils.FlattenStringSlice(item.Predicates),
+			"sso_validation_enabled": ssoEnabled,
+			"title":                  title,
+			"token_relay":            tokenRelay,
+			"uri":                    uri,
+			"classification_tags":    utils.FlattenStringSlice(item.Tags),
 		})
 	}
 	return results
