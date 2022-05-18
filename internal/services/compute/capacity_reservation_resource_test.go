@@ -144,7 +144,7 @@ resource "azurerm_capacity_reservation" "test" {
   name                          = "acctest-ccr-%d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   sku {
-    name     = "Standard_D2s_v3"
+    name     = "Standard_F2"
     capacity = 2
   }
 }
@@ -160,7 +160,7 @@ resource "azurerm_capacity_reservation" "import" {
   name                          = azurerm_capacity_reservation.test.name
   capacity_reservation_group_id = azurerm_capacity_reservation.test.capacity_reservation_group_id
   sku {
-    name     = "Standard_D2s_v3"
+    name     = "Standard_F2"
     capacity = 2
   }
 }
@@ -190,7 +190,7 @@ resource "azurerm_capacity_reservation" "test" {
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   zone                          = "2"
   sku {
-    name     = "Standard_D2s_v3"
+    name     = "Standard_F2"
     capacity = 2
   }
 }
@@ -206,7 +206,7 @@ resource "azurerm_capacity_reservation" "test" {
   name                          = "acctest-ccr-%d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   sku {
-    name     = "Standard_D2s_v3"
+    name     = "Standard_F2"
     capacity = 2
   }
 }
@@ -222,7 +222,7 @@ resource "azurerm_capacity_reservation" "test" {
   name                          = "acctest-ccr-%d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   sku {
-    name     = "Standard_D2s_v3"
+    name     = "Standard_F2"
     capacity = 1
   }
 }
@@ -238,7 +238,7 @@ resource "azurerm_capacity_reservation" "test" {
   name                          = "acctest-ccr-%d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   sku {
-    name     = "Standard_D2s_v3"
+    name     = "Standard_F2"
     capacity = 2
   }
   tags = {
@@ -257,7 +257,7 @@ resource "azurerm_capacity_reservation" "test" {
   name                          = "acctest-ccr-%d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   sku {
-    name     = "Standard_D2s_v3"
+    name     = "Standard_F2"
     capacity = 2
   }
   tags = {
