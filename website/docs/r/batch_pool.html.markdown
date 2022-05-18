@@ -175,7 +175,7 @@ To provision from an Azure Platform Image, the following fields are applicable:
 
 To provision a Custom Image, the following fields are applicable:
 
-* `id` - (Required) Specifies the ID of the Custom Image which the virtual machines should be created from. Changing this forces a new resource to be created. See [official documentation](https://docs.microsoft.com/en-us/azure/batch/batch-custom-images) for more details.
+* `id` - (Required) Specifies the ID of the Custom Image which the virtual machines should be created from. Changing this forces a new resource to be created. See [official documentation](https://docs.microsoft.com/azure/batch/batch-custom-images) for more details.
 ---
 
 A `fixed_scale` block supports the following:

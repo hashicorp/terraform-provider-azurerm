@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -65,7 +64,6 @@ func resourceCdnProfile() *pluginsdk.Resource {
 					string(cdn.SkuNameStandardMicrosoft),
 					string(cdn.SkuNamePremiumVerizon),
 				}, false),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"tags": tags.Schema(),

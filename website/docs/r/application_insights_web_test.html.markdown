@@ -72,9 +72,9 @@ The following arguments are supported:
 
 * `geo_locations` - (Required) A list of where to physically run the tests from to give global coverage for accessibility of your application.
 
-~> **Note:** [Valid options for geo locations are described here](https://docs.microsoft.com/en-us/azure/azure-monitor/app/monitor-web-app-availability#location-population-tags)
+~> **Note:** [Valid options for geo locations are described here](https://docs.microsoft.com/azure/azure-monitor/app/monitor-web-app-availability#location-population-tags)
 
-* `configuration` - (Required) An XML configuration specification for a WebTest ([see here for more information](https://docs.microsoft.com/en-us/rest/api/application-insights/webtests/createorupdate/)).
+* `configuration` - (Required) An XML configuration specification for a WebTest ([see here for more information](https://docs.microsoft.com/rest/api/application-insights/webtests/createorupdate/)).
 
 * `frequency` - (Optional) Interval in seconds between test runs for this WebTest. Valid options are `300`, `600` and `900`. Defaults to `300`.
 

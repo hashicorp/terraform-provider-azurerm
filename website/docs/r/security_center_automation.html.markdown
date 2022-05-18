@@ -139,7 +139,7 @@ A `rule` block supports the following:
 
 * `property_type` - (Required) The data type of the compared operands, must be one of: `Integer`, `String`, `Boolean` or `Number`.
 
-~> **NOTE:** The schema for Security Center alerts (when `event_source` is "Alerts") [can be found here](https://docs.microsoft.com/en-us/azure/security-center/alerts-schemas?tabs=schema-continuousexport)
+~> **NOTE:** The schema for Security Center alerts (when `event_source` is "Alerts") [can be found here](https://docs.microsoft.com/azure/security-center/alerts-schemas?tabs=schema-continuousexport)
 
 
 ## Attributes Reference

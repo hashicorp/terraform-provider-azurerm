@@ -15,18 +15,6 @@ import (
 
 type CassandraClusterResource struct{}
 
-func TestAccCassandraCluster(t *testing.T) {
-	// NOTE: this is a combined test rather than separate split out tests due to all below TCs sharing same sp
-	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"basic": {
-			"basic":          testAccCassandraCluster_basic,
-			"complete":       testAccCassandraCluster_complete,
-			"update":         testAccCassandraCluster_update,
-			"requiresImport": testAccCassandraCluster_requiresImport,
-		},
-	})
-}
-
 func testAccCassandraCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_cluster", "test")
 	r := CassandraClusterResource{}
@@ -82,13 +70,6 @@ func testAccCassandraCluster_update(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("default_admin_password"),
-		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -97,13 +78,6 @@ func testAccCassandraCluster_update(t *testing.T) {
 		data.ImportStep("default_admin_password"),
 		{
 			Config: r.update(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("default_admin_password"),
-		{
-			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
