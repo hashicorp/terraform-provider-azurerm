@@ -344,7 +344,6 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 		Timeout: 24 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQL.ManagedInstancesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id, err := parse.ManagedInstanceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -381,7 +380,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("maintenance_configuration_name") {
-				maintenanceConfigId := maintenanceParse.NewPublicMaintenanceConfigurationID(subscriptionId, state.MaintenanceConfigurationName)
+				maintenanceConfigId := maintenanceParse.NewPublicMaintenanceConfigurationID(id.SubscriptionId, state.MaintenanceConfigurationName)
 				properties.MaintenanceConfigurationID = utils.String(maintenanceConfigId.ID())
 			}
 
