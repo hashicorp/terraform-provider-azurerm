@@ -246,7 +246,7 @@ func resourcePurviewSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: resourcegroups.ValidateName,
 		},
 
-		"identity": commonschema.SystemAssignedIdentityRequired(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
 		"managed_resources": {
 			Type:     pluginsdk.TypeList,
