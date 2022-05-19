@@ -52,28 +52,19 @@ func TestAccCdnFrontdoorFirewallPolicy_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("accTestWAF%d", data.RandomInteger)),
-				check.That(data.ResourceName).Key("mode").HasValue("Prevention"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("accTestWAF%d", data.RandomInteger)),
-				check.That(data.ResourceName).Key("mode").HasValue("Prevention"),
-				check.That(data.ResourceName).Key("custom_rule.1.name").HasValue("Rule2"),
-				check.That(data.ResourceName).Key("custom_rule.2.name").HasValue("Rule3"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.update(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("custom_rule.1.name").DoesNotExist(),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("accTestWAF%d", data.RandomInteger)),
-				check.That(data.ResourceName).Key("mode").HasValue("Prevention"),
-			),
+			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 		data.ImportStep(),
 	})
@@ -112,6 +103,10 @@ func (CdnFrontdoorFirewallPolicyResource) Exists(ctx context.Context, clients *c
 
 func (CdnFrontdoorFirewallPolicyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%d"
   location = "%s"
@@ -128,10 +123,6 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 func (r CdnFrontdoorFirewallPolicyResource) basic(data acceptance.TestData) string {
 	tmp := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
@@ -155,10 +146,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "import" {
 func (r CdnFrontdoorFirewallPolicyResource) update(data acceptance.TestData) string {
 	tmp := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {

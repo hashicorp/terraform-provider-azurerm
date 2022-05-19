@@ -99,11 +99,11 @@ func resourceCdnFrontdoorSecurityPolicy() *pluginsdk.Resource {
 
 															// WS: I changed this to a generic name from 'cdn_frontdoor_custom_domain_id' because
 															// this value can be either a custom domain id or a endpoint id...
-															"cdn_frontdoor_resource_id": {
+															"cdn_frontdoor_domain_id": {
 																Type:         pluginsdk.TypeString,
 																Required:     true,
 																ForceNew:     true,
-																ValidateFunc: validate.CdnFrontdoorResourceID,
+																ValidateFunc: validate.CdnFrontdoorDomainID,
 															},
 
 															"active": {

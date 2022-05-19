@@ -1204,7 +1204,7 @@ func TestCdnFrontdoorUrlRedirectActionDestinationPath(t *testing.T) {
 	}
 }
 
-func TestCdnFrontdoorResourceID(t *testing.T) {
+func TestCdnFrontdoorDomainID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -1338,7 +1338,7 @@ func TestCdnFrontdoorResourceID(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := CdnFrontdoorResourceID(tc.Input, "test")
+		_, errors := CdnFrontdoorDomainID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

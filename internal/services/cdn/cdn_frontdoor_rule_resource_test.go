@@ -100,7 +100,7 @@ func TestAccCdnFrontdoorRule_invalidCacheDuration(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.invalidCacheDuration(data),
-			ExpectError: regexp.MustCompile(fmt.Sprintf(`%q must not start with %q if the duration is less than 1 day. If the %q is less than 1 day it should be in the HH:MM:SS format, got %q`, "actions.0.route_configuration_override_action.0.cache_duration", "0.", "actions.0.route_configuration_override_action.0.cache_duration", "0.23:59:59")),
+			ExpectError: regexp.MustCompile(`if the duration is less than 1`),
 		},
 	})
 }

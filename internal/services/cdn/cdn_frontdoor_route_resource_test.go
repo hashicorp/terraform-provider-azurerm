@@ -127,7 +127,11 @@ func (r CdnFrontdoorRouteResource) Exists(ctx context.Context, clients *clients.
 
 func (r CdnFrontdoorRouteResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
+provider "azurerm" {
+  features {}
+}
+
+	resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
   location = "%s"
 }
@@ -230,10 +234,6 @@ resource "azurerm_cdn_frontdoor_rule_set" "test" {
 func (r CdnFrontdoorRouteResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_cdn_frontdoor_route" "test" {
@@ -252,10 +252,6 @@ resource "azurerm_cdn_frontdoor_route" "test" {
 func (r CdnFrontdoorRouteResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_cdn_frontdoor_route" "import" {
@@ -274,10 +270,6 @@ resource "azurerm_cdn_frontdoor_route" "import" {
 func (r CdnFrontdoorRouteResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_cdn_frontdoor_route" "test" {
@@ -305,10 +297,6 @@ resource "azurerm_cdn_frontdoor_route" "test" {
 func (r CdnFrontdoorRouteResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_cdn_frontdoor_route" "test" {

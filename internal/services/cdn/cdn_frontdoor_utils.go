@@ -79,7 +79,7 @@ func expandCdnFrontdoorStringSliceToCsvFormat(input []interface{}) *string {
 	}
 
 	v := utils.ExpandStringSlice(input)
-	csv := fmt.Sprintf("[%s]", strings.Join(*v, ","))
+	csv := strings.Trim(fmt.Sprintf("[%s]", strings.Join(*v, ",")), "[]")
 
 	return &csv
 }

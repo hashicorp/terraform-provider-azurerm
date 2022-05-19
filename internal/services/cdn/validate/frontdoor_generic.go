@@ -226,7 +226,7 @@ func CdnFrontdoorUrlRedirectActionDestinationPath(i interface{}, k string) (_ []
 	return nil, nil
 }
 
-func CdnFrontdoorResourceID(i interface{}, k string) (_ []string, errors []error) {
+func CdnFrontdoorDomainID(i interface{}, k string) (_ []string, errors []error) {
 	_, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("%q is invalid: expected type of %q to be string", "domain", k)}

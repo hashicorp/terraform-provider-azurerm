@@ -128,12 +128,7 @@ func TestAccCdnFrontdoorOrigin_privateLinkStorageStaticWebSite(t *testing.T) {
 func TestAccCdnFrontdoorOrigin_privateLinkAppServices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
 	r := CdnFrontdoorOriginResource{}
-
-	if strings.HasPrefix(strings.ToLower(data.Client().SubscriptionID), "85b3dbca") {
-		r = CdnFrontdoorOriginResource{RunAccTest: true}
-	} else {
-		r = CdnFrontdoorOriginResource{RunAccTest: false}
-	}
+	r = CdnFrontdoorOriginResource{RunAccTest: false}
 	r.preCheck(t)
 
 	// NOTE: The Private Link will not be approved at this point but it will

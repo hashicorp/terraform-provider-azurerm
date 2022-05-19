@@ -276,7 +276,8 @@ resource "azurerm_cdn_frontdoor_security_policy" "example" {
 
       association {
         domain {
-          cdn_frontdoor_resource_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
+          # This value can be either a cdn_frontdoor_custom_domain or a cdn_frontdoor_endpoint ID
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_custom_domain.contoso.id
         }
 
         patterns_to_match = ["/*"]
