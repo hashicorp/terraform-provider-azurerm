@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -462,11 +463,31 @@ func resourceCdnFrontdoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewFrontdoorPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	log.Printf("[INFO] preparing args for Cdn Frontdoor %q Firewall Policy(Resource Group: %q)", name, resourceGroup)
+	id := parse.NewFrontdoorPolicyID(subscriptionId, resourceGroup, name)
+
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing Cdn Frontdoor Firewall Policy %q (Resource Group %q): %+v", id.FrontDoorWebApplicationFirewallPolicyName, id.ResourceGroup, err)
+			}
+		}
+
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_firewall_policy", id.ID())
+		}
+	}
+
 	enabled := frontdoor.PolicyEnabledStateDisabled
+
 	if d.Get("enabled").(bool) {
 		enabled = frontdoor.PolicyEnabledStateEnabled
 	}
+
 	sku := d.Get("sku_name").(string)
 	mode := frontdoor.PolicyMode(d.Get("mode").(string))
 	redirectUrl := d.Get("redirect_url").(string)
@@ -540,12 +561,15 @@ func resourceCdnFrontdoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+
 	if existing.Sku == nil {
 		return fmt.Errorf("retrieving %s: `sku` was nil", *id)
 	}
+
 	if existing.WebApplicationFirewallPolicyProperties == nil {
 		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
+
 	props := *existing.WebApplicationFirewallPolicyProperties
 
 	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url") {
