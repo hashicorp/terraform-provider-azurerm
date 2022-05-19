@@ -2,15 +2,15 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_elastic_cloud_elasticsearch` [GH-14821]
 * **New Resource**: `azurerm_elastic_cloud_elasticsearch` [GH-14821]
 * **New Resource**: `azurerm_virtual_network_gateway_nat_rule` [GH-15720]
-* **New Data Source**: `azurerm_elastic_cloud_elasticsearch` [GH-14821]
 
 ENHANCEMENTS:
 
 * dependencies: upgrade `redis` to `2020-12-01` [GH-16532]
 * `azurerm_container_registry` - support updating replications [GH-16678]
-* `azurerm_linux_function_app` - Add support for PowerShell 7.2  [GH-16718]
+* `azurerm_linux_function_app` - add support for PowerShell 7.2  [GH-16718]
 * `azurerm_spring_cloud_app` - support for the `identity` block [GH-16280]
 * `azurerm_spring_cloud_app` - support for the `addon_json` property [GH-16722]
 * `azurerm_windows_function_app` - Add support for PowerShell 7.2  [GH-16718]
@@ -20,6 +20,11 @@ BUG FIXES:
 
 * Data Source: `azurerm_databricks_workspace` - Handle panic when SKU field is missing [GH-16819]
 * `azurerm_express_route_gateway` - Handle gateway connections not found error [GH-16804]
+
+DEPRECATIONS:
+
+* `azurerm_video_analyzer` - Video Analyzer (Preview) is now Deprecated and will be Retired on 2022-11-30 - as such this resource is deprecated and will be removed in v4.0 of the AzureRM Provider [GH-16847]
+* `azurerm_video_analyzer_edge_module` - Video Analyzer (Preview) is now Deprecated and will be Retired on 2022-11-30 - as such this resource is deprecated and will be removed in v4.0 of the AzureRM Provider [GH-16847]
 
 ## 3.6.0 (May 12, 2022)
 
