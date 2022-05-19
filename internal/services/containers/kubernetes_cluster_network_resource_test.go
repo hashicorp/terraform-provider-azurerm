@@ -2515,6 +2515,14 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (KubernetesClusterResource) httpProxyConfigWithTrustedCa(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2623,6 +2631,14 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (KubernetesClusterResource) httpProxyConfigWithSubnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2723,6 +2739,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     ]
   }
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }

@@ -554,7 +554,11 @@ resource "azurerm_kubernetes_cluster" "test" {
 func (KubernetesClusterResource) addonProfileIngressApplicationGatewayAppGatewayConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -635,6 +639,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = "httplistener"
     backend_address_pool_name  = "backendaddresspool"
     backend_http_settings_name = "backendhttpsettings"
+    priority                   = 1
   }
 }
 

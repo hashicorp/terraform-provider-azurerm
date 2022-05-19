@@ -2904,7 +2904,9 @@ func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservi
 
 	httpProxyConfig.HTTPProxy = utils.String(config["http_proxy"].(string))
 	httpProxyConfig.HTTPSProxy = utils.String(config["https_proxy"].(string))
-	httpProxyConfig.TrustedCa = utils.String(config["trusted_ca"].(string))
+	if v := config["trusted_ca"].(string); len(v) != 0 {
+		httpProxyConfig.TrustedCa = utils.String(v)
+	}
 
 	noProxyRaw := config["no_proxy"].(*pluginsdk.Set).List()
 	httpProxyConfig.NoProxy = utils.ExpandStringSlice(noProxyRaw)
