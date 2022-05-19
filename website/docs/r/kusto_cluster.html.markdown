@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kusto Cluster should be located. Changing this forces a new Kusto Cluster to be created.
 
-* `engine` - (Optional). The engine type that should be used. Possible values are `V2` and `V3`. Defaults to `V3`.
+* `engine` - (Optional). The engine type that should be used. Possible values are `V2` and `V3`. Defaults to `V2`.
 
 ---
 
