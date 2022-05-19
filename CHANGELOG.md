@@ -19,6 +19,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_databricks_workspace` - Handle panic when SKU field is missing [GH-16819]
+* `azurerm_application_insights_web_test` - working around a breaking change in the API where creation would fail [GH-16845]
 * `azurerm_express_route_gateway` - Handle gateway connections not found error [GH-16804]
 
 DEPRECATIONS:
