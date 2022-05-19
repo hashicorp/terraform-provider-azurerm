@@ -110,7 +110,7 @@ permissions:
 
 For more information about OIDC in GitHub Actions, see [official documentation](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-cloud-providers).
 
-The following Terraform and Provider blocks can be specified - where `3.6.0` is the version of the Azure Provider that you'd like to use:
+The following Terraform and Provider blocks can be specified - where `3.7.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
 # We strongly recommend using the required_providers block to set the
@@ -119,18 +119,19 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.6.0"
+      version = "=3.7.0"
     }
   }
 }
 
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
+  use_oidc = true
   features {}
 }
 ```
 
--> **Note:** Support for OpenID Connect was added in version 3.6.0 of the Terraform AzureRM provider.
+-> **Note:** Support for OpenID Connect was added in version 3.7.0 of the Terraform AzureRM provider.
 
 More information on [the fields supported in the Provider block can be found here](../index.html#argument-reference).
 
@@ -152,7 +153,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.6.0"
+      version = "=3.7.0"
     }
   }
 }
@@ -163,6 +164,7 @@ provider "azurerm" {
 
   subscription_id    = "00000000-0000-0000-0000-000000000000"
   client_id          = "00000000-0000-0000-0000-000000000000"
+  use_oidc           = true
   oidc_request_token = var.oidc_request_token
   oidc_request_url   = var.oidc_request_url
   tenant_id          = "00000000-0000-0000-0000-000000000000"
