@@ -16,6 +16,7 @@ type Client struct {
 	GroupsClient                      *containerinstance.ContainerGroupsClient
 	KubernetesClustersClient          *containerservice.ManagedClustersClient
 	MaintenanceConfigurationsClient   *containerservice.MaintenanceConfigurationsClient
+	ManagedClusterSnapshotsClient     *containerservice.ManagedClusterSnapshotsClient
 	RegistriesClient                  *containerregistry.RegistriesClient
 	ReplicationsClient                *containerregistry.ReplicationsClient
 	ServicesClient                    *legacy.ContainerServicesClient
@@ -64,6 +65,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	maintenanceConfigurationsClient := containerservice.NewMaintenanceConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&maintenanceConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
+	ManagedClusterSnapshotsClient := containerservice.NewManagedClusterSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ManagedClusterSnapshotsClient.Client, o.ResourceManagerAuthorizer)
+
 	servicesClient := legacy.NewContainerServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -79,6 +83,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		KubernetesClustersClient:          &kubernetesClustersClient,
 		GroupsClient:                      &groupsClient,
 		MaintenanceConfigurationsClient:   &maintenanceConfigurationsClient,
+		ManagedClusterSnapshotsClient:     &ManagedClusterSnapshotsClient,
 		RegistriesClient:                  &registriesClient,
 		WebhooksClient:                    &webhooksClient,
 		ReplicationsClient:                &replicationsClient,
