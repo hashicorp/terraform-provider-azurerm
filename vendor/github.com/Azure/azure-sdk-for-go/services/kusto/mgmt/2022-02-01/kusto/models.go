@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-08-27/kusto"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
 
 // AcceptedAudiences represents an accepted audience trusted by the cluster.
 type AcceptedAudiences struct {
@@ -286,7 +286,7 @@ type AzureResourceSku struct {
 
 // AzureSku azure SKU definition.
 type AzureSku struct {
-	// Name - SKU name. Possible values include: 'AzureSkuNameStandardDS13V21TBPS', 'AzureSkuNameStandardDS13V22TBPS', 'AzureSkuNameStandardDS14V23TBPS', 'AzureSkuNameStandardDS14V24TBPS', 'AzureSkuNameStandardD13V2', 'AzureSkuNameStandardD14V2', 'AzureSkuNameStandardL8s', 'AzureSkuNameStandardL16s', 'AzureSkuNameStandardL8sV2', 'AzureSkuNameStandardL16sV2', 'AzureSkuNameStandardD11V2', 'AzureSkuNameStandardD12V2', 'AzureSkuNameStandardL4s', 'AzureSkuNameDevNoSLAStandardD11V2', 'AzureSkuNameStandardE64iV3', 'AzureSkuNameStandardE80idsV4', 'AzureSkuNameStandardE2aV4', 'AzureSkuNameStandardE4aV4', 'AzureSkuNameStandardE8aV4', 'AzureSkuNameStandardE16aV4', 'AzureSkuNameStandardE8asV41TBPS', 'AzureSkuNameStandardE8asV42TBPS', 'AzureSkuNameStandardE16asV43TBPS', 'AzureSkuNameStandardE16asV44TBPS', 'AzureSkuNameDevNoSLAStandardE2aV4'
+	// Name - SKU name. Possible values include: 'AzureSkuNameDevNoSLAStandardD11V2', 'AzureSkuNameDevNoSLAStandardE2aV4', 'AzureSkuNameStandardD11V2', 'AzureSkuNameStandardD12V2', 'AzureSkuNameStandardD13V2', 'AzureSkuNameStandardD14V2', 'AzureSkuNameStandardD32dV4', 'AzureSkuNameStandardD16dV5', 'AzureSkuNameStandardD32dV5', 'AzureSkuNameStandardDS13V21TBPS', 'AzureSkuNameStandardDS13V22TBPS', 'AzureSkuNameStandardDS14V23TBPS', 'AzureSkuNameStandardDS14V24TBPS', 'AzureSkuNameStandardL4s', 'AzureSkuNameStandardL8s', 'AzureSkuNameStandardL16s', 'AzureSkuNameStandardL8sV2', 'AzureSkuNameStandardL16sV2', 'AzureSkuNameStandardE64iV3', 'AzureSkuNameStandardE80idsV4', 'AzureSkuNameStandardE2aV4', 'AzureSkuNameStandardE4aV4', 'AzureSkuNameStandardE8aV4', 'AzureSkuNameStandardE16aV4', 'AzureSkuNameStandardE8asV41TBPS', 'AzureSkuNameStandardE8asV42TBPS', 'AzureSkuNameStandardE16asV43TBPS', 'AzureSkuNameStandardE16asV44TBPS', 'AzureSkuNameStandardE8asV51TBPS', 'AzureSkuNameStandardE8asV52TBPS', 'AzureSkuNameStandardE16asV53TBPS', 'AzureSkuNameStandardE16asV54TBPS', 'AzureSkuNameStandardE2adsV5', 'AzureSkuNameStandardE4adsV5', 'AzureSkuNameStandardE8adsV5', 'AzureSkuNameStandardE16adsV5', 'AzureSkuNameStandardE8sV41TBPS', 'AzureSkuNameStandardE8sV42TBPS', 'AzureSkuNameStandardE16sV43TBPS', 'AzureSkuNameStandardE16sV44TBPS', 'AzureSkuNameStandardE8sV51TBPS', 'AzureSkuNameStandardE8sV52TBPS', 'AzureSkuNameStandardE16sV53TBPS', 'AzureSkuNameStandardE16sV54TBPS'
 	Name AzureSkuName `json:"name,omitempty"`
 	// Capacity - The number of instances of the cluster.
 	Capacity *int32 `json:"capacity,omitempty"`
@@ -697,6 +697,8 @@ type ClusterPrincipalProperties struct {
 	PrincipalName *string `json:"principalName,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+	// AadObjectID - READ-ONLY; The service principal object id in AAD (Azure active directory)
+	AadObjectID *string `json:"aadObjectId,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ClusterPrincipalProperties.
@@ -761,6 +763,12 @@ type ClusterProperties struct {
 	RestrictOutboundNetworkAccess ClusterNetworkAccessFlag `json:"restrictOutboundNetworkAccess,omitempty"`
 	// AllowedFqdnList - List of allowed FQDNs(Fully Qualified Domain Name) for egress from Cluster.
 	AllowedFqdnList *[]string `json:"allowedFqdnList,omitempty"`
+	// PublicIPType - Indicates what public IP type to create - IPv4 (default), or DualStack (both IPv4 and IPv6). Possible values include: 'PublicIPTypeIPv4', 'PublicIPTypeDualStack'
+	PublicIPType PublicIPType `json:"publicIPType,omitempty"`
+	// VirtualClusterGraduationProperties - Virtual Cluster graduation properties
+	VirtualClusterGraduationProperties *string `json:"virtualClusterGraduationProperties,omitempty"`
+	// PrivateEndpointConnections - READ-ONLY; A list of private endpoint connections.
+	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ClusterProperties.
@@ -810,6 +818,12 @@ func (cp ClusterProperties) MarshalJSON() ([]byte, error) {
 	}
 	if cp.AllowedFqdnList != nil {
 		objectMap["allowedFqdnList"] = cp.AllowedFqdnList
+	}
+	if cp.PublicIPType != "" {
+		objectMap["publicIPType"] = cp.PublicIPType
+	}
+	if cp.VirtualClusterGraduationProperties != nil {
+		objectMap["virtualClusterGraduationProperties"] = cp.VirtualClusterGraduationProperties
 	}
 	return json.Marshal(objectMap)
 }
@@ -1674,6 +1688,8 @@ type DatabasePrincipalProperties struct {
 	PrincipalName *string `json:"principalName,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+	// AadObjectID - READ-ONLY; The service principal object id in AAD (Azure active directory)
+	AadObjectID *string `json:"aadObjectId,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DatabasePrincipalProperties.
@@ -2229,6 +2245,8 @@ type EndpointDetail struct {
 type EventGridConnectionProperties struct {
 	// StorageAccountResourceID - The resource ID of the storage account where the data resides.
 	StorageAccountResourceID *string `json:"storageAccountResourceId,omitempty"`
+	// EventGridResourceID - The resource ID of the event grid that is subscribed to the storage account events.
+	EventGridResourceID *string `json:"eventGridResourceId,omitempty"`
 	// EventHubResourceID - The resource ID where the event grid is configured to send events.
 	EventHubResourceID *string `json:"eventHubResourceId,omitempty"`
 	// ConsumerGroup - The event hub consumer group.
@@ -2243,6 +2261,12 @@ type EventGridConnectionProperties struct {
 	IgnoreFirstRecord *bool `json:"ignoreFirstRecord,omitempty"`
 	// BlobStorageEventType - The name of blob storage event type to process. Possible values include: 'BlobStorageEventTypeMicrosoftStorageBlobCreated', 'BlobStorageEventTypeMicrosoftStorageBlobRenamed'
 	BlobStorageEventType BlobStorageEventType `json:"blobStorageEventType,omitempty"`
+	// ManagedIdentityResourceID - The resource ID of a managed identity (system or user assigned) to be used to authenticate with event hub and storage account.
+	ManagedIdentityResourceID *string `json:"managedIdentityResourceId,omitempty"`
+	// ManagedIdentityObjectID - READ-ONLY; The object ID of managedIdentityResourceId
+	ManagedIdentityObjectID *string `json:"managedIdentityObjectId,omitempty"`
+	// DatabaseRouting - Indication for database routing information from the data connection, by default only database routing information is allowed. Possible values include: 'DatabaseRoutingSingle', 'DatabaseRoutingMulti'
+	DatabaseRouting DatabaseRouting `json:"databaseRouting,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
@@ -2252,6 +2276,9 @@ func (egcp EventGridConnectionProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if egcp.StorageAccountResourceID != nil {
 		objectMap["storageAccountResourceId"] = egcp.StorageAccountResourceID
+	}
+	if egcp.EventGridResourceID != nil {
+		objectMap["eventGridResourceId"] = egcp.EventGridResourceID
 	}
 	if egcp.EventHubResourceID != nil {
 		objectMap["eventHubResourceId"] = egcp.EventHubResourceID
@@ -2273,6 +2300,12 @@ func (egcp EventGridConnectionProperties) MarshalJSON() ([]byte, error) {
 	}
 	if egcp.BlobStorageEventType != "" {
 		objectMap["blobStorageEventType"] = egcp.BlobStorageEventType
+	}
+	if egcp.ManagedIdentityResourceID != nil {
+		objectMap["managedIdentityResourceId"] = egcp.ManagedIdentityResourceID
+	}
+	if egcp.DatabaseRouting != "" {
+		objectMap["databaseRouting"] = egcp.DatabaseRouting
 	}
 	return json.Marshal(objectMap)
 }
@@ -2421,8 +2454,12 @@ type EventHubConnectionProperties struct {
 	Compression Compression `json:"compression,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-	// ManagedIdentityResourceID - The resource ID of a managed identity (system or user assigned) to be used to authenticate with event hub.
+	// ManagedIdentityResourceID - Empty for non-managed identity based data connection. For system assigned identity, provide cluster resource Id.  For user assigned identity (UAI) provide the UAI resource Id.
 	ManagedIdentityResourceID *string `json:"managedIdentityResourceId,omitempty"`
+	// ManagedIdentityObjectID - READ-ONLY; The object ID of the managedIdentityResourceId
+	ManagedIdentityObjectID *string `json:"managedIdentityObjectId,omitempty"`
+	// DatabaseRouting - Indication for database routing information from the data connection, by default only database routing information is allowed. Possible values include: 'DatabaseRoutingSingle', 'DatabaseRoutingMulti'
+	DatabaseRouting DatabaseRouting `json:"databaseRouting,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for EventHubConnectionProperties.
@@ -2451,6 +2488,9 @@ func (ehcp EventHubConnectionProperties) MarshalJSON() ([]byte, error) {
 	}
 	if ehcp.ManagedIdentityResourceID != nil {
 		objectMap["managedIdentityResourceId"] = ehcp.ManagedIdentityResourceID
+	}
+	if ehcp.DatabaseRouting != "" {
+		objectMap["databaseRouting"] = ehcp.DatabaseRouting
 	}
 	return json.Marshal(objectMap)
 }
@@ -2664,6 +2704,8 @@ type IotHubConnectionProperties struct {
 	EventSystemProperties *[]string `json:"eventSystemProperties,omitempty"`
 	// SharedAccessPolicyName - The name of the share access policy
 	SharedAccessPolicyName *string `json:"sharedAccessPolicyName,omitempty"`
+	// DatabaseRouting - Indication for database routing information from the data connection, by default only database routing information is allowed. Possible values include: 'DatabaseRoutingSingle', 'DatabaseRoutingMulti'
+	DatabaseRouting DatabaseRouting `json:"databaseRouting,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
@@ -2691,6 +2733,9 @@ func (ihcp IotHubConnectionProperties) MarshalJSON() ([]byte, error) {
 	}
 	if ihcp.SharedAccessPolicyName != nil {
 		objectMap["sharedAccessPolicyName"] = ihcp.SharedAccessPolicyName
+	}
+	if ihcp.DatabaseRouting != "" {
+		objectMap["databaseRouting"] = ihcp.DatabaseRouting
 	}
 	return json.Marshal(objectMap)
 }
@@ -3428,8 +3473,22 @@ type OperationResultErrorProperties struct {
 type OperationResultProperties struct {
 	// OperationKind - The kind of the operation.
 	OperationKind *string `json:"operationKind,omitempty"`
+	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'ProvisioningStateRunning', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateMoving'
+	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// OperationState - The state of the operation.
 	OperationState *string `json:"operationState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationResultProperties.
+func (orp OperationResultProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if orp.OperationKind != nil {
+		objectMap["operationKind"] = orp.OperationKind
+	}
+	if orp.OperationState != nil {
+		objectMap["operationState"] = orp.OperationState
+	}
+	return json.Marshal(objectMap)
 }
 
 // OptimizedAutoscale a class that contains the optimized auto scale definition.
@@ -4200,7 +4259,7 @@ type ReadOnlyFollowingDatabaseProperties struct {
 	SoftDeletePeriod *string `json:"softDeletePeriod,omitempty"`
 	// HotCachePeriod - The time the data should be kept in cache for fast queries in TimeSpan.
 	HotCachePeriod *string `json:"hotCachePeriod,omitempty"`
-	// Statistics - The statistics of the database.
+	// Statistics - READ-ONLY; The statistics of the database.
 	Statistics *DatabaseStatistics `json:"statistics,omitempty"`
 	// LeaderClusterResourceID - READ-ONLY; The name of the leader cluster
 	LeaderClusterResourceID *string `json:"leaderClusterResourceId,omitempty"`
@@ -4215,9 +4274,6 @@ func (rofdp ReadOnlyFollowingDatabaseProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if rofdp.HotCachePeriod != nil {
 		objectMap["hotCachePeriod"] = rofdp.HotCachePeriod
-	}
-	if rofdp.Statistics != nil {
-		objectMap["statistics"] = rofdp.Statistics
 	}
 	return json.Marshal(objectMap)
 }
@@ -4351,7 +4407,7 @@ type ReadWriteDatabaseProperties struct {
 	SoftDeletePeriod *string `json:"softDeletePeriod,omitempty"`
 	// HotCachePeriod - The time the data should be kept in cache for fast queries in TimeSpan.
 	HotCachePeriod *string `json:"hotCachePeriod,omitempty"`
-	// Statistics - The statistics of the database.
+	// Statistics - READ-ONLY; The statistics of the database.
 	Statistics *DatabaseStatistics `json:"statistics,omitempty"`
 	// IsFollowed - READ-ONLY; Indicates whether the database is followed.
 	IsFollowed *bool `json:"isFollowed,omitempty"`
@@ -4365,9 +4421,6 @@ func (rwdp ReadWriteDatabaseProperties) MarshalJSON() ([]byte, error) {
 	}
 	if rwdp.HotCachePeriod != nil {
 		objectMap["hotCachePeriod"] = rwdp.HotCachePeriod
-	}
-	if rwdp.Statistics != nil {
-		objectMap["statistics"] = rwdp.Statistics
 	}
 	return json.Marshal(objectMap)
 }
@@ -4489,10 +4542,12 @@ type ScriptListResult struct {
 
 // ScriptProperties a class representing database script property.
 type ScriptProperties struct {
-	// ScriptURL - The url to the KQL script blob file.
+	// ScriptURL - The url to the KQL script blob file. Must not be used together with scriptContent property
 	ScriptURL *string `json:"scriptUrl,omitempty"`
-	// ScriptURLSasToken - The SaS token.
+	// ScriptURLSasToken - The SaS token that provide read access to the file which contain the script. Must be provided when using scriptUrl property.
 	ScriptURLSasToken *string `json:"scriptUrlSasToken,omitempty"`
+	// ScriptContent - The script content. This property should be used when the script is provide inline and not through file in a SA. Must not be used together with scriptUrl and scriptUrlSasToken properties.
+	ScriptContent *string `json:"scriptContent,omitempty"`
 	// ForceUpdateTag - A unique string. If changed the script will be applied again.
 	ForceUpdateTag *string `json:"forceUpdateTag,omitempty"`
 	// ContinueOnErrors - Flag that indicates whether to continue if one of the command fails.
@@ -4509,6 +4564,9 @@ func (sp ScriptProperties) MarshalJSON() ([]byte, error) {
 	}
 	if sp.ScriptURLSasToken != nil {
 		objectMap["scriptUrlSasToken"] = sp.ScriptURLSasToken
+	}
+	if sp.ScriptContent != nil {
+		objectMap["scriptContent"] = sp.ScriptContent
 	}
 	if sp.ForceUpdateTag != nil {
 		objectMap["forceUpdateTag"] = sp.ForceUpdateTag
