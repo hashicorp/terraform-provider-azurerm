@@ -292,6 +292,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"timezone": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: computeValidate.VirtualMachineTimeZone(),
 			},
 
