@@ -418,6 +418,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.NetworkPluginAzure),
 								string(containerservice.NetworkPluginKubenet),
+								string(containerservice.NetworkPluginNone),
 							}, false),
 						},
 
@@ -479,11 +480,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"load_balancer_sku": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							Default:          string(containerservice.LoadBalancerSkuStandard),
-							ForceNew:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(containerservice.LoadBalancerSkuStandard),
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.LoadBalancerSkuBasic),
 								string(containerservice.LoadBalancerSkuStandard),

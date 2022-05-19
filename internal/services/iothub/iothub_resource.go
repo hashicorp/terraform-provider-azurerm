@@ -12,12 +12,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
@@ -85,583 +83,547 @@ func resourceIotHub() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: func() map[string]*pluginsdk.Schema {
-			s := map[string]*pluginsdk.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: iothubValidate.IoTHubName,
-				},
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: iothubValidate.IoTHubName,
+			},
 
-				"location": azure.SchemaLocation(),
+			"location": azure.SchemaLocation(),
 
-				"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-				"sku": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Required: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:             pluginsdk.TypeString,
-								Required:         true,
-								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(devices.IotHubSkuB1),
-									string(devices.IotHubSkuB2),
-									string(devices.IotHubSkuB3),
-									string(devices.IotHubSkuF1),
-									string(devices.IotHubSkuS1),
-									string(devices.IotHubSkuS2),
-									string(devices.IotHubSkuS3),
-								}, false),
-							},
+			"sku": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Required: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:             pluginsdk.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.IotHubSkuB1),
+								string(devices.IotHubSkuB2),
+								string(devices.IotHubSkuB3),
+								string(devices.IotHubSkuF1),
+								string(devices.IotHubSkuS1),
+								string(devices.IotHubSkuS2),
+								string(devices.IotHubSkuS3),
+							}, false),
+						},
 
-							"capacity": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: validation.IntBetween(1, 200),
-							},
+						"capacity": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 200),
 						},
 					},
 				},
+			},
 
-				"shared_access_policy": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"key_name": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"primary_key": {
-								Type:      pluginsdk.TypeString,
-								Computed:  true,
-								Sensitive: true,
-							},
-							"secondary_key": {
-								Type:      pluginsdk.TypeString,
-								Computed:  true,
-								Sensitive: true,
-							},
-							"permissions": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
+			"shared_access_policy": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"primary_key": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"secondary_key": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"permissions": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 					},
 				},
+			},
 
-				"event_hub_partition_count": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntBetween(2, 128),
-				},
-				"event_hub_retention_in_days": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntBetween(1, 7),
-				},
+			"event_hub_partition_count": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(2, 128),
+			},
+			"event_hub_retention_in_days": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(1, 7),
+			},
 
-				"file_upload": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"connection_string": {
-								Type:             pluginsdk.TypeString,
-								Required:         true,
-								DiffSuppressFunc: fileUploadConnectionStringDiffSuppress,
-								Sensitive:        true,
-							},
-							"container_name": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-							},
-							"authentication_type": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								Default:  string(devices.AuthenticationTypeKeyBased),
-								ValidateFunc: validation.StringInSlice([]string{
-									string(devices.AuthenticationTypeKeyBased),
-									string(devices.AuthenticationTypeIdentityBased),
-								}, false),
-							},
-							"identity_id": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ValidateFunc: msivalidate.UserAssignedIdentityID,
-							},
-							"notifications": {
-								Type:     pluginsdk.TypeBool,
-								Optional: true,
-								Default:  false,
-							},
-							"max_delivery_count": {
-								Type:         pluginsdk.TypeInt,
-								Optional:     true,
-								Default:      10,
-								ValidateFunc: validation.IntBetween(1, 100),
-							},
-							"sas_ttl": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								Computed:     true,
-								ValidateFunc: validate.ISO8601Duration,
-							},
-							"default_ttl": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								Computed:     true,
-								ValidateFunc: validate.ISO8601Duration,
-							},
-							"lock_duration": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								Computed:     true,
-								ValidateFunc: validate.ISO8601Duration,
-							},
+			"file_upload": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"connection_string": {
+							Type:             pluginsdk.TypeString,
+							Required:         true,
+							DiffSuppressFunc: fileUploadConnectionStringDiffSuppress,
+							Sensitive:        true,
+						},
+						"container_name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"authentication_type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(devices.AuthenticationTypeKeyBased),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.AuthenticationTypeKeyBased),
+								string(devices.AuthenticationTypeIdentityBased),
+							}, false),
+						},
+						"identity_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: msivalidate.UserAssignedIdentityID,
+						},
+						"notifications": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"max_delivery_count": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      10,
+							ValidateFunc: validation.IntBetween(1, 100),
+						},
+						"sas_ttl": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.ISO8601Duration,
+						},
+						"default_ttl": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.ISO8601Duration,
+						},
+						"lock_duration": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.ISO8601Duration,
 						},
 					},
 				},
+			},
 
-				"endpoint": {
-					Type:       pluginsdk.TypeList,
-					Optional:   true,
-					Computed:   true,
-					ConfigMode: pluginsdk.SchemaConfigModeAttr,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"type": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									"AzureIotHub.StorageContainer",
-									"AzureIotHub.ServiceBusQueue",
-									"AzureIotHub.ServiceBusTopic",
-									"AzureIotHub.EventHub",
-								}, false),
+			"endpoint": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"AzureIotHub.StorageContainer",
+								"AzureIotHub.ServiceBusQueue",
+								"AzureIotHub.ServiceBusTopic",
+								"AzureIotHub.EventHub",
+							}, false),
+						},
+
+						"authentication_type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(devices.AuthenticationTypeKeyBased),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.AuthenticationTypeKeyBased),
+								string(devices.AuthenticationTypeIdentityBased),
+							}, false),
+						},
+
+						"identity_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: msivalidate.UserAssignedIdentityID,
+						},
+
+						"endpoint_uri": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"entity_path": {
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppressIfTypeIs("AzureIotHub.StorageContainer"),
+							ValidateFunc: validation.Any(
+								servicebusValidate.QueueName(),
+								servicebusValidate.TopicName(),
+								eventhubValidate.ValidateEventHubName(),
+							),
+						},
+
+						"connection_string": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
+								sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
+
+								// Azure will always mask the Access Keys and will include the port number in the GET response
+								// 5671 is the default port for Azure Service Bus connections
+								maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
+								maskedNew = secretKeyRegex.ReplaceAllString(maskedNew, "$1=****")
+								return (new == d.Get(k).(string)) && (maskedNew == old)
 							},
+							Sensitive: true,
+						},
 
-							"authentication_type": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								Default:  string(devices.AuthenticationTypeKeyBased),
-								ValidateFunc: validation.StringInSlice([]string{
-									string(devices.AuthenticationTypeKeyBased),
-									string(devices.AuthenticationTypeIdentityBased),
-								}, false),
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: iothubValidate.IoTHubEndpointName,
+						},
+
+						"batch_frequency_in_seconds": {
+							Type:             pluginsdk.TypeInt,
+							Optional:         true,
+							Default:          300,
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+							ValidateFunc:     validation.IntBetween(60, 720),
+						},
+
+						"max_chunk_size_in_bytes": {
+							Type:             pluginsdk.TypeInt,
+							Optional:         true,
+							Default:          314572800,
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+							ValidateFunc:     validation.IntBetween(10485760, 524288000),
+						},
+
+						"container_name": {
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+						},
+
+						"encoding": {
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							ForceNew:         true,
+							Default:          string(devices.EncodingAvro),
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.EncodingAvro),
+								string(devices.EncodingAvroDeflate),
+								string(devices.EncodingJSON),
+							}, false),
+						},
+
+						"file_name_format": {
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							Default:          "{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}",
+							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
+							ValidateFunc:     iothubValidate.FileNameFormat,
+						},
+
+						"resource_group_name": commonschema.ResourceGroupNameOptional(),
+					},
+				},
+			},
+
+			"route": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
+								"Route Name name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.",
+							),
+						},
+						"source": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"DeviceConnectionStateEvents",
+								"DeviceJobLifecycleEvents",
+								"DeviceLifecycleEvents",
+								"DeviceMessages",
+								"Invalid",
+								"TwinChangeEvents",
+							}, false),
+						},
+						"condition": {
+							// The condition is a string value representing device-to-cloud message routes query expression
+							// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "true",
+						},
+						"endpoint_names": {
+							Type: pluginsdk.TypeList,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
-
-							"identity_id": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ValidateFunc: msivalidate.UserAssignedIdentityID,
-							},
-
-							"endpoint_uri": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-
-							"entity_path": {
-								Type:             pluginsdk.TypeString,
-								Optional:         true,
-								DiffSuppressFunc: suppressIfTypeIs("AzureIotHub.StorageContainer"),
-								ValidateFunc: validation.Any(
-									servicebusValidate.QueueName(),
-									servicebusValidate.TopicName(),
-									eventhubValidate.ValidateEventHubName(),
-								),
-							},
-
-							"connection_string": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-									secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
-									sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
-
-									// Azure will always mask the Access Keys and will include the port number in the GET response
-									// 5671 is the default port for Azure Service Bus connections
-									maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
-									maskedNew = secretKeyRegex.ReplaceAllString(maskedNew, "$1=****")
-									return (new == d.Get(k).(string)) && (maskedNew == old)
-								},
-								Sensitive: true,
-							},
-
-							"name": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: iothubValidate.IoTHubEndpointName,
-							},
-
-							"batch_frequency_in_seconds": {
-								Type:             pluginsdk.TypeInt,
-								Optional:         true,
-								Default:          300,
-								DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
-								ValidateFunc:     validation.IntBetween(60, 720),
-							},
-
-							"max_chunk_size_in_bytes": {
-								Type:             pluginsdk.TypeInt,
-								Optional:         true,
-								Default:          314572800,
-								DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
-								ValidateFunc:     validation.IntBetween(10485760, 524288000),
-							},
-
-							"container_name": {
-								Type:             pluginsdk.TypeString,
-								Optional:         true,
-								DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
-							},
-
-							"encoding": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ForceNew: true,
-								Default:  string(devices.EncodingAvro),
-								DiffSuppressFunc: suppressWhenAny(
-									suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
-									suppress.CaseDifferenceV2Only),
-								ValidateFunc: validation.StringInSlice([]string{
-									string(devices.EncodingAvro),
-									string(devices.EncodingAvroDeflate),
-									string(devices.EncodingJSON),
-								}, !features.ThreePointOhBeta()),
-							},
-
-							"file_name_format": {
-								Type:             pluginsdk.TypeString,
-								Optional:         true,
-								Default:          "{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}",
-								DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
-								ValidateFunc:     iothubValidate.FileNameFormat,
-							},
-
-							"resource_group_name": commonschema.ResourceGroupNameOptional(),
+							Required: true,
+						},
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
 						},
 					},
 				},
+			},
 
-				"route": {
-					Type:       pluginsdk.TypeList,
-					Optional:   true,
-					Computed:   true,
-					ConfigMode: pluginsdk.SchemaConfigModeAttr,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ValidateFunc: validation.StringMatch(
-									regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
-									"Route Name name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.",
-								),
+			"enrichment": {
+				Type: pluginsdk.TypeList,
+				// Currently only 10 enrichments is allowed for standard or basic tier, 2 for Free tier.
+				MaxItems:   10,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
+								"Enrichment Key name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.",
+							),
+						},
+						"value": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"endpoint_names": {
+							Type: pluginsdk.TypeList,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
-							"source": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									"DeviceConnectionStateEvents",
-									"DeviceJobLifecycleEvents",
-									"DeviceLifecycleEvents",
-									"DeviceMessages",
-									"Invalid",
-									"TwinChangeEvents",
-								}, false),
-							},
-							"condition": {
-								// The condition is a string value representing device-to-cloud message routes query expression
-								// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								Default:  "true",
-							},
-							"endpoint_names": {
-								Type: pluginsdk.TypeList,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-								Required: true,
-							},
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
+							Required: true,
 						},
 					},
 				},
+			},
 
-				"enrichment": {
-					Type: pluginsdk.TypeList,
-					// Currently only 10 enrichments is allowed for standard or basic tier, 2 for Free tier.
-					MaxItems:   10,
-					Optional:   true,
-					Computed:   true,
-					ConfigMode: pluginsdk.SchemaConfigModeAttr,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"key": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ValidateFunc: validation.StringMatch(
-									regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
-									"Enrichment Key name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.",
-								),
-							},
-							"value": {
+			"fallback_route": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"source": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(devices.RoutingSourceDeviceMessages),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.RoutingSourceDeviceConnectionStateEvents),
+								string(devices.RoutingSourceDeviceJobLifecycleEvents),
+								string(devices.RoutingSourceDeviceLifecycleEvents),
+								string(devices.RoutingSourceDeviceMessages),
+								string(devices.RoutingSourceInvalid),
+								string(devices.RoutingSourceTwinChangeEvents),
+							}, false),
+						},
+						"condition": {
+							// The condition is a string value representing device-to-cloud message routes query expression
+							// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "true",
+						},
+						"endpoint_names": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
+								ValidateFunc: validation.StringLenBetween(0, 64),
 							},
-							"endpoint_names": {
-								Type: pluginsdk.TypeList,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-								Required: true,
-							},
+						},
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Computed: true,
 						},
 					},
 				},
+			},
 
-				"fallback_route": {
-					Type:     pluginsdk.TypeList,
-					MaxItems: 1,
-					Optional: true,
-					Computed: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"source": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								Default:  string(devices.RoutingSourceDeviceMessages),
-								ValidateFunc: validation.StringInSlice([]string{
-									string(devices.RoutingSourceDeviceConnectionStateEvents),
-									string(devices.RoutingSourceDeviceJobLifecycleEvents),
-									string(devices.RoutingSourceDeviceLifecycleEvents),
-									string(devices.RoutingSourceDeviceMessages),
-									string(devices.RoutingSourceInvalid),
-									string(devices.RoutingSourceTwinChangeEvents),
-								}, false),
-							},
-							"condition": {
-								// The condition is a string value representing device-to-cloud message routes query expression
-								// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								Default:  "true",
-							},
-							"endpoint_names": {
-								Type:     pluginsdk.TypeList,
-								Optional: true,
-								Computed: true,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.StringLenBetween(0, 64),
-								},
-							},
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Optional: true,
-								Computed: true,
-							},
+			"network_rule_set": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"default_action": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(devices.DefaultActionDeny),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.DefaultActionAllow),
+								string(devices.DefaultActionDeny),
+							}, false),
 						},
-					},
-				},
-
-				"network_rule_set": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"default_action": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								Default:  string(devices.DefaultActionDeny),
-								ValidateFunc: validation.StringInSlice([]string{
-									string(devices.DefaultActionAllow),
-									string(devices.DefaultActionDeny),
-								}, false),
-							},
-							"apply_to_builtin_eventhub_endpoint": {
-								Type:     pluginsdk.TypeBool,
-								Optional: true,
-								Default:  false,
-							},
-							"ip_rule": {
-								Type:     pluginsdk.TypeList,
-								Optional: true,
-								Elem: &pluginsdk.Resource{
-									Schema: map[string]*pluginsdk.Schema{
-										"name": {
-											Type:         pluginsdk.TypeString,
-											Required:     true,
-											ValidateFunc: iothubValidate.IoTHubIpRuleName,
-										},
-										"ip_mask": {
-											Type:         pluginsdk.TypeString,
-											Required:     true,
-											ValidateFunc: validate.CIDR,
-										},
-										"action": {
-											Type:     pluginsdk.TypeString,
-											Optional: true,
-											Default:  string(devices.NetworkRuleIPActionAllow),
-											ValidateFunc: validation.StringInSlice([]string{
-												string(devices.NetworkRuleIPActionAllow),
-											}, false),
-										},
+						"apply_to_builtin_eventhub_endpoint": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"ip_rule": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: iothubValidate.IoTHubIpRuleName,
+									},
+									"ip_mask": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validate.CIDR,
+									},
+									"action": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(devices.NetworkRuleIPActionAllow),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(devices.NetworkRuleIPActionAllow),
+										}, false),
 									},
 								},
 							},
 						},
 					},
 				},
+			},
 
-				"cloud_to_device": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Computed: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"max_delivery_count": {
-								Type:         pluginsdk.TypeInt,
-								Optional:     true,
-								Default:      10,
-								ValidateFunc: validation.IntBetween(1, 100),
-							},
-							"default_ttl": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
-								Default:      "PT1H",
-								ValidateFunc: validate.ISO8601DurationBetween("PT15M", "P2D"),
-							},
-							"feedback": {
-								Type:     pluginsdk.TypeList,
-								Optional: true,
-								Elem: &pluginsdk.Resource{
-									Schema: map[string]*pluginsdk.Schema{
-										"time_to_live": {
-											Type:         pluginsdk.TypeString,
-											Optional:     true,
-											Default:      "PT1H",
-											ValidateFunc: validate.ISO8601DurationBetween("PT15M", "P2D"),
-										},
-										"max_delivery_count": {
-											Type:         pluginsdk.TypeInt,
-											Optional:     true,
-											Default:      10,
-											ValidateFunc: validation.IntBetween(1, 100),
-										},
-										"lock_duration": {
-											Type:         pluginsdk.TypeString,
-											Optional:     true,
-											Default:      "PT60S",
-											ValidateFunc: validate.ISO8601DurationBetween("PT5S", "PT300S"),
-										},
+			"cloud_to_device": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"max_delivery_count": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      10,
+							ValidateFunc: validation.IntBetween(1, 100),
+						},
+						"default_ttl": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "PT1H",
+							ValidateFunc: validate.ISO8601DurationBetween("PT15M", "P2D"),
+						},
+						"feedback": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"time_to_live": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      "PT1H",
+										ValidateFunc: validate.ISO8601DurationBetween("PT15M", "P2D"),
+									},
+									"max_delivery_count": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      10,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+									"lock_duration": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      "PT60S",
+										ValidateFunc: validate.ISO8601DurationBetween("PT5S", "PT300S"),
 									},
 								},
 							},
 						},
 					},
 				},
+			},
 
-				"min_tls_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"1.2",
-					}, false),
-				},
+			"min_tls_version": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"1.2",
+				}, false),
+			},
 
-				"public_network_access_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-				},
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
 
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+			"type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"hostname": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+			"hostname": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"event_hub_events_endpoint": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-				"event_hub_events_namespace": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-				"event_hub_operations_endpoint": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+			"event_hub_events_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"event_hub_events_namespace": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"event_hub_operations_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"event_hub_events_path": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-				"event_hub_operations_path": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
+			"event_hub_events_path": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"event_hub_operations_path": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
-				"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
-				"tags": tags.Schema(),
-			}
-
-			if !features.ThreePointOhBeta() {
-				s["ip_filter_rule"] = &schema.Schema{
-					Type:          pluginsdk.TypeList,
-					Optional:      true,
-					ConflictsWith: []string{"network_rule_set"},
-					Deprecated:    "This property block is deprecated in favour of `network_rule_set` and will be removed in version 3.0 of the provider.",
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"ip_mask": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validate.CIDR,
-							},
-							"action": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(devices.IPFilterActionTypeAccept),
-									string(devices.IPFilterActionTypeReject),
-								}, false),
-							},
-						},
-					},
-				}
-			}
-			return s
-		}(),
+			"tags": tags.Schema(),
+		},
 	}
 }
 
@@ -758,12 +720,6 @@ func resourceIotHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		},
 		Identity: identity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if !features.ThreePointOhBeta() {
-		if _, ok := d.GetOk("ip_filter_rule"); ok {
-			props.Properties.IPFilterRules = expandIPFilterRules(d)
-		}
 	}
 
 	if _, ok := d.GetOk("network_rule_set"); ok {
@@ -893,13 +849,6 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		networkRuleSet := flattenNetworkRuleSetProperties(properties.NetworkRuleSets)
 		if err := d.Set("network_rule_set", networkRuleSet); err != nil {
 			return fmt.Errorf("setting `network_rule_set` in IoTHub %q: %+v", id.Name, err)
-		}
-
-		if !features.ThreePointOhBeta() && len(networkRuleSet) == 0 {
-			ipFilterRules := flattenIPFilterRules(properties.IPFilterRules)
-			if err := d.Set("ip_filter_rule", ipFilterRules); err != nil {
-				return fmt.Errorf("setting `ip_filter_rule` in IoTHub %q: %+v", id.Name, err)
-			}
 		}
 
 		fileUpload := flattenIoTHubFileUpload(properties.StorageEndpoints, properties.MessagingEndpoints, properties.EnableFileUploadNotifications)
@@ -1656,50 +1605,6 @@ func flattenIoTHubCloudToDeviceFeedback(input *devices.FeedbackProperties) []int
 	}
 
 	return []interface{}{feedback}
-}
-
-func expandIPFilterRules(d *pluginsdk.ResourceData) *[]devices.IPFilterRule {
-	ipFilterRuleList := d.Get("ip_filter_rule").([]interface{})
-	if len(ipFilterRuleList) == 0 {
-		return nil
-	}
-
-	rules := make([]devices.IPFilterRule, 0)
-
-	for _, r := range ipFilterRuleList {
-		rawRule := r.(map[string]interface{})
-		rule := &devices.IPFilterRule{
-			FilterName: utils.String(rawRule["name"].(string)),
-			Action:     devices.IPFilterActionType(rawRule["action"].(string)),
-			IPMask:     utils.String(rawRule["ip_mask"].(string)),
-		}
-
-		rules = append(rules, *rule)
-	}
-	return &rules
-}
-
-func flattenIPFilterRules(in *[]devices.IPFilterRule) []interface{} {
-	rules := make([]interface{}, 0)
-	if in == nil {
-		return rules
-	}
-
-	for _, r := range *in {
-		rawRule := make(map[string]interface{})
-
-		if r.FilterName != nil {
-			rawRule["name"] = *r.FilterName
-		}
-
-		rawRule["action"] = string(r.Action)
-
-		if r.IPMask != nil {
-			rawRule["ip_mask"] = *r.IPMask
-		}
-		rules = append(rules, rawRule)
-	}
-	return rules
 }
 
 func expandNetworkRuleSetProperties(d *pluginsdk.ResourceData) *devices.NetworkRuleSetProperties {

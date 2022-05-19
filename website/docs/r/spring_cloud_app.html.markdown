@@ -49,6 +49,8 @@ The following arguments are supported:
 
 * `service_name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created.
 
+* `addon_json` - (Optional) A JSON object that contains the addon configurations of the Spring Cloud Service.
+
 * `custom_persistent_disk` - (Optional) A `custom_persistent_disk` block as defined below.
   
 * `identity` - (Optional) An `identity` block as defined below.
@@ -78,7 +80,11 @@ An `custom_persistent_disk` block exports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Cosmos Account. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Spring Cloud Application. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Spring Cloud Application.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 

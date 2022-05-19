@@ -89,6 +89,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cdn.MinimumTLSVersionTLS10),
 								string(cdn.MinimumTLSVersionTLS12),
+								string(cdn.MinimumTLSVersionNone),
 							}, false),
 							Default: string(cdn.MinimumTLSVersionTLS12),
 						},
@@ -115,6 +116,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cdn.MinimumTLSVersionTLS10),
 								string(cdn.MinimumTLSVersionTLS12),
+								string(cdn.MinimumTLSVersionNone),
 							}, false),
 							Default: string(cdn.MinimumTLSVersionTLS12),
 						},

@@ -6,8 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -170,53 +168,6 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 }
 
 func resourceEventHubNamespaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	if !features.ThreePointOhBeta() {
-
-		client := meta.(*clients.Client).Eventhub.NamespacesClient
-		ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-		defer cancel()
-
-		id, err := namespaces.ParseNamespaceID(d.Id())
-		if err != nil {
-			return err
-		}
-
-		locks.ByName(id.NamespaceName, "azurerm_eventhub_namespace")
-		defer locks.UnlockByName(id.NamespaceName, "azurerm_eventhub_namespace")
-
-		resp, err := client.Get(ctx, *id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return nil
-			}
-			return fmt.Errorf("retrieving %s: %+v", *id, err)
-		}
-
-		// Since this isn't a real object and it cannot be disabled once Customer Managed Key at rest has been enabled
-		// And it must keep at least one key once Customer Managed Key is enabled
-		// So for the delete operation, it has to recreate the EventHub Namespace with disabled Customer Managed Key
-		future, err := client.Delete(ctx, *id)
-		if err != nil {
-			if response.WasNotFound(future.HttpResponse) {
-				return nil
-			}
-			return fmt.Errorf("deleting %s: %+v", *id, err)
-		}
-
-		if err := waitForEventHubNamespaceToBeDeleted(ctx, client, *id); err != nil {
-			return err
-		}
-
-		namespace := resp.Model
-		namespace.Properties.Encryption = nil
-
-		if err = client.CreateOrUpdateThenPoll(ctx, *id, *namespace); err != nil {
-			return fmt.Errorf("removing %s: %+v", *id, err)
-		}
-
-		return nil
-	}
-
 	log.Printf(`[INFO] Customer Managed Keys cannot be removed from EventHub Namespaces once added. To remove the Customer Managed Key delete and recreate the parent EventHub Namespace")
 `)
 	return nil
