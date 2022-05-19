@@ -87,15 +87,8 @@ func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]cd
 		v := item.(map[string]interface{})
 		activatedResourceReference := cdn.ActivatedResourceReference{}
 
-		if id := v["cdn_frontdoor_custom_domain_id"].(string); id != "" {
+		if id := v["cdn_frontdoor_resource_id"].(string); id != "" {
 			activatedResourceReference.ID = utils.String(id)
-
-			// This is a read-only field
-			// enabled := v["active"].(bool)
-
-			// if !enabled {
-			// 	activatedResourceReference.IsActive = utils.Bool(enabled)
-			// }
 
 			results = append(results, activatedResourceReference)
 		}
@@ -143,7 +136,7 @@ func flattenSecurityPoliciesActivatedResourceReference(input *[]cdn.ActivatedRes
 
 	for _, item := range *input {
 		domain := make(map[string]interface{})
-		domain["cdn_frontdoor_custom_domain_id"] = *item.ID
+		domain["cdn_frontdoor_resource_id"] = *item.ID
 		domain["active"] = *item.IsActive
 
 		results = append(results, domain)

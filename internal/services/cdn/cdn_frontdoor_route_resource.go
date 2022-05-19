@@ -506,8 +506,10 @@ func expandCdnFrontdoorRouteResourceReferenceArray(input []interface{}) *[]cdn.R
 	results := make([]cdn.ResourceReference, 0)
 	if len(input) == 0 || input[0] == nil {
 		// TODO: shouldn't this be returning an empty slice?
-		// WS: Fixed, note due to the services treatment of empty object I believe this will cause an error since it is not a nil value instead.
-		return &results
+		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
+		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
+		// to get a value from one of the fields.
+		return nil
 	}
 
 	for _, item := range input {
@@ -584,8 +586,10 @@ func flattenCdnFrontdoorRouteActivatedResourceComputedArray(inputs *[]cdn.Activa
 	results := make([]interface{}, 0)
 	if inputs == nil {
 		// TODO: this should be split, but this must return an empty slice and not nil
-		// WS: Fixed
-		return results
+		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
+		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
+		// to get a value from one of the fields.
+		return nil
 	}
 
 	for _, customDomain := range *inputs {

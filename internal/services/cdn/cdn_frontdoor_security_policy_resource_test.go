@@ -179,7 +179,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
 
       association {
         domain {
-          cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.test.id
+          cdn_frontdoor_resource_id = azurerm_cdn_frontdoor_custom_domain.test.id
         }
 
         patterns_to_match = ["/*"]
@@ -205,7 +205,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "import" {
 
       association {
         domain {
-          cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.test.id
+          cdn_frontdoor_resource_id = azurerm_cdn_frontdoor_custom_domain.test.id
         }
 
         patterns_to_match = ["/*"]
@@ -235,7 +235,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
 
       association {
         domain {
-          cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.test.id
+          cdn_frontdoor_resource_id = azurerm_cdn_frontdoor_custom_domain.test.id
         }
 
         patterns_to_match = ["/*"]

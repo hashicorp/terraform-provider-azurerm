@@ -275,10 +275,12 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 						"action": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Default:  string(frontdoor.ActionTypeBlock),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoor.ManagedRuleSetActionTypeLog),
-								string(frontdoor.ManagedRuleSetActionTypeBlock),
-								string(frontdoor.ManagedRuleSetActionTypeRedirect),
+								string(frontdoor.ActionTypeAllow),
+								string(frontdoor.ActionTypeLog),
+								string(frontdoor.ActionTypeBlock),
+								string(frontdoor.ActionTypeRedirect),
 							}, false),
 						},
 
@@ -422,11 +424,13 @@ func resourceCdnFrontdoorFirewallPolicy() *pluginsdk.Resource {
 
 												"action": {
 													Type:     pluginsdk.TypeString,
-													Required: true,
+													Optional: true,
+													Default:  frontdoor.ActionTypeBlock,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(frontdoor.ManagedRuleSetActionTypeLog),
-														string(frontdoor.ManagedRuleSetActionTypeBlock),
-														string(frontdoor.ManagedRuleSetActionTypeRedirect),
+														string(frontdoor.ActionTypeAllow),
+														string(frontdoor.ActionTypeLog),
+														string(frontdoor.ActionTypeBlock),
+														string(frontdoor.ActionTypeRedirect),
 													}, false),
 												},
 											},
@@ -687,8 +691,10 @@ func resourceCdnFrontdoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta in
 func expandCdnFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.CustomRuleList {
 	if len(input) == 0 {
 		// TODO: shouldn't this be returning an empty object, so the nested item gets cleared out?
-		// WS: Fixed
-		return &frontdoor.CustomRuleList{}
+		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
+		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
+		// to get a value from one of the fields.
+		return nil
 	}
 
 	output := make([]frontdoor.CustomRule, 0)
@@ -730,8 +736,10 @@ func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []frontdoor.
 	result := make([]frontdoor.MatchCondition, 0)
 	if len(input) == 0 {
 		// TODO: shouldn't this be returning an empty slice?
-		// WS: Fixed
-		return result
+		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
+		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
+		// to get a value from one of the fields.
+		return nil
 	}
 
 	for _, v := range input {
@@ -768,8 +776,10 @@ func expandCdnFrontDoorFirewallTransforms(input []interface{}) *[]frontdoor.Tran
 	result := make([]frontdoor.TransformType, 0)
 	if len(input) == 0 {
 		// TODO: shouldn't this be returning an empty slice?
-		// WS: Fixed
-		return &result
+		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
+		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
+		// to get a value from one of the fields.
+		return nil
 	}
 
 	for _, v := range input {
@@ -782,8 +792,10 @@ func expandCdnFrontDoorFirewallTransforms(input []interface{}) *[]frontdoor.Tran
 func expandCdnFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.ManagedRuleSetList {
 	if len(input) == 0 {
 		// TODO: shouldn't this be an empty object?
-		// WS: Fixed
-		return &frontdoor.ManagedRuleSetList{}
+		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
+		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
+		// to get a value from one of the fields.
+		return nil
 	}
 
 	result := make([]frontdoor.ManagedRuleSet, 0)
@@ -822,8 +834,10 @@ func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[
 	results := make([]frontdoor.ManagedRuleExclusion, 0)
 	if len(input) == 0 {
 		// TODO: shouldn't this be returning an empty slice so we can nil it out?
-		// WS: Fixed
-		return &results
+		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
+		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
+		// to get a value from one of the fields.
+		return nil
 	}
 
 	for _, v := range input {
@@ -847,8 +861,10 @@ func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]
 	result := make([]frontdoor.ManagedRuleGroupOverride, 0)
 	if len(input) == 0 {
 		// TODO: shouldn't this be returning an empty slice?
-		// WS: Fixed
-		return &result
+		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
+		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
+		// to get a value from one of the fields.
+		return nil
 	}
 
 	for _, v := range input {
@@ -872,8 +888,10 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.Ma
 	result := make([]frontdoor.ManagedRuleOverride, 0)
 	if len(input) == 0 {
 		// TODO: shouldn't this be returning an empty slice?
-		// WS: Fixed
-		return &result
+		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
+		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
+		// to get a value from one of the fields.
+		return nil
 	}
 
 	for _, v := range input {

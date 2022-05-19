@@ -183,7 +183,7 @@ A `match_condition` block supports the following:
 
 * `match_variable` - (Required) The request variable to compare with. Possible values are `Cookies`, `PostArgs`, `QueryString`, `RemoteAddr`, `RequestBody`, `RequestHeader`, `RequestMethod`, `RequestUri`, or `SocketAddr`.
 
-* `match_values` - (Required) Up to `600` possible values to match. Limit is in total across all `match_condition` blocks and `match_values` arguments. String value itself can be up to `256` characters long.
+* `match_values` - (Required) Up to `600` possible values to match. Limit is in total across all `match_condition` blocks and `match_values` arguments. String value itself can be up to `256` characters in length.
 
 * `operator` - (Required) Comparison type to use for matching with the variable value. Possible values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GeoMatch`, `GreaterThan`, `GreaterThanOrEqual`, `IPMatch`, `LessThan`, `LessThanOrEqual` or `RegEx`.
 
@@ -201,7 +201,7 @@ A `managed_rule` block supports the following:
 
 * `version` - (Required) The version on the managed rule to use with this resource.
 
-* `action` - (Optional) The action to perform when the managed rule is matched. Possible values are `Block`, `Log`, or `Redirect`.
+* `action` - (Optional) The action to perform when the managed rule is matched. Possible values are `Allow`, `Block`, `Log`, or `Redirect`. Defaults to `Block`.
 
 * `exclusion` - (Optional) One or more `exclusion` blocks as defined below.
 
@@ -223,7 +223,7 @@ A `rule` block supports the following:
 
 * `rule_id` - (Required) Identifier for the managed rule.
 
-* `action` - (Required) The action to be applied when the rule matches. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
+* `action` - (Optional) The action to be applied when the rule matches. Possible values are `Allow`, `Block`, `Log`, or `Redirect`. Defaults to `Block`.
 
 * `enabled` - (Optional) Is the managed rule override enabled or disabled. Defaults to `false`
 

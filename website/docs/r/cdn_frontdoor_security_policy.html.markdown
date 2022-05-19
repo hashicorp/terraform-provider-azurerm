@@ -63,7 +63,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "example" {
 
       association {
         domain {
-          cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.domain1.id
+          cdn_frontdoor_resource_id = azurerm_cdn_frontdoor_custom_domain.domain1.id
         }
       }
     }
@@ -109,9 +109,9 @@ A `domain` block supports the following:
 
 ~>**NOTE:** The number of `domain` blocks that maybe included in the configuration file varies depending on the `sku_name` field of the linked Frontdoor Profile. The `Standard_AzureFrontDoor` sku may contain up to 100 `domain` blocks and a `Premium_AzureFrontDoor` sku may contain up to 500 `domain` blocks.
 
-* `cdn_frontdoor_custom_domain_id` - (Required) The Resource Id of the Frontdoor Custom Domain that should be bound to this Frontdoor Security Policy. Changing this forces a new Frontdoor Security Policy to be created.
+* `cdn_frontdoor_resource_id` - (Required) The Resource Id of the **Frontdoor Custom Domain** or **Frontdoor Endpoint** that should be bound to this Frontdoor Security Policy. Changing this forces a new Frontdoor Security Policy to be created.
 
-* `active` - (Computed) Is the Frontdoor Custom Domain activated?
+* `active` - (Computed) Is the Frontdoor Custom Domain/Endpoint activated?
 
 ---
 

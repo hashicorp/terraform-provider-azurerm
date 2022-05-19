@@ -289,8 +289,10 @@ func resourceCdnFrontdoorCustomDomainDelete(d *pluginsdk.ResourceData, meta inte
 func expandCdnFrontdoorCustomDomainHttpsParameters(input []interface{}) *track1.AFDDomainHTTPSParameters {
 	if len(input) == 0 || input[0] == nil {
 		// TODO: why is this returning nil and not an empty object?
-		// WS: Fixed
-		return &track1.AFDDomainHTTPSParameters{}
+		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
+		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
+		// to get a value from one of the fields.
+		return nil
 	}
 
 	v := input[0].(map[string]interface{})
