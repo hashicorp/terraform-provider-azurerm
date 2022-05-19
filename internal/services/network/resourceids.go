@@ -40,6 +40,7 @@ package network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=UrlPathMap -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/urlPathMaps/urlpath1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SslProfile -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/sslProfiles/sslprofile1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=TrustedClientCertificate -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/trustedClientCertificates/trustedClientCert1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=RoutingRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/routingRules/routingRule1
 
 // Bastion
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=BastionHost -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/bastionHosts/bastionHost1

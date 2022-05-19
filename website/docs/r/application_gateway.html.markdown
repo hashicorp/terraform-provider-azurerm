@@ -147,7 +147,7 @@ The following arguments are supported:
 
 * `request_routing_rule` - (Optional) One or more `request_routing_rule` blocks as defined below.
 
-* `routing_rule` - (Optional) One or more `routing_rule` blocks as defined below.
+* `routing_rule` - (Optional) One or more `routing_rule` blocks as defined below. Cannot be set when the Tier of the SKU is `Standard` or `WAF`.
 
 * `sku` - (Required) A `sku` block as defined below.
 
@@ -472,7 +472,7 @@ A `request_routing_rule` block supports the following:
 
 * `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
 
-~> **NOTE:** If you wish to use rule `priority`, you will have to specify rule-priority field values for all the existing request routing rules. Once the rule priority field is in use, any new routing rule that is created would also need to have a rule priority field value as part of its config.
+~> **NOTE:** If you wish to use rule `priority`, you will have to specify rule-priority field values for all the existing request routing rules. Once the rule priority field is in use, any new routing rule that is created would also need to have a rule priority field value as part of its config. It should be set when and only when the Tier of the SKU is `Standard_v2` or `WAF_v2`.
 
 ---
 
@@ -480,7 +480,7 @@ A `routing_rule` block supports the following:
 
 * `name` - (Required) The Name of this Routing Rule.
 
-* `rule_type` - (Required) The Type of Routing that should be used for this Rule. Possible values are `Basic`.
+* `rule_type` - (Required) The Type of Routing that should be used for this Rule. Currently the only possible value is `Basic`.
 
 * `listener_name` - (Required) The Name of the Listener which should be used for this Routing Rule.
 
