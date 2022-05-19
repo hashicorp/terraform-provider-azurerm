@@ -538,18 +538,13 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		serviceRegistryEnabled = false
 	}
 	agentPool, err := agentPoolClient.Get(ctx, id.ResourceGroup, id.SpringName, "default", "default")
-	if err != nil {
-		if !utils.ResponseWasNotFound(agentPool.Response) {
-			return fmt.Errorf("retrieving default agent pool of %s: %+v", id, err)
-		}
-		d.Set("build_agent_pool_size", "")
-	}
-	if utils.ResponseWasNotFound(agentPool.Response) {
-		d.Set("build_agent_pool_size", "")
+	if err == nil && agentPool.Properties != nil && agentPool.Properties.PoolSize != nil {
+		d.Set("build_agent_pool_size", agentPool.Properties.PoolSize.Name)
 	} else {
-		if agentPool.Properties != nil && agentPool.Properties.PoolSize != nil {
-			d.Set("build_agent_pool_size", agentPool.Properties.PoolSize.Name)
+		if err != nil {
+			log.Printf("[WARN] error retrieving build agent pool of %q: %+v", id, err)
 		}
+		d.Set("build_agent_pool_size", "")
 	}
 
 	d.Set("name", id.SpringName)
