@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Authentication Method:** OIDC [GH-16555]
 * **New Data Source**: `azurerm_elastic_cloud_elasticsearch` [GH-14821]
 * **New Resource**: `azurerm_elastic_cloud_elasticsearch` [GH-14821]
 * **New Resource**: `azurerm_virtual_network_gateway_nat_rule` [GH-15720]
