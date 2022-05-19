@@ -2,6 +2,7 @@ package kusto
 
 import (
 	"fmt"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"log"
 	"time"
 
@@ -150,14 +151,19 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 			},
 
 			"eventgrid_resource_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"managed_identity_resource_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.Any(
+					validation.StringIsEmpty,
+					validate.ClusterID,
+					msivalidate.UserAssignedIdentityID,
+				),
 			},
 		},
 	}

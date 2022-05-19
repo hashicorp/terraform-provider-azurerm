@@ -198,10 +198,13 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			},
 
 			"public_ip_type": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      string(kusto.PublicIPTypeIPv4),
-				ValidateFunc: validation.StringInSlice([]string{string(kusto.PublicIPTypeIPv4), string(kusto.PublicIPTypeDualStack)}, false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(kusto.PublicIPTypeIPv4),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.PublicIPTypeIPv4),
+					string(kusto.PublicIPTypeDualStack),
+				}, false),
 			},
 
 			"public_network_access_enabled": {
@@ -313,16 +316,9 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		EnableStreamingIngest:  utils.Bool(d.Get("streaming_ingestion_enabled").(bool)),
 		EnablePurge:            utils.Bool(d.Get("purge_enabled").(bool)),
 		EngineType:             engine,
+		PublicIPType:           kusto.PublicIPType(d.Get("public_ip_type").(string)),
 		PublicNetworkAccess:    publicNetworkAccess,
 		TrustedExternalTenants: expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{})),
-	}
-
-	if v, ok := d.GetOk("public_ip_type"); ok {
-		if v == "DualStack" {
-			clusterProperties.PublicIPType = kusto.PublicIPTypeDualStack
-		} else {
-			clusterProperties.PublicIPType = kusto.PublicIPTypeIPv4
-		}
 	}
 
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {

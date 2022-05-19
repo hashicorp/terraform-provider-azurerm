@@ -402,7 +402,7 @@ resource "azurerm_kusto_cluster" "test" {
   public_network_access_enabled = false
   public_ip_type = "DualStack"
   sku {
-name     = "Standard_D13_v2"
+      name     = "Standard_D13_v2"
       capacity = 2
   }
 }

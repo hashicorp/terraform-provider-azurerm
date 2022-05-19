@@ -127,16 +127,16 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 			ForceUpdateTag:   utils.String(forceUpdateTag),
 		},
 	}
-	if ScriptURL, ok := d.GetOk("url"); ok {
-		parameters.ScriptURL = utils.String(ScriptURL.(string))
+	if scriptURL, ok := d.GetOk("url"); ok {
+		parameters.ScriptURL = utils.String(scriptURL.(string))
 	}
 
-	if ScriptURLSasToken, ok := d.GetOk("sas_token"); ok {
-		parameters.ScriptURLSasToken = utils.String(ScriptURLSasToken.(string))
+	if scriptURLSasToken, ok := d.GetOk("sas_token"); ok {
+		parameters.ScriptURLSasToken = utils.String(scriptURLSasToken.(string))
 	}
 
-	if ScriptContent, ok := d.GetOk("script_content"); ok {
-		parameters.ScriptContent = utils.String(ScriptContent.(string))
+	if scriptContent, ok := d.GetOk("script_content"); ok {
+		parameters.ScriptContent = utils.String(scriptContent.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name, parameters)
