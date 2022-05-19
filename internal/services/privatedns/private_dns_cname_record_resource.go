@@ -29,7 +29,7 @@ func resourcePrivateDnsCNameRecord() *pluginsdk.Resource {
 				return err
 			}
 			if resourceId.RecordType != recordsets.RecordTypeCNAME {
-				return fmt.Errorf("importing %s wrong type recieved: expected %s recieved %s", id, recordsets.RecordTypeCNAME, resourceId.RecordType)
+				return fmt.Errorf("importing %s wrong type received: expected %s received %s", id, recordsets.RecordTypeCNAME, resourceId.RecordType)
 			}
 			return nil
 		}),

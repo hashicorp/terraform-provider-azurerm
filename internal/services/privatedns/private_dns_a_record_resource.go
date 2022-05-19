@@ -28,7 +28,7 @@ func resourcePrivateDnsARecord() *pluginsdk.Resource {
 				return err
 			}
 			if resourceId.RecordType != recordsets.RecordTypeA {
-				return fmt.Errorf("importing %s wrong type recieved: expected %s recieved %s", id, recordsets.RecordTypeA, resourceId.RecordType)
+				return fmt.Errorf("importing %s wrong type received: expected %s received %s", id, recordsets.RecordTypeA, resourceId.RecordType)
 			}
 			return nil
 		}),

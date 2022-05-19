@@ -29,7 +29,7 @@ func resourcePrivateDnsSrvRecord() *pluginsdk.Resource {
 				return err
 			}
 			if resourceId.RecordType != recordsets.RecordTypeSRV {
-				return fmt.Errorf("importing %s wrong type recieved: expected %s recieved %s", id, recordsets.RecordTypeSRV, resourceId.RecordType)
+				return fmt.Errorf("importing %s wrong type received: expected %s received %s", id, recordsets.RecordTypeSRV, resourceId.RecordType)
 			}
 			return nil
 		}),
