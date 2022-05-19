@@ -94,6 +94,8 @@ The following arguments are supported:
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
+* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
 * `sticky_settings` - A `sticky_settings` block as defined below.
 
 * `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`. 
@@ -424,6 +426,22 @@ A `sticky_settings` block exports the following:
 * `app_setting_names` - (Optional) A list of `app_setting` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
 
 * `connection_string_names` - (Optional) A list of `connection_string` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
+
+---
+
+A `storage_account` block supports the following:
+
+* `access_key` - (Required) The Access key for the storage account.
+
+* `account_name` - (Required) The Name of the Storage Account.
+
+* `name` - (Required) The name which should be used for this Storage Account.
+
+* `share_name` - (Required) The Name of the File Share or Container Name for Blob storage.
+
+* `type` - (Required) The Azure Storage Type. Possible values include `AzureFiles` and `AzureBlob`
+
+* `mount_path` - (Optional) The path at which to mount the storage share.
 
 ---
 
