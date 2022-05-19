@@ -25,10 +25,15 @@ func resourcePrivateDnsTxtRecord() *pluginsdk.Resource {
 		Update: resourcePrivateDnsTxtRecordCreateUpdate,
 		Delete: resourcePrivateDnsTxtRecordDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := recordsets.ParseRecordTypeID(id)
-			return err
+			resourceId, err := recordsets.ParseRecordTypeID(id)
+			if err != nil {
+				return err
+			}
+			if resourceId.RecordType != recordsets.RecordTypeTXT {
+				return fmt.Errorf("importing %s wrong type recieved: expected %s recieved %s", id, recordsets.RecordTypeTXT, resourceId.RecordType)
+			}
+			return nil
 		}),
-
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),

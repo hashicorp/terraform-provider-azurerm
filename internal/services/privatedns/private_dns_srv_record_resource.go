@@ -24,8 +24,14 @@ func resourcePrivateDnsSrvRecord() *pluginsdk.Resource {
 		Update: resourcePrivateDnsSrvRecordCreateUpdate,
 		Delete: resourcePrivateDnsSrvRecordDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := recordsets.ParseRecordTypeID(id)
-			return err
+			resourceId, err := recordsets.ParseRecordTypeID(id)
+			if err != nil {
+				return err
+			}
+			if resourceId.RecordType != recordsets.RecordTypeSRV {
+				return fmt.Errorf("importing %s wrong type recieved: expected %s recieved %s", id, recordsets.RecordTypeSRV, resourceId.RecordType)
+			}
+			return nil
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
