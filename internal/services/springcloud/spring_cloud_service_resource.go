@@ -69,9 +69,15 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 			},
 
 			"build_agent_pool_size": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"S1",
+					"S2",
+					"S3",
+					"S4",
+					"S5",
+				}, false),
 			},
 
 			"network": {
