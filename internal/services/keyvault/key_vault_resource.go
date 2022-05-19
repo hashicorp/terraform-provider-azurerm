@@ -79,8 +79,8 @@ func resourceKeyVault() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(keyvault.Standard),
-					string(keyvault.Premium),
+					string(keyvault.SkuNameStandard),
+					string(keyvault.SkuNamePremium),
 				}, false),
 			},
 
@@ -153,16 +153,16 @@ func resourceKeyVault() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(keyvault.Allow),
-								string(keyvault.Deny),
+								string(keyvault.NetworkRuleActionAllow),
+								string(keyvault.NetworkRuleActionDeny),
 							}, false),
 						},
 						"bypass": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(keyvault.None),
-								string(keyvault.AzureServices),
+								string(keyvault.NetworkRuleBypassOptionsNone),
+								string(keyvault.NetworkRuleBypassOptionsAzureServices),
 							}, false),
 						},
 						"ip_rules": {
@@ -871,8 +871,8 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	if input == nil {
 		return []interface{}{
 			map[string]interface{}{
-				"bypass":                     string(keyvault.AzureServices),
-				"default_action":             string(keyvault.Allow),
+				"bypass":                     string(keyvault.NetworkRuleBypassOptionsAzureServices),
+				"default_action":             string(keyvault.NetworkRuleActionAllow),
 				"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, []interface{}{}),
 				"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, []interface{}{}),
 			},

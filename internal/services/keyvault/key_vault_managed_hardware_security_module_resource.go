@@ -55,7 +55,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(keyvault.StandardB1),
+					string(keyvault.ManagedHsmSkuNameStandardB1),
 				}, false),
 			},
 
