@@ -59,6 +59,7 @@ Click **Add** to configure the federated credential.
 
 ### Via the Azure API
 
+```sh
 az rest --method POST \
         --uri https://graph.microsoft.com/beta/applications/${APP_OBJ_ID}/federatedIdentityCredentials \
         --headers Content-Type='application/json' \
