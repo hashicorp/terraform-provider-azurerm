@@ -14,6 +14,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 * [Authenticating to Azure using Managed Service Identity](managed_service_identity.html)
 * Authenticating to Azure using a Service Principal and a Client Certificate (which is covered in this guide)
 * [Authenticating to Azure using a Service Principal and a Client Secret](service_principal_client_secret.html)
+* [Authenticating to Azure using a Service Principal and OpenID Connect](service_principal_oidc.html)
 
 ---
 
@@ -23,7 +24,7 @@ We recommend using either a Service Principal or Managed Service Identity when r
 
 ## Setting up an Application and Service Principal
 
-A Service Principal is a security principal within Azure Active Directory which can be granted access to resources within Azure Subscriptions. To authenticate with a Service Principal, you will need to create an Application object within Azure Active Directory, which you will use as a means of authentication, either [using a Client Secret](service_principal_client_secret.html) or a Client Certificate (which is documented in this guide). This can be done using the Azure Portal.
+A Service Principal is a security principal within Azure Active Directory which can be granted access to resources within Azure Subscriptions. To authenticate with a Service Principal, you will need to create an Application object within Azure Active Directory, which you will use as a means of authentication, either [using a Client Secret](service_principal_client_secret.html), a Client Certificate (which is documented in this guide), or [OpenID Connect](service_principal_oidc.html). This can be done using the Azure Portal.
 
 This guide will cover how to generate a client certificate, how to create an Application and linked Service Principal, and then how to assign the Client Certificate to the Application so that it can be used for authentication. Once that's done finally we're going to grant the Service Principal permission to manage resources in the Subscription - to do this we're going to assign `Contributor` rights to the Subscription - however, [it's possible to assign other permissions](https://docs.microsoft.com/azure/role-based-access-control/built-in-roles) depending on your configuration.
 
