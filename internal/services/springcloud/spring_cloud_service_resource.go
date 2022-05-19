@@ -273,7 +273,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 			"zone_redundant": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"tags": tags.Schema(),
