@@ -180,7 +180,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  func() string {
+				Default: func() string {
 					if features.FourPointOhBeta() {
 						return string(kusto.EngineTypeV3)
 					}
