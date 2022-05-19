@@ -276,6 +276,12 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"snapshot_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"ultra_ssd_enabled": {
 				Type:     pluginsdk.TypeBool,
 				ForceNew: true,
@@ -391,6 +397,13 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	if scaleDownMode := d.Get("scale_down_mode").(string); scaleDownMode != "" {
 		profile.ScaleDownMode = containerservice.ScaleDownMode(scaleDownMode)
 	}
+
+	if snapshotId := d.Get("snapshot_id").(string); snapshotId != "" {
+		profile.CreationData = &containerservice.CreationData{
+			SourceResourceID: utils.String(snapshotId),
+		}
+	}
+
 	if workloadRuntime := d.Get("workload_runtime").(string); workloadRuntime != "" {
 		profile.WorkloadRuntime = containerservice.WorkloadRuntime(workloadRuntime)
 	}
@@ -632,6 +645,11 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	if d.HasChange("scale_down_mode") {
 		props.ScaleDownMode = containerservice.ScaleDownMode(d.Get("scale_down_mode").(string))
 	}
+
+	if d.HasChange("snapshot_id") {
+		props.CreationData.SourceResourceID = utils.String(d.Get("snapshot_id").(string))
+	}
+
 	if d.HasChange("workload_runtime") {
 		props.WorkloadRuntime = containerservice.WorkloadRuntime(d.Get("workload_runtime").(string))
 	}
@@ -735,6 +753,12 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		}
 		d.Set("scale_down_mode", scaleDownMode)
 		d.Set("workload_runtime", string(props.WorkloadRuntime))
+
+		snapshotId := ""
+		if profile := props.CreationData; profile != nil {
+			snapshotId = *profile.SourceResourceID
+		}
+		d.Set("snapshot_id", snapshotId)
 
 		evictionPolicy := ""
 		if props.ScaleSetEvictionPolicy != "" {

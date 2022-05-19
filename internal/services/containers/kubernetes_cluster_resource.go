@@ -803,6 +803,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"snapshot_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: computeValidate.SnapshotID,
+			},
+
 			"tags": tags.Schema(),
 
 			"windows_profile": {
@@ -1143,6 +1149,12 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	} else {
 		parameters.ManagedClusterProperties.AutoUpgradeProfile = &containerservice.ManagedClusterAutoUpgradeProfile{
 			UpgradeChannel: containerservice.UpgradeChannelNone,
+		}
+	}
+
+	if v := d.Get("snapshot_id").(string); v != "" {
+		parameters.CreationData = &containerservice.CreationData{
+			SourceResourceID: utils.String(v),
 		}
 	}
 
@@ -1541,6 +1553,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Sku.Tier = skuTier
 	}
 
+	if d.HasChange("snapshot_id") {
+		updateCluster = true
+		if v := d.Get("snapshot_id"); v != "" {
+			existing.ManagedClusterProperties.CreationData.SourceResourceID = utils.String(v.(string))
+		}
+	}
+
 	if d.HasChange("automatic_channel_upgrade") {
 		updateCluster = true
 		if existing.ManagedClusterProperties.AutoUpgradeProfile == nil {
@@ -1736,6 +1755,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			upgradeChannel = string(profile.UpgradeChannel)
 		}
 		d.Set("automatic_channel_upgrade", upgradeChannel)
+
+		snapshotId := ""
+		if profile := props.CreationData; profile != nil {
+			snapshotId = *profile.SourceResourceID
+		}
+		d.Set("snapshot_id", snapshotId)
 
 		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {
 			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)

@@ -505,6 +505,21 @@ func TestAccKubernetesClusterNodePool_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_snapshotId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.snapshotId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_spot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -1558,6 +1573,41 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   os_disk_type          = "Ephemeral"
 }
 `, r.templateConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) snapshotId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+}
+
+resource "azurerm_kubernetes_cluster_node_pool_snapshot" "test" {
+  name                = "acctestss%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  node_pool_id        = azurerm_kubernetes_cluster_node_pool.test.id
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test2" {
+  name                  = "internal2"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  snapshot_id           = azurerm_kubernetes_cluster_node_pool_snapshot.test.id
+}
+
+
+
+`, r.templateConfig(data), data.RandomInteger)
 }
 
 func (r KubernetesClusterNodePoolResource) spotConfig(data acceptance.TestData) string {
