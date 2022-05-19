@@ -180,7 +180,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(kusto.EngineTypeV2),
+				Default:  string(kusto.EngineTypeV3),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(kusto.EngineTypeV2),
 					string(kusto.EngineTypeV3),
