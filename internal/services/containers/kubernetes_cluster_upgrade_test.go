@@ -15,14 +15,14 @@ func TestAccKubernetesCluster_upgradeAutoScaleMinCount(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeAutoScaleMinCountConfig(data, olderKubernetesVersion, 3, 8),
+			Config: r.upgradeAutoScaleMinCountConfig(data, olderKubernetesVersion, 4, 8),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeAutoScaleMinCountConfig(data, olderKubernetesVersion, 4, 8),
+			Config: r.upgradeAutoScaleMinCountConfig(data, olderKubernetesVersion, 5, 8),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
