@@ -13,12 +13,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -82,8 +80,7 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(notificationhubs.NamespaceTypeMessaging),
 					string(notificationhubs.NamespaceTypeNotificationHub),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"tags": tags.Schema(),
@@ -255,8 +252,12 @@ func notificationHubNamespaceDeleteStateRefreshFunc(ctx context.Context, client 
 		// Note: this exists as the Delete API only seems to work some of the time
 		// in this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attepmpt
 		// Upstream Bug: https://github.com/Azure/azure-sdk-for-go/issues/2254
-		if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+		future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
 			log.Printf("re-issuing deletion request for %s: %+v", id, err)
+		}
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			log.Printf("waiting for re-issue deletion request for %s: %+v", id, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil

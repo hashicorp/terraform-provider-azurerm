@@ -17,15 +17,15 @@ Manages an Azure Container Registry.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_container_registry" "acr" {
   name                = "containerRegistry1"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   sku                 = "Premium"
   admin_enabled       = false
   georeplications {
@@ -44,15 +44,15 @@ resource "azurerm_container_registry" "acr" {
 ## Example Usage (Encryption)
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_container_registry" "acr" {
   name                = "containerRegistry1"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   sku                 = "Premium"
 
   identity {
@@ -187,6 +187,8 @@ The following arguments are supported:
 * `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry? Defaults to `false`.
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
+
+  ~> **NOTE:** Changing the `zone_redundancy_enabled` forces the a underlying replication to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to this replication location.
 

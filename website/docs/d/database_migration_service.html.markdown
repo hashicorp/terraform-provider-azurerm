@@ -47,7 +47,7 @@ The following attributes are exported:
 
 * `subnet_id` - The ID of the virtual subnet resource to which the database migration service exists.
 
-* `sku_name` - The sku name of database migration service.
+* `sku_name` - The SKU name of database migration service.
 
 * `tags` - A mapping of tags to assigned to the resource.
 

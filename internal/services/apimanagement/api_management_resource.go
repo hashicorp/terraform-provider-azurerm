@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -88,7 +87,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 }
 
 func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": schemaz.SchemaApiManagementName(),
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
@@ -194,13 +193,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IntBetween(0, 12),
 					},
 
-					"zones": func() *schema.Schema {
-						if !features.ThreePointOhBeta() {
-							return azure.SchemaZones()
-						}
-
-						return commonschema.ZonesMultipleOptionalForceNew()
-					}(),
+					"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 					"gateway_regional_url": {
 						Type:     pluginsdk.TypeString,
@@ -344,13 +337,6 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"triple_des_ciphers_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Computed: !features.ThreePointOhBeta(),
-						ConflictsWith: func() []string {
-							if !features.ThreePointOhBeta() {
-								return []string{"security.0.enable_triple_des_ciphers"}
-							}
-							return []string{}
-						}(),
 					},
 
 					"tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
@@ -531,13 +517,8 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"zones": func() *schema.Schema {
-			if !features.ThreePointOhBeta() {
-				return azure.SchemaZones()
-			}
+		"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
-			return commonschema.ZonesMultipleOptionalForceNew()
-		}(),
 		"gateway_url": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -627,18 +608,6 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		s := out["security"].Elem.(*pluginsdk.Resource)
-		s.Schema["enable_triple_des_ciphers"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"security.0.triple_des_ciphers_enabled"},
-			Deprecated:    "this has been renamed to the boolean attribute `triple_des_ciphers_enabled`.",
-		}
-	}
-	return out
 }
 
 func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -816,29 +785,16 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	if features.ThreePointOhBeta() {
-		if v := d.Get("zones").(*schema.Set).List(); len(v) > 0 {
-			if sku.Name != apimanagement.SkuTypePremium {
-				return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
-			}
-
-			if publicIpAddressId == "" {
-				return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
-			}
-			zones := zones.Expand(v)
-			properties.Zones = &zones
+	if v := d.Get("zones").(*schema.Set).List(); len(v) > 0 {
+		if sku.Name != apimanagement.SkuTypePremium {
+			return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
 		}
-	} else {
-		if v := d.Get("zones").([]interface{}); len(v) > 0 {
-			if sku.Name != apimanagement.SkuTypePremium {
-				return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
-			}
 
-			if publicIpAddressId == "" {
-				return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
-			}
-			properties.Zones = azure.ExpandZones(v)
+		if publicIpAddressId == "" {
+			return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
 		}
+		zones := zones.Expand(v)
+		properties.Zones = &zones
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, properties)
@@ -853,7 +809,7 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	d.SetId(id.ID())
 
 	// Remove sample products and APIs after creating (v3.0 behaviour)
-	if features.ThreePointOhBeta() && d.IsNewResource() {
+	if d.IsNewResource() {
 		apis := make([]apimanagement.APIContract, 0)
 
 		for apisIter, err := apiClient.ListByService(ctx, id.ResourceGroup, id.ServiceName, "", nil, nil, "", nil); apisIter.NotDone(); err = apisIter.NextWithContext(ctx) {
@@ -1454,13 +1410,9 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 			additionalLocation.PublicIPAddressID = &publicIPAddressID
 		}
 
-		if features.ThreePointOhBeta() {
-			zones := zones.Expand(d.Get("zones").(*schema.Set).List())
-			if len(zones) > 0 {
-				additionalLocation.Zones = &zones
-			}
-		} else {
-			additionalLocation.Zones = azure.ExpandZones(config["zones"].([]interface{}))
+		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			additionalLocation.Zones = &zones
 		}
 
 		additionalLocations = append(additionalLocations, additionalLocation)
@@ -1614,12 +1566,6 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		frontendProtocolTls10 = v["enable_frontend_tls10"].(bool)
 		frontendProtocolTls11 = v["enable_frontend_tls11"].(bool)
 
-		if !features.ThreePointOhBeta() {
-			if v, exists := v["enable_triple_des_ciphers"]; exists {
-				tripleDesCiphers = v.(bool)
-			}
-		}
-
 		if v, exists := v["triple_des_ciphers_enabled"]; exists {
 			tripleDesCiphers = v.(bool)
 		}
@@ -1745,9 +1691,6 @@ func flattenApiManagementSecurityCustomProperties(input map[string]*string, skuI
 		output["tls_rsa_with_aes128_cbc_sha256_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcSha256Ciphers)
 		output["tls_rsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcShaCiphers)
 		output["tls_rsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcShaCiphers)
-		if !features.ThreePointOhBeta() {
-			output["enable_triple_des_ciphers"] = output["triple_des_ciphers_enabled"]
-		}
 	}
 
 	return []interface{}{output}

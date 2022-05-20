@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -70,6 +70,12 @@ func resourceStreamAnalyticsFunctionUDF() *pluginsdk.Resource {
 								"nvarchar(max)",
 								"record",
 							}, false),
+						},
+
+						"configuration_parameter": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -137,10 +143,10 @@ func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *pluginsdk.ResourceData, m
 
 	function := streamanalytics.Function{
 		Properties: &streamanalytics.ScalarFunctionProperties{
-			Type: streamanalytics.TypeScalar,
+			Type: streamanalytics.TypeBasicFunctionPropertiesTypeScalar,
 			FunctionConfiguration: &streamanalytics.FunctionConfiguration{
 				Binding: &streamanalytics.JavaScriptFunctionBinding{
-					Type: streamanalytics.TypeMicrosoftStreamAnalyticsJavascriptUdf,
+					Type: streamanalytics.TypeBasicFunctionBindingTypeMicrosoftStreamAnalyticsJavascriptUdf,
 					JavaScriptFunctionBindingProperties: &streamanalytics.JavaScriptFunctionBindingProperties{
 						Script: utils.String(script),
 					},
@@ -242,7 +248,8 @@ func expandStreamAnalyticsFunctionInputs(input []interface{}) *[]streamanalytics
 		v := raw.(map[string]interface{})
 		variableType := v["type"].(string)
 		outputs = append(outputs, streamanalytics.FunctionInput{
-			DataType: utils.String(variableType),
+			DataType:                 utils.String(variableType),
+			IsConfigurationParameter: utils.Bool(v["configuration_parameter"].(bool)),
 		})
 	}
 
@@ -262,8 +269,14 @@ func flattenStreamAnalyticsFunctionInputs(input *[]streamanalytics.FunctionInput
 			variableType = *v.DataType
 		}
 
+		var isConfigurationParameter bool
+		if v.IsConfigurationParameter != nil {
+			isConfigurationParameter = *v.IsConfigurationParameter
+		}
+
 		outputs = append(outputs, map[string]interface{}{
-			"type": variableType,
+			"type":                    variableType,
+			"configuration_parameter": isConfigurationParameter,
 		})
 	}
 

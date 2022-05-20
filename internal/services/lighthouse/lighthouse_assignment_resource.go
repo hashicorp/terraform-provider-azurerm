@@ -90,8 +90,12 @@ func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta interfac
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.Scope, id.Name, parameters); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.Scope, id.Name, parameters)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -139,8 +143,12 @@ func resourceLighthouseAssignmentDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.Scope, id.Name); err != nil {
+	future, err := client.Delete(ctx, id.Scope, id.Name)
+	if err != nil {
 		return fmt.Errorf("deleting Lighthouse Assignment %q at Scope %q: %+v", id.Name, id.Scope, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
 	stateConf := &pluginsdk.StateChangeConf{

@@ -171,8 +171,8 @@ resource "azurerm_cognitive_account" "test" {
   name                  = "acctest-cogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
-  kind                  = "Face"
-  sku_name              = "E0"
+  kind                  = "SpeechServices"
+  sku_name              = "S0"
   custom_subdomain_name = "acctest-cogacc-%d"
   identity {
     type         = "SystemAssigned, UserAssigned"

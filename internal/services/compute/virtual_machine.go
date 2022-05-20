@@ -2,6 +2,7 @@ package compute
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -192,6 +193,16 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 									string(compute.DiffDiskOptionsLocal),
 								}, false),
 							},
+							"placement": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ForceNew: true,
+								Default:  string(compute.DiffDiskPlacementCacheDisk),
+								ValidateFunc: validation.StringInSlice([]string{
+									string(compute.DiffDiskPlacementCacheDisk),
+									string(compute.DiffDiskPlacementResourceDisk),
+								}, false),
+							},
 						},
 					},
 				},
@@ -228,10 +239,11 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandVirtualMachineOSDisk(input []interface{}, osType compute.OperatingSystemTypes) *compute.OSDisk {
+func expandVirtualMachineOSDisk(input []interface{}, osType compute.OperatingSystemTypes) (*compute.OSDisk, error) {
 	raw := input[0].(map[string]interface{})
+	caching := raw["caching"].(string)
 	disk := compute.OSDisk{
-		Caching: compute.CachingTypes(raw["caching"].(string)),
+		Caching: compute.CachingTypes(caching),
 		ManagedDisk: &compute.ManagedDiskParameters{
 			StorageAccountType: compute.StorageAccountTypes(raw["storage_account_type"].(string)),
 		},
@@ -250,9 +262,15 @@ func expandVirtualMachineOSDisk(input []interface{}, osType compute.OperatingSys
 	}
 
 	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]interface{}); len(diffDiskSettingsRaw) > 0 {
+		if caching != string(compute.CachingTypesReadOnly) {
+			// Restriction per https://docs.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment
+			return nil, fmt.Errorf("`diff_disk_settings` can only be set when `caching` is set to `ReadOnly`")
+		}
+
 		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]interface{})
 		disk.DiffDiskSettings = &compute.DiffDiskSettings{
-			Option: compute.DiffDiskOptions(diffDiskRaw["option"].(string)),
+			Option:    compute.DiffDiskOptions(diffDiskRaw["option"].(string)),
+			Placement: compute.DiffDiskPlacement(diffDiskRaw["placement"].(string)),
 		}
 	}
 
@@ -266,7 +284,7 @@ func expandVirtualMachineOSDisk(input []interface{}, osType compute.OperatingSys
 		disk.Name = utils.String(name)
 	}
 
-	return &disk
+	return &disk, nil
 }
 
 func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.DisksClient, input *compute.OSDisk) ([]interface{}, error) {
@@ -276,8 +294,14 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 
 	diffDiskSettings := make([]interface{}, 0)
 	if input.DiffDiskSettings != nil {
+		placement := string(compute.DiffDiskPlacementCacheDisk)
+		if input.DiffDiskSettings.Placement != "" {
+			placement = string(input.DiffDiskSettings.Placement)
+		}
+
 		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
-			"option": string(input.DiffDiskSettings.Option),
+			"option":    string(input.DiffDiskSettings.Option),
+			"placement": placement,
 		})
 	}
 

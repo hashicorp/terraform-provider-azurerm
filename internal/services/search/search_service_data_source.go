@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/sdk/2020-03-13/adminkeys"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/sdk/2020-03-13/querykeys"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/sdk/2020-03-13/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceSearchService() *pluginsdk.Resource {
@@ -85,12 +88,12 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSearchServiceID(subscriptionID, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := services.NewSearchServiceID(subscriptionID, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, nil)
+	resp, err := client.Get(ctx, id, services.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Search Service %q (Resource Group %q) was not found", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id.ID())
 		}
 
 		return fmt.Errorf("reading Search Service: %+v", err)
@@ -98,33 +101,59 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.SetId(id.ID())
 
-	if props := resp.ServiceProperties; props != nil {
-		if count := props.PartitionCount; count != nil {
-			d.Set("partition_count", int(*count))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			partitionCount := 0
+			replicaCount := 0
+			publicNetworkAccess := false
+
+			if count := props.PartitionCount; count != nil {
+				partitionCount = int(*count)
+			}
+
+			if count := props.ReplicaCount; count != nil {
+				replicaCount = int(*count)
+			}
+
+			if props.PublicNetworkAccess != nil {
+				publicNetworkAccess = *props.PublicNetworkAccess != "Disabled"
+			}
+
+			d.Set("partition_count", partitionCount)
+			d.Set("replica_count", replicaCount)
+			d.Set("public_network_access_enabled", publicNetworkAccess)
 		}
 
-		if count := props.ReplicaCount; count != nil {
-			d.Set("replica_count", int(*count))
+		if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+			return fmt.Errorf("setting `identity`: %s", err)
 		}
-
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess != "Disabled")
 	}
 
 	adminKeysClient := meta.(*clients.Client).Search.AdminKeysClient
-	adminKeysResp, err := adminKeysClient.Get(ctx, id.ResourceGroup, id.Name, nil)
+	adminKeysId, err := adminkeys.ParseSearchServiceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	adminKeysResp, err := adminKeysClient.Get(ctx, *adminKeysId, adminkeys.GetOperationOptions{})
 	if err == nil {
-		d.Set("primary_key", adminKeysResp.PrimaryKey)
-		d.Set("secondary_key", adminKeysResp.SecondaryKey)
+		if model := adminKeysResp.Model; model != nil {
+			d.Set("primary_key", model.PrimaryKey)
+			d.Set("secondary_key", model.SecondaryKey)
+		}
 	}
 
 	queryKeysClient := meta.(*clients.Client).Search.QueryKeysClient
-	queryKeysResp, err := queryKeysClient.ListBySearchService(ctx, id.ResourceGroup, id.Name, nil)
-	if err == nil {
-		d.Set("query_keys", flattenSearchQueryKeys(queryKeysResp.Values()))
+	queryKeysId, err := querykeys.ParseSearchServiceID(d.Id())
+	if err != nil {
+		return err
 	}
+	queryKeysResp, err := queryKeysClient.ListBySearchService(ctx, *queryKeysId, querykeys.ListBySearchServiceOperationOptions{})
+	if err == nil {
+		if model := queryKeysResp.Model; model != nil {
+			d.Set("query_keys", flattenSearchQueryKeys(*model))
 
-	if err := d.Set("identity", flattenSearchServiceIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("setting `identity`: %s", err)
+		}
 	}
 
 	return nil

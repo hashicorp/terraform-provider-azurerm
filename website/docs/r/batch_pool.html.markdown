@@ -119,7 +119,7 @@ The following arguments are supported:
 
 * `account_name` - (Required) Specifies the name of the Batch account in which the pool will be created. Changing this forces a new resource to be created.
 
-* `node_agent_sku_id` - (Required) Specifies the Sku of the node agents that will be created in the Batch pool.
+* `node_agent_sku_id` - (Required) Specifies the SKU of the node agents that will be created in the Batch pool.
 
 * `vm_size` - (Required) Specifies the size of the VM created in the Batch pool.
 
@@ -175,7 +175,7 @@ To provision from an Azure Platform Image, the following fields are applicable:
 
 To provision a Custom Image, the following fields are applicable:
 
-* `id` - (Required) Specifies the ID of the Custom Image which the virtual machines should be created from. Changing this forces a new resource to be created. See [official documentation](https://docs.microsoft.com/en-us/azure/batch/batch-custom-images) for more details.
+* `id` - (Required) Specifies the ID of the Custom Image which the virtual machines should be created from. Changing this forces a new resource to be created. See [official documentation](https://docs.microsoft.com/azure/batch/batch-custom-images) for more details.
 ---
 
 A `fixed_scale` block supports the following:
@@ -286,7 +286,7 @@ A `network_configuration` block supports the following:
 
 * `subnet_id` - (Required) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
 
-* `public_ips` - (Optional) A list of public ip ids that will be allocated to nodes. Changing this forces a new resource to be created.
+* `public_ips` - (Optional) A list of public IP ids that will be allocated to nodes. Changing this forces a new resource to be created.
 
 * `endpoint_configuration` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
 

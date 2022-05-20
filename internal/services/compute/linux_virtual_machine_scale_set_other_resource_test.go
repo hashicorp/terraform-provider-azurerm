@@ -414,12 +414,51 @@ func TestAccLinuxVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T) {
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_otherTerminateNotification(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotification(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		// turn terminate notification on
+		// turn termination notification on
+		{
+			Config: r.otherTerminationNotification(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("termination_notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("termination_notification.0.enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		// turn termination notification off
+		{
+			Config: r.otherTerminationNotification(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("termination_notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("termination_notification.0.enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		// turn termination notification on again
+		{
+			Config: r.otherTerminationNotification(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("termination_notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("termination_notification.0.enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+// TODO remove TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration in 4.0
+func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		// old: terminate_notification
 		{
 			Config: r.otherTerminateNotification(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -429,23 +468,13 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminateNotification(t *testing.T)
 			),
 		},
 		data.ImportStep("admin_password"),
-		// turn terminate notification off
+		// new: termination_notification
 		{
-			Config: r.otherTerminateNotification(data, false),
+			Config: r.otherTerminationNotification(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("terminate_notification.#").HasValue("1"),
-				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep("admin_password"),
-		// turn terminate notification on again
-		{
-			Config: r.otherTerminateNotification(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("terminate_notification.#").HasValue("1"),
-				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("termination_notification.#").HasValue("1"),
+				check.That(data.ResourceName).Key("termination_notification.0.enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -1697,7 +1726,6 @@ resource "azurerm_lb_probe" "test" {
 
 resource "azurerm_lb_rule" "test" {
   name                           = "AccTestLBRule"
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
@@ -1806,7 +1834,6 @@ resource "azurerm_lb_probe" "test" {
 
 resource "azurerm_lb_rule" "test" {
   name                           = "AccTestLBRule"
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
@@ -1909,6 +1936,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+// TODO remove otherTerminateNotification in 4.0
 func (r LinuxVirtualMachineScaleSetResource) otherTerminateNotification(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -1949,6 +1977,52 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   terminate_notification {
+    enabled = %t
+  }
+}
+`, r.template(data), data.RandomInteger, enabled)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) otherTerminationNotification(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    disk_size_gb         = 30
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  termination_notification {
     enabled = %t
   }
 }
@@ -2004,7 +2078,6 @@ resource "azurerm_lb_probe" "test" {
 
 resource "azurerm_lb_rule" "test" {
   name                           = "AccTestLBRule"
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
@@ -2106,7 +2179,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
-  terminate_notification {
+  termination_notification {
     enabled = %t
   }
 }
@@ -2291,7 +2364,6 @@ resource "azurerm_lb_probe" "test" {
 }
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
@@ -2398,7 +2470,6 @@ resource "azurerm_lb_probe" "test2" {
 }
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
@@ -2498,7 +2569,6 @@ resource "azurerm_lb_probe" "test2" {
 }
 
 resource "azurerm_lb_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test2.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]

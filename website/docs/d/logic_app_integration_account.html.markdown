@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Logic App Integration Account exists.
 
-* `sku_name` - The sku name of the Logic App Integration Account.
+* `sku_name` - The SKU name of the Logic App Integration Account.
 
 * `tags` - A mapping of tags assigned to the Logic App Integration Account.
 

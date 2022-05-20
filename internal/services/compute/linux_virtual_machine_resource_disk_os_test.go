@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccLinuxVirtualMachine_diskOSBasic(t *testing.T) {
@@ -142,13 +141,28 @@ func TestAccLinuxVirtualMachine_diskOSDiskEncryptionSetUpdate(t *testing.T) {
 	})
 }
 
-func TestAccLinuxVirtualMachine_diskOSEphemeral(t *testing.T) {
+func TestAccLinuxVirtualMachine_diskOSEphemeralDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSEphemeral(data),
+			Config: r.diskOSEphemeralDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxVirtualMachine_diskOSEphemeralResourceDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSEphemeralResourceDisk(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -440,10 +454,6 @@ resource "azurerm_linux_virtual_machine" "test" {
 }
 
 func (LinuxVirtualMachineResource) diskOSDiskDiskEncryptionSetDependencies(data acceptance.TestData) string {
-	var softDelete string
-	if !features.ThreePointOhBeta() {
-		softDelete = "soft_delete_enabled        = true"
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -469,12 +479,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
-  %s
+  name                        = "acctestkv%s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "standard"
   purge_protection_enabled    = true
   enabled_for_disk_encryption = true
 
@@ -543,7 +552,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, softDelete, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineResource) diskOSDiskDiskEncryptionSetResource(data acceptance.TestData) string {
@@ -661,7 +670,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.diskOSDiskDiskEncryptionSetResource(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) diskOSEphemeral(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) diskOSEphemeralDefault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -686,6 +695,45 @@ resource "azurerm_linux_virtual_machine" "test" {
 
     diff_disk_settings {
       option = "Local"
+    }
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) diskOSEphemeralResourceDisk(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F4s_v2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadOnly"
+    storage_account_type = "Standard_LRS"
+
+    diff_disk_settings {
+      option    = "Local"
+      placement = "ResourceDisk"
     }
   }
 

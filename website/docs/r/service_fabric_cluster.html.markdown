@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `fabric_settings` - (Optional) One or more `fabric_settings` blocks as defined below.
 
-* `upgrade_policy` - (optional) A `upgrade_policy` block as defined below.
+* `upgrade_policy` - (Optional) A `upgrade_policy` block as defined below.
 
 * `service_fabric_zonal_upgrade_mode` - (Optional) Specifies the logical grouping of VMs in upgrade domains. Possible values are `Hierarchical` or `Parallel`.
 
@@ -120,7 +120,7 @@ A `common_names` block supports the following:
 
 * `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
 
--> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
+-> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
 ---
 
@@ -166,7 +166,7 @@ A `client_certificate_common_name` block supports the following:
 
 * `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
 
--> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
+-> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
 * `is_admin` - (Required) Does the Client Certificate have Admin Access to the cluster? Non-admin clients can only perform read only operations on the cluster.
 

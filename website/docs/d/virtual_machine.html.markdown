@@ -53,7 +53,7 @@ output "virtual_machine_id" {
 
 An `identity` block exports the following:
 
-* `identity_ids` - The list of User Managed Identity ID's which are assigned to the Virtual Machine.
+* `identity_ids` - The list of User Managed Identity IDs which are assigned to the Virtual Machine.
 
 * `principal_id` - The ID of the System Managed Service Principal assigned to the Virtual Machine.
 

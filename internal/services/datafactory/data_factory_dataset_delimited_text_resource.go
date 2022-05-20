@@ -106,10 +106,14 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_container_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"path": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
 						},
 						"dynamic_path_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -160,6 +164,7 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 			"column_delimiter": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  ",",
 			},
 
 			// Delimited Text Specific Field
@@ -172,12 +177,14 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 			"quote_character": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  `"`,
 			},
 
 			// Delimited Text Specific Field
 			"escape_character": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  `\`,
 			},
 
 			// Delimited Text Specific Field
@@ -191,12 +198,14 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 			"first_row_as_header": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			// Delimited Text Specific Field
 			"null_value": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  "",
 			},
 
 			"parameters": {
@@ -358,12 +367,12 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 		delimited_textDatasetProperties.EncodingName = v.(string)
 	}
 
-	if v, ok := d.GetOk("first_row_as_header"); ok {
-		delimited_textDatasetProperties.FirstRowAsHeader = v.(bool)
+	if v, ok := d.Get("first_row_as_header").(bool); ok {
+		delimited_textDatasetProperties.FirstRowAsHeader = v
 	}
 
-	if v, ok := d.GetOk("null_value"); ok {
-		delimited_textDatasetProperties.NullValue = v.(string)
+	if v, ok := d.Get("null_value").(string); ok {
+		delimited_textDatasetProperties.NullValue = v
 	}
 
 	if v, ok := d.GetOk("compression_level"); ok {

@@ -3,12 +3,12 @@ subcategory: "Synapse"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_synapse_sql_pool_workload_group"
 description: |-
-  Manages a Synapse Sql Pool Workload Group.
+  Manages a Synapse SQL Pool Workload Group.
 ---
 
 # azurerm_synapse_sql_pool_workload_group
 
-Manages a Synapse Sql Pool Workload Group.
+Manages a Synapse SQL Pool Workload Group.
 
 ## Example Usage
 
@@ -68,9 +68,9 @@ resource "azurerm_synapse_sql_pool_workload_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Synapse Sql Pool Workload Group. Changing this forces a new Synapse Sql Pool Workload Group to be created.
+* `name` - (Required) The name which should be used for this Synapse SQL Pool Workload Group. Changing this forces a new Synapse SQL Pool Workload Group to be created.
 
-* `sql_pool_id` - (Required) The ID of the Synapse Sql Pool. Changing this forces a new Synapse Sql Pool Workload Group to be created.
+* `sql_pool_id` - (Required) The ID of the Synapse SQL Pool. Changing this forces a new Synapse SQL Pool Workload Group to be created.
 
 * `max_resource_percent` - (Required) The workload group cap percentage resource.
 
@@ -90,20 +90,20 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Synapse Sql Pool Workload Group.
+* `id` - The ID of the Synapse SQL Pool Workload Group.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Synapse Sql Pool Workload Group.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Synapse Sql Pool Workload Group.
-* `update` - (Defaults to 30 minutes) Used when updating the Synapse Sql Pool Workload Group.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Synapse Sql Pool Workload Group.
+* `create` - (Defaults to 30 minutes) Used when creating the Synapse SQL Pool Workload Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Synapse SQL Pool Workload Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Synapse SQL Pool Workload Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Synapse SQL Pool Workload Group.
 
 ## Import
 
-Synapse Sql Pool Workload Groups can be imported using the `resource id`, e.g.
+Synapse SQL Pool Workload Groups can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_synapse_sql_pool_workload_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/sqlPools/sqlPool1/workloadGroups/workloadGroup1
