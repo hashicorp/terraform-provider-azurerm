@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace that this AWS S3 Data Connector resides in. Changing this forces a new AWS S3 Data Connector to be created.
 
-* `aws_role_arn` - (Required) The ARN of the AWS role, which is connected to this AWS CloudTrail Data Connector. See the [Azure document](https://docs.microsoft.com/en-us/azure/sentinel/connect-aws?tabs=s3#create-an-aws-assumed-role-and-grant-access-to-the-aws-sentinel-account) for details.
+* `aws_role_arn` - (Required) The ARN of the AWS role, which is connected to this AWS CloudTrail Data Connector. See the [Azure document](https://docs.microsoft.com/azure/sentinel/connect-aws?tabs=s3#create-an-aws-assumed-role-and-grant-access-to-the-aws-sentinel-account) for details.
 
 * `destination_table` - (Required) The name of the Log Analytics table that will store the ingested data.
 

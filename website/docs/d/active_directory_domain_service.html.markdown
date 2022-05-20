@@ -10,7 +10,7 @@ description: |-
 
 Gets information about an Active Directory Domain Service.
 
--> **Supported Modes:** At present this data source only supports **User Forest** mode and _not_ **Resource Forest** mode. [Read more](https://docs.microsoft.com/en-us/azure/active-directory-domain-services/concepts-resource-forest) about the different operation modes for this service.
+-> **Supported Modes:** At present this data source only supports **User Forest** mode and _not_ **Resource Forest** mode. [Read more](https://docs.microsoft.com/azure/active-directory-domain-services/concepts-resource-forest) about the different operation modes for this service.
 
 ## Example Usage
 
@@ -35,7 +35,7 @@ data "azurerm_active_directory_domain_service" "example" {
 
 * `domain_configuration_type` - The forest type used by the managed domain. One of `ResourceTrusting`, for a _Resource Forest_, or blank, for a _User Forest_.
   
-* `domain_name` - The Active Directory domain of the Domain Service. See [official documentation](https://docs.microsoft.com/en-us/azure/active-directory-domain-services/tutorial-create-instance#create-a-managed-domain) for constraints and recommendations.
+* `domain_name` - The Active Directory domain of the Domain Service. See [official documentation](https://docs.microsoft.com/azure/active-directory-domain-services/tutorial-create-instance#create-a-managed-domain) for constraints and recommendations.
 
 * `filtered_sync_enabled` - Whether group-based filtered sync (also called scoped synchronisation) is enabled.
 

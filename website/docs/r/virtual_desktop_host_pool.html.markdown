@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `start_vm_on_connect` -  (Optional) Enables or disables the Start VM on Connection Feature. Defaults to `false`.    
 
-* `custom_rdp_properties` - (Optional) A valid custom RDP properties string for the Virtual Desktop Host Pool, available properties can be [found in this article](https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/rdp-files).
+* `custom_rdp_properties` - (Optional) A valid custom RDP properties string for the Virtual Desktop Host Pool, available properties can be [found in this article](https://docs.microsoft.com/windows-server/remote/remote-desktop-services/clients/rdp-files).
 
 * `personal_desktop_assignment_type` - (Optional) `Automatic` assignment – The service will select an available host and assign it to an user.
     `Direct` Assignment – Admin selects a specific host to assign to an user.
