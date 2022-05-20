@@ -220,3 +220,16 @@ func cdnFrontdoorContentTypes() []string {
 		"text/x-java-source",
 	}
 }
+
+func cdnFrontdoorRuleHasDeliveryRuleConditions(conditions map[string]interface{}) bool {
+	var hasConditions bool
+
+	for _, condition := range conditions {
+		if len(condition.([]interface{})) > 0 {
+			hasConditions = true
+			break
+		}
+	}
+
+	return hasConditions
+}

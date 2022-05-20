@@ -744,7 +744,6 @@ func resourceCdnFrontdoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if err != nil {
 			return fmt.Errorf("setting %q: %+v", "conditions", err)
 		}
-
 		d.Set("conditions", conditions)
 	}
 
@@ -898,6 +897,7 @@ func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]cdn.BasicDeli
 	// TODO: Add validation for this error once I figure out what that validation should be
 	// "BadRequest" Message="Parameters specified for RequestMethod condition are invalid.;
 	// Property 'Rule.Conditions[2].Parameters.Selector' is required but it was not set"
+	// This error is caused by an empty Selector object.
 
 	conditions := map[string]expandfunc{
 		m.ClientPort.ConfigName:       cdnfrontdoorruleconditions.ExpandCdnFrontdoorClientPortCondition,
@@ -1184,29 +1184,38 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondit
 		return nil, fmt.Errorf("unknown BasicDeliveryRuleCondition encountered")
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			c.ClientPort.ConfigName:       clientPortCondition,
-			c.Cookies.ConfigName:          cookiesCondition,
-			c.HostName.ConfigName:         hostNameCondition,
-			c.HttpVersion.ConfigName:      httpVersionCondition,
-			c.IsDevice.ConfigName:         isDeviceCondition,
-			c.PostArgs.ConfigName:         postArgsCondition,
-			c.QueryString.ConfigName:      queryStringCondition,
-			c.RemoteAddress.ConfigName:    remoteAddressCondition,
-			c.RequestBody.ConfigName:      requestBodyCondition,
-			c.RequestHeader.ConfigName:    requestHeaderCondition,
-			c.RequestMethod.ConfigName:    requestMethodCondition,
-			c.RequestScheme.ConfigName:    requestSchemeCondition,
-			c.RequestUri.ConfigName:       requestURICondition,
-			c.ServerPort.ConfigName:       serverPortCondition,
-			c.SocketAddress.ConfigName:    socketAddressCondition,
-			c.SslProtocol.ConfigName:      sslProtocolCondition,
-			c.UrlFileExtension.ConfigName: urlFileExtensionCondition,
-			c.UrlFilename.ConfigName:      urlFilenameCondition,
-			c.UrlPath.ConfigName:          urlPathCondition,
-		},
-	}, nil
+	conditions := map[string]interface{}{
+		c.ClientPort.ConfigName:       clientPortCondition,
+		c.Cookies.ConfigName:          cookiesCondition,
+		c.HostName.ConfigName:         hostNameCondition,
+		c.HttpVersion.ConfigName:      httpVersionCondition,
+		c.IsDevice.ConfigName:         isDeviceCondition,
+		c.PostArgs.ConfigName:         postArgsCondition,
+		c.QueryString.ConfigName:      queryStringCondition,
+		c.RemoteAddress.ConfigName:    remoteAddressCondition,
+		c.RequestBody.ConfigName:      requestBodyCondition,
+		c.RequestHeader.ConfigName:    requestHeaderCondition,
+		c.RequestMethod.ConfigName:    requestMethodCondition,
+		c.RequestScheme.ConfigName:    requestSchemeCondition,
+		c.RequestUri.ConfigName:       requestURICondition,
+		c.ServerPort.ConfigName:       serverPortCondition,
+		c.SocketAddress.ConfigName:    socketAddressCondition,
+		c.SslProtocol.ConfigName:      sslProtocolCondition,
+		c.UrlFileExtension.ConfigName: urlFileExtensionCondition,
+		c.UrlFilename.ConfigName:      urlFilenameCondition,
+		c.UrlPath.ConfigName:          urlPathCondition,
+	}
+
+	// WS: Since we are always returning something no matter what this causes
+	// a perpetual diff during plan. Only return the conditions map if
+	// it actually has a condition defined within it, else return an empty
+	// slice
+	output := []interface{}{conditions}
+	if !cdnFrontdoorRuleHasDeliveryRuleConditions(conditions) {
+		output = results
+	}
+
+	return output, nil
 }
 
 func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) ([]interface{}, error) {
