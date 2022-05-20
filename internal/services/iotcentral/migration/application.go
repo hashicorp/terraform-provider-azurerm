@@ -62,6 +62,36 @@ func (ApplicationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+		
+		"public_network_access" : {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"network_rule_sets" : {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
+		"private_endpoint_connections" : { 
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+			// Elem: &pluginsdk.Schema{
+			// 	Type: pluginsdk.TypeMap,
+			// 	Elem: &pluginsdk.Schema{
+			// 		Type: pluginsdk.TypeString,
+			// 	},
+			// },
+		},
 	}
 }
 

@@ -176,15 +176,18 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	subdomain := d.Get("sub_domain").(string)
 	template := d.Get("template").(string)
+	publicNetworkAccess := d.Get("public_network_access").(iotcentral.PublicNetworkAccess)
+	networkRuleSets := d.Get("network_rule_sets").(iotcentral.NetworkRuleSets)
+	// privateEndpointConnections := d.Get("private_endpoint_connections").(iotcentral.PrivateEndpointConnection)
 	appPatch := iotcentral.AppPatch{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		AppProperties: &iotcentral.AppProperties{
-			DisplayName: &displayName,
-			Subdomain:   &subdomain,
-			Template:    &template,
-			// PublicNetworkAccess: 			&publicnetworkaccess,
-			// NetworkRuleSets: 				&networkrulesets,
-			// PrivateEndpointConnections: 	&privateendpointconnections,
+			DisplayName:                    &displayName,
+			Subdomain:                      &subdomain,
+			Template:                       &template,
+			PublicNetworkAccess: 			publicNetworkAccess,
+			NetworkRuleSets: 				&networkRuleSets,
+			// PrivateEndpointConnections: 	&privateEndpointConnections,
 		},
 	}
 	future, err := client.Update(ctx, id.ResourceGroup, id.IoTAppName, appPatch)
