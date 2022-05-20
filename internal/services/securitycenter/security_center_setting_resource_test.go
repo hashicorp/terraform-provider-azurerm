@@ -24,7 +24,7 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 	//lintignore:AT001
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cfg("MCAS", true),
+			Config: r.cfg("MCAS", true, "DataExportSettings"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("setting_name").HasValue("MCAS"),
@@ -33,7 +33,7 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.cfg("MCAS", false),
+			Config: r.cfg("MCAS", false, "DataExportSettings"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("setting_name").HasValue("MCAS"),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
@@ -41,7 +41,7 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.cfg("WDATP", true),
+			Config: r.cfg("WDATP", true, "DataExportSettings"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("setting_name").HasValue("WDATP"),
@@ -50,9 +50,26 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.cfg("WDATP", false),
+			Config: r.cfg("WDATP", false, "DataExportSettings"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("setting_name").HasValue("WDATP"),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cfg("Sentinel", true, "AlertSyncSettings"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("setting_name").HasValue("Sentinel"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cfg("Sentinel", false, "AlertSyncSettings"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("setting_name").HasValue("Sentinel"),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 			),
 		},
@@ -66,7 +83,7 @@ func TestAccSecurityCenterSetting_requiresImport(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cfg("MCAS", true),
+			Config: r.cfg("MCAS", true, "DataExportSettings"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -98,11 +115,27 @@ func (SecurityCenterSettingResource) Destroy(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	setting := security.DataExportSettings{
-		DataExportSettingProperties: &security.DataExportSettingProperties{
-			Enabled: utils.Bool(false),
-		},
-		Kind: security.KindDataExportSettings,
+	resp, err := azuresdkhacks.GetSecurityCenterSetting(ctx, client, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("checking for presence of existing %s: %v", id, err)
+	}
+
+	var setting security.BasicSetting
+	switch string(resp.Kind) {
+	case string(security.KindDataExportSettings):
+		setting = security.DataExportSettings{
+			DataExportSettingProperties: &security.DataExportSettingProperties{
+				Enabled: utils.Bool(false),
+			},
+			Kind: security.KindDataExportSettings,
+		}
+	case string(security.KindAlertSyncSettings):
+		setting = security.AlertSyncSettings{
+			AlertSyncSettingProperties: &security.AlertSyncSettingProperties{
+				Enabled: utils.Bool(false),
+			},
+			Kind: security.KindAlertSyncSettings,
+		}
 	}
 
 	if _, err := client.Update(ctx, id.Name, setting); err != nil {
@@ -111,7 +144,7 @@ func (SecurityCenterSettingResource) Destroy(ctx context.Context, clients *clien
 
 	// TODO: switch back when Swagger/API bug has been fixed:
 	// https://github.com/Azure/azure-sdk-for-go/issues/12724 (`Enabled` field missing)
-	resp, err := azuresdkhacks.GetSecurityCenterSetting(ctx, client, id.Name)
+	resp, err = azuresdkhacks.GetSecurityCenterSetting(ctx, client, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("checking for presence of existing %s: %v", id, err)
 	}
@@ -123,7 +156,7 @@ func (SecurityCenterSettingResource) Destroy(ctx context.Context, clients *clien
 	return utils.Bool(true), nil
 }
 
-func (SecurityCenterSettingResource) cfg(settingName string, enabled bool) string {
+func (SecurityCenterSettingResource) cfg(settingName string, enabled bool, kind string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -132,8 +165,9 @@ provider "azurerm" {
 resource "azurerm_security_center_setting" "test" {
   setting_name = "%s"
   enabled      = "%t"
+  kind         = "%s"
 }
-`, settingName, enabled)
+`, settingName, enabled, kind)
 }
 
 func (r SecurityCenterSettingResource) requiresImport(data acceptance.TestData) string {
@@ -144,5 +178,5 @@ resource "azurerm_security_center_setting" "import" {
   setting_name = azurerm_security_center_setting.test.setting_name
   enabled      = azurerm_security_center_setting.test.enabled
 }
-`, r.cfg("MCAS", true))
+`, r.cfg("MCAS", true, "DataExportSettings"))
 }

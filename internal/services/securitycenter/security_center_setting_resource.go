@@ -44,11 +44,22 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"MCAS",
 					"WDATP",
+					"Sentinel",
 				}, false),
 			},
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Required: true,
+			},
+			"kind": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  security.KindDataExportSettings,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(security.KindDataExportSettings),
+					string(security.KindAlertSyncSettings),
+				}, false),
 			},
 		},
 	}
@@ -76,11 +87,23 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	enabled := d.Get("enabled").(bool)
-	setting := security.DataExportSettings{
-		DataExportSettingProperties: &security.DataExportSettingProperties{
-			Enabled: &enabled,
-		},
-		Kind: security.KindDataExportSettings,
+	var setting security.BasicSetting
+
+	switch d.Get("kind").(string) {
+	case string(security.KindDataExportSettings):
+		setting = security.DataExportSettings{
+			DataExportSettingProperties: &security.DataExportSettingProperties{
+				Enabled: &enabled,
+			},
+			Kind: security.KindDataExportSettings,
+		}
+	case string(security.KindAlertSyncSettings):
+		setting = security.AlertSyncSettings{
+			AlertSyncSettingProperties: &security.AlertSyncSettingProperties{
+				Enabled: &enabled,
+			},
+			Kind: security.KindAlertSyncSettings,
+		}
 	}
 
 	if _, err := client.Update(ctx, id.Name, setting); err != nil {
@@ -111,6 +134,7 @@ func resourceSecurityCenterSettingRead(d *pluginsdk.ResourceData, meta interface
 	if properties := resp.DataExportSettingProperties; properties != nil {
 		d.Set("enabled", properties.Enabled)
 	}
+	d.Set("kind", resp.Kind)
 	d.Set("setting_name", id.Name)
 
 	return nil
@@ -126,11 +150,27 @@ func resourceSecurityCenterSettingDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	setting := security.DataExportSettings{
-		DataExportSettingProperties: &security.DataExportSettingProperties{
-			Enabled: utils.Bool(false),
-		},
-		Kind: security.KindDataExportSettings,
+	resp, err := azuresdkhacks.GetSecurityCenterSetting(ctx, client, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	var setting security.BasicSetting
+	switch string(resp.Kind) {
+	case string(security.KindDataExportSettings):
+		setting = security.DataExportSettings{
+			DataExportSettingProperties: &security.DataExportSettingProperties{
+				Enabled: utils.Bool(false),
+			},
+			Kind: security.KindDataExportSettings,
+		}
+	case string(security.KindAlertSyncSettings):
+		setting = security.AlertSyncSettings{
+			AlertSyncSettingProperties: &security.AlertSyncSettingProperties{
+				Enabled: utils.Bool(false),
+			},
+			Kind: security.KindAlertSyncSettings,
+		}
 	}
 
 	if _, err := client.Update(ctx, id.Name, setting); err != nil {
