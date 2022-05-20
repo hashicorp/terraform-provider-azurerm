@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2018-09-01/iotcentral"
+	"github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2021-11-01-preview/iotcentral"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -74,12 +74,12 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(iotcentral.F1),
-					string(iotcentral.S1),
-					string(iotcentral.ST1),
-					string(iotcentral.ST2),
+					// string(iotcentral.F1),
+					// string(iotcentral.S1),
+					string(iotcentral.AppSkuST1),
+					string(iotcentral.AppSkuST2),
 				}, false),
-				Default:          iotcentral.ST1,
+				Default:          iotcentral.AppSkuST1,
 				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 			"template": {
@@ -159,6 +159,7 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceIotCentralAppRead(d, meta)
 }
 
+// update AppPatch to include private endpoint connection / private link
 func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -182,6 +183,9 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			DisplayName: &displayName,
 			Subdomain:   &subdomain,
 			Template:    &template,
+			// PublicNetworkAccess: 			&publicnetworkaccess,
+			// NetworkRuleSets: 				&networkrulesets,
+			// PrivateEndpointConnections: 	&privateendpointconnections,
 		},
 	}
 	future, err := client.Update(ctx, id.ResourceGroup, id.IoTAppName, appPatch)

@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2018-09-01/iotcentral"
+	"github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2021-11-01-preview/iotcentral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
