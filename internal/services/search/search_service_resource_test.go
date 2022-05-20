@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/sdk/2020-03-13/services"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -158,17 +159,17 @@ func TestAccSearchService_identity(t *testing.T) {
 }
 
 func (t SearchServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SearchServiceID(state.ID)
+	id, err := services.ParseSearchServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Search.ServicesClient.Get(ctx, id.ResourceGroup, id.Name, nil)
+	resp, err := clients.Search.ServicesClient.Get(ctx, *id, services.GetOperationOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("reading Search Service %q (resource group %q) was not found: %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("%s was not found: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ServiceProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (SearchServiceResource) basic(data acceptance.TestData) string {

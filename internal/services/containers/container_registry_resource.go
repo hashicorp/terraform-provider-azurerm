@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
@@ -250,7 +251,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	newGeoReplicationLocations = expandReplications(geoReplications)
 	// geo replications have been specified
 	if len(newGeoReplicationLocations) > 0 {
-		err = applyGeoReplicationLocations(d, meta, id.ResourceGroup, id.Name, oldGeoReplicationLocations, newGeoReplicationLocations)
+		err = applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, oldGeoReplicationLocations, newGeoReplicationLocations)
 		if err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
@@ -348,12 +349,12 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if hasGeoReplicationsChanges {
-		err := applyGeoReplicationLocations(d, meta, id.ResourceGroup, id.Name, expandReplications(oldReplications), expandReplications(newReplications))
+		err := applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, expandReplications(oldReplications), expandReplications(newReplications))
 		if err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	} else if hasGeoReplicationLocationsChanges {
-		err := applyGeoReplicationLocations(d, meta, id.ResourceGroup, id.Name, expandReplicationsFromLocations(oldGeoReplicationLocations), expandReplicationsFromLocations(newGeoReplicationLocations))
+		err := applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, expandReplicationsFromLocations(oldGeoReplicationLocations), expandReplicationsFromLocations(newGeoReplicationLocations))
 		if err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
@@ -404,41 +405,151 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 	return nil
 }
 
-func applyGeoReplicationLocations(d *pluginsdk.ResourceData, meta interface{}, resourceGroup string, name string, oldGeoReplications []containerregistry.Replication, newGeoReplications []containerregistry.Replication) error {
+func applyGeoReplicationLocations(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}, resourceGroup string, name string, oldGeoReplications []containerregistry.Replication, newGeoReplications []containerregistry.Replication) error {
 	replicationClient := meta.(*clients.Client).Containers.ReplicationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing to apply geo-replications for  Container Registry.")
 
-	// delete previously deployed locations
+	oldReplications := map[string]containerregistry.Replication{}
 	for _, replication := range oldGeoReplications {
 		if replication.Location == nil {
 			continue
 		}
-		oldLocation := azure.NormalizeLocation(*replication.Location)
-
-		future, err := replicationClient.Delete(ctx, resourceGroup, name, oldLocation)
-		if err != nil {
-			return fmt.Errorf("deleting Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, oldLocation, err)
-		}
-		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
-			return fmt.Errorf("waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, oldLocation, err)
-		}
+		loc := azure.NormalizeLocation(*replication.Location)
+		oldReplications[loc] = replication
 	}
 
-	// create new geo-replication locations
+	newReplications := map[string]containerregistry.Replication{}
 	for _, replication := range newGeoReplications {
 		if replication.Location == nil {
 			continue
 		}
-		locationToCreate := azure.NormalizeLocation(*replication.Location)
-		future, err := replicationClient.Create(ctx, resourceGroup, name, locationToCreate, replication)
+		loc := azure.NormalizeLocation(*replication.Location)
+		newReplications[loc] = replication
+	}
+
+	// Delete replications that only appear in the old locations.
+	for loc := range oldReplications {
+		if _, ok := newReplications[loc]; ok {
+			continue
+		}
+		future, err := replicationClient.Delete(ctx, resourceGroup, name, loc)
 		if err != nil {
-			return fmt.Errorf("creating Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToCreate, err)
+			return fmt.Errorf("deleting Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
+			return fmt.Errorf("waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+		}
+	}
+
+	// Create replications that only exists in the new locations.
+	for loc, repl := range newReplications {
+		if _, ok := oldReplications[loc]; ok {
+			continue
+		}
+		future, err := replicationClient.Create(ctx, resourceGroup, name, loc, repl)
+		if err != nil {
+			return fmt.Errorf("creating Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
-			return fmt.Errorf("waiting for creation of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToCreate, err)
+			return fmt.Errorf("waiting for creation of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+		}
+	}
+
+	// Update (potentially replace) replications that exists at both side.
+	for loc, newRepl := range newReplications {
+		oldRepl, ok := oldReplications[loc]
+		if !ok {
+			continue
+		}
+		// Compare old and new replication parameters to see whether it has updated.
+		// If there no update, then skip it. Otherwise, need to check whether the update
+		// can happen in place, or need a recreation.
+
+		var (
+			needUpdate  bool
+			needReplace bool
+		)
+		// Since the replications here are all derived from expand function, where we guaranteed
+		// each properties are non-nil. Whilst we are still doing nil check here in case.
+		if oprop, nprop := oldRepl.ReplicationProperties, newRepl.ReplicationProperties; oprop != nil && nprop != nil {
+			// zoneRedundency can't be updated in place
+			if oprop.ZoneRedundancy != nprop.ZoneRedundancy {
+				needUpdate = true
+				needReplace = true
+			}
+			if ov, nv := oprop.RegionEndpointEnabled, nprop.RegionEndpointEnabled; ov != nil && nv != nil && *ov != *nv {
+				needUpdate = true
+			}
+		}
+		otag, ntag := oldRepl.Tags, newRepl.Tags
+		if len(otag) != len(ntag) {
+			needUpdate = true
+		} else {
+			for k, ov := range otag {
+				nv, ok := ntag[k]
+				if !ok {
+					needUpdate = true
+					break
+				}
+				if ov != nil && nv != nil && *ov != *nv {
+					needUpdate = true
+					break
+				}
+			}
+		}
+
+		if !needUpdate {
+			continue
+		}
+
+		if needReplace {
+			future, err := replicationClient.Delete(ctx, resourceGroup, name, loc)
+			if err != nil {
+				return fmt.Errorf("deleting Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+			}
+			if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
+				return fmt.Errorf("waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+			}
+
+			// Following can be removed once https://github.com/Azure/azure-rest-api-specs/issues/18934 is resolved. Otherwise, the create right after delete will always fail.
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context is missing a timeout")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{"InProgress"},
+				Target:  []string{"NotFound"},
+				Refresh: func() (interface{}, string, error) {
+					resp, err := replicationClient.Get(ctx, resourceGroup, name, loc)
+					if err != nil {
+						if utils.ResponseWasNotFound(resp.Response) {
+							return resp, "NotFound", nil
+						}
+
+						return nil, "Error", err
+					}
+
+					return resp, "InProgress", nil
+				},
+				ContinuousTargetOccurence: 5,
+				PollInterval:              5 * time.Second,
+				Timeout:                   time.Until(deadline),
+			}
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("additional waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+			}
+		}
+
+		future, err := replicationClient.Create(ctx, resourceGroup, name, loc, newRepl)
+		if err != nil {
+			return fmt.Errorf("creating/updating Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
+			return fmt.Errorf("waiting for creation/update of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
 		}
 	}
 
@@ -547,6 +658,11 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 	}
+
+	// The order of the georeplications returned from the list API is not consistent. We simply order it alphabetically to be consistent.
+	sort.Slice(geoReplications, func(i, j int) bool {
+		return geoReplications[i].(map[string]interface{})["location"].(string) < geoReplications[j].(map[string]interface{})["location"].(string)
+	})
 
 	d.Set("georeplications", geoReplications)
 
