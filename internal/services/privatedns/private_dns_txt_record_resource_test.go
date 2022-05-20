@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -100,17 +99,17 @@ func TestAccPrivateDnsTxtRecord_withTags(t *testing.T) {
 }
 
 func (t PrivateDnsTxtRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.TxtRecordID(state.ID)
+	id, err := recordsets.ParseRecordTypeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.PrivateDns.RecordSetsClient.Get(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.TXT, id.TXTName)
+	resp, err := clients.PrivateDns.RecordSetsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Private DNS TXT Record (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (PrivateDnsTxtRecordResource) basic(data acceptance.TestData) string {
