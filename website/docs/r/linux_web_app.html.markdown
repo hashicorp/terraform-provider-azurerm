@@ -405,7 +405,7 @@ A `scm_ip_restriction` block supports the following:
 
 A `site_config` block supports the following:
 
-* `always_on` - (Optional) If this Linux Web App is Always On enabled. Defaults to `false`.
+* `always_on` - (Optional) If this Linux Web App is Always On enabled. Defaults to `true`.
 
 * `api_management_config_id` - (Optional) The ID of the APIM configuration for this Linux Web App.
 
