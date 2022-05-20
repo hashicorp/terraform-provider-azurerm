@@ -115,7 +115,7 @@ func resourceDataFactoryFlowletDataFlowCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_flowlet_data_flow ", id.ID())
+			return tf.ImportAsExistsError("azurerm_data_factory_flowlet_data_flow", id.ID())
 		}
 	}
 
