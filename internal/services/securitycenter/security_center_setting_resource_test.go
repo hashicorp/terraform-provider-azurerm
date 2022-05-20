@@ -17,6 +17,32 @@ import (
 
 type SecurityCenterSettingResource struct{}
 
+func TestAccSecurityCenterSetting_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_setting", "test")
+	r := SecurityCenterSettingResource{}
+
+	//lintignore:AT001
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic("MCAS", true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("setting_name").HasValue("MCAS"),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic("MCAS", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("setting_name").HasValue("MCAS"),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSecurityCenterSetting_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_setting", "test")
 	r := SecurityCenterSettingResource{}
@@ -168,6 +194,19 @@ resource "azurerm_security_center_setting" "test" {
   kind         = "%s"
 }
 `, settingName, enabled, kind)
+}
+
+func (SecurityCenterSettingResource) basic(settingName string, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_security_center_setting" "test" {
+  setting_name = "%s"
+  enabled      = "%t"
+}
+`, settingName, enabled)
 }
 
 func (r SecurityCenterSettingResource) requiresImport(data acceptance.TestData) string {
