@@ -64,6 +64,7 @@ az rest --method POST \
         --uri https://graph.microsoft.com/beta/applications/${APP_OBJ_ID}/federatedIdentityCredentials \
         --headers Content-Type='application/json' \
         --body @body.json
+```
 
 Where the body is:
 
@@ -88,6 +89,8 @@ Firstly, specify a Role which grants the appropriate permissions needed for the 
 Secondly, search for and select the name of the Service Principal created in Azure Active Directory to assign it this role - then press **Save**.
 
 ### Configuring the Service Principal in Terraform
+
+~> **Note:** If using the AzureRM Backend you may also need to configure OIDC there too, see [the documentation for the AzureRM Backend](https://www.terraform.io/language/settings/backends/azurerm) for more information.
 
 As we've obtained the credentials for this Service Principal - it's possible to configure them in a few different ways.
 
@@ -133,6 +136,8 @@ provider "azurerm" {
 ```
 
 -> **Note:** Support for OpenID Connect was added in version 3.7.0 of the Terraform AzureRM provider.
+
+~> **Note:** If using the AzureRM Backend you may also need to configure OIDC there too, see [the documentation for the AzureRM Backend](https://www.terraform.io/language/settings/backends/azurerm) for more information. 
 
 More information on [the fields supported in the Provider block can be found here](../index.html#argument-reference).
 
