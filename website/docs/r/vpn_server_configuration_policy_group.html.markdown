@@ -3,12 +3,12 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_vpn_server_configuration_policy_group"
 description: |-
-    Manages a VPN Server Configuration.
+  Manages a VPN Server Configuration Policy Group.
 ---
 
-# azurerm_vpn_server_configuration
+# azurerm_vpn_server_configuration_policy_group
 
-Manages a VPN Server Configuration.
+Manages a VPN Server Configuration Policy Group.
 
 ## Example Usage
 
@@ -50,162 +50,59 @@ M/s/1JRtO3bDSzD9TazRVzn2oBqzSa8VgIo5C1nOnoAKJTlsClJKvIhnRlaLQqk=
 EOF
   }
 }
+
+resource "azurerm_vpn_server_configuration_policy_group" "example" {
+  name                        = "example-pg"
+  resource_group_name         = azurerm_resource_group.example.name
+  vpn_server_configuration_id = azurerm_network_vpn_server_configuration.example.id
+}
 ```
 
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The Name which should be used for this VPN Server Configuration. Changing this forces a new resource to be created.
+* `name` - (Required) The Name which should be used for this VPN Server Configuration Policy Group. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which this VPN Server Configuration should be created. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The Name of the Resource Group in which this VPN Server Configuration Policy Group should be created. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure location where this VPN Server Configuration should be created. Changing this forces a new resource to be created.
+* `vpn_server_configuration_id` - (Required) The ID of the VPN Server Configuration that this VPN Server Configuration Policy Group belongs to. Changing this forces a new resource to be created.
 
-* `vpn_authentication_types` - (Required) A list of Authentication Types applicable for this VPN Server Configuration. Possible values are `AAD` (Azure Active Directory), `Certificate` and `Radius`.
+* `is_default` - (Optional) Is this a default VPN Server Configuration Policy Group? 
 
----
+* `policy_member` - (Optional) One or more `policy_member` blocks as documented below.
 
-* `ipsec_policy` - (Optional) A `ipsec_policy` block as defined below.
-
-* `vpn_protocols` - (Optional) A list of VPN Protocols to use for this Server Configuration. Possible values are `IkeV2` and `OpenVPN`.
-
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `priority` - (Optional) The priority for this VPN Server Configuration Policy Group.
 
 ---
 
-When `vpn_authentication_types` contains `AAD` the following arguments are supported:
+A `policy_member` block supports the following:
 
-* `azure_active_directory_authentication` - (Required) A `azure_active_directory_authentication` block as defined below.
+* `name` - (Optional) The name of the VPN Server Configuration Policy Group member.
 
----
+* `attribute_type` - (Optional) The attribute type of the VPN Server Configuration Policy Group member. Possible values are `AADGroupId`, `CertificateGroupId` and `RadiusAzureGroupId`.
 
-When `vpn_authentication_types` contains `Certificate` the following arguments are supported:
-
-* `client_root_certificate` - (Required) One or more `client_root_certificate` blocks as defined below.
-
-* `client_revoked_certificate` - (Optional) One or more `client_revoked_certificate` blocks as defined below.
-
----
-
-When `vpn_authentication_types` contains `Radius` the following arguments are supported:
-
-* `radius_server` - (Optional / **Deprecated**) A `radius_server` block as defined below.
-* `radius` - (Optional) A `radius` block as defined below.
-
----
-
-A `azure_active_directory_authentication` block supports the following:
-
-* `audience` - (Required) The Audience which should be used for authentication.
-
-* `issuer` - (Required) The Issuer which should be used for authentication.
-
-* `tenant` - (Required) The Tenant which should be used for authentication.
-
----
-
-A `client_revoked_certificate` block supports the following:
-
-* `name` - (Required) A name used to uniquely identify this certificate.
-
-* `thumbprint` - (Required) The Thumbprint of the Certificate.
-
----
-
-A `client_root_certificate` block at the root of the resource supports the following:
-
-* `name` - (Required) A name used to uniquely identify this certificate.
-
-* `public_cert_data` - (Required) The Public Key Data associated with the Certificate.
-
----
-
-A `client_root_certificate` block nested within the `radius_server` block supports the following:
-
-* `name` - (Required) A name used to uniquely identify this certificate.
-
-* `thumbprint` - (Required) The Thumbprint of the Certificate.
-
----
-
-A `ipsec_policy` block supports the following:
-
-* `dh_group` - (Required) The DH Group, used in IKE Phase 1. Possible values include `DHGroup1`, `DHGroup2`, `DHGroup14`, `DHGroup24`, `DHGroup2048`, `ECP256`, `ECP384` and `None`.
-
-* `ike_encryption` - (Required) The IKE encryption algorithm, used for IKE Phase 2. Possible values include `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128` and `GCMAES256`.
-
-* `ike_integrity` - (Required) The IKE encryption integrity algorithm, used for IKE Phase 2. Possible values include `GCMAES128`, `GCMAES256`, `MD5`, `SHA1`, `SHA256` and `SHA384`.
-
-* `ipsec_encryption` - (Required) The IPSec encryption algorithm, used for IKE phase 1. Possible values include `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128`, `GCMAES192`, `GCMAES256` and `None`.
-
-* `ipsec_integrity` - (Required) The IPSec integrity algorithm, used for IKE phase 1. Possible values include `GCMAES128`, `GCMAES192`, `GCMAES256`, `MD5`, `SHA1` and `SHA256`.
-
-* `pfs_group` - (Required) The Pfs Group, used in IKE Phase 2. Possible values include `ECP256`, `ECP384`, `PFS1`, `PFS2`, `PFS14`, `PFS24`, `PFS2048`, `PFSMM` and `None`.
-
-* `sa_lifetime_seconds` - (Required) The IPSec Security Association lifetime in seconds for a Site-to-Site VPN tunnel.
-
-* `sa_data_size_kilobytes` - (Required) The IPSec Security Association payload size in KB for a Site-to-Site VPN tunnel.
-
----
-
-A `radius_server` (**Deprecated**) block is Used to configure single Radius Server. The block supports the following:
-
-* `address` - (Required) The Address of the Radius Server.
-
-* `secret` - (Required) The Secret used to communicate with the Radius Server.
-
-* `client_root_certificate` - (Optional) One or more `client_root_certificate` blocks as defined above.
-
-* `server_root_certificate` - (Required) One or more `server_root_certificate` blocks as defined below.
-
----
-
-A `radius` block supports the following:
-
-* `server` - (Required) One or more `server` blocks as defined below.
-
-* `client_root_certificate` - (Optional) One or more `client_root_certificate` blocks as defined above.
-
-* `server_root_certificate` - (Optional) One or more `server_root_certificate` blocks as defined below.
-
----
-
-A `server` nested within the `radius` block supports the following::
-
-* `address` - (Required) The Address of the Radius Server.
-
-* `secret` - (Required) The Secret used to communicate with the Radius Server.
-
-* `score` - (Required) The Score of the Radius Server determines the priority of the server. Ranges from 1 to 30.
-
----
-
-A `server_root_certificate` block supports the following:
-
-* `name` - (Required) A name used to uniquely identify this certificate.
-
-* `public_cert_data` - (Required) The Public Key Data associated with the Certificate.
+* `attribute_value` - (Optional) The value of the attribute that is used for the VPN Server Configuration Policy Group member.
 
 ## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
 
-* `id` - The ID of the VPN Server Configuration.
+* `id` - The ID of the VPN Server Configuration Policy Group.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 90 minutes) Used when creating the VPN Server Configuration.
-* `update` - (Defaults to 90 minutes) Used when updating the VPN Server Configuration.
-* `read` - (Defaults to 5 minutes) Used when retrieving the VPN Server Configuration.
-* `delete` - (Defaults to 90 minutes) Used when deleting the VPN Server Configuration.
+* `create` - (Defaults to 30 minutes) Used when creating the VPN Server Configuration Policy Group.
+* `update` - (Defaults to 30 minutes) Used when updating the VPN Server Configuration Policy Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the VPN Server Configuration Policy Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the VPN Server Configuration Policy Group.
 
 ## Import
 
-VPN Server Configurations can be imported using the `resource id`, e.g.
+VPN Server Configuration Policy Groups can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_vpn_server_configuration.config1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/vpnServerConfigurations/config1
+terraform import azurerm_vpn_server_configuration_policy_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/vpnServerConfigurations/serverConfiguration1/configurationPolicyGroups/configurationPolicyGroup1
 ```

@@ -60,6 +60,30 @@ func (r VPNServerConfigurationPolicyGroupResource) Exists(ctx context.Context, c
 	return utils.Bool(resp.ID != nil), nil
 }
 
+func (r VPNServerConfigurationPolicyGroupResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_vpn_server_configuration_policy_group" "test" {
+  name                        = "acctest-ncpg-%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  vpn_server_configuration_id = azurerm_network_vpn_server_configuration.test.id
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r VPNServerConfigurationPolicyGroupResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_configuration_policy_group" "import" {
+  name                        = azurerm_network_configuration_policy_group.test.name
+  resource_group_name         = azurerm_network_configuration_policy_group.test.resource_group_name
+  vpn_server_configuration_id = azurerm_network_configuration_policy_group.test.id
+}
+`, r.basic(data))
+}
+
 func (r VPNServerConfigurationPolicyGroupResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -86,28 +110,4 @@ resource "azurerm_vpn_server_configuration" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (r VPNServerConfigurationPolicyGroupResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_vpn_server_configuration_policy_group" "test" {
-  name = "acctest-ncpg-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  vpn_server_configuration_id = azurerm_network_vpn_server_configuration.test.id
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r VPNServerConfigurationPolicyGroupResource) requiresImport(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_network_configuration_policy_group" "import" {
-  name = azurerm_network_configuration_policy_group.test.name
-  resource_group_name = azurerm_network_configuration_policy_group.test.resource_group_name
-  vpn_server_configuration_id = azurerm_network_configuration_policy_group.test.id
-}
-`, r.basic(data))
 }
