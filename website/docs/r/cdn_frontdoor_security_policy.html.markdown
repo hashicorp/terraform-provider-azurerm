@@ -26,7 +26,6 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   name                              = "exampleWAF"
   resource_group_name               = azurerm_resource_group.example.name
-  cdn_frontdoor_profile_id          = azurerm_cdn_frontdoor_profile.example.id
   sku_name                          = azurerm_cdn_frontdoor_profile.example.sku_name
   enabled                           = true
   mode                              = "Prevention"
