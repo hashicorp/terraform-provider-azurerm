@@ -470,12 +470,6 @@ A `maintenance_window` block supports the following:
 
 ---
 
-A `microsoft_defender` block supports the following:
-
-* `log_analytics_workspace_id` - (Required) Specifies the ID of the Log Analytics Workspace where the audit logs collected by Microsoft Defender should be sent to.
-
----
-
 An `allowed` block exports the following:
 
 * `day` - (Required) A day in a week. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and `Saturday`.
@@ -489,6 +483,12 @@ A `not_allowed` block exports the following:
 * `end` - (Required) The end of a time span, formatted as an RFC3339 string.
 
 * `start` - (Required) The start of a time span, formatted as an RFC3339 string.
+
+---
+
+A `microsoft_defender` block supports the following:
+
+* `log_analytics_workspace_id` - (Required) Specifies the ID of the Log Analytics Workspace where the audit logs collected by Microsoft Defender should be sent to.
 
 ---
 
