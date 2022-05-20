@@ -1,3 +1,9 @@
+## 3.8.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_data_factory_managed_private_endpoint` - `azurerm_data_factory_managed_private_endpoint` - `name` correctly matches regex  [GH-16894]
+
 ## 3.7.0 (May 19, 2022)
 
 FEATURES:
