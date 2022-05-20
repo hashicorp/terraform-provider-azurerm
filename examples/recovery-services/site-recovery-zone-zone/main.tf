@@ -3,7 +3,7 @@ provider "azurerm" {
 }
 
 locals {
-  public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
 }
 
 resource "azurerm_resource_group" "primary" {
@@ -49,7 +49,7 @@ resource "azurerm_windows_virtual_machine" "example" {
   size                = "Standard_D2s_v3"
   admin_username      = "adminuser"
   admin_password      = "P@ssw0rd1234!"
-  
+
   network_interface_ids = [
     azurerm_network_interface.example.id,
   ]
@@ -70,7 +70,7 @@ resource "azurerm_windows_virtual_machine" "example" {
 }
 
 data "azurerm_managed_disk" "os_disk" {
-  name = azurerm_windows_virtual_machine.example.os_disk[0].name
+  name                = azurerm_windows_virtual_machine.example.os_disk[0].name
   resource_group_name = azurerm_windows_virtual_machine.example.resource_group_name
 }
 
@@ -153,8 +153,8 @@ resource "azurerm_site_recovery_replicated_vm" "example" {
   }
 
   network_interface {
-    source_network_interface_id   = azurerm_network_interface.example.id
-    target_subnet_name            = azurerm_subnet.example.name
+    source_network_interface_id = azurerm_network_interface.example.id
+    target_subnet_name          = azurerm_subnet.example.name
   }
 
   depends_on = [
