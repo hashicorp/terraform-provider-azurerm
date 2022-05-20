@@ -11,20 +11,20 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: upgrade `redis` to `2020-12-01` [GH-16532]
-* `azurerm_container_registry` - support updating replications [GH-16678]
-* `azurerm_disk_encryption_set`: `encryption_type` supports `ConfidentialVmEncryptedWithCustomerKey` [GH-16870]
-* `azurerm_linux_function_app` - add support for PowerShell 7.2  [GH-16718]
-* `azurerm_signalr_service`: Support `Premium_P1` SKU [GH-16875]
+* `azurerm_container_registry` - support changing replications [GH-16678]
+* `azurerm_disk_encryption_set` - the `encryption_type` property now supports `ConfidentialVmEncryptedWithCustomerKey` [GH-16870]
+* `azurerm_linux_function_app` - add support for PowerShell `7.2`  [GH-16718]
+* `azurerm_signalr_service` - support the `Premium_P1` SKU [GH-16875]
 * `azurerm_spring_cloud_app` - support for the `identity` block [GH-16280]
 * `azurerm_spring_cloud_app` - support for the `addon_json` property [GH-16722]
-* `azurerm_windows_function_app` - Add support for PowerShell 7.2  [GH-16718]
-* `azurerm_mssql_managed_instance` - Add support for `maintenance_configuration_name` [GH-16832]
+* `azurerm_windows_function_app` - support for PowerShell `7.2`  [GH-16718]
+* `azurerm_mssql_managed_instance` - support for the `maintenance_configuration_name` property [GH-16832]
 
 BUG FIXES:
 
-* Data Source: `azurerm_databricks_workspace` - Handle panic when SKU field is missing [GH-16819]
+* Data Source: `azurerm_databricks_workspace` - prevent a panic when the SKU field is missing [GH-16819]
 * `azurerm_application_insights_web_test` - working around a breaking change in the API where creation would fail [GH-16845]
-* `azurerm_express_route_gateway` - Handle gateway connections not found error [GH-16804]
+* `azurerm_express_route_gateway` - handle gateway connections not found error [GH-16804]
 * `azurerm_shared_image` - changing the `eula` property now creates a new resource [GH-16868]
 
 DEPRECATIONS:
