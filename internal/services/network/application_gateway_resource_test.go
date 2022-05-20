@@ -1068,10 +1068,8 @@ func TestAccApplicationGateway_requestRoutingRulePriority(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.requestRoutingRulePriorityNotSet(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+			Config:      r.requestRoutingRulePriorityNotSet(data),
+			ExpectError: regexp.MustCompile("`priority` in `request_routing_rule` should be set when the Tier of the SKU is `Standard_v2` or `WAF_v2`"),
 		},
 		{
 			Config: r.requestRoutingRulePrioritySet(data),
@@ -1083,7 +1081,7 @@ func TestAccApplicationGateway_requestRoutingRulePriority(t *testing.T) {
 		},
 		{
 			Config:      r.requestRoutingRulePriorityValidation(data),
-			ExpectError: regexp.MustCompile("If you wish to use rule priority, you will have to specify rule-priority field values for all the existing request routing rules."),
+			ExpectError: regexp.MustCompile("`priority` in `request_routing_rule` should be set when the Tier of the SKU is `Standard_v2` or `WAF_v2`"),
 		},
 	})
 }
@@ -1304,18 +1302,6 @@ func TestAccApplicationGateway_requestRoutingRuleSetPriorityWithV1Sku(t *testing
 		{
 			Config:      r.requestRoutingRuleSetPriorityWithV1Sku(data),
 			ExpectError: regexp.MustCompile("`priority` in `request_routing_rule` should not be set when the Tier of the SKU is not `Standard_v2` or `WAF_v2`"),
-		},
-	})
-}
-
-func TestAccApplicationGateway_requestRoutingRuleNotSetPriorityWithV2Sku(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
-	r := ApplicationGatewayResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.requestRoutingRuleSetPriorityWithV2Sku(data),
-			ExpectError: regexp.MustCompile("`priority` in `request_routing_rule` should be set when the Tier of the SKU is `Standard_v2` or `WAF_v2`"),
 		},
 	})
 }
@@ -7250,7 +7236,6 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
-    priority                   = 1
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
@@ -8334,82 +8319,4 @@ resource "azurerm_application_gateway" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
-}
-
-func (r ApplicationGatewayResource) requestRoutingRuleSetPriorityWithV2Sku(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-# since these variables are re-used - a locals block makes this more maintainable
-locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-}
-
-resource "azurerm_public_ip" "test_standard" {
-  name                = "acctest-pubip-standard-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
-resource "azurerm_application_gateway" "test" {
-  name                = "acctestag-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku {
-    name     = "Standard_v2"
-    tier     = "Standard_v2"
-    capacity = 2
-  }
-
-  gateway_ip_configuration {
-    name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.test.id
-  }
-
-  frontend_port {
-    name = local.frontend_port_name
-    port = 80
-  }
-
-  frontend_ip_configuration {
-    name                 = local.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.test_standard.id
-  }
-
-  backend_address_pool {
-    name = local.backend_address_pool_name
-  }
-
-  backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
-  }
-
-  http_listener {
-    name                           = local.listener_name
-    frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name
-    protocol                       = "Http"
-  }
-
-  request_routing_rule {
-    name                       = local.request_routing_rule_name
-    rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
-    backend_address_pool_name  = local.backend_address_pool_name
-    backend_http_settings_name = local.http_setting_name
-  }
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
