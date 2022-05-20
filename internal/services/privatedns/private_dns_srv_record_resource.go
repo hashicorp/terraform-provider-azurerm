@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,8 +24,14 @@ func resourcePrivateDnsSrvRecord() *pluginsdk.Resource {
 		Update: resourcePrivateDnsSrvRecordCreateUpdate,
 		Delete: resourcePrivateDnsSrvRecordDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SrvRecordID(id)
-			return err
+			resourceId, err := recordsets.ParseRecordTypeID(id)
+			if err != nil {
+				return err
+			}
+			if resourceId.RecordType != recordsets.RecordTypeSRV {
+				return fmt.Errorf("importing %s wrong type received: expected %s received %s", id, recordsets.RecordTypeSRV, resourceId.RecordType)
+			}
+			return nil
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -108,37 +114,38 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewSrvRecordID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), d.Get("name").(string))
+	id := recordsets.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), recordsets.RecordTypeSRV, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.PrivateDnsZoneName, privatedns.SRV, resourceId.SRVName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of %s: %+v", resourceId, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_private_dns_srv_record", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_private_dns_srv_record", id.ID())
 		}
 	}
 
-	ttl := int64(d.Get("ttl").(int))
-	t := d.Get("tags").(map[string]interface{})
-
-	parameters := privatedns.RecordSet{
-		Name: utils.String(resourceId.SRVName),
-		RecordSetProperties: &privatedns.RecordSetProperties{
-			Metadata:   tags.Expand(t),
-			TTL:        &ttl,
+	parameters := recordsets.RecordSet{
+		Name: utils.String(id.RelativeRecordSetName),
+		Properties: &recordsets.RecordSetProperties{
+			Metadata:   expandTags(d.Get("tags").(map[string]interface{})),
+			Ttl:        utils.Int64(int64(d.Get("ttl").(int))),
 			SrvRecords: expandAzureRmPrivateDnsSrvRecords(d),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.PrivateDnsZoneName, privatedns.SRV, resourceId.SRVName, parameters, "", ""); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
+	options := recordsets.CreateOrUpdateOperationOptions{
+		IfMatch:     utils.String(""),
+		IfNoneMatch: utils.String(""),
+	}
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, options); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourcePrivateDnsSrvRecordRead(d, meta)
 }
 
@@ -147,32 +154,37 @@ func resourcePrivateDnsSrvRecordRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SrvRecordID(d.Id())
+	id, err := recordsets.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.SRV, id.SRVName)
+	resp, err := dnsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.SRVName)
-	d.Set("zone_name", id.PrivateDnsZoneName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.RelativeRecordSetName)
+	d.Set("zone_name", id.PrivateZoneName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("ttl", resp.TTL)
-	d.Set("fqdn", resp.Fqdn)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("ttl", props.Ttl)
+			d.Set("fqdn", props.Fqdn)
+			if err := d.Set("record", flattenAzureRmPrivateDnsSrvRecords(props.SrvRecords)); err != nil {
+				return err
+			}
 
-	if err := d.Set("record", flattenAzureRmPrivateDnsSrvRecords(resp.SrvRecords)); err != nil {
-		return err
+			return tags.FlattenAndSet(d, flattenTags(props.Metadata))
+		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Metadata)
+	return nil
 }
 
 func resourcePrivateDnsSrvRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -180,19 +192,21 @@ func resourcePrivateDnsSrvRecordDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SrvRecordID(d.Id())
+	id, err := recordsets.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = dnsClient.Delete(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.SRV, id.SRVName, ""); err != nil {
+	options := recordsets.DeleteOperationOptions{IfMatch: utils.String("")}
+
+	if _, err = dnsClient.Delete(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func flattenAzureRmPrivateDnsSrvRecords(records *[]privatedns.SrvRecord) []map[string]interface{} {
+func flattenAzureRmPrivateDnsSrvRecords(records *[]recordsets.SrvRecord) []map[string]interface{} {
 	results := make([]map[string]interface{}, 0)
 
 	if records != nil {
@@ -216,22 +230,18 @@ func flattenAzureRmPrivateDnsSrvRecords(records *[]privatedns.SrvRecord) []map[s
 	return results
 }
 
-func expandAzureRmPrivateDnsSrvRecords(d *pluginsdk.ResourceData) *[]privatedns.SrvRecord {
+func expandAzureRmPrivateDnsSrvRecords(d *pluginsdk.ResourceData) *[]recordsets.SrvRecord {
 	recordStrings := d.Get("record").(*pluginsdk.Set).List()
-	records := make([]privatedns.SrvRecord, len(recordStrings))
+	records := make([]recordsets.SrvRecord, len(recordStrings))
 
 	for i, v := range recordStrings {
 		record := v.(map[string]interface{})
-		priority := int32(record["priority"].(int))
-		weight := int32(record["weight"].(int))
-		port := int32(record["port"].(int))
-		target := record["target"].(string)
 
-		srvRecord := privatedns.SrvRecord{
-			Priority: &priority,
-			Weight:   &weight,
-			Port:     &port,
-			Target:   &target,
+		srvRecord := recordsets.SrvRecord{
+			Priority: utils.Int64(int64(record["priority"].(int))),
+			Weight:   utils.Int64(int64(record["weight"].(int))),
+			Port:     utils.Int64(int64(record["port"].(int))),
+			Target:   utils.String(record["target"].(string)),
 		}
 
 		records[i] = srvRecord
