@@ -470,9 +470,9 @@ A `request_routing_rule` block supports the following:
 
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
-* `priority` - (Required) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
+* `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
 
-~> **NOTE:** If you wish to use rule `priority`, you will have to specify rule-priority field values for all the existing request routing rules. Once the rule priority field is in use, any new routing rule that is created would also need to have a rule priority field value as part of its config. It should be set when and only when the Tier of the SKU is `Standard_v2` or `WAF_v2`.
+~> **NOTE:** The `priority` field is mandatory with AzureRM release 3.6.0 and later when and only when the Tier of the SKU is `Standard_v2` or `WAF_v2`. If you wish to use rule `priority`, you will have to specify rule-priority field values for all the existing request routing rules. Once the rule priority field is in use, any new routing rule that is created would also need to have a rule priority field value as part of its config.
 
 ---
 
