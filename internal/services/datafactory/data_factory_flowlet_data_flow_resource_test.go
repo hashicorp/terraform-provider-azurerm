@@ -90,7 +90,7 @@ resource "azurerm_data_factory_flowlet_data_flow" "test" {
     }
   }
 
-   sink {
+  sink {
     name = "sink1"
 
     linked_service {
@@ -155,7 +155,7 @@ resource "azurerm_data_factory_flowlet_data_flow" "test" {
     name        = "source1"
     description = "description for source1"
 
-    flowlet {  
+    flowlet {
       name = azurerm_data_factory_flowlet_data_flow.test1.name
       parameters = {
         "Key1" = "value1"
@@ -181,7 +181,7 @@ resource "azurerm_data_factory_flowlet_data_flow" "test" {
     name        = "sink1"
     description = "description for sink1"
 
-    flowlet {  
+    flowlet {
       name = azurerm_data_factory_flowlet_data_flow.test2.name
       parameters = {
         "Key1" = "value1"
