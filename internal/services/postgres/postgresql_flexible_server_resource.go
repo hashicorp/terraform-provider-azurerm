@@ -16,7 +16,7 @@ import (
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
-	privateDnsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -130,7 +130,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				// For existing fs who don't want to be recreated, they could contact service team to manually migrate to the private dns zone
 				// We need to ignore the diff when remote is set private dns zone
 				ForceNew:     true,
-				ValidateFunc: privateDnsValidate.PrivateDnsZoneID,
+				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
 
 			"point_in_time_restore_time_in_utc": {

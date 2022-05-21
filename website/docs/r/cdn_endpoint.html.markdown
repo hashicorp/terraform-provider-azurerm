@@ -240,7 +240,7 @@ A `cookies_condition` block supports the following:
 
 
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -274,7 +274,7 @@ A `post_arg_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -286,7 +286,7 @@ A `query_string_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -308,7 +308,7 @@ A `request_body_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -322,7 +322,7 @@ A `request_header_condition` block supports the following:
 
 * `match_values` - (Optional) List of header values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -354,7 +354,7 @@ A `request_uri_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -366,7 +366,7 @@ A `url_file_extension_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -378,7 +378,7 @@ A `url_file_name_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
@@ -390,7 +390,7 @@ A `url_path_condition` block supports the following:
 
 * `match_values` - (Optional) List of string values. This is required if `operator` is not `Any`.
 
-* `transforms` - (Optional) Valid values are `Lowercase` and `Uppercase`.
+* `transforms` - (Optional) A list of transforms. Valid values are `Lowercase` and `Uppercase`.
 
 ---
 
