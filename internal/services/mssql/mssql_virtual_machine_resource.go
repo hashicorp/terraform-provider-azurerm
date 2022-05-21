@@ -884,7 +884,7 @@ func expandSqlVirtualMachineTempDbSettings(input []interface{}) *sqlvirtualmachi
 		DataGrowth: 	    utils.Int32(int32(tempDbSettings.Get("data_file_growth_in_mb").(int))),
 		DefaultFilePath:    utils.String(tempDbSettings["default_file_path"].(string)),
 		LogFileSize: 	    utils.Int32(int32(tempDbSettings.Get("log_file_size_mb").(int))),
-		LogGrowth: 	    utils.Int32(int32(tempDbSettings.Get("log_file_growth_mb").(int)))
+		LogGrowth: 	    utils.Int32(int32(tempDbSettings.Get("log_file_growth_mb").(int))),
 	}
 }
 
