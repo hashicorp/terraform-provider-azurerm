@@ -314,6 +314,12 @@ func (r SynapseWorkspaceResource) withAadAdmin(data acceptance.TestData) string 
 data "azurerm_client_config" "current" {
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuaid%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_synapse_workspace" "test" {
   name                                 = "acctestsw%d"
   resource_group_name                  = azurerm_resource_group.test.name
@@ -329,14 +335,15 @@ resource "azurerm_synapse_workspace" "test" {
   }
 
   identity {
-    type = "SystemAssigned"
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
   tags = {
     ENV = "Test2"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SynapseWorkspaceResource) withSqlAadAdmin(data acceptance.TestData) string {
@@ -347,6 +354,12 @@ func (r SynapseWorkspaceResource) withSqlAadAdmin(data acceptance.TestData) stri
 data "azurerm_client_config" "current" {
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuaid%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_synapse_workspace" "test" {
   name                                 = "acctestsw%d"
   resource_group_name                  = azurerm_resource_group.test.name
@@ -363,14 +376,15 @@ resource "azurerm_synapse_workspace" "test" {
   }
 
   identity {
-    type = "SystemAssigned"
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
   tags = {
     ENV = "Test2"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SynapseWorkspaceResource) withAadAdmins(data acceptance.TestData) string {
@@ -379,6 +393,12 @@ func (r SynapseWorkspaceResource) withAadAdmins(data acceptance.TestData) string
 %s
 
 data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuaid%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_synapse_workspace" "test" {
@@ -402,14 +422,15 @@ resource "azurerm_synapse_workspace" "test" {
   }
 
   identity {
-    type = "SystemAssigned"
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
   tags = {
     ENV = "Test2"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SynapseWorkspaceResource) azureDevOps(data acceptance.TestData) string {
