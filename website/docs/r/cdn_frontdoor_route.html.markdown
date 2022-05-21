@@ -109,9 +109,9 @@ The following arguments are supported:
 
 * `cdn_frontdoor_endpoint_id` - (Required) The ID of the Frontdoor Route. Changing this forces a new Frontdoor Route to be created.
 
-* `cdn_frontdoor_origin_group_id` - (Required) The resource ID of the Frontdoor Origin Group. Changing this forces a new Frontdoor Route to be created.
+* `cdn_frontdoor_origin_group_id` - (Required) The resource ID of the Frontdoor Origin Group.
 
-* `cdn_frontdoor_origin_ids` - (Required) One or more Frontdoor Origin resource IDs that this Frontdoor Route will link to. Changing this forces a new Frontdoor Route to be created.
+* `cdn_frontdoor_origin_ids` - (Required) One or more Frontdoor Origin resource IDs that this Frontdoor Route will link to.
 
 * `supported_protocols` - (Required) One or more Protocols supported by this Frontdoor Route. Possible values are `Http` or `Https`.
 
@@ -158,8 +158,6 @@ A `cache` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Frontdoor Route.
-
-* `frontdoor_endpoint_name` - The name of the Frontdoor Endpoint which holds the Frontdoor Route.
 
 ---
 

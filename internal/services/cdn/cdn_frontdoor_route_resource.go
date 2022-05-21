@@ -59,7 +59,6 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 			"cdn_frontdoor_origin_group_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.FrontdoorOriginGroupID,
 			},
 
@@ -71,7 +70,6 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 				// can provision/destroy the resources in the correct order.
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				ForceNew: true,
 
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -214,32 +212,10 @@ func resourceCdnFrontdoorRoute() *pluginsdk.Resource {
 			},
 
 			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
-			// WS: Same as above.
-			"cdn_frontdoor_endpoint_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
+			// WS: Removed, not useful
 
 			// TODO: why is this prefixed with `cdn_frontdoor_`? we can remove that since it's implied?
-			// WS: Same as above.
-			"cdn_frontdoor_custom_domains_active_status": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"active": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-					},
-				},
-			},
+			// WS: Removed, not useful
 		},
 	}
 }
@@ -342,7 +318,6 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := resp.RouteProperties; props != nil {
 		// TODO: split this into two separate flatten functions
 		// WS: Fixed
-		domainsActive := flattenCdnFrontdoorRouteActivatedResourceComputedArray(props.CustomDomains)
 		domains := flattenCdnFrontdoorRouteActivatedResourceArray(props.CustomDomains)
 		d.Set("cdn_frontdoor_custom_domain_ids", domains)
 		d.Set("enabled", convertCdnFrontdoorEnabledStateToBool(&props.EnabledState))
@@ -353,12 +328,7 @@ func resourceCdnFrontdoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("patterns_to_match", props.PatternsToMatch)
 
 		// TODO: BLOCKER - BUG: Endpoint name is not being returned by the API
-		// WS: Yes, this is a service bug, but I do not agree that it is a "BLOCKER" as we have a workaround.
-		d.Set("cdn_frontdoor_endpoint_name", id.AfdEndpointName)
-
-		if err := d.Set("cdn_frontdoor_custom_domains_active_status", domainsActive); err != nil {
-			return fmt.Errorf("setting %q: %+v", "cdn_frontdoor_custom_domains_active_status", err)
-		}
+		// WS: Removed, not useful.
 
 		if err := d.Set("cache", flattenCdnFrontdoorRouteCacheConfiguration(props.CacheConfiguration)); err != nil {
 			return fmt.Errorf("setting `cache`: %+v", err)
@@ -577,26 +547,6 @@ func flattenCdnFrontdoorRouteActivatedResourceArray(inputs *[]cdn.ActivatedResou
 
 	for _, customDomain := range *inputs {
 		results = append(results, customDomain.ID)
-	}
-
-	return results
-}
-
-func flattenCdnFrontdoorRouteActivatedResourceComputedArray(inputs *[]cdn.ActivatedResourceReference) []interface{} {
-	results := make([]interface{}, 0)
-	if inputs == nil {
-		// TODO: this should be split, but this must return an empty slice and not nil
-		// WS: Because with the Frontdoor service, they do not treat an empty object like an empty object
-		// if it is not nil they assume it is fully defined and then end up throwing errors when they attempt
-		// to get a value from one of the fields.
-		return nil
-	}
-
-	for _, customDomain := range *inputs {
-		result := make(map[string]interface{})
-		result["id"] = customDomain.ID
-		result["active"] = customDomain.IsActive
-		results = append(results, result)
 	}
 
 	return results
