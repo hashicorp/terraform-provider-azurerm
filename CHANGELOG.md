@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_data_factory_managed_private_endpoint` - `azurerm_data_factory_managed_private_endpoint` - `name` correctly matches regex  [GH-16894]
+* `synapse_spark_pool`-`spark_version` supports `3.2` [GH-16906]
 
 ## 3.7.0 (May 19, 2022)
 
