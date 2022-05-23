@@ -131,7 +131,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"zones": commonschema.ZonesMultipleOptionalForceNew(),
+			"zones": commonschema.ZonesMultipleOptionalForceNewOrdered(),
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
@@ -1600,7 +1600,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 		},
 	}
 
-	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	zones := zones.Expand(d.Get("zones").([]interface{}))
 	if len(zones) > 0 {
 		gateway.Zones = &zones
 	}
@@ -1855,7 +1855,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("zones") {
-		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+		zones := zones.Expand(d.Get("zones").([]interface{}))
 		if len(zones) > 0 {
 			applicationGateway.Zones = &zones
 		}
