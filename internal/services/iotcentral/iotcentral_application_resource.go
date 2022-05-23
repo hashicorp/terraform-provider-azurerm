@@ -76,7 +76,7 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 					string(apps.AppSkuSTTwo),
 					string(apps.AppSkuSTZero),
 				}, false),
-				Default: apps.AppSkuSTOne,
+				Default: string(apps.AppSkuSTOne),
 			},
 			"template": {
 				Type:         pluginsdk.TypeString,
@@ -112,7 +112,7 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Name: id.ResourceName,
 	}
 
-	resp, err := client.CheckNameAvailability(ctx, commonids.SubscriptionId{SubscriptionId: id.SubscriptionId}, inputs)
+	resp, err := client.CheckNameAvailability(ctx, commonids.NewSubscriptionID(id.SubscriptionId), inputs)
 	if err != nil {
 		return fmt.Errorf("checking if the name %q was globally available:  %+v", id.ResourceName, err)
 	}
@@ -229,7 +229,7 @@ func resourceIotCentralAppDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := apps.ParseIotAppIDInsensitively(d.Id())
+	id, err := apps.ParseIotAppID(d.Id())
 	if err != nil {
 		return err
 	}
