@@ -1,16 +1,16 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2018-09-01/iotcentral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/sdk/2018-09-01/apps"
 )
 
 type Client struct {
-	AppsClient *iotcentral.AppsClient
+	AppsClient *apps.AppsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	AppsClient := iotcentral.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	AppsClient := apps.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&AppsClient.Client, o.ResourceManagerAuthorizer)
 	return &Client{
 		AppsClient: &AppsClient,
