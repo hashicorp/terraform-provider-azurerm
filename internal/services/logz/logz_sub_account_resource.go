@@ -99,12 +99,16 @@ func resourceLogzSubAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	props := logz.MonitorResource{
 		Location: resp.Location,
 		Properties: &logz.MonitorProperties{
-			PlanData:         resp.Properties.PlanData,
 			UserInfo:         expandUserInfo(d.Get("user").([]interface{})),
 			MonitoringStatus: monitoringStatus,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	if properties := resp.Properties; properties != nil {
+		props.Properties.PlanData = properties.PlanData
+	}
+
 	future, err := client.Create(ctx, id.ResourceGroup, id.MonitorName, id.AccountName, &props)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -203,13 +207,18 @@ func resourceLogzSubAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	// API has bug, which appears to be eventually consistent. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/18572
 	log.Printf("[DEBUG] Waiting for %s to be fully deleted..", *id)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("context had no deadline")
+	}
+
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
 		Refresh:                   subAccountDeletedRefreshFunc(ctx, client, *id),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 20,
-		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout:                   time.Until(deadline),
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {

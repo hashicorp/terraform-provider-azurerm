@@ -240,5 +240,6 @@ resource "azurerm_logz_monitor" "test" {
 }
 
 func getLogzInstanceName(randomInteger int) string {
+	// Name started with `liftr_test_only_` will be regarded as a test resource and cleared by the back end
 	return "liftr_test_only_" + strconv.Itoa(randomInteger)[2:]
 }
