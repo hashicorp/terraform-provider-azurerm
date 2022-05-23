@@ -320,7 +320,7 @@ func TestAccWindowsVirtualMachine_diskOSConfidentialVmWithGuestStateOnly(t *test
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSConfidentialVmWithGuestStateOnly(data, true),
+			Config: r.diskOSConfidentialVmWithGuestStateOnly(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -335,7 +335,7 @@ func TestAccWindowsVirtualMachine_diskOSConfidentialVmWithDiskAndVMGuestStateCMK
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSConfidentialVmWithDiskAndVMGuestStateCMK(data, true),
+			Config: r.diskOSConfidentialVmWithDiskAndVMGuestStateCMK(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -806,7 +806,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data), enabled)
 }
 
-func (r WindowsVirtualMachineResource) diskOSConfidentialVmWithGuestStateOnly(data acceptance.TestData, enabled bool) string {
+func (r WindowsVirtualMachineResource) diskOSConfidentialVmWithGuestStateOnly(data acceptance.TestData) string {
 	// Confidential VM has limited region support
 	data.Locations.Primary = "northeurope"
 	return fmt.Sprintf(`
@@ -852,7 +852,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r WindowsVirtualMachineResource) diskOSConfidentialVmWithDiskAndVMGuestStateCMK(data acceptance.TestData, enabled bool) string {
+func (r WindowsVirtualMachineResource) diskOSConfidentialVmWithDiskAndVMGuestStateCMK(data acceptance.TestData) string {
 	// Confidential VM has limited region support
 	data.Locations.Primary = "northeurope"
 	return fmt.Sprintf(`
