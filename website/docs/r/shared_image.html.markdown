@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description of this Shared Image.
 
-* `eula` - (Optional) The End User Licence Agreement for the Shared Image.
+* `eula` - (Optional) The End User Licence Agreement for the Shared Image. Changing this forces a new resource to be created.
 
 * `specialized` - (Optional) Specifies that the Operating System used inside this Image has not been Generalized (for example, `sysprep` on Windows has not been run). Defaults to `false`. Changing this forces a new resource to be created.
 

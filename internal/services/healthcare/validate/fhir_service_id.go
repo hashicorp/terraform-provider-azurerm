@@ -5,17 +5,17 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 )
 
-func SrvRecordID(input interface{}, key string) (warnings []string, errors []error) {
+func FhirServiceID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := parse.SrvRecordID(v); err != nil {
+	if _, err := parse.FhirServiceID(v); err != nil {
 		errors = append(errors, err)
 	}
 

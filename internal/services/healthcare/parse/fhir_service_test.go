@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = PrivateDnsZoneId{}
+var _ resourceids.Id = FhirServiceId{}
 
-func TestPrivateDnsZoneIDFormatter(t *testing.T) {
-	actual := NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "resGroup1", "privateDnsZone1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/privateDnsZones/privateDnsZone1"
+func TestFhirServiceIDFormatter(t *testing.T) {
+	actual := NewFhirServiceID("12345678-1234-9876-4563-123456789012", "group1", "workspace1", "service1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/fhirservices/service1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestPrivateDnsZoneID(t *testing.T) {
+func TestFhirServiceID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *PrivateDnsZoneId
+		Expected *FhirServiceId
 	}{
 
 		{
@@ -56,30 +56,43 @@ func TestPrivateDnsZoneID(t *testing.T) {
 		},
 
 		{
+			// missing WorkspaceName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/",
+			Error: true,
+		},
+
+		{
+			// missing value for WorkspaceName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/",
+			Error: true,
+		},
+
+		{
 			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/",
 			Error: true,
 		},
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/privateDnsZones/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/fhirservices/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/privateDnsZones/privateDnsZone1",
-			Expected: &PrivateDnsZoneId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/fhirservices/service1",
+			Expected: &FhirServiceId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resGroup1",
-				Name:           "privateDnsZone1",
+				ResourceGroup:  "group1",
+				WorkspaceName:  "workspace1",
+				Name:           "service1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/PRIVATEDNSZONES/PRIVATEDNSZONE1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.HEALTHCAREAPIS/WORKSPACES/WORKSPACE1/FHIRSERVICES/SERVICE1",
 			Error: true,
 		},
 	}
@@ -87,7 +100,7 @@ func TestPrivateDnsZoneID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := PrivateDnsZoneID(v.Input)
+		actual, err := FhirServiceID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -104,6 +117,9 @@ func TestPrivateDnsZoneID(t *testing.T) {
 		}
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+		if actual.WorkspaceName != v.Expected.WorkspaceName {
+			t.Fatalf("Expected %q but got %q for WorkspaceName", v.Expected.WorkspaceName, actual.WorkspaceName)
 		}
 		if actual.Name != v.Expected.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)

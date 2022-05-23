@@ -84,7 +84,6 @@ github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2021-11-01-preview/sqlvirtualmachine
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/managedvirtualnetwork
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-08-01-preview/accesscontrol
-github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
 github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2021-10-15/iothub
 github.com/Azure/azure-sdk-for-go/services/purview/mgmt/2021-07-01/purview
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery
@@ -194,7 +193,7 @@ github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.30.0
+# github.com/hashicorp/go-azure-helpers v0.31.1
 ## explicit; go 1.17
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/lang/dates
