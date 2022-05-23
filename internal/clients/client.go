@@ -2,7 +2,6 @@ package clients
 
 import (
 	"context"
-	serviceConnector "github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector/client"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
@@ -100,6 +99,7 @@ import (
 	securityCenter "github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/client"
 	sentinel "github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/client"
 	serviceBus "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/client"
+	serviceConnector "github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector/client"
 	serviceFabric "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/client"
 	serviceFabricManaged "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/client"
 	signalr "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/client"

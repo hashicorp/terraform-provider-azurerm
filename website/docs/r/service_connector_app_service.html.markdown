@@ -1,7 +1,7 @@
 ---
-subcategory: "Service Connector"
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "Azure Resource Manager: "azurerm_app_service_connection"
+page_title: "Azure Resource Manager: azurerm_app_service_connection"
 description: |-
   Manages a service connector for app service.
 ---
@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_cosmosdb_account" "example" {
-  name                = "exmaple-cosmosdb-account"
+  name                = "example-cosmosdb-account"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   offer_type          = "Standard"

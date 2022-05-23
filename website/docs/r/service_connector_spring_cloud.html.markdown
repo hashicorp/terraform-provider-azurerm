@@ -1,9 +1,9 @@
 ---
-subcategory: "Service Connector"
+subcategory: "Spring Cloud"
 layout: "azurerm"
-page_title: "Azure Resource Manager: "azurerm_spring_cloud_connection"
+page_title: "Azure Resource Manager: azurerm_spring_cloud_connection"
 description: |-
-Manages a service connector for spring cloud app.
+  Manages a service connector for spring cloud app.
 ---
 
 # azurerm_spring_cloud_connection
@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_cosmosdb_account" "example" {
-  name                = "exmaple-cosmosdb-account"
+  name                = "example-cosmosdb-account"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   offer_type          = "Standard"
