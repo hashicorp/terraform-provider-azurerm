@@ -1,0 +1,38 @@
+package links
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+var _ SecretInfoBase = KeyVaultSecretUriSecretInfo{}
+
+type KeyVaultSecretUriSecretInfo struct {
+	Value *string `json:"value,omitempty"`
+
+	// Fields inherited from SecretInfoBase
+}
+
+var _ json.Marshaler = KeyVaultSecretUriSecretInfo{}
+
+func (s KeyVaultSecretUriSecretInfo) MarshalJSON() ([]byte, error) {
+	type wrapper KeyVaultSecretUriSecretInfo
+	wrapped := wrapper(s)
+	encoded, err := json.Marshal(wrapped)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling KeyVaultSecretUriSecretInfo: %+v", err)
+	}
+
+	var decoded map[string]interface{}
+	if err := json.Unmarshal(encoded, &decoded); err != nil {
+		return nil, fmt.Errorf("unmarshaling KeyVaultSecretUriSecretInfo: %+v", err)
+	}
+	decoded["secretType"] = "keyVaultSecretUri"
+
+	encoded, err = json.Marshal(decoded)
+	if err != nil {
+		return nil, fmt.Errorf("re-marshaling KeyVaultSecretUriSecretInfo: %+v", err)
+	}
+
+	return encoded, nil
+}

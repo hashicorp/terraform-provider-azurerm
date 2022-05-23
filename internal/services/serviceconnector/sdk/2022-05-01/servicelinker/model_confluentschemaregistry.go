@@ -1,0 +1,38 @@
+package servicelinker
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+var _ TargetServiceBase = ConfluentSchemaRegistry{}
+
+type ConfluentSchemaRegistry struct {
+	Endpoint *string `json:"endpoint,omitempty"`
+
+	// Fields inherited from TargetServiceBase
+}
+
+var _ json.Marshaler = ConfluentSchemaRegistry{}
+
+func (s ConfluentSchemaRegistry) MarshalJSON() ([]byte, error) {
+	type wrapper ConfluentSchemaRegistry
+	wrapped := wrapper(s)
+	encoded, err := json.Marshal(wrapped)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling ConfluentSchemaRegistry: %+v", err)
+	}
+
+	var decoded map[string]interface{}
+	if err := json.Unmarshal(encoded, &decoded); err != nil {
+		return nil, fmt.Errorf("unmarshaling ConfluentSchemaRegistry: %+v", err)
+	}
+	decoded["type"] = "ConfluentSchemaRegistry"
+
+	encoded, err = json.Marshal(decoded)
+	if err != nil {
+		return nil, fmt.Errorf("re-marshaling ConfluentSchemaRegistry: %+v", err)
+	}
+
+	return encoded, nil
+}

@@ -2,6 +2,7 @@ package clients
 
 import (
 	"context"
+	serviceConnector "github.com/hashicorp/terraform-provider-azurerm/internal/services/serviceconnector/client"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
@@ -213,6 +214,7 @@ type Client struct {
 	SecurityCenter        *securityCenter.Client
 	Sentinel              *sentinel.Client
 	ServiceBus            *serviceBus.Client
+	ServiceConnector      *serviceConnector.Client
 	ServiceFabric         *serviceFabric.Client
 	ServiceFabricManaged  *serviceFabricManaged.Client
 	SignalR               *signalr.Client
@@ -329,6 +331,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.SecurityCenter = securityCenter.NewClient(o)
 	client.Sentinel = sentinel.NewClient(o)
 	client.ServiceBus = serviceBus.NewClient(o)
+	client.ServiceConnector = serviceConnector.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.ServiceFabricManaged = serviceFabricManaged.NewClient(o)
 	client.SignalR = signalr.NewClient(o)
