@@ -396,7 +396,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
 	osDiskRaw := d.Get("os_disk").([]interface{})
-	osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesLinux)
+	osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesLinux)
+	if err != nil {
+		return fmt.Errorf("expanding `os_disk`: %+v", err)
+	}
 
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandLinuxSecrets(secretsRaw)
@@ -990,7 +993,11 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldDeallocate = true
 
 		osDiskRaw := d.Get("os_disk").([]interface{})
-		osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesLinux)
+		osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesLinux)
+		if err != nil {
+			return fmt.Errorf("expanding `os_disk`: %+v", err)
+		}
+
 		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
 			OsDisk: osDisk,
 		}

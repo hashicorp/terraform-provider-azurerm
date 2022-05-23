@@ -16,9 +16,3 @@ func DeprecatedInThreePointOh(deprecationMessage string) string {
 func ThreePointOh() bool {
 	return true
 }
-
-// ThreePointOhBeta returns whether this provider is running in 3.0 mode
-// or an opt-in Beta of the (non-breaking changes) coming in 3.0.
-func ThreePointOhBeta() bool {
-	return true
-}

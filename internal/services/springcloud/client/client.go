@@ -15,6 +15,7 @@ type Client struct {
 	ConfigurationServiceClient *appplatform.ConfigurationServicesClient
 	CustomDomainsClient        *appplatform.CustomDomainsClient
 	GatewayClient              *appplatform.GatewaysClient
+	GatewayCustomDomainClient  *appplatform.GatewayCustomDomainsClient
 	MonitoringSettingsClient   *appplatform.MonitoringSettingsClient
 	DeploymentsClient          *appplatform.DeploymentsClient
 	ServicesClient             *appplatform.ServicesClient
@@ -53,6 +54,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	gatewayClient := appplatform.NewGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayClient.Client, o.ResourceManagerAuthorizer)
 
+	gatewayCustomDomainClient := appplatform.NewGatewayCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&gatewayCustomDomainClient.Client, o.ResourceManagerAuthorizer)
+
 	monitoringSettingsClient := appplatform.NewMonitoringSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&monitoringSettingsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -76,6 +80,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		CustomDomainsClient:        &customDomainsClient,
 		DeploymentsClient:          &deploymentsClient,
 		GatewayClient:              &gatewayClient,
+		GatewayCustomDomainClient:  &gatewayCustomDomainClient,
 		MonitoringSettingsClient:   &monitoringSettingsClient,
 		ServicesClient:             &servicesClient,
 		ServiceRegistryClient:      &serviceRegistryClient,

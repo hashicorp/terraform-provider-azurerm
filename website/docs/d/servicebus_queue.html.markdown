@@ -56,13 +56,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `forward_dead_lettered_messages_to` - The name of a Queue or Topic to automatically forward dead lettered messages to.
 
-* `forward_to` - The name of a Queue or Topic to automatically forward messages to. Please [see the documentation](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-auto-forwarding) for more information.
+* `forward_to` - The name of a Queue or Topic to automatically forward messages to. Please [see the documentation](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-auto-forwarding) for more information.
 
 * `lock_duration` - The ISO 8601 timespan duration of a peek-lock; that is, the amount of time that the message is locked for other receivers.
 
 * `max_delivery_count` - Integer value which controls when a message is automatically dead lettered.
 
-* `max_size_in_megabytes` - Integer value which controls the size of memory allocated for the queue. For supported values see the "Queue or topic size" section of [Service Bus Quotas](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas).
+* `max_size_in_megabytes` - Integer value which controls the size of memory allocated for the queue. For supported values see the "Queue or topic size" section of [Service Bus Quotas](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas).
 
 * `requires_duplicate_detection` - Boolean flag which controls whether the Queue requires duplicate detection.
 

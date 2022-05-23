@@ -13,8 +13,8 @@ Use this data source to obtain a Shared Access Signature (SAS Token) for an exis
 
 Shared access signatures allow fine-grained, ephemeral access control to various aspects of an Azure Storage Account.
 
-Note that this is an [Account SAS](https://docs.microsoft.com/en-us/rest/api/storageservices/constructing-an-account-sas)
-and *not* a [Service SAS](https://docs.microsoft.com/en-us/rest/api/storageservices/constructing-a-service-sas).
+Note that this is an [Account SAS](https://docs.microsoft.com/rest/api/storageservices/constructing-an-account-sas)
+and *not* a [Service SAS](https://docs.microsoft.com/rest/api/storageservices/constructing-a-service-sas).
 
 ## Example Usage
 
@@ -130,7 +130,7 @@ A `permissions` block contains:
 * `tag` - Should Get / Set Index Tags permissions be enabled for this SAS?
 * `filter` - Should Filter by Index Tags permissions be enabled for this SAS?
 
-Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/en-us/rest/api/storageservices/constructing-an-account-sas)
+Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/rest/api/storageservices/constructing-an-account-sas)
 for additional details on the fields above.
 
 ## Attributes Reference
