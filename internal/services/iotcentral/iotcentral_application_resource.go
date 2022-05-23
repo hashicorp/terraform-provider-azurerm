@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/sdk/2018-09-01/apps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/sdk/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -72,10 +72,9 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apps.AppSkuFOne),
-					string(apps.AppSkuSOne),
 					string(apps.AppSkuSTOne),
 					string(apps.AppSkuSTTwo),
+					string(apps.AppSkuSTZero),
 				}, false),
 				Default: apps.AppSkuSTOne,
 			},

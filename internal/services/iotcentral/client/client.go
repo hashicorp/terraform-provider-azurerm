@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/sdk/2018-09-01/apps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/sdk/2021-11-01-preview/apps"
 )
 
 type Client struct {
