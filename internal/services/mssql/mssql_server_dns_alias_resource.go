@@ -65,10 +65,12 @@ func (m ServerDNSAliasResource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&alias); err != nil {
 				return err
 			}
+			
 			serverID, err := parse.ServerID(alias.MsSQLServerId)
 			if err != nil {
 				return err
 			}
+			
 			client := metadata.Client.MSSQL.ServerDNSAliasClient
 			id := parse.NewServerDNSAliasID(serverID.SubscriptionId, serverID.ResourceGroup, serverID.Name, alias.Name)
 			existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.DnsAliaseName)
@@ -78,6 +80,7 @@ func (m ServerDNSAliasResource) Create() sdk.ResourceFunc {
 				}
 				return metadata.ResourceRequiresImport(m.ResourceType(), id)
 			}
+			
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.DnsAliaseName)
 			if err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
@@ -85,6 +88,7 @@ func (m ServerDNSAliasResource) Create() sdk.ResourceFunc {
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for creation of %s: %v", id, err)
 			}
+			
 			metadata.SetID(id)
 			return nil
 		},
