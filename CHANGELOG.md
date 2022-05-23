@@ -3,7 +3,8 @@
 ENHANCEMENTS:
 
 * `azurerm_data_factory_managed_private_endpoint` - `azurerm_data_factory_managed_private_endpoint` - `name` correctly matches regex  [GH-16894]
-* `synapse_spark_pool`-`spark_version` supports `3.2` [GH-16906]
+* `synapse_spark_pool` - the `spark_version` property now supports `3.2` [GH-16906]
+* `azurerm_vpn_gateway` - support for the `bgp_route_translation_for_nat_enabled` property [GH-16817]
 
 ## 3.7.0 (May 19, 2022)
 
