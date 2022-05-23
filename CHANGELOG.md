@@ -6,6 +6,10 @@ ENHANCEMENTS:
 * `synapse_spark_pool` - the `spark_version` property now supports `3.2` [GH-16906]
 * `azurerm_vpn_gateway` - support for the `bgp_route_translation_for_nat_enabled` property [GH-16817]
 
+BUG FIXES:
+
+* `azurerm_windows_virtual_machine`: `timezone` is now `ForceNew` [GH-16866]
+
 ## 3.7.0 (May 19, 2022)
 
 FEATURES:
