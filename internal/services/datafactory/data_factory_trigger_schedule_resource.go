@@ -179,9 +179,32 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"pipeline": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
+						},
+
+						"parameters": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
+
 			"pipeline_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 			},
 
@@ -250,20 +273,26 @@ func resourceDataFactoryTriggerScheduleCreate(d *pluginsdk.ResourceData, meta in
 		props.Recurrence.EndTime = &date.Time{Time: t}
 	}
 
-	reference := &datafactory.PipelineReference{
-		ReferenceName: utils.String(d.Get("pipeline_name").(string)),
-		Type:          utils.String("PipelineReference"),
-	}
-
 	scheduleProps := &datafactory.ScheduleTrigger{
 		ScheduleTriggerTypeProperties: props,
-		Pipelines: &[]datafactory.TriggerPipelineReference{
+		Description:                   utils.String(d.Get("description").(string)),
+	}
+
+	pipelineName := d.Get("pipeline_name").(string)
+	if pipelineName != "" {
+		scheduleProps.Pipelines = &[]datafactory.TriggerPipelineReference{
 			{
-				PipelineReference: reference,
-				Parameters:        d.Get("pipeline_parameters").(map[string]interface{}),
+				PipelineReference: &datafactory.PipelineReference{
+					ReferenceName: utils.String(pipelineName),
+					Type:          utils.String("PipelineReference"),
+				},
+				Parameters: d.Get("pipeline_parameters").(map[string]interface{}),
 			},
-		},
-		Description: utils.String(d.Get("description").(string)),
+		}
+	}
+
+	if pipelineName == "" {
+		scheduleProps.Pipelines = expandDataFactoryPipelines(d.Get("pipeline").([]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -339,20 +368,25 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 		props.Recurrence.EndTime = &date.Time{Time: t}
 	}
 
-	reference := &datafactory.PipelineReference{
-		ReferenceName: utils.String(d.Get("pipeline_name").(string)),
-		Type:          utils.String("PipelineReference"),
-	}
-
 	scheduleProps := &datafactory.ScheduleTrigger{
 		ScheduleTriggerTypeProperties: props,
-		Pipelines: &[]datafactory.TriggerPipelineReference{
+		Description:                   utils.String(d.Get("description").(string)),
+	}
+	pipelineName := d.Get("pipeline_name").(string)
+	if pipelineName != "" {
+		scheduleProps.Pipelines = &[]datafactory.TriggerPipelineReference{
 			{
-				PipelineReference: reference,
-				Parameters:        d.Get("pipeline_parameters").(map[string]interface{}),
+				PipelineReference: &datafactory.PipelineReference{
+					ReferenceName: utils.String(pipelineName),
+					Type:          utils.String("PipelineReference"),
+				},
+				Parameters: d.Get("pipeline_parameters").(map[string]interface{}),
 			},
-		},
-		Description: utils.String(d.Get("description").(string)),
+		}
+	}
+
+	if pipelineName == "" {
+		scheduleProps.Pipelines = expandDataFactoryPipelines(d.Get("pipeline").([]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -430,12 +464,16 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 		}
 
 		if pipelines := scheduleTriggerProps.Pipelines; pipelines != nil {
-			if len(*pipelines) > 0 {
+			if len(*pipelines) == 1 {
 				pipeline := *pipelines
 				if reference := pipeline[0].PipelineReference; reference != nil {
 					d.Set("pipeline_name", reference.ReferenceName)
 				}
 				d.Set("pipeline_parameters", pipeline[0].Parameters)
+			}
+
+			if len(*pipelines) > 1 {
+				d.Set("pipeline", flattenDataFactoryPipelines(pipelines))
 			}
 		}
 
@@ -550,4 +588,43 @@ func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []inte
 		value["monthly"] = monthlyOccurrences
 	}
 	return []interface{}{value}
+}
+
+func expandDataFactoryPipelines(input []interface{}) *[]datafactory.TriggerPipelineReference {
+	if len(input) == 0 {
+		return nil
+	}
+
+	pipes := make([]datafactory.TriggerPipelineReference, 0)
+
+	for _, item := range input {
+		config := item.(map[string]interface{})
+		v := datafactory.TriggerPipelineReference{
+			PipelineReference: &datafactory.PipelineReference{
+				ReferenceName: utils.String(config["name"].(string)),
+				Type:          utils.String("PipelineReference"),
+			},
+			Parameters: config["parameters"].(map[string]interface{}),
+		}
+		pipes = append(pipes, v)
+	}
+
+	return &pipes
+}
+
+func flattenDataFactoryPipelines(pipelines *[]datafactory.TriggerPipelineReference) interface{} {
+	if pipelines == nil {
+		return []interface{}{}
+	}
+
+	res := make([]interface{}, 0)
+
+	for _, item := range *pipelines {
+		v := make(map[string]interface{})
+		v["name"] = utils.String(*item.PipelineReference.ReferenceName)
+		v["parameters"] = item.Parameters
+		res = append(res, v)
+	}
+
+	return &res
 }
