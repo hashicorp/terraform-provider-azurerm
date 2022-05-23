@@ -93,7 +93,7 @@ func (m ServerDNSAliasResource) Create() sdk.ResourceFunc {
 
 func (m ServerDNSAliasResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 10 * time.Minute,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := parse.ServerDNSAliasID(metadata.ResourceData.Id())
 			if err != nil {
@@ -118,7 +118,7 @@ func (m ServerDNSAliasResource) Read() sdk.ResourceFunc {
 
 func (m ServerDNSAliasResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := parse.ServerDNSAliasID(metadata.ResourceData.Id())
 			if err != nil {
