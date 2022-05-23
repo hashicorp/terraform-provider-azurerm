@@ -810,16 +810,6 @@ func (r WindowsVirtualMachineResource) diskOSConfidentialVmWithGuestStateOnly(da
 	// Confidential VM has limited region support
 	data.Locations.Primary = "northeurope"
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    key_vault {
-      recover_soft_deleted_key_vaults    = false
-      purge_soft_delete_on_destroy       = false
-      purge_soft_deleted_keys_on_destroy = false
-    }
-  }
-}
-
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
