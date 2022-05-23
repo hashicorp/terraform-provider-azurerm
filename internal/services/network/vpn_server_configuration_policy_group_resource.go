@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -38,12 +37,11 @@ func resourceVPNServerConfigurationPolicyGroup() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"vpn_server_configuration_id": {
 				Type:         pluginsdk.TypeString,
@@ -52,42 +50,48 @@ func resourceVPNServerConfigurationPolicyGroup() *pluginsdk.Resource {
 				ValidateFunc: validate.VpnServerConfigurationID,
 			},
 
-			"is_default": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
 			"policy_member": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Type:     pluginsdk.TypeSet,
+				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"attribute_type": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.VpnPolicyMemberAttributeTypeCertificateGroupID),
 								string(network.VpnPolicyMemberAttributeTypeAADGroupID),
+								string(network.VpnPolicyMemberAttributeTypeCertificateGroupID),
 								string(network.VpnPolicyMemberAttributeTypeRadiusAzureGroupID),
 							}, false),
 						},
 
 						"attribute_value": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
 			},
 
-			"priority": {
-				Type:     pluginsdk.TypeInt,
+			"is_default": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				ForceNew: true,
+				Default:  false,
+			},
+
+			"priority": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      0,
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 		},
 	}
@@ -100,17 +104,16 @@ func resourceVPNServerConfigurationPolicyGroupCreateUpdate(d *pluginsdk.Resource
 	defer cancel()
 
 	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 
 	vpnServerConfigurationId, err := parse.VpnServerConfigurationID(d.Get("vpn_server_configuration_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewVpnServerConfigurationPolicyGroupID(subscriptionId, resourceGroup, vpnServerConfigurationId.Name, name)
+	id := parse.NewVpnServerConfigurationPolicyGroupID(subscriptionId, vpnServerConfigurationId.ResourceGroup, vpnServerConfigurationId.Name, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, id.VpnServerConfigurationName, id.ConfigurationPolicyGroupName)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.VpnServerConfigurationName, id.ConfigurationPolicyGroupName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -123,22 +126,14 @@ func resourceVPNServerConfigurationPolicyGroupCreateUpdate(d *pluginsdk.Resource
 
 	props := network.VpnServerConfigurationPolicyGroup{
 		Name: utils.String(d.Get("name").(string)),
-		VpnServerConfigurationPolicyGroupProperties: &network.VpnServerConfigurationPolicyGroupProperties{},
+		VpnServerConfigurationPolicyGroupProperties: &network.VpnServerConfigurationPolicyGroupProperties{
+			IsDefault:     utils.Bool(d.Get("is_default").(bool)),
+			PolicyMembers: expandVPNServerConfigurationPolicyGroupPolicyMembers(d.Get("policy_member").(*pluginsdk.Set).List()),
+			Priority:      utils.Int32(int32(d.Get("priority").(int))),
+		},
 	}
 
-	if v, ok := d.GetOk("is_default"); ok {
-		props.VpnServerConfigurationPolicyGroupProperties.IsDefault = utils.Bool(v.(bool))
-	}
-
-	if v, ok := d.GetOk("policy_member"); ok {
-		props.VpnServerConfigurationPolicyGroupProperties.PolicyMembers = expandVPNServerConfigurationPolicyGroupPolicyMembers(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("priority"); ok {
-		props.VpnServerConfigurationPolicyGroupProperties.Priority = utils.Int32(int32(v.(int)))
-	}
-
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, id.VpnServerConfigurationName, id.ConfigurationPolicyGroupName, props)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VpnServerConfigurationName, id.ConfigurationPolicyGroupName, props)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -172,7 +167,6 @@ func resourceVPNServerConfigurationPolicyGroupRead(d *pluginsdk.ResourceData, me
 	}
 
 	d.Set("name", id.ConfigurationPolicyGroupName)
-	d.Set("resource_group_name", id.ResourceGroup)
 
 	vpnServerConfigurationId := parse.NewVpnServerConfigurationID(id.SubscriptionId, id.ResourceGroup, id.VpnServerConfigurationName)
 	d.Set("vpn_server_configuration_id", vpnServerConfigurationId.ID())

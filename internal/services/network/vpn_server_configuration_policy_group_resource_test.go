@@ -31,6 +31,43 @@ func TestAccVPNServerConfigurationPolicyGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccVPNServerConfigurationPolicyGroup_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration_policy_group", "test")
+	r := VPNServerConfigurationPolicyGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVPNServerConfigurationPolicyGroup_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration_policy_group", "test")
+	r := VPNServerConfigurationPolicyGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccVPNServerConfigurationPolicyGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration_policy_group", "test")
 	r := VPNServerConfigurationPolicyGroupResource{}
@@ -65,9 +102,14 @@ func (r VPNServerConfigurationPolicyGroupResource) basic(data acceptance.TestDat
 %s
 
 resource "azurerm_vpn_server_configuration_policy_group" "test" {
-  name                        = "acctest-ncpg-%d"
-  resource_group_name         = azurerm_resource_group.test.name
-  vpn_server_configuration_id = azurerm_network_vpn_server_configuration.test.id
+  name                        = "acctestVPNSCPG-%d"
+  vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
+
+  policy_member {
+    name            = "policy1"
+    attribute_type  = "RadiusAzureGroupId"
+    attribute_value = "6ad1bd08"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -76,12 +118,55 @@ func (r VPNServerConfigurationPolicyGroupResource) requiresImport(data acceptanc
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_network_configuration_policy_group" "import" {
-  name                        = azurerm_network_configuration_policy_group.test.name
-  resource_group_name         = azurerm_network_configuration_policy_group.test.resource_group_name
-  vpn_server_configuration_id = azurerm_network_configuration_policy_group.test.id
+resource "azurerm_vpn_server_configuration_policy_group" "import" {
+  name                        = azurerm_vpn_server_configuration_policy_group.test.name
+  vpn_server_configuration_id = azurerm_vpn_server_configuration_policy_group.test.vpn_server_configuration_id
+
+  policy_member {
+    name            = "policy1"
+    attribute_type  = "RadiusAzureGroupId"
+    attribute_value = "6ad1bd08"
+  }
 }
 `, r.basic(data))
+}
+
+func (r VPNServerConfigurationPolicyGroupResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_vpn_server_configuration_policy_group" "test" {
+  name                        = "acctestVPNSCPG-%d"
+  vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
+  is_default                  = true
+  priority                    = 1
+
+  policy_member {
+    name            = "policy1"
+    attribute_type  = "RadiusAzureGroupId"
+    attribute_value = "6ad1bd08"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r VPNServerConfigurationPolicyGroupResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_vpn_server_configuration_policy_group" "test" {
+  name                        = "acctestVPNSCPG-%d"
+  vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
+  is_default                  = true
+  priority                    = 2
+
+  policy_member {
+    name            = "policy2"
+    attribute_type  = "CertificateGroupId"
+    attribute_value = "red.com"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r VPNServerConfigurationPolicyGroupResource) template(data acceptance.TestData) string {
