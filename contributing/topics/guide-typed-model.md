@@ -1,0 +1,1 @@
+TODO: guide for adopting model objects linked to from the Data Source/Resource code

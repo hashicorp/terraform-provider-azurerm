@@ -12,7 +12,7 @@ The AzureRM Provider is a Plugin which is invoked by Terraform (Core) and compri
 
 Within the AzureRM Provider, these Data Sources and Resources are grouped into Service Packages - which are logical groupings of Data Sources/Resources based on the Azure Service they're related to.
 
-Each of these Data Sources and Resources has both Acceptance Tests and Documentation associated with each Data Source/Resource - the Acceptance Tests are also located within this Service Package, however the Documentation exists within a dedicated folder. 
+Each of these Data Sources and Resources has both Acceptance Tests and Documentation associated with each Data Source/Resource - the Acceptance Tests are also located within this Service Package, however the Documentation exists within a dedicated folder.
 
 More granular documentation covers how these fit together - and the most common types of contribution we see:
 
@@ -23,7 +23,7 @@ Basics:
 * [High-level overview of the Provider](topics/high-level-overview.md).
 * [Building the Provider](topics/building-the-provider.md).
 * [Running the Tests](topics/running-the-tests.md).
-* [Our recommendations for sending a Pull Request](topics/our-recommendations-for-sending-a-pr.md).
+* [Our recommendations for opening a Pull Request](topics/our-recommendations-for-opening-a-pr.md).
 * [Debugging the Provider](topics/debugging-the-provider.md).
 * [Frequently Asked Questions](topics/frequently-asked-questions.md).
 
@@ -34,18 +34,17 @@ Common Topics/Guides:
 * [Adding a new Resource](topics/guide-new-resource.md).
 * [Adding fields to an existing Data Source](topics/guide-new-fields-to-data-source.md).
 * [Adding fields to an existing Resource](topics/guide-new-fields-to-resource.md).
-* TODO: Upgrading a Service to use a new API Version.
-* TODO: Deprecating a field/fields within a Data Source.
-* TODO: Deprecating a field/fields within a Resource.
 
 References:
 
 * [Acceptance Testing](topics/reference-acceptance-testing.md).
+* [Writing Documentation](topics/reference-documentation.md).
 * [Working with Azure Resource IDs](topics/reference-azure-resource-ids.md).
 * [Working with Errors](topics/reference-errors.md).
 * [Terraform Data Source/Resource Design Choices](topics/reference-terraform-design-choices.md).
 * [Glossary](topics/reference-glossary.md).
 * [Naming](topics/reference-naming.md).
+* [Determining which SDK Client to use](topics/reference-finding-an-sdk-client.md).
 
 Maintainer specific:
 
