@@ -154,7 +154,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
+  name     = "acctestRG-df-%[1]d"
   location = "%s"
 }
 
@@ -164,31 +164,36 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_pipeline" "test" {
+resource "azurerm_data_factory_pipeline" "test1" {
   name            = "acctest%[1]d"
   data_factory_id = azurerm_data_factory.test.id
 
   parameters = {
-    test = "testparameter"
+    test = "testparameter1"
+  }
+}
+
+resource "azurerm_data_factory_pipeline" "test2" {
+  name            = "acctests%[1]d"
+  data_factory_id = azurerm_data_factory.test.id
+
+  parameters = {
+    test = "testparameter2"
   }
 }
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
-  name            = "acctestdf%[1]d"
+  name            = "acctestdfd"
   data_factory_id = azurerm_data_factory.test.id
 
   pipeline {
-    name = "acctest1%[1]d"
-    parameters = {
-      test = "testparameter1"
-    }
+    name       = azurerm_data_factory_pipeline.test1.name
+    parameters = azurerm_data_factory_pipeline.test1.parameters
   }
 
   pipeline {
-    name = "acctest2%[1]d"
-    parameters = {
-      test = "testparameter2"
-    }
+    name       = azurerm_data_factory_pipeline.test2.name
+    parameters = azurerm_data_factory_pipeline.test2.parameters
   }
 
   annotations = ["test1", "test2", "test3"]
