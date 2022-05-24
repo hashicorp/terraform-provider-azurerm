@@ -6,10 +6,10 @@ import (
 )
 
 type Client struct {
-	HealthcareServiceClient               *healthcareapis.ServicesClient
-	HealthcareWorkspaceClient             *healthcareapis.WorkspacesClient
-	HealthcareWorkspaceDicomServiceClient *healthcareapis.DicomServicesClient
-	HealthcareWorkspaceFhirServiceClient  *healthcareapis.FhirServicesClient
+	HealthcareServiceClient                                *healthcareapis.ServicesClient
+	HealthcareWorkspaceClient                              *healthcareapis.WorkspacesClient
+	HealthcareWorkspaceDicomServiceClient                  *healthcareapis.DicomServicesClient
+	HealthcareWorkspaceFhirServiceClient                   *healthcareapis.FhirServicesClient
 	HealthcareWorkspaceMedTechServiceClient                *healthcareapis.IotConnectorsClient
 	HealthcareWorkspaceMedTechServiceFhirDestinationClient *healthcareapis.IotConnectorFhirDestinationClient
 }
@@ -34,10 +34,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&HealthcareWorkspaceMedTechServiceFhirDestinationClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		HealthcareServiceClient:               &HealthcareServiceClient,
-		HealthcareWorkspaceClient:             &HealthcareWorkspaceClient,
-		HealthcareWorkspaceDicomServiceClient: &HealthcareWorkspaceDicomServiceClient,
-		HealthcareWorkspaceFhirServiceClient:  &HealthcareWorkspaceFhirServiceClient,
+		HealthcareServiceClient:                                &HealthcareServiceClient,
+		HealthcareWorkspaceClient:                              &HealthcareWorkspaceClient,
+		HealthcareWorkspaceDicomServiceClient:                  &HealthcareWorkspaceDicomServiceClient,
+		HealthcareWorkspaceFhirServiceClient:                   &HealthcareWorkspaceFhirServiceClient,
 		HealthcareWorkspaceMedTechServiceClient:                &HealthcareWorkspaceMedTechServiceClient,
 		HealthcareWorkspaceMedTechServiceFhirDestinationClient: &HealthcareWorkspaceMedTechServiceFhirDestinationClient,
 	}
