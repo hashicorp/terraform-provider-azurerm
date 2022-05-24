@@ -131,7 +131,16 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"zones": commonschema.ZonesMultipleOptionalForceNewOrdered(),
+			// app gateway cares about the order of the zones
+			"zones": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 

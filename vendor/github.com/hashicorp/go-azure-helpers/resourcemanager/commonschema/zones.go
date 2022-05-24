@@ -57,19 +57,6 @@ func ZonesMultipleOptionalForceNew() *schema.Schema {
 	}
 }
 
-// ZonesMultipleOptionalForceNew returns the schema used when multiple Zones can be specified but cannot be changed and the order matters
-func ZonesMultipleOptionalForceNewOrdered() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		ForceNew: true,
-		Elem: &schema.Schema{
-			Type:         schema.TypeString,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-	}
-}
-
 // ZonesMultipleComputed returns the schema used when multiple Zones can be returned
 func ZonesMultipleComputed() *schema.Schema {
 	return &schema.Schema{
