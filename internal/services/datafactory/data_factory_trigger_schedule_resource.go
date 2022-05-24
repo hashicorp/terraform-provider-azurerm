@@ -189,7 +189,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 						},
 

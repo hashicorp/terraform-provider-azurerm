@@ -96,11 +96,9 @@ A `monthly` block supports the following:
 
 A `pipeline` block supports the following:
 
-* `name` - (Optional) Reference pipeline name.
+* `name` - (Required) Reference pipeline name.
 
 * `parameters` - (Optional) The pipeline parameters that the trigger will act upon.
-
--> **Note:** `pipeline` can't be set with `pipeline_name` at the same time.
 
 ## Attributes Reference
 
