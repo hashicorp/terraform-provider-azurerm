@@ -215,6 +215,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"pipeline_parameters": {
 				Type:          pluginsdk.TypeMap,
 				Optional:      true,
+				Computed:      true,
 				ConflictsWith: []string{"pipeline"},
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -476,7 +477,6 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 				}
 				d.Set("pipeline", flattenDataFactoryPipelines(pipelines))
 			}
-
 		}
 
 		annotations := flattenDataFactoryAnnotations(scheduleTriggerProps.Annotations)
