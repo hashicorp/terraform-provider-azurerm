@@ -1233,7 +1233,7 @@ resource "azurerm_api_management" "test" {
 
   additional_location {
     location = azurerm_resource_group.test2.location
-    capacity = 1
+    capacity = 2
   }
 
   certificate {
