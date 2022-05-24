@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `activated` - (Optional) Specifies if the Data Factory Schedule Trigger is activated. Defaults to `true`.
 
-* `pipeline` - (Optional) block as defined below
+* `pipeline` - (Optional) block as defined below.
 
 * `pipeline_name` - (Optional) The Data Factory Pipeline name that the trigger will act on.
 

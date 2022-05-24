@@ -183,7 +183,7 @@ resource "azurerm_data_factory_pipeline" "test2" {
 }
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
-  name            = "acctestdfd"
+  name            = "acctestdf%[1]d"
   data_factory_id = azurerm_data_factory.test.id
 
   pipeline {
