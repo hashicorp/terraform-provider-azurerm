@@ -3,8 +3,13 @@
 ENHANCEMENTS:
 
 * `azurerm_data_factory_managed_private_endpoint` - `azurerm_data_factory_managed_private_endpoint` - `name` correctly matches regex  [GH-16894]
+* `azurerm_linux_web_app` - Add support for `zip_deploy_file` property [GH-16779]
+* `azurerm_linux_web_app_slot` - Add support for `zip_deploy_file` property [GH-16779]
 * `synapse_spark_pool` - the `spark_version` property now supports `3.2` [GH-16906]
 * `azurerm_vpn_gateway` - support for the `bgp_route_translation_for_nat_enabled` property [GH-16817]
+* `azurerm_windows_web_app` - Add support for `zip_deploy_file` property [GH-16779]
+* `azurerm_windows_web_app_slot` - Add support for `zip_deploy_file` property [GH-16779]
+
 
 BUG FIXES:
 
