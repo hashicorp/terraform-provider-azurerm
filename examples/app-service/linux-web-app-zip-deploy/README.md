@@ -34,4 +34,10 @@ azurerm_linux_web_app.example: Creation complete after 1m15s [id=/subscriptions/
 
 Apply complete! Resources: 3 added, 0 changed, 0 destroyed.
 
+Outputs:
+
+app_url = "https://exampleapp-zipdeploy.azurewebsites.net"
+linux_web_app_name = "exampleapp-zipdeploy"
 ```
+
+**NOTE:** The source for the example ZIP used here can be found at: [https://github.com/jackofallops/azure-app-service-python-flask-example](https://github.com/jackofallops/azure-app-service-python-flask-example) 
