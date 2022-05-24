@@ -57,6 +57,7 @@ func TestAccKustoCluster_update(t *testing.T) {
 				check.That(data.ResourceName).Key("disk_encryption_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("streaming_ingestion_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("purge_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("public_ip_type").HasValue("IPv4"),
 			),
 		},
 		data.ImportStep(),
@@ -67,6 +68,7 @@ func TestAccKustoCluster_update(t *testing.T) {
 				check.That(data.ResourceName).Key("disk_encryption_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("streaming_ingestion_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("purge_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("public_ip_type").HasValue("DualStack"),
 			),
 		},
 		data.ImportStep(),
@@ -77,6 +79,7 @@ func TestAccKustoCluster_update(t *testing.T) {
 				check.That(data.ResourceName).Key("disk_encryption_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("streaming_ingestion_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("purge_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("public_ip_type").HasValue("IPv4"),
 			),
 		},
 		data.ImportStep(),
@@ -589,6 +592,7 @@ resource "azurerm_kusto_cluster" "test" {
   disk_encryption_enabled     = true
   streaming_ingestion_enabled = true
   purge_enabled               = true
+  public_ip_type			  = "DualStack"
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
