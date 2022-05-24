@@ -13,7 +13,9 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `azurerm_windows_virtual_machine`: `timezone` is now `ForceNew` [GH-16866]
+* `azurerm_windows_virtual_machine` - `timezone` is now `ForceNew` [GH-16866]
+* `azurerm_linux_function_app_slot` - Fix name availability check on create [GH-16410]
+* `azurerm_windows_function_app_slot` - Fix name availability check on create [GH-16410]
 
 ## 3.7.0 (May 19, 2022)
 
