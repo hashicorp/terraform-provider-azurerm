@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 
 // Account contains information about an Azure Batch account.
 type Account struct {
@@ -1325,6 +1325,255 @@ type DeploymentConfiguration struct {
 	VirtualMachineConfiguration *VirtualMachineConfiguration `json:"virtualMachineConfiguration,omitempty"`
 }
 
+// DetectorListResult values returned by the List operation.
+type DetectorListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The collection of Batch account detectors returned by the listing operation.
+	Value *[]DetectorResponse `json:"value,omitempty"`
+	// NextLink - The URL to get the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// DetectorListResultIterator provides access to a complete listing of DetectorResponse values.
+type DetectorListResultIterator struct {
+	i    int
+	page DetectorListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *DetectorListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DetectorListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *DetectorListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter DetectorListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter DetectorListResultIterator) Response() DetectorListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter DetectorListResultIterator) Value() DetectorResponse {
+	if !iter.page.NotDone() {
+		return DetectorResponse{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the DetectorListResultIterator type.
+func NewDetectorListResultIterator(page DetectorListResultPage) DetectorListResultIterator {
+	return DetectorListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (dlr DetectorListResult) IsEmpty() bool {
+	return dlr.Value == nil || len(*dlr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (dlr DetectorListResult) hasNextLink() bool {
+	return dlr.NextLink != nil && len(*dlr.NextLink) != 0
+}
+
+// detectorListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (dlr DetectorListResult) detectorListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !dlr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(dlr.NextLink)))
+}
+
+// DetectorListResultPage contains a page of DetectorResponse values.
+type DetectorListResultPage struct {
+	fn  func(context.Context, DetectorListResult) (DetectorListResult, error)
+	dlr DetectorListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *DetectorListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DetectorListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.dlr)
+		if err != nil {
+			return err
+		}
+		page.dlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *DetectorListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page DetectorListResultPage) NotDone() bool {
+	return !page.dlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page DetectorListResultPage) Response() DetectorListResult {
+	return page.dlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page DetectorListResultPage) Values() []DetectorResponse {
+	if page.dlr.IsEmpty() {
+		return nil
+	}
+	return *page.dlr.Value
+}
+
+// Creates a new instance of the DetectorListResultPage type.
+func NewDetectorListResultPage(cur DetectorListResult, getNextPage func(context.Context, DetectorListResult) (DetectorListResult, error)) DetectorListResultPage {
+	return DetectorListResultPage{
+		fn:  getNextPage,
+		dlr: cur,
+	}
+}
+
+// DetectorResponse contains the information for a detector.
+type DetectorResponse struct {
+	autorest.Response `json:"-"`
+	// DetectorResponseProperties - The properties associated with the detector.
+	*DetectorResponseProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; The ID of the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; The ETag of the resource, used for concurrency statements.
+	Etag *string `json:"etag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DetectorResponse.
+func (dr DetectorResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dr.DetectorResponseProperties != nil {
+		objectMap["properties"] = dr.DetectorResponseProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for DetectorResponse struct.
+func (dr *DetectorResponse) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var detectorResponseProperties DetectorResponseProperties
+				err = json.Unmarshal(*v, &detectorResponseProperties)
+				if err != nil {
+					return err
+				}
+				dr.DetectorResponseProperties = &detectorResponseProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				dr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				dr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				dr.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				dr.Etag = &etag
+			}
+		}
+	}
+
+	return nil
+}
+
+// DetectorResponseProperties detector response properties.
+type DetectorResponseProperties struct {
+	// Value - A base64 encoded string that represents the content of a detector.
+	Value *string `json:"value,omitempty"`
+}
+
 // DiffDiskSettings ...
 type DiffDiskSettings struct {
 	// Placement - This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements and Linux VMs at https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements. Possible values include: 'DiffDiskPlacementCacheDisk'
@@ -1401,7 +1650,7 @@ type ImageReference struct {
 	Publisher *string `json:"publisher,omitempty"`
 	// Offer - For example, UbuntuServer or WindowsServer.
 	Offer *string `json:"offer,omitempty"`
-	// Sku - For example, 18.04-LTS or 2019-Datacenter.
+	// Sku - For example, 18.04-LTS or 2022-datacenter.
 	Sku *string `json:"sku,omitempty"`
 	// Version - A value of 'latest' can be specified to select the latest version of an image. If omitted, the default is 'latest'.
 	Version *string `json:"version,omitempty"`
@@ -2445,6 +2694,8 @@ type MountConfiguration struct {
 type NetworkConfiguration struct {
 	// SubnetID - The virtual network must be in the same region and subscription as the Azure Batch account. The specified subnet should have enough free IP addresses to accommodate the number of nodes in the pool. If the subnet doesn't have enough free IP addresses, the pool will partially allocate compute nodes and a resize error will occur. The 'MicrosoftAzureBatch' service principal must have the 'Classic Virtual Machine Contributor' Role-Based Access Control (RBAC) role for the specified VNet. The specified subnet must allow communication from the Azure Batch service to be able to schedule tasks on the compute nodes. This can be verified by checking if the specified VNet has any associated Network Security Groups (NSG). If communication to the compute nodes in the specified subnet is denied by an NSG, then the Batch service will set the state of the compute nodes to unusable. If the specified VNet has any associated Network Security Groups (NSG), then a few reserved system ports must be enabled for inbound communication. For pools created with a virtual machine configuration, enable ports 29876 and 29877, as well as port 22 for Linux and port 3389 for Windows. For pools created with a cloud service configuration, enable ports 10100, 20100, and 30100. Also enable outbound connections to Azure Storage on port 443. For cloudServiceConfiguration pools, only 'classic' VNETs are supported. For more details see: https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#virtual-network-vnet-and-firewall-configuration
 	SubnetID *string `json:"subnetId,omitempty"`
+	// DynamicVNetAssignmentScope - Possible values include: 'DynamicVNetAssignmentScopeNone', 'DynamicVNetAssignmentScopeJob'
+	DynamicVNetAssignmentScope DynamicVNetAssignmentScope `json:"dynamicVNetAssignmentScope,omitempty"`
 	// EndpointConfiguration - Pool endpoint configuration is only supported on pools with the virtualMachineConfiguration property.
 	EndpointConfiguration *PoolEndpointConfiguration `json:"endpointConfiguration,omitempty"`
 	// PublicIPAddressConfiguration - This property is only supported on Pools with the virtualMachineConfiguration property.
@@ -3412,7 +3663,7 @@ func (pr ProxyResource) MarshalJSON() ([]byte, error) {
 type PublicIPAddressConfiguration struct {
 	// Provision - The default value is BatchManaged. Possible values include: 'IPAddressProvisioningTypeBatchManaged', 'IPAddressProvisioningTypeUserManaged', 'IPAddressProvisioningTypeNoPublicIPAddresses'
 	Provision IPAddressProvisioningType `json:"provision,omitempty"`
-	// IPAddressIds - The number of IPs specified here limits the maximum size of the Pool - 100 dedicated nodes or 100 low-priority nodes can be allocated for each public IP. For example, a pool needing 250 dedicated VMs would need at least 3 public IPs specified. Each element of this collection is of the form: /subscriptions/{subscription}/resourceGroups/{group}/providers/Microsoft.Network/publicIPAddresses/{ip}.
+	// IPAddressIds - The number of IPs specified here limits the maximum size of the Pool - 100 dedicated nodes or 100 Spot/low-priority nodes can be allocated for each public IP. For example, a pool needing 250 dedicated VMs would need at least 3 public IPs specified. Each element of this collection is of the form: /subscriptions/{subscription}/resourceGroups/{group}/providers/Microsoft.Network/publicIPAddresses/{ip}.
 	IPAddressIds *[]string `json:"ipAddressIds,omitempty"`
 }
 
@@ -3513,7 +3764,7 @@ type StartTask struct {
 	EnvironmentSettings *[]EnvironmentSetting `json:"environmentSettings,omitempty"`
 	// UserIdentity - If omitted, the task runs as a non-administrative user unique to the task.
 	UserIdentity *UserIdentity `json:"userIdentity,omitempty"`
-	// MaxTaskRetryCount - The Batch service retries a task if its exit code is nonzero. Note that this value specifically controls the number of retries. The Batch service will try the task once, and may then retry up to this limit. For example, if the maximum retry count is 3, Batch tries the task up to 4 times (one initial try and 3 retries). If the maximum retry count is 0, the Batch service does not retry the task. If the maximum retry count is -1, the Batch service retries the task without limit.
+	// MaxTaskRetryCount - The Batch service retries a task if its exit code is nonzero. Note that this value specifically controls the number of retries. The Batch service will try the task once, and may then retry up to this limit. For example, if the maximum retry count is 3, Batch tries the task up to 4 times (one initial try and 3 retries). If the maximum retry count is 0, the Batch service does not retry the task. If the maximum retry count is -1, the Batch service retries the task without limit, however this is not recommended for a start task or any task. The default value is 0 (no retries).
 	MaxTaskRetryCount *int32 `json:"maxTaskRetryCount,omitempty"`
 	// WaitForSuccess - If true and the start task fails on a compute node, the Batch service retries the start task up to its maximum retry count (maxTaskRetryCount). If the task has still not completed successfully after all retries, then the Batch service marks the compute node unusable, and will not schedule tasks to it. This condition can be detected via the node state and scheduling error detail. If false, the Batch service will not wait for the start task to complete. In this case, other tasks can start executing on the compute node while the start task is still running; and even if the start task fails, new tasks will continue to be scheduled on the node. The default is true.
 	WaitForSuccess *bool `json:"waitForSuccess,omitempty"`
