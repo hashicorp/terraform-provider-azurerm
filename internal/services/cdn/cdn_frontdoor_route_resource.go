@@ -244,6 +244,16 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
+	httpsRedirect := d.Get("https_redirect_enabled").(bool)
+
+	if httpsRedirect {
+		// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
+		// This configuration does not cause an error when provisioned, however the http requests that are supposed to be redirected to https
+		// remain http requests
+		if !cdnFrontdoorRouteSupportsHttpHttps(protocolsRaw) {
+			return fmt.Errorf("%[1]q and %[2]q conflict. The %[1]q cannot be set to %[3]q unless the %[2]q field contains both %[4]q and %[5]q", "https_redirect_enabled", "supported_protocols", "true", "Http", "Https")
+		}
+	}
 
 	props := cdn.Route{
 		RouteProperties: &cdn.RouteProperties{
@@ -251,7 +261,7 @@ func resourceCdnFrontdoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 			CacheConfiguration:  expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{})),
 			EnabledState:        convertCdnFrontdoorBoolToEnabledState(d.Get("enabled").(bool)),
 			ForwardingProtocol:  cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string)),
-			HTTPSRedirect:       convertCdnFrontdoorBoolToRouteHttpsRedirect(d.Get("https_redirect_enabled").(bool)),
+			HTTPSRedirect:       convertCdnFrontdoorBoolToRouteHttpsRedirect(httpsRedirect),
 			LinkToDefaultDomain: convertCdnFrontdoorBoolToRouteLinkToDefaultDomain(d.Get("link_to_default_domain_enabled").(bool)),
 			OriginGroup:         expandCdnFrontdoorResourceReference(d.Get("cdn_frontdoor_origin_group_id").(string)),
 			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
@@ -389,7 +399,9 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props.ForwardingProtocol = cdn.ForwardingProtocol(d.Get("forwarding_protocol").(string))
 	}
 
+	var httpsRedirectChanged bool
 	if d.HasChange("https_redirect_enabled") {
+		httpsRedirectChanged = true
 		props.HTTPSRedirect = convertCdnFrontdoorBoolToRouteHttpsRedirect(d.Get("https_redirect_enabled").(bool))
 	}
 
@@ -413,13 +425,29 @@ func resourceCdnFrontdoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props.RuleSets = expandCdnFrontdoorRouteResourceReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").([]interface{}))
 	}
 
+	var supportedProtocolsChanged bool
 	if d.HasChange("supported_protocols") {
-		protocalsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
-		props.SupportedProtocols = expandCdnFrontdoorRouteEndpointProtocolsArray(protocalsRaw)
+		supportedProtocolsChanged = true
+		protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
+		props.SupportedProtocols = expandCdnFrontdoorRouteEndpointProtocolsArray(protocolsRaw)
 	}
 
 	payload := azuresdkhacks.RouteUpdateParameters{
 		RouteUpdatePropertiesParameters: &props,
+	}
+
+	if httpsRedirectChanged || supportedProtocolsChanged {
+		httpsRedirect := d.Get("https_redirect_enabled").(bool)
+		protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
+
+		if httpsRedirect {
+			// NOTE: If HTTPS Redirect is enabled the Supported Protocols must support both HTTP and HTTPS
+			// This configuration does not cause an error when provisioned, however the http requests that are supposed to be redirected to https
+			// remain http requests
+			if !cdnFrontdoorRouteSupportsHttpHttps(protocolsRaw) {
+				return fmt.Errorf("%[1]q and %[2]q conflict. The %[1]q cannot be set to %[3]q unless the %[2]q field contains both %[4]q and %[5]q", "https_redirect_enabled", "supported_protocols", "true", "Http", "Https")
+			}
+		}
 	}
 
 	future, err := workaroundsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, payload)

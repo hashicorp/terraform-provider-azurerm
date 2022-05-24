@@ -115,6 +115,8 @@ The following arguments are supported:
 
 * `supported_protocols` - (Required) One or more Protocols supported by this Frontdoor Route. Possible values are `Http` or `Https`.
 
+~> **NOTE:** If `https_redirect_enabled` is set to `true` the `supported_protocols` field must contain both `Http` and `Https` values.
+
 * `patterns_to_match` - (Reqired) The route patterns of the rule.
 
 * `cdn_frontdoor_custom_domain_ids` - (Optional) One or more resource IDs of the Frontdoor Custom Domains to associate with the Frontdoor Route.

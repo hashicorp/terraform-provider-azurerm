@@ -233,3 +233,17 @@ func cdnFrontdoorRuleHasDeliveryRuleConditions(conditions map[string]interface{}
 
 	return hasConditions
 }
+
+func cdnFrontdoorRouteSupportsHttpHttps(supportedProtocols []interface{}) bool {
+	var supportsBoth bool
+	if len(supportedProtocols) == 0 {
+		return supportsBoth
+	}
+
+	protocols := utils.ExpandStringSlice(supportedProtocols)
+	if utils.SliceContainsValue(*protocols, string(cdn.AFDEndpointProtocolsHTTP)) && utils.SliceContainsValue(*protocols, string(cdn.AFDEndpointProtocolsHTTPS)) {
+		supportsBoth = true
+	}
+
+	return supportsBoth
+}
