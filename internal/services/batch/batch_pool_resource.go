@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strings"
 	"time"
@@ -82,6 +84,17 @@ func resourceBatchPool() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"node_deallocation_option": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(batch.ComputeNodeDeallocationOptionRequeue),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.ComputeNodeDeallocationOptionRequeue),
+								string(batch.ComputeNodeDeallocationOptionRetainedData),
+								string(batch.ComputeNodeDeallocationOptionTaskCompletion),
+								string(batch.ComputeNodeDeallocationOptionTerminate),
+							}, false),
+						},
 						"target_dedicated_nodes": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
@@ -98,6 +111,40 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "PT15M",
+						},
+					},
+				},
+			},
+			//TODO not able to determine support application licenses
+			//TODO string in elem?
+			"application_licenses": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"license": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+			"application_packages": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 10,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ApplicationID,
+						},
+						"version": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -123,6 +170,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+			//deploymentConfiguration in swagger
 			"container_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -314,6 +362,17 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						//TODO test whether this is forcenew
+						"dynamic_vnet_assignment_scope": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Default:  string(batch.DynamicVNetAssignmentScopeNone),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.DynamicVNetAssignmentScopeNone),
+								string(batch.DynamicVNetAssignmentScopeJob),
+							}, false),
+						},
 						"public_ips": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -392,6 +451,12 @@ func resourceBatchPool() *pluginsdk.Resource {
 												"source_address_prefix": {
 													Type:         pluginsdk.TypeString,
 													Required:     true,
+													ForceNew:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+												"source_port_ranges": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
 													ForceNew:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
@@ -905,12 +970,85 @@ func flattenBatchPoolIdentity(input *batch.PoolIdentity) (*[]interface{}, error)
 	return identity.FlattenUserAssignedMap(transform)
 }
 
+func identityReference() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"identity_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		},
+	}
+}
+
+func containerRegistry() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"username": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			RequiredWith: []string{"password"},
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"password": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			RequiredWith: []string{"username"},
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"registry_server": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      utils.String("docker.io"),
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"identity_reference": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem:     identityReference(),
+		},
+	}
+}
+
 func startTaskSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"command_line": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"container_settings": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"container_run_options": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"image_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"registry": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: containerRegistry(),
+						},
+					},
+					"working_directory": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(batch.ContainerWorkingDirectoryTaskWorkingDirectory),
+							string(batch.ContainerWorkingDirectoryContainerImageDefault),
+						}, false),
+					},
+				},
+			},
 		},
 
 		"task_retry_maximum": {
@@ -999,6 +1137,11 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 					"http_url": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+					},
+					"identity_reference": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem:     identityReference(),
 					},
 					"storage_container_url": {
 						Type:     pluginsdk.TypeString,
