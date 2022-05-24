@@ -183,7 +183,7 @@ The following arguments are supported:
 
 * `termination_notification` - (Optional) A `termination_notification` block as defined below.
 
-* `timezone` - (Optional) Specifies the Time Zone which should be used by the Virtual Machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
+* `timezone` - (Optional) Specifies the Time Zone which should be used by the Virtual Machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Changing this forces a new resource to be created.
 
 * `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine.
 
@@ -235,6 +235,8 @@ A `diff_disk_settings` block supports the following:
 
 * `option` - (Required) Specifies the Ephemeral Disk Settings for the OS Disk. At this time the only possible value is `Local`. Changing this forces a new resource to be created.
 
+* `placement` - (Optional) Specifies where to store the Ephemeral Disk. Possible values are `CacheDisk` and `ResourceDisk`. Defaults to `CacheDisk`. Changing this forces a new resource to be created.
+
 ---
 
 An `identity` block supports the following:
@@ -253,7 +255,9 @@ A `os_disk` block supports the following:
 
 * `storage_account_type` - (Required) The Type of Storage Account which should back this the Internal OS Disk. Possible values are `Standard_LRS`, `StandardSSD_LRS`, `Premium_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
 
-* `diff_disk_settings` (Optional) A `diff_disk_settings` block as defined above.
+* `diff_disk_settings` (Optional) A `diff_disk_settings` block as defined above. Changing this forces a new resource to be created.
+
+-> **NOTE:** `diff_disk_settings` can only be set when `caching` is set to `ReadOnly`. More information can be found [here](https://docs.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment)
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to Encrypt this OS Disk.
 

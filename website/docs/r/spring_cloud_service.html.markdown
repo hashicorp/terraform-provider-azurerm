@@ -158,6 +158,8 @@ The following attributes are exported:
 
 * `id` - The ID of the Spring Cloud Service.
 
+* `service_registry_id` - The ID of the Spring Cloud Service Registry.
+
 * `outbound_public_ip_addresses` - A list of the outbound Public IP Addresses used by this Spring Cloud Service.
 
 * `required_network_traffic_rules` - A list of `required_network_traffic_rules` blocks as defined below.

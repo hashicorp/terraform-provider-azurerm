@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `sas_token` - (Required) The SAS token used to access the script.
 
-* `url` - (Required) The url to the KQL script blob file. Please reference [this documentation](https://docs.microsoft.com/en-us/azure/data-explorer/database-script) that describes the commands that are allowed in the script.
+* `url` - (Required) The url to the KQL script blob file. Please reference [this documentation](https://docs.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.
 
 ---
 

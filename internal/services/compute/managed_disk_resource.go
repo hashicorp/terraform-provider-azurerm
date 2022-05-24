@@ -137,7 +137,6 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					string(compute.OperatingSystemTypesWindows),
 					string(compute.OperatingSystemTypesLinux),
 				}, false),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
 			},
 
 			"disk_size_gb": {

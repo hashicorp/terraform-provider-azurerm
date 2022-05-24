@@ -72,6 +72,20 @@ func TestRedisEnterpriseDatabase_geoDatabase(t *testing.T) {
 	})
 }
 
+func TestRedisEnterpriseDatabase_geoDatabaseOtherEvictionPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
+	r := RedisenterpriseDatabaseResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoDatabaseOtherEvictionPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestRedisEnterpriseDatabase_geoDatabaseModule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisenterpriseDatabaseResource{}
@@ -230,6 +244,28 @@ resource "azurerm_redis_enterprise_database" "test" {
   client_protocol   = "Encrypted"
   clustering_policy = "EnterpriseCluster"
   eviction_policy   = "NoEviction"
+
+  linked_database_id = [
+    "${azurerm_redis_enterprise_cluster.test.id}/databases/default",
+    "${azurerm_redis_enterprise_cluster.test1.id}/databases/default",
+    "${azurerm_redis_enterprise_cluster.test2.id}/databases/default"
+  ]
+
+  linked_database_group_nickname = "tftestGeoGroup"
+}
+`, r.template(data))
+}
+
+func (r RedisenterpriseDatabaseResource) geoDatabaseOtherEvictionPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_redis_enterprise_database" "test" {
+  cluster_id          = azurerm_redis_enterprise_cluster.test.id
+  resource_group_name = azurerm_resource_group.test.name
+
+  client_protocol   = "Encrypted"
+  clustering_policy = "EnterpriseCluster"
+  eviction_policy   = "AllKeysLRU"
 
   linked_database_id = [
     "${azurerm_redis_enterprise_cluster.test.id}/databases/default",
