@@ -344,7 +344,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			availabilityRequest := web.ResourceNameAvailabilityRequest{
-				Name: utils.String(fmt.Sprintf("%s-%s", functionAppId.SiteName, functionAppSlot.Name)),
+				Name: utils.String(fmt.Sprintf("%s-%s", id.SiteName, id.SlotName)),
 				Type: web.CheckNameResourceTypesMicrosoftWebsites,
 			}
 
