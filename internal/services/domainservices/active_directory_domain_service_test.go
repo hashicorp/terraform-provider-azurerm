@@ -318,7 +318,7 @@ resource "azurerm_active_directory_domain_service" "test" {
 
   domain_name               = "never.gonna.shut.you.down"
   sku                       = "Enterprise"
-  domain_configuration_type = "ResourceTrusting"
+  domain_configuration_type = "FullySynced"
   filtered_sync_enabled     = false
 
   initial_replica_set {
