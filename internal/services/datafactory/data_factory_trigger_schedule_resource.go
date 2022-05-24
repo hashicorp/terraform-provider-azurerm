@@ -378,7 +378,9 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 
 	pipelineName := d.Get("pipeline_name").(string)
 	pipeline := d.Get("pipeline").([]interface{})
-	if (d.HasChange("pipeline_name") && len(pipelineName) != 0) || (d.HasChange("pipeline") && len(pipeline) == 0) {
+	if (d.HasChange("pipeline_name") && len(pipelineName) == 0) || (d.HasChange("pipeline") && len(pipeline) != 0) {
+		scheduleProps.Pipelines = expandDataFactoryPipelines(pipeline)
+	} else {
 		scheduleProps.Pipelines = &[]datafactory.TriggerPipelineReference{
 			{
 				PipelineReference: &datafactory.PipelineReference{
@@ -388,8 +390,6 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 				Parameters: d.Get("pipeline_parameters").(map[string]interface{}),
 			},
 		}
-	} else {
-		scheduleProps.Pipelines = expandDataFactoryPipelines(pipeline)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -468,13 +468,11 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 
 		if pipelines := scheduleTriggerProps.Pipelines; pipelines != nil {
 			if len(*pipelines) > 0 {
-				if len(*pipelines) > 1 {
-					pipeline := *pipelines
-					if reference := pipeline[0].PipelineReference; reference != nil {
-						d.Set("pipeline_name", reference.ReferenceName)
-					}
-					d.Set("pipeline_parameters", pipeline[0].Parameters)
+				pipeline := *pipelines
+				if reference := pipeline[0].PipelineReference; reference != nil {
+					d.Set("pipeline_name", reference.ReferenceName)
 				}
+				d.Set("pipeline_parameters", pipeline[0].Parameters)
 				d.Set("pipeline", flattenDataFactoryPipelines(pipelines))
 			}
 		}
