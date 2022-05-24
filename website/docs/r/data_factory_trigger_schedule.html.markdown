@@ -56,6 +56,8 @@ The following arguments are supported:
 
 * `start_time` - (Optional) The time the Schedule Trigger will start. This defaults to the current time. The time will be represented in UTC.
 
+* `time_zone` - (Optional) The timezone of the start/end time.
+
 * `end_time` - (Optional) The time the Schedule Trigger should end. The time will be represented in UTC.
 
 * `interval` - (Optional) The interval for how often the trigger occurs. This defaults to 1.
