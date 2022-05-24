@@ -1787,6 +1787,8 @@ resource "azurerm_managed_disk" "test" {
 }
 
 func (ManagedDiskResource) create_withSecurityType(data acceptance.TestData) string {
+	// Confidential VM has limited region support
+	data.Locations.Primary = "northeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1821,6 +1823,8 @@ resource "azurerm_managed_disk" "test" {
 }
 
 func (ManagedDiskResource) create_withSecureVMDiskEncryptionSetId(data acceptance.TestData) string {
+	// Confidential VM has limited region support
+	data.Locations.Primary = "northeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
