@@ -42,11 +42,11 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 
 		Schema: resourceRecoveryServicesBackupProtectedVMSchema(),
 
-		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("source_vm_id", func(ctx context.Context, old, new, meta interface{}) bool {
-				return new.(string) != "" && old.(string) != new.(string)
-			}),
-		),
+		// It's possible to remove the associated vm from the protected backup so we'll only ForceNew this attribute if it's
+		// changing to something other than empty.
+		CustomizeDiff: pluginsdk.ForceNewIfChange("source_vm_id", func(ctx context.Context, old, new, meta interface{}) bool {
+			return new.(string) != "" && old.(string) != new.(string)
+		}),
 	}
 }
 
