@@ -136,7 +136,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	parameters := keyvault.SecretSetParameters{
 		Value:            utils.String(value),
 		ContentType:      utils.String(contentType),
-		Tags:             tags.Expand(t), //vTags,
+		Tags:             tags.Expand(t),
 		SecretAttributes: &keyvault.SecretAttributes{},
 	}
 
