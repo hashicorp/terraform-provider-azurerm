@@ -88,6 +88,14 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(_ context.Context, diff *pluginsdk.ResourceDiff, _ interface{}) error {
+			tags, ok := diff.GetOk("tags")
+			if ok && len(tags.(map[string]interface{})) > 15 {
+				return fmt.Errorf("up to 15 tags can be applied to a secret")
+			}
+			return nil
+		}),
 	}
 }
 
@@ -125,10 +133,19 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	contentType := d.Get("content_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
+	//vTags := make(map[string]*string, len(t))
+	//if v := tags.Expand(t); v != nil {
+	//	if checkTagsCount(v) {
+	//		vTags = v
+	//	} else {
+	//		return fmt.Errorf("a maximum of 15 tags can be applied to a secret")
+	//	}
+	//}
+
 	parameters := keyvault.SecretSetParameters{
 		Value:            utils.String(value),
 		ContentType:      utils.String(contentType),
-		Tags:             tags.Expand(t),
+		Tags:             tags.Expand(t), //vTags,
 		SecretAttributes: &keyvault.SecretAttributes{},
 	}
 
@@ -235,6 +252,15 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	contentType := d.Get("content_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
+	//vTags := make(map[string]*string)
+	//if v := tags.Expand(t); v != nil {
+	//	if checkTagsCount(v) {
+	//		vTags = v
+	//	} else {
+	//		return fmt.Errorf("a maximum of 15 tags can be applied to a secret")
+	//	}
+	//}
+
 	secretAttributes := &keyvault.SecretAttributes{}
 
 	if v, ok := d.GetOk("not_before_date"); ok {
@@ -254,7 +280,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		parameters := keyvault.SecretSetParameters{
 			Value:            utils.String(value),
 			ContentType:      utils.String(contentType),
-			Tags:             tags.Expand(t),
+			Tags:             tags.Expand(t), // vTags,
 			SecretAttributes: secretAttributes,
 		}
 
@@ -288,6 +314,14 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	return resourceKeyVaultSecretRead(d, meta)
 }
+
+//func checkTagsCount(tags map[string]*string) bool {
+//	// Key Vault supports up to 15 tags
+//	if len(tags) > 15 {
+//		return false
+//	}
+//	return true
+//}
 
 func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
