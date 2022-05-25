@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_data_factory_managed_private_endpoint` - `azurerm_data_factory_managed_private_endpoint` - `name` correctly matches regex  [GH-16894]
+* `azurerm_data_factory_trigger_schedule` - Add support for `time_zone` [GH-16918]
 * `azurerm_linux_virtual_machine` - add support for Confidential VM [GH-16905]
 * `azurerm_linux_virtual_machine_scale_set` - add support for Confidential VM [GH-16916]
 * `azurerm_linux_web_app` - add support for `zip_deploy_file` property [GH-16779]
