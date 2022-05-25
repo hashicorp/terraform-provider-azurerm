@@ -259,7 +259,7 @@ resource "azurerm_virtual_machine" "test" {
   network_interface_ids = [azurerm_network_interface.test.id]
 
   delete_os_disk_on_termination    = true
-  delete_data_disks_on_termination = false
+  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -386,15 +386,6 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
-}
-
-resource "azurerm_managed_disk" "test" {
-  name                 = "acctest-datadisk"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = "1023"
 }
 
 resource "azurerm_recovery_services_vault" "test" {
