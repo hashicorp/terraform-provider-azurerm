@@ -6,7 +6,7 @@ description: |-
   Manages a Virtual Desktop Host Pool.
 ---
 
-# virtual_desktop_host_pool
+# azurerm_virtual_desktop_host_pool
 
 Manages a Virtual Desktop Host Pool.
 

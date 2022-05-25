@@ -6,7 +6,7 @@ description: |-
   Manages a Virtual Desktop Application.
 ---
 
-# virtual_desktop_application
+# azurerm_virtual_desktop_application
 
 Manages a Virtual Desktop Application.
 
