@@ -259,7 +259,7 @@ resource "azurerm_virtual_machine" "test" {
   network_interface_ids = [azurerm_network_interface.test.id]
 
   delete_os_disk_on_termination    = true
-  delete_data_disks_on_termination = true
+  delete_data_disks_on_termination = false
 
   storage_image_reference {
     publisher = "Canonical"
