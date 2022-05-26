@@ -39,7 +39,7 @@ resource "azurerm_linux_function_app" "example" {
   }
 }
 
-resource "azurerm_function_app_function" "test" {
+resource "azurerm_function_app_function" "example" {
   name            = "example-python-function"
   function_app_id = azurerm_linux_function_app.example.id
   language        = "Python"

@@ -1,4 +1,4 @@
-output "app_service_name" {
+output "app_name" {
   value = azurerm_windows_web_app.example.default_hostname
 }
 
