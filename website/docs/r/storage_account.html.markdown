@@ -139,6 +139,8 @@ The following arguments are supported:
 
 ~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
 
+* `share_properties` - (Optional) A `share_properties` block as defined below.
+
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
 * `large_file_share_enabled` - (Optional) Is Large File Share Enabled?
