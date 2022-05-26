@@ -157,7 +157,7 @@ func TestAccKustoCluster_zones(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
-				check.That(data.ResourceName).Key("zones.0").HasValue("1"),
+				check.That(data.ResourceName).Key("zones.0").HasValue("3"),
 			),
 		},
 	})
@@ -564,7 +564,7 @@ resource "azurerm_kusto_cluster" "test" {
     capacity = 1
   }
 
-  zones = ["1"]
+  zones = ["3"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
