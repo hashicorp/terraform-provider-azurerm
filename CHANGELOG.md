@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * dependencies: upgrade `keyvault` to `2021-10-01` [GH-16955]
 * `azurerm_active_directory_domain_service` - supports for the `domain_configuration_type` property [GH-16920]
 * `azurerm_backup_protected_vm` - Allow the attached vm to be disassociated from the backup [GH-16939]
+* `azurerm_vpn_gateway_connection` - support for the `custom_bgp_address` block [GH-16960]
 * `azurerm_backup_protected_vm` - The backup is removed from state when it is soft deleted [GH-16939]
 * `azurerm_portal_dashboard` - now supports the `display_name` argument [GH-16406]
 * `azurerm_data_factory_managed_private_endpoint` - `azurerm_data_factory_managed_private_endpoint` - `name` correctly matches regex  [GH-16894]
