@@ -1,8 +1,13 @@
 ## 3.8.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_spring_cloud_gateway_route_config` [GH-16721]
+
 ENHANCEMENTS:
 
 * dependencies: upgrade `botservice` to `2021-05-01-preview` [GH-16665]
+* `azurerm_portal_dashboard` - now supports the `display_name` argument [GH-16406]
 * `azurerm_data_factory_managed_private_endpoint` - `azurerm_data_factory_managed_private_endpoint` - `name` correctly matches regex  [GH-16894]
 * `azurerm_data_factory_trigger_schedule` - Add support for `time_zone` [GH-16918]
 * `azurerm_linux_virtual_machine` - add support for Confidential VM [GH-16905]
@@ -22,6 +27,7 @@ BUG FIXES:
 
 * `azurerm_windows_virtual_machine` - `timezone` is now `ForceNew` [GH-16866]
 * `azurerm_linux_function_app_slot` - Fix name availability check on create [GH-16410]
+* `azurerm_mysql_server` -  fix an error updating `public_network_access_enabled` with replicas [GH-16506]
 * `azurerm_windows_function_app_slot` - Fix name availability check on create [GH-16410]
 
 ## 3.7.0 (May 19, 2022)
