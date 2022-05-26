@@ -54,7 +54,7 @@ resource "azurerm_logz_sub_account" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this logz Sub Account. Changing this forces a new logz Sub Account to be created.
+* `name` - (Required) The name which should be used for this logz Sub Account. Possible values must be between 1 and 32 characters in length and may contain only letters, numbers, hyphens and underscores. Changing this forces a new logz Sub Account to be created.
 
 * `logz_monitor_id` - (Required) The ID of the Logz Monitor. Changing this forces a new logz Sub Account to be created.
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 ---
 
-* `enabled` - (Optional) Whether the resource monitoring is enabled?
+* `enabled` - (Optional) Whether the resource monitoring is enabled? Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the logz Sub Account.
 

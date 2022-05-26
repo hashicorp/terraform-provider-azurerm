@@ -9,6 +9,6 @@ import (
 func LogzMonitorName(v interface{}, k string) (warnings []string, errors []error) {
 	return validation.StringMatch(
 		regexp.MustCompile(`^[\w\-]{1,32}$`),
-		`The name length must be from 1 to 32 characters. The name can only contain letters, numbers, hyphens and underscore.`,
+		`name must be between 1 and 32 characters in length and may contain only letters, numbers, hyphens and underscores`,
 	)(v, k)
 }
