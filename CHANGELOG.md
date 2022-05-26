@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 * dependencies: upgrade `botservice` to `2021-05-01-preview` [GH-16665]
 * dependencies: upgrade `keyvault` to `2021-10-01` [GH-16955]
+* `azurerm_active_directory_domain_service` - supports for the `domain_configuration_type` property [GH-16920]
 * `azurerm_backup_protected_vm` - Allow the attached vm to be disassociated from the backup [GH-16939]
 * `azurerm_backup_protected_vm` - The backup is removed from state when it is soft deleted [GH-16939]
 * `azurerm_portal_dashboard` - now supports the `display_name` argument [GH-16406]
