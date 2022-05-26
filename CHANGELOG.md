@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource**: `azurerm_mssql_server_dns_alias` [GH-16861]
 * **New Resource**: `azurerm_spring_cloud_gateway_route_config` [GH-16721]
 * **New Resource**: `azurerm_spring_cloud_api_portal` [GH-16719]
 
