@@ -171,7 +171,7 @@ A `propagated_route_table` block supports the following:
 
 A `custom_bgp_address` block supports the following:
 
-* `ip_address` - (Required) The custom bgp peering address which belongs to the IP Configuration.
+* `ip_address` - (Required) The custom bgp ip address which belongs to the IP Configuration.
 
 * `ip_configuration_id` - (Required) The ID of the IP Configuration which belongs to the VPN Gateway.
 
