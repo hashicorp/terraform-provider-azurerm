@@ -51,6 +51,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 52),
 					AtLeastOneOf: atLeastOneOf,
+					Default:      1,
 				},
 			},
 		},
