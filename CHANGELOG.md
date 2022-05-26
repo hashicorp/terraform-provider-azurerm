@@ -9,6 +9,8 @@ ENHANCEMENTS:
 
 * dependencies: upgrade `botservice` to `2021-05-01-preview` [GH-16665]
 * dependencies: upgrade `keyvault` to `2021-10-01` [GH-16955]
+* `azurerm_backup_protected_vm` - Allow the attached vm to be disassociated from the backup [GH-16939]
+* `azurerm_backup_protected_vm` - The backup is removed from state when it is soft deleted [GH-16939]
 * `azurerm_portal_dashboard` - now supports the `display_name` argument [GH-16406]
 * `azurerm_data_factory_managed_private_endpoint` - `azurerm_data_factory_managed_private_endpoint` - `name` correctly matches regex  [GH-16894]
 * `azurerm_data_factory_trigger_schedule` - Add support for `time_zone` [GH-16918]
