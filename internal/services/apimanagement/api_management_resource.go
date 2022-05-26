@@ -713,8 +713,12 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 				},
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, params); err != nil {
+			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, params)
+			if err != nil {
 				return fmt.Errorf("recovering %s: %+v", id, err)
+			}
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for recovery of %q: %+v", id, err)
 			}
 
 			// Wait for the ProvisioningState to become "Succeeded" before attempting to update
