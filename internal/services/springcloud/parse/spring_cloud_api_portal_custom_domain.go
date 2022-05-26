@@ -35,7 +35,7 @@ func (id SpringCloudAPIPortalCustomDomainId) String() string {
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Spring Cloud API Portal Custom Domain", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Spring Cloud A P I Portal Custom Domain", segmentsStr)
 }
 
 func (id SpringCloudAPIPortalCustomDomainId) ID() string {
