@@ -194,7 +194,22 @@ func TestAccSpringCloudService_buildAgentPool(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.buildAgentPool(data, "S1"),
+			Config: r.buildAgentPool(data, "S1"),      
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSpringCloudService_zoneRedundant(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
+	r := SpringCloudServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zoneRedundant(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -232,6 +247,26 @@ resource "azurerm_spring_cloud_service" "test" {
   name                = "acctest-sc-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (SpringCloudServiceResource) zoneRedundant(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-spring-%d"
+  location = "%s"
+}
+
+resource "azurerm_spring_cloud_service" "test" {
+  name                = "acctest-sc-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  zone_redundant      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -392,8 +427,6 @@ resource "azurerm_spring_cloud_service" "test" {
     connection_string = azurerm_application_insights.test.connection_string
     sample_rate       = 20
   }
-
-  zone_redundant = true
 
   tags = {
     Env     = "Test"

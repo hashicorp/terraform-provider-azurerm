@@ -8,6 +8,9 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: upgrade `botservice` to `2021-05-01-preview` [GH-16665]
+* dependencies: upgrade `keyvault` to `2021-10-01` [GH-16955]
+* `azurerm_backup_protected_vm` - Allow the attached vm to be disassociated from the backup [GH-16939]
+* `azurerm_backup_protected_vm` - The backup is removed from state when it is soft deleted [GH-16939]
 * `azurerm_portal_dashboard` - now supports the `display_name` argument [GH-16406]
 * `azurerm_data_factory_managed_private_endpoint` - `azurerm_data_factory_managed_private_endpoint` - `name` correctly matches regex  [GH-16894]
 * `azurerm_data_factory_trigger_schedule` - Add support for `time_zone` [GH-16918]
@@ -18,6 +21,7 @@ ENHANCEMENTS:
 * `azurerm_managed_disk` - add support for Confidential VM [GH-16908]
 * `azurerm_spring_cloud_service`: Add `zone_redundant` property [GH-16872]
 * `azurerm_synapse_spark_pool` - the `spark_version` property now supports `3.2` [GH-16906]
+* `azurerm_virtual_network_gateway_connection` - support for the `egress_nat_rule_ids` and `ingress_nat_rule_ids` properties [GH-16862]
 * `azurerm_vpn_gateway` - support for the `bgp_route_translation_for_nat_enabled` property [GH-16817]
 * `azurerm_windows_virtual_machine` - add support for Confidential VM [GH-16905]
 * `azurerm_windows_virtual_machine_scale_set` - add support for Confidential VM [GH-16916]
