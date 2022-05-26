@@ -270,6 +270,12 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				},
 			},
 
+			"zone_redundant": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"tags": tags.Schema(),
 
 			"service_registry_id": {
@@ -308,6 +314,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		Location: utils.String(location),
 		Properties: &appplatform.ClusterResourceProperties{
 			NetworkProfile: expandSpringCloudNetwork(d.Get("network").([]interface{})),
+			ZoneRedundant:  utils.Bool(d.Get("zone_redundant").(bool)),
 		},
 		Sku: &appplatform.Sku{
 			Name: utils.String(d.Get("sku_name").(string)),
@@ -528,6 +535,8 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		if err := d.Set("required_network_traffic_rules", flattenRequiredTraffic(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `required_network_traffic_rules`: %+v", err)
 		}
+
+		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

@@ -2,7 +2,27 @@
 
 ENHANCEMENTS:
 
+* dependencies: upgrade `botservice` to `2021-05-01-preview` [GH-16665]
 * `azurerm_data_factory_managed_private_endpoint` - `azurerm_data_factory_managed_private_endpoint` - `name` correctly matches regex  [GH-16894]
+* `azurerm_data_factory_trigger_schedule` - Add support for `time_zone` [GH-16918]
+* `azurerm_linux_virtual_machine` - add support for Confidential VM [GH-16905]
+* `azurerm_linux_virtual_machine_scale_set` - add support for Confidential VM [GH-16916]
+* `azurerm_linux_web_app` - add support for `zip_deploy_file` property [GH-16779]
+* `azurerm_linux_web_app_slot` - add support for `zip_deploy_file` property [GH-16779]
+* `azurerm_managed_disk` - add support for Confidential VM [GH-16908]
+* `azurerm_spring_cloud_service`: Add `zone_redundant` property [GH-16872]
+* `azurerm_synapse_spark_pool` - the `spark_version` property now supports `3.2` [GH-16906]
+* `azurerm_vpn_gateway` - support for the `bgp_route_translation_for_nat_enabled` property [GH-16817]
+* `azurerm_windows_virtual_machine` - add support for Confidential VM [GH-16905]
+* `azurerm_windows_virtual_machine_scale_set` - add support for Confidential VM [GH-16916]
+* `azurerm_windows_web_app` - add support for `zip_deploy_file` property [GH-16779]
+* `azurerm_windows_web_app_slot` - add support for `zip_deploy_file` property [GH-16779]
+
+BUG FIXES:
+
+* `azurerm_windows_virtual_machine` - `timezone` is now `ForceNew` [GH-16866]
+* `azurerm_linux_function_app_slot` - Fix name availability check on create [GH-16410]
+* `azurerm_windows_function_app_slot` - Fix name availability check on create [GH-16410]
 
 ## 3.7.0 (May 19, 2022)
 

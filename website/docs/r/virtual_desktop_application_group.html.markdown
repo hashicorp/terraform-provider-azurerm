@@ -6,7 +6,7 @@ description: |-
   Manages a Virtual Desktop Application Group.
 ---
 
-# virtual_desktop_application_group
+# azurerm_virtual_desktop_application_group
 
 Manages a Virtual Desktop Application Group.
 

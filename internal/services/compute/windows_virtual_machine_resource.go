@@ -292,6 +292,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"timezone": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: computeValidate.VirtualMachineTimeZone(),
 			},
 
@@ -432,6 +433,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("expanding `os_disk`: %+v", err)
 	}
+	securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
 
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandWindowsSecrets(secretsRaw)
@@ -557,43 +559,60 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+		if encryptionAtHostEnabled.(bool) {
+			if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
+				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+			}
+		}
+
 		if params.SecurityProfile == nil {
 			params.SecurityProfile = &compute.SecurityProfile{}
 		}
 		params.SecurityProfile.EncryptionAtHost = utils.Bool(encryptionAtHostEnabled.(bool))
 	}
 
-	if securebootEnabled, ok := d.GetOk("secure_boot_enabled"); ok {
-		if params.SecurityProfile == nil {
-			params.SecurityProfile = &compute.SecurityProfile{}
+	secureBootEnabled := d.Get("secure_boot_enabled").(bool)
+	vtpmEnabled := d.Get("vtpm_enabled").(bool)
+	if securityEncryptionType != "" {
+		if !secureBootEnabled {
+			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
+		}
+		if !vtpmEnabled {
+			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
 		}
 
-		if params.SecurityProfile.UefiSettings == nil {
-			params.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		if params.VirtualMachineProperties.SecurityProfile == nil {
+			params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+		}
+		params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesConfidentialVM
+
+		if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
+			params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+		}
+		params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(true)
+		params.VirtualMachineProperties.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(true)
+	} else {
+		if secureBootEnabled {
+			if params.VirtualMachineProperties.SecurityProfile == nil {
+				params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+			}
+			if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
+				params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+			}
+			params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+			params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled)
 		}
 
-		secureboot := d.Get("secure_boot_enabled").(bool)
-		if secureboot {
-			params.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+		if vtpmEnabled {
+			if params.VirtualMachineProperties.SecurityProfile == nil {
+				params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+			}
+			if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
+				params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+			}
+			params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+			params.VirtualMachineProperties.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled)
 		}
-
-		params.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(securebootEnabled.(bool))
-	}
-
-	if vtpmEnabled, ok := d.GetOk("vtpm_enabled"); ok {
-		if params.SecurityProfile == nil {
-			params.SecurityProfile = &compute.SecurityProfile{}
-		}
-
-		if params.SecurityProfile.UefiSettings == nil {
-			params.SecurityProfile.UefiSettings = &compute.UefiSettings{}
-		}
-		vtpm := d.Get("vtpm_enabled").(bool)
-		if vtpm {
-			params.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
-		}
-
-		params.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled.(bool))
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
@@ -1193,6 +1212,14 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
+		if d.Get("encryption_at_host_enabled").(bool) {
+			osDiskRaw := d.Get("os_disk").([]interface{})
+			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
+			if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
+				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+			}
+		}
+
 		shouldUpdate = true
 		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
 		if update.SecurityProfile == nil {
