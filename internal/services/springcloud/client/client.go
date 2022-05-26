@@ -18,6 +18,7 @@ type Client struct {
 	CustomDomainsClient         *appplatform.CustomDomainsClient
 	GatewayClient               *appplatform.GatewaysClient
 	GatewayCustomDomainClient   *appplatform.GatewayCustomDomainsClient
+	GatewayRouteConfigClient    *appplatform.GatewayRouteConfigsClient
 	MonitoringSettingsClient    *appplatform.MonitoringSettingsClient
 	DeploymentsClient           *appplatform.DeploymentsClient
 	ServicesClient              *appplatform.ServicesClient
@@ -94,6 +95,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DeploymentsClient:           &deploymentsClient,
 		GatewayClient:               &gatewayClient,
 		GatewayCustomDomainClient:   &gatewayCustomDomainClient,
+		GatewayRouteConfigClient:    &gatewayRouteConfigClient,
 		MonitoringSettingsClient:    &monitoringSettingsClient,
 		ServicesClient:              &servicesClient,
 		ServiceRegistryClient:       &serviceRegistryClient,
