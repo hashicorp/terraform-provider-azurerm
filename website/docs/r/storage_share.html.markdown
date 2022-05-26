@@ -54,6 +54,8 @@ The following arguments are supported:
 * `storage_account_name` - (Required) Specifies the storage account in which to create the share.
  Changing this forces a new resource to be created.
 
+* `access_tier` - (Optional) The access tier of the File Share. Possible values are `Hot`, `Cool` and `TransactionOptimized`.
+
 * `acl` - (Optional) One or more `acl` blocks as defined below.
 
 * `enabled_protocol` - (Optional) The protocol used for the share. Possible values are `SMB` and `NFS`. The `SBM` indicates the share can be accessed by SMBv3.0, SMBv2.1 and REST. The `NFS` indicates the share can be accessed by NFSv4.1. Defaults to `SMB`. Changing this forces a new resource to be created.

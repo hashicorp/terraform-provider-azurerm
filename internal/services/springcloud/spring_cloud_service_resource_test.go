@@ -393,6 +393,8 @@ resource "azurerm_spring_cloud_service" "test" {
     sample_rate       = 20
   }
 
+  zone_redundant = true
+
   tags = {
     Env     = "Test"
     version = "1"

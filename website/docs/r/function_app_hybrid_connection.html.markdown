@@ -1,7 +1,7 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "function_app_hybrid_connection: azurerm_function_app_hybrid_connection"
+page_title: "Azure Resource Manager: azurerm_function_app_hybrid_connection"
 description: |-
   Manages a Function App Hybrid Connection.
 ---
