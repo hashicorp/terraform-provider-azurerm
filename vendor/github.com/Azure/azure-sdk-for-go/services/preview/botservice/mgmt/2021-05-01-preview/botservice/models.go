@@ -10,18 +10,26 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2021-05-01-preview/botservice"
 
 // AlexaChannel alexa channel definition
 type AlexaChannel struct {
 	// Properties - The set of properties specific to Alexa channel resource
 	Properties *AlexaChannelProperties `json:"properties,omitempty"`
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
 	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
@@ -32,6 +40,12 @@ func (ac AlexaChannel) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ac.Properties != nil {
 		objectMap["properties"] = ac.Properties
+	}
+	if ac.Etag != nil {
+		objectMap["etag"] = ac.Etag
+	}
+	if ac.Location != nil {
+		objectMap["location"] = ac.Location
 	}
 	if ac.ChannelName != "" {
 		objectMap["channelName"] = ac.ChannelName
@@ -159,6 +173,8 @@ type Bot struct {
 	Kind Kind `json:"kind,omitempty"`
 	// Etag - Entity Tag
 	Etag *string `json:"etag,omitempty"`
+	// Zones - READ-ONLY; Entity zones
+	Zones *[]string `json:"zones,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Bot.
@@ -206,6 +222,8 @@ type BotChannel struct {
 	Kind Kind `json:"kind,omitempty"`
 	// Etag - Entity Tag
 	Etag *string `json:"etag,omitempty"`
+	// Zones - READ-ONLY; Entity zones
+	Zones *[]string `json:"zones,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for BotChannel.
@@ -319,6 +337,15 @@ func (bc *BotChannel) UnmarshalJSON(body []byte) error {
 				}
 				bc.Etag = &etag
 			}
+		case "zones":
+			if v != nil {
+				var zones []string
+				err = json.Unmarshal(*v, &zones)
+				if err != nil {
+					return err
+				}
+				bc.Zones = &zones
+			}
 		}
 	}
 
@@ -337,8 +364,20 @@ type BotProperties struct {
 	Endpoint *string `json:"endpoint,omitempty"`
 	// EndpointVersion - READ-ONLY; The bot's endpoint version
 	EndpointVersion *string `json:"endpointVersion,omitempty"`
+	// AllSettings - Contains resource all settings defined as key/value pairs.
+	AllSettings map[string]*string `json:"allSettings"`
+	// Parameters - Contains resource parameters defined as key/value pairs.
+	Parameters map[string]*string `json:"parameters"`
+	// ManifestURL - The bot's manifest url
+	ManifestURL *string `json:"manifestUrl,omitempty"`
+	// MsaAppType - Microsoft App Type for the bot. Possible values include: 'MsaAppTypeUserAssignedMSI', 'MsaAppTypeSingleTenant', 'MsaAppTypeMultiTenant'
+	MsaAppType MsaAppType `json:"msaAppType,omitempty"`
 	// MsaAppID - Microsoft App Id for the bot
 	MsaAppID *string `json:"msaAppId,omitempty"`
+	// MsaAppTenantID - Microsoft App Tenant Id for the bot
+	MsaAppTenantID *string `json:"msaAppTenantId,omitempty"`
+	// MsaAppMSIResourceID - Microsoft App Managed Identity Resource Id for the bot
+	MsaAppMSIResourceID *string `json:"msaAppMSIResourceId,omitempty"`
 	// ConfiguredChannels - READ-ONLY; Collection of channels for which the bot is configured
 	ConfiguredChannels *[]string `json:"configuredChannels,omitempty"`
 	// EnabledChannels - READ-ONLY; Collection of channels for which the bot is enabled
@@ -357,10 +396,32 @@ type BotProperties struct {
 	IsCmekEnabled *bool `json:"isCmekEnabled,omitempty"`
 	// CmekKeyVaultURL - The CMK Url
 	CmekKeyVaultURL *string `json:"cmekKeyVaultUrl,omitempty"`
-	// IsIsolated - Whether the bot is in an isolated network
-	IsIsolated *bool `json:"isIsolated,omitempty"`
+	// CmekEncryptionStatus - READ-ONLY; The CMK encryption status
+	CmekEncryptionStatus *string `json:"cmekEncryptionStatus,omitempty"`
+	// PublicNetworkAccess - Whether the bot is in an isolated network. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+	// IsStreamingSupported - Whether the bot is streaming supported
+	IsStreamingSupported *bool `json:"isStreamingSupported,omitempty"`
+	// IsDeveloperAppInsightsAPIKeySet - READ-ONLY; Whether the bot is developerAppInsightsApiKey set
+	IsDeveloperAppInsightsAPIKeySet *bool `json:"isDeveloperAppInsightsApiKeySet,omitempty"`
+	// MigrationToken - READ-ONLY; Token used to migrate non Azure bot to azure subscription
+	MigrationToken *string `json:"migrationToken,omitempty"`
+	// DisableLocalAuth - Opt-out of local authentication and ensure only MSI and AAD can be used exclusively for authentication.
+	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
 	// SchemaTransformationVersion - The channel schema transformation version for the bot
 	SchemaTransformationVersion *string `json:"schemaTransformationVersion,omitempty"`
+	// StorageResourceID - The storage resourceId for the bot
+	StorageResourceID *string `json:"storageResourceId,omitempty"`
+	// PrivateEndpointConnections - READ-ONLY; List of Private Endpoint Connections configured for the bot
+	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
+	// OpenWithHint - The hint to browser (e.g. protocol handler) on how to open the bot for authoring
+	OpenWithHint *string `json:"openWithHint,omitempty"`
+	// AppPasswordHint - The hint (e.g. keyVault secret resourceId) on how to fetch the app secret
+	AppPasswordHint *string `json:"appPasswordHint,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// PublishingCredentials - Publishing credentials of the resource
+	PublishingCredentials *string `json:"publishingCredentials,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for BotProperties.
@@ -378,8 +439,26 @@ func (bp BotProperties) MarshalJSON() ([]byte, error) {
 	if bp.Endpoint != nil {
 		objectMap["endpoint"] = bp.Endpoint
 	}
+	if bp.AllSettings != nil {
+		objectMap["allSettings"] = bp.AllSettings
+	}
+	if bp.Parameters != nil {
+		objectMap["parameters"] = bp.Parameters
+	}
+	if bp.ManifestURL != nil {
+		objectMap["manifestUrl"] = bp.ManifestURL
+	}
+	if bp.MsaAppType != "" {
+		objectMap["msaAppType"] = bp.MsaAppType
+	}
 	if bp.MsaAppID != nil {
 		objectMap["msaAppId"] = bp.MsaAppID
+	}
+	if bp.MsaAppTenantID != nil {
+		objectMap["msaAppTenantId"] = bp.MsaAppTenantID
+	}
+	if bp.MsaAppMSIResourceID != nil {
+		objectMap["msaAppMSIResourceId"] = bp.MsaAppMSIResourceID
 	}
 	if bp.DeveloperAppInsightKey != nil {
 		objectMap["developerAppInsightKey"] = bp.DeveloperAppInsightKey
@@ -402,11 +481,29 @@ func (bp BotProperties) MarshalJSON() ([]byte, error) {
 	if bp.CmekKeyVaultURL != nil {
 		objectMap["cmekKeyVaultUrl"] = bp.CmekKeyVaultURL
 	}
-	if bp.IsIsolated != nil {
-		objectMap["isIsolated"] = bp.IsIsolated
+	if bp.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = bp.PublicNetworkAccess
+	}
+	if bp.IsStreamingSupported != nil {
+		objectMap["isStreamingSupported"] = bp.IsStreamingSupported
+	}
+	if bp.DisableLocalAuth != nil {
+		objectMap["disableLocalAuth"] = bp.DisableLocalAuth
 	}
 	if bp.SchemaTransformationVersion != nil {
 		objectMap["schemaTransformationVersion"] = bp.SchemaTransformationVersion
+	}
+	if bp.StorageResourceID != nil {
+		objectMap["storageResourceId"] = bp.StorageResourceID
+	}
+	if bp.OpenWithHint != nil {
+		objectMap["openWithHint"] = bp.OpenWithHint
+	}
+	if bp.AppPasswordHint != nil {
+		objectMap["appPasswordHint"] = bp.AppPasswordHint
+	}
+	if bp.PublishingCredentials != nil {
+		objectMap["publishingCredentials"] = bp.PublishingCredentials
 	}
 	return json.Marshal(objectMap)
 }
@@ -599,6 +696,12 @@ type BasicChannel interface {
 
 // Channel channel definition
 type Channel struct {
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
 	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
@@ -692,6 +795,12 @@ func unmarshalBasicChannelArray(body []byte) ([]BasicChannel, error) {
 func (c Channel) MarshalJSON() ([]byte, error) {
 	c.ChannelName = ChannelNameBasicChannelChannelNameChannel
 	objectMap := make(map[string]interface{})
+	if c.Etag != nil {
+		objectMap["etag"] = c.Etag
+	}
+	if c.Location != nil {
+		objectMap["location"] = c.Location
+	}
 	if c.ChannelName != "" {
 		objectMap["channelName"] = c.ChannelName
 	}
@@ -941,6 +1050,28 @@ func NewChannelResponseListPage(cur ChannelResponseList, getNextPage func(contex
 	}
 }
 
+// ChannelSettings channel settings definition
+type ChannelSettings struct {
+	// ExtensionKey1 - The extensionKey1
+	ExtensionKey1 *string `json:"extensionKey1,omitempty"`
+	// ExtensionKey2 - The extensionKey2
+	ExtensionKey2 *string `json:"extensionKey2,omitempty"`
+	// Sites - The list of sites
+	Sites *[]Site `json:"sites,omitempty"`
+	// ChannelID - The channel id
+	ChannelID *string `json:"channelId,omitempty"`
+	// ChannelDisplayName - The channel display name
+	ChannelDisplayName *string `json:"channelDisplayName,omitempty"`
+	// BotID - The bot id
+	BotID *string `json:"botId,omitempty"`
+	// BotIconURL - The bot icon url
+	BotIconURL *string `json:"botIconUrl,omitempty"`
+	// IsEnabled - Whether this channel is enabled for the bot
+	IsEnabled *bool `json:"isEnabled,omitempty"`
+	// DisableLocalAuth - Opt-out of local authentication and ensure only MSI and AAD can be used exclusively for authentication.
+	DisableLocalAuth *bool `json:"disableLocalAuth,omitempty"`
+}
+
 // CheckNameAvailabilityRequestBody the request body for a request to Bot Service Management to check
 // availability of a bot name.
 type CheckNameAvailabilityRequestBody struct {
@@ -993,6 +1124,8 @@ type ConnectionSetting struct {
 	Kind Kind `json:"kind,omitempty"`
 	// Etag - Entity Tag
 	Etag *string `json:"etag,omitempty"`
+	// Zones - READ-ONLY; Entity zones
+	Zones *[]string `json:"zones,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ConnectionSetting.
@@ -1030,6 +1163,10 @@ type ConnectionSettingParameter struct {
 
 // ConnectionSettingProperties properties for a Connection Setting Item
 type ConnectionSettingProperties struct {
+	// ID - Id associated with the Connection Setting.
+	ID *string `json:"id,omitempty"`
+	// Name - Name associated with the Connection Setting.
+	Name *string `json:"name,omitempty"`
 	// ClientID - Client Id associated with the Connection Setting.
 	ClientID *string `json:"clientId,omitempty"`
 	// SettingID - READ-ONLY; Setting Id set by the service for the Connection Setting.
@@ -1044,11 +1181,19 @@ type ConnectionSettingProperties struct {
 	ServiceProviderDisplayName *string `json:"serviceProviderDisplayName,omitempty"`
 	// Parameters - Service Provider Parameters associated with the Connection Setting
 	Parameters *[]ConnectionSettingParameter `json:"parameters,omitempty"`
+	// ProvisioningState - Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ConnectionSettingProperties.
 func (csp ConnectionSettingProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if csp.ID != nil {
+		objectMap["id"] = csp.ID
+	}
+	if csp.Name != nil {
+		objectMap["name"] = csp.Name
+	}
 	if csp.ClientID != nil {
 		objectMap["clientId"] = csp.ClientID
 	}
@@ -1066,6 +1211,9 @@ func (csp ConnectionSettingProperties) MarshalJSON() ([]byte, error) {
 	}
 	if csp.Parameters != nil {
 		objectMap["parameters"] = csp.Parameters
+	}
+	if csp.ProvisioningState != nil {
+		objectMap["provisioningState"] = csp.ProvisioningState
 	}
 	return json.Marshal(objectMap)
 }
@@ -1242,6 +1390,12 @@ func NewConnectionSettingResponseListPage(cur ConnectionSettingResponseList, get
 type DirectLineChannel struct {
 	// Properties - The set of properties specific to Direct Line channel resource
 	Properties *DirectLineChannelProperties `json:"properties,omitempty"`
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
 	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
@@ -1252,6 +1406,12 @@ func (dlc DirectLineChannel) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if dlc.Properties != nil {
 		objectMap["properties"] = dlc.Properties
+	}
+	if dlc.Etag != nil {
+		objectMap["etag"] = dlc.Etag
+	}
+	if dlc.Location != nil {
+		objectMap["location"] = dlc.Location
 	}
 	if dlc.ChannelName != "" {
 		objectMap["channelName"] = dlc.ChannelName
@@ -1338,6 +1498,8 @@ func (dlc DirectLineChannel) AsBasicChannel() (BasicChannel, bool) {
 type DirectLineChannelProperties struct {
 	// Sites - The list of Direct Line sites
 	Sites *[]DirectLineSite `json:"sites,omitempty"`
+	// DirectLineEmbedCode - Direct Line embed code of the resource
+	DirectLineEmbedCode *string `json:"DirectLineEmbedCode,omitempty"`
 }
 
 // DirectLineSite a site for the Direct Line channel
@@ -1358,6 +1520,8 @@ type DirectLineSite struct {
 	IsV3Enabled *bool `json:"isV3Enabled,omitempty"`
 	// IsSecureSiteEnabled - Whether this site is enabled for authentication with Bot Framework.
 	IsSecureSiteEnabled *bool `json:"isSecureSiteEnabled,omitempty"`
+	// IsBlockUserUploadEnabled - Whether this site is enabled for block user upload.
+	IsBlockUserUploadEnabled *bool `json:"isBlockUserUploadEnabled,omitempty"`
 	// TrustedOrigins - List of Trusted Origin URLs for this site. This field is applicable only if isSecureSiteEnabled is True.
 	TrustedOrigins *[]string `json:"trustedOrigins,omitempty"`
 }
@@ -1380,6 +1544,9 @@ func (dls DirectLineSite) MarshalJSON() ([]byte, error) {
 	if dls.IsSecureSiteEnabled != nil {
 		objectMap["isSecureSiteEnabled"] = dls.IsSecureSiteEnabled
 	}
+	if dls.IsBlockUserUploadEnabled != nil {
+		objectMap["isBlockUserUploadEnabled"] = dls.IsBlockUserUploadEnabled
+	}
 	if dls.TrustedOrigins != nil {
 		objectMap["trustedOrigins"] = dls.TrustedOrigins
 	}
@@ -1390,6 +1557,12 @@ func (dls DirectLineSite) MarshalJSON() ([]byte, error) {
 type DirectLineSpeechChannel struct {
 	// Properties - The set of properties specific to DirectLine Speech channel resource
 	Properties *DirectLineSpeechChannelProperties `json:"properties,omitempty"`
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
 	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
@@ -1400,6 +1573,12 @@ func (dlsc DirectLineSpeechChannel) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if dlsc.Properties != nil {
 		objectMap["properties"] = dlsc.Properties
+	}
+	if dlsc.Etag != nil {
+		objectMap["etag"] = dlsc.Etag
+	}
+	if dlsc.Location != nil {
+		objectMap["location"] = dlsc.Location
 	}
 	if dlsc.ChannelName != "" {
 		objectMap["channelName"] = dlsc.ChannelName
@@ -1502,6 +1681,12 @@ type DirectLineSpeechChannelProperties struct {
 type EmailChannel struct {
 	// Properties - The set of properties specific to email channel resource
 	Properties *EmailChannelProperties `json:"properties,omitempty"`
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
 	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
@@ -1512,6 +1697,12 @@ func (ec EmailChannel) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ec.Properties != nil {
 		objectMap["properties"] = ec.Properties
+	}
+	if ec.Etag != nil {
+		objectMap["etag"] = ec.Etag
+	}
+	if ec.Location != nil {
+		objectMap["location"] = ec.Location
 	}
 	if ec.ChannelName != "" {
 		objectMap["channelName"] = ec.ChannelName
@@ -1622,6 +1813,12 @@ type ErrorBody struct {
 type FacebookChannel struct {
 	// Properties - The set of properties specific to bot facebook channel
 	Properties *FacebookChannelProperties `json:"properties,omitempty"`
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
 	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
@@ -1632,6 +1829,12 @@ func (fc FacebookChannel) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if fc.Properties != nil {
 		objectMap["properties"] = fc.Properties
+	}
+	if fc.Etag != nil {
+		objectMap["etag"] = fc.Etag
+	}
+	if fc.Location != nil {
+		objectMap["location"] = fc.Location
 	}
 	if fc.ChannelName != "" {
 		objectMap["channelName"] = fc.ChannelName
@@ -1774,7 +1977,7 @@ type HostSettingsResponse struct {
 	ToChannelFromBotOAuthScope *string `json:"ToChannelFromBotOAuthScope,omitempty"`
 	// ValidateAuthority - Per cloud OAuth setting on whether authority is validated
 	ValidateAuthority *bool `json:"ValidateAuthority,omitempty"`
-	// BotOpenIDMetadata - Same as ToBotFromChannelOpenIdMetadataUrl, used by SDK < v4.12
+	// BotOpenIDMetadata - Same as toBotFromChannelOpenIdMetadataUrl, used by SDK < v4.12
 	BotOpenIDMetadata *string `json:"BotOpenIdMetadata,omitempty"`
 }
 
@@ -1782,6 +1985,12 @@ type HostSettingsResponse struct {
 type KikChannel struct {
 	// Properties - The set of properties specific to Kik channel resource
 	Properties *KikChannelProperties `json:"properties,omitempty"`
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
 	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
@@ -1792,6 +2001,12 @@ func (kc KikChannel) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if kc.Properties != nil {
 		objectMap["properties"] = kc.Properties
+	}
+	if kc.Etag != nil {
+		objectMap["etag"] = kc.Etag
+	}
+	if kc.Location != nil {
+		objectMap["location"] = kc.Location
 	}
 	if kc.ChannelName != "" {
 		objectMap["channelName"] = kc.ChannelName
@@ -1890,6 +2105,12 @@ type KikChannelProperties struct {
 type LineChannel struct {
 	// Properties - The set of properties specific to line channel resource
 	Properties *LineChannelProperties `json:"properties,omitempty"`
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
 	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
@@ -1900,6 +2121,12 @@ func (lc LineChannel) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if lc.Properties != nil {
 		objectMap["properties"] = lc.Properties
+	}
+	if lc.Etag != nil {
+		objectMap["etag"] = lc.Etag
+	}
+	if lc.Location != nil {
+		objectMap["location"] = lc.Location
 	}
 	if lc.ChannelName != "" {
 		objectMap["channelName"] = lc.ChannelName
@@ -2023,10 +2250,234 @@ func (lr LineRegistration) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// ListChannelWithKeysResponse the ARM channel of list channel with keys operation response.
+type ListChannelWithKeysResponse struct {
+	autorest.Response `json:"-"`
+	// Resource - The set of properties specific to bot channel resource
+	Resource BasicChannel `json:"resource,omitempty"`
+	// Setting - Channel settings
+	Setting *ChannelSettings `json:"setting,omitempty"`
+	// ProvisioningState - Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// EntityTag - Entity tag of the resource
+	EntityTag *string `json:"entityTag,omitempty"`
+	// ChangedTime - Changed time of the resource
+	ChangedTime *string `json:"changedTime,omitempty"`
+	// Properties - The set of properties specific to bot channel resource
+	Properties BasicChannel `json:"properties,omitempty"`
+	// ID - READ-ONLY; Specifies the resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Specifies the name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
+	// Type - READ-ONLY; Specifies the type of the resource.
+	Type *string `json:"type,omitempty"`
+	// Tags - Contains resource tags defined as key/value pairs.
+	Tags map[string]*string `json:"tags"`
+	// Sku - Gets or sets the SKU of the resource.
+	Sku *Sku `json:"sku,omitempty"`
+	// Kind - Required. Gets or sets the Kind of the resource. Possible values include: 'KindSdk', 'KindDesigner', 'KindBot', 'KindFunction', 'KindAzurebot'
+	Kind Kind `json:"kind,omitempty"`
+	// Etag - Entity Tag
+	Etag *string `json:"etag,omitempty"`
+	// Zones - READ-ONLY; Entity zones
+	Zones *[]string `json:"zones,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ListChannelWithKeysResponse.
+func (lcwkr ListChannelWithKeysResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	objectMap["resource"] = lcwkr.Resource
+	if lcwkr.Setting != nil {
+		objectMap["setting"] = lcwkr.Setting
+	}
+	if lcwkr.ProvisioningState != nil {
+		objectMap["provisioningState"] = lcwkr.ProvisioningState
+	}
+	if lcwkr.EntityTag != nil {
+		objectMap["entityTag"] = lcwkr.EntityTag
+	}
+	if lcwkr.ChangedTime != nil {
+		objectMap["changedTime"] = lcwkr.ChangedTime
+	}
+	objectMap["properties"] = lcwkr.Properties
+	if lcwkr.Location != nil {
+		objectMap["location"] = lcwkr.Location
+	}
+	if lcwkr.Tags != nil {
+		objectMap["tags"] = lcwkr.Tags
+	}
+	if lcwkr.Sku != nil {
+		objectMap["sku"] = lcwkr.Sku
+	}
+	if lcwkr.Kind != "" {
+		objectMap["kind"] = lcwkr.Kind
+	}
+	if lcwkr.Etag != nil {
+		objectMap["etag"] = lcwkr.Etag
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ListChannelWithKeysResponse struct.
+func (lcwkr *ListChannelWithKeysResponse) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "resource":
+			if v != nil {
+				resource, err := unmarshalBasicChannel(*v)
+				if err != nil {
+					return err
+				}
+				lcwkr.Resource = resource
+			}
+		case "setting":
+			if v != nil {
+				var setting ChannelSettings
+				err = json.Unmarshal(*v, &setting)
+				if err != nil {
+					return err
+				}
+				lcwkr.Setting = &setting
+			}
+		case "provisioningState":
+			if v != nil {
+				var provisioningState string
+				err = json.Unmarshal(*v, &provisioningState)
+				if err != nil {
+					return err
+				}
+				lcwkr.ProvisioningState = &provisioningState
+			}
+		case "entityTag":
+			if v != nil {
+				var entityTag string
+				err = json.Unmarshal(*v, &entityTag)
+				if err != nil {
+					return err
+				}
+				lcwkr.EntityTag = &entityTag
+			}
+		case "changedTime":
+			if v != nil {
+				var changedTime string
+				err = json.Unmarshal(*v, &changedTime)
+				if err != nil {
+					return err
+				}
+				lcwkr.ChangedTime = &changedTime
+			}
+		case "properties":
+			if v != nil {
+				properties, err := unmarshalBasicChannel(*v)
+				if err != nil {
+					return err
+				}
+				lcwkr.Properties = properties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				lcwkr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				lcwkr.Name = &name
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				lcwkr.Location = &location
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				lcwkr.Type = &typeVar
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				lcwkr.Tags = tags
+			}
+		case "sku":
+			if v != nil {
+				var sku Sku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				lcwkr.Sku = &sku
+			}
+		case "kind":
+			if v != nil {
+				var kind Kind
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				lcwkr.Kind = kind
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				lcwkr.Etag = &etag
+			}
+		case "zones":
+			if v != nil {
+				var zones []string
+				err = json.Unmarshal(*v, &zones)
+				if err != nil {
+					return err
+				}
+				lcwkr.Zones = &zones
+			}
+		}
+	}
+
+	return nil
+}
+
 // MsTeamsChannel microsoft Teams channel definition
 type MsTeamsChannel struct {
 	// Properties - The set of properties specific to Microsoft Teams channel resource
 	Properties *MsTeamsChannelProperties `json:"properties,omitempty"`
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
 	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
@@ -2037,6 +2488,12 @@ func (mtc MsTeamsChannel) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if mtc.Properties != nil {
 		objectMap["properties"] = mtc.Properties
+	}
+	if mtc.Etag != nil {
+		objectMap["etag"] = mtc.Etag
+	}
+	if mtc.Location != nil {
+		objectMap["location"] = mtc.Location
 	}
 	if mtc.ChannelName != "" {
 		objectMap["channelName"] = mtc.ChannelName
@@ -2127,6 +2584,12 @@ type MsTeamsChannelProperties struct {
 	CallingWebHook *string `json:"callingWebHook,omitempty"`
 	// IsEnabled - Whether this channel is enabled for the bot
 	IsEnabled *bool `json:"isEnabled,omitempty"`
+	// IncomingCallRoute - Webhook for Microsoft Teams channel calls
+	IncomingCallRoute *string `json:"incomingCallRoute,omitempty"`
+	// DeploymentEnvironment - Deployment environment for Microsoft Teams channel calls
+	DeploymentEnvironment *string `json:"deploymentEnvironment,omitempty"`
+	// AcceptedTerms - Whether this channel accepted terms
+	AcceptedTerms *bool `json:"acceptedTerms,omitempty"`
 }
 
 // OperationDisplayInfo the operation supported by Bot Service Management.
@@ -2312,6 +2775,297 @@ func NewOperationEntityListResultPage(cur OperationEntityListResult, getNextPage
 	}
 }
 
+// OperationResultsDescription the properties indicating the operation result of an operation on a service.
+type OperationResultsDescription struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; The ID of the operation returned.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the operation result.
+	Name *string `json:"name,omitempty"`
+	// Status - READ-ONLY; The status of the operation being performed. Possible values include: 'OperationResultStatusCanceled', 'OperationResultStatusSucceeded', 'OperationResultStatusFailed', 'OperationResultStatusRequested', 'OperationResultStatusRunning'
+	Status OperationResultStatus `json:"status,omitempty"`
+	// StartTime - READ-ONLY; The time that the operation was started.
+	StartTime *date.Time `json:"startTime,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationResultsDescription.
+func (ord OperationResultsDescription) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// OperationResultsGetFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type OperationResultsGetFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(OperationResultsClient) (OperationResultsDescription, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *OperationResultsGetFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for OperationResultsGetFuture.Result.
+func (future *OperationResultsGetFuture) result(client OperationResultsClient) (ord OperationResultsDescription, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "botservice.OperationResultsGetFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ord.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("botservice.OperationResultsGetFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if ord.Response.Response, err = future.GetResult(sender); err == nil && ord.Response.Response.StatusCode != http.StatusNoContent {
+		ord, err = client.GetResponder(ord.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "botservice.OperationResultsGetFuture", "Result", ord.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// PrivateEndpoint the Private Endpoint resource.
+type PrivateEndpoint struct {
+	// ID - READ-ONLY; The ARM identifier for Private Endpoint
+	ID *string `json:"id,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpoint.
+func (peVar PrivateEndpoint) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnection the Private Endpoint Connection resource.
+type PrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	// PrivateEndpointConnectionProperties - Resource properties.
+	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.PrivateEndpointConnectionProperties != nil {
+		objectMap["properties"] = pec.PrivateEndpointConnectionProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnection struct.
+func (pec *PrivateEndpointConnection) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateEndpointConnectionProperties PrivateEndpointConnectionProperties
+				err = json.Unmarshal(*v, &privateEndpointConnectionProperties)
+				if err != nil {
+					return err
+				}
+				pec.PrivateEndpointConnectionProperties = &privateEndpointConnectionProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				pec.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pec.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pec.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateEndpointConnectionListResult list of private endpoint connection associated with the specified
+// storage account
+type PrivateEndpointConnectionListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private endpoint connections
+	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
+}
+
+// PrivateEndpointConnectionProperties properties of the PrivateEndpointConnectProperties.
+type PrivateEndpointConnectionProperties struct {
+	// PrivateEndpoint - The resource of private end point.
+	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - A collection of information about the state of the connection between service consumer and provider.
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+	// ProvisioningState - The provisioning state of the private endpoint connection resource. Possible values include: 'PrivateEndpointConnectionProvisioningStateSucceeded', 'PrivateEndpointConnectionProvisioningStateCreating', 'PrivateEndpointConnectionProvisioningStateDeleting', 'PrivateEndpointConnectionProvisioningStateFailed'
+	ProvisioningState PrivateEndpointConnectionProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// PrivateLinkResource a private link resource
+type PrivateLinkResource struct {
+	// PrivateLinkResourceProperties - Resource properties.
+	*PrivateLinkResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plr.PrivateLinkResourceProperties != nil {
+		objectMap["properties"] = plr.PrivateLinkResourceProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateLinkResource struct.
+func (plr *PrivateLinkResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateLinkResourceProperties PrivateLinkResourceProperties
+				err = json.Unmarshal(*v, &privateLinkResourceProperties)
+				if err != nil {
+					return err
+				}
+				plr.PrivateLinkResourceProperties = &privateLinkResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				plr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				plr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				plr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkResourceBase common fields that are returned in the response for all BotService Private Link
+// Resources
+type PrivateLinkResourceBase struct {
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResourceBase.
+func (plrb PrivateLinkResourceBase) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// PrivateLinkResourceListResult a list of private link resources
+type PrivateLinkResourceListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private link resources
+	Value *[]PrivateLinkResource `json:"value,omitempty"`
+}
+
+// PrivateLinkResourceProperties properties of a private link resource.
+type PrivateLinkResourceProperties struct {
+	// GroupID - READ-ONLY; The private link resource group id.
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - READ-ONLY; The private link resource required member names.
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - The private link resource Private link DNS zone name.
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResourceProperties.
+func (plrp PrivateLinkResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plrp.RequiredZoneNames != nil {
+		objectMap["requiredZoneNames"] = plrp.RequiredZoneNames
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateLinkServiceConnectionState a collection of information about the state of the connection between
+// service consumer and provider.
+type PrivateLinkServiceConnectionState struct {
+	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'PrivateEndpointServiceConnectionStatusPending', 'PrivateEndpointServiceConnectionStatusApproved', 'PrivateEndpointServiceConnectionStatusRejected'
+	Status PrivateEndpointServiceConnectionStatus `json:"status,omitempty"`
+	// Description - The reason for approval/rejection of the connection.
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - A message indicating if changes on the service provider require any updates on the consumer.
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
+}
+
 // Resource azure resource
 type Resource struct {
 	// ID - READ-ONLY; Specifies the resource ID.
@@ -2330,6 +3084,8 @@ type Resource struct {
 	Kind Kind `json:"kind,omitempty"`
 	// Etag - Entity Tag
 	Etag *string `json:"etag,omitempty"`
+	// Zones - READ-ONLY; Entity zones
+	Zones *[]string `json:"zones,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.
@@ -2373,12 +3129,26 @@ type ServiceProviderParameter struct {
 	HelpURL *string `json:"helpUrl,omitempty"`
 	// Default - READ-ONLY; Default Name for the Service Provider
 	Default *string `json:"default,omitempty"`
+	// Metadata - READ-ONLY; Meta data for the Service Provider
+	Metadata *ServiceProviderParameterMetadata `json:"metadata,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ServiceProviderParameter.
 func (spp ServiceProviderParameter) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
+}
+
+// ServiceProviderParameterMetadata meta data for the Service Provider
+type ServiceProviderParameterMetadata struct {
+	// Constraints - the constraints of the bot meta data.
+	Constraints *ServiceProviderParameterMetadataConstraints `json:"constraints,omitempty"`
+}
+
+// ServiceProviderParameterMetadataConstraints the constraints of the bot meta data.
+type ServiceProviderParameterMetadataConstraints struct {
+	// Required - Whether required the constraints of the bot meta data.
+	Required *bool `json:"required,omitempty"`
 }
 
 // ServiceProviderProperties the Object used to describe a Service Provider supported by Bot Service
@@ -2424,6 +3194,72 @@ func (sprl ServiceProviderResponseList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// Site a site for the channel
+type Site struct {
+	// SiteID - READ-ONLY; Site Id
+	SiteID *string `json:"siteId,omitempty"`
+	// SiteName - Site name
+	SiteName *string `json:"siteName,omitempty"`
+	// Key - READ-ONLY; Primary key. Value only returned through POST to the action Channel List API, otherwise empty.
+	Key *string `json:"key,omitempty"`
+	// Key2 - READ-ONLY; Secondary key. Value only returned through POST to the action Channel List API, otherwise empty.
+	Key2 *string `json:"key2,omitempty"`
+	// IsEnabled - Whether this site is enabled for DirectLine channel
+	IsEnabled *bool `json:"isEnabled,omitempty"`
+	// IsWebchatPreviewEnabled - Whether this site is enabled for preview versions of Webchat
+	IsWebchatPreviewEnabled *bool `json:"isWebchatPreviewEnabled,omitempty"`
+	// IsV1Enabled - Whether this site is enabled for Bot Framework V1 protocol.
+	IsV1Enabled *bool `json:"isV1Enabled,omitempty"`
+	// IsV3Enabled - Whether this site is enabled for Bot Framework V1 protocol.
+	IsV3Enabled *bool `json:"isV3Enabled,omitempty"`
+	// IsSecureSiteEnabled - Whether this site is enabled for authentication with Bot Framework.
+	IsSecureSiteEnabled *bool `json:"isSecureSiteEnabled,omitempty"`
+	// IsBlockUserUploadEnabled - Whether this site is enabled for block user upload.
+	IsBlockUserUploadEnabled *bool `json:"isBlockUserUploadEnabled,omitempty"`
+	// TrustedOrigins - List of Trusted Origin URLs for this site. This field is applicable only if isSecureSiteEnabled is True.
+	TrustedOrigins *[]string `json:"trustedOrigins,omitempty"`
+	// IsTokenEnabled - Whether this site is token enabled for channel
+	IsTokenEnabled *bool `json:"isTokenEnabled,omitempty"`
+	// ETag - Entity Tag
+	ETag *string `json:"eTag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Site.
+func (s Site) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if s.SiteName != nil {
+		objectMap["siteName"] = s.SiteName
+	}
+	if s.IsEnabled != nil {
+		objectMap["isEnabled"] = s.IsEnabled
+	}
+	if s.IsWebchatPreviewEnabled != nil {
+		objectMap["isWebchatPreviewEnabled"] = s.IsWebchatPreviewEnabled
+	}
+	if s.IsV1Enabled != nil {
+		objectMap["isV1Enabled"] = s.IsV1Enabled
+	}
+	if s.IsV3Enabled != nil {
+		objectMap["isV3Enabled"] = s.IsV3Enabled
+	}
+	if s.IsSecureSiteEnabled != nil {
+		objectMap["isSecureSiteEnabled"] = s.IsSecureSiteEnabled
+	}
+	if s.IsBlockUserUploadEnabled != nil {
+		objectMap["isBlockUserUploadEnabled"] = s.IsBlockUserUploadEnabled
+	}
+	if s.TrustedOrigins != nil {
+		objectMap["trustedOrigins"] = s.TrustedOrigins
+	}
+	if s.IsTokenEnabled != nil {
+		objectMap["isTokenEnabled"] = s.IsTokenEnabled
+	}
+	if s.ETag != nil {
+		objectMap["eTag"] = s.ETag
+	}
+	return json.Marshal(objectMap)
+}
+
 // SiteInfo site information for WebChat or DirectLine Channels to identify which site to regenerate keys
 // for.
 type SiteInfo struct {
@@ -2454,6 +3290,12 @@ func (s Sku) MarshalJSON() ([]byte, error) {
 type SkypeChannel struct {
 	// Properties - The set of properties specific to Skype channel resource
 	Properties *SkypeChannelProperties `json:"properties,omitempty"`
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
 	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
@@ -2464,6 +3306,12 @@ func (sc SkypeChannel) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if sc.Properties != nil {
 		objectMap["properties"] = sc.Properties
+	}
+	if sc.Etag != nil {
+		objectMap["etag"] = sc.Etag
+	}
+	if sc.Location != nil {
+		objectMap["location"] = sc.Location
 	}
 	if sc.ChannelName != "" {
 		objectMap["channelName"] = sc.ChannelName
@@ -2564,6 +3412,8 @@ type SkypeChannelProperties struct {
 	GroupsMode *string `json:"groupsMode,omitempty"`
 	// CallingWebHook - Calling web hook for Skype channel
 	CallingWebHook *string `json:"callingWebHook,omitempty"`
+	// IncomingCallRoute - Incoming call route for Skype channel
+	IncomingCallRoute *string `json:"incomingCallRoute,omitempty"`
 	// IsEnabled - Whether this channel is enabled for the bot
 	IsEnabled *bool `json:"isEnabled,omitempty"`
 }
@@ -2572,6 +3422,12 @@ type SkypeChannelProperties struct {
 type SlackChannel struct {
 	// Properties - The set of properties specific to Slack channel resource
 	Properties *SlackChannelProperties `json:"properties,omitempty"`
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
 	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
@@ -2582,6 +3438,12 @@ func (sc SlackChannel) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if sc.Properties != nil {
 		objectMap["properties"] = sc.Properties
+	}
+	if sc.Etag != nil {
+		objectMap["etag"] = sc.Etag
+	}
+	if sc.Location != nil {
+		objectMap["location"] = sc.Location
 	}
 	if sc.ChannelName != "" {
 		objectMap["channelName"] = sc.ChannelName
@@ -2672,6 +3534,8 @@ type SlackChannelProperties struct {
 	ClientSecret *string `json:"clientSecret,omitempty"`
 	// VerificationToken - The Slack verification token. Value only returned through POST to the action Channel List API, otherwise empty.
 	VerificationToken *string `json:"verificationToken,omitempty"`
+	// Scopes - The Slack permission scopes.
+	Scopes *string `json:"scopes,omitempty"`
 	// LandingPageURL - The Slack landing page Url
 	LandingPageURL *string `json:"landingPageUrl,omitempty"`
 	// RedirectAction - READ-ONLY; The Slack redirect action
@@ -2681,7 +3545,7 @@ type SlackChannelProperties struct {
 	// RegisterBeforeOAuthFlow - READ-ONLY; Whether to register the settings before OAuth validation is performed. Recommended to True.
 	RegisterBeforeOAuthFlow *bool `json:"registerBeforeOAuthFlow,omitempty"`
 	// IsValidated - READ-ONLY; Whether this channel is validated for the bot
-	IsValidated *bool `json:"isValidated,omitempty"`
+	IsValidated *bool `json:"IsValidated,omitempty"`
 	// SigningSecret - The Slack signing secret.
 	SigningSecret *string `json:"signingSecret,omitempty"`
 	// IsEnabled - Whether this channel is enabled for the bot
@@ -2700,6 +3564,9 @@ func (scp SlackChannelProperties) MarshalJSON() ([]byte, error) {
 	if scp.VerificationToken != nil {
 		objectMap["verificationToken"] = scp.VerificationToken
 	}
+	if scp.Scopes != nil {
+		objectMap["scopes"] = scp.Scopes
+	}
 	if scp.LandingPageURL != nil {
 		objectMap["landingPageUrl"] = scp.LandingPageURL
 	}
@@ -2716,6 +3583,12 @@ func (scp SlackChannelProperties) MarshalJSON() ([]byte, error) {
 type SmsChannel struct {
 	// Properties - The set of properties specific to Sms channel resource
 	Properties *SmsChannelProperties `json:"properties,omitempty"`
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
 	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
@@ -2726,6 +3599,12 @@ func (sc SmsChannel) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if sc.Properties != nil {
 		objectMap["properties"] = sc.Properties
+	}
+	if sc.Etag != nil {
+		objectMap["etag"] = sc.Etag
+	}
+	if sc.Location != nil {
+		objectMap["location"] = sc.Location
 	}
 	if sc.ChannelName != "" {
 		objectMap["channelName"] = sc.ChannelName
@@ -2826,6 +3705,12 @@ type SmsChannelProperties struct {
 type TelegramChannel struct {
 	// Properties - The set of properties specific to Telegram channel resource
 	Properties *TelegramChannelProperties `json:"properties,omitempty"`
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
 	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
@@ -2836,6 +3721,12 @@ func (tc TelegramChannel) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if tc.Properties != nil {
 		objectMap["properties"] = tc.Properties
+	}
+	if tc.Etag != nil {
+		objectMap["etag"] = tc.Etag
+	}
+	if tc.Location != nil {
+		objectMap["location"] = tc.Location
 	}
 	if tc.ChannelName != "" {
 		objectMap["channelName"] = tc.ChannelName
@@ -2932,6 +3823,12 @@ type TelegramChannelProperties struct {
 type WebChatChannel struct {
 	// Properties - The set of properties specific to Web Chat channel resource
 	Properties *WebChatChannelProperties `json:"properties,omitempty"`
+	// Etag - Entity Tag of the resource
+	Etag *string `json:"etag,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the resource
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
 	// ChannelName - Possible values include: 'ChannelNameBasicChannelChannelNameChannel', 'ChannelNameBasicChannelChannelNameAlexaChannel', 'ChannelNameBasicChannelChannelNameFacebookChannel', 'ChannelNameBasicChannelChannelNameEmailChannel', 'ChannelNameBasicChannelChannelNameMsTeamsChannel', 'ChannelNameBasicChannelChannelNameSkypeChannel', 'ChannelNameBasicChannelChannelNameKikChannel', 'ChannelNameBasicChannelChannelNameWebChatChannel', 'ChannelNameBasicChannelChannelNameDirectLineChannel', 'ChannelNameBasicChannelChannelNameTelegramChannel', 'ChannelNameBasicChannelChannelNameSmsChannel', 'ChannelNameBasicChannelChannelNameSlackChannel', 'ChannelNameBasicChannelChannelNameLineChannel', 'ChannelNameBasicChannelChannelNameDirectLineSpeechChannel'
 	ChannelName ChannelNameBasicChannel `json:"channelName,omitempty"`
 }
@@ -2942,6 +3839,12 @@ func (wcc WebChatChannel) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if wcc.Properties != nil {
 		objectMap["properties"] = wcc.Properties
+	}
+	if wcc.Etag != nil {
+		objectMap["etag"] = wcc.Etag
+	}
+	if wcc.Location != nil {
+		objectMap["location"] = wcc.Location
 	}
 	if wcc.ChannelName != "" {
 		objectMap["channelName"] = wcc.ChannelName
@@ -3053,8 +3956,8 @@ type WebChatSite struct {
 	Key2 *string `json:"key2,omitempty"`
 	// IsEnabled - Whether this site is enabled for DirectLine channel
 	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// EnablePreview - Whether this site is enabled for preview versions of Webchat
-	EnablePreview *bool `json:"enablePreview,omitempty"`
+	// IsWebchatPreviewEnabled - Whether this site is enabled for preview versions of Webchat
+	IsWebchatPreviewEnabled *bool `json:"isWebchatPreviewEnabled,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for WebChatSite.
@@ -3066,8 +3969,8 @@ func (wcs WebChatSite) MarshalJSON() ([]byte, error) {
 	if wcs.IsEnabled != nil {
 		objectMap["isEnabled"] = wcs.IsEnabled
 	}
-	if wcs.EnablePreview != nil {
-		objectMap["enablePreview"] = wcs.EnablePreview
+	if wcs.IsWebchatPreviewEnabled != nil {
+		objectMap["isWebchatPreviewEnabled"] = wcs.IsWebchatPreviewEnabled
 	}
 	return json.Marshal(objectMap)
 }
