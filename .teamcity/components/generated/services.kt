@@ -51,6 +51,7 @@ var services = mapOf(
         "iotcentral" to "IoT Central",
         "iothub" to "IoT Hub",
         "keyvault" to "KeyVault",
+        "kubernetesconfiguration" to "KubernetesConfiguration",
         "kusto" to "Kusto",
         "legacy" to "Legacy",
         "lighthouse" to "Lighthouse",
