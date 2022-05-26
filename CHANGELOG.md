@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource**: `azurerm_spring_cloud_gateway_route_config` [GH-16721]
+* **New Resource**: `azurerm_spring_cloud_api_portal` [GH-16719]
 
 ENHANCEMENTS:
 
