@@ -194,7 +194,7 @@ func TestAccSpringCloudService_buildAgentPool(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.buildAgentPool(data, "S1"),      
+			Config: r.buildAgentPool(data, "S1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
