@@ -813,12 +813,12 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 	}
 
 	output := map[string]interface{}{
-		"storage_workload_type":      storageWorkloadType,
-		"disk_type":                  string(input.DiskConfigurationType),
-		"data_settings":              flattenSqlVirtualMachineStorageSettings(input.SQLDataSettings),
-		"log_settings":               flattenSqlVirtualMachineStorageSettings(input.SQLLogSettings),
-		"temp_db_settings":           flattenSqlVirtualMachineTempDbSettings(input.SQLTempDbSettings),
-		"sql_system_db_on_datadisk":  input.SQLSystemDbOnDataDisk,
+		"storage_workload_type":     storageWorkloadType,
+		"disk_type":                 string(input.DiskConfigurationType),
+		"data_settings":             flattenSqlVirtualMachineStorageSettings(input.SQLDataSettings),
+		"log_settings":              flattenSqlVirtualMachineStorageSettings(input.SQLLogSettings),
+		"temp_db_settings":          flattenSqlVirtualMachineTempDbSettings(input.SQLTempDbSettings),
+		"sql_system_db_on_datadisk": input.SQLSystemDbOnDataDisk,
 	}
 
 	if output["storage_workload_type"].(string) == "" && output["disk_type"] == "" &&
@@ -878,13 +878,13 @@ func expandSqlVirtualMachineTempDbSettings(input []interface{}) *sqlvirtualmachi
 	tempDbSettings := input[0].(map[string]interface{})
 
 	return &sqlvirtualmachine.SQLTempDbSettings{
-		Luns:               expandSqlVirtualMachineStorageSettingsLuns(tempDbSettings["luns"].([]interface{})),
-		DataFileCount:      utils.Int32(int32(tempDbSettings.Get("data_file_count").(int))),
-		DataFileSize:       utils.Int32(int32(tempDbSettings.Get("data_file_size_mb").(int))),
-		DataGrowth: 	    utils.Int32(int32(tempDbSettings.Get("data_file_growth_in_mb").(int))),
-		DefaultFilePath:    utils.String(tempDbSettings["default_file_path"].(string)),
-		LogFileSize: 	    utils.Int32(int32(tempDbSettings.Get("log_file_size_mb").(int))),
-		LogGrowth: 	    utils.Int32(int32(tempDbSettings.Get("log_file_growth_mb").(int))),
+		Luns:            expandSqlVirtualMachineStorageSettingsLuns(tempDbSettings["luns"].([]interface{})),
+		DataFileCount:   utils.Int32(int32(tempDbSettings.Get("data_file_count").(int))),
+		DataFileSize:    utils.Int32(int32(tempDbSettings.Get("data_file_size_mb").(int))),
+		DataGrowth:      utils.Int32(int32(tempDbSettings.Get("data_file_growth_in_mb").(int))),
+		DefaultFilePath: utils.String(tempDbSettings["default_file_path"].(string)),
+		LogFileSize:     utils.Int32(int32(tempDbSettings.Get("log_file_size_mb").(int))),
+		LogGrowth:       utils.Int32(int32(tempDbSettings.Get("log_file_growth_mb").(int))),
 	}
 }
 
