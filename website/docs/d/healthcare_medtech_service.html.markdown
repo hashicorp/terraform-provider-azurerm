@@ -42,7 +42,7 @@ The following attributes are exported:
 
 * `eventhub_consumer_group_name` - The Consumer Group of the Event Hub of the Healthcare Med Tech Service.
 
-* `device_mapping` - The Device Mappings of the Med Tech Service.
+* `device_mapping_json` - The Device Mappings of the Med Tech Service.
 
 ---
 An `identity` block supports the following:

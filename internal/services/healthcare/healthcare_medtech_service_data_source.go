@@ -55,7 +55,7 @@ func dataSourceHealthcareIotConnector() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"device_mapping": {
+			"device_mapping_json": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -122,7 +122,7 @@ func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta interf
 				}
 				mapContent = string(contents)
 			}
-			d.Set("device_mapping", mapContent)
+			d.Set("device_mapping_json", mapContent)
 		}
 
 		if props.IngestionEndpointConfiguration.FullyQualifiedEventHubNamespace != nil {
