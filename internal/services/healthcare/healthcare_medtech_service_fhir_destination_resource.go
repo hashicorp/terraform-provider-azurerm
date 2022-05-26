@@ -73,7 +73,7 @@ func resourceHealthcareApisMedTechServiceFhirDestination() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"destination_fhir_mapping": {
+			"destination_fhir_mapping_json": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
 				StateFunc:        utils.NormalizeJson,
@@ -121,7 +121,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationCreate(d *pluginsdk.Reso
 	}
 
 	fhirMap := healthcareapis.IotMappingProperties{}
-	fhirMappingJson := fmt.Sprintf(`{ "content": %s }`, d.Get("destination_fhir_mapping").(string))
+	fhirMappingJson := fmt.Sprintf(`{ "content": %s }`, d.Get("destination_fhir_mapping_json").(string))
 	if err := json.Unmarshal([]byte(fhirMappingJson), &fhirMap); err != nil {
 		return err
 	}
@@ -192,7 +192,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationRead(d *pluginsdk.Resour
 				}
 				mapContent = string(contents)
 			}
-			d.Set("destination_fhir_mapping", mapContent)
+			d.Set("destination_fhir_mapping_json", mapContent)
 		}
 		d.Set("destination_identity_resolution_type", props.ResourceIdentityResolutionType)
 	}
@@ -224,7 +224,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationUpdate(d *pluginsdk.Reso
 	}
 
 	fhirMap := healthcareapis.IotMappingProperties{}
-	fhirMappingJson := fmt.Sprintf(`{ "content": %s }`, d.Get("destination_fhir_mapping").(string))
+	fhirMappingJson := fmt.Sprintf(`{ "content": %s }`, d.Get("destination_fhir_mapping_json").(string))
 	if err := json.Unmarshal([]byte(fhirMappingJson), &fhirMap); err != nil {
 		return err
 	}
