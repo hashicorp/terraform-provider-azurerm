@@ -6,6 +6,7 @@ import (
 )
 
 type Client struct {
+	APIPortalClient            *appplatform.APIPortalsClient
 	AppsClient                 *appplatform.AppsClient
 	BindingsClient             *appplatform.BindingsClient
 	BuildPackBindingClient     *appplatform.BuildpackBindingClient
@@ -25,6 +26,9 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	apiPortalClient := appplatform.NewAPIPortalsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&apiPortalClient.Client, o.ResourceManagerAuthorizer)
+
 	appsClient := appplatform.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&appsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -74,6 +78,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&storageClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		APIPortalClient:            &apiPortalClient,
 		AppsClient:                 &appsClient,
 		BindingsClient:             &bindingsClient,
 		BuildPackBindingClient:     &buildpackBindingClient,
