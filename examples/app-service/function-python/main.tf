@@ -48,28 +48,28 @@ resource "azurerm_function_app_function" "example" {
     content = file("./SampleApp/PythonSampleApp/__init__.py")
   }
   test_data = file("./SampleApp/PythonSampleApp/sample.dat")
-#  test_data = jsonencode({
-#    "name" = "Azure"
-#  })
+  #  test_data = jsonencode({
+  #    "name" = "Azure"
+  #  })
   config_json = file("./SampleApp/PythonSampleApp/function.json")
-#  config_json = jsonencode({
-#    "scriptFile" = "__init__.py"
-#    "bindings" = [
-#      {
-#        "authLevel" = "anonymous"
-#        "direction" = "in"
-#        "methods" = [
-#          "get",
-#          "post",
-#        ]
-#        "name" = "req"
-#        "type" = "httpTrigger"
-#      },
-#      {
-#        "direction" = "out"
-#        "name"      = "$return"
-#        "type"      = "http"
-#      },
-#    ]
-#  })
+  #  config_json = jsonencode({
+  #    "scriptFile" = "__init__.py"
+  #    "bindings" = [
+  #      {
+  #        "authLevel" = "anonymous"
+  #        "direction" = "in"
+  #        "methods" = [
+  #          "get",
+  #          "post",
+  #        ]
+  #        "name" = "req"
+  #        "type" = "httpTrigger"
+  #      },
+  #      {
+  #        "direction" = "out"
+  #        "name"      = "$return"
+  #        "type"      = "http"
+  #      },
+  #    ]
+  #  })
 }
