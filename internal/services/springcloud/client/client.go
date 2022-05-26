@@ -81,7 +81,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&storageClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-    APIPortalClient:             &apiPortalClient,
+		APIPortalClient:             &apiPortalClient,
 		AppsClient:                  &appsClient,
 		BindingsClient:              &bindingsClient,
 		BuildPackBindingClient:      &buildpackBindingClient,
