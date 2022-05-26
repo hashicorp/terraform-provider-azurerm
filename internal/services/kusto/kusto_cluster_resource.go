@@ -241,8 +241,9 @@ func resourceKustoCluster() *pluginsdk.Resource {
 
 	if features.FourPointOhBeta() {
 		s.Schema["engine"].Default = string(kusto.EngineTypeV3)
+	} else {
+		s.Schema["engine"].Default = string(kusto.EngineTypeV2)
 	}
-	s.Schema["engine"].Default = string(kusto.EngineTypeV2)
 
 	return s
 }
