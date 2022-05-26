@@ -280,6 +280,8 @@ resource "azurerm_spring_cloud_service" "test" {
     Env     = "Test"
     version = "1"
   }
+
+  zone_redundant = true
 }
 	  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
