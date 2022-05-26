@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `zone_redundant` - (Optional) Whether zone redundancy is enabled for this Spring Cloud Service. Defaults to `false`. 
+* `zone_redundant` - (Optional) Whether zone redundancy is enabled for this Spring Cloud Service. Defaults to `false`.
 
 ---
 
