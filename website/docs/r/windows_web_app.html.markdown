@@ -68,6 +68,8 @@ The following arguments are supported:
 
 * `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. This property has no effect when `client_cert_enabled` is `false`
 
+* `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
+
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
 * `enabled` - (Optional) Should the Windows Web App be enabled? Defaults to `true`.

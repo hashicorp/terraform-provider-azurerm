@@ -39,6 +39,7 @@ type LinuxFunctionAppSlotModel struct {
 	BuiltinLogging                bool                                     `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled             bool                                     `tfschema:"client_certificate_enabled"`
 	ClientCertMode                string                                   `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths      string                                   `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings             []helpers.ConnectionString               `tfschema:"connection_string"`
 	DailyMemoryTimeQuota          int                                      `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
 	Enabled                       bool                                     `tfschema:"enabled"`
@@ -173,6 +174,12 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 				string(web.ClientCertModeOptionalInteractiveUser),
 			}, false),
 			Description: "The mode of the Function App Slot's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.",
+		},
+
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
 		},
 
 		"connection_string": helpers.ConnectionStringSchema(),
@@ -435,13 +442,14 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				Kind:     utils.String("functionapp,linux"),
 				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:         utils.String(servicePlanId.ID()),
-					Enabled:              utils.Bool(functionAppSlot.Enabled),
-					HTTPSOnly:            utils.Bool(functionAppSlot.HttpsOnly),
-					SiteConfig:           siteConfig,
-					ClientCertEnabled:    utils.Bool(functionAppSlot.ClientCertEnabled),
-					ClientCertMode:       web.ClientCertMode(functionAppSlot.ClientCertMode),
-					DailyMemoryTimeQuota: utils.Int32(int32(functionAppSlot.DailyMemoryTimeQuota)), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
+					ServerFarmID:             utils.String(servicePlanId.ID()),
+					Enabled:                  utils.Bool(functionAppSlot.Enabled),
+					HTTPSOnly:                utils.Bool(functionAppSlot.HttpsOnly),
+					SiteConfig:               siteConfig,
+					ClientCertEnabled:        utils.Bool(functionAppSlot.ClientCertEnabled),
+					ClientCertMode:           web.ClientCertMode(functionAppSlot.ClientCertMode),
+					ClientCertExclusionPaths: utils.String(functionAppSlot.ClientCertExclusionPaths),
+					DailyMemoryTimeQuota:     utils.Int32(int32(functionAppSlot.DailyMemoryTimeQuota)), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
 				},
 			}
 
@@ -571,6 +579,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				FunctionAppID:               parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
 				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
 				ClientCertMode:              string(functionApp.ClientCertMode),
+				ClientCertExclusionPaths:    utils.NormalizeNilableString(functionApp.ClientCertExclusionPaths),
 				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
 				Tags:                        tags.ToTypedObject(functionApp.Tags),
 				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
@@ -690,6 +699,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
+			}
+
+			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
+				existing.SiteProperties.ClientCertExclusionPaths = utils.String(state.ClientCertExclusionPaths)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {

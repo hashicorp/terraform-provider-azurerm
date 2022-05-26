@@ -36,6 +36,7 @@ type WindowsWebAppModel struct {
 	ClientAffinityEnabled         bool                        `tfschema:"client_affinity_enabled"`
 	ClientCertEnabled             bool                        `tfschema:"client_certificate_enabled"`
 	ClientCertMode                string                      `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths      string                      `tfschema:"client_certificate_exclusion_paths"`
 	Enabled                       bool                        `tfschema:"enabled"`
 	HttpsOnly                     bool                        `tfschema:"https_only"`
 	KeyVaultReferenceIdentityID   string                      `tfschema:"key_vault_reference_identity_id"`
@@ -112,6 +113,12 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 				string(web.ClientCertModeRequired),
 				string(web.ClientCertModeOptionalInteractiveUser),
 			}, false),
+		},
+
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
 		},
 
 		"connection_string": helpers.ConnectionStringSchema(),
@@ -308,13 +315,14 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				Tags:     tags.FromTypedObject(webApp.Tags),
 				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:          utils.String(webApp.ServicePlanId),
-					Enabled:               utils.Bool(webApp.Enabled),
-					HTTPSOnly:             utils.Bool(webApp.HttpsOnly),
-					SiteConfig:            siteConfig,
-					ClientAffinityEnabled: utils.Bool(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
-					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
+					ServerFarmID:             utils.String(webApp.ServicePlanId),
+					Enabled:                  utils.Bool(webApp.Enabled),
+					HTTPSOnly:                utils.Bool(webApp.HttpsOnly),
+					SiteConfig:               siteConfig,
+					ClientAffinityEnabled:    utils.Bool(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:        utils.Bool(webApp.ClientCertEnabled),
+					ClientCertMode:           web.ClientCertMode(webApp.ClientCertMode),
+					ClientCertExclusionPaths: utils.String(webApp.ClientCertExclusionPaths),
 				},
 			}
 
@@ -509,6 +517,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				ClientAffinityEnabled:       utils.NormaliseNilableBool(props.ClientAffinityEnabled),
 				ClientCertEnabled:           utils.NormaliseNilableBool(props.ClientCertEnabled),
 				ClientCertMode:              string(props.ClientCertMode),
+				ClientCertExclusionPaths:    utils.NormalizeNilableString(props.ClientCertExclusionPaths),
 				ConnectionStrings:           helpers.FlattenConnectionStrings(connectionStrings),
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
@@ -654,6 +663,9 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			}
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
+			}
+			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
+				existing.SiteProperties.ClientCertExclusionPaths = utils.String(state.ClientCertExclusionPaths)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {

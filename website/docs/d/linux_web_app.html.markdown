@@ -51,6 +51,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `client_certificate_mode` - The Client Certificate mode.
 
+* `client_certificate_exclusion_paths` - Paths to exclude when using client certificates, separated by ;
+
 * `connection_string` - A `connection_string` block as defined below.
 
 * `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.

@@ -81,6 +81,8 @@ The following arguments are supported:
 
 * `client_certificate_mode` - (Optional) The mode of the Function App Slot's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.
 
+* `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
+
 * `connection_string` - (Optional) a `connection_string` block as detailed below.
 
 * `content_share_force_disabled` - (Optional) Force disable the content share settings.

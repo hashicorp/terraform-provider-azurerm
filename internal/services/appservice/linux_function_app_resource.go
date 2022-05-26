@@ -46,6 +46,7 @@ type LinuxFunctionAppModel struct {
 	BuiltinLogging              bool                                 `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled           bool                                 `tfschema:"client_certificate_enabled"`
 	ClientCertMode              string                               `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths    string                               `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings           []helpers.ConnectionString           `tfschema:"connection_string"`
 	DailyMemoryTimeQuota        int                                  `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
 	Enabled                     bool                                 `tfschema:"enabled"`
@@ -190,6 +191,12 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 				string(web.ClientCertModeOptionalInteractiveUser),
 			}, false),
 			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
+		},
+
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
 		},
 
 		"connection_string": helpers.ConnectionStringSchema(),
@@ -743,6 +750,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
+			}
+
+			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
+				existing.SiteProperties.ClientCertExclusionPaths = utils.String(state.ClientCertExclusionPaths)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {

@@ -46,6 +46,7 @@ type WindowsFunctionAppModel struct {
 	BuiltinLogging              bool                                   `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled           bool                                   `tfschema:"client_certificate_enabled"`
 	ClientCertMode              string                                 `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths    string                                 `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings           []helpers.ConnectionString             `tfschema:"connection_string"`
 	DailyMemoryTimeQuota        int                                    `tfschema:"daily_memory_time_quota"`
 	Enabled                     bool                                   `tfschema:"enabled"`
@@ -190,6 +191,12 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 				string(web.ClientCertModeOptionalInteractiveUser),
 			}, false),
 			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
+		},
+
+		"client_certificate_exclusion_paths": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Paths to exclude when using client certificates, separated by ;",
 		},
 
 		"connection_string": helpers.ConnectionStringSchema(),
@@ -439,13 +446,14 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				Kind:     utils.String("functionapp"),
 				Identity: expandedIdentity,
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:         utils.String(functionApp.ServicePlanId),
-					Enabled:              utils.Bool(functionApp.Enabled),
-					HTTPSOnly:            utils.Bool(functionApp.HttpsOnly),
-					SiteConfig:           siteConfig,
-					ClientCertEnabled:    utils.Bool(functionApp.ClientCertEnabled),
-					ClientCertMode:       web.ClientCertMode(functionApp.ClientCertMode),
-					DailyMemoryTimeQuota: utils.Int32(int32(functionApp.DailyMemoryTimeQuota)),
+					ServerFarmID:             utils.String(functionApp.ServicePlanId),
+					Enabled:                  utils.Bool(functionApp.Enabled),
+					HTTPSOnly:                utils.Bool(functionApp.HttpsOnly),
+					SiteConfig:               siteConfig,
+					ClientCertEnabled:        utils.Bool(functionApp.ClientCertEnabled),
+					ClientCertMode:           web.ClientCertMode(functionApp.ClientCertMode),
+					ClientCertExclusionPaths: utils.String(functionApp.ClientCertExclusionPaths),
+					DailyMemoryTimeQuota:     utils.Int32(int32(functionApp.DailyMemoryTimeQuota)),
 				},
 			}
 
@@ -593,6 +601,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				Location:                    location.NormalizeNilable(functionApp.Location),
 				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
 				ClientCertMode:              string(functionApp.ClientCertMode),
+				ClientCertExclusionPaths:    utils.NormalizeNilableString(functionApp.ClientCertExclusionPaths),
 				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
 				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                        tags.ToTypedObject(functionApp.Tags),
@@ -729,6 +738,10 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
+			}
+
+			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
+				existing.SiteProperties.ClientCertExclusionPaths = utils.String(state.ClientCertExclusionPaths)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
