@@ -603,7 +603,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				existing.SiteProperties.ServerFarmID = utils.String(serviceFarmId)
 				servicePlanChange = true
 			}
-			servicePlanId, err := parse.ServicePlanID(*existing.SiteProperties.ServerFarmID)
+			servicePlanId, err := parse.ServicePlanID(serviceFarmId)
 			if err != nil {
 				return err
 			}
