@@ -77,93 +77,40 @@ resource "azurerm_data_factory_flowlet_data_flow" "example" {
 
   source {
     name = "source1"
-    
-     flowlet {  
+
+    flowlet {
       name = azurerm_data_factory_flowlet_data_flow.example1.name
-      parameters = {
-        "Key1" = "value1"
-      }
-    }
-    
-     linked_service {
-      name = azurerm_data_factory_linked_custom_service.test.name
-      parameters = {
-        "Key1" = "value1"
-      }
     }
 
-    schema_linked_service {
+    linked_service {
       name = azurerm_data_factory_linked_custom_service.test.name
-      parameters = {
-        "Key1" = "value1"
-      }
     }
   }
 
   sink {
     name = "sink1"
-    
+
     flowlet {
       name = azurerm_data_factory_flowlet_data_flow.example2.name
-      parameters = {
-        "Key1" = "value1"
-      }
-    }
-    
-     linked_service {
-      name = azurerm_data_factory_linked_custom_service.test.name
-      parameters = {
-        "Key1" = "value1"
-      }
-    }
-
-    schema_linked_service {
-      name = azurerm_data_factory_linked_custom_service.test.name
-      parameters = {
-        "Key1" = "value1"
-      }
-    }
-  }
-
-  transformation {
-    name        = "filter1"
-    description = "description for filter1"
-    
-    dataset {
-      name = azurerm_data_factory_dataset_json.test1.name
-      parameters = {
-        "Key1" = "value1"
-      }
     }
 
     linked_service {
       name = azurerm_data_factory_linked_custom_service.test.name
-      parameters = {
-        "Key1" = "value1"
-      }
     }
   }
-}
-script = <<EOT
-source(output(
-		movie as string,
-		title as string,
-		genres as string,
-		year as string,
-		Rating as string,
-		{Rotton Tomato} as string
-	),
-	allowSchemaDrift: true,
-	validateSchema: false,
-	limit: 100,
-	ignoreNoFilesFound: false) ~> source1
-source1 filter(toInteger(year) >= 1910 && toInteger(year) <= 2000) ~> Filter1
-Filter1 sink(allowSchemaDrift: true,
-	validateSchema: false,
-	skipDuplicateMapInputs: true,
-	skipDuplicateMapOutputs: true,
-	saveOrder: 0,
-	partitionBy('roundRobin', 3)) ~> sink1
+
+  script = <<EOT
+source(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  limit: 100, 
+  ignoreNoFilesFound: false, 
+  documentForm: 'documentPerLine') ~> source1 
+source1 sink(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  skipDuplicateMapInputs: true, 
+  skipDuplicateMapOutputs: true) ~> sink1
 EOT
 }
 
@@ -179,7 +126,7 @@ resource "azurerm_data_factory_flowlet_data_flow" "example1" {
     }
   }
 
-   sink {
+  sink {
     name = "sink1"
 
     linked_service {
@@ -214,7 +161,7 @@ resource "azurerm_data_factory_flowlet_data_flow" "example2" {
     }
   }
 
-   sink {
+  sink {
     name = "sink1"
 
     linked_service {

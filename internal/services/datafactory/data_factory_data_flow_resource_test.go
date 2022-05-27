@@ -381,12 +381,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
+  name     = "acctestRG-df-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
+  name                     = "acctestsa%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -394,13 +394,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
+  name                = "acctestdf%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_linked_custom_service" "test" {
-  name                 = "acctestls%d"
+  name                 = "acctestls%[1]d"
   data_factory_id      = azurerm_data_factory.test.id
   type                 = "AzureBlobStorage"
   type_properties_json = <<JSON
@@ -411,7 +411,7 @@ JSON
 }
 
 resource "azurerm_data_factory_dataset_json" "test1" {
-  name                = "acctestds1%d"
+  name                = "acctestds1%[1]d"
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_custom_service.test.name
 
@@ -425,7 +425,7 @@ resource "azurerm_data_factory_dataset_json" "test1" {
 }
 
 resource "azurerm_data_factory_dataset_json" "test2" {
-  name                = "acctestds2%d"
+  name                = "acctestds2%[1]d"
   data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_custom_service.test.name
 
@@ -437,5 +437,5 @@ resource "azurerm_data_factory_dataset_json" "test2" {
 
   encoding = "UTF-8"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

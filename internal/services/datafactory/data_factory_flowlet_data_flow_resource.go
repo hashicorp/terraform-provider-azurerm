@@ -150,7 +150,7 @@ func resourceDataFactoryFlowletDataFlowCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataFlow, ""); err != nil {
-		return fmt.Errorf(" creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
