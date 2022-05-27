@@ -419,7 +419,7 @@ A `site_config` block supports the following:
 
 * `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `true`.
   
-~> **NOTE:** `always_on` cannot be set to `true` when using `Free`, `F1`, `D1` SKU, it has to be turned off before switching to Free or Standard SKU.
+~> **NOTE:** `always_on` cannot be set to `true` when using `Free`, `F1`, `D1` SKU, it has to be turned off before switching to Free or Shared SKU.
 
 * `api_management_api_id` - (Optional) The API Management API ID this Windows Web App Slot is associated with.
 

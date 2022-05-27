@@ -3052,6 +3052,9 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 	if linuxSiteConfig.AlwaysOn == true && isFreeSku {
 		return nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
 	}
+	if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true && isFreeSku {
+		return nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+	}
 	expanded.AlwaysOn = utils.Bool(linuxSiteConfig.AlwaysOn)
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
