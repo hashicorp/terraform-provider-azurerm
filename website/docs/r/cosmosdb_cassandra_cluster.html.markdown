@@ -87,9 +87,9 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `version` - (Optional) The version of Cassandra what the Cluster converges to run. Possible values are `3.11` and `4.0`. Defaults to `3.11`. Changing this forces a new Cassandra Cluster to be created.
-
 * `repair_enabled` - (Optional) Is the automatic repair enabled on the Cassandra Cluster?
+
+* `version` - (Optional) The version of Cassandra what the Cluster converges to run. Possible values are `3.11` and `4.0`. Defaults to `3.11`. Changing this forces a new Cassandra Cluster to be created.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 
