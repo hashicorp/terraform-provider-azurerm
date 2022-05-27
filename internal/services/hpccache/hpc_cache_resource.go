@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2021-09-01/storagecache"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -18,7 +19,6 @@ import (
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -50,7 +50,9 @@ func resourceHPCCache() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			pluginsdk.ForceNewIfChange("key_vault_key_id", func(ctx context.Context, old, new, meta interface{}) bool {
 				// `key_vault_key_id` cannot be added or removed after created
-				return (old != "" && new == "") || (old == "" && new != "")
+				oldValue := old.(string)
+				newValue := new.(string)
+				return (oldValue != "" && newValue == "") || (oldValue == "" && newValue != "")
 			}),
 		),
 	}
@@ -149,11 +151,12 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	requireAdditionalUpdate := false
 	if v, ok := d.GetOk("key_vault_key_id"); ok {
 		autoKeyRotationEnabled := d.Get("auto_key_rotation_enabled").(bool)
 		if !d.IsNewResource() && d.HasChange("key_vault_key_id") && autoKeyRotationEnabled {
-			// It is by design that `auto_key_rotation_enabled` changes to `false` internally in service when `key_vault_key_id` is changed
-			return fmt.Errorf("`auto_key_rotation_enabled` must be set to `false` when updating `key_vault_key_id`")
+			// It is by design that `auto_key_rotation_enabled` changes to `false` when `key_vault_key_id` is changed, needs to do an additional update to set it back
+			requireAdditionalUpdate = true
 		}
 
 		keyVaultKeyId := v.(string)
@@ -184,11 +187,22 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cache)
 	if err != nil {
-		return fmt.Errorf("creating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for HPC Cache %q (Resource Group %q) to finish provisioning: %+v", name, resourceGroup, err)
+	}
+
+	if requireAdditionalUpdate {
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cache)
+		if err != nil {
+			return fmt.Errorf("Updating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for updating of HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	// If any directory setting is set, we'll further check either the `usernameDownloaded` (for LDAP/Flat File), or the `domainJoined` (for AD) in response to ensure the configuration is correct, and the cache is functional.
@@ -1104,32 +1118,7 @@ func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 
-		"identity": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							// System-assigned Managed Identity requires manual operation on Portal
-							string(storagecache.CacheIdentityTypeUserAssigned),
-						}, false),
-					},
-					"identity_ids": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: msivalidate.UserAssignedIdentityID,
-						},
-					},
-				},
-			},
-		},
+		"identity": commonschema.UserAssignedIdentityOptionalForceNew(),
 
 		"key_vault_key_id": {
 			Type:         pluginsdk.TypeString,

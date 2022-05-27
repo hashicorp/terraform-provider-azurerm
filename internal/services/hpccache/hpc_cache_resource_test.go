@@ -337,20 +337,42 @@ func TestAccHPCCache_directoryFlatFile(t *testing.T) {
 	})
 }
 
-func TestAccHPCCache_customerManagedKey(t *testing.T) {
+func TestAccHPCCache_customerManagedKeyWithAutoKeyRotationEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.customerManagedKey(data),
+			Config: r.customerManagedKeyWithAutoKeyRotationEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.customerManagedKeyUpdated(data),
+			Config: r.customerManagedKeyWithAutoKeyRotationEnabledUpdateKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccHPCCache_customerManagedKeyUpdateAutoKeyRotation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customerManagedKeyWithDefaultAutoKeyRotation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customerManagedKeyWithAutoKeyRotationEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -876,7 +898,31 @@ resource "azurerm_network_interface" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r HPCCacheResource) customerManagedKey(data acceptance.TestData) string {
+func (r HPCCacheResource) customerManagedKeyWithDefaultAutoKeyRotation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  key_vault_key_id = azurerm_key_vault_key.test.id
+}
+`, r.customerManagedKeyTemplate(data), data.RandomInteger)
+}
+
+func (r HPCCacheResource) customerManagedKeyWithAutoKeyRotationEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -901,7 +947,7 @@ resource "azurerm_hpc_cache" "test" {
 `, r.customerManagedKeyTemplate(data), data.RandomInteger)
 }
 
-func (r HPCCacheResource) customerManagedKeyUpdated(data acceptance.TestData) string {
+func (r HPCCacheResource) customerManagedKeyWithAutoKeyRotationEnabledUpdateKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -921,7 +967,7 @@ resource "azurerm_hpc_cache" "test" {
   }
 
   key_vault_key_id          = azurerm_key_vault_key.test2.id
-  auto_key_rotation_enabled = false
+  auto_key_rotation_enabled = true
 }
 `, r.customerManagedKeyTemplate(data), data.RandomInteger)
 }

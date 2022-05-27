@@ -84,11 +84,9 @@ The following arguments are supported:
 
 ~> **Note:** Only one of `directory_active_directory`, `directory_flat_file` and `directory_ldap` can be set.
 
-* `identity` - (Optional) An `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new resource to be created.
 
-* `key_vault_key_id` - (Optional) Specifies the URL to a Key Vault Key.
-
-~> **NOTE:** `auto_key_rotation_enabled` must be set to `false` when updating `key_vault_key_id`.
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key which should be used to encrypt the data in this HPC Cache.
 
 * `auto_key_rotation_enabled` - (Optional) Specifies whether the HPC Cache automatically rotates Encryption Key to the latest version. Defaults to `false`.
 
@@ -184,9 +182,9 @@ A `dns` block contains the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this HPC Cache. Possible value is `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this HPC Cache. Only possible value is `UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this HPC Cache.
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this HPC Cache.
 
 ## Attributes Reference
 
