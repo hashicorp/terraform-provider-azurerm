@@ -86,16 +86,8 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": tags.SchemaWithMax(15),
 		},
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(_ context.Context, diff *pluginsdk.ResourceDiff, _ interface{}) error {
-			tags, ok := diff.GetOk("tags")
-			if ok && len(tags.(map[string]interface{})) > 15 {
-				return fmt.Errorf("up to 15 tags can be applied to a secret")
-			}
-			return nil
-		}),
 	}
 }
 
