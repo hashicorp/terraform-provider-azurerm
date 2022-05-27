@@ -58,7 +58,7 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: !features.FourPointOhBeta(),
-				AtLeastOneOf: func() []string {
+				ExactlyOneOf: func() []string {
 					out := []string{
 						"external_mapping",
 					}
@@ -88,7 +88,7 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: !features.FourPointOhBeta(),
-				AtLeastOneOf: func() []string {
+				ExactlyOneOf: func() []string {
 					out := []string{
 						"internal_mapping",
 					}
@@ -153,7 +153,7 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 			Optional:   true,
 			Computed:   true,
 			Deprecated: "`external_address_space_mappings` will be removed in favour of the property `external_mapping` in version 4.0 of the AzureRM Provider.",
-			AtLeastOneOf: func() []string {
+			ExactlyOneOf: func() []string {
 				out := []string{
 					"external_mapping",
 				}
@@ -173,7 +173,7 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 			Optional:   true,
 			Computed:   true,
 			Deprecated: "`internal_address_space_mappings` will be removed in favour of the property `internal_mapping` in version 4.0 of the AzureRM Provider.",
-			AtLeastOneOf: func() []string {
+			ExactlyOneOf: func() []string {
 				out := []string{
 					"internal_mapping",
 				}
