@@ -292,13 +292,15 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						},
 
 						"cpu_limit": {
-							Type:     pluginsdk.TypeFloat,
-							Optional: true,
+							Type:         pluginsdk.TypeFloat,
+							Optional:     true,
+							ValidateFunc: validation.FloatAtLeast(0.0),
 						},
 
 						"memory_limit": {
-							Type:     pluginsdk.TypeFloat,
-							Optional: true,
+							Type:         pluginsdk.TypeFloat,
+							Optional:     true,
+							ValidateFunc: validation.FloatAtLeast(0.0),
 						},
 
 						//lintignore:XS003
@@ -309,8 +311,9 @@ func resourceContainerGroup() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"count": {
-										Type:     pluginsdk.TypeInt,
-										Optional: true,
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntAtLeast(0),
 									},
 
 									"sku": {
