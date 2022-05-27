@@ -11,6 +11,7 @@ type Client struct {
 	AppsClient                  *appplatform.AppsClient
 	BindingsClient              *appplatform.BindingsClient
 	BuildPackBindingClient      *appplatform.BuildpackBindingClient
+	BuildServiceAgentPoolClient *appplatform.BuildServiceAgentPoolClient
 	BuildServiceBuilderClient   *appplatform.BuildServiceBuilderClient
 	CertificatesClient          *appplatform.CertificatesClient
 	ConfigServersClient         *appplatform.ConfigServersClient
@@ -38,6 +39,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	bindingsClient := appplatform.NewBindingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&bindingsClient.Client, o.ResourceManagerAuthorizer)
+
+	buildServiceAgentPoolClient := appplatform.NewBuildServiceAgentPoolClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&buildServiceAgentPoolClient.Client, o.ResourceManagerAuthorizer)
 
 	buildpackBindingClient := appplatform.NewBuildpackBindingClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&buildpackBindingClient.Client, o.ResourceManagerAuthorizer)
@@ -87,6 +91,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		AppsClient:                  &appsClient,
 		BindingsClient:              &bindingsClient,
 		BuildPackBindingClient:      &buildpackBindingClient,
+		BuildServiceAgentPoolClient: &buildServiceAgentPoolClient,
 		BuildServiceBuilderClient:   &buildServiceBuilderClient,
 		CertificatesClient:          &certificatesClient,
 		ConfigServersClient:         &configServersClient,

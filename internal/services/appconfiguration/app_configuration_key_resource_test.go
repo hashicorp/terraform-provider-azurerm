@@ -220,7 +220,7 @@ resource "azurerm_app_configuration_key" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
   key                    = "/acctest/-ackey/-%d"
   content_type           = "test"
-  label                  = "acctest-ackeylabel-%d"
+  label                  = "/acctest/-ackeylabel/-%d"
   value                  = "a test"
 }
 `, t.base(data), data.RandomInteger, data.RandomInteger)

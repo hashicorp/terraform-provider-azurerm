@@ -162,6 +162,8 @@ The following arguments are supported:
 
 * `domain_name` - (Required) The Active Directory domain to use. See [official documentation](https://docs.microsoft.com/azure/active-directory-domain-services/tutorial-create-instance#create-a-managed-domain) for constraints and recommendations.
 
+* `domain_configuration_type` - (Optional)  The configuration type of this Active Directory Domain. Possible values are `FullySynced` and `ResourceTrusting`. Changing this forces a new resource to be created.
+
 * `filtered_sync_enabled` - Whether to enable group-based filtered sync (also called scoped synchronisation). Defaults to `false`.
 
 * `secure_ldap` - (Optional) A `secure_ldap` block as defined below.
