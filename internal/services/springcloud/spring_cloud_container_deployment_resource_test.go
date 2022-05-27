@@ -185,7 +185,7 @@ resource "azurerm_spring_cloud_container_deployment" "test" {
   language_framework = "springboot"
   addon_json = jsonencode({
     applicationConfigurationService = {
-      patterns = "app/dev"
+      configFilePatterns = "app/dev"
     }
   })
 }

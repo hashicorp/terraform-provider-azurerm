@@ -185,7 +185,7 @@ resource "azurerm_spring_cloud_build_deployment" "test" {
   }
   addon_json = jsonencode({
     applicationConfigurationService = {
-      patterns = "app/dev"
+      configFilePatterns = "app/dev"
     }
   })
 }
