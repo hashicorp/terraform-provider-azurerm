@@ -130,17 +130,9 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   version                        = "3.11"
   repair_enabled                 = true
 
-  client_certificate {
-    pem = file("testdata/cert.pem")
-  }
-
-  external_gossip_certificate {
-    pem = file("testdata/cert.pem")
-  }
-
-  external_seed_node {
-    ip_address = "10.52.221.2"
-  }
+  client_certificate_pems          = [file("testdata/cert.pem")]
+  external_gossip_certificate_pems = [file("testdata/cert.pem")]
+  external_seed_node_ip_addresses  = ["10.52.221.2"]
 
   identity {
     type = "SystemAssigned"
@@ -169,17 +161,9 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   version                        = "3.11"
   repair_enabled                 = false
 
-  client_certificate {
-    pem = file("testdata/cert2.pem")
-  }
-
-  external_gossip_certificate {
-    pem = file("testdata/cert2.pem")
-  }
-
-  external_seed_node {
-    ip_address = "10.52.221.5"
-  }
+  client_certificate_pems          = [file("testdata/cert2.pem")]
+  external_gossip_certificate_pems = [file("testdata/cert2.pem")]
+  external_seed_node_ip_addresses  = ["10.52.221.5"]
 
   tags = {
     Env = "Test2"

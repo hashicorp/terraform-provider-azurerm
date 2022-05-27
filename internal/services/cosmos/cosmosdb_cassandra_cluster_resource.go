@@ -80,45 +80,30 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"client_certificate": {
+			"client_certificate_pems": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"pem": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validate.IsCert,
-						},
-					},
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validate.IsCert,
 				},
 			},
 
-			"external_gossip_certificate": {
+			"external_gossip_certificate_pems": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"pem": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validate.IsCert,
-						},
-					},
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validate.IsCert,
 				},
 			},
 
-			"external_seed_node": {
+			"external_seed_node_ip_addresses": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"ip_address": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsIPv4Address,
-						},
-					},
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.IsIPv4Address,
 				},
 			},
 
@@ -184,15 +169,15 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if v, ok := d.GetOk("client_certificate"); ok {
+	if v, ok := d.GetOk("client_certificate_pems"); ok {
 		body.Properties.ClientCertificates = expandCassandraClusterCertificate(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("external_gossip_certificate"); ok {
+	if v, ok := d.GetOk("external_gossip_certificate_pems"); ok {
 		body.Properties.ExternalGossipCertificates = expandCassandraClusterCertificate(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("external_seed_node"); ok {
+	if v, ok := d.GetOk("external_seed_node_ip_addresses"); ok {
 		body.Properties.ExternalSeedNodes = expandCassandraClusterExternalSeedNode(v.([]interface{}))
 	}
 
@@ -241,16 +226,16 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("repair_enabled", props.RepairEnabled)
 			d.Set("version", props.CassandraVersion)
 
-			if err := d.Set("client_certificate", flattenCassandraClusterCertificate(props.ClientCertificates)); err != nil {
-				return fmt.Errorf("setting `client_certificate`: %+v", err)
+			if err := d.Set("client_certificate_pems", flattenCassandraClusterCertificate(props.ClientCertificates)); err != nil {
+				return fmt.Errorf("setting `client_certificate_pems`: %+v", err)
 			}
 
-			if err := d.Set("external_gossip_certificate", flattenCassandraClusterCertificate(props.ExternalGossipCertificates)); err != nil {
-				return fmt.Errorf("setting `external_gossip_certificate`: %+v", err)
+			if err := d.Set("external_gossip_certificate_pems", flattenCassandraClusterCertificate(props.ExternalGossipCertificates)); err != nil {
+				return fmt.Errorf("setting `external_gossip_certificate_pems`: %+v", err)
 			}
 
-			if err := d.Set("external_seed_node", flattenCassandraClusterExternalSeedNode(props.ExternalSeedNodes)); err != nil {
-				return fmt.Errorf("setting `external_seed_node`: %+v", err)
+			if err := d.Set("external_seed_node_ip_addresses", flattenCassandraClusterExternalSeedNode(props.ExternalSeedNodes)); err != nil {
+				return fmt.Errorf("setting `external_seed_node_ip_addresses`: %+v", err)
 			}
 		}
 	}
@@ -294,15 +279,15 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if v, ok := d.GetOk("client_certificate"); ok {
+	if v, ok := d.GetOk("client_certificate_pems"); ok {
 		body.Properties.ClientCertificates = expandCassandraClusterCertificate(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("external_gossip_certificate"); ok {
+	if v, ok := d.GetOk("external_gossip_certificate_pems"); ok {
 		body.Properties.ExternalGossipCertificates = expandCassandraClusterCertificate(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("external_seed_node"); ok {
+	if v, ok := d.GetOk("external_seed_node_ip_addresses"); ok {
 		body.Properties.ExternalSeedNodes = expandCassandraClusterExternalSeedNode(v.([]interface{}))
 	}
 
@@ -384,11 +369,10 @@ func expandCassandraClusterIdentity(input []interface{}) (*documentdb.ManagedCas
 
 func expandCassandraClusterCertificate(input []interface{}) *[]documentdb.Certificate {
 	results := make([]documentdb.Certificate, 0)
-	for _, seedNode := range input {
-		v := seedNode.(map[string]interface{})
 
+	for _, pem := range input {
 		result := documentdb.Certificate{
-			Pem: utils.String(v["pem"].(string)),
+			Pem: utils.String(pem.(string)),
 		}
 		results = append(results, result)
 	}
@@ -398,11 +382,10 @@ func expandCassandraClusterCertificate(input []interface{}) *[]documentdb.Certif
 
 func expandCassandraClusterExternalSeedNode(input []interface{}) *[]documentdb.SeedNode {
 	results := make([]documentdb.SeedNode, 0)
-	for _, seedNode := range input {
-		v := seedNode.(map[string]interface{})
 
+	for _, ipAddress := range input {
 		result := documentdb.SeedNode{
-			IPAddress: utils.String(v["ip_address"].(string)),
+			IPAddress: utils.String(ipAddress.(string)),
 		}
 		results = append(results, result)
 	}
@@ -416,15 +399,13 @@ func flattenCassandraClusterCertificate(input *[]documentdb.Certificate) []inter
 		return results
 	}
 
-	for _, v := range *input {
+	for _, item := range *input {
 		var pem string
-		if v.Pem != nil {
-			pem = *v.Pem
+		if item.Pem != nil {
+			pem = *item.Pem
 		}
 
-		results = append(results, map[string]interface{}{
-			"pem": pem,
-		})
+		results = append(results, pem)
 	}
 
 	return results
@@ -436,15 +417,13 @@ func flattenCassandraClusterExternalSeedNode(input *[]documentdb.SeedNode) []int
 		return results
 	}
 
-	for _, v := range *input {
+	for _, item := range *input {
 		var ipAddress string
-		if v.IPAddress != nil {
-			ipAddress = *v.IPAddress
+		if item.IPAddress != nil {
+			ipAddress = *item.IPAddress
 		}
 
-		results = append(results, map[string]interface{}{
-			"ip_address": ipAddress,
-		})
+		results = append(results, ipAddress)
 	}
 
 	return results

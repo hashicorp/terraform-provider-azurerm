@@ -79,11 +79,11 @@ The following arguments are supported:
 
 * `authentication_method` - (Optional) The authentication method that is used to authenticate clients. Possible values are `None` and `Cassandra`. Defaults to `Cassandra`.
 
-* `client_certificate` - (Optional) An `client_certificate` block as defined below.
+* `client_certificate_pems` - (Optional) A list of TLS certificates that is used to authorize client connecting to the Cassandra Cluster.
 
-* `external_gossip_certificate` - (Optional) An `external_gossip_certificate` block as defined below.
+* `external_gossip_certificate_pems` - (Optional) A list of TLS certificates that is used to authorize gossip from unmanaged Cassandra Data Center.
 
-* `external_seed_node` - (Optional) An `external_seed_node` block as defined below.
+* `external_seed_node_ip_addresses` - (Optional) A list of IP Addresses of the seed nodes in unmanaged the Cassandra Data Center which will be added to the seed node lists of all managed nodes.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -92,24 +92,6 @@ The following arguments are supported:
 * `repair_enabled` - (Optional) Is the automatic repair enabled on the Cassandra Cluster?
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
-
----
-
-A `client_certificate` block supports the following:
-
-* `pem` - (Required) A list of TLS certificates that is used to authorize client connecting to the Cassandra Cluster.
-
----
-
-A `external_gossip_certificate` block supports the following:
-
-* `pem` - (Required) A list of TLS certificates that is used to authorize gossip from unmanaged Cassandra Data Center.
-
----
-
-A `external_seed_node` block supports the following:
-
-* `ip_address` - (Required) A list of IP Addresses of the seed nodes in unmanaged the Cassandra Data Center which will be added to the seed node lists of all managed nodes.
 
 ---
 
