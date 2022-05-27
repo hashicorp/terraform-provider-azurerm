@@ -99,7 +99,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS A Record.
 * `update` - (Defaults to 30 minutes) Used when updating the DNS A Record.
-* `read` - (Defaults to 5 minutes) Used when retrieving the DNS A Record.
+* `read` - (Defaults to 10 minutes) Used when retrieving the DNS A Record.
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS A Record.
 
 ## Import
