@@ -496,11 +496,6 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
-	redisIdentity, err := expandRedisIdentity(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf(`expanding "identity": %v`, err)
-	}
-
 	parameters := redis.UpdateParameters{
 		UpdateProperties: &redis.UpdateProperties{
 			MinimumTLSVersion: redis.TLSVersion(d.Get("minimum_tls_version").(string)),
@@ -511,8 +506,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 				Name:     sku,
 			},
 		},
-		Identity: redisIdentity,
-		Tags:     expandedTags,
+		Tags: expandedTags,
 	}
 
 	if v, ok := d.GetOk("shard_count"); ok {
@@ -577,6 +571,26 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Redis Cache %q (Resource Group %q) to become available: %+v", id.RediName, id.ResourceGroup, err)
+	}
+
+	// identity cannot be updated with sku,publicNetworkAccess,redisVersion etc.
+	if d.HasChange("identity") {
+		redisIdentity, err := expandRedisIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf(`expanding "identity": %v`, err)
+		}
+
+		identityParameter := redis.UpdateParameters{
+			Identity: redisIdentity,
+		}
+		if _, err := client.Update(ctx, id.ResourceGroup, id.RediName, identityParameter); err != nil {
+			return fmt.Errorf("updating Redis Cache identity %q identity (Resource Group %q): %+v", id.RediName, id.ResourceGroup, err)
+		}
+
+		log.Printf("[DEBUG] Waiting for Redis Cache %q (Resource Group %q) to become available", id.RediName, id.ResourceGroup)
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for Redis Cache %q (Resource Group %q) to become available: %+v", id.RediName, id.ResourceGroup, err)
+		}
 	}
 
 	patchSchedule := expandRedisPatchSchedule(d)
