@@ -174,7 +174,7 @@ func (r DataFlowResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_data_factory_data_flow" "test" {
-  name            = "acctestdf%d"
+  name            = "acctestdf%[2]d"
   data_factory_id = azurerm_data_factory.test.id
   description     = "description for data flow"
   annotations     = ["anno1", "anno2"]
@@ -183,6 +183,13 @@ resource "azurerm_data_factory_data_flow" "test" {
   source {
     name        = "source1"
     description = "description for source1"
+
+    flowlet {
+      name = azurerm_data_factory_flowlet_data_flow.test1.name
+      parameters = {
+        "Key1" = "value1"
+      }
+    }
 
     linked_service {
       name = azurerm_data_factory_linked_custom_service.test.name
@@ -202,6 +209,13 @@ resource "azurerm_data_factory_data_flow" "test" {
   sink {
     name        = "sink1"
     description = "description for sink1"
+
+    flowlet {
+      name = azurerm_data_factory_flowlet_data_flow.test2.name
+      parameters = {
+        "Key1" = "value1"
+      }
+    }
 
     linked_service {
       name = azurerm_data_factory_linked_custom_service.test.name
@@ -301,6 +315,60 @@ Filter1 sink(allowSchemaDrift: true,
 	skipDuplicateMapOutputs: true,
 	saveOrder: 0,
 	partitionBy('roundRobin', 3)) ~> sink1
+EOT
+}
+
+resource "azurerm_data_factory_flowlet_data_flow" "test1" {
+  name            = "acctest1fdf%[2]d"
+  data_factory_id = azurerm_data_factory.test.id
+
+  source {
+    name = "source1"
+  }
+
+  sink {
+    name = "sink1"
+  }
+
+  script = <<EOT
+source(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  limit: 100, 
+  ignoreNoFilesFound: false, 
+  documentForm: 'documentPerLine') ~> source1 
+source1 sink(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  skipDuplicateMapInputs: true, 
+  skipDuplicateMapOutputs: true) ~> sink1
+EOT
+}
+
+resource "azurerm_data_factory_flowlet_data_flow" "test2" {
+  name            = "acctest2fdf%[2]d"
+  data_factory_id = azurerm_data_factory.test.id
+
+  source {
+    name = "source1"
+  }
+
+  sink {
+    name = "sink1"
+  }
+
+  script = <<EOT
+source(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  limit: 100, 
+  ignoreNoFilesFound: false, 
+  documentForm: 'documentPerLine') ~> source1 
+source1 sink(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  skipDuplicateMapInputs: true, 
+  skipDuplicateMapOutputs: true) ~> sink1
 EOT
 }
 `, r.template(data), data.RandomInteger)

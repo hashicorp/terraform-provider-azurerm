@@ -78,6 +78,13 @@ resource "azurerm_data_factory_data_flow" "example" {
   source {
     name = "source1"
 
+    flowlet {
+      name = azurerm_data_factory_flowlet_data_flow.example1.name
+      parameters = {
+        "Key1" = "value1"
+      }
+    }
+
     dataset {
       name = azurerm_data_factory_dataset_json.example1.name
     }
@@ -86,8 +93,85 @@ resource "azurerm_data_factory_data_flow" "example" {
   sink {
     name = "sink1"
 
+    flowlet {
+      name = azurerm_data_factory_flowlet_data_flow.example2.name
+      parameters = {
+        "Key1" = "value1"
+      }
+    }
+
     dataset {
       name = azurerm_data_factory_dataset_json.example2.name
+    }
+  }
+
+  script = <<EOT
+source(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  limit: 100, 
+  ignoreNoFilesFound: false, 
+  documentForm: 'documentPerLine') ~> source1 
+source1 sink(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  skipDuplicateMapInputs: true, 
+  skipDuplicateMapOutputs: true) ~> sink1
+EOT
+}
+
+resource "azurerm_data_factory_flowlet_data_flow" "example1" {
+  name            = "example"
+  data_factory_id = azurerm_data_factory.test.id
+
+  source {
+    name = "source1"
+
+    linked_service {
+      name = azurerm_data_factory_linked_custom_service.test.name
+    }
+  }
+
+  sink {
+    name = "sink1"
+
+    linked_service {
+      name = azurerm_data_factory_linked_custom_service.test.name
+    }
+  }
+
+  script = <<EOT
+source(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  limit: 100, 
+  ignoreNoFilesFound: false, 
+  documentForm: 'documentPerLine') ~> source1 
+source1 sink(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  skipDuplicateMapInputs: true, 
+  skipDuplicateMapOutputs: true) ~> sink1
+EOT
+}
+
+resource "azurerm_data_factory_flowlet_data_flow" "example2" {
+  name            = "example"
+  data_factory_id = azurerm_data_factory.test.id
+
+  source {
+    name = "source1"
+
+    linked_service {
+      name = azurerm_data_factory_linked_custom_service.test.name
+    }
+  }
+
+  sink {
+    name = "sink1"
+
+    linked_service {
+      name = azurerm_data_factory_linked_custom_service.test.name
     }
   }
 
@@ -141,6 +225,8 @@ A `source` block supports the following:
 
 * `dataset` - (Optional) A `dataset` block as defined below.
 
+* `flowlet` - (Optional) A `flowlet` block as defined below.
+
 * `linked_service` - (Optional) A `linked_service` block as defined below.
 
 * `schema_linked_service` - (Optional) A `schema_linked_service` block as defined below.
@@ -155,6 +241,8 @@ A `sink` block supports the following:
 
 * `dataset` - (Optional) A `dataset` block as defined below.
 
+* `flowlet` - (Optional) A `flowlet` block as defined below.
+
 * `linked_service` - (Optional) A `linked_service` block as defined below.
 
 * `schema_linked_service` - (Optional) A `schema_linked_service` block as defined below.
@@ -166,6 +254,14 @@ A `dataset` block supports the following:
 * `name` - (Required) The name for the Data Factory Dataset.
 
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory dataset.
+
+---
+
+A `flowlet` block supports the following:
+
+* `name` - (Required) The name for the Data Factory Flowlet.
+
+* `parameters` - (Optional) A map of parameters to associate with the Data Factory Flowlet.
 
 ---
 
@@ -192,6 +288,8 @@ A `transformation` block supports the following:
 * `description` - (Optional) The description for the Data Flow transformation.
 
 * `dataset` - (Optional) A `dataset` block as defined below.
+
+* `flowlet` - (Optional) A `flowlet` block as defined below.
 
 * `linked_service` - (Optional) A `linked_service` block as defined below.
 
