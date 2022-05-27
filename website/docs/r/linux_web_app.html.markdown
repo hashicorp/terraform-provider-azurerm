@@ -411,6 +411,8 @@ A `site_config` block supports the following:
 
 * `always_on` - (Optional) If this Linux Web App is Always On enabled. Defaults to `true`.
 
+~> **NOTE:** `always_on` cannot be set to `true` when using `Free`, `F1`, `D1` SKU, it has to be turned off before switching to Free or Standard SKU.
+
 * `api_management_config_id` - (Optional) The ID of the APIM configuration for this Linux Web App.
 
 * `app_command_line` - (Optional) The App command line to launch.
