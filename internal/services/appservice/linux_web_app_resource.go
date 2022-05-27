@@ -593,10 +593,10 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %v", id, err)
 			}
 
-			serviceFarmId := ""
+			var serviceFarmId string
 			servicePlanChange := false
-			if existing.SiteProperties != nil && existing.SiteProperties.ServerFarmID != nil {
-				serviceFarmId = *existing.SiteProperties.ServerFarmID
+			if existing.SiteProperties.ServerFarmID != nil {
+				serviceFarmId = *existing.ServerFarmID
 			}
 			if metadata.ResourceData.HasChange("service_plan_id") {
 				serviceFarmId = state.ServicePlanId
