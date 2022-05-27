@@ -683,8 +683,12 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		// Deleting replication and waiting for it to fully complete the operation
-		if _, err = client.DeleteReplication(ctx, replicaVolumeId.ResourceGroup, replicaVolumeId.NetAppAccountName, replicaVolumeId.CapacityPoolName, replicaVolumeId.Name); err != nil {
+		future, err := client.DeleteReplication(ctx, replicaVolumeId.ResourceGroup, replicaVolumeId.NetAppAccountName, replicaVolumeId.CapacityPoolName, replicaVolumeId.Name)
+		if err != nil {
 			return fmt.Errorf("deleting replicate %s: %+v", *replicaVolumeId, err)
+		}
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for the replica %s to be deleted: %+v", *replicaVolumeId, err)
 		}
 
 		log.Printf("[DEBUG] Waiting for the replica of %s to be deleted", replicaVolumeId)
@@ -694,8 +698,12 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// Deleting volume and waiting for it fo fully complete the operation
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
+	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
