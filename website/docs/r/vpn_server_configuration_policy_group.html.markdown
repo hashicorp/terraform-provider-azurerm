@@ -37,10 +37,10 @@ resource "azurerm_vpn_server_configuration_policy_group" "example" {
   name                        = "example-VPNSCPG"
   vpn_server_configuration_id = azurerm_vpn_server_configuration.example.id
 
-  policy_member {
-    name            = "policy1"
-    attribute_type  = "RadiusAzureGroupId"
-    attribute_value = "6ad1bd08"
+  policy {
+    name  = "policy1"
+    type  = "RadiusAzureGroupId"
+    value = "6ad1bd08"
   }
 }
 ```
@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `vpn_server_configuration_id` - (Required) The ID of the VPN Server Configuration that the VPN Server Configuration Policy Group belongs to. Changing this forces a new resource to be created.
 
-* `policy_member` - (Required) One or more `policy_member` blocks as documented below.
+* `policy` - (Required) One or more `policy` blocks as documented below.
 
 * `is_default` - (Optional) Is this a default VPN Server Configuration Policy Group? Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -61,13 +61,13 @@ The following arguments are supported:
 
 ---
 
-A `policy_member` block supports the following:
+A `policy` block supports the following:
 
 * `name` - (Required) The name of the VPN Server Configuration Policy member.
 
-* `attribute_type` - (Required) The attribute type of the VPN Server Configuration Policy member. Possible values are `AADGroupId`, `CertificateGroupId` and `RadiusAzureGroupId`.
+* `type` - (Required) The attribute type of the VPN Server Configuration Policy member. Possible values are `AADGroupId`, `CertificateGroupId` and `RadiusAzureGroupId`.
 
-* `attribute_value` - (Required) The value of the attribute that is used for the VPN Server Configuration Policy member.
+* `value` - (Required) The value of the attribute that is used for the VPN Server Configuration Policy member.
 
 ## Attributes Reference
 

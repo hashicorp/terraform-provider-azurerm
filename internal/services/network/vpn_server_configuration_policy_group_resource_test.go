@@ -105,10 +105,10 @@ resource "azurerm_vpn_server_configuration_policy_group" "test" {
   name                        = "acctestVPNSCPG-%d"
   vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
 
-  policy_member {
-    name            = "policy1"
-    attribute_type  = "RadiusAzureGroupId"
-    attribute_value = "6ad1bd08"
+  policy {
+    name  = "policy1"
+    type  = "RadiusAzureGroupId"
+    value = "6ad1bd08"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -122,10 +122,10 @@ resource "azurerm_vpn_server_configuration_policy_group" "import" {
   name                        = azurerm_vpn_server_configuration_policy_group.test.name
   vpn_server_configuration_id = azurerm_vpn_server_configuration_policy_group.test.vpn_server_configuration_id
 
-  policy_member {
-    name            = "policy1"
-    attribute_type  = "RadiusAzureGroupId"
-    attribute_value = "6ad1bd08"
+  policy {
+    name  = "policy1"
+    type  = "RadiusAzureGroupId"
+    value = "6ad1bd08"
   }
 }
 `, r.basic(data))
@@ -141,10 +141,10 @@ resource "azurerm_vpn_server_configuration_policy_group" "test" {
   is_default                  = true
   priority                    = 1
 
-  policy_member {
-    name            = "policy1"
-    attribute_type  = "RadiusAzureGroupId"
-    attribute_value = "6ad1bd08"
+  policy {
+    name  = "policy1"
+    type  = "RadiusAzureGroupId"
+    value = "6ad1bd08"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -160,10 +160,10 @@ resource "azurerm_vpn_server_configuration_policy_group" "test" {
   is_default                  = true
   priority                    = 2
 
-  policy_member {
-    name            = "policy2"
-    attribute_type  = "CertificateGroupId"
-    attribute_value = "red.com"
+  policy {
+    name  = "policy2"
+    type  = "CertificateGroupId"
+    value = "red.com"
   }
 }
 `, r.template(data), data.RandomInteger)

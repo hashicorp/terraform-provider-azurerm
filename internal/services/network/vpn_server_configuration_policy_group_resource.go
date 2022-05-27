@@ -50,7 +50,7 @@ func resourceVPNServerConfigurationPolicyGroup() *pluginsdk.Resource {
 				ValidateFunc: validate.VpnServerConfigurationID,
 			},
 
-			"policy_member": {
+			"policy": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
 				Elem: &pluginsdk.Resource{
@@ -61,7 +61,7 @@ func resourceVPNServerConfigurationPolicyGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"attribute_type": {
+						"type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -71,7 +71,7 @@ func resourceVPNServerConfigurationPolicyGroup() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"attribute_value": {
+						"value": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -128,7 +128,7 @@ func resourceVPNServerConfigurationPolicyGroupCreateUpdate(d *pluginsdk.Resource
 		Name: utils.String(d.Get("name").(string)),
 		VpnServerConfigurationPolicyGroupProperties: &network.VpnServerConfigurationPolicyGroupProperties{
 			IsDefault:     utils.Bool(d.Get("is_default").(bool)),
-			PolicyMembers: expandVPNServerConfigurationPolicyGroupPolicyMembers(d.Get("policy_member").(*pluginsdk.Set).List()),
+			PolicyMembers: expandVPNServerConfigurationPolicyGroupPolicyMembers(d.Get("policy").(*pluginsdk.Set).List()),
 			Priority:      utils.Int32(int32(d.Get("priority").(int))),
 		},
 	}
@@ -175,8 +175,8 @@ func resourceVPNServerConfigurationPolicyGroupRead(d *pluginsdk.ResourceData, me
 		d.Set("is_default", props.IsDefault)
 		d.Set("priority", props.Priority)
 
-		if err := d.Set("policy_member", flattenVPNServerConfigurationPolicyGroupPolicyMembers(props.PolicyMembers)); err != nil {
-			return fmt.Errorf("setting `policy_member`: %+v", err)
+		if err := d.Set("policy", flattenVPNServerConfigurationPolicyGroupPolicyMembers(props.PolicyMembers)); err != nil {
+			return fmt.Errorf("setting `policy`: %+v", err)
 		}
 	}
 
@@ -213,8 +213,8 @@ func expandVPNServerConfigurationPolicyGroupPolicyMembers(input []interface{}) *
 
 		results = append(results, network.VpnServerConfigurationPolicyGroupMember{
 			Name:           utils.String(v["name"].(string)),
-			AttributeType:  network.VpnPolicyMemberAttributeType(v["attribute_type"].(string)),
-			AttributeValue: utils.String(v["attribute_value"].(string)),
+			AttributeType:  network.VpnPolicyMemberAttributeType(v["type"].(string)),
+			AttributeValue: utils.String(v["value"].(string)),
 		})
 	}
 
@@ -244,9 +244,9 @@ func flattenVPNServerConfigurationPolicyGroupPolicyMembers(input *[]network.VpnS
 		}
 
 		results = append(results, map[string]interface{}{
-			"name":            name,
-			"attribute_type":  attributeType,
-			"attribute_value": attributeValue,
+			"name":  name,
+			"type":  attributeType,
+			"value": attributeValue,
 		})
 	}
 
