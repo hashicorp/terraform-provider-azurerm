@@ -64,6 +64,9 @@ The following arguments are supported:
 * `server` - (Required) The name of the registry that contains the container image.
 
 ---
+* `active` - (Optional) should the Deployment be active?
+
+* `addon_json` - (Optional) A JSON object that contains the addon configurations of the Spring Cloud Container Deployment.
 
 * `arguments` - (Optional) Specifies the arguments to the entrypoint. The docker image's `CMD` is used if not specified.
 

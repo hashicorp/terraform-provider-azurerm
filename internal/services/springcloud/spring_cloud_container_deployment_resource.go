@@ -62,6 +62,20 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"active": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
+			"addon_json": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+			},
+
 			"arguments": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -181,6 +195,11 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("invalid `sku` for Spring Cloud Service %q (Resource Group %q)", appId.SpringName, appId.ResourceGroup)
 	}
 
+	addonConfig, err := expandSpringCloudAppAddon(d.Get("addon_json").(string))
+	if err != nil {
+		return err
+	}
+
 	deployment := appplatform.DeploymentResource{
 		Sku: &appplatform.Sku{
 			Name:     service.Sku.Name,
@@ -188,6 +207,7 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 			Capacity: utils.Int32(int32(d.Get("instance_count").(int))),
 		},
 		Properties: &appplatform.DeploymentResourceProperties{
+			Active: utils.Bool(d.Get("active").(bool)),
 			Source: appplatform.CustomContainerUserSourceInfo{
 				CustomContainer: &appplatform.CustomContainer{
 					Server:            utils.String(d.Get("server").(string)),
@@ -198,6 +218,7 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 				},
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
+				AddonConfigs:         addonConfig,
 				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
 				ResourceRequests:     expandSpringCloudContainerDeploymentResourceRequests(d.Get("quota").([]interface{})),
 			},
@@ -244,10 +265,14 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 		d.Set("instance_count", resp.Sku.Capacity)
 	}
 	if resp.Properties != nil {
+		d.Set("active", resp.Properties.Active)
 		if settings := resp.Properties.DeploymentSettings; settings != nil {
 			d.Set("environment_variables", flattenSpringCloudDeploymentEnvironmentVariables(settings.EnvironmentVariables))
 			if err := d.Set("quota", flattenSpringCloudDeploymentResourceRequests(settings.ResourceRequests)); err != nil {
 				return fmt.Errorf("setting `quota`: %+v", err)
+			}
+			if err := d.Set("addon_json", flattenSpringCloudAppAddon(settings.AddonConfigs)); err != nil {
+				return fmt.Errorf("setting `addon_json`: %s", err)
 			}
 		}
 		if source, ok := resp.Properties.Source.AsCustomContainerUserSourceInfo(); ok && source != nil {

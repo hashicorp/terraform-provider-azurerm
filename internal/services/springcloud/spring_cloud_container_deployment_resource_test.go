@@ -60,6 +60,21 @@ func TestAccSpringCloudContainerDeployment_complete(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudContainerDeployment_addon(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_container_deployment", "test")
+	r := SpringCloudContainerDeploymentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.addon(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSpringCloudContainerDeployment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_container_deployment", "test")
 	r := SpringCloudContainerDeploymentResource{}
@@ -136,6 +151,7 @@ func (r SpringCloudContainerDeploymentResource) complete(data acceptance.TestDat
 resource "azurerm_spring_cloud_container_deployment" "test" {
   name                = "acctest-scjd%s"
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
+  active              = true
   instance_count      = 2
   arguments           = ["-c", "echo hello"]
   commands            = ["/bin/sh"]
@@ -148,6 +164,32 @@ resource "azurerm_spring_cloud_container_deployment" "test" {
   language_framework = "springboot"
 }
 `, r.template(data), data.RandomString)
+}
+
+func (r SpringCloudContainerDeploymentResource) addon(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_spring_cloud_container_deployment" "test" {
+  name                = "acctest-scjd%s"
+  spring_cloud_app_id = azurerm_spring_cloud_app.test.id
+  instance_count      = 2
+  arguments           = ["-c", "echo hello"]
+  commands            = ["/bin/sh"]
+  environment_variables = {
+    "Foo" : "Bar"
+    "Env" : "Staging"
+  }
+  server             = "docker.io"
+  image              = "springio/gs-spring-boot-docker"
+  language_framework = "springboot"
+  addon_json = jsonencode({
+    applicationConfigurationService = {
+      patterns = "app/dev"
+    }
+  })
+}
+`, SpringCloudAppResource{}.addon(data), data.RandomString)
 }
 
 func (SpringCloudContainerDeploymentResource) template(data acceptance.TestData) string {
