@@ -694,7 +694,21 @@ func TestAccWindowsWebAppSlot_withDocker(t *testing.T) {
 	})
 }
 
-// Attributes
+// Deployments
+func TestAccWindowsWebAppSlot_zipDeploy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zipDeploy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("zip_deploy_file"),
+	})
+}
 
 // Exists
 
@@ -1685,6 +1699,36 @@ resource "azurerm_windows_web_app_slot" "test" {
 
   key_vault_reference_identity_id = azurerm_user_assigned_identity.kv.id
 }
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppSlotResource) zipDeploy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_windows_web_app.test.id
+
+  app_settings = {
+    WEBSITE_RUN_FROM_PACKAGE       = "1"
+    SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
+  }
+
+  site_config {
+    application_stack {
+      dotnet_version = "v6.0"
+      current_stack  = "dotnet"
+    }
+  }
+
+  zip_deploy_file = "./testdata/dotnet-zipdeploy.zip"
+}
+
 `, r.baseTemplate(data), data.RandomInteger)
 }
 

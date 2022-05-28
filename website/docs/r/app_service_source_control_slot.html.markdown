@@ -1,7 +1,7 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "app_service_source_control_slot: azurerm_app_service_source_control_slot"
+page_title: "Azure Resource Manager: azurerm_app_service_source_control_slot"
 description: |-
   Manages an App Service Source Control Slot.
 ---
@@ -25,7 +25,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_service_plan" "example" {
   name                = "example-plan"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "West Europe"
+  location            = azurerm_resource_group.example.location
   os_type             = "Linux"
   sku_name            = "P1v2"
 }

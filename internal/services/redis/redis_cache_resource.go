@@ -8,18 +8,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-12-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2021-06-01/redis"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -63,13 +61,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"zones": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return azure.SchemaMultipleZones()
-				}
-
-				return commonschema.ZonesMultipleOptionalForceNew()
-			}(),
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 			"capacity": {
 				Type:     pluginsdk.TypeInt,
@@ -90,19 +82,13 @@ func resourceRedisCache() *pluginsdk.Resource {
 					string(redis.SkuNameBasic),
 					string(redis.SkuNameStandard),
 					string(redis.SkuNamePremium),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default: func() interface{} {
-					if features.ThreePointOhBeta() {
-						return string(redis.TLSVersionOneFullStopTwo)
-					}
-					return string(redis.TLSVersionOneFullStopZero)
-				}(),
+				Default:  string(redis.TLSVersionOneFullStopTwo),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(redis.TLSVersionOneFullStopZero),
 					string(redis.TLSVersionOneFullStopOne),
@@ -441,16 +427,9 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
-		if features.ThreePointOhBeta() {
-			zones := zones.Expand(v.(*schema.Set).List())
-			if len(zones) > 0 {
-				parameters.Zones = &zones
-			}
-		} else {
-			zones := zones.Expand(v.([]interface{}))
-			if len(zones) > 0 {
-				parameters.Zones = &zones
-			}
+		zones := zones.Expand(v.(*schema.Set).List())
+		if len(zones) > 0 {
+			parameters.Zones = &zones
 		}
 	}
 
@@ -752,8 +731,10 @@ func redisStateRefreshFunc(ctx context.Context, client *redis.Client, resourceGr
 	}
 }
 
-func expandRedisConfiguration(d *pluginsdk.ResourceData) (map[string]*string, error) {
-	output := make(map[string]*string)
+func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.CommonPropertiesRedisConfiguration, error) {
+	output := &redis.CommonPropertiesRedisConfiguration{
+		AdditionalProperties: map[string]interface{}{},
+	}
 
 	input := d.Get("redis_configuration").([]interface{})
 	if len(input) == 0 || input[0] == nil {
@@ -762,25 +743,25 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (map[string]*string, er
 	raw := input[0].(map[string]interface{})
 
 	if v := raw["maxclients"].(int); v > 0 {
-		output["maxclients"] = utils.String(strconv.Itoa(v))
+		output.Maxclients = utils.String(strconv.Itoa(v))
 	}
 
 	if d.Get("sku_name").(string) != string(redis.SkuNameBasic) {
 		if v := raw["maxmemory_delta"].(int); v > 0 {
-			output["maxmemory-delta"] = utils.String(strconv.Itoa(v))
+			output.MaxmemoryDelta = utils.String(strconv.Itoa(v))
 		}
 
 		if v := raw["maxmemory_reserved"].(int); v > 0 {
-			output["maxmemory-reserved"] = utils.String(strconv.Itoa(v))
+			output.MaxmemoryReserved = utils.String(strconv.Itoa(v))
 		}
 
 		if v := raw["maxfragmentationmemory_reserved"].(int); v > 0 {
-			output["maxfragmentationmemory-reserved"] = utils.String(strconv.Itoa(v))
+			output.MaxfragmentationmemoryReserved = utils.String(strconv.Itoa(v))
 		}
 	}
 
 	if v := raw["maxmemory_policy"].(string); v != "" {
-		output["maxmemory-policy"] = utils.String(v)
+		output.MaxmemoryPolicy = utils.String(v)
 	}
 
 	// RDB Backup
@@ -788,36 +769,36 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (map[string]*string, er
 		if connStr := raw["rdb_storage_connection_string"].(string); connStr == "" {
 			return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
 		}
-		output["rdb-backup-enabled"] = utils.String(strconv.FormatBool(v))
+		output.RdbBackupEnabled = utils.String(strconv.FormatBool(v))
 	}
 
 	if v := raw["rdb_backup_frequency"].(int); v > 0 {
-		output["rdb-backup-frequency"] = utils.String(strconv.Itoa(v))
+		output.RdbBackupFrequency = utils.String(strconv.Itoa(v))
 	}
 
 	if v := raw["rdb_backup_max_snapshot_count"].(int); v > 0 {
-		output["rdb-backup-max-snapshot-count"] = utils.String(strconv.Itoa(v))
+		output.RdbBackupMaxSnapshotCount = utils.String(strconv.Itoa(v))
 	}
 
 	if v := raw["rdb_storage_connection_string"].(string); v != "" {
-		output["rdb-storage-connection-string"] = utils.String(v)
+		output.RdbStorageConnectionString = utils.String(v)
 	}
 
 	if v := raw["notify_keyspace_events"].(string); v != "" {
-		output["notify-keyspace-events"] = utils.String(v)
+		output.AdditionalProperties["notify-keyspace-events"] = utils.String(v)
 	}
 
 	// AOF Backup
 	if v := raw["aof_backup_enabled"].(bool); v {
-		output["aof-backup-enabled"] = utils.String(strconv.FormatBool(v))
+		output.AdditionalProperties["aof-backup-enabled"] = utils.String(strconv.FormatBool(v))
 	}
 
 	if v := raw["aof_storage_connection_string_0"].(string); v != "" {
-		output["aof-storage-connection-string-0"] = utils.String(v)
+		output.AofStorageConnectionString0 = utils.String(v)
 	}
 
 	if v := raw["aof_storage_connection_string_1"].(string); v != "" {
-		output["aof-storage-connection-string-1"] = utils.String(v)
+		output.AofStorageConnectionString1 = utils.String(v)
 	}
 
 	authEnabled := raw["enable_authentication"].(bool)
@@ -828,7 +809,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (map[string]*string, er
 		}
 	} else {
 		value := isAuthNotRequiredAsString(authEnabled)
-		output["authnotrequired"] = utils.String(value)
+		output.AdditionalProperties["authnotrequired"] = utils.String(value)
 	}
 	return output, nil
 }
@@ -884,89 +865,89 @@ func flattenTenantSettings(input map[string]*string) map[string]*string {
 	return output
 }
 
-func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) {
-	outputs := make(map[string]interface{}, len(input))
+func flattenRedisConfiguration(input *redis.CommonPropertiesRedisConfiguration) ([]interface{}, error) {
+	outputs := make(map[string]interface{})
 
-	if v := input["maxclients"]; v != nil {
-		i, err := strconv.Atoi(*v)
+	if input.Maxclients != nil {
+		i, err := strconv.Atoi(*input.Maxclients)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `maxclients` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `maxclients` %q: %+v", *input.Maxclients, err)
 		}
 		outputs["maxclients"] = i
 	}
-	if v := input["maxmemory-delta"]; v != nil {
-		i, err := strconv.Atoi(*v)
+	if input.MaxmemoryDelta != nil {
+		i, err := strconv.Atoi(*input.MaxmemoryDelta)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `maxmemory-delta` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `maxmemory-delta` %q: %+v", *input.MaxmemoryDelta, err)
 		}
 		outputs["maxmemory_delta"] = i
 	}
-	if v := input["maxmemory-reserved"]; v != nil {
-		i, err := strconv.Atoi(*v)
+	if input.MaxmemoryReserved != nil {
+		i, err := strconv.Atoi(*input.MaxmemoryReserved)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `maxmemory-reserved` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `maxmemory-reserved` %q: %+v", *input.MaxmemoryReserved, err)
 		}
 		outputs["maxmemory_reserved"] = i
 	}
-	if v := input["maxmemory-policy"]; v != nil {
-		outputs["maxmemory_policy"] = *v
+	if input.MaxmemoryPolicy != nil {
+		outputs["maxmemory_policy"] = *input.MaxmemoryPolicy
 	}
 
-	if v := input["maxfragmentationmemory-reserved"]; v != nil {
-		i, err := strconv.Atoi(*v)
+	if input.MaxfragmentationmemoryReserved != nil {
+		i, err := strconv.Atoi(*input.MaxfragmentationmemoryReserved)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `maxfragmentationmemory-reserved` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `maxfragmentationmemory-reserved` %q: %+v", *input.MaxfragmentationmemoryReserved, err)
 		}
 		outputs["maxfragmentationmemory_reserved"] = i
 	}
 
 	// delta, reserved, enabled, frequency,, count,
-	if v := input["rdb-backup-enabled"]; v != nil {
-		b, err := strconv.ParseBool(*v)
+	if input.RdbBackupEnabled != nil {
+		b, err := strconv.ParseBool(*input.RdbBackupEnabled)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `rdb-backup-enabled` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `rdb-backup-enabled` %q: %+v", *input.RdbBackupEnabled, err)
 		}
 		outputs["rdb_backup_enabled"] = b
 	}
-	if v := input["rdb-backup-frequency"]; v != nil {
-		i, err := strconv.Atoi(*v)
+	if input.RdbBackupFrequency != nil {
+		i, err := strconv.Atoi(*input.RdbBackupFrequency)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `rdb-backup-frequency` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `rdb-backup-frequency` %q: %+v", *input.RdbBackupFrequency, err)
 		}
 		outputs["rdb_backup_frequency"] = i
 	}
-	if v := input["rdb-backup-max-snapshot-count"]; v != nil {
-		i, err := strconv.Atoi(*v)
+	if input.RdbBackupMaxSnapshotCount != nil {
+		i, err := strconv.Atoi(*input.RdbBackupMaxSnapshotCount)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `rdb-backup-max-snapshot-count` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `rdb-backup-max-snapshot-count` %q: %+v", *input.RdbBackupMaxSnapshotCount, err)
 		}
 		outputs["rdb_backup_max_snapshot_count"] = i
 	}
-	if v := input["rdb-storage-connection-string"]; v != nil {
-		outputs["rdb_storage_connection_string"] = *v
+	if input.RdbStorageConnectionString != nil {
+		outputs["rdb_storage_connection_string"] = *input.RdbStorageConnectionString
 	}
-	if v := input["notify-keyspace-events"]; v != nil {
-		outputs["notify_keyspace_events"] = *v
+	if v := input.AdditionalProperties["notify-keyspace-events"]; v != nil {
+		outputs["notify_keyspace_events"] = v
 	}
 
-	if v := input["aof-backup-enabled"]; v != nil {
-		b, err := strconv.ParseBool(*v)
+	if v := input.AdditionalProperties["aof-backup-enabled"]; v != nil {
+		b, err := strconv.ParseBool(v.(string))
 		if err != nil {
-			return nil, fmt.Errorf("parsing `aof-backup-enabled` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `aof-backup-enabled` %q: %+v", v, err)
 		}
 		outputs["aof_backup_enabled"] = b
 	}
-	if v := input["aof-storage-connection-string-0"]; v != nil {
-		outputs["aof_storage_connection_string_0"] = *v
+	if input.AofStorageConnectionString0 != nil {
+		outputs["aof_storage_connection_string_0"] = *input.AofStorageConnectionString0
 	}
-	if v := input["aof-storage-connection-string-1"]; v != nil {
-		outputs["aof_storage_connection_string_1"] = *v
+	if input.AofStorageConnectionString1 != nil {
+		outputs["aof_storage_connection_string_1"] = *input.AofStorageConnectionString1
 	}
 
 	// `authnotrequired` is not set for instances launched outside a VNET
 	outputs["enable_authentication"] = true
-	if v := input["authnotrequired"]; v != nil {
-		outputs["enable_authentication"] = isAuthRequiredAsBool(*v)
+	if v := input.AdditionalProperties["authnotrequired"]; v != nil {
+		outputs["enable_authentication"] = isAuthRequiredAsBool(v.(string))
 	}
 
 	return []interface{}{outputs}, nil

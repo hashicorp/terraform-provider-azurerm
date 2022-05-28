@@ -135,7 +135,7 @@ A `selection` block supports the following:
 
 * `operation` - (Optional) The condition operation to test a track property against. Supported values are `Equal` and `NotEqual`.
 
-* `property` - (Optional) The track property to compare. Supported values are `Bitrate`, `FourCC`, `Language`, `Name` and `Type`. Check [documentation](https://docs.microsoft.com/en-us/azure/media-services/latest/filters-concept) for more details.
+* `property` - (Optional) The track property to compare. Supported values are `Bitrate`, `FourCC`, `Language`, `Name` and `Type`. Check [documentation](https://docs.microsoft.com/azure/media-services/latest/filters-concept) for more details.
 
 * `value` - (Optional) The track property value to match or not match.
 

@@ -67,9 +67,7 @@ The following arguments are supported:
 
 * `clustering_policy` - (Optional) Clustering policy - default is OSSCluster. Specified at create time. Possible values are `EnterpriseCluster` and `OSSCluster`. Defaults to `OSSCluster`. Changing this forces a new Redis Enterprise Database to be created.
 
-* `eviction_policy` - (Optional) Redis eviction policy - default is VolatileLRU. Possible values are `AllKeysLFU`, `AllKeysLRU`, `AllKeysRandom`, `VolatileLRU`, `VolatileLFU`, `VolatileTTL`, `VolatileRandom` and `NoEviction`. Defaults to `VolatileLRU`. Changing this forces a new Redis Enterprise Database to be created.
-
--> **NOTE:** Eviction Policy must be set to NoEviction when using RediSearch module
+* `eviction_policy` - (Optional) Redis eviction policy - default is `VolatileLRU`. Possible values are `AllKeysLFU`, `AllKeysLRU`, `AllKeysRandom`, `VolatileLRU`, `VolatileLFU`, `VolatileTTL`, `VolatileRandom` and `NoEviction`. Changing this forces a new Redis Enterprise Database to be created.
 
 * `module` - (Optional)  A `module` block as defined below.
 

@@ -23,6 +23,7 @@ type Client struct {
 	LongTermRetentionPoliciesClient                    *sql.LongTermRetentionPoliciesClient
 	ManagedDatabasesClient                             *sql.ManagedDatabasesClient
 	ManagedInstancesClient                             *sql.ManagedInstancesClient
+	ManagedInstanceVulnerabilityAssessmentsClient      *sql.ManagedInstanceVulnerabilityAssessmentsClient
 	OutboundFirewallRulesClient                        *sql.OutboundFirewallRulesClient
 	ManagedInstanceAdministratorsClient                *sql.ManagedInstanceAdministratorsClient
 	ManagedInstanceAzureADOnlyAuthenticationsClient    *sql.ManagedInstanceAzureADOnlyAuthenticationsClient
@@ -31,6 +32,7 @@ type Client struct {
 	ServerAzureADAdministratorsClient                  *sql.ServerAzureADAdministratorsClient
 	ServerAzureADOnlyAuthenticationsClient             *sql.ServerAzureADOnlyAuthenticationsClient
 	ServerConnectionPoliciesClient                     *sql.ServerConnectionPoliciesClient
+	ServerDNSAliasClient                               *sql.ServerDNSAliasesClient
 	ServerExtendedBlobAuditingPoliciesClient           *sql.ExtendedServerBlobAuditingPoliciesClient
 	ServerKeysClient                                   *sql.ServerKeysClient
 	ServerSecurityAlertPoliciesClient                  *sql.ServerSecurityAlertPoliciesClient
@@ -96,6 +98,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	managedInstanceAzureADOnlyAuthenticationsClient := sql.NewManagedInstanceAzureADOnlyAuthenticationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstanceAzureADOnlyAuthenticationsClient.Client, o.ResourceManagerAuthorizer)
 
+	managedInstanceVulnerabilityAssessmentsClient := sql.NewManagedInstanceVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedInstanceVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
+
 	outboundFirewallRulesClient := sql.NewOutboundFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&outboundFirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -113,6 +118,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	serverConnectionPoliciesClient := sql.NewServerConnectionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverConnectionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	serverDNSAliasClient := sql.NewServerDNSAliasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&serverDNSAliasClient.Client, o.ResourceManagerAuthorizer)
 
 	serverExtendedBlobAuditingPoliciesClient := sql.NewExtendedServerBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
@@ -157,12 +165,14 @@ func NewClient(o *common.ClientOptions) *Client {
 		ManagedInstanceAdministratorsClient:             &managedInstancesAdministratorsClient,
 		ManagedInstanceAzureADOnlyAuthenticationsClient: &managedInstanceAzureADOnlyAuthenticationsClient,
 		ManagedInstancesClient:                          &managedInstancesClient,
+		ManagedInstanceVulnerabilityAssessmentsClient:   &managedInstanceVulnerabilityAssessmentsClient,
 		OutboundFirewallRulesClient:                     &outboundFirewallRulesClient,
 		ReplicationLinksClient:                          &replicationLinksClient,
 		RestorableDroppedDatabasesClient:                &restorableDroppedDatabasesClient,
 		ServerAzureADAdministratorsClient:               &serverAzureADAdministratorsClient,
 		ServerAzureADOnlyAuthenticationsClient:          &serverAzureADOnlyAuthenticationsClient,
 		ServerConnectionPoliciesClient:                  &serverConnectionPoliciesClient,
+		ServerDNSAliasClient:                            &serverDNSAliasClient,
 		ServerExtendedBlobAuditingPoliciesClient:        &serverExtendedBlobAuditingPoliciesClient,
 		ServerKeysClient:                                &serverKeysClient,
 		ServerSecurityAlertPoliciesClient:               &serverSecurityAlertPoliciesClient,

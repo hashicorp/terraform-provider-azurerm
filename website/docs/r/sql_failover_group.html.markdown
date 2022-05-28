@@ -32,7 +32,7 @@ resource "azurerm_sql_server" "primary" {
 resource "azurerm_sql_server" "secondary" {
   name                         = "sql-secondary"
   resource_group_name          = azurerm_resource_group.example.name
-  location                     = "northeurope"
+  location                     = azurerm_resource_group.example.location
   version                      = "12.0"
   administrator_login          = "sqladmin"
   administrator_login_password = "pa$$w0rd"

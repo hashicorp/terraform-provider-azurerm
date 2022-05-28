@@ -1069,6 +1069,23 @@ func TestAccLinuxWebApp_stickySettingsUpdate(t *testing.T) {
 	})
 }
 
+// Deployments
+
+func TestAccLinuxWebApp_zipDeploy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zipDeploy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("zip_deploy_file"),
+	})
+}
+
 // Exists func
 
 func (r LinuxWebAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -1956,6 +1973,18 @@ resource "azurerm_linux_web_app" "test" {
         x_forwarded_host  = ["example.com", "anotherexample.com"]
       }
     }
+    ip_restriction {
+      ip_address = "fe80::/64"
+      name       = "test-restriction-v6"
+      priority   = 124
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da", "6bde7211-57bc-4476-866a-c9676e22b9d7"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64", "9.9.9.8/32"]
+        x_forwarded_host  = ["example.com", "anotherexample.com"]
+      }
+    }
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)
@@ -2561,6 +2590,36 @@ resource "azurerm_linux_web_app" "test" {
   }
 
   key_vault_reference_identity_id = azurerm_user_assigned_identity.kv.id
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) zipDeploy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  app_settings = {
+    WEBSITE_RUN_FROM_PACKAGE       = "1"
+    SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
+  }
+
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+  }
+
+  zip_deploy_file = "./testdata/msdocs-python-flask-webapp-quickstart-main.zip"
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }

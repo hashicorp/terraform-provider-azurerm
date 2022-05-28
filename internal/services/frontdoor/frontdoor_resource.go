@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
@@ -78,10 +77,7 @@ func resourceFrontDoorCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	var backendCertNameCheck bool
 	var backendPoolsSendReceiveTimeoutSeconds int64
-	if !features.ThreePointOhBeta() {
-		backendCertNameCheck = d.Get("enforce_backend_pools_certificate_name_check").(bool)
-		backendPoolsSendReceiveTimeoutSeconds = int64(d.Get("backend_pools_send_receive_timeout_seconds").(int))
-	} else if bps, ok := d.Get("backend_pool_settings").([]interface{}); ok && len(bps) > 0 {
+	if bps, ok := d.Get("backend_pool_settings").([]interface{}); ok && len(bps) > 0 {
 		bpsMap := bps[0].(map[string]interface{})
 		if v, ok := bpsMap["enforce_backend_pools_certificate_name_check"].(bool); ok {
 			backendCertNameCheck = v
@@ -114,34 +110,6 @@ func resourceFrontDoorCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 			EnabledState:          &enabledState,
 		},
 		Tags: tags.Expand(t),
-	}
-	if !features.ThreePointOhBeta() {
-		// remove in 3.0
-		// due to a change in the RP, if a Frontdoor exists in a location other than 'Global' it may continue to
-		// exist in that location, if this is a brand new Frontdoor it must be created in the 'Global' location
-		location := "Global"
-		preExists := false
-
-		exists, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(exists.HttpResponse) {
-				return fmt.Errorf("locating %s: %+v", id, err)
-			}
-		} else {
-			preExists = true
-			if exists.Model != nil {
-				location = azure.NormalizeLocation(*exists.Model.Location)
-			}
-		}
-
-		cfgLocation, hasLocation := d.GetOk("location")
-		if hasLocation && preExists {
-			if location != azure.NormalizeLocation(cfgLocation) {
-				return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", name, resourceGroup, location, cfgLocation)
-			}
-		}
-
-		frontDoorParameters.Location = utils.String(location)
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, frontDoorParameters); err != nil {
@@ -224,9 +192,7 @@ func resourceFrontDoorUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		existingModel.Properties.FrontendEndpoints = expandFrontDoorFrontendEndpoint(frontendEndpoints, id)
 	}
 
-	if !features.ThreePointOhBeta() && d.HasChanges("enforce_backend_pools_certificate_name_check", "backend_pools_send_receive_timeout_seconds") {
-		existingModel.Properties.BackendPoolsSettings = expandFrontDoorBackendPoolsSettings(d.Get("enforce_backend_pools_certificate_name_check").(bool), int64(d.Get("backend_pools_send_receive_timeout_seconds").(int)))
-	} else if features.ThreePointOhBeta() && d.HasChange("backend_pool_settings") {
+	if d.HasChange("backend_pool_settings") {
 		var backendCertNameCheck bool
 		var backendPoolsSendReceiveTimeoutSeconds int64
 		if bps, ok := d.Get("backend_pool_settings").([]interface{}); ok && len(bps) > 0 {
@@ -292,10 +258,6 @@ func resourceFrontDoorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		if model.Location != nil && !features.ThreePointOhBeta() {
-			d.Set("location", azure.NormalizeLocation(*model.Location))
-		}
-
 		if props := model.Properties; props != nil {
 			explicitResourceOrder := d.Get("explicit_resource_order").([]interface{})
 			flattenedBackendPools, err := flattenFrontDoorBackendPools(props.BackendPools, *id, explicitResourceOrder)
@@ -307,16 +269,11 @@ func resourceFrontDoorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 
 			backendPoolSettings := flattenFrontDoorBackendPoolsSettings(props.BackendPoolsSettings)
-			if !features.ThreePointOhBeta() {
-				d.Set("enforce_backend_pools_certificate_name_check", backendPoolSettings.enforceBackendPoolsCertificateNameCheck)
-				d.Set("backend_pools_send_receive_timeout_seconds", backendPoolSettings.backendPoolsSendReceiveTimeoutSeconds)
-			} else {
-				out := map[string]interface{}{
-					"enforce_backend_pools_certificate_name_check": backendPoolSettings.enforceBackendPoolsCertificateNameCheck,
-					"backend_pools_send_receive_timeout_seconds":   backendPoolSettings.backendPoolsSendReceiveTimeoutSeconds,
-				}
-				d.Set("backend_pool_settings", []interface{}{out})
+			out := map[string]interface{}{
+				"enforce_backend_pools_certificate_name_check": backendPoolSettings.enforceBackendPoolsCertificateNameCheck,
+				"backend_pools_send_receive_timeout_seconds":   backendPoolSettings.backendPoolsSendReceiveTimeoutSeconds,
 			}
+			d.Set("backend_pool_settings", []interface{}{out})
 
 			d.Set("cname", props.Cname)
 			d.Set("header_frontdoor_id", props.FrontdoorId)
@@ -1763,7 +1720,7 @@ func flattenFrontDoorFrontendEndpointsSubResources(input *[]frontdoors.SubResour
 }
 
 func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -2111,6 +2068,26 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"backend_pool_settings": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enforce_backend_pools_certificate_name_check": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+
+					"backend_pools_send_receive_timeout_seconds": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      60,
+						ValidateFunc: validation.IntBetween(0, 240),
+					},
+				},
+			},
+		},
+
 		"frontend_endpoint": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 500,
@@ -2236,50 +2213,4 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		// Move 'enforce_backend_pools_certificate_name_check' and 'backend_pools_send_receive_timeout_seconds'
-		// into a 'backend_pool_settings' block
-		out["enforce_backend_pools_certificate_name_check"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Required: true,
-		}
-
-		out["backend_pools_send_receive_timeout_seconds"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Default:      60,
-			ValidateFunc: validation.IntBetween(0, 240),
-		}
-
-		out["location"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "Due to the service's API changing 'location' must now always be set to 'Global' for new resources, however if the Front Door service was created prior 2020/03/10 it may continue to exist in a specific current location",
-		}
-	} else {
-		out["backend_pool_settings"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-
-					"enforce_backend_pools_certificate_name_check": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-					},
-
-					"backend_pools_send_receive_timeout_seconds": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						Default:      60,
-						ValidateFunc: validation.IntBetween(0, 240),
-					},
-				},
-			},
-		}
-	}
-
-	return out
 }

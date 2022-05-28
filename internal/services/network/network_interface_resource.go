@@ -8,11 +8,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	lbvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -96,8 +95,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IPAllocationMethodDynamic),
 								string(network.IPAllocationMethodStatic),
-							}, !features.ThreePointOhBeta()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 
 						"public_ip_address_id": {

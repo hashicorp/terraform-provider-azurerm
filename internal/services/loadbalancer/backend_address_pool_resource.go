@@ -5,15 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -46,123 +43,88 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: func() map[string]*pluginsdk.Schema {
-			s := map[string]*pluginsdk.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 
-				"loadbalancer_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: validate.LoadBalancerID,
-				},
+			"loadbalancer_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.LoadBalancerID,
+			},
 
-				"tunnel_interface": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MinItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"identifier": {
-								Type:     pluginsdk.TypeInt,
-								Required: true,
+			"tunnel_interface": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"identifier": {
+							Type:     pluginsdk.TypeInt,
+							Required: true,
+						},
+
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.GatewayLoadBalancerTunnelInterfaceTypeNone),
+								string(network.GatewayLoadBalancerTunnelInterfaceTypeInternal),
+								string(network.GatewayLoadBalancerTunnelInterfaceTypeExternal),
 							},
+								false,
+							),
+						},
 
-							"type": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(network.GatewayLoadBalancerTunnelInterfaceTypeNone),
-									string(network.GatewayLoadBalancerTunnelInterfaceTypeInternal),
-									string(network.GatewayLoadBalancerTunnelInterfaceTypeExternal),
-								},
-									false,
-								),
+						"protocol": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.GatewayLoadBalancerTunnelProtocolNone),
+								string(network.GatewayLoadBalancerTunnelProtocolNative),
+								string(network.GatewayLoadBalancerTunnelProtocolVXLAN),
 							},
+								false,
+							),
+						},
 
-							"protocol": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(network.GatewayLoadBalancerTunnelProtocolNone),
-									string(network.GatewayLoadBalancerTunnelProtocolNative),
-									string(network.GatewayLoadBalancerTunnelProtocolVXLAN),
-								},
-									false,
-								),
-							},
-
-							"port": {
-								Type:     pluginsdk.TypeInt,
-								Required: true,
-							},
+						"port": {
+							Type:     pluginsdk.TypeInt,
+							Required: true,
 						},
 					},
 				},
+			},
 
-				"backend_ip_configurations": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
+			"backend_ip_configurations": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
+			},
 
-				"load_balancing_rules": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
+			"load_balancing_rules": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
+			},
 
-				"outbound_rules": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-					},
+			"outbound_rules": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
-			}
-
-			if !features.ThreePointOhBeta() {
-				s["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
-				s["backend_address"] = &pluginsdk.Schema{
-					Type:       pluginsdk.TypeSet,
-					Optional:   true,
-					Deprecated: "This field is non-functional and will be removed in version 3.0 of the Azure Provider - use the separate `azurerm_lb_backend_address_pool_address` resource instead.",
-					MinItems:   1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-
-							"virtual_network_id": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: networkValidate.VirtualNetworkID,
-							},
-
-							"ip_address": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.IsIPAddress,
-							},
-						},
-					},
-				}
-			}
-
-			return s
-		}(),
+			},
+		},
 	}
 }
 
@@ -220,12 +182,6 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 	sku := lb.Sku
 	if sku == nil {
 		return fmt.Errorf("nil or empty `sku` for Load Balancer %q for Backend Address Pool %q was not found", loadBalancerId, id)
-	}
-
-	// Sanity checks
-	if !features.ThreePointOhBeta() && len(d.Get("backend_address").(*pluginsdk.Set).List()) != 0 && sku.Name != network.LoadBalancerSkuNameStandard {
-		return fmt.Errorf("only the Standard (sku) Load Balancer allows IP based Backend Address Pool configuration,"+
-			"whilst %q is of sku %s", id, sku.Name)
 	}
 
 	if len(d.Get("tunnel_interface").([]interface{})) != 0 && sku.Name != network.LoadBalancerSkuNameGateway {
@@ -313,18 +269,7 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, me
 	d.Set("name", id.BackendAddressPoolName)
 	d.Set("loadbalancer_id", lbId.ID())
 
-	if !features.ThreePointOhBeta() {
-		d.Set("resource_group_name", id.ResourceGroup)
-	}
-
 	if props := resp.BackendAddressPoolPropertiesFormat; props != nil {
-		if !features.ThreePointOhBeta() {
-			// @tombuildsstuff: this is a Set so won't be referenced, let's just nil this out for now
-			if err := d.Set("backend_address", []interface{}{}); err != nil {
-				return fmt.Errorf("setting `backend_address`: %v", err)
-			}
-		}
-
 		if err := d.Set("tunnel_interface", flattenGatewayLoadBalancerTunnelInterfaces(props.TunnelInterfaces)); err != nil {
 			return fmt.Errorf("setting `tunnel_interface`: %v", err)
 		}

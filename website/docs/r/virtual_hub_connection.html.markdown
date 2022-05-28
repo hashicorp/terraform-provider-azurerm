@@ -78,7 +78,7 @@ A `propagated_route_table` block supports the following:
 
 * `labels` - (Optional) The list of labels to assign to this route table.
 
-* `route_table_ids` - (Optional) A list of Route Table ID's to associated with this Virtual Hub Connection.
+* `route_table_ids` - (Optional) A list of Route Table IDs to associated with this Virtual Hub Connection.
 
 ---
 

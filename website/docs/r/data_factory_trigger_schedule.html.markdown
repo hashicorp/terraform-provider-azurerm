@@ -44,7 +44,7 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Data Factory Schedule Trigger. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Schedule Trigger. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
@@ -55,6 +55,8 @@ The following arguments are supported:
 * `schedule` - (Optional) A `schedule` block as defined below, which further specifies the recurrence schedule for the trigger. A schedule is capable of limiting or increasing the number of trigger executions specified by the `frequency` and `interval` properties.
 
 * `start_time` - (Optional) The time the Schedule Trigger will start. This defaults to the current time. The time will be represented in UTC.
+
+* `time_zone` - (Optional) The timezone of the start/end time.
 
 * `end_time` - (Optional) The time the Schedule Trigger should end. The time will be represented in UTC.
 

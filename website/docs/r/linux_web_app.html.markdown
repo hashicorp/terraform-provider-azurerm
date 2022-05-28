@@ -25,7 +25,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_service_plan" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "West Europe"
+  location            = azurerm_resource_group.example.location
   os_type             = "Linux"
   sku_name            = "P1v2"
 }
@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `client_certificate_enabled` - (Optional) Should Client Certificates be enabled?
 
-* `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values include `Optional` and `Required`. This property has no effect when `client_cert_enabled` is `false`
+* `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values include `Optional` and `Required`. This property has no effect when `client_certificate_enabled` is `false`
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
@@ -79,13 +79,17 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
 * `logs` - (Optional) A `logs` block as defined below.
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
 * `sticky_settings` - A `sticky_settings` block as defined below.
+
+* `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Windows Web App.
+
+~> **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`. Refer to the [Azure docs](https://docs.microsoft.com/en-us/azure/app-service/deploy-run-package) for further details.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Web App.
 
@@ -159,7 +163,7 @@ A `auth_settings` block supports the following:
 
 * `active_directory` - (Optional) An `active_directory` block as defined above.
 
-* `additional_login_parameters` - (Optional) Specifies a map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
+* `additional_login_parameters` - (Optional) Specifies a map of login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
 
 * `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Linux Web App.
 
@@ -243,11 +247,11 @@ A `facebook` block supports the following:
 
 * `app_id` - (Required) The App ID of the Facebook app used for login.
 
-* `app_secret` - (Optional) The App Secret of the Facebook app used for Facebook Login. Cannot be specified with `app_secret_setting_name`.
+* `app_secret` - (Optional) The App Secret of the Facebook app used for Facebook login. Cannot be specified with `app_secret_setting_name`.
 
-* `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook Login. Cannot be specified with `app_secret`.
+* `app_secret_setting_name` - (Optional) The app setting name that contains the `app_secret` value used for Facebook login. Cannot be specified with `app_secret`.
 
-* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook Login authentication.
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes to be requested as part of Facebook login authentication.
 
 ---
 
@@ -263,11 +267,11 @@ A `github` block supports the following:
 
 * `client_id` - (Required) The ID of the GitHub app used for login.
 
-* `client_secret` - (Optional) The Client Secret of the GitHub app used for GitHub Login. Cannot be specified with `client_secret_setting_name`.
+* `client_secret` - (Optional) The Client Secret of the GitHub app used for GitHub login. Cannot be specified with `client_secret_setting_name`.
 
-* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for GitHub Login. Cannot be specified with `client_secret`.
+* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for GitHub login. Cannot be specified with `client_secret`.
 
-* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub Login authentication.
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of GitHub login authentication.
 
 ---
 
@@ -277,15 +281,15 @@ A `google` block supports the following:
 
 * `client_secret` - (Optional) The client secret associated with the Google web application.  Cannot be specified with `client_secret_setting_name`.
 
-* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google Login. Cannot be specified with `client_secret`.
+* `client_secret_setting_name` - (Optional) The app setting name that contains the `client_secret` value used for Google login. Cannot be specified with `client_secret`.
 
-* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, "openid", "profile", and "email" are used as default scopes.
+* `oauth_scopes` - (Optional) Specifies a list of OAuth 2.0 scopes that will be requested as part of Google Sign-In authentication. If not specified, `openid`, `profile`, and `email` are used as default scopes.
 
 ---
 
 A `headers` block supports the following:
 
-~> **NOTE:** Please see the [official Azure Documentation](https://docs.microsoft.com/en-us/azure/app-service/app-service-ip-restrictions#filter-by-http-header) for details on using header filtering.
+~> **NOTE:** Please see the [official Azure Documentation](https://docs.microsoft.com/azure/app-service/app-service-ip-restrictions#filter-by-http-header) for details on using header filtering.
 
 * `x_azure_fdid` - (Optional) Specifies a list of Azure Front Door IDs.
 
@@ -405,7 +409,7 @@ A `scm_ip_restriction` block supports the following:
 
 A `site_config` block supports the following:
 
-* `always_on` - (Optional) If this Linux Web App is Always On enabled. Defaults to `false`.
+* `always_on` - (Optional) If this Linux Web App is Always On enabled. Defaults to `true`.
 
 * `api_management_config_id` - (Optional) The ID of the APIM configuration for this Linux Web App.
 

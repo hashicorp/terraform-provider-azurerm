@@ -107,6 +107,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_hub_route_table_route":             resourceVirtualHubRouteTableRoute(),
 		"azurerm_virtual_network_dns_servers":               resourceVirtualNetworkDnsServers(),
 		"azurerm_virtual_network_gateway_connection":        resourceVirtualNetworkGatewayConnection(),
+		"azurerm_virtual_network_gateway_nat_rule":          resourceVirtualNetworkGatewayNatRule(),
 		"azurerm_virtual_network_gateway":                   resourceVirtualNetworkGateway(),
 		"azurerm_virtual_network_peering":                   resourceVirtualNetworkPeering(),
 		"azurerm_virtual_network":                           resourceVirtualNetwork(),

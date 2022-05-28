@@ -14,15 +14,15 @@ Manages an EventGrid Event Subscription
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "default" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_storage_account" "default" {
   name                     = "defaultStorageAccount"
-  resource_group_name      = azurerm_resource_group.default.name
-  location                 = azurerm_resource_group.default.location
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -38,7 +38,7 @@ resource "azurerm_storage_queue" "default" {
 
 resource "azurerm_eventgrid_event_subscription" "default" {
   name  = "defaultEventSubscription"
-  scope = azurerm_resource_group.default.id
+  scope = azurerm_resource_group.example.id
 
   storage_queue_endpoint {
     storage_account_id = azurerm_storage_account.default.id
@@ -223,7 +223,7 @@ A `retry_policy` supports the following:
 
 * `max_delivery_attempts` - (Required) Specifies the maximum number of delivery retry attempts for events.
 
-* `event_time_to_live` - (Required) Specifies the time to live (in minutes) for events. Supported range is `1` to `1440`. Defaults to `1440`. See [official documentation](https://docs.microsoft.com/en-us/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.
+* `event_time_to_live` - (Required) Specifies the time to live (in minutes) for events. Supported range is `1` to `1440`. Defaults to `1440`. See [official documentation](https://docs.microsoft.com/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.
 
 ## Attributes Reference
 

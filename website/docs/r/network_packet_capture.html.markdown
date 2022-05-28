@@ -130,7 +130,7 @@ The following arguments are supported:
 
 * `target_resource_id` - (Required) The ID of the Resource to capture packets from. Changing this forces a new resource to be created.
 
-~> **NOTE:** Currently only Virtual Machines ID's are supported.
+~> **NOTE:** Currently only Virtual Machines IDs are supported.
 
 * `maximum_bytes_per_packet` - (Optional) The number of bytes captured per packet. The remaining bytes are truncated. Defaults to `0` (Entire Packet Captured). Changing this forces a new resource to be created.
 

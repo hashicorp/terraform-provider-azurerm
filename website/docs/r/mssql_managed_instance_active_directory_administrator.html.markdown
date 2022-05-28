@@ -1,7 +1,7 @@
 ---
 subcategory: "Database"
 layout: "azurerm"
-page_title: "Azure Resource manager: azurerm_mssql_managed_instance_active_directory_administrator"
+page_title: "Azure Resource Manager: azurerm_mssql_managed_instance_active_directory_administrator"
 description: |-
   Manages an Active Directory Administrator on a Microsoft Azure SQL Managed Instance
 ---
@@ -13,6 +13,11 @@ Allows you to set a user, group or service principal as the AAD Administrator fo
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
+}
+
 resource "azurerm_mssql_managed_instance" "example" {
   name                = "managedsqlinstance"
   resource_group_name = azurerm_resource_group.example.name

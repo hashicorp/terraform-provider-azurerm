@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -137,8 +136,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.OperatingSystemTypesWindows),
 					string(compute.OperatingSystemTypesLinux),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"disk_size_gb": {
@@ -183,6 +181,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validate.DiskEncryptionSetID,
+				ConflictsWith:    []string{"secure_vm_disk_encryption_set_id"},
 			},
 
 			"encryption_settings": encryptionSettingsSchema(),
@@ -228,6 +227,25 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
+			},
+
+			"secure_vm_disk_encryption_set_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.DiskEncryptionSetID,
+				ConflictsWith: []string{"disk_encryption_set_id"},
+			},
+
+			"security_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.DiskSecurityTypesConfidentialVMVMGuestStateOnlyEncryptedWithPlatformKey),
+					string(compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithPlatformKey),
+					string(compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey),
+				}, false),
 			},
 
 			"hyper_v_generation": {
@@ -438,6 +456,36 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
+	securityType := d.Get("security_type").(string)
+	secureVMDiskEncryptionId := d.Get("secure_vm_disk_encryption_set_id")
+	if securityType != "" {
+		if d.Get("trusted_launch_enabled").(bool) {
+			return fmt.Errorf("`security_type` cannot be specified when `trusted_launch_enabled` is set to `true`")
+		}
+
+		switch createOption {
+		case compute.DiskCreateOptionFromImage:
+		case compute.DiskCreateOptionImport:
+		default:
+			return fmt.Errorf("`security_type` can only be specified when `create_option` is set to `FromImage` or `Import`")
+		}
+
+		if compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey == compute.DiskSecurityTypes(securityType) && secureVMDiskEncryptionId == "" {
+			return fmt.Errorf("`secure_vm_disk_encryption_set_id` must be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
+		}
+
+		props.SecurityProfile = &compute.DiskSecurityProfile{
+			SecurityType: compute.DiskSecurityTypes(securityType),
+		}
+	}
+
+	if secureVMDiskEncryptionId != "" {
+		if compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey != compute.DiskSecurityTypes(securityType) {
+			return fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
+		}
+		props.SecurityProfile.SecureVMDiskEncryptionSetID = utils.String(secureVMDiskEncryptionId.(string))
+	}
+
 	if d.Get("on_demand_bursting_enabled").(bool) {
 		switch storageAccountType {
 		case string(compute.StorageAccountTypesPremiumLRS):
@@ -468,14 +516,10 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Tags: tags.Expand(t),
 	}
 
-	if features.ThreePointOhBeta() {
-		if zone, ok := d.GetOk("zone"); ok {
-			createDisk.Zones = &[]string{
-				zone.(string),
-			}
+	if zone, ok := d.GetOk("zone"); ok {
+		createDisk.Zones = &[]string{
+			zone.(string),
 		}
-	} else {
-		createDisk.Zones = azure.ExpandZones(d.Get("zones").([]interface{}))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, createDisk)
@@ -821,16 +865,12 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
-	if features.ThreePointOhBeta() {
-		zone := ""
-		if resp.Zones != nil && len(*resp.Zones) > 0 {
-			z := *resp.Zones
-			zone = z[0]
-		}
-		d.Set("zone", zone)
-	} else {
-		d.Set("zones", utils.FlattenStringSlice(resp.Zones))
+	zone := ""
+	if resp.Zones != nil && len(*resp.Zones) > 0 {
+		z := *resp.Zones
+		zone = z[0]
 	}
+	d.Set("zone", zone)
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("storage_account_type", string(sku.Name))
@@ -887,12 +927,22 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 
 		trustedLaunchEnabled := false
+		securityType := ""
+		secureVMDiskEncryptionSetId := ""
 		if securityProfile := props.SecurityProfile; securityProfile != nil {
 			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
 				trustedLaunchEnabled = true
+			} else {
+				securityType = string(securityProfile.SecurityType)
+			}
+
+			if securityProfile.SecureVMDiskEncryptionSetID != nil {
+				secureVMDiskEncryptionSetId = *securityProfile.SecureVMDiskEncryptionSetID
 			}
 		}
 		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+		d.Set("security_type", securityType)
+		d.Set("secure_vm_disk_encryption_set_id", secureVMDiskEncryptionSetId)
 
 		onDemandBurstingEnabled := false
 		if props.BurstingEnabled != nil {
