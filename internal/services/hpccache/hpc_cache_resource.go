@@ -138,37 +138,44 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 	// If any directory setting is set, we'll further check either the `usernameDownloaded` (for LDAP/Flat File), or the `domainJoined` (for AD) in response to ensure the configuration is correct, and the cache is functional.
 	// There are situations that the LRO succeeded, whilst ends up with a non-functional cache (e.g. providing some invalid flat file setting).
 	if directorySetting != nil {
-		resp, err := client.Get(ctx, resourceGroup, name)
+		err = pluginsdk.Retry(5*time.Minute, func() *pluginsdk.RetryError {
+			resp, err := client.Get(ctx, resourceGroup, name)
+			if err != nil {
+				return pluginsdk.NonRetryableError(fmt.Errorf("retrieving HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err))
+			}
+
+			prop := resp.CacheProperties
+			if prop == nil {
+				return pluginsdk.NonRetryableError(fmt.Errorf("Unepxected nil `cacheProperties` in response"))
+			}
+			ds := prop.DirectoryServicesSettings
+			if ds == nil {
+				return pluginsdk.NonRetryableError(fmt.Errorf("Unexpected nil `directoryServicesSettings` in response"))
+			}
+
+			// In case the user uses active directory service, we
+			if directorySetting.ActiveDirectory != nil {
+				ad := ds.ActiveDirectory
+				if ad == nil {
+					return pluginsdk.NonRetryableError(fmt.Errorf("Unexpected nil `activeDirectory` in response"))
+				}
+				if ad.DomainJoined != storagecache.DomainJoinedTypeYes {
+					return pluginsdk.NonRetryableError(fmt.Errorf("failed to join domain, current status: %s", ad.DomainJoined))
+				}
+			} else {
+				ud := ds.UsernameDownload
+				if ud == nil {
+					return pluginsdk.NonRetryableError(fmt.Errorf("Unexpected nil `usernameDownload` in response"))
+				}
+				if ud.UsernameDownloaded != storagecache.UsernameDownloadedTypeYes {
+					time.Sleep(30 * time.Second)
+					return pluginsdk.RetryableError(fmt.Errorf("failed to download directory info, current status: %s", ud.UsernameDownloaded))
+				}
+			}
+			return nil
+		})
 		if err != nil {
-			return fmt.Errorf("retrieving HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		prop := resp.CacheProperties
-		if prop == nil {
-			return fmt.Errorf("Unepxected nil `cacheProperties` in response")
-		}
-		ds := prop.DirectoryServicesSettings
-		if ds == nil {
-			return fmt.Errorf("Unexpected nil `directoryServicesSettings` in response")
-		}
-
-		// In case the user uses active directory service, we
-		if directorySetting.ActiveDirectory != nil {
-			ad := ds.ActiveDirectory
-			if ad == nil {
-				return fmt.Errorf("Unexpected nil `activeDirectory` in response")
-			}
-			if ad.DomainJoined != storagecache.DomainJoinedTypeYes {
-				return fmt.Errorf("failed to join domain, current status: %s", ad.DomainJoined)
-			}
-		} else {
-			ud := ds.UsernameDownload
-			if ud == nil {
-				return fmt.Errorf("Unexpected nil `usernameDownload` in response")
-			}
-			if ud.UsernameDownloaded != storagecache.UsernameDownloadedTypeYes {
-				return fmt.Errorf("failed to download directory info, current status: %s", ud.UsernameDownloaded)
-			}
+			return err
 		}
 	}
 
