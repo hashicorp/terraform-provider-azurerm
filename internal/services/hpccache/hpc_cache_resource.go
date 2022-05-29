@@ -47,7 +47,7 @@ func resourceHPCCache() *pluginsdk.Resource {
 
 		Schema: resourceHPCCacheSchema(),
 
-		CustomizeDiff: pluginsdk.CustomDiffInSequence(
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("key_vault_key_id", func(ctx context.Context, old, new, meta interface{}) bool {
 				// `key_vault_key_id` cannot be added or removed after created
 				oldValue := old.(string)
