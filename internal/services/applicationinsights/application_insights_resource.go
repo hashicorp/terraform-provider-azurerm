@@ -221,6 +221,13 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		ForceCustomerStorageForProfiler: utils.Bool(forceCustomerStorageForProfiler),
 	}
 
+	if !d.IsNewResource() {
+		oldWorkspaceId, newWorkspaceId := d.GetChange("workspace_id")
+		if oldWorkspaceId.(string) != "" && newWorkspaceId.(string) == "" {
+			return fmt.Errorf("`workspace_id` can not be removed after set")
+		}
+	}
+
 	if workspaceRaw, hasWorkspaceId := d.GetOk("workspace_id"); hasWorkspaceId {
 		applicationInsightsComponentProperties.WorkspaceResourceID = utils.String(workspaceRaw.(string))
 	}
