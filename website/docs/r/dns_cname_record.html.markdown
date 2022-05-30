@@ -99,7 +99,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS CName Record.
 * `update` - (Defaults to 30 minutes) Used when updating the DNS CName Record.
-* `read` - (Defaults to 10 minutes) Used when retrieving the DNS CName Record.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DNS CName Record.
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS CName Record.
 
 ## Import
