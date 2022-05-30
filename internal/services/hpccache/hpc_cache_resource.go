@@ -46,15 +46,6 @@ func resourceHPCCache() *pluginsdk.Resource {
 		}),
 
 		Schema: resourceHPCCacheSchema(),
-
-		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("key_vault_key_id", func(ctx context.Context, old, new, meta interface{}) bool {
-				// `key_vault_key_id` cannot be added or removed after created
-				oldValue := old.(string)
-				newValue := new.(string)
-				return (oldValue != "" && newValue == "") || (oldValue == "" && newValue != "")
-			}),
-		),
 	}
 }
 
@@ -149,6 +140,13 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 		},
 		Identity: identity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if !d.IsNewResource() {
+		oldKeyVaultKeyId, newKeyVaultKeyId := d.GetChange("key_vault_key_id")
+		if (oldKeyVaultKeyId.(string) != "" && newKeyVaultKeyId.(string) == "") || (oldKeyVaultKeyId.(string) == "" && newKeyVaultKeyId.(string) != "") {
+			return fmt.Errorf("`key_vault_key_id` can not be added or removed after HPC Cache is created")
+		}
 	}
 
 	requireAdditionalUpdate := false
