@@ -7,6 +7,7 @@ import (
 	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	newActionGroupClient "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	newAlertsManagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/sdk/2021-08-08/alertsmanagement"
 )
 
 type Client struct {
@@ -18,6 +19,7 @@ type Client struct {
 
 	// alerts management
 	ActionRulesClient             *alertsmanagement.ActionRulesClient
+	AlertsManagementClient        *newAlertsManagementClient.AlertsManagementClient
 	SmartDetectorAlertRulesClient *alertsmanagement.SmartDetectorAlertRulesClient
 
 	// Monitor
@@ -42,6 +44,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ActionRulesClient := alertsmanagement.NewActionRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ActionRulesClient.Client, o.ResourceManagerAuthorizer)
+
+	AlertsManagementClient := newAlertsManagementClient.NewAlertsManagementClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&AlertsManagementClient.Client, o.ResourceManagerAuthorizer)
 
 	SmartDetectorAlertRulesClient := alertsmanagement.NewSmartDetectorAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SmartDetectorAlertRulesClient.Client, o.ResourceManagerAuthorizer)
@@ -79,6 +84,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		AADDiagnosticSettingsClient:      &AADDiagnosticSettingsClient,
 		AutoscaleSettingsClient:          &AutoscaleSettingsClient,
+		AlertsManagementClient:           &AlertsManagementClient,
 		ActionRulesClient:                &ActionRulesClient,
 		SmartDetectorAlertRulesClient:    &SmartDetectorAlertRulesClient,
 		ActionGroupsClient:               &ActionGroupsClient,

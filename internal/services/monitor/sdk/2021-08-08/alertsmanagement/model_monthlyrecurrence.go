@@ -1,0 +1,40 @@
+package alertsmanagement
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+var _ Recurrence = MonthlyRecurrence{}
+
+type MonthlyRecurrence struct {
+	DaysOfMonth []int64 `json:"daysOfMonth"`
+
+	// Fields inherited from Recurrence
+	EndTime   *string `json:"endTime,omitempty"`
+	StartTime *string `json:"startTime,omitempty"`
+}
+
+var _ json.Marshaler = MonthlyRecurrence{}
+
+func (s MonthlyRecurrence) MarshalJSON() ([]byte, error) {
+	type wrapper MonthlyRecurrence
+	wrapped := wrapper(s)
+	encoded, err := json.Marshal(wrapped)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling MonthlyRecurrence: %+v", err)
+	}
+
+	var decoded map[string]interface{}
+	if err := json.Unmarshal(encoded, &decoded); err != nil {
+		return nil, fmt.Errorf("unmarshaling MonthlyRecurrence: %+v", err)
+	}
+	decoded["recurrenceType"] = "Monthly"
+
+	encoded, err = json.Marshal(decoded)
+	if err != nil {
+		return nil, fmt.Errorf("re-marshaling MonthlyRecurrence: %+v", err)
+	}
+
+	return encoded, nil
+}
