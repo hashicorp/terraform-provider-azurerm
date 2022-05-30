@@ -10,6 +10,8 @@ description: |-
 
 Enables you to manage DNS SRV Records within Azure DNS.
 
+~> **Note:** [DNS has a throttle limit of 500 read (GET) operations per 5 minutes](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/request-limits-and-throttling#network-throttling). If you are provisioning a large scale of DNS records, please set a larger [read timeout](https://www.terraform.io/language/resources/syntax#operation-timeouts) then the default 5min. Alternatively, we’d recommend you split the resources out into smaller Terraform configurations to avoid the problem entirely.
+
 ## Example Usage
 
 ```hcl
