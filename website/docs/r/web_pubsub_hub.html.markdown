@@ -24,7 +24,7 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.example.location
 }
 
-resource "azurerm_web_pubsub" "example" {
+resource "azurerm_web_pubsub" "test" {
   name                = "tfex-webpubsub"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -34,8 +34,8 @@ resource "azurerm_web_pubsub" "example" {
 }
 
 resource "azurerm_web_pubsub_hub" "test" {
-  name          = "tfex-wpsh"
-  web_pubsub_id = azurerm_web_pubsub.exmaple.id
+  name          = "tfex_wpsh"
+  web_pubsub_id = azurerm_web_pubsub.test.id
   event_handler {
     url_template       = "https://test.com/api/{hub}/{event}"
     user_event_pattern = "*"
