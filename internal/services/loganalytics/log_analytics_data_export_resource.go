@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -76,6 +77,21 @@ func resourceLogAnalyticsDataExport() *pluginsdk.Resource {
 				},
 			},
 
+			"metadata": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"eventhub_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: eventhubValidate.ValidateEventHubName(),
+						},
+					},
+				},
+			},
+
 			"export_rule_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -110,7 +126,8 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 	parameters := operationalinsights.DataExport{
 		DataExportProperties: &operationalinsights.DataExportProperties{
 			Destination: &operationalinsights.Destination{
-				ResourceID: utils.String(d.Get("destination_resource_id").(string)),
+				DestinationMetaData: expandDataExportDestinationMetaData(d.Get("metadata").([]interface{})),
+				ResourceID:          utils.String(d.Get("destination_resource_id").(string)),
 			},
 			TableNames: utils.ExpandStringSlice(d.Get("table_names").(*pluginsdk.Set).List()),
 			Enable:     utils.Bool(d.Get("enabled").(bool)),
@@ -152,6 +169,10 @@ func resourceOperationalinsightsDataExportRead(d *pluginsdk.ResourceData, meta i
 		d.Set("destination_resource_id", flattenDataExportDestination(props.Destination))
 		d.Set("enabled", props.Enable)
 		d.Set("table_names", utils.FlattenStringSlice(props.TableNames))
+
+		if err := d.Set("metadata", flattenDataExportDestinationMetaData(props.Destination)); err != nil {
+			return fmt.Errorf("setting `metadata`")
+		}
 	}
 	return nil
 }
@@ -183,4 +204,29 @@ func flattenDataExportDestination(input *operationalinsights.Destination) string
 	}
 
 	return resourceID
+}
+
+func expandDataExportDestinationMetaData(input []interface{}) *operationalinsights.DestinationMetaData {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	metaData := input[0].(map[string]interface{})
+
+	return &operationalinsights.DestinationMetaData{
+		EventHubName: utils.String(metaData["eventhub_name"].(string)),
+	}
+}
+
+func flattenDataExportDestinationMetaData(input *operationalinsights.Destination) []interface{} {
+	// As API always returns `"metaData": {}` when it isn't specified, so here it has to return `[]interface{}{}` otherwise TF would cause diff
+	if input == nil || input.DestinationMetaData == nil || input.DestinationMetaData.EventHubName == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"eventhub_name": input.DestinationMetaData.EventHubName,
+		},
+	}
 }
