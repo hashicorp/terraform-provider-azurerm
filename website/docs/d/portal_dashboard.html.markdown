@@ -28,9 +28,11 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the shared Azure Portal Dashboard.
-
 * `resource_group_name` - (Required) Specifies the name of the resource group the shared Azure Portal Dashboard is located in.
+
+* `name` - (Optional) Specifies the name of the shared Azure Portal Dashboard.
+
+* `display_name` - (Optional) Specifies the display name of the shared Azure Portal Dashboard.
 
 ## Attributes Reference
 

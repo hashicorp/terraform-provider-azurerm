@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 
@@ -28,7 +29,7 @@ import (
 )
 
 func resourceKustoCluster() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	s := &pluginsdk.Resource{
 		Create: resourceKustoClusterCreateUpdate,
 		Read:   resourceKustoClusterRead,
 		Update: resourceKustoClusterCreateUpdate,
@@ -180,7 +181,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(kusto.EngineTypeV2),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(kusto.EngineTypeV2),
 					string(kusto.EngineTypeV3),
@@ -238,6 +238,14 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 	}
+
+	if features.FourPointOhBeta() {
+		s.Schema["engine"].Default = string(kusto.EngineTypeV3)
+	} else {
+		s.Schema["engine"].Default = string(kusto.EngineTypeV2)
+	}
+
+	return s
 }
 
 func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

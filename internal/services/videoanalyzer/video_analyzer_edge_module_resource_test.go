@@ -16,6 +16,7 @@ import (
 type VideoAnalyzerEdgeModuleResource struct{}
 
 func TestAccVideoAnalyzerEdgeModule_basic(t *testing.T) {
+	t.Skip("Skipping as video analyzer is deprecated")
 	data := acceptance.BuildTestData(t, "azurerm_video_analyzer_edge_module", "test")
 	r := VideoAnalyzerEdgeModuleResource{}
 
@@ -31,6 +32,7 @@ func TestAccVideoAnalyzerEdgeModule_basic(t *testing.T) {
 }
 
 func TestAccVideoAnalyzerEdgeModule_requiresImport(t *testing.T) {
+	t.Skip("Skipping as video analyzer is deprecated")
 	data := acceptance.BuildTestData(t, "azurerm_video_analyzer_edge_module", "test")
 	r := VideoAnalyzerEdgeModuleResource{}
 

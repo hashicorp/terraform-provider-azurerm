@@ -78,7 +78,7 @@ An `tag_filter` block exports the following:
 
 * `name` - (Required) The name of this `tag_filter`.
 
-* `action` - (Required) The action for a filtering tag. Possible values are "Include" and "Exclude" is allowed. Note that the `Exclude` takes priority over the `Include`.
+* `action` - (Required) The action for a filtering tag. Possible values are `Include` and `Exclude` is allowed. Note that the `Exclude` takes priority over the `Include`.
 
 * `value` - (Optional) The value of this `tag_filter`.
 

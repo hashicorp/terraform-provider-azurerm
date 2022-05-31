@@ -5,11 +5,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/privatezones"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,7 +26,7 @@ func resourcePrivateDnsZone() *pluginsdk.Resource {
 		Update: resourcePrivateDnsZoneCreateUpdate,
 		Delete: resourcePrivateDnsZoneDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.PrivateDnsZoneID(id)
+			_, err := privatezones.ParsePrivateDnsZoneID(id)
 			return err
 		}),
 
@@ -152,61 +153,63 @@ func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewPrivateDnsZoneID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := privatezones.NewPrivateDnsZoneID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Private DNS Zone %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_private_dns_zone", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_private_dns_zone", id.ID())
 		}
 	}
 
-	location := "global"
-	t := d.Get("tags").(map[string]interface{})
-
-	parameters := privatedns.PrivateZone{
-		Location: &location,
-		Tags:     tags.Expand(t),
+	parameters := privatezones.PrivateZone{
+		Location: utils.String("global"),
+		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	etag := ""
-	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	future, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, parameters, etag, ifNoneMatch)
-	if err != nil {
-		return fmt.Errorf("creating/updating Private DNS Zone %q (Resource Group %q): %s", resourceId.Name, resourceId.ResourceGroup, err)
+	options := privatezones.CreateOrUpdateOperationOptions{
+		IfMatch:     utils.String(""),
+		IfNoneMatch: utils.String(""),
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for create/update of Private DNS Zone %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, options); err != nil {
+		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
 
 	if v, ok := d.GetOk("soa_record"); ok {
 		soaRecordRaw := v.([]interface{})[0].(map[string]interface{})
 		soaRecord := expandPrivateDNSZoneSOARecord(soaRecordRaw)
-		rsParameters := privatedns.RecordSet{
-			RecordSetProperties: &privatedns.RecordSetProperties{
-				TTL:       utils.Int64(int64(soaRecordRaw["ttl"].(int))),
-				Metadata:  tags.Expand(soaRecordRaw["tags"].(map[string]interface{})),
+		rsParameters := recordsets.RecordSet{
+			Properties: &recordsets.RecordSetProperties{
+				Ttl:       utils.Int64(int64(soaRecordRaw["ttl"].(int))),
+				Metadata:  expandTags(soaRecordRaw["tags"].(map[string]interface{})),
 				SoaRecord: soaRecord,
 			},
 		}
 
-		val := fmt.Sprintf("%s%s", resourceId.Name, strings.TrimSuffix(*soaRecord.Email, "."))
+		recordId := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.PrivateZoneName, recordsets.RecordTypeSOA, "@")
+
+		val := fmt.Sprintf("%s%s", id.PrivateZoneName, strings.TrimSuffix(*soaRecord.Email, "."))
 		if len(val) > 253 {
 			return fmt.Errorf("the value %q for `email` which is concatenated with Private DNS Zone `name` cannot exceed 253 characters excluding a trailing period", val)
 		}
 
-		if _, err := recordSetsClient.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, privatedns.SOA, "@", rsParameters, etag, ifNoneMatch); err != nil {
-			return fmt.Errorf("creating/updating Private DNS SOA Record @ (Zone %q / Resource Group %q): %s", resourceId.Name, resourceId.ResourceGroup, err)
+		createOptions := recordsets.CreateOrUpdateOperationOptions{
+			IfMatch:     utils.String(""),
+			IfNoneMatch: utils.String(""),
+		}
+
+		if _, err := recordSetsClient.CreateOrUpdate(ctx, recordId, rsParameters, createOptions); err != nil {
+			return fmt.Errorf("creating/updating %s: %s", recordId, err)
 		}
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourcePrivateDnsZoneRead(d, meta)
 }
 
@@ -216,40 +219,47 @@ func resourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PrivateDnsZoneID(d.Id())
+	id, err := privatezones.ParsePrivateDnsZoneID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Private DNS Zone %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	recordSetResp, err := recordSetsClient.Get(ctx, id.ResourceGroup, id.Name, privatedns.SOA, "@")
+	recordId := recordsets.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.PrivateZoneName, recordsets.RecordTypeSOA, "@")
+	recordSetResp, err := recordSetsClient.Get(ctx, recordId)
 	if err != nil {
 		return fmt.Errorf("reading DNS SOA record @: %v", err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.PrivateZoneName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.PrivateZoneProperties; props != nil {
-		d.Set("number_of_record_sets", props.NumberOfRecordSets)
-		d.Set("max_number_of_record_sets", props.MaxNumberOfRecordSets)
-		d.Set("max_number_of_virtual_network_links", props.MaxNumberOfVirtualNetworkLinks)
-		d.Set("max_number_of_virtual_network_links_with_registration", props.MaxNumberOfVirtualNetworkLinksWithRegistration)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("number_of_record_sets", props.NumberOfRecordSets)
+			d.Set("max_number_of_record_sets", props.MaxNumberOfRecordSets)
+			d.Set("max_number_of_virtual_network_links", props.MaxNumberOfVirtualNetworkLinks)
+			d.Set("max_number_of_virtual_network_links_with_registration", props.MaxNumberOfVirtualNetworkLinksWithRegistration)
+		}
+
+		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+			return err
+		}
 	}
 
-	if err := d.Set("soa_record", flattenPrivateDNSZoneSOARecord(&recordSetResp)); err != nil {
+	if err = d.Set("soa_record", flattenPrivateDNSZoneSOARecord(recordSetResp.Model)); err != nil {
 		return fmt.Errorf("setting `soa_record`: %+v", err)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourcePrivateDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -257,52 +267,48 @@ func resourcePrivateDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PrivateDnsZoneID(d.Id())
+	id, err := privatezones.ParsePrivateDnsZoneID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	etag := ""
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, etag)
-	if err != nil {
-		return fmt.Errorf("deleting Private DNS Zone %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
+	options := privatezones.DeleteOperationOptions{IfMatch: utils.String("")}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Private DNS Zone %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if err = client.DeleteThenPoll(ctx, *id, options); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandPrivateDNSZoneSOARecord(input map[string]interface{}) *privatedns.SoaRecord {
-	return &privatedns.SoaRecord{
+func expandPrivateDNSZoneSOARecord(input map[string]interface{}) *recordsets.SoaRecord {
+	return &recordsets.SoaRecord{
 		Email:       utils.String(input["email"].(string)),
 		ExpireTime:  utils.Int64(int64(input["expire_time"].(int))),
-		MinimumTTL:  utils.Int64(int64(input["minimum_ttl"].(int))),
+		MinimumTtl:  utils.Int64(int64(input["minimum_ttl"].(int))),
 		RefreshTime: utils.Int64(int64(input["refresh_time"].(int))),
 		RetryTime:   utils.Int64(int64(input["retry_time"].(int))),
 	}
 }
 
-func flattenPrivateDNSZoneSOARecord(input *privatedns.RecordSet) []interface{} {
-	if input == nil {
+func flattenPrivateDNSZoneSOARecord(input *recordsets.RecordSet) []interface{} {
+	if input == nil || input.Properties == nil {
 		return make([]interface{}, 0)
 	}
 
 	ttl := 0
-	if input.TTL != nil {
-		ttl = int(*input.TTL)
+	if input.Properties.Ttl != nil {
+		ttl = int(*input.Properties.Ttl)
 	}
 
 	metaData := make(map[string]interface{})
-	if input.Metadata != nil {
-		metaData = tags.Flatten(input.Metadata)
+	if input.Properties.Metadata != nil {
+		metaData = tags.Flatten(flattenTags(input.Properties.Metadata))
 	}
 
 	fqdn := ""
-	if input.Fqdn != nil {
-		fqdn = *input.Fqdn
+	if input.Properties.Fqdn != nil {
+		fqdn = *input.Properties.Fqdn
 	}
 
 	email := ""
@@ -312,33 +318,33 @@ func flattenPrivateDNSZoneSOARecord(input *privatedns.RecordSet) []interface{} {
 	refreshTime := 0
 	retryTime := 0
 	serialNumber := 0
-	if input.SoaRecord != nil {
-		if input.SoaRecord.Email != nil {
-			email = *input.SoaRecord.Email
+	if record := input.Properties.SoaRecord; record != nil {
+		if record.Email != nil {
+			email = *record.Email
 		}
 
-		if input.SoaRecord.Host != nil {
-			hostName = *input.SoaRecord.Host
+		if record.Host != nil {
+			hostName = *record.Host
 		}
 
-		if input.SoaRecord.ExpireTime != nil {
-			expireTime = int(*input.SoaRecord.ExpireTime)
+		if record.ExpireTime != nil {
+			expireTime = int(*record.ExpireTime)
 		}
 
-		if input.SoaRecord.MinimumTTL != nil {
-			minimumTTL = int(*input.SoaRecord.MinimumTTL)
+		if record.MinimumTtl != nil {
+			minimumTTL = int(*record.MinimumTtl)
 		}
 
-		if input.SoaRecord.RefreshTime != nil {
-			refreshTime = int(*input.SoaRecord.RefreshTime)
+		if record.RefreshTime != nil {
+			refreshTime = int(*record.RefreshTime)
 		}
 
-		if input.SoaRecord.RetryTime != nil {
-			retryTime = int(*input.SoaRecord.RetryTime)
+		if record.RetryTime != nil {
+			retryTime = int(*record.RetryTime)
 		}
 
-		if input.SoaRecord.SerialNumber != nil {
-			serialNumber = int(*input.SoaRecord.SerialNumber)
+		if record.SerialNumber != nil {
+			serialNumber = int(*record.SerialNumber)
 		}
 	}
 

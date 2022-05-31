@@ -1,7 +1,7 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "app_service_source_control_slot: azurerm_app_service_source_control_slot"
+page_title: "Azure Resource Manager: azurerm_app_service_source_control_slot"
 description: |-
   Manages an App Service Source Control Slot.
 ---

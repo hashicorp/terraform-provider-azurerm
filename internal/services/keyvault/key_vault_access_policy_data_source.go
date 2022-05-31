@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -82,18 +82,18 @@ func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ interface{}
 			string(keyvault.SecretPermissionsRestore),
 		},
 		"certificate": {
-			string(keyvault.Get),
-			string(keyvault.List),
-			string(keyvault.Update),
-			string(keyvault.Create),
-			string(keyvault.Import),
-			string(keyvault.Delete),
-			string(keyvault.Managecontacts),
-			string(keyvault.Manageissuers),
-			string(keyvault.Getissuers),
-			string(keyvault.Listissuers),
-			string(keyvault.Setissuers),
-			string(keyvault.Deleteissuers),
+			string(keyvault.CertificatePermissionsGet),
+			string(keyvault.CertificatePermissionsList),
+			string(keyvault.CertificatePermissionsUpdate),
+			string(keyvault.CertificatePermissionsCreate),
+			string(keyvault.CertificatePermissionsImport),
+			string(keyvault.CertificatePermissionsDelete),
+			string(keyvault.CertificatePermissionsManagecontacts),
+			string(keyvault.CertificatePermissionsManageissuers),
+			string(keyvault.CertificatePermissionsGetissuers),
+			string(keyvault.CertificatePermissionsListissuers),
+			string(keyvault.CertificatePermissionsSetissuers),
+			string(keyvault.CertificatePermissionsDeleteissuers),
 		},
 	}
 
