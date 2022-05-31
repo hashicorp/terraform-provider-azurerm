@@ -1364,11 +1364,17 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("private_cluster_public_fqdn_enabled") {
 		updateCluster = true
+		if existing.ManagedClusterProperties.APIServerAccessProfile == nil {
+			existing.ManagedClusterProperties.APIServerAccessProfile = &containerservice.ManagedClusterAPIServerAccessProfile{}
+		}
 		existing.ManagedClusterProperties.APIServerAccessProfile.EnablePrivateClusterPublicFQDN = utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool))
 	}
 
 	if d.HasChange("run_command_enabled") {
 		updateCluster = true
+		if existing.ManagedClusterProperties.APIServerAccessProfile == nil {
+			existing.ManagedClusterProperties.APIServerAccessProfile = &containerservice.ManagedClusterAPIServerAccessProfile{}
+		}
 		existing.ManagedClusterProperties.APIServerAccessProfile.DisableRunCommand = utils.Bool(!d.Get("run_command_enabled").(bool))
 	}
 
