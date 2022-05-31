@@ -54,7 +54,7 @@ func resourceWebPubsubHub() *pluginsdk.Resource {
 
 			"event_handler": {
 				Type:     pluginsdk.TypeSet,
-				Required: true,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"url_template": {

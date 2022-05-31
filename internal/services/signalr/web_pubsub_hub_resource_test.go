@@ -160,11 +160,11 @@ resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpsh%d"
   web_pubsub_id = azurerm_web_pubsub.test.id
 
-  event_handler {
-    url_template       = "https://test.com/api/{hub}/{event}"
-    user_event_pattern = "*"
-    system_events      = ["connect", "connected"]
-  }
+  //event_handler {
+  //  url_template       = "https://test.com/api/{hub}/{event}"
+  //  user_event_pattern = "*"
+  //  system_events      = ["connect", "connected"]
+  //}
 }
 `, r.template(data), data.RandomInteger)
 }
