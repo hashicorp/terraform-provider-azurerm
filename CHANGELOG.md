@@ -1,3 +1,9 @@
+## 3.9.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - prevent crash when importing a cluster that doesn't have an API Server Access Profile [GH-17005]
+
 ## 3.8.0 (May 26, 2022)
 
 FEATURES:
