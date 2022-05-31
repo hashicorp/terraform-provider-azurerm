@@ -13,6 +13,10 @@ Manages an API Connection.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -21,6 +25,13 @@ resource "azurerm_resource_group" "example" {
 data "azurerm_managed_api" "example" {
   name     = "servicebus"
   location = azurerm_resource_group.example.location
+}
+
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "acctestsbn-conn-example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "Basic"
 }
 
 resource "azurerm_api_connection" "example" {
