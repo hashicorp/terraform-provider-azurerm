@@ -14,34 +14,35 @@ import (
 	"net/http"
 )
 
-// GatewayCustomDomainsClient is the REST API for Azure Spring Cloud
-type GatewayCustomDomainsClient struct {
+// GatewayRouteConfigsClient is the REST API for Azure Spring Apps
+type GatewayRouteConfigsClient struct {
 	BaseClient
 }
 
-// NewGatewayCustomDomainsClient creates an instance of the GatewayCustomDomainsClient client.
-func NewGatewayCustomDomainsClient(subscriptionID string) GatewayCustomDomainsClient {
-	return NewGatewayCustomDomainsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewGatewayRouteConfigsClient creates an instance of the GatewayRouteConfigsClient client.
+func NewGatewayRouteConfigsClient(subscriptionID string) GatewayRouteConfigsClient {
+	return NewGatewayRouteConfigsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewGatewayCustomDomainsClientWithBaseURI creates an instance of the GatewayCustomDomainsClient client using a custom
+// NewGatewayRouteConfigsClientWithBaseURI creates an instance of the GatewayRouteConfigsClient client using a custom
 // endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
 // stack).
-func NewGatewayCustomDomainsClientWithBaseURI(baseURI string, subscriptionID string) GatewayCustomDomainsClient {
-	return GatewayCustomDomainsClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewGatewayRouteConfigsClientWithBaseURI(baseURI string, subscriptionID string) GatewayRouteConfigsClient {
+	return GatewayRouteConfigsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create or update the Spring Cloud Gateway custom domain.
+// CreateOrUpdate create the default Spring Cloud Gateway route configs or update the existing Spring Cloud Gateway
+// route configs.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
 // gatewayName - the name of Spring Cloud Gateway.
-// domainName - the name of the Spring Cloud Gateway custom domain.
-// gatewayCustomDomainResource - the gateway custom domain resource for the create or update operation
-func (client GatewayCustomDomainsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, domainName string, gatewayCustomDomainResource GatewayCustomDomainResource) (result GatewayCustomDomainsCreateOrUpdateFuture, err error) {
+// routeConfigName - the name of the Spring Cloud Gateway route config.
+// gatewayRouteConfigResource - the Spring Cloud Gateway route config for the create or update operation
+func (client GatewayRouteConfigsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, routeConfigName string, gatewayRouteConfigResource GatewayRouteConfigResource) (result GatewayRouteConfigsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GatewayCustomDomainsClient.CreateOrUpdate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/GatewayRouteConfigsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -50,15 +51,15 @@ func (client GatewayCustomDomainsClient) CreateOrUpdate(ctx context.Context, res
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serviceName, gatewayName, domainName, gatewayCustomDomainResource)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serviceName, gatewayName, routeConfigName, gatewayRouteConfigResource)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewayCustomDomainsClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.GatewayRouteConfigsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewayCustomDomainsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.GatewayRouteConfigsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -66,16 +67,16 @@ func (client GatewayCustomDomainsClient) CreateOrUpdate(ctx context.Context, res
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client GatewayCustomDomainsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, domainName string, gatewayCustomDomainResource GatewayCustomDomainResource) (*http.Request, error) {
+func (client GatewayRouteConfigsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, routeConfigName string, gatewayRouteConfigResource GatewayRouteConfigResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"domainName":        autorest.Encode("path", domainName),
 		"gatewayName":       autorest.Encode("path", gatewayName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"routeConfigName":   autorest.Encode("path", routeConfigName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -84,15 +85,15 @@ func (client GatewayCustomDomainsClient) CreateOrUpdatePreparer(ctx context.Cont
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/gateways/{gatewayName}/domains/{domainName}", pathParameters),
-		autorest.WithJSON(gatewayCustomDomainResource),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/gateways/{gatewayName}/routeConfigs/{routeConfigName}", pathParameters),
+		autorest.WithJSON(gatewayRouteConfigResource),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client GatewayCustomDomainsClient) CreateOrUpdateSender(req *http.Request) (future GatewayCustomDomainsCreateOrUpdateFuture, err error) {
+func (client GatewayRouteConfigsClient) CreateOrUpdateSender(req *http.Request) (future GatewayRouteConfigsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -108,7 +109,7 @@ func (client GatewayCustomDomainsClient) CreateOrUpdateSender(req *http.Request)
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client GatewayCustomDomainsClient) CreateOrUpdateResponder(resp *http.Response) (result GatewayCustomDomainResource, err error) {
+func (client GatewayRouteConfigsClient) CreateOrUpdateResponder(resp *http.Response) (result GatewayRouteConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
@@ -118,16 +119,16 @@ func (client GatewayCustomDomainsClient) CreateOrUpdateResponder(resp *http.Resp
 	return
 }
 
-// Delete delete the Spring Cloud Gateway custom domain.
+// Delete delete the Spring Cloud Gateway route config.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
 // gatewayName - the name of Spring Cloud Gateway.
-// domainName - the name of the Spring Cloud Gateway custom domain.
-func (client GatewayCustomDomainsClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, domainName string) (result GatewayCustomDomainsDeleteFuture, err error) {
+// routeConfigName - the name of the Spring Cloud Gateway route config.
+func (client GatewayRouteConfigsClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, routeConfigName string) (result GatewayRouteConfigsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GatewayCustomDomainsClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/GatewayRouteConfigsClient.Delete")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -136,15 +137,15 @@ func (client GatewayCustomDomainsClient) Delete(ctx context.Context, resourceGro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.DeletePreparer(ctx, resourceGroupName, serviceName, gatewayName, domainName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, serviceName, gatewayName, routeConfigName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewayCustomDomainsClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.GatewayRouteConfigsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewayCustomDomainsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.GatewayRouteConfigsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -152,16 +153,16 @@ func (client GatewayCustomDomainsClient) Delete(ctx context.Context, resourceGro
 }
 
 // DeletePreparer prepares the Delete request.
-func (client GatewayCustomDomainsClient) DeletePreparer(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, domainName string) (*http.Request, error) {
+func (client GatewayRouteConfigsClient) DeletePreparer(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, routeConfigName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"domainName":        autorest.Encode("path", domainName),
 		"gatewayName":       autorest.Encode("path", gatewayName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"routeConfigName":   autorest.Encode("path", routeConfigName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -169,14 +170,14 @@ func (client GatewayCustomDomainsClient) DeletePreparer(ctx context.Context, res
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/gateways/{gatewayName}/domains/{domainName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/gateways/{gatewayName}/routeConfigs/{routeConfigName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client GatewayCustomDomainsClient) DeleteSender(req *http.Request) (future GatewayCustomDomainsDeleteFuture, err error) {
+func (client GatewayRouteConfigsClient) DeleteSender(req *http.Request) (future GatewayRouteConfigsDeleteFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -192,7 +193,7 @@ func (client GatewayCustomDomainsClient) DeleteSender(req *http.Request) (future
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client GatewayCustomDomainsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client GatewayRouteConfigsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
@@ -201,16 +202,16 @@ func (client GatewayCustomDomainsClient) DeleteResponder(resp *http.Response) (r
 	return
 }
 
-// Get get the Spring Cloud Gateway custom domain.
+// Get get the Spring Cloud Gateway route configs.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
 // gatewayName - the name of Spring Cloud Gateway.
-// domainName - the name of the Spring Cloud Gateway custom domain.
-func (client GatewayCustomDomainsClient) Get(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, domainName string) (result GatewayCustomDomainResource, err error) {
+// routeConfigName - the name of the Spring Cloud Gateway route config.
+func (client GatewayRouteConfigsClient) Get(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, routeConfigName string) (result GatewayRouteConfigResource, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GatewayCustomDomainsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/GatewayRouteConfigsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -219,22 +220,22 @@ func (client GatewayCustomDomainsClient) Get(ctx context.Context, resourceGroupN
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, resourceGroupName, serviceName, gatewayName, domainName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, serviceName, gatewayName, routeConfigName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewayCustomDomainsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.GatewayRouteConfigsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appplatform.GatewayCustomDomainsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.GatewayRouteConfigsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewayCustomDomainsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.GatewayRouteConfigsClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -242,16 +243,16 @@ func (client GatewayCustomDomainsClient) Get(ctx context.Context, resourceGroupN
 }
 
 // GetPreparer prepares the Get request.
-func (client GatewayCustomDomainsClient) GetPreparer(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, domainName string) (*http.Request, error) {
+func (client GatewayRouteConfigsClient) GetPreparer(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string, routeConfigName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"domainName":        autorest.Encode("path", domainName),
 		"gatewayName":       autorest.Encode("path", gatewayName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"routeConfigName":   autorest.Encode("path", routeConfigName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -259,20 +260,20 @@ func (client GatewayCustomDomainsClient) GetPreparer(ctx context.Context, resour
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/gateways/{gatewayName}/domains/{domainName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/gateways/{gatewayName}/routeConfigs/{routeConfigName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client GatewayCustomDomainsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client GatewayRouteConfigsClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client GatewayCustomDomainsClient) GetResponder(resp *http.Response) (result GatewayCustomDomainResource, err error) {
+func (client GatewayRouteConfigsClient) GetResponder(resp *http.Response) (result GatewayRouteConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -282,19 +283,19 @@ func (client GatewayCustomDomainsClient) GetResponder(resp *http.Response) (resu
 	return
 }
 
-// List handle requests to list all Spring Cloud Gateway custom domains.
+// List handle requests to list all Spring Cloud Gateway route configs.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
 // gatewayName - the name of Spring Cloud Gateway.
-func (client GatewayCustomDomainsClient) List(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string) (result GatewayCustomDomainResourceCollectionPage, err error) {
+func (client GatewayRouteConfigsClient) List(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string) (result GatewayRouteConfigResourceCollectionPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GatewayCustomDomainsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/GatewayRouteConfigsClient.List")
 		defer func() {
 			sc := -1
-			if result.gcdrc.Response.Response != nil {
-				sc = result.gcdrc.Response.Response.StatusCode
+			if result.grcrc.Response.Response != nil {
+				sc = result.grcrc.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -302,23 +303,23 @@ func (client GatewayCustomDomainsClient) List(ctx context.Context, resourceGroup
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, resourceGroupName, serviceName, gatewayName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewayCustomDomainsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.GatewayRouteConfigsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.gcdrc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appplatform.GatewayCustomDomainsClient", "List", resp, "Failure sending request")
+		result.grcrc.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "appplatform.GatewayRouteConfigsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.gcdrc, err = client.ListResponder(resp)
+	result.grcrc, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewayCustomDomainsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.GatewayRouteConfigsClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.gcdrc.hasNextLink() && result.gcdrc.IsEmpty() {
+	if result.grcrc.hasNextLink() && result.grcrc.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -327,7 +328,7 @@ func (client GatewayCustomDomainsClient) List(ctx context.Context, resourceGroup
 }
 
 // ListPreparer prepares the List request.
-func (client GatewayCustomDomainsClient) ListPreparer(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string) (*http.Request, error) {
+func (client GatewayRouteConfigsClient) ListPreparer(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"gatewayName":       autorest.Encode("path", gatewayName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -335,7 +336,7 @@ func (client GatewayCustomDomainsClient) ListPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -343,20 +344,20 @@ func (client GatewayCustomDomainsClient) ListPreparer(ctx context.Context, resou
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/gateways/{gatewayName}/domains", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/gateways/{gatewayName}/routeConfigs", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client GatewayCustomDomainsClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client GatewayRouteConfigsClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client GatewayCustomDomainsClient) ListResponder(resp *http.Response) (result GatewayCustomDomainResourceCollection, err error) {
+func (client GatewayRouteConfigsClient) ListResponder(resp *http.Response) (result GatewayRouteConfigResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -367,10 +368,10 @@ func (client GatewayCustomDomainsClient) ListResponder(resp *http.Response) (res
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client GatewayCustomDomainsClient) listNextResults(ctx context.Context, lastResults GatewayCustomDomainResourceCollection) (result GatewayCustomDomainResourceCollection, err error) {
-	req, err := lastResults.gatewayCustomDomainResourceCollectionPreparer(ctx)
+func (client GatewayRouteConfigsClient) listNextResults(ctx context.Context, lastResults GatewayRouteConfigResourceCollection) (result GatewayRouteConfigResourceCollection, err error) {
+	req, err := lastResults.gatewayRouteConfigResourceCollectionPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "appplatform.GatewayCustomDomainsClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "appplatform.GatewayRouteConfigsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -378,19 +379,19 @@ func (client GatewayCustomDomainsClient) listNextResults(ctx context.Context, la
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "appplatform.GatewayCustomDomainsClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "appplatform.GatewayRouteConfigsClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.GatewayCustomDomainsClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "appplatform.GatewayRouteConfigsClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client GatewayCustomDomainsClient) ListComplete(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string) (result GatewayCustomDomainResourceCollectionIterator, err error) {
+func (client GatewayRouteConfigsClient) ListComplete(ctx context.Context, resourceGroupName string, serviceName string, gatewayName string) (result GatewayRouteConfigResourceCollectionIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/GatewayCustomDomainsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/GatewayRouteConfigsClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {

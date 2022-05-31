@@ -14,7 +14,7 @@ import (
 	"net/http"
 )
 
-// SkusClient is the REST API for Azure Spring Cloud
+// SkusClient is the REST API for Azure Spring Apps
 type SkusClient struct {
 	BaseClient
 }
@@ -75,7 +75,7 @@ func (client SkusClient) ListPreparer(ctx context.Context) (*http.Request, error
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

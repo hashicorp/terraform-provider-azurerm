@@ -10,11 +10,12 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
-// DeploymentsClient is the REST API for Azure Spring Cloud
+// DeploymentsClient is the REST API for Azure Spring Apps
 type DeploymentsClient struct {
 	BaseClient
 }
@@ -49,6 +50,21 @@ func (client DeploymentsClient) CreateOrUpdate(ctx context.Context, resourceGrou
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: deploymentResource,
+			Constraints: []validation.Constraint{{Target: "deploymentResource.Properties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "deploymentResource.Properties.DeploymentSettings", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "deploymentResource.Properties.DeploymentSettings.LivenessProbe", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "deploymentResource.Properties.DeploymentSettings.LivenessProbe.DisableProbe", Name: validation.Null, Rule: true, Chain: nil}}},
+						{Target: "deploymentResource.Properties.DeploymentSettings.ReadinessProbe", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "deploymentResource.Properties.DeploymentSettings.ReadinessProbe.DisableProbe", Name: validation.Null, Rule: true, Chain: nil}}},
+						{Target: "deploymentResource.Properties.DeploymentSettings.StartupProbe", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "deploymentResource.Properties.DeploymentSettings.StartupProbe.DisableProbe", Name: validation.Null, Rule: true, Chain: nil}}},
+					}},
+				}}}}}); err != nil {
+		return result, validation.NewError("appplatform.DeploymentsClient", "CreateOrUpdate", err.Error())
+	}
+
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serviceName, appName, deploymentName, deploymentResource)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -74,7 +90,7 @@ func (client DeploymentsClient) CreateOrUpdatePreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -160,7 +176,7 @@ func (client DeploymentsClient) DeletePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -244,7 +260,7 @@ func (client DeploymentsClient) GenerateHeapDumpPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -330,7 +346,7 @@ func (client DeploymentsClient) GenerateThreadDumpPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -422,7 +438,7 @@ func (client DeploymentsClient) GetPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -503,7 +519,7 @@ func (client DeploymentsClient) GetLogFileURLPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -588,7 +604,7 @@ func (client DeploymentsClient) ListPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -711,7 +727,7 @@ func (client DeploymentsClient) ListForClusterPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -825,7 +841,7 @@ func (client DeploymentsClient) RestartPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -908,7 +924,7 @@ func (client DeploymentsClient) StartPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -992,7 +1008,7 @@ func (client DeploymentsClient) StartJFRPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1077,7 +1093,7 @@ func (client DeploymentsClient) StopPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1161,7 +1177,7 @@ func (client DeploymentsClient) UpdatePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

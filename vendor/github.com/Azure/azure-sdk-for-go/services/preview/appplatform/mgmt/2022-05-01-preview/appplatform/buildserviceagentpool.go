@@ -14,7 +14,7 @@ import (
 	"net/http"
 )
 
-// BuildServiceAgentPoolClient is the REST API for Azure Spring Cloud
+// BuildServiceAgentPoolClient is the REST API for Azure Spring Apps
 type BuildServiceAgentPoolClient struct {
 	BaseClient
 }
@@ -81,7 +81,7 @@ func (client BuildServiceAgentPoolClient) GetPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -165,7 +165,7 @@ func (client BuildServiceAgentPoolClient) ListPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -277,7 +277,7 @@ func (client BuildServiceAgentPoolClient) UpdatePutPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

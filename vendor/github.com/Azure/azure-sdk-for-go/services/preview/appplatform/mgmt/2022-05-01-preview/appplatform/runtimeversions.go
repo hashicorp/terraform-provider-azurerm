@@ -14,7 +14,7 @@ import (
 	"net/http"
 )
 
-// RuntimeVersionsClient is the REST API for Azure Spring Cloud
+// RuntimeVersionsClient is the REST API for Azure Spring Apps
 type RuntimeVersionsClient struct {
 	BaseClient
 }
@@ -66,7 +66,7 @@ func (client RuntimeVersionsClient) ListRuntimeVersions(ctx context.Context) (re
 
 // ListRuntimeVersionsPreparer prepares the ListRuntimeVersions request.
 func (client RuntimeVersionsClient) ListRuntimeVersionsPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

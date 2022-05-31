@@ -14,7 +14,7 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the REST API for Azure Spring Cloud
+// OperationsClient is the REST API for Azure Spring Apps
 type OperationsClient struct {
 	BaseClient
 }
@@ -71,7 +71,7 @@ func (client OperationsClient) List(ctx context.Context) (result AvailableOperat
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
