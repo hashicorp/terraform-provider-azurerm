@@ -6,27 +6,41 @@ import (
 )
 
 type Client struct {
-	AppsClient                 *appplatform.AppsClient
-	BindingsClient             *appplatform.BindingsClient
-	BuildServiceBuilderClient  *appplatform.BuildServiceBuilderClient
-	CertificatesClient         *appplatform.CertificatesClient
-	ConfigServersClient        *appplatform.ConfigServersClient
-	ConfigurationServiceClient *appplatform.ConfigurationServicesClient
-	CustomDomainsClient        *appplatform.CustomDomainsClient
-	GatewayClient              *appplatform.GatewaysClient
-	MonitoringSettingsClient   *appplatform.MonitoringSettingsClient
-	DeploymentsClient          *appplatform.DeploymentsClient
-	ServicesClient             *appplatform.ServicesClient
-	ServiceRegistryClient      *appplatform.ServiceRegistriesClient
-	StoragesClient             *appplatform.StoragesClient
+	APIPortalClient             *appplatform.APIPortalsClient
+	AppsClient                  *appplatform.AppsClient
+	BindingsClient              *appplatform.BindingsClient
+	BuildPackBindingClient      *appplatform.BuildpackBindingClient
+	BuildServiceAgentPoolClient *appplatform.BuildServiceAgentPoolClient
+	BuildServiceBuilderClient   *appplatform.BuildServiceBuilderClient
+	CertificatesClient          *appplatform.CertificatesClient
+	ConfigServersClient         *appplatform.ConfigServersClient
+	ConfigurationServiceClient  *appplatform.ConfigurationServicesClient
+	CustomDomainsClient         *appplatform.CustomDomainsClient
+	GatewayClient               *appplatform.GatewaysClient
+	GatewayCustomDomainClient   *appplatform.GatewayCustomDomainsClient
+	GatewayRouteConfigClient    *appplatform.GatewayRouteConfigsClient
+	MonitoringSettingsClient    *appplatform.MonitoringSettingsClient
+	DeploymentsClient           *appplatform.DeploymentsClient
+	ServicesClient              *appplatform.ServicesClient
+	ServiceRegistryClient       *appplatform.ServiceRegistriesClient
+	StoragesClient              *appplatform.StoragesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	apiPortalClient := appplatform.NewAPIPortalsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&apiPortalClient.Client, o.ResourceManagerAuthorizer)
+
 	appsClient := appplatform.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&appsClient.Client, o.ResourceManagerAuthorizer)
 
 	bindingsClient := appplatform.NewBindingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&bindingsClient.Client, o.ResourceManagerAuthorizer)
+
+	buildServiceAgentPoolClient := appplatform.NewBuildServiceAgentPoolClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&buildServiceAgentPoolClient.Client, o.ResourceManagerAuthorizer)
+
+	buildpackBindingClient := appplatform.NewBuildpackBindingClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&buildpackBindingClient.Client, o.ResourceManagerAuthorizer)
 
 	buildServiceBuilderClient := appplatform.NewBuildServiceBuilderClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&buildServiceBuilderClient.Client, o.ResourceManagerAuthorizer)
@@ -49,6 +63,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	gatewayClient := appplatform.NewGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayClient.Client, o.ResourceManagerAuthorizer)
 
+	gatewayCustomDomainClient := appplatform.NewGatewayCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&gatewayCustomDomainClient.Client, o.ResourceManagerAuthorizer)
+
+	gatewayRouteConfigClient := appplatform.NewGatewayRouteConfigsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&gatewayRouteConfigClient.Client, o.ResourceManagerAuthorizer)
+
 	monitoringSettingsClient := appplatform.NewMonitoringSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&monitoringSettingsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -62,18 +82,23 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&storageClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AppsClient:                 &appsClient,
-		BindingsClient:             &bindingsClient,
-		BuildServiceBuilderClient:  &buildServiceBuilderClient,
-		CertificatesClient:         &certificatesClient,
-		ConfigServersClient:        &configServersClient,
-		ConfigurationServiceClient: &configurationServiceClient,
-		CustomDomainsClient:        &customDomainsClient,
-		DeploymentsClient:          &deploymentsClient,
-		GatewayClient:              &gatewayClient,
-		MonitoringSettingsClient:   &monitoringSettingsClient,
-		ServicesClient:             &servicesClient,
-		ServiceRegistryClient:      &serviceRegistryClient,
-		StoragesClient:             &storageClient,
+		APIPortalClient:             &apiPortalClient,
+		AppsClient:                  &appsClient,
+		BindingsClient:              &bindingsClient,
+		BuildPackBindingClient:      &buildpackBindingClient,
+		BuildServiceAgentPoolClient: &buildServiceAgentPoolClient,
+		BuildServiceBuilderClient:   &buildServiceBuilderClient,
+		CertificatesClient:          &certificatesClient,
+		ConfigServersClient:         &configServersClient,
+		ConfigurationServiceClient:  &configurationServiceClient,
+		CustomDomainsClient:         &customDomainsClient,
+		DeploymentsClient:           &deploymentsClient,
+		GatewayClient:               &gatewayClient,
+		GatewayCustomDomainClient:   &gatewayCustomDomainClient,
+		GatewayRouteConfigClient:    &gatewayRouteConfigClient,
+		MonitoringSettingsClient:    &monitoringSettingsClient,
+		ServicesClient:              &servicesClient,
+		ServiceRegistryClient:       &serviceRegistryClient,
+		StoragesClient:              &storageClient,
 	}
 }

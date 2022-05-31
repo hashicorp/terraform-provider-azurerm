@@ -954,6 +954,21 @@ func TestAccCosmosDBAccount_mongoVersion40(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_mongoVersion42(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicMongoDBVersion42(data, documentdb.DefaultConsistencyLevelSession),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDBAccount_mongoVersionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
@@ -2591,6 +2606,47 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type           = "Standard"
   kind                 = "MongoDB"
   mongo_server_version = "4.0"
+
+  capabilities {
+    name = "EnableMongo"
+  }
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  lifecycle {
+    ignore_changes = [
+      capabilities
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
+}
+
+func (CosmosDBAccountResource) basicMongoDBVersion42(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                 = "acctest-ca-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  offer_type           = "Standard"
+  kind                 = "MongoDB"
+  mongo_server_version = "4.2"
 
   capabilities {
     name = "EnableMongo"

@@ -1,24 +1,26 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2020-03-13/search"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/sdk/2020-03-13/adminkeys"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/sdk/2020-03-13/querykeys"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/sdk/2020-03-13/services"
 )
 
 type Client struct {
-	AdminKeysClient *search.AdminKeysClient
-	QueryKeysClient *search.QueryKeysClient
-	ServicesClient  *search.ServicesClient
+	AdminKeysClient *adminkeys.AdminKeysClient
+	QueryKeysClient *querykeys.QueryKeysClient
+	ServicesClient  *services.ServicesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	adminKeysClient := search.NewAdminKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	adminKeysClient := adminkeys.NewAdminKeysClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&adminKeysClient.Client, o.ResourceManagerAuthorizer)
 
-	queryKeysClient := search.NewQueryKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	queryKeysClient := querykeys.NewQueryKeysClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&queryKeysClient.Client, o.ResourceManagerAuthorizer)
 
-	servicesClient := search.NewServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	servicesClient := services.NewServicesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

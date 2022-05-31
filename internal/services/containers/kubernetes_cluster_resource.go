@@ -25,7 +25,7 @@ import (
 	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
-	privateDnsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -480,11 +480,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"load_balancer_sku": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							Default:          string(containerservice.LoadBalancerSkuStandard),
-							ForceNew:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(containerservice.LoadBalancerSkuStandard),
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.LoadBalancerSkuBasic),
 								string(containerservice.LoadBalancerSkuStandard),
@@ -664,7 +663,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true, // a Private Cluster is `System` by default even if unspecified
 				ForceNew: true,
 				ValidateFunc: validation.Any(
-					privateDnsValidate.PrivateDnsZoneID,
+					privatezones.ValidatePrivateDnsZoneID,
 					validation.StringInSlice([]string{
 						"System",
 						"None",
@@ -1370,6 +1369,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("run_command_enabled") {
 		updateCluster = true
+		if existing.ManagedClusterProperties.APIServerAccessProfile == nil {
+			existing.ManagedClusterProperties.APIServerAccessProfile = &containerservice.ManagedClusterAPIServerAccessProfile{}
+		}
 		existing.ManagedClusterProperties.APIServerAccessProfile.DisableRunCommand = utils.Bool(!d.Get("run_command_enabled").(bool))
 	}
 
