@@ -1369,13 +1369,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("run_command_enabled") {
 		updateCluster = true
-		if existing.ManagedClusterProperties.APIServerAccessProfile != nil {
-			existing.ManagedClusterProperties.APIServerAccessProfile.DisableRunCommand = utils.Bool(!d.Get("run_command_enabled").(bool))
-		} else {
+		if existing.ManagedClusterProperties.APIServerAccessProfile == nil {
 			existing.ManagedClusterProperties.APIServerAccessProfile = &containerservice.ManagedClusterAPIServerAccessProfile{
-				DisableRunCommand: utils.Bool(!d.Get("run_command_enabled").(bool)),
 			}
 		}
+		existing.ManagedClusterProperties.APIServerAccessProfile.DisableRunCommand = utils.Bool(!d.Get("run_command_enabled").(bool))
 	}
 
 	if d.HasChange("auto_scaler_profile") {
