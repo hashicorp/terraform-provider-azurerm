@@ -13,30 +13,13 @@ Use this data source to access information about an existing Windows Web App.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
+data "azurerm_windows_web_app" "example" {
+  name                = "existing"
+  resource_group_name = "existing"
 }
 
-resource "azurerm_resource_group" "example" {
-  name     = "example"
-  location = "West Europe"
-}
-
-resource "azurerm_service_plan" "example" {
-  name                = "example"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  os_type             = "Windows"
-  sku_name            = "S1"
-}
-
-resource "azurerm_windows_web_app" "example" {
-  name                = "example"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  service_plan_id     = azurerm_service_plan.example.id
-
-  site_config {}
+output "id" {
+  value = data.azurerm_windows_web_app.example.id
 }
 ```
 

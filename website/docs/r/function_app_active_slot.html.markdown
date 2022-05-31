@@ -47,11 +47,7 @@ resource "azurerm_windows_function_app" "example" {
   storage_account_name = azurerm_storage_account.example.name
   service_plan_id      = azurerm_service_plan.example.id
 
-  site_config {
-    always_on          = true
-    app_command_line   = "whoami"
-    api_definition_url = "https://example.com/azure_function_app_def.json"
-  }
+  site_config {}
 }
 
 resource "azurerm_windows_function_app_slot" "example" {
@@ -59,11 +55,7 @@ resource "azurerm_windows_function_app_slot" "example" {
   function_app_id      = azurerm_windows_function_app.example.id
   storage_account_name = azurerm_storage_account.example.name
 
-  site_config {
-    always_on          = true
-    app_command_line   = "whoami"
-    api_definition_url = "https://example.com/azure_function_app_def.json"
-  }
+  site_config {}
 }
 
 resource "azurerm_function_app_active_slot" "example" {
