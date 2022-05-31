@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -43,6 +45,21 @@ func resourceResourceGroup() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"tags": tags.Schema(),
+
+			"foo": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateWith: map[interface{}]map[string][]interface{}{
+					"test": {
+						"buzz": []interface{}{"bark", "truck"},
+					},
+				},
+			},
+
+			"buzz": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 		},
 	}
 }

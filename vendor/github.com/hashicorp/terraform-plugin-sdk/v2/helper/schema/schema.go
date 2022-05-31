@@ -198,6 +198,8 @@ type Schema struct {
 	AtLeastOneOf  []string
 	RequiredWith  []string
 
+	ValidateWith map[interface{}]map[string][]interface{}
+
 	// When Deprecated is set, this attribute is deprecated.
 	//
 	// A deprecated field still works, but will probably stop working in near
@@ -1472,6 +1474,16 @@ func (m schemaMap) validate(
 		})
 	}
 
+	err = validateValidateWithAttribute(k, schema, c)
+	if err != nil {
+		return append(diags, diag.Diagnostic{
+			Severity:      diag.Error,
+			Summary:       "Validation with multiple attributes is incorrect",
+			Detail:        err.Error(),
+			AttributePath: path,
+		})
+	}
+
 	if !ok {
 		if schema.Required {
 			return append(diags, diag.Diagnostic{
@@ -1673,6 +1685,76 @@ func validateAtLeastOneAttribute(
 
 	return fmt.Errorf("%q: one of `%s` must be specified", k, strings.Join(allKeys, ","))
 }
+
+// todo cast to different basic types
+func validateValidateWithAttribute(
+	k string,
+	schema *Schema,
+	c *terraform.ResourceConfig) error {
+
+	if len(schema.ValidateWith) == 0 {
+		return nil
+	}
+
+	switch schema.Type {
+	case TypeString:
+		return validateValidateWithStringAttribute(k, schema, c)
+	default:
+		return fmt.Errorf("%q is not compatible with ValidateWith", schema.Type)
+	}
+
+	return nil
+}
+
+func validateValidateWithStringAttribute(
+	k string,
+	schema *Schema,
+	c *terraform.ResourceConfig) error {
+
+	validated := false
+
+	// We might not know what the key is so we'll skip
+	if c.IsComputed(k) {
+		return nil
+	}
+
+	unvalidatedValue, ok := c.Get(k)
+	if !ok {
+		return fmt.Errorf("unable to obtain key %q", k)
+	}
+
+	// No need to validate if the unvalidatedValue isn't in the map to check
+	if _, ok = schema.ValidateWith[unvalidatedValue.(string)]; !ok {
+		return nil
+	}
+
+	validationKey := ""
+	validationValues := make([]string, 0)
+	for key, values := range schema.ValidateWith[unvalidatedValue.(string)] {
+		validationKey = key
+		// we can't validate against a computed attribute
+		if c.IsComputed(key) {
+			return nil
+		}
+
+		attr, ok := c.Get(key)
+		if ok {
+			for _, allowedValue := range values {
+				validationValues = append(validationValues, allowedValue.(string))
+				if attr == allowedValue.(string) {
+					validated = true
+				}
+			}
+		}
+	}
+
+	if !validated {
+		return fmt.Errorf("when %q is %q, %q must be one of %s", k, unvalidatedValue, validationKey, strings.Join(validationValues, ","))
+	}
+
+	return nil
+}
+
 
 func (m schemaMap) validateList(
 	k string,
