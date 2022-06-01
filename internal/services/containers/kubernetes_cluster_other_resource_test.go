@@ -624,27 +624,27 @@ func TestAccKubernetesCluster_oidcIssuer(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_namespace(t *testing.T) {
+func TestAccKubernetesCluster_namespaceToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.namespaceEnabled(data, false),
+			Config: r.namespace(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.namespaceEnabled(data, true),
+			Config: r.namespace(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.namespaceEnabled(data, false),
+			Config: r.namespace(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -653,7 +653,7 @@ func TestAccKubernetesCluster_namespace(t *testing.T) {
 	})
 }
 
-func (KubernetesClusterResource) namespaceEnabled(data acceptance.TestData, enabled bool) string {
+func (KubernetesClusterResource) namespace(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
