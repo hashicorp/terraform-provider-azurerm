@@ -461,7 +461,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, template, data.RandomInteger, "germanywestcentral")
+`, template, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (NetAppVolumeResource) nfsv3FromSnapshot(data acceptance.TestData) string {
@@ -862,7 +862,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, r.template(data), data.RandomInteger, "germanywestcentral")
+`, r.template(data), data.RandomInteger, data.Locations.Secondary)
 }
 
 func (NetAppVolumeResource) template(data acceptance.TestData) string {
