@@ -63,7 +63,7 @@ func resourceLegacyDashboard() *pluginsdk.Resource {
 }
 
 func resourceLegacyDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Portal.DashboardsClient
+	client := meta.(*clients.Client).Portal.LegacyDashboardsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -104,7 +104,7 @@ func resourceLegacyDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 }
 
 func resourceLegacyDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Portal.DashboardsClient
+	client := meta.(*clients.Client).Portal.LegacyDashboardsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -139,7 +139,7 @@ func resourceLegacyDashboardRead(d *pluginsdk.ResourceData, meta interface{}) er
 }
 
 func resourceLegacyDashboardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Portal.DashboardsClient
+	client := meta.(*clients.Client).Portal.LegacyDashboardsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

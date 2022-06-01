@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/sdk/2019-01-01-preview/dashboard"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -84,7 +83,7 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	dashboard := dashboard.Dashboard{
+	props := dashboard.Dashboard{
 		Location: location.Normalize(d.Get("location").(string)),
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 	}
@@ -95,9 +94,10 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	if err := json.Unmarshal([]byte(dashboardPropsRaw), &dashboardProperties); err != nil {
 		return fmt.Errorf("parsing JSON: %+v", err)
 	}
-	dashboard.DashboardProperties = &dashboardProperties
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, dashboard); err != nil {
+	props.Properties = &dashboardProperties
+
+	if _, err := client.CreateOrUpdate(ctx, id, props); err != nil {
 		return fmt.Errorf("creating/updating %s %+v", id, err)
 	}
 
@@ -110,34 +110,39 @@ func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DashboardID(d.Id())
+	id, err := dashboard.ParseDashboardID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[DEBUG] Dashboard %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Dashboard %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*resp.Location))
+	d.Set("name", id.DashboardName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", azure.NormalizeLocation(model.Location))
+
+		if props := model.Properties; props != nil {
+			v, err := json.Marshal(props)
+			if err != nil {
+				return fmt.Errorf("parsing JSON for Dashboard Properties: %+v", err)
+			}
+			d.Set("dashboard_properties", string(v))
+		}
+
+		return d.Set("tags", flattenTags(model.Tags))
 	}
 
-	props, jsonErr := json.Marshal(resp.DashboardProperties)
-	if jsonErr != nil {
-		return fmt.Errorf("parsing JSON for Dashboard Properties: %+v", jsonErr)
-	}
-	d.Set("dashboard_properties", string(props))
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourcePortalDashboardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -145,15 +150,15 @@ func resourcePortalDashboardDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DashboardID(d.Id())
+	id, err := dashboard.ParseDashboardID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("deleting Dashboard %q (Resource Group %q): %+v", id.Name, id.Name, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

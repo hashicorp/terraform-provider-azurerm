@@ -29,7 +29,6 @@ func ParseConfigurationID(input string) (*ConfigurationId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ConfigurationId{}
 
 	if v, constFound := parsed.Parsed["configurationName"]; true {
@@ -56,7 +55,6 @@ func ParseConfigurationIDInsensitively(input string) (*ConfigurationId, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ConfigurationId{}
 
 	if v, constFound := parsed.Parsed["configurationName"]; true {
