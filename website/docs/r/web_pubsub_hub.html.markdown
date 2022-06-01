@@ -66,10 +66,10 @@ The following arguments are supported:
 
 * `web_pubsub_id` - (Required) Specify the id of the Web Pubsub. Changing this forces a new resource to be created.
 
-* `event_handler` - (Required) An `event_handler` block as defined below.
-
 * `anonymous_connections_enabled` - (Optional) Is anonymous connections are allowed for this hub? Defaults to `false`.
   Possible values are `true`, `false`.
+
+* `event_handler` - (Optional) An `event_handler` block as defined below.
 
 ---
 
