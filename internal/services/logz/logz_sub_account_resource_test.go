@@ -3,11 +3,8 @@ package logz_test
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"testing"
 	"time"
-
-	"github.com/google/uuid"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -23,7 +20,7 @@ func TestAccLogzSubAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_sub_account", "test")
 	r := LogzSubAccountResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
-	email := uuid.New().String()
+	email := "0bc0fe71-6e2f-4552-bc48-6ca0c22f4db0@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, effectiveDate, email),
@@ -39,7 +36,7 @@ func TestAccLogzSubAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_sub_account", "test")
 	r := LogzSubAccountResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
-	email := uuid.New().String()
+	email := "429420d4-0abf-4cd8-b149-fe63fa141fc6@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, effectiveDate, email),
@@ -58,7 +55,7 @@ func TestAccLogzSubAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_sub_account", "test")
 	r := LogzSubAccountResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
-	email := uuid.New().String()
+	email := "253e466c-3a78-4a79-9260-98854eef2b5c@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, effectiveDate, email),
@@ -74,7 +71,7 @@ func TestAccLogzSubAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_sub_account", "test")
 	r := LogzSubAccountResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
-	email := uuid.New().String()
+	email := "5c3b9a35-06c5-4c75-928e-6505a10541a5@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, effectiveDate, email),
@@ -129,7 +126,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_logz_monitor" "test" {
-  name                = "%s"
+  name                = "acctest-lm-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   plan {
@@ -140,13 +137,13 @@ resource "azurerm_logz_monitor" "test" {
   }
 
   user {
-    email        = "%s@example.com"
+    email        = "%s"
     first_name   = "first"
     last_name    = "last"
     phone_number = "123456"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, getLogzInstanceName(data.RandomInteger), effectiveDate, email)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, effectiveDate, email)
 }
 
 func (r LogzSubAccountResource) basic(data acceptance.TestData, effectiveDate string, email string) string {
@@ -155,7 +152,7 @@ func (r LogzSubAccountResource) basic(data acceptance.TestData, effectiveDate st
 %s
 
 resource "azurerm_logz_sub_account" "test" {
-  name            = "%s"
+  name            = "acctest-lsa-%d"
   logz_monitor_id = azurerm_logz_monitor.test.id
   user {
     email        = azurerm_logz_monitor.test.user[0].email
@@ -164,7 +161,7 @@ resource "azurerm_logz_sub_account" "test" {
     phone_number = azurerm_logz_monitor.test.user[0].phone_number
   }
 }
-`, template, getLogzSubAccountName(data.RandomInteger))
+`, template, data.RandomInteger)
 }
 
 func (r LogzSubAccountResource) update(data acceptance.TestData, effectiveDate string, email string) string {
@@ -173,7 +170,7 @@ func (r LogzSubAccountResource) update(data acceptance.TestData, effectiveDate s
 %s
 
 resource "azurerm_logz_sub_account" "test" {
-  name            = "%s"
+  name            = "acctest-lsa-%d"
   logz_monitor_id = azurerm_logz_monitor.test.id
   user {
     email        = azurerm_logz_monitor.test.user[0].email
@@ -183,7 +180,7 @@ resource "azurerm_logz_sub_account" "test" {
   }
   enabled = false
 }
-`, template, getLogzSubAccountName(data.RandomInteger))
+`, template, data.RandomInteger)
 }
 
 func (r LogzSubAccountResource) requiresImport(data acceptance.TestData, effectiveDate string, email string) string {
@@ -210,7 +207,7 @@ func (r LogzSubAccountResource) complete(data acceptance.TestData, effectiveDate
 %s
 
 resource "azurerm_logz_sub_account" "test" {
-  name            = "%s"
+  name            = "acctest-lsa-%d"
   logz_monitor_id = azurerm_logz_monitor.test.id
   user {
     email        = azurerm_logz_monitor.test.user[0].email
@@ -223,10 +220,5 @@ resource "azurerm_logz_sub_account" "test" {
     ENV = "Test"
   }
 }
-`, template, getLogzSubAccountName(data.RandomInteger))
-}
-
-func getLogzSubAccountName(randomInteger int) string {
-	// The prefix of `liftr_test_only_` is used for test only which should not be used in production environment. Whenever creating a new Logz monitor/subaccount resource with an unused email address, a new email account will also be created in https://logz.io/. When the resource name starts with `liftr_test_only_`, the Azure service will notify https://logz.io/ that this resource is for test only and the email account could be deleted after this resource is deleted, which will not cause data pollution in https://logz.io/.
-	return fmt.Sprintf("liftr_test_only_s%s", strconv.Itoa(randomInteger)[3:])
+`, template, data.RandomInteger)
 }
