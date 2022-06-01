@@ -290,17 +290,32 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		//goland:noinspection GoDeferInLoop
 		defer locks.UnlockByName(cosmosDbResId, "azurerm_private_endpoint")
 	}
-
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
-	if err != nil {
-		if strings.EqualFold(err.Error(), "is missing required parameter 'group Id'") {
-			return fmt.Errorf("creating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err)
-		} else {
-			return fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *resource.RetryError {
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+		if err != nil {
+			if strings.EqualFold(err.Error(), "is missing required parameter 'group Id'") {
+				return &resource.RetryError{
+					Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err),
+					Retryable: false,
+				}
+			} else {
+				return &resource.RetryError{
+					Err:       fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
+					Retryable: false,
+				}
+			}
 		}
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return &resource.RetryError{
+				Err:       fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err),
+				Retryable: strings.Contains(strings.ToLower(err.Error()), "retryable"),
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	d.SetId(id.ID())
@@ -664,7 +679,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 				// There is a bug from service, the PE created from portal could be with the connection id for postgresql server "Microsoft.DBForPostgreSQL" instead of "Microsoft.DBforPostgreSQL"
 				// and for Mysql and MariaDB
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
-					if serverId, err := servers.ParseServerID(privateConnectionId); err == nil {
+					if serverId, err := postgresqlParse.ServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
 					}
 				}
@@ -726,7 +741,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]network.P
 				// There is a bug from service, the PE created from portal could be with the connection id for postgresql server "Microsoft.DBForPostgreSQL" instead of "Microsoft.DBforPostgreSQL"
 				// and for Mysql and MariaDB
 				if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbforpostgresql") {
-					if serverId, err := servers.ParseServerID(privateConnectionId); err == nil {
+					if serverId, err := postgresqlParse.ServerID(privateConnectionId); err == nil {
 						privateConnectionId = serverId.ID()
 					}
 				}
