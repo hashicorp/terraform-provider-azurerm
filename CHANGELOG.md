@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource**: `azurerm_sentinel_data_connector_office_atp` [GH-16825]
+* **New Resource**: `azurerm_vpn_server_configuration_policy_group` [GH-16911]
 
 ENHANCEMENTS:
 
