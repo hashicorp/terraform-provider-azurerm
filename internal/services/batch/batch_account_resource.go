@@ -60,6 +60,7 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				RequiredWith: []string{"storage_account_authentication_mode"},
 			},
 
 			"storage_account_authentication_mode": {
@@ -69,7 +70,6 @@ func resourceBatchAccount() *pluginsdk.Resource {
 					string(batch.AutoStorageAuthenticationModeStorageKeys),
 					string(batch.AutoStorageAuthenticationModeBatchAccountManagedIdentity),
 				}, false),
-				Default:      string(batch.AutoStorageAuthenticationModeStorageKeys),
 				RequiredWith: []string{"storage_account_id"},
 			},
 
@@ -242,6 +242,9 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if storageAccountId != "" {
+		if authMode == "" {
+			return fmt.Errorf("`storage_account_authentication_mode` is required when `storage_account_id` ")
+		}
 		parameters.AccountCreateProperties.AutoStorage = &batch.AutoStorageBaseProperties{
 			StorageAccountID:   &storageAccountId,
 			AuthenticationMode: batch.AutoStorageAuthenticationMode(authMode),
