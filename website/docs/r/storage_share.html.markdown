@@ -66,6 +66,8 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A mapping of MetaData for this File Share.
 
+* `access_tier` - (Optional) The tier of the File Share. Can be one of `Hot`, `Cool`, `TransactionOptimized`, `Premium`.
+
 ---
 
 A `acl` block supports the following:

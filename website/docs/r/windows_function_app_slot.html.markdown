@@ -53,7 +53,7 @@ resource "azurerm_windows_function_app_slot" "example" {
   function_app_id      = azurerm_windows_function_app.example.id
   storage_account_name = azurerm_storage_account.example.name
 
-  site_config = {}
+  site_config {}
 }
 ```
 

@@ -81,6 +81,7 @@ func resourceFirewall() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.AzureFirewallSkuTierPremium),
 					string(network.AzureFirewallSkuTierStandard),
+					string(network.AzureFirewallSkuTierBasic),
 				}, false),
 			},
 

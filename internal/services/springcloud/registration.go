@@ -43,6 +43,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_spring_cloud_app_mysql_association":    resourceSpringCloudAppMysqlAssociation(),
 		"azurerm_spring_cloud_app_redis_association":    resourceSpringCloudAppRedisAssociation(),
 		"azurerm_spring_cloud_builder":                  resourceSpringCloudBuildServiceBuilder(),
+		"azurerm_spring_cloud_build_deployment":         resourceSpringCloudBuildDeployment(),
 		"azurerm_spring_cloud_build_pack_binding":       resourceSpringCloudBuildPackBinding(),
 		"azurerm_spring_cloud_certificate":              resourceSpringCloudCertificate(),
 		"azurerm_spring_cloud_configuration_service":    resourceSpringCloudConfigurationService(),

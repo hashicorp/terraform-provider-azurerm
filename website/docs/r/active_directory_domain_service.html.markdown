@@ -17,6 +17,10 @@ Manages an Active Directory Domain Service.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "deploy" {
   name     = "example-resources"
   location = "West Europe"
@@ -90,7 +94,7 @@ resource "azurerm_network_security_group" "deploy" {
   }
 }
 
-resource azurerm_subnet_network_security_group_association "deploy" {
+resource "azurerm_subnet_network_security_group_association" "deploy" {
   subnet_id                 = azurerm_subnet.deploy.id
   network_security_group_id = azurerm_network_security_group.deploy.id
 }
@@ -101,7 +105,7 @@ resource "azuread_group" "dc_admins" {
 }
 
 resource "azuread_user" "admin" {
-  user_principal_name = "dc-admin@$hashicorp-example.net"
+  user_principal_name = "dc-admin@hashicorp-example.com"
   display_name        = "DC Administrator"
   password            = "Pa55w0Rd!!1"
 }
@@ -161,6 +165,8 @@ resource "azurerm_active_directory_domain_service" "example" {
 The following arguments are supported:
 
 * `domain_name` - (Required) The Active Directory domain to use. See [official documentation](https://docs.microsoft.com/azure/active-directory-domain-services/tutorial-create-instance#create-a-managed-domain) for constraints and recommendations.
+
+* `domain_configuration_type` - (Optional)  The configuration type of this Active Directory Domain. Possible values are `FullySynced` and `ResourceTrusting`. Changing this forces a new resource to be created.
 
 * `filtered_sync_enabled` - Whether to enable group-based filtered sync (also called scoped synchronisation). Defaults to `false`.
 
