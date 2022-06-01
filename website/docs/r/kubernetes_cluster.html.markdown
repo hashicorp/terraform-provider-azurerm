@@ -134,8 +134,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-AzureDefender` is enabled, see [the documentation](https://docs.microsoft.com/azure/defender-for-cloud/defender-for-containers-enable?tabs=aks-deploy-portal%2Ck8s-deploy-asc%2Ck8s-verify-asc%2Ck8s-remove-arc%2Caks-removeprofile-api&pivots=defender-for-container-aks) for more information.
 
-* `namespace_resources_enabled` - (Optional) Specifies whether Namespace Resources should be enabled. Defaults to `false`.
-
 * `network_profile` - (Optional) A `network_profile` block as defined below.
 
 -> **Note:** If `network_profile` is not defined, `kubenet` profile will be used by default.

@@ -403,11 +403,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"namespace_resources_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
 			"network_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1126,24 +1121,23 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			Tier: containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string)),
 		},
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
-			APIServerAccessProfile:   &apiAccessProfile,
-			AadProfile:               azureADProfile,
-			AddonProfiles:            *addonProfiles,
-			AgentPoolProfiles:        agentProfiles,
-			AutoScalerProfile:        autoScalerProfile,
-			DNSPrefix:                utils.String(dnsPrefix),
-			EnableRBAC:               utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
-			EnableNamespaceResources: utils.Bool(d.Get("namespace_resources_enabled").(bool)),
-			KubernetesVersion:        utils.String(kubernetesVersion),
-			LinuxProfile:             linuxProfile,
-			WindowsProfile:           windowsProfile,
-			NetworkProfile:           networkProfile,
-			NodeResourceGroup:        utils.String(nodeResourceGroup),
-			PublicNetworkAccess:      publicNetworkAccess,
-			DisableLocalAccounts:     utils.Bool(d.Get("local_account_disabled").(bool)),
-			HTTPProxyConfig:          httpProxyConfig,
-			OidcIssuerProfile:        oidcIssuerProfile,
-			SecurityProfile:          microsoftDefender,
+			APIServerAccessProfile: &apiAccessProfile,
+			AadProfile:             azureADProfile,
+			AddonProfiles:          *addonProfiles,
+			AgentPoolProfiles:      agentProfiles,
+			AutoScalerProfile:      autoScalerProfile,
+			DNSPrefix:              utils.String(dnsPrefix),
+			EnableRBAC:             utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
+			KubernetesVersion:      utils.String(kubernetesVersion),
+			LinuxProfile:           linuxProfile,
+			WindowsProfile:         windowsProfile,
+			NetworkProfile:         networkProfile,
+			NodeResourceGroup:      utils.String(nodeResourceGroup),
+			PublicNetworkAccess:    publicNetworkAccess,
+			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
+			HTTPProxyConfig:        httpProxyConfig,
+			OidcIssuerProfile:      oidcIssuerProfile,
+			SecurityProfile:        microsoftDefender,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1401,11 +1395,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("local_account_disabled") {
 		updateCluster = true
 		existing.ManagedClusterProperties.DisableLocalAccounts = utils.Bool(d.Get("local_account_disabled").(bool))
-	}
-
-	if d.HasChange("namespace_resources_enabled") {
-		updateCluster = true
-		existing.ManagedClusterProperties.EnableNamespaceResources = utils.Bool(d.Get("namespace_resources_enabled").(bool))
 	}
 
 	if d.HasChange("network_profile") {
@@ -1732,7 +1721,6 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 		d.Set("local_account_disabled", props.DisableLocalAccounts)
-		d.Set("namespace_resources_enabled", props.EnableNamespaceResources)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess != containerservice.PublicNetworkAccessDisabled)
 
 		upgradeChannel := ""

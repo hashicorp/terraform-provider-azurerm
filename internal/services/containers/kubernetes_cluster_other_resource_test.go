@@ -624,62 +624,6 @@ func TestAccKubernetesCluster_oidcIssuer(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_namespaceToggle(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.namespace(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.namespace(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.namespace(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func (KubernetesClusterResource) namespace(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                        = "acctestaks%d"
-  location                    = azurerm_resource_group.test.location
-  resource_group_name         = azurerm_resource_group.test.name
-  dns_prefix                  = "acctestaks%d"
-  namespace_resources_enabled = "%t"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
-}
-
 func (KubernetesClusterResource) basicAvailabilitySetConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
