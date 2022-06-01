@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `entity_mapping` - (Optional) A list of `entity_mapping` blocks as defined below.
 
-* `incident_configuration` - (Optional) A `incident_configuration` block as defined below.
+* `incident` - (Optional) A `incident` block as defined below.
 
 * `suppression_duration` - (Optional) If `suppression_enabled` is `true`, this is ISO 8601 timespan duration, which specifies the amount of time the query should stop running after alert is generated. Defaults to `PT5H`.
 
@@ -124,9 +124,9 @@ A `field_mapping` block supports the following:
 
 ---
 
-A `incident_configuration` block supports the following:
+A `incident` block supports the following:
 
-* `create_incident` - (Required) Whether to create an incident from alerts triggered by this Sentinel NRT Alert Rule?
+* `create_incident_enabled` - (Required) Whether to create an incident from alerts triggered by this Sentinel NRT Alert Rule?
 
 * `grouping` - (Optional) A `grouping` block as defined below.
 
@@ -142,11 +142,11 @@ A `grouping` block supports the following:
 
 * `entity_matching_method` - (Optional) The method used to group incidents. Possible values are `AnyAlert`, `Selected` and `AllEntities`. Defaults to `AnyAlert`.
 
-* `group_by_entities` - (Optional) A list of entity types to group by, only when the `entity_matching_method` is `Selected`. Possible values are `Account`, `AzureResource`, `CloudApplication`, `DNS`, `File`, `FileHash`, `Host`, `IP`, `Mailbox`, `MailCluster`, `MailMessage`, `Malware`, `Process`, `RegistryKey`, `RegistryValue`, `SecurityGroup`, `SubmissionMail`, `URL`.
+* `entities` - (Optional) A list of entity types to group by, only when the `entity_matching_method` is `Selected`. Possible values are `Account`, `AzureResource`, `CloudApplication`, `DNS`, `File`, `FileHash`, `Host`, `IP`, `Mailbox`, `MailCluster`, `MailMessage`, `Malware`, `Process`, `RegistryKey`, `RegistryValue`, `SecurityGroup`, `SubmissionMail`, `URL`.
 
-* `gorup_by_alert_details` - (Optional) A list of alert details to group by, only when the `entity_matching_method` is `Selected`.
+* `alert_details` - (Optional) A list of alert details to group by, only when the `entity_matching_method` is `Selected`.
 
-* `gorup_by_custom_details` - (Optional) A list of custom details keys to group by, only when the `entity_matching_method` is `Selected`. Only keys defined in the `custom_details` may be used.
+* `custom_details` - (Optional) A list of custom details keys to group by, only when the `entity_matching_method` is `Selected`. Only keys defined in the `custom_details` may be used.
 
 ## Attributes Reference
 

@@ -155,16 +155,16 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
   tactics                    = ["Collection", "CommandAndControl"]
   severity                   = "Low"
   enabled                    = false
-  incident_configuration {
-    create_incident = true
+  incident {
+    create_incident_enabled = true
     grouping {
       enabled                 = true
       lookback_duration       = "P7D"
       reopen_closed_incidents = true
       entity_matching_method  = "Selected"
-      group_by_entities       = ["Host"]
-      group_by_alert_details  = ["DisplayName"]
-      group_by_custom_details = ["OperatingSystemType", "OperatingSystemName"]
+      entities                = ["Host"]
+      alert_details           = ["DisplayName"]
+      custom_details          = ["OperatingSystemType", "OperatingSystemName"]
     }
   }
   query                = "Heartbeat"

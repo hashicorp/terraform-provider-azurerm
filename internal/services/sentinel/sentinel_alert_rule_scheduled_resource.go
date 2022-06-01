@@ -139,6 +139,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO 4.0 - rename this to "incident"
 			"incident_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -147,6 +148,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 				MinItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						// TODO 4.0 - rename this to "create_incident_enabled"
 						"create_incident": {
 							Required: true,
 							Type:     pluginsdk.TypeBool,
@@ -184,6 +186,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 											string(securityinsight.MatchingMethodAllEntities),
 										}, false),
 									},
+									// TODO 4.0 - rename this to "entities"
 									"group_by_entities": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -192,6 +195,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 											ValidateFunc: validation.StringInSlice(entityMappingTypes, false),
 										},
 									},
+									// TODO 4.0 - rename this to "alert_details"
 									"group_by_alert_details": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -204,6 +208,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 												false),
 										},
 									},
+									// TODO 4.0 - rename this to "custom_details"
 									"group_by_custom_details": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -413,7 +418,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 			Description:           utils.String(d.Get("description").(string)),
 			DisplayName:           utils.String(d.Get("display_name").(string)),
 			Tactics:               expandAlertRuleTactics(d.Get("tactics").(*pluginsdk.Set).List()),
-			IncidentConfiguration: expandAlertRuleIncidentConfiguration(d.Get("incident_configuration").([]interface{})),
+			IncidentConfiguration: expandAlertRuleIncidentConfiguration(d.Get("incident_configuration").([]interface{}), "create_incident", true),
 			Severity:              securityinsight.AlertSeverity(d.Get("severity").(string)),
 			Enabled:               utils.Bool(d.Get("enabled").(bool)),
 			Query:                 utils.String(d.Get("query").(string)),
@@ -504,7 +509,7 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 		if err := d.Set("tactics", flattenAlertRuleTactics(prop.Tactics)); err != nil {
 			return fmt.Errorf("setting `tactics`: %+v", err)
 		}
-		if err := d.Set("incident_configuration", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration)); err != nil {
+		if err := d.Set("incident_configuration", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration, "create_incident", true)); err != nil {
 			return fmt.Errorf("setting `incident_configuration`: %+v", err)
 		}
 		d.Set("severity", string(prop.Severity))

@@ -95,7 +95,7 @@ func flattenAlertRuleTactics(input *[]securityinsight.AttackTactic) []interface{
 	return output
 }
 
-func expandAlertRuleIncidentConfiguration(input []interface{}) *securityinsight.IncidentConfiguration {
+func expandAlertRuleIncidentConfiguration(input []interface{}, createIncidentKey string, withGroupByPrefix bool) *securityinsight.IncidentConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -103,14 +103,14 @@ func expandAlertRuleIncidentConfiguration(input []interface{}) *securityinsight.
 	raw := input[0].(map[string]interface{})
 
 	output := &securityinsight.IncidentConfiguration{
-		CreateIncident:        utils.Bool(raw["create_incident"].(bool)),
-		GroupingConfiguration: expandAlertRuleGrouping(raw["grouping"].([]interface{})),
+		CreateIncident:        utils.Bool(raw[createIncidentKey].(bool)),
+		GroupingConfiguration: expandAlertRuleGrouping(raw["grouping"].([]interface{}), withGroupByPrefix),
 	}
 
 	return output
 }
 
-func flattenAlertRuleIncidentConfiguration(input *securityinsight.IncidentConfiguration) []interface{} {
+func flattenAlertRuleIncidentConfiguration(input *securityinsight.IncidentConfiguration, createIncidentKey string, withGroupByPrefix bool) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -122,13 +122,13 @@ func flattenAlertRuleIncidentConfiguration(input *securityinsight.IncidentConfig
 
 	return []interface{}{
 		map[string]interface{}{
-			"create_incident": createIncident,
-			"grouping":        flattenAlertRuleGrouping(input.GroupingConfiguration),
+			createIncidentKey: createIncident,
+			"grouping":        flattenAlertRuleGrouping(input.GroupingConfiguration, withGroupByPrefix),
 		},
 	}
 }
 
-func expandAlertRuleGrouping(input []interface{}) *securityinsight.GroupingConfiguration {
+func expandAlertRuleGrouping(input []interface{}, withGroupByPrefix bool) *securityinsight.GroupingConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -142,26 +142,38 @@ func expandAlertRuleGrouping(input []interface{}) *securityinsight.GroupingConfi
 		MatchingMethod:       securityinsight.MatchingMethod(raw["entity_matching_method"].(string)),
 	}
 
-	groupByEntitiesList := raw["group_by_entities"].([]interface{})
+	key := "entities"
+	if withGroupByPrefix {
+		key = "group_by_" + key
+	}
+	groupByEntitiesList := raw[key].([]interface{})
 	groupByEntities := make([]securityinsight.EntityMappingType, len(groupByEntitiesList))
 	for idx, t := range groupByEntitiesList {
 		groupByEntities[idx] = securityinsight.EntityMappingType(t.(string))
 	}
 	output.GroupByEntities = &groupByEntities
 
-	groupByAlertDetailsList := raw["group_by_alert_details"].([]interface{})
+	key = "alert_details"
+	if withGroupByPrefix {
+		key = "group_by_" + key
+	}
+	groupByAlertDetailsList := raw[key].([]interface{})
 	groupByAlertDetails := make([]securityinsight.AlertDetail, len(groupByAlertDetailsList))
 	for idx, t := range groupByAlertDetailsList {
 		groupByAlertDetails[idx] = securityinsight.AlertDetail(t.(string))
 	}
 	output.GroupByAlertDetails = &groupByAlertDetails
 
-	output.GroupByCustomDetails = utils.ExpandStringSlice(raw["group_by_custom_details"].([]interface{}))
+	key = "custom_details"
+	if withGroupByPrefix {
+		key = "group_by_" + key
+	}
+	output.GroupByCustomDetails = utils.ExpandStringSlice(raw[key].([]interface{}))
 
 	return output
 }
 
-func flattenAlertRuleGrouping(input *securityinsight.GroupingConfiguration) []interface{} {
+func flattenAlertRuleGrouping(input *securityinsight.GroupingConfiguration, withGroupByPrefix bool) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -202,15 +214,26 @@ func flattenAlertRuleGrouping(input *securityinsight.GroupingConfiguration) []in
 		}
 	}
 
+	var (
+		k1 = "entities"
+		k2 = "alert_details"
+		k3 = "custom_details"
+	)
+
+	if withGroupByPrefix {
+		k1 = "group_by_" + k1
+		k2 = "group_by_" + k2
+		k3 = "group_by_" + k3
+	}
 	return []interface{}{
 		map[string]interface{}{
 			"enabled":                 enabled,
 			"lookback_duration":       lookbackDuration,
 			"reopen_closed_incidents": reopenClosedIncidents,
 			"entity_matching_method":  string(input.MatchingMethod),
-			"group_by_entities":       groupByEntities,
-			"group_by_alert_details":  groupByAlertDetails,
-			"group_by_custom_details": groupByCustomDetails,
+			k1:                        groupByEntities,
+			k2:                        groupByAlertDetails,
+			k3:                        groupByCustomDetails,
 		},
 	}
 }

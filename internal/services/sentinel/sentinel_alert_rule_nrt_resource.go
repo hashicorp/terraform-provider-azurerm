@@ -120,7 +120,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 				},
 			},
 
-			"incident_configuration": {
+			"incident": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
@@ -128,7 +128,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 				MinItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"create_incident": {
+						"create_incident_enabled": {
 							Required: true,
 							Type:     pluginsdk.TypeBool,
 						},
@@ -165,7 +165,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 											string(securityinsight.MatchingMethodAllEntities),
 										}, false),
 									},
-									"group_by_entities": {
+									"entities": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -173,7 +173,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 											ValidateFunc: validation.StringInSlice(entityMappingTypes, false),
 										},
 									},
-									"group_by_alert_details": {
+									"alert_details": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -185,7 +185,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 												false),
 										},
 									},
-									"group_by_custom_details": {
+									"custom_details": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -343,7 +343,7 @@ func resourceSentinelAlertRuleNrtCreateUpdate(d *pluginsdk.ResourceData, meta in
 			Description:           utils.String(d.Get("description").(string)),
 			DisplayName:           utils.String(d.Get("display_name").(string)),
 			Tactics:               expandAlertRuleTactics(d.Get("tactics").(*pluginsdk.Set).List()),
-			IncidentConfiguration: expandAlertRuleIncidentConfiguration(d.Get("incident_configuration").([]interface{})),
+			IncidentConfiguration: expandAlertRuleIncidentConfiguration(d.Get("incident").([]interface{}), "create_incident_enabled", false),
 			Severity:              securityinsight.AlertSeverity(d.Get("severity").(string)),
 			Enabled:               utils.Bool(d.Get("enabled").(bool)),
 			Query:                 utils.String(d.Get("query").(string)),
@@ -427,8 +427,8 @@ func resourceSentinelAlertRuleNrtRead(d *pluginsdk.ResourceData, meta interface{
 		if err := d.Set("tactics", flattenAlertRuleTactics(prop.Tactics)); err != nil {
 			return fmt.Errorf("setting `tactics`: %+v", err)
 		}
-		if err := d.Set("incident_configuration", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration)); err != nil {
-			return fmt.Errorf("setting `incident_configuration`: %+v", err)
+		if err := d.Set("incident", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration, "create_incident_enabled", false)); err != nil {
+			return fmt.Errorf("setting `incident`: %+v", err)
 		}
 		d.Set("severity", string(prop.Severity))
 		d.Set("enabled", prop.Enabled)
