@@ -60,3 +60,38 @@ func expandUserInfo(input []interface{}) *logz.UserInfo {
 		PhoneNumber:  utils.String(v["phone_number"].(string)),
 	}
 }
+
+func flattenUserInfo(input *logz.UserInfo) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var firstName string
+	if input.FirstName != nil {
+		firstName = *input.FirstName
+	}
+
+	var lastName string
+	if input.LastName != nil {
+		lastName = *input.LastName
+	}
+
+	var email string
+	if input.EmailAddress != nil {
+		email = *input.EmailAddress
+	}
+
+	var phoneNumber string
+	if input.PhoneNumber != nil {
+		phoneNumber = *input.PhoneNumber
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"first_name":   firstName,
+			"last_name":    lastName,
+			"email":        email,
+			"phone_number": phoneNumber,
+		},
+	}
+}

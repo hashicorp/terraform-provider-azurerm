@@ -221,7 +221,9 @@ func resourceLogzMonitorRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("setting `plan`: %+v", err)
 		}
 
-		d.Set("user", d.Get("user"))
+		if err := d.Set("user", flattenUserInfo(expandUserInfo(d.Get("user").([]interface{})))); err != nil {
+			return fmt.Errorf("setting `user`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

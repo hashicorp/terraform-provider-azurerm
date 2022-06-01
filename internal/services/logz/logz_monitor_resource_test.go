@@ -122,9 +122,9 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctest-logz-%d"
-  location = "westeurope"
+  location = "%s"
 }
-`, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r LogzMonitorResource) basic(data acceptance.TestData, effectiveDate string, email string) string {
@@ -240,6 +240,6 @@ resource "azurerm_logz_monitor" "test" {
 }
 
 func getLogzInstanceName(randomInteger int) string {
-	// Name started with `liftr_test_only_` will be regarded as a test resource and cleared by the back end
-	return "liftr_test_only_" + strconv.Itoa(randomInteger)[2:]
+	// The prefix of `liftr_test_only_` is used for test only which should not be used in production environment. Whenever creating a new Logz monitor/subaccount resource with an unused email address, a new email account will also be created in https://logz.io/. When the resource name starts with `liftr_test_only_`, the Azure service will notify https://logz.io/ that this resource is for test only and the email account could be deleted after this resource is deleted, which will not cause data pollution in https://logz.io/
+	return fmt.Sprintf("liftr_test_only_m%s", strconv.Itoa(randomInteger)[3:])
 }

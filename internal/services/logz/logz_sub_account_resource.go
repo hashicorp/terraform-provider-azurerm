@@ -147,7 +147,9 @@ func resourceLogzSubAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if props := resp.Properties; props != nil {
 		d.Set("enabled", props.MonitoringStatus == logz.MonitoringStatusEnabled)
-		d.Set("user", d.Get("user"))
+		if err := d.Set("user", flattenUserInfo(expandUserInfo(d.Get("user").([]interface{})))); err != nil {
+			return fmt.Errorf("setting `user`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
