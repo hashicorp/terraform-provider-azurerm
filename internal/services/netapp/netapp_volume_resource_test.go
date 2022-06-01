@@ -461,7 +461,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, template, data.RandomInteger, data.Locations.Secondary)
+`, template, data.RandomInteger, "eastus2")
 }
 
 func (NetAppVolumeResource) nfsv3FromSnapshot(data acceptance.TestData) string {
@@ -862,7 +862,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, r.template(data), data.RandomInteger, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, "eastus2")
 }
 
 func (NetAppVolumeResource) template(data acceptance.TestData) string {
@@ -930,7 +930,7 @@ resource "azurerm_netapp_pool" "test" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, data.RandomInteger, data.Locations.Ternary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, "westus2", data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (NetAppVolumeResource) templatePoolQosManual(data acceptance.TestData) string {
@@ -1014,5 +1014,5 @@ resource "azurerm_netapp_pool" "test" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, data.RandomInteger, data.Locations.Ternary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, "westus2", data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
