@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
@@ -89,9 +88,7 @@ func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("name", id.IotconnectorName)
 
 	d.Set("workspace_id", workspaceId.ID())
-	if resp.Location != nil {
-		d.Set("location", location.NormalizeNilable(resp.Location))
-	}
+
 	if err := d.Set("identity", flattenMedTechServiceIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
