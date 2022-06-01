@@ -4,6 +4,11 @@ FEATURES:
 
 * **New Resource**: `azurerm_sentinel_data_connector_office_atp` [GH-16825]
 
+ENHANCEMENTS:
+
+* `azurerm_data_factory_trigger_schedule` - support for the `pipeline` block [GH-16922]
+
+
 BUG FIXES:
 
 * `azurerm_kubernetes_cluster` - prevent crash when importing a cluster that doesn't have an API Server Access Profile [GH-17005]
