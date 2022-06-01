@@ -18,10 +18,7 @@ func TestAccAppConfigurationKeysDataSource_allkeys(t *testing.T) {
 		{
 			Config: d.allKeys(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("items.0.key").HasValue("key1"),
-				check.That(data.ResourceName).Key("items.0.label").HasValue("label1"),
-				check.That(data.ResourceName).Key("items.1.key").HasValue("key1"),
-				check.That(data.ResourceName).Key("items.1.label").HasValue("label2"),
+				check.That(data.ResourceName).Key("items.#").HasValue("4"),
 			),
 		},
 	})
@@ -49,7 +46,7 @@ func TestAccAppConfigurationKeysDataSource_label(t *testing.T) {
 		{
 			Config: d.label(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("items[0].label").HasValue("testlabel"),
+				check.That(data.ResourceName).Key("items.#").HasValue("2"),
 			),
 		},
 	})
@@ -99,6 +96,13 @@ func (t AppConfigurationKeysDataSource) allKeys(data acceptance.TestData) string
 
 data "azurerm_app_configuration_keys" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
+
+  depends_on = [
+    azurerm_app_configuration_key.test,
+    azurerm_app_configuration_key.test2,
+    azurerm_app_configuration_key.test3,
+    azurerm_app_configuration_key.test4
+  ]
 }
 `, AppConfigurationKeyResource{}.base(data), t.keys())
 }
@@ -112,6 +116,13 @@ func (t AppConfigurationKeysDataSource) key(data acceptance.TestData) string {
 data "azurerm_app_configuration_keys" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
   key                    = "key1"
+
+  depends_on = [
+    azurerm_app_configuration_key.test,
+    azurerm_app_configuration_key.test2,
+    azurerm_app_configuration_key.test3,
+    azurerm_app_configuration_key.test4
+  ]
 }
 `, AppConfigurationKeyResource{}.base(data), t.keys())
 }
@@ -125,6 +136,13 @@ func (t AppConfigurationKeysDataSource) label(data acceptance.TestData) string {
 data "azurerm_app_configuration_keys" "test" {
   configuration_store_id = azurerm_app_configuration.test.id
   label                  = "testlabel"
+
+  depends_on = [
+    azurerm_app_configuration_key.test,
+    azurerm_app_configuration_key.test2,
+    azurerm_app_configuration_key.test3,
+    azurerm_app_configuration_key.test4
+  ]
 }
 `, AppConfigurationKeyResource{}.base(data), t.keys())
 }
