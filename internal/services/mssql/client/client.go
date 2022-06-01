@@ -32,6 +32,7 @@ type Client struct {
 	ServerAzureADAdministratorsClient                  *sql.ServerAzureADAdministratorsClient
 	ServerAzureADOnlyAuthenticationsClient             *sql.ServerAzureADOnlyAuthenticationsClient
 	ServerConnectionPoliciesClient                     *sql.ServerConnectionPoliciesClient
+	ServerDNSAliasClient                               *sql.ServerDNSAliasesClient
 	ServerExtendedBlobAuditingPoliciesClient           *sql.ExtendedServerBlobAuditingPoliciesClient
 	ServerKeysClient                                   *sql.ServerKeysClient
 	ServerSecurityAlertPoliciesClient                  *sql.ServerSecurityAlertPoliciesClient
@@ -118,6 +119,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	serverConnectionPoliciesClient := sql.NewServerConnectionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverConnectionPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
+	serverDNSAliasClient := sql.NewServerDNSAliasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&serverDNSAliasClient.Client, o.ResourceManagerAuthorizer)
+
 	serverExtendedBlobAuditingPoliciesClient := sql.NewExtendedServerBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -168,6 +172,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServerAzureADAdministratorsClient:               &serverAzureADAdministratorsClient,
 		ServerAzureADOnlyAuthenticationsClient:          &serverAzureADOnlyAuthenticationsClient,
 		ServerConnectionPoliciesClient:                  &serverConnectionPoliciesClient,
+		ServerDNSAliasClient:                            &serverDNSAliasClient,
 		ServerExtendedBlobAuditingPoliciesClient:        &serverExtendedBlobAuditingPoliciesClient,
 		ServerKeysClient:                                &serverKeysClient,
 		ServerSecurityAlertPoliciesClient:               &serverSecurityAlertPoliciesClient,

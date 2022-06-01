@@ -6,10 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -48,7 +46,7 @@ func resourceServiceBusSubscription() *pluginsdk.Resource {
 }
 
 func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -59,17 +57,9 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 		//lintignore: S013
 		"topic_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     features.ThreePointOhBeta(),
-			Optional:     !features.ThreePointOhBeta(),
-			Computed:     !features.ThreePointOhBeta(),
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.TopicID,
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"topic_name", "namespace_name", "resource_group_name"}
-				}
-				return []string{}
-			}(),
 		},
 
 		"auto_delete_on_idle": {
@@ -140,44 +130,10 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		s["topic_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ValidateFunc:  validate.TopicName(),
-			Deprecated:    `Deprecated in favor of "topic_id"`,
-			ConflictsWith: []string{"topic_id"},
-		}
-
-		s["namespace_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ValidateFunc:  validate.NamespaceName,
-			Deprecated:    `Deprecated in favor of "topic_id"`,
-			ConflictsWith: []string{"topic_id"},
-		}
-
-		s["resource_group_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ValidateFunc:  resourcegroups.ValidateName,
-			Deprecated:    `Deprecated in favor of "topic_id"`,
-			ConflictsWith: []string{"topic_id"},
-		}
-	}
-	return s
 }
 
 func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for ServiceBus Subscription creation.")
@@ -186,8 +142,6 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	if topicIdLit := d.Get("topic_id").(string); topicIdLit != "" {
 		topicId, _ := parse.TopicID(topicIdLit)
 		resourceId = parse.NewSubscriptionID(topicId.SubscriptionId, topicId.ResourceGroup, topicId.NamespaceName, topicId.Name, d.Get("name").(string))
-	} else if !features.ThreePointOhBeta() {
-		resourceId = parse.NewSubscriptionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("topic_name").(string), d.Get("name").(string))
 	}
 
 	if d.IsNewResource() {
@@ -259,12 +213,6 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	if !features.ThreePointOhBeta() {
-		d.Set("topic_name", id.TopicName)
-		d.Set("namespace_name", id.NamespaceName)
-		d.Set("resource_group_name", id.ResourceGroup)
 	}
 
 	d.Set("name", id.Name)

@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -117,8 +116,7 @@ func resourceSqlServer() *pluginsdk.Resource {
 									"Access_Anomaly",
 									"Data_Exfiltration",
 									"Unsafe_Action",
-								}, !features.ThreePointOhBeta()),
-								DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+								}, false),
 							},
 						},
 
@@ -145,15 +143,14 @@ func resourceSqlServer() *pluginsdk.Resource {
 						},
 
 						"state": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-							Default:          string(sql.SecurityAlertPolicyStateDisabled),
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(sql.SecurityAlertPolicyStateDisabled),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sql.SecurityAlertPolicyStateDisabled),
 								string(sql.SecurityAlertPolicyStateEnabled),
 								string(sql.SecurityAlertPolicyStateNew), // Only kept for backward compatibility - TODO investigate if we can remove this in 4.0
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 
 						"storage_account_access_key": {

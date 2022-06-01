@@ -67,6 +67,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_windows_virtual_machine":                resourceWindowsVirtualMachine(),
 		"azurerm_windows_virtual_machine_scale_set":      resourceWindowsVirtualMachineScaleSet(),
 		"azurerm_ssh_public_key":                         resourceSshPublicKey(),
+		"azurerm_managed_disk_sas_token":                 resourceManagedDiskSasToken(),
 	}
 
 	return resources

@@ -75,6 +75,7 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
 					string(compute.DiskEncryptionSetTypeEncryptionAtRestWithPlatformAndCustomerKeys),
+					string(compute.DiskEncryptionSetTypeConfidentialVMEncryptedWithCustomerKey),
 				}, false),
 			},
 

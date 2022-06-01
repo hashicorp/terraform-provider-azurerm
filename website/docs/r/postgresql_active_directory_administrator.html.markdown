@@ -1,7 +1,7 @@
 ---
 subcategory: "Database"
 layout: "azurerm"
-page_title: "Azure Resource manager: azurerm_postgresql_active_directory_administrator"
+page_title: "Azure Resource Manager: azurerm_postgresql_active_directory_administrator"
 description: |-
   Manages an Active Directory administrator on a PostgreSQL server
 ---

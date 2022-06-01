@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-03-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -73,13 +71,6 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("invalid `sku` for Spring Cloud Service %q (Resource Group %q)", appId.SpringName, appId.ResourceGroup)
 	}
 
-	var cpu int
-	var mem int
-	if !features.ThreePointOhBeta() {
-		cpu = d.Get("cpu").(int)
-		mem = d.Get("memory_in_gb").(int)
-	}
-
 	deployment := appplatform.DeploymentResource{
 		Sku: &appplatform.Sku{
 			Name:     service.Sku.Name,
@@ -95,7 +86,7 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
 				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
-				ResourceRequests:     expandSpringCloudDeploymentResourceRequests(cpu, mem, d.Get("quota").([]interface{})),
+				ResourceRequests:     expandSpringCloudDeploymentResourceRequests(d.Get("quota").([]interface{})),
 			},
 		},
 	}
@@ -164,14 +155,7 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 			return fmt.Errorf("nil `properties.deploymentSettings.resourceRequests` for %s: %+v", id, err)
 		}
 
-		var cpu int
-		var mem int
-		if !features.ThreePointOhBeta() {
-			cpu = d.Get("cpu").(int)
-			mem = d.Get("memory_in_gb").(int)
-		}
-
-		existing.Properties.DeploymentSettings.ResourceRequests = expandSpringCloudDeploymentResourceRequests(cpu, mem, d.Get("quota").([]interface{}))
+		existing.Properties.DeploymentSettings.ResourceRequests = expandSpringCloudDeploymentResourceRequests(d.Get("quota").([]interface{}))
 	}
 
 	if d.HasChange("runtime_version") {
@@ -223,24 +207,6 @@ func resourceSpringCloudJavaDeploymentRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("environment_variables", flattenSpringCloudDeploymentEnvironmentVariables(settings.EnvironmentVariables))
 			if err := d.Set("quota", flattenSpringCloudDeploymentResourceRequests(settings.ResourceRequests)); err != nil {
 				return fmt.Errorf("setting `quota`: %+v", err)
-			}
-			if !features.ThreePointOhBeta() {
-				cpu := 0
-				memory := 0
-				if settings.ResourceRequests != nil {
-					if settings.ResourceRequests.CPU != nil {
-						if value, err := strconv.Atoi(*settings.ResourceRequests.CPU); err == nil {
-							cpu = value
-						}
-					}
-					if settings.ResourceRequests.Memory != nil {
-						if value, err := strconv.Atoi(strings.TrimSuffix(*settings.ResourceRequests.Memory, "Gi")); err == nil {
-							memory = value
-						}
-					}
-				}
-				d.Set("cpu", cpu)
-				d.Set("memory_in_gb", memory)
 			}
 		}
 		if source, ok := resp.Properties.Source.AsJarUploadedUserSourceInfo(); ok && source != nil {
@@ -294,41 +260,19 @@ func flattenSpringCloudDeploymentEnvironmentVariables(envMap map[string]*string)
 	return output
 }
 
-func expandSpringCloudDeploymentResourceRequests(cpu int, mem int, input []interface{}) *appplatform.ResourceRequests {
+func expandSpringCloudDeploymentResourceRequests(input []interface{}) *appplatform.ResourceRequests {
 	cpuResult := "1"   // default value that's aligned with previous behavior used to be defined in schema.
 	memResult := "1Gi" // default value that's aligned with previous behavior used to be defined in schema.
 
-	if len(input) == 0 || input[0] == nil {
-		// Take legacy property as precedence with setting "" to new property, otherwise the new property that's not set by users always takes precedence.
-		// The above explanation applies to left similar sections within this function.
-		if cpu != 0 {
-			cpuResult = strconv.Itoa(cpu)
-		}
-
-		if mem != 0 {
-			memResult = fmt.Sprintf("%dGi", mem)
-		}
-	} else {
+	if len(input) > 0 && input[0] != nil {
 		v := input[0].(map[string]interface{})
-		if v == nil {
-			if cpu != 0 {
-				cpuResult = strconv.Itoa(cpu)
-			}
-
-			if mem != 0 {
-				memResult = fmt.Sprintf("%dGi", mem)
-			}
-		} else {
+		if v != nil {
 			if cpuNew := v["cpu"].(string); cpuNew != "" {
 				cpuResult = cpuNew
-			} else if cpu != 0 {
-				cpuResult = strconv.Itoa(cpu)
 			}
 
 			if memoryNew := v["memory"].(string); memoryNew != "" {
 				memResult = memoryNew
-			} else if mem != 0 {
-				memResult = fmt.Sprintf("%dGi", mem)
 			}
 		}
 	}
@@ -365,7 +309,7 @@ func flattenSpringCloudDeploymentResourceRequests(input *appplatform.ResourceReq
 }
 
 func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -419,12 +363,6 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 							"3",
 							"4",
 						}, false),
-						ConflictsWith: func() []string {
-							if features.ThreePointOhBeta() {
-								return []string{}
-							}
-							return []string{"cpu"}
-						}(),
 					},
 
 					// The value returned in GET will be recalculated by the service if the deprecated "memory_in_gb" is honored, so make this property as Computed.
@@ -443,12 +381,6 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 							"7Gi",
 							"8Gi",
 						}, false),
-						ConflictsWith: func() []string {
-							if features.ThreePointOhBeta() {
-								return []string{}
-							}
-							return []string{"memory_in_gb"}
-						}(),
 					},
 				},
 			},
@@ -465,24 +397,4 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 			Default: appplatform.SupportedRuntimeValueJava8,
 		},
 	}
-	if !features.ThreePointOhBeta() {
-		schema["cpu"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeInt,
-			Optional:      true,
-			Computed:      true,
-			ValidateFunc:  validation.IntBetween(1, 4),
-			ConflictsWith: []string{"quota.0.cpu"},
-			Deprecated:    "This field has been deprecated in favour of `cpu` within `quota` and will be removed in a future version of the provider",
-		}
-		schema["memory_in_gb"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeInt,
-			Optional:      true,
-			Computed:      true,
-			ValidateFunc:  validation.IntBetween(1, 8),
-			ConflictsWith: []string{"quota.0.memory"},
-			Deprecated:    "This field has been deprecated in favour of `memory` within `quota` and will be removed in a future version of the provider",
-		}
-	}
-	return schema
-
 }

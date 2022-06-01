@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -133,10 +132,9 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 									},
 
 									"vm_size": {
-										Type:             pluginsdk.TypeString,
-										Required:         true,
-										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-										ValidateFunc:     validation.StringInSlice(validate.NodeDefinitionVMSize, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(validate.NodeDefinitionVMSize, false),
 									},
 
 									"install_script_action": {

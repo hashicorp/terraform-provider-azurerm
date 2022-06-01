@@ -93,7 +93,7 @@ An `upstream_endpoint` block supports the following:
 
 A `sku` block supports the following:
 
-* `name` - (Required) Specifies which tier to use. Valid values are `Free_F1` and `Standard_S1`.
+* `name` - (Required) Specifies which tier to use. Valid values are `Free_F1`, `Standard_S1` and `Premium_P1`.
 
 * `capacity` - (Required) Specifies the number of units associated with this SignalR service. Valid values are `1`, `2`, `5`, `10`, `20`, `50` and `100`.
 

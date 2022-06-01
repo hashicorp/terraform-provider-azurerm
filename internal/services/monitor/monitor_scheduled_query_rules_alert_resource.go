@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
@@ -85,7 +84,6 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 						"custom_webhook_payload": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     !features.ThreePointOhBeta(),
 							ValidateFunc: validation.StringIsJSON,
 						},
 						"email_subject": {

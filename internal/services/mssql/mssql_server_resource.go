@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -146,12 +145,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default: func() interface{} {
-					if features.ThreePointOhBeta() {
-						return "1.2"
-					}
-					return nil
-				}(),
+				Default:  "1.2",
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
 					"1.1",
@@ -305,6 +299,11 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	version := d.Get("version").(string)
 
@@ -327,6 +326,8 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		props.Identity = expandedIdentity
+	} else {
+		props.Identity = existing.Identity
 	}
 
 	if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {

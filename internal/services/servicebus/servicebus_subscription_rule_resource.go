@@ -7,10 +7,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -44,7 +42,7 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 }
 
 func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -54,18 +52,10 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 
 		//lintignore: S013
 		"subscription_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     features.ThreePointOhBeta(),
-			Optional:     !features.ThreePointOhBeta(),
-			Computed:     !features.ThreePointOhBeta(),
-			ForceNew:     true,
-			ValidateFunc: validate.SubscriptionID,
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"subscription_name", "topic_name", "namespace_name", "resource_group_name"}
-				}
-				return []string{}
-			}(),
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			ForceNew:         true,
+			ValidateFunc:     validate.SubscriptionID,
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
@@ -75,8 +65,7 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(servicebus.FilterTypeSQLFilter),
 				string(servicebus.FilterTypeCorrelationFilter),
-			}, !features.ThreePointOhBeta()),
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			}, false),
 		},
 
 		"action": {
@@ -185,54 +174,10 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		s["subscription_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ValidateFunc:  validate.SubscriptionName(),
-			Deprecated:    `Deprecated in favor of "subscription_id"`,
-			ConflictsWith: []string{"subscription_id"},
-		}
-
-		s["topic_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ValidateFunc:  validate.TopicName(),
-			Deprecated:    `Deprecated in favor of "subscription_id"`,
-			ConflictsWith: []string{"subscription_id"},
-		}
-
-		s["namespace_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ValidateFunc:  validate.NamespaceName,
-			Deprecated:    `Deprecated in favor of "subscription_id"`,
-			ConflictsWith: []string{"subscription_id"},
-		}
-
-		s["resource_group_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ValidateFunc:  resourcegroups.ValidateName,
-			Deprecated:    `Deprecated in favor of "subscription_id"`,
-			ConflictsWith: []string{"subscription_id"},
-		}
-	}
-	return s
 }
 
 func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure Service Bus Subscription Rule creation.")
@@ -249,13 +194,6 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 			subscriptionId.Name,
 			d.Get("name").(string),
 		)
-	} else if !features.ThreePointOhBeta() {
-		resourceId = parse.NewSubscriptionRuleID(subscriptionId,
-			d.Get("resource_group_name").(string),
-			d.Get("namespace_name").(string),
-			d.Get("topic_name").(string),
-			d.Get("subscription_name").(string),
-			d.Get("name").(string))
 	}
 
 	if d.IsNewResource() {
@@ -326,12 +264,6 @@ func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if !features.ThreePointOhBeta() {
-		d.Set("topic_name", id.TopicName)
-		d.Set("namespace_name", id.NamespaceName)
-		d.Set("resource_group_name", id.ResourceGroup)
-		d.Set("subscription_name", id.SubscriptionName)
-	}
 	d.Set("subscription_id", parse.NewSubscriptionID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName, id.SubscriptionName).ID())
 	d.Set("name", id.RuleName)
 
