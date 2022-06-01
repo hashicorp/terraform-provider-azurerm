@@ -66,6 +66,7 @@ func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
 	d.Set("name", id.ProfileName)
 	d.Set("resource_group_name", id.ResourceGroup)
 

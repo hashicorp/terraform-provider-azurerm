@@ -30,7 +30,7 @@ func (CdnFrontDoorProfileDataSource) basic(data acceptance.TestData) string {
 
 data "azurerm_cdn_frontdoor_profile" "test" {
   name                = azurerm_cdn_frontdoor_profile.test.name
-  resource_group_name = azurerm_cdn_frontdoor_profile.test.name
+  resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
 `, CdnFrontDoorProfileResource{}.complete(data))
 }
