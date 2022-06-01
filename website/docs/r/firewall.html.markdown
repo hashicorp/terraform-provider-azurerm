@@ -64,9 +64,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku_name` - (Optional) SKU name of the Firewall. Possible values are `AZFW_Hub` and `AZFW_VNet`.  Changing this forces a new resource to be created.
+* `sku_name` - (Required) SKU name of the Firewall. Possible values are `AZFW_Hub` and `AZFW_VNet`.  Changing this forces a new resource to be created.
 
-* `sku_tier` - (Optional) SKU tier of the Firewall. Possible values are `Premium` and `Standard`.  Changing this forces a new resource to be created.
+* `sku_tier` - (Required) SKU tier of the Firewall. Possible values are `Premium` and `Standard`.  Changing this forces a new resource to be created.
 
 * `firewall_policy_id` - (Optional) The ID of the Firewall Policy applied to this Firewall.
 
