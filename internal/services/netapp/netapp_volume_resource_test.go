@@ -488,7 +488,7 @@ resource "azurerm_netapp_volume" "test" {
     protocols_enabled = ["NFSv3"]
     unix_read_only    = false
     unix_read_write   = true
-  },
+  }
 
   tags = {
     "SkipASMAzSecPack" = "true"
@@ -626,7 +626,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "FoO" = "BaR",
+    "FoO"              = "BaR",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -675,7 +675,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "FoO" = "BaR",
+    "FoO"              = "BaR",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -716,8 +716,8 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "FoO" = "BaR",
-    "bAr" = "fOo",
+    "FoO"              = "BaR",
+    "bAr"              = "fOo",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -801,7 +801,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "FoO" = "BaR",
+    "FoO"              = "BaR",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -939,7 +939,7 @@ provider "azurerm" {
   alias = "all2"
   features {
     resource_group {
-	    prevent_deletion_if_contains_resources = false
+      prevent_deletion_if_contains_resources = false
     }
   }
 }
@@ -947,7 +947,7 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
   location = "%s"
-  
+
   tags = {
     "SkipASMAzSecPack" = "true"
   }
@@ -959,7 +959,7 @@ resource "azurerm_network_security_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    environment = "Production",
+    environment        = "Production",
     "SkipASMAzSecPack" = "true"
   }
 }
