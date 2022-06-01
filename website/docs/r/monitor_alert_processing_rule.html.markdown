@@ -37,7 +37,7 @@ resource "azurerm_monitor_alert_processing_rule" "example" {
   condition {
     target_resource_type {
       operator = "Equals"
-      values   = ["Microsoft.Compute/VirtualMachines", "microsoft.batch/batchaccounts"]
+      values   = ["Microsoft.Compute/VirtualMachines"]
     }
     severity {
       operator = "Equals"
@@ -55,7 +55,7 @@ resource "azurerm_monitor_alert_processing_rule" "example" {
         end_time   = "09:00:00"
       }
       weekly {
-        days_of_week = ["Sunday", "Saturday"]
+        days_of_week = ["Saturday"， "Sunday"]
       }
     }
   }
@@ -100,6 +100,30 @@ A `action` block supports the following:
 
 ---
 
+A `alert_context` block supports the following:
+
+* `operator` - (Required) The operator for a given condition. Possible values are `Equals`, `NotEquals`, `Contains`, and `DoesNotContain`.
+
+* `values` - (Required) Specifies a list of values to match for a given condition.
+
+---
+
+A `alert_rule_id` block supports the following:
+
+* `operator` - (Required) The operator for a given condition. Possible values are `Equals`, `NotEquals`, `Contains`, and `DoesNotContain`.
+
+* `values` - (Required) Specifies a list of values to match for a given condition.
+
+---
+
+A `alert_rule_name` block supports the following:
+
+* `operator` - (Required) The operator for a given condition. Possible values are `Equals`, `NotEquals`, `Contains`, and `DoesNotContain`.
+
+* `values` - (Required) Specifies a list of values to match for a given condition.
+
+---
+
 A `condition` block supports the following:
 
 * `alert_context` - (Optional) A `alert_context` block as defined above.
@@ -126,27 +150,11 @@ A `condition` block supports the following:
 
 ---
 
-A `alert_context` block supports the following:
+A `daily` block supports the following:
 
-* `operator` - (Required) The operator for a given condition. Possible values are `Equals`, `NotEquals`, `Contains`, and `DoesNotContain`.
+* `start_time` - (Required) Specifies the recurrence start time (H:M:S).
 
-* `values` - (Required) Specifies a list of values to match for a given condition.
-
----
-
-A `alert_rule_id` block supports the following:
-
-* `operator` - (Required) The operator for a given condition. Possible values are `Equals`, `NotEquals`, `Contains`, and `DoesNotContain`.
-
-* `values` - (Required) Specifies a list of values to match for a given condition.
-
----
-
-A `alert_rule_name` block supports the following:
-
-* `operator` - (Required) The operator for a given condition. Possible values are `Equals`, `NotEquals`, `Contains`, and `DoesNotContain`.
-
-* `values` - (Required) Specifies a list of values to match for a given condition.
+* `end_time` - (Required) Specifies the recurrence end time (H:M:S).
 
 ---
 
@@ -171,6 +179,38 @@ A `monitor_service` block supports the following:
 * `operator` - (Required) The operator for a given condition. Possible values are `Equals` and `NotEquals`.
 
 * `values` - (Required) A list of values to match for a given condition. Possible values are `ActivityLog Administrative`, `ActivityLog Autoscale`, `ActivityLog Policy`, `ActivityLog Recommendation`, `ActivityLog Security`, `Application Insights`, `Azure Backup`, `Azure Stack Edge`, `Azure Stack Hub`, `Custom`, `Data Box Gateway`, `Health Platform`, `Log Alerts V2`, `Log Analytics`, `Platform`, `Prometheus`, `Resource Health`, `Smart Detector`, and `VM Insights - Health`.
+
+---
+
+A `monthly` block supports the following:
+
+* `days_of_month` - (Required) Specifies a list of dayOfMonth to recurrence. Possible values are integers between `1` - `31`.
+
+* `start_time` - (Optional) Specifies the recurrence start time (H:M:S).
+
+* `end_time` - (Optional) Specifies the recurrence end time (H:M:S).
+
+---
+
+A `recurrence` block supports the following:
+
+* `daily` - (Optional) One or more `daily` blocks as defined above.
+
+* `weekly` - (Optional) One or more `weekly` blocks as defined below.
+
+* `monthly` - (Optional) One or more `monthly` blocks as defined above.
+
+---
+
+A `schedule` block supports the following:
+
+* `effective_from` - (Optional) Specifies the Alert Processing Rule effective start time (Y-m-d'T'H:M:S).
+
+* `effective_until` - (Optional) Specifies the Alert Processing Rule effective end time (Y-m-d'T'H:M:S).
+
+* `recurrence` - (Optional) A `recurrence` block as defined above.
+
+* `time_zone` - (Optional)  The time zone (e.g. Pacific Standard time, Eastern Standard Time). Defaults to `UTC`. [possible values are defined here](https://docs.microsoft.com/en-us/previous-versions/windows/embedded/ms912391(v=winembedded.11)).
 
 ---
 
@@ -214,49 +254,9 @@ A `target_resource_type` block supports the following:
 
 ---
 
-A `schedule` block supports the following:
-
-* `effective_from` - (Optional) Specifies the Alert Processing Rule effective start time (Y-m-d'T'H:M:S).
-
-* `effective_until` - (Optional) Specifies the Alert Processing Rule effective end time (Y-m-d'T'H:M:S).
-
-* `recurrence` - (Optional) A `recurrence` block as defined above.
-
-* `time_zone` - (Optional)  The time zone (e.g. Pacific Standard time, Eastern Standard Time). Defaults to `UTC`. [possible values are defined here](https://docs.microsoft.com/en-us/previous-versions/windows/embedded/ms912391(v=winembedded.11)).
-
----
-
-A `recurrence` block supports the following:
-
-* `daily` - (Optional) One or more `daily` blocks as defined above.
-
-* `weekly` - (Optional) One or more `weekly` blocks as defined below.
-
-* `monthly` - (Optional) One or more `monthly` blocks as defined above.
-
----
-
-A `daily` block supports the following:
-
-* `start_time` - (Required) Specifies the recurrence start time (H:M:S).
-
-* `end_time` - (Required) Specifies the recurrence end time (H:M:S).
-
----
-
 A `weekly` block supports the following:
 
 * `days_of_week` - (Required) Specifies a list of dayOfWeek to recurrence.Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, and  `Saturday`.
-
-* `start_time` - (Optional) Specifies the recurrence start time (H:M:S).
-
-* `end_time` - (Optional) Specifies the recurrence end time (H:M:S).
-
----
-
-A `monthly` block supports the following:
-
-* `days_of_month` - (Required) Specifies a list of dayOfMonth to recurrence. Possible values are integers between `1` - `31`.
 
 * `start_time` - (Optional) Specifies the recurrence start time (H:M:S).
 
