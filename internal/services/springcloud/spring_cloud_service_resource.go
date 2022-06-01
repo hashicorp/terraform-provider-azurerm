@@ -68,6 +68,18 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"build_agent_pool_size": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"S1",
+					"S2",
+					"S3",
+					"S4",
+					"S5",
+				}, false),
+			},
+
 			"network": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -291,6 +303,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
 	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
+	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -368,6 +381,24 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
+	if size := d.Get("build_agent_pool_size").(string); len(size) > 0 {
+		agentPoolResource := appplatform.BuildServiceAgentPoolResource{
+			Properties: &appplatform.BuildServiceAgentPoolProperties{
+				PoolSize: &appplatform.BuildServiceAgentPoolSizeProperties{
+					Name: utils.String(size),
+				},
+			},
+		}
+		future, err := agentPoolClient.UpdatePut(ctx, id.ResourceGroup, id.SpringName, "default", "default", agentPoolResource)
+		if err != nil {
+			return fmt.Errorf("creating default build agent of %s: %+v", id, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation default build agent of %s: %+v", id, err)
+		}
+	}
+
 	return resourceSpringCloudServiceRead(d, meta)
 }
 
@@ -376,6 +407,7 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
 	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
+	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -452,6 +484,24 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
+	if size := d.Get("build_agent_pool_size").(string); len(size) > 0 {
+		agentPoolResource := appplatform.BuildServiceAgentPoolResource{
+			Properties: &appplatform.BuildServiceAgentPoolProperties{
+				PoolSize: &appplatform.BuildServiceAgentPoolSizeProperties{
+					Name: utils.String(size),
+				},
+			},
+		}
+		future, err := agentPoolClient.UpdatePut(ctx, id.ResourceGroup, id.SpringName, "default", "default", agentPoolResource)
+		if err != nil {
+			return fmt.Errorf("creating default build agent of %s: %+v", id, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for creation default build agent of %s: %+v", id, err)
+		}
+	}
+
 	return resourceSpringCloudServiceRead(d, meta)
 }
 
@@ -460,6 +510,7 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
 	serviceRegistryClient := meta.(*clients.Client).AppPlatform.ServiceRegistryClient
+	agentPoolClient := meta.(*clients.Client).AppPlatform.BuildServiceAgentPoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -498,6 +549,15 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 	if utils.ResponseWasNotFound(serviceRegistry.Response) {
 		serviceRegistryEnabled = false
+	}
+	agentPool, err := agentPoolClient.Get(ctx, id.ResourceGroup, id.SpringName, "default", "default")
+	if err == nil && agentPool.Properties != nil && agentPool.Properties.PoolSize != nil {
+		d.Set("build_agent_pool_size", agentPool.Properties.PoolSize.Name)
+	} else {
+		if err != nil {
+			log.Printf("[WARN] error retrieving build agent pool of %q: %+v", id, err)
+		}
+		d.Set("build_agent_pool_size", "")
 	}
 
 	d.Set("name", id.SpringName)

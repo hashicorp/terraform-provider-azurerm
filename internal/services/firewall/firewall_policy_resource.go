@@ -615,6 +615,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(network.FirewallPolicySkuTierPremium),
 				string(network.FirewallPolicySkuTierStandard),
+				string(network.FirewallPolicySkuTierBasic),
 			}, false),
 		},
 
