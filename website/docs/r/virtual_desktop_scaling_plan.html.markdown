@@ -20,6 +20,8 @@ Manages a Virtual Desktop Scaling Plan.
 
 ```hcl
 
+resource "random_uuid" "example" {
+}
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -55,7 +57,7 @@ data "azuread_service_principal" "example" {
   display_name = "Windows Virtual Desktop"
 }
 resource "azurerm_role_assignment" "example" {
-  name                             = "b5ee72a3-54dd-c4b8-551c-4bdc0204cedb"
+  name                             = random_uuid.example.result
   scope                            = azurerm_resource_group.example.id
   role_definition_id               = azurerm_role_definition.example.role_definition_resource_id
   principal_id                     = data.azuread_service_principal.example.id
