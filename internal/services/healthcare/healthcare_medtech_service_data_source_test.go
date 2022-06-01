@@ -28,8 +28,8 @@ func (HealthCareWorkspaceIotConnectorDataSource) basic(data acceptance.TestData)
 %s
 
 data "azurerm_healthcare_medtech_service" "test" {
-  name                = azurerm_healthcare_medtech_service.test.name
-  workspace_id        = azurerm_healthcare_workspace.test.id
+  name         = azurerm_healthcare_medtech_service.test.name
+  workspace_id = azurerm_healthcare_workspace.test.id
 }
 `, HealthCareWorkspaceMedTechServiceResource{}.basic(data))
 }
