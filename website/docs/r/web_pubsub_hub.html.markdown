@@ -18,13 +18,13 @@ resource "azurerm_resource_group" "example" {
   location = "east us"
 }
 
-resource "azurerm_user_assigned_identity" "test" {
+resource "azurerm_user_assigned_identity" "example" {
   name                = "tfex-uai"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 }
 
-resource "azurerm_web_pubsub" "test" {
+resource "azurerm_web_pubsub" "example" {
   name                = "tfex-webpubsub"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -33,9 +33,9 @@ resource "azurerm_web_pubsub" "test" {
   capacity = 1
 }
 
-resource "azurerm_web_pubsub_hub" "test" {
+resource "azurerm_web_pubsub_hub" "example" {
   name          = "tfex_wpsh"
-  web_pubsub_id = azurerm_web_pubsub.test.id
+  web_pubsub_id = azurerm_web_pubsub.example.id
   event_handler {
     url_template       = "https://test.com/api/{hub}/{event}"
     user_event_pattern = "*"
@@ -47,13 +47,13 @@ resource "azurerm_web_pubsub_hub" "test" {
     user_event_pattern = "event1, event2"
     system_events      = ["connected"]
     auth {
-      managed_identity_id = azurerm_user_assigned_identity.test.id
+      managed_identity_id = azurerm_user_assigned_identity.example.id
     }
   }
   anonymous_connections_enabled = true
 
   depends_on = [
-    azurerm_web_pubsub.test
+    azurerm_web_pubsub.example
   ]
 }
 ```
