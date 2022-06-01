@@ -1,5 +1,9 @@
 ## 3.9.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_sentinel_data_connector_office_atp` [GH-16825]
+
 BUG FIXES:
 
 * `azurerm_kubernetes_cluster` - prevent crash when importing a cluster that doesn't have an API Server Access Profile [GH-17005]
