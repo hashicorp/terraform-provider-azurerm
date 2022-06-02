@@ -217,9 +217,9 @@ resource "azurerm_bot_service_azure_bot" "test" {
   sku                 = "F0"
   microsoft_app_id    = data.azurerm_client_config.current.client_id
 
-  microsoft_app_type               = "UserAssignedMSI"
-  microsoft_app_tenant_id          = data.azurerm_client_config.current.tenant_id
-  microsoft_app_msi_id             = azurerm_user_assigned_identity.test.id
+  microsoft_app_type      = "UserAssignedMSI"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
+  microsoft_app_msi_id    = azurerm_user_assigned_identity.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
