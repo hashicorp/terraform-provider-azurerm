@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `delivery_identity` - (Optional) A `delivery_identity` block as defined below.
 
-* `delivery_property` - (Optional) A `delivery_property` block as defined below.
+* `delivery_property` - (Optional) One or more `delivery_property` blocks as defined below.
 
 * `dead_letter_identity` - (Optional) A `dead_letter_identity` block as defined below.
 
