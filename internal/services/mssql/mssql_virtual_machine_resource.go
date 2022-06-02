@@ -189,7 +189,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"schedule": {
 							Type:     pluginsdk.TypeList,
-							Optional: false,
+							Optional: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								"weekly_interval": {
