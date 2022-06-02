@@ -40,7 +40,7 @@ resource "azurerm_api_management_identity_provider_aadb2c" "example" {
   resource_group_name = azurerm_resource_group.example.name
   api_management_name = azurerm_api_management.example.name
   client_id           = azuread_application.example.application_id
-  client_secret       = "P@55w0rD!example"
+  client_secret       = "P@55w0rD!"
   allowed_tenant      = "myb2ctenant.onmicrosoft.com"
   signin_tenant       = "myb2ctenant.onmicrosoft.com"
   authority           = "myb2ctenant.b2clogin.com"
