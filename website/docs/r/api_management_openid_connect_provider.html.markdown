@@ -33,6 +33,7 @@ resource "azurerm_api_management_openid_connect_provider" "example" {
   api_management_name = azurerm_api_management.example.name
   resource_group_name = azurerm_resource_group.example.name
   client_id           = "00001111-2222-3333-4444-555566667777"
+  client_secret       = "00001111-423egvwdcsjx-00001111"
   display_name        = "Example Provider"
   metadata_endpoint   = "https://example.com/example"
 }
