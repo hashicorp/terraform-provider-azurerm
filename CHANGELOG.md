@@ -2,7 +2,9 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_cdn_frontdoor_endpoint` [GH-17078]
 * **New Data Source**: `azurerm_cdn_frontdoor_profile` [GH-17061]
+* **New Resource**: `azurerm_cdn_frontdoor_endpoint` [GH-17078]
 * **New Resource**: `azurerm_cdn_frontdoor_profile` [GH-17061]
 * **New Resource**: `azurerm_sentinel_data_connector_office_atp` [GH-16825]
 * **New Resource**: `azurerm_vpn_server_configuration_policy_group` [GH-16911]
