@@ -1452,8 +1452,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     admin_username = "azureuser"
     admin_password = "P@55W0rd1234!h@2h1C0rP"
     gmsa {
-      gmsa_dns_server       = "10.10.0.10/2"
-      gmsa_root_domain_name = "contoso.com"
+      dns_server  = "10.10.0.10/2"
+      root_domain = "contoso.com"
     }
   }
 

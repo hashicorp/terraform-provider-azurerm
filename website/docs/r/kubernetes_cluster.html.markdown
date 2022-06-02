@@ -678,9 +678,9 @@ A `windows_profile` block supports the following:
 
 A `gmsa` block supports the following:
 
-* `gmsa_dns_server` - (Optional) Specifies the DNS server for Windows gMSA. Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
+* `dns_server` - (Optional) Specifies the DNS server for Windows gMSA. Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
 
-* `gmsa_root_domain_name` - (Optional) Specifies the root domain name for Windows gMSA. Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
+* `root_domain` - (Optional) Specifies the root domain name for Windows gMSA. Set it to empty if you have configured the DNS server in the vnet which is used to create the managed cluster.
 
 ---
 

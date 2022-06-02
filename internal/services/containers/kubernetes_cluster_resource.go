@@ -835,15 +835,17 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"gmsa_dns_server": {
+									"dns_server": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
+										AtLeastOneOf: []string{"windows_profile.0.gmsa.0.dns_server"},
 									},
-									"gmsa_root_domain_name": {
+									"root_domain": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
+										AtLeastOneOf: []string{"windows_profile.0.gmsa.0.root_domain"},
 									},
 								},
 							},
@@ -2116,8 +2118,8 @@ func expandGmsaProfile(input []interface{}) *containerservice.WindowsGmsaProfile
 
 	return &containerservice.WindowsGmsaProfile{
 		Enabled:        utils.Bool(true),
-		DNSServer:      utils.String(config["gmsa_dns_server"].(string)),
-		RootDomainName: utils.String(config["gmsa_root_domain_name"].(string)),
+		DNSServer:      utils.String(config["dns_server"].(string)),
+		RootDomainName: utils.String(config["root_domain"].(string)),
 	}
 
 }
@@ -2172,8 +2174,8 @@ func flattenGmsaProfile(profile *containerservice.WindowsGmsaProfile) []interfac
 
 	return []interface{}{
 		map[string]interface{}{
-			"gmsa_dns_server":       dnsServer,
-			"gmsa_root_domain_name": rootDomainName,
+			"dns_server":  dnsServer,
+			"root_domain": rootDomainName,
 		},
 	}
 }
