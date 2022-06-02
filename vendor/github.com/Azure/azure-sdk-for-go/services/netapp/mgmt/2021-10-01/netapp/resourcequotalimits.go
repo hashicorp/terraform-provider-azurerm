@@ -76,7 +76,7 @@ func (client ResourceQuotaLimitsClient) GetPreparer(ctx context.Context, locatio
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2021-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -150,7 +150,7 @@ func (client ResourceQuotaLimitsClient) ListPreparer(ctx context.Context, locati
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2021-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

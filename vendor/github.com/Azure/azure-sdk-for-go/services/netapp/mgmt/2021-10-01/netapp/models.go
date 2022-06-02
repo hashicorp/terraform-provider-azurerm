@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-10-01/netapp"
 
 // Account netApp account resource
 type Account struct {
@@ -632,6 +632,10 @@ type ActiveDirectory struct {
 	LdapOverTLS *bool `json:"ldapOverTLS,omitempty"`
 	// AllowLocalNfsUsersWithLdap -  If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes.
 	AllowLocalNfsUsersWithLdap *bool `json:"allowLocalNfsUsersWithLdap,omitempty"`
+	// EncryptDCConnections - If enabled, Traffic between the SMB server to Domain Controller (DC) will be encrypted.
+	EncryptDCConnections *bool `json:"encryptDCConnections,omitempty"`
+	// LdapSearchScope - LDAP Search scope options
+	LdapSearchScope *LdapSearchScopeOpt `json:"ldapSearchScope,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ActiveDirectory.
@@ -690,6 +694,12 @@ func (ad ActiveDirectory) MarshalJSON() ([]byte, error) {
 	}
 	if ad.AllowLocalNfsUsersWithLdap != nil {
 		objectMap["allowLocalNfsUsersWithLdap"] = ad.AllowLocalNfsUsersWithLdap
+	}
+	if ad.EncryptDCConnections != nil {
+		objectMap["encryptDCConnections"] = ad.EncryptDCConnections
+	}
+	if ad.LdapSearchScope != nil {
+		objectMap["ldapSearchScope"] = ad.LdapSearchScope
 	}
 	return json.Marshal(objectMap)
 }
@@ -1005,6 +1015,8 @@ type BackupPolicy struct {
 	Tags map[string]*string `json:"tags"`
 	// BackupPolicyProperties - Backup policy Properties
 	*BackupPolicyProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system meta data relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for BackupPolicy.
@@ -1093,6 +1105,15 @@ func (bp *BackupPolicy) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				bp.BackupPolicyProperties = &backupPolicyProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				bp.SystemData = &systemData
 			}
 		}
 	}
@@ -1302,8 +1323,6 @@ func (bpp *BackupPolicyPatch) UnmarshalJSON(body []byte) error {
 
 // BackupPolicyProperties backup policy properties
 type BackupPolicyProperties struct {
-	// Name - READ-ONLY; Name of backup policy
-	Name *string `json:"name,omitempty"`
 	// BackupPolicyID - READ-ONLY; Backup Policy Resource ID
 	BackupPolicyID *string `json:"backupPolicyId,omitempty"`
 	// ProvisioningState - READ-ONLY; Azure lifecycle management
@@ -1554,6 +1573,8 @@ type CapacityPool struct {
 	Tags map[string]*string `json:"tags"`
 	// PoolProperties - Capacity pool properties
 	*PoolProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system meta data relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CapacityPool.
@@ -1642,6 +1663,15 @@ func (cp *CapacityPool) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				cp.PoolProperties = &poolProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				cp.SystemData = &systemData
 			}
 		}
 	}
@@ -2006,9 +2036,21 @@ type HourlySchedule struct {
 	UsedBytes *int64 `json:"usedBytes,omitempty"`
 }
 
+// LdapSearchScopeOpt LDAP search scope
+type LdapSearchScopeOpt struct {
+	// UserDN - This specifies the user DN, which overrides the base DN for user lookups.
+	UserDN *string `json:"userDN,omitempty"`
+	// GroupDN - This specifies the group DN, which overrides the base DN for group lookups.
+	GroupDN *string `json:"groupDN,omitempty"`
+	// GroupMembershipFilter - This specifies the custom LDAP search filter to be used when looking up group membership from LDAP server.
+	GroupMembershipFilter *string `json:"groupMembershipFilter,omitempty"`
+}
+
 // LogSpecification log Definition of a single resource metric.
 type LogSpecification struct {
-	Name        *string `json:"name,omitempty"`
+	// Name - Name of log specification.
+	Name *string `json:"name,omitempty"`
+	// DisplayName - Display name of log specification.
 	DisplayName *string `json:"displayName,omitempty"`
 }
 
@@ -2293,6 +2335,14 @@ type OperationProperties struct {
 	ServiceSpecification *ServiceSpecification `json:"serviceSpecification,omitempty"`
 }
 
+// PlacementKeyValuePairs application specific parameters for the placement of volumes in the volume group
+type PlacementKeyValuePairs struct {
+	// Key - Key for an application specific parameter for the placement of volumes in the volume group
+	Key *string `json:"key,omitempty"`
+	// Value - Value for an application specific parameter for the placement of volumes in the volume group
+	Value *string `json:"value,omitempty"`
+}
+
 // PoolChangeRequest pool change request
 type PoolChangeRequest struct {
 	// NewPoolResourceID - Resource id of the pool to move volume to
@@ -2301,7 +2351,7 @@ type PoolChangeRequest struct {
 
 // PoolPatchProperties patchable pool properties
 type PoolPatchProperties struct {
-	// Size - Provisioned size of the pool (in bytes). Allowed values are in 4TiB chunks (value must be multiply of 4398046511104).
+	// Size - Provisioned size of the pool (in bytes). Allowed values are in 1TiB chunks (value must be multiply of 4398046511104).
 	Size *int64 `json:"size,omitempty"`
 	// QosType - The qos type of the pool. Possible values include: 'QosTypeAuto', 'QosTypeManual'
 	QosType QosType `json:"qosType,omitempty"`
@@ -2311,7 +2361,7 @@ type PoolPatchProperties struct {
 type PoolProperties struct {
 	// PoolID - READ-ONLY; UUID v4 used to identify the Pool
 	PoolID *string `json:"poolId,omitempty"`
-	// Size - Provisioned size of the pool (in bytes). Allowed values are in 4TiB chunks (value must be multiply of 4398046511104).
+	// Size - Provisioned size of the pool (in bytes). Allowed values are in 1TiB chunks (value must be multiply of 4398046511104).
 	Size *int64 `json:"size,omitempty"`
 	// ServiceLevel - Possible values include: 'ServiceLevelStandard', 'ServiceLevelPremium', 'ServiceLevelUltra', 'ServiceLevelStandardZRS'
 	ServiceLevel ServiceLevel `json:"serviceLevel,omitempty"`
@@ -2599,7 +2649,8 @@ func (rs RestoreStatus) MarshalJSON() ([]byte, error) {
 type ServiceSpecification struct {
 	// MetricSpecifications - Metric specifications of operation.
 	MetricSpecifications *[]MetricSpecification `json:"metricSpecifications,omitempty"`
-	LogSpecifications    *[]LogSpecification    `json:"logSpecifications,omitempty"`
+	// LogSpecifications - Log specification of operation.
+	LogSpecifications *[]LogSpecification `json:"logSpecifications,omitempty"`
 }
 
 // Snapshot snapshot of a Volume
@@ -2793,6 +2844,8 @@ type SnapshotPolicy struct {
 	Tags map[string]*string `json:"tags"`
 	// SnapshotPolicyProperties - Snapshot policy Properties
 	*SnapshotPolicyProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system meta data relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SnapshotPolicy.
@@ -2881,6 +2934,15 @@ func (sp *SnapshotPolicy) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				sp.SnapshotPolicyProperties = &snapshotPolicyProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				sp.SystemData = &systemData
 			}
 		}
 	}
@@ -3129,7 +3191,7 @@ func (spp SnapshotPolicyProperties) MarshalJSON() ([]byte, error) {
 type SnapshotPolicyVolumeList struct {
 	autorest.Response `json:"-"`
 	// Value - List of volumes
-	Value *[]interface{} `json:"value,omitempty"`
+	Value *[]Volume `json:"value,omitempty"`
 }
 
 // SnapshotProperties snapshot properties
@@ -3146,6 +3208,14 @@ type SnapshotProperties struct {
 func (sp SnapshotProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
+}
+
+// SnapshotRestoreFiles restore payload for Single File Snapshot Restore
+type SnapshotRestoreFiles struct {
+	// FilePaths - List of files to be restored
+	FilePaths *[]string `json:"filePaths,omitempty"`
+	// DestinationPath - Destination folder where the files will be restored
+	DestinationPath *string `json:"destinationPath,omitempty"`
 }
 
 // SnapshotsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -3233,6 +3303,43 @@ type SnapshotsList struct {
 	autorest.Response `json:"-"`
 	// Value - A list of Snapshots
 	Value *[]Snapshot `json:"value,omitempty"`
+}
+
+// SnapshotsRestoreFilesFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type SnapshotsRestoreFilesFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SnapshotsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *SnapshotsRestoreFilesFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for SnapshotsRestoreFilesFuture.Result.
+func (future *SnapshotsRestoreFilesFuture) result(client SnapshotsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.SnapshotsRestoreFilesFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("netapp.SnapshotsRestoreFilesFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // SnapshotsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -3371,8 +3478,6 @@ type SubscriptionQuotaItemList struct {
 
 // SubscriptionQuotaItemProperties subscriptionQuotaItem Properties
 type SubscriptionQuotaItemProperties struct {
-	// Name - READ-ONLY; Quota Item name
-	Name *string `json:"name,omitempty"`
 	// Current - READ-ONLY; The current quota value.
 	Current *int32 `json:"current,omitempty"`
 	// Default - READ-ONLY; The default quota value.
@@ -3383,6 +3488,587 @@ type SubscriptionQuotaItemProperties struct {
 func (sqip SubscriptionQuotaItemProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
+}
+
+// SubvolumeInfo subvolume Information properties
+type SubvolumeInfo struct {
+	autorest.Response `json:"-"`
+	// SubvolumeProperties - Subvolume Properties
+	*SubvolumeProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system meta data relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubvolumeInfo.
+func (si SubvolumeInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if si.SubvolumeProperties != nil {
+		objectMap["properties"] = si.SubvolumeProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SubvolumeInfo struct.
+func (si *SubvolumeInfo) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var subvolumeProperties SubvolumeProperties
+				err = json.Unmarshal(*v, &subvolumeProperties)
+				if err != nil {
+					return err
+				}
+				si.SubvolumeProperties = &subvolumeProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				si.SystemData = &systemData
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				si.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				si.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				si.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// SubvolumeModel result of the post subvolume and action is to get metadata of the subvolume.
+type SubvolumeModel struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+	// SubvolumeModelProperties - It represents the minimal properties of the subvolume.
+	*SubvolumeModelProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubvolumeModel.
+func (sm SubvolumeModel) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sm.SubvolumeModelProperties != nil {
+		objectMap["properties"] = sm.SubvolumeModelProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SubvolumeModel struct.
+func (sm *SubvolumeModel) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sm.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sm.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sm.Type = &typeVar
+			}
+		case "properties":
+			if v != nil {
+				var subvolumeModelProperties SubvolumeModelProperties
+				err = json.Unmarshal(*v, &subvolumeModelProperties)
+				if err != nil {
+					return err
+				}
+				sm.SubvolumeModelProperties = &subvolumeModelProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// SubvolumeModelProperties properties which represents actual subvolume model which is stored as a file in
+// the system.
+type SubvolumeModelProperties struct {
+	// Path - Path to the subvolume
+	Path *string `json:"path,omitempty"`
+	// ParentPath - Path to the parent subvolume
+	ParentPath *string `json:"parentPath,omitempty"`
+	// Size - Size of subvolume
+	Size *int64 `json:"size,omitempty"`
+	// BytesUsed - Bytes used
+	BytesUsed *int64 `json:"bytesUsed,omitempty"`
+	// Permissions - Permissions of the subvolume
+	Permissions *string `json:"permissions,omitempty"`
+	// CreationTimeStamp - Creation time and date
+	CreationTimeStamp *date.Time `json:"creationTimeStamp,omitempty"`
+	// AccessedTimeStamp - Most recent access time and date
+	AccessedTimeStamp *date.Time `json:"accessedTimeStamp,omitempty"`
+	// ModifiedTimeStamp - Most recent modification time and date
+	ModifiedTimeStamp *date.Time `json:"modifiedTimeStamp,omitempty"`
+	// ChangedTimeStamp - Most recent change time and date
+	ChangedTimeStamp *date.Time `json:"changedTimeStamp,omitempty"`
+	// ProvisioningState - Azure lifecycle management
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+}
+
+// SubvolumePatchParams parameters with which a subvolume can be updated
+type SubvolumePatchParams struct {
+	// Size - Truncate subvolume to the provided size in bytes
+	Size *int64 `json:"size,omitempty"`
+	// Path - path to the subvolume
+	Path *string `json:"path,omitempty"`
+}
+
+// SubvolumePatchRequest subvolume Patch Request properties
+type SubvolumePatchRequest struct {
+	// SubvolumePatchParams - Subvolume Properties
+	*SubvolumePatchParams `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubvolumePatchRequest.
+func (spr SubvolumePatchRequest) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if spr.SubvolumePatchParams != nil {
+		objectMap["properties"] = spr.SubvolumePatchParams
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SubvolumePatchRequest struct.
+func (spr *SubvolumePatchRequest) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var subvolumePatchParams SubvolumePatchParams
+				err = json.Unmarshal(*v, &subvolumePatchParams)
+				if err != nil {
+					return err
+				}
+				spr.SubvolumePatchParams = &subvolumePatchParams
+			}
+		}
+	}
+
+	return nil
+}
+
+// SubvolumeProperties this represents path associated with the subvolume
+type SubvolumeProperties struct {
+	// Path - Path to the subvolume
+	Path *string `json:"path,omitempty"`
+	// Size - Truncate subvolume to the provided size in bytes
+	Size *int64 `json:"size,omitempty"`
+	// ParentPath - parent path to the subvolume
+	ParentPath *string `json:"parentPath,omitempty"`
+	// ProvisioningState - READ-ONLY; Azure lifecycle management
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubvolumeProperties.
+func (sp SubvolumeProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.Path != nil {
+		objectMap["path"] = sp.Path
+	}
+	if sp.Size != nil {
+		objectMap["size"] = sp.Size
+	}
+	if sp.ParentPath != nil {
+		objectMap["parentPath"] = sp.ParentPath
+	}
+	return json.Marshal(objectMap)
+}
+
+// SubvolumesCreateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type SubvolumesCreateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SubvolumesClient) (SubvolumeInfo, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *SubvolumesCreateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for SubvolumesCreateFuture.Result.
+func (future *SubvolumesCreateFuture) result(client SubvolumesClient) (si SubvolumeInfo, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.SubvolumesCreateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		si.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("netapp.SubvolumesCreateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if si.Response.Response, err = future.GetResult(sender); err == nil && si.Response.Response.StatusCode != http.StatusNoContent {
+		si, err = client.CreateResponder(si.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "netapp.SubvolumesCreateFuture", "Result", si.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// SubvolumesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type SubvolumesDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SubvolumesClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *SubvolumesDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for SubvolumesDeleteFuture.Result.
+func (future *SubvolumesDeleteFuture) result(client SubvolumesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.SubvolumesDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("netapp.SubvolumesDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// SubvolumesGetMetadataFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type SubvolumesGetMetadataFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SubvolumesClient) (SubvolumeModel, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *SubvolumesGetMetadataFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for SubvolumesGetMetadataFuture.Result.
+func (future *SubvolumesGetMetadataFuture) result(client SubvolumesClient) (sm SubvolumeModel, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.SubvolumesGetMetadataFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		sm.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("netapp.SubvolumesGetMetadataFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if sm.Response.Response, err = future.GetResult(sender); err == nil && sm.Response.Response.StatusCode != http.StatusNoContent {
+		sm, err = client.GetMetadataResponder(sm.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "netapp.SubvolumesGetMetadataFuture", "Result", sm.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// SubvolumesList list of Subvolumes
+type SubvolumesList struct {
+	autorest.Response `json:"-"`
+	// Value - A list of Subvolumes
+	Value *[]SubvolumeInfo `json:"value,omitempty"`
+	// NextLink - URL to get the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// SubvolumesListIterator provides access to a complete listing of SubvolumeInfo values.
+type SubvolumesListIterator struct {
+	i    int
+	page SubvolumesListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *SubvolumesListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SubvolumesListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *SubvolumesListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter SubvolumesListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter SubvolumesListIterator) Response() SubvolumesList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter SubvolumesListIterator) Value() SubvolumeInfo {
+	if !iter.page.NotDone() {
+		return SubvolumeInfo{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the SubvolumesListIterator type.
+func NewSubvolumesListIterator(page SubvolumesListPage) SubvolumesListIterator {
+	return SubvolumesListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (sl SubvolumesList) IsEmpty() bool {
+	return sl.Value == nil || len(*sl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (sl SubvolumesList) hasNextLink() bool {
+	return sl.NextLink != nil && len(*sl.NextLink) != 0
+}
+
+// subvolumesListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (sl SubvolumesList) subvolumesListPreparer(ctx context.Context) (*http.Request, error) {
+	if !sl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(sl.NextLink)))
+}
+
+// SubvolumesListPage contains a page of SubvolumeInfo values.
+type SubvolumesListPage struct {
+	fn func(context.Context, SubvolumesList) (SubvolumesList, error)
+	sl SubvolumesList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *SubvolumesListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SubvolumesListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.sl)
+		if err != nil {
+			return err
+		}
+		page.sl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *SubvolumesListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page SubvolumesListPage) NotDone() bool {
+	return !page.sl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page SubvolumesListPage) Response() SubvolumesList {
+	return page.sl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page SubvolumesListPage) Values() []SubvolumeInfo {
+	if page.sl.IsEmpty() {
+		return nil
+	}
+	return *page.sl.Value
+}
+
+// Creates a new instance of the SubvolumesListPage type.
+func NewSubvolumesListPage(cur SubvolumesList, getNextPage func(context.Context, SubvolumesList) (SubvolumesList, error)) SubvolumesListPage {
+	return SubvolumesListPage{
+		fn: getNextPage,
+		sl: cur,
+	}
+}
+
+// SubvolumesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type SubvolumesUpdateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(SubvolumesClient) (SubvolumeInfo, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *SubvolumesUpdateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for SubvolumesUpdateFuture.Result.
+func (future *SubvolumesUpdateFuture) result(client SubvolumesClient) (si SubvolumeInfo, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.SubvolumesUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		si.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("netapp.SubvolumesUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if si.Response.Response, err = future.GetResult(sender); err == nil && si.Response.Response.StatusCode != http.StatusNoContent {
+		si, err = client.UpdateResponder(si.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "netapp.SubvolumesUpdateFuture", "Result", si.Response.Response, "Failure responding to request")
+		}
+	}
+	return
 }
 
 // SystemData metadata pertaining to creation and last modification of the resource.
@@ -3544,6 +4230,8 @@ type Volume struct {
 	Tags map[string]*string `json:"tags"`
 	// VolumeProperties - Volume properties
 	*VolumeProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; The system meta data relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Volume.
@@ -3633,6 +4321,15 @@ func (vVar *Volume) UnmarshalJSON(body []byte) error {
 				}
 				vVar.VolumeProperties = &volumeProperties
 			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				vVar.SystemData = &systemData
+			}
 		}
 	}
 
@@ -3659,6 +4356,459 @@ type VolumeBackups struct {
 	BackupsCount *int32 `json:"backupsCount,omitempty"`
 	// PolicyEnabled - Policy enabled
 	PolicyEnabled *bool `json:"policyEnabled,omitempty"`
+}
+
+// VolumeGroup volume group resource
+type VolumeGroup struct {
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+	// VolumeGroupListProperties - Volume group properties
+	*VolumeGroupListProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VolumeGroup.
+func (vg VolumeGroup) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vg.Location != nil {
+		objectMap["location"] = vg.Location
+	}
+	if vg.Tags != nil {
+		objectMap["tags"] = vg.Tags
+	}
+	if vg.VolumeGroupListProperties != nil {
+		objectMap["properties"] = vg.VolumeGroupListProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for VolumeGroup struct.
+func (vg *VolumeGroup) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				vg.Location = &location
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				vg.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				vg.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				vg.Type = &typeVar
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				vg.Tags = tags
+			}
+		case "properties":
+			if v != nil {
+				var volumeGroupListProperties VolumeGroupListProperties
+				err = json.Unmarshal(*v, &volumeGroupListProperties)
+				if err != nil {
+					return err
+				}
+				vg.VolumeGroupListProperties = &volumeGroupListProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// VolumeGroupDetails volume group resource for create
+type VolumeGroupDetails struct {
+	autorest.Response `json:"-"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+	// VolumeGroupProperties - Volume group properties
+	*VolumeGroupProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VolumeGroupDetails.
+func (vgd VolumeGroupDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vgd.Location != nil {
+		objectMap["location"] = vgd.Location
+	}
+	if vgd.Tags != nil {
+		objectMap["tags"] = vgd.Tags
+	}
+	if vgd.VolumeGroupProperties != nil {
+		objectMap["properties"] = vgd.VolumeGroupProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for VolumeGroupDetails struct.
+func (vgd *VolumeGroupDetails) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				vgd.Location = &location
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				vgd.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				vgd.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				vgd.Type = &typeVar
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				vgd.Tags = tags
+			}
+		case "properties":
+			if v != nil {
+				var volumeGroupProperties VolumeGroupProperties
+				err = json.Unmarshal(*v, &volumeGroupProperties)
+				if err != nil {
+					return err
+				}
+				vgd.VolumeGroupProperties = &volumeGroupProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// VolumeGroupList list of volume group resources
+type VolumeGroupList struct {
+	autorest.Response `json:"-"`
+	// Value - List of volume Groups
+	Value *[]VolumeGroup `json:"value,omitempty"`
+}
+
+// VolumeGroupListProperties volume group properties
+type VolumeGroupListProperties struct {
+	// ProvisioningState - READ-ONLY; Azure lifecycle management
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// GroupMetaData - Volume group details
+	GroupMetaData *VolumeGroupMetaData `json:"groupMetaData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VolumeGroupListProperties.
+func (vglp VolumeGroupListProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vglp.GroupMetaData != nil {
+		objectMap["groupMetaData"] = vglp.GroupMetaData
+	}
+	return json.Marshal(objectMap)
+}
+
+// VolumeGroupMetaData volume group properties
+type VolumeGroupMetaData struct {
+	// GroupDescription - Group Description
+	GroupDescription *string `json:"groupDescription,omitempty"`
+	// ApplicationType - Application Type. Possible values include: 'ApplicationTypeSAPHANA'
+	ApplicationType ApplicationType `json:"applicationType,omitempty"`
+	// ApplicationIdentifier - Application specific identifier
+	ApplicationIdentifier *string `json:"applicationIdentifier,omitempty"`
+	// GlobalPlacementRules - Application specific placement rules for the volume group
+	GlobalPlacementRules *[]PlacementKeyValuePairs `json:"globalPlacementRules,omitempty"`
+	// DeploymentSpecID - Application specific identifier of deployment rules for the volume group
+	DeploymentSpecID *string `json:"deploymentSpecId,omitempty"`
+	// VolumesCount - READ-ONLY; Number of volumes in volume group
+	VolumesCount *int64 `json:"volumesCount,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VolumeGroupMetaData.
+func (vgmd VolumeGroupMetaData) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vgmd.GroupDescription != nil {
+		objectMap["groupDescription"] = vgmd.GroupDescription
+	}
+	if vgmd.ApplicationType != "" {
+		objectMap["applicationType"] = vgmd.ApplicationType
+	}
+	if vgmd.ApplicationIdentifier != nil {
+		objectMap["applicationIdentifier"] = vgmd.ApplicationIdentifier
+	}
+	if vgmd.GlobalPlacementRules != nil {
+		objectMap["globalPlacementRules"] = vgmd.GlobalPlacementRules
+	}
+	if vgmd.DeploymentSpecID != nil {
+		objectMap["deploymentSpecId"] = vgmd.DeploymentSpecID
+	}
+	return json.Marshal(objectMap)
+}
+
+// VolumeGroupProperties volume group properties
+type VolumeGroupProperties struct {
+	// ProvisioningState - READ-ONLY; Azure lifecycle management
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// GroupMetaData - Volume group details
+	GroupMetaData *VolumeGroupMetaData `json:"groupMetaData,omitempty"`
+	// Volumes - List of volumes from group
+	Volumes *[]VolumeGroupVolumeProperties `json:"volumes,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VolumeGroupProperties.
+func (vgp VolumeGroupProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vgp.GroupMetaData != nil {
+		objectMap["groupMetaData"] = vgp.GroupMetaData
+	}
+	if vgp.Volumes != nil {
+		objectMap["volumes"] = vgp.Volumes
+	}
+	return json.Marshal(objectMap)
+}
+
+// VolumeGroupsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type VolumeGroupsCreateFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VolumeGroupsClient) (VolumeGroupDetails, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *VolumeGroupsCreateFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for VolumeGroupsCreateFuture.Result.
+func (future *VolumeGroupsCreateFuture) result(client VolumeGroupsClient) (vgd VolumeGroupDetails, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.VolumeGroupsCreateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		vgd.Response.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("netapp.VolumeGroupsCreateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if vgd.Response.Response, err = future.GetResult(sender); err == nil && vgd.Response.Response.StatusCode != http.StatusNoContent {
+		vgd, err = client.CreateResponder(vgd.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "netapp.VolumeGroupsCreateFuture", "Result", vgd.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// VolumeGroupsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type VolumeGroupsDeleteFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(VolumeGroupsClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *VolumeGroupsDeleteFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for VolumeGroupsDeleteFuture.Result.
+func (future *VolumeGroupsDeleteFuture) result(client VolumeGroupsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.VolumeGroupsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("netapp.VolumeGroupsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// VolumeGroupVolumeProperties volume resource
+type VolumeGroupVolumeProperties struct {
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+	// VolumeProperties - Volume properties
+	*VolumeProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VolumeGroupVolumeProperties.
+func (vgvp VolumeGroupVolumeProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vgvp.Name != nil {
+		objectMap["name"] = vgvp.Name
+	}
+	if vgvp.Tags != nil {
+		objectMap["tags"] = vgvp.Tags
+	}
+	if vgvp.VolumeProperties != nil {
+		objectMap["properties"] = vgvp.VolumeProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for VolumeGroupVolumeProperties struct.
+func (vgvp *VolumeGroupVolumeProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				vgvp.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				vgvp.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				vgvp.Type = &typeVar
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				vgvp.Tags = tags
+			}
+		case "properties":
+			if v != nil {
+				var volumeProperties VolumeProperties
+				err = json.Unmarshal(*v, &volumeProperties)
+				if err != nil {
+					return err
+				}
+				vgvp.VolumeProperties = &volumeProperties
+			}
+		}
+	}
+
+	return nil
 }
 
 // VolumeList list of volume resources
@@ -3937,6 +5087,8 @@ type VolumePatchProperties struct {
 	DefaultUserQuotaInKiBs *int64 `json:"defaultUserQuotaInKiBs,omitempty"`
 	// DefaultGroupQuotaInKiBs - Default group quota for volume in KiBs. If isDefaultQuotaEnabled is set, the minimum value of 4 KiBs applies.
 	DefaultGroupQuotaInKiBs *int64 `json:"defaultGroupQuotaInKiBs,omitempty"`
+	// UnixPermissions - UNIX permissions for NFS volume accepted in octal 4 digit format. First digit selects the set user ID(4), set group ID (2) and sticky (1) attributes. Second digit selects permission for the owner of the file: read (4), write (2) and execute (1). Third selects permissions for other users in the same group. the fourth for other users not in the group. 0755 - gives read/write/execute permissions to owner and read/execute to group and other users.
+	UnixPermissions *string `json:"unixPermissions,omitempty"`
 }
 
 // VolumePatchPropertiesDataProtection dataProtection type volumes include an object containing details of
@@ -4023,6 +5175,22 @@ type VolumeProperties struct {
 	DefaultUserQuotaInKiBs *int64 `json:"defaultUserQuotaInKiBs,omitempty"`
 	// DefaultGroupQuotaInKiBs - Default group quota for volume in KiBs. If isDefaultQuotaEnabled is set, the minimum value of 4 KiBs applies.
 	DefaultGroupQuotaInKiBs *int64 `json:"defaultGroupQuotaInKiBs,omitempty"`
+	// MaximumNumberOfFiles - READ-ONLY; Maximum number of files allowed. Needs a service request in order to be changed. Only allowed to be changed if volume quota is more than 4TiB.
+	MaximumNumberOfFiles *int64 `json:"maximumNumberOfFiles,omitempty"`
+	// VolumeGroupName - READ-ONLY; Volume Group Name
+	VolumeGroupName *string `json:"volumeGroupName,omitempty"`
+	// CapacityPoolResourceID - Pool Resource Id used in case of creating a volume through volume group
+	CapacityPoolResourceID *string `json:"capacityPoolResourceId,omitempty"`
+	// ProximityPlacementGroup - Proximity placement group associated with the volume
+	ProximityPlacementGroup *string `json:"proximityPlacementGroup,omitempty"`
+	// T2Network - READ-ONLY; T2 network information
+	T2Network *string `json:"t2Network,omitempty"`
+	// VolumeSpecName - Volume spec name is the application specific designation or identifier for the particular volume in a volume group for e.g. data, log
+	VolumeSpecName *string `json:"volumeSpecName,omitempty"`
+	// PlacementRules - Application specific placement rules for the particular volume
+	PlacementRules *[]PlacementKeyValuePairs `json:"placementRules,omitempty"`
+	// EnableSubvolumes - Flag indicating whether subvolume operations are enabled on the volume. Possible values include: 'EnableSubvolumesEnabled', 'EnableSubvolumesDisabled'
+	EnableSubvolumes EnableSubvolumes `json:"enableSubvolumes,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for VolumeProperties.
@@ -4108,6 +5276,21 @@ func (vp VolumeProperties) MarshalJSON() ([]byte, error) {
 	}
 	if vp.DefaultGroupQuotaInKiBs != nil {
 		objectMap["defaultGroupQuotaInKiBs"] = vp.DefaultGroupQuotaInKiBs
+	}
+	if vp.CapacityPoolResourceID != nil {
+		objectMap["capacityPoolResourceId"] = vp.CapacityPoolResourceID
+	}
+	if vp.ProximityPlacementGroup != nil {
+		objectMap["proximityPlacementGroup"] = vp.ProximityPlacementGroup
+	}
+	if vp.VolumeSpecName != nil {
+		objectMap["volumeSpecName"] = vp.VolumeSpecName
+	}
+	if vp.PlacementRules != nil {
+		objectMap["placementRules"] = vp.PlacementRules
+	}
+	if vp.EnableSubvolumes != "" {
+		objectMap["enableSubvolumes"] = vp.EnableSubvolumes
 	}
 	return json.Marshal(objectMap)
 }

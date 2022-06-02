@@ -101,7 +101,7 @@ func (client SnapshotsClient) CreatePreparer(ctx context.Context, body Snapshot,
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2021-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -207,7 +207,7 @@ func (client SnapshotsClient) DeletePreparer(ctx context.Context, resourceGroupN
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2021-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -314,7 +314,7 @@ func (client SnapshotsClient) GetPreparer(ctx context.Context, resourceGroupName
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2021-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -410,7 +410,7 @@ func (client SnapshotsClient) ListPreparer(ctx context.Context, resourceGroupNam
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2021-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -438,6 +438,114 @@ func (client SnapshotsClient) ListResponder(resp *http.Response) (result Snapsho
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// RestoreFiles restore the specified files from the specified snapshot to the active filesystem
+// Parameters:
+// body - restore payload supplied in the body of the operation.
+// resourceGroupName - the name of the resource group.
+// accountName - the name of the NetApp account
+// poolName - the name of the capacity pool
+// volumeName - the name of the volume
+// snapshotName - the name of the snapshot
+func (client SnapshotsClient) RestoreFiles(ctx context.Context, body SnapshotRestoreFiles, resourceGroupName string, accountName string, poolName string, volumeName string, snapshotName string) (result SnapshotsRestoreFilesFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotsClient.RestoreFiles")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: body,
+			Constraints: []validation.Constraint{{Target: "body.FilePaths", Name: validation.Null, Rule: true,
+				Chain: []validation.Constraint{{Target: "body.FilePaths", Name: validation.MaxItems, Rule: 10, Chain: nil},
+					{Target: "body.FilePaths", Name: validation.MinItems, Rule: 1, Chain: nil},
+				}}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: poolName,
+			Constraints: []validation.Constraint{{Target: "poolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "poolName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "poolName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}},
+		{TargetValue: volumeName,
+			Constraints: []validation.Constraint{{Target: "volumeName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "volumeName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "volumeName", Name: validation.Pattern, Rule: `^[a-zA-Z][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("netapp.SnapshotsClient", "RestoreFiles", err.Error())
+	}
+
+	req, err := client.RestoreFilesPreparer(ctx, body, resourceGroupName, accountName, poolName, volumeName, snapshotName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "RestoreFiles", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.RestoreFilesSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "RestoreFiles", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// RestoreFilesPreparer prepares the RestoreFiles request.
+func (client SnapshotsClient) RestoreFilesPreparer(ctx context.Context, body SnapshotRestoreFiles, resourceGroupName string, accountName string, poolName string, volumeName string, snapshotName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"poolName":          autorest.Encode("path", poolName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"snapshotName":      autorest.Encode("path", snapshotName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"volumeName":        autorest.Encode("path", volumeName),
+	}
+
+	const APIVersion = "2021-10-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}/capacityPools/{poolName}/volumes/{volumeName}/snapshots/{snapshotName}/restoreFiles", pathParameters),
+		autorest.WithJSON(body),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RestoreFilesSender sends the RestoreFiles request. The method will close the
+// http.Response Body if it receives an error.
+func (client SnapshotsClient) RestoreFilesSender(req *http.Request) (future SnapshotsRestoreFilesFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// RestoreFilesResponder handles the response to the RestoreFiles request. The method always
+// closes the http.Response Body.
+func (client SnapshotsClient) RestoreFilesResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
 	return
 }
 
@@ -502,7 +610,7 @@ func (client SnapshotsClient) UpdatePreparer(ctx context.Context, body interface
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2021-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

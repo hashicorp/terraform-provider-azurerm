@@ -15,7 +15,7 @@ require (
 	github.com/hashicorp/go-azure-helpers v0.33.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.2
-	github.com/hashicorp/go-version v1.3.0
+	github.com/hashicorp/go-version v1.4.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.1
 	github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220407025246-3a3ee0ab24a8
 	github.com/manicminer/hamilton v0.44.0

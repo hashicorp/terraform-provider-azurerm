@@ -27,6 +27,19 @@ func PossibleActiveDirectoryStatusValues() []ActiveDirectoryStatus {
 	return []ActiveDirectoryStatus{ActiveDirectoryStatusCreated, ActiveDirectoryStatusDeleted, ActiveDirectoryStatusError, ActiveDirectoryStatusInUse, ActiveDirectoryStatusUpdating}
 }
 
+// ApplicationType enumerates the values for application type.
+type ApplicationType string
+
+const (
+	// ApplicationTypeSAPHANA ...
+	ApplicationTypeSAPHANA ApplicationType = "SAP-HANA"
+)
+
+// PossibleApplicationTypeValues returns an array of possible values for the ApplicationType const type.
+func PossibleApplicationTypeValues() []ApplicationType {
+	return []ApplicationType{ApplicationTypeSAPHANA}
+}
+
 // AvsDataStore enumerates the values for avs data store.
 type AvsDataStore string
 
@@ -127,6 +140,21 @@ const (
 // PossibleCreatedByTypeValues returns an array of possible values for the CreatedByType const type.
 func PossibleCreatedByTypeValues() []CreatedByType {
 	return []CreatedByType{CreatedByTypeApplication, CreatedByTypeKey, CreatedByTypeManagedIdentity, CreatedByTypeUser}
+}
+
+// EnableSubvolumes enumerates the values for enable subvolumes.
+type EnableSubvolumes string
+
+const (
+	// EnableSubvolumesDisabled subvolumes are not enabled
+	EnableSubvolumesDisabled EnableSubvolumes = "Disabled"
+	// EnableSubvolumesEnabled subvolumes are enabled
+	EnableSubvolumesEnabled EnableSubvolumes = "Enabled"
+)
+
+// PossibleEnableSubvolumesValues returns an array of possible values for the EnableSubvolumes const type.
+func PossibleEnableSubvolumesValues() []EnableSubvolumes {
+	return []EnableSubvolumes{EnableSubvolumesDisabled, EnableSubvolumesEnabled}
 }
 
 // EncryptionType enumerates the values for encryption type.

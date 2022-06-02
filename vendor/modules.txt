@@ -52,7 +52,7 @@ github.com/Azure/azure-sdk-for-go/services/mixedreality/mgmt/2021-01-01/mixedrea
 github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2020-10-01/insights
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2021-05-01/mysqlflexibleservers
-github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp
+github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-10-01/netapp
 github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network
 github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs
 github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights
@@ -246,7 +246,7 @@ github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-uuid v1.0.2
 ## explicit
 github.com/hashicorp/go-uuid
-# github.com/hashicorp/go-version v1.3.0
+# github.com/hashicorp/go-version v1.4.0
 ## explicit
 github.com/hashicorp/go-version
 # github.com/hashicorp/hc-install v0.3.1
