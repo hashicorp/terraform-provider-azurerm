@@ -1,5 +1,5 @@
 ---
-subcategory: "Kubernetes Configuration"
+subcategory: "KubernetesConfiguration"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_configuration_extension"
 description: |-
