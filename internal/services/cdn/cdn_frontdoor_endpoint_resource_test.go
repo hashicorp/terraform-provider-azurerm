@@ -85,7 +85,7 @@ func (r CdnFrontDoorEndpointResource) Exists(ctx context.Context, clients *clien
 	}
 
 	client := clients.Cdn.FrontDoorEndpointsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.ProfileName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
