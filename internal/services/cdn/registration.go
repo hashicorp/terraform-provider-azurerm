@@ -32,7 +32,8 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_cdn_profile": dataSourceCdnProfile(),
 
 		// FrontDoor
-		"azurerm_cdn_frontdoor_profile": dataSourceCdnFrontDoorProfile(),
+		"azurerm_cdn_frontdoor_endpoint": dataSourceCdnFrontDoorEndpoint(),
+		"azurerm_cdn_frontdoor_profile":  dataSourceCdnFrontDoorProfile(),
 	}
 }
 
@@ -45,6 +46,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_cdn_profile":                resourceCdnProfile(),
 
 		// FrontDoor
-		"azurerm_cdn_frontdoor_profile": resourceCdnFrontDoorProfile(),
+		"azurerm_cdn_frontdoor_endpoint": resourceCdnFrontDoorEndpoint(),
+		"azurerm_cdn_frontdoor_profile":  resourceCdnFrontDoorProfile(),
 	}
 }
