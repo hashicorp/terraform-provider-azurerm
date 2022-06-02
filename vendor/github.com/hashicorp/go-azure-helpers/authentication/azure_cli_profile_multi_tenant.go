@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest/azure/cli"
+	"github.com/hashicorp/go-version"
 )
 
 type azureCLIProfileMultiTenant struct {
@@ -13,12 +14,23 @@ type azureCLIProfileMultiTenant struct {
 	subscriptionId     string
 	tenantId           string
 	auxiliaryTenantIDs []string
+
+	azVersion version.Version
 }
 
 func (a *azureCLIProfileMultiTenant) populateFields() error {
-	// ensure we know the Subscription ID - since it's needed for everything else
+	// Ensure we know the Subscription ID - since it's needed for everything else
 	if a.subscriptionId == "" {
 		err := a.populateSubscriptionID()
+		if err != nil {
+			return err
+		}
+	}
+
+	// Ensure we know the Tenant ID - since it's needed for everything else
+	// Note that order matters that subscription id should be populated first, and then tenant id.
+	if a.tenantId == "" {
+		err := a.populateTenantID()
 		if err != nil {
 			return err
 		}
