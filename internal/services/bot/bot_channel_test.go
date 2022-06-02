@@ -18,6 +18,7 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 		"bot": {
 			"basic":          testAccBotServiceAzureBot_basic,
 			"completeUpdate": testAccBotServiceAzureBot_completeUpdate,
+			"msaAppType":     testAccBotServiceAzureBot_msaAppType,
 			"requiresImport": testAccBotServiceAzureBot_requiresImport,
 		},
 		"connection": {
