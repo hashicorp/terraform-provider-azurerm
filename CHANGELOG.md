@@ -7,9 +7,10 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: upgrading to `v0.33.0` of `github.com/hashicorp/go-azure-hepers` [GH-17074]
+* dependencies: upgrading to `v1.6.1` of `github.com/hashicorp/go-getter` [GH-17074]
 * `azurerm_data_factory_trigger_schedule` - support for the `pipeline` block [GH-16922]
 * `azurerm_web_pubsub_hub` - the `event_handler` block is now Optional [GH-17037]
-
 
 BUG FIXES:
 
