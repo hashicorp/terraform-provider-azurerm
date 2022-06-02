@@ -97,7 +97,7 @@ The `backup` block supports:
 
 * `hour_interval` - (Optional) Interval in hour at which backup is triggered. Possible values are `4`, `6`, `8` and `12`. This is used  when `frequency` is `Hourly`.
 
-* `hour_duration` - (Optional) Duration of the backup window in hour. Possible values are between `4` and `24` This is used when `frequency` is `Hourly`.
+* `hour_duration` - (Optional) Duration of the backup window in hours. Possible values are between `4` and `24` This is used when `frequency` is `Hourly`.
 
 ~> **NOTE:** `hour_duration` must be multiplier of `hour_interval`
 
