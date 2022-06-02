@@ -13,11 +13,3 @@ func expandEnabledBool(isEnabled bool) cdn.EnabledState {
 func flattenEnabledBool(input cdn.EnabledState) bool {
 	return input == cdn.EnabledStateEnabled
 }
-
-func flattenEnabledNilableBool(input *cdn.EnabledState) bool {
-	if input == nil {
-		return false
-	}
-
-	return flattenEnabledBool(*input)
-}
