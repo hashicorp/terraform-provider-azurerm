@@ -73,6 +73,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// TODO 4.0: Clean up lacluster "workaround" to make it more readable and easier to understand. (@WodansSon already has the code written for the clean up)
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
