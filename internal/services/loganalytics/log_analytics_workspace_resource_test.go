@@ -89,7 +89,7 @@ func TestAccLogAnalyticsWorkspace_freeTier(t *testing.T) {
 
 func (r LogAnalyticsWorkspaceResource) preCheck(t *testing.T) {
 	if r.DoNotRunFreeTierTest {
-		t.Skipf("`TestAccLogAnalyticsWorkspace_freeTier` due to subscripton pricing tier configuration (e.g. Pricing tier doesn't match the subscription's billing model.)")
+		t.Skipf("`TestAccLogAnalyticsWorkspace_freeTier` due to subscription pricing tier configuration (e.g. Pricing tier doesn't match the subscription's billing model.)")
 	}
 }
 
