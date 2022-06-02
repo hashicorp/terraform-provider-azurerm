@@ -18,7 +18,7 @@ func TestAccCdnFrontDoorProfileDataSource_basic(t *testing.T) {
 		{
 			Config: d.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_AzureFrontDoor"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Premium_AzureFrontDoor"),
 			),
 		},
 	})
