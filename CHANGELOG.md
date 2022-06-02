@@ -11,8 +11,10 @@ ENHANCEMENTS:
 
 * dependencies: upgrading to `v0.33.0` of `github.com/hashicorp/go-azure-hepers` [GH-17074]
 * dependencies: upgrading to `v1.6.1` of `github.com/hashicorp/go-getter` [GH-17074]
+* dependencies: upgrade `netapp` to `2021-10-01` [GH-17043]
 * `azurerm_data_factory_trigger_schedule` - support for the `pipeline` block [GH-16922]
 * `azurerm_web_pubsub_hub` - the `event_handler` block is now Optional [GH-17037]
+* `azurerm_netapp_volume` - support for the `network_features` property [GH-17043]
 
 BUG FIXES:
 
