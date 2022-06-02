@@ -1316,7 +1316,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	// if we've shut it down and it was turned off, let's boot it back up
-	if shouldTurnBackOn && shouldShutDown {
+	if shouldTurnBackOn && (shouldShutDown || shouldDeallocate) {
 		log.Printf("[DEBUG] Starting Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 		future, err := client.Start(ctx, id.ResourceGroup, id.Name)
 		if err != nil {

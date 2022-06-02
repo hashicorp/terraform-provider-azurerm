@@ -48,8 +48,6 @@ The following arguments are supported:
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
-* `pipeline_name` - (Required) The Data Factory Pipeline name that the trigger will act on.
-
 * `description` - (Optional) The Schedule Trigger's description.
 
 * `schedule` - (Optional) A `schedule` block as defined below, which further specifies the recurrence schedule for the trigger. A schedule is capable of limiting or increasing the number of trigger executions specified by the `frequency` and `interval` properties.
@@ -65,6 +63,10 @@ The following arguments are supported:
 * `frequency` - (Optional) The trigger frequency. Valid values include `Minute`, `Hour`, `Day`, `Week`, `Month`. Defaults to `Minute`.
 
 * `activated` - (Optional) Specifies if the Data Factory Schedule Trigger is activated. Defaults to `true`.
+
+* `pipeline` - (Optional) block as defined below.
+
+* `pipeline_name` - (Optional) The Data Factory Pipeline name that the trigger will act on.
 
 * `pipeline_parameters` - (Optional) The pipeline parameters that the trigger will act upon.
 
@@ -91,6 +93,14 @@ A `monthly` block supports the following:
 * `weekday` - (Required) The day of the week on which the trigger runs. For example, a `monthly` property with a `weekday` value of `Sunday` means every Sunday of the month.
 
 * `week` - (Optional) The occurrence of the specified day during the month. For example, a `monthly` property with `weekday` and `week` values of `Sunday, -1` means the last Sunday of the month.
+
+---
+
+A `pipeline` block supports the following:
+
+* `name` - (Required) Reference pipeline name.
+
+* `parameters` - (Optional) The pipeline parameters that the trigger will act upon.
 
 ## Attributes Reference
 

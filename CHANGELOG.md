@@ -1,3 +1,21 @@
+## 3.9.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource**: `azurerm_sentinel_data_connector_office_atp` [GH-16825]
+* **New Resource**: `azurerm_vpn_server_configuration_policy_group` [GH-16911]
+
+ENHANCEMENTS:
+
+* `azurerm_data_factory_trigger_schedule` - support for the `pipeline` block [GH-16922]
+* `azurerm_web_pubsub_hub` - the `event_handler` block is now Optional [GH-17037]
+
+
+BUG FIXES:
+
+* `azurerm_container_registry_task` - sending `authentication` within the `source_trigger` block when updating [GH-17002]
+* `azurerm_kubernetes_cluster` - prevent crash when importing a cluster that doesn't have an API Server Access Profile [GH-17005]
+
 ## 3.8.0 (May 26, 2022)
 
 FEATURES:
