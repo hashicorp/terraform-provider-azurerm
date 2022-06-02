@@ -153,11 +153,7 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 	d.Set("sku_name", skuName)
 
-	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
-		return err
-	}
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
