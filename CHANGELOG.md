@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * `azurerm_netapp_volume` - support for the `network_features` property [GH-17043]
 * `azurerm_web_pubsub_hub` - the `event_handler` block is now Optional [GH-17037]
 * `azurerm_redis_cache` - support the `identity` block [GH-16990]
+* `azurerm_synapse_role_assignment` - `role_name` now supports `Synapse Monitoring Operator` [GH-17024]
 * `azurerm_vpn_gateway_nat_rule` - support for `port_range` [GH-16724]
 
 BUG FIXES:
