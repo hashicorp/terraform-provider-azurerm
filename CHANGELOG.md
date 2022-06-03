@@ -17,18 +17,18 @@ ENHANCEMENTS:
 * dependencies: upgrade `netapp` to `2021-10-01` [GH-17043]
 * `azurerm_data_factory_trigger_schedule` - support for the `pipeline` block [GH-16922]
 * `azurerm_backup_policy_vm` - support for `V2` policies viu the `policy_type` property, supporting Enhanced Policies of the hourly type [GH-16940]
-* `azurerm_log_analytics_workspace` - allow field value updates while workspace is linked to a cluster [GH-17069]
+* `azurerm_log_analytics_workspace` - allow property updates when a workspace is linked to a cluster [GH-17069]
 * `azurerm_netapp_volume` - support for the `network_features` property [GH-17043]
-* `azurerm_web_pubsub_hub` - the `event_handler` block is now Optional [GH-17037]
+* `azurerm_web_pubsub_hub` - the `event_handler` block is now optional [GH-17037]
 * `azurerm_redis_cache` - support the `identity` block [GH-16990]
-* `azurerm_synapse_role_assignment` - `role_name` now supports `Synapse Monitoring Operator` [GH-17024]
-* `azurerm_vpn_gateway_nat_rule` - support for `port_range` [GH-16724]
+* `azurerm_synapse_role_assignment` - the `role_name` property now supports `Synapse Monitoring Operator` [GH-17024]
+* `azurerm_vpn_gateway_nat_rule` - support for the `port_range` property [GH-16724]
 
 BUG FIXES:
 
 * `azurerm_container_registry_task` - sending `authentication` within the `source_trigger` block when updating [GH-17002]
-* `azurerm_eventhub_authorization_rule` - extend regex char limit for `name` and doc fixes [GH-17057]
-* `azurerm_kubernetes_cluster` - prevent crash when importing a cluster that doesn't have an API Server Access Profile [GH-17005]
+* `azurerm_eventhub_authorization_rule` - extend regex char limit for `name` [GH-17057]
+* `azurerm_kubernetes_cluster` - prevent a potential crash during import of a cluster that doesn't have an API Server Access Profile [GH-17005]
 
 ## 3.8.0 (May 26, 2022)
 
