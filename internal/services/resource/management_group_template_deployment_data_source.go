@@ -2,13 +2,11 @@ package resource
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	mgValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -30,10 +28,10 @@ func dataSourceManagementGroupTemplateDeployment() *pluginsdk.Resource {
 				ValidateFunc: validate.TemplateDeploymentName,
 			},
 
-			"management_group_name": {
+			"management_group_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: mgValidate.ManagementGroupName,
+				ValidateFunc: mgValidate.ManagementGroupID,
 			},
 
 			// Computed
@@ -52,18 +50,19 @@ func dataSourceManagementGroupTemplateDeploymentRead(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewManagementGroupTemplateDeploymentID(d.Get("management_group_name").(string), d.Get("name").(string))
+	managementGroupId := d.Get("management_group_id").(string)
+	deploymentName := d.Get("name").(string)
 
-	resp, err := client.GetAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
+	resp, err := client.GetAtManagementGroupScope(ctx, managementGroupId, deploymentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Management Group %s was not found", *id)
+			return fmt.Errorf("deployment %s in Management Group %s was not found", deploymentName, managementGroupId)
 		}
 
-		return fmt.Errorf("retrieving Management Group Template Deployment %q: %+v", id.DeploymentName, err)
+		return fmt.Errorf("retrieving Management Group Template Deployment %s in management group %s: %+v", deploymentName, managementGroupId, err)
 	}
 
-	d.SetId(id.ID())
+	d.SetId(*resp.ID)
 
 	if props := resp.Properties; props != nil {
 		flattenedOutputs, err := flattenTemplateDeploymentBody(props.Outputs)
