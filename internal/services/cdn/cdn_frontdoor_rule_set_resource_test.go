@@ -85,7 +85,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_cdn_frontdoor_rule_set" "test" {
-  name                     = "acctest-fdruleset-%d"
+  name                     = "acctestfdruleset%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 `, template, data.RandomIntOfLength(8))
@@ -113,7 +113,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_cdn_frontdoor_rule_set" "test" {
-  name                     = "acctest-fdruleset-%d"
+  name                     = "acctestfdruleset%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 `, template, data.RandomIntOfLength(8))
