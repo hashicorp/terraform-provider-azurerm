@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * dependencies: upgrade `netapp` to `2021-10-01` [GH-17043]
 * `azurerm_data_factory_trigger_schedule` - support for the `pipeline` block [GH-16922]
 * `azurerm_backup_policy_vm` - support for `V2` policies viu the `policy_type` property, supporting Enhanced Policies of the hourly type [GH-16940]
+* `azurerm_log_analytics_workspace` - allow field value updates while workspace is linked to a cluster [GH-17069]
 * `azurerm_netapp_volume` - support for the `network_features` property [GH-17043]
 * `azurerm_web_pubsub_hub` - the `event_handler` block is now Optional [GH-17037]
 * `azurerm_redis_cache` - support the `identity` block [GH-16990]
