@@ -178,15 +178,16 @@ func dataSourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	id := parse.NewStorageAccountManagementPolicyID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroup, storageAccountId.Name, "default")
-	resp, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName)
+	resp, err := client.Get(ctx, storageAccountId.ResourceGroup, storageAccountId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("%s was not found", id)
+			return fmt.Errorf("%s was not found", storageAccountId)
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", storageAccountId, err)
 	}
+
+	id := parse.NewStorageAccountManagementPolicyID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroup, storageAccountId.Name, "default")
 
 	d.SetId(id.ID())
 
