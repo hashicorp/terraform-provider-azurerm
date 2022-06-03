@@ -57,9 +57,7 @@ func dataSourceManagementGroupTemplateDeploymentRead(d *schema.ResourceData, met
 	resp, err := client.GetAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Management Group Template Deployment %q was not found", id.DeploymentName)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Management Group %s was not found", *id)
 		}
 
 		return fmt.Errorf("retrieving Management Group Template Deployment %q: %+v", id.DeploymentName, err)
