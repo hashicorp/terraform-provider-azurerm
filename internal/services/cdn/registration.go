@@ -34,6 +34,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		// FrontDoor
 		"azurerm_cdn_frontdoor_endpoint": dataSourceCdnFrontDoorEndpoint(),
 		"azurerm_cdn_frontdoor_profile":  dataSourceCdnFrontDoorProfile(),
+		"azurerm_cdn_frontdoor_rule_set": dataSourceCdnFrontDoorRuleSet(),
 	}
 }
 
