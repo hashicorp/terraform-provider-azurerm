@@ -53,9 +53,7 @@ func dataSourceResourceGroupTemplateDeploymentRead(d *schema.ResourceData, meta 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Template Deployment %q (Resource Group %q) was not found", id.DeploymentName, id.ResourceGroup)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Resource Group %s was not found", *id)
 		}
 
 		return fmt.Errorf("retrieving Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
