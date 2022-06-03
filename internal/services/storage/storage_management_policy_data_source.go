@@ -90,11 +90,23 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 										Computed: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
+												"tier_to_cool_after_days_since_last_access_time_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
 												"tier_to_cool_after_days_since_modification_greater_than": {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
 												"tier_to_archive_after_days_since_modification_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"tier_to_archive_after_days_since_last_access_time_greater_than": {
+													Type:     pluginsdk.TypeInt,
+													Computed: true,
+												},
+												"delete_after_days_since_last_access_time_greater_than": {
 													Type:     pluginsdk.TypeInt,
 													Computed: true,
 												},
