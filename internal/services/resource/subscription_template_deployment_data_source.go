@@ -49,9 +49,7 @@ func dataSourceSubscriptionTemplateDeploymentRead(d *schema.ResourceData, meta i
 	resp, err := client.GetAtSubscriptionScope(ctx, id.DeploymentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Subscription Template Deployment %q was not found", id.DeploymentName)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Subscription %s was not found", *id)
 		}
 
 		return fmt.Errorf("retrieving Subscription Template Deployment %q: %+v", id.DeploymentName, err)
