@@ -48,11 +48,14 @@ func dataSourceResourceGroupTemplateDeploymentRead(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewResourceGroupTemplateDeploymentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resourceGroupName := d.Get("resource_group_name").(string)
+	deploymentName := d.Get("name").(string)
+	id := parse.NewResourceGroupTemplateDeploymentID(subscriptionId, resourceGroupName, deploymentName)
+
 	resp, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Resource Group %s was not found", *id)
+			return fmt.Errorf("template %s in resource Group %s was not found", deploymentName, resourceGroupName)
 		}
 
 		return fmt.Errorf("retrieving Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
