@@ -48,9 +48,7 @@ func dataSourceTenantTemplateDeploymentRead(d *schema.ResourceData, meta interfa
 	resp, err := client.GetAtTenantScope(ctx, id.DeploymentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Tenant Template Deployment %q was not found", id.DeploymentName)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Tenant %s was not found", *id)
 		}
 
 		return fmt.Errorf("retrieving Tenant Template Deployment %q: %+v", id.DeploymentName, err)
