@@ -66,8 +66,8 @@ func (r ManagementGroupTemplateDeploymentDataSource) withDataSource(data accepta
 %s
 
 data "azurerm_management_group_template_deployment" "test" {
-  name                  = azurerm_management_group_template_deployment.test.name
-  management_group_id   = azurerm_management_group.test.id
+  name                = azurerm_management_group_template_deployment.test.name
+  management_group_id = azurerm_management_group.test.id
 }
 `, r.withOutputsConfig(data))
 }
