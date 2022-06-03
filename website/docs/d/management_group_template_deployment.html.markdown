@@ -31,7 +31,7 @@ output "example_output" {
 
 The following arguments are supported:
 
-* `management_group_name` - (Required) The name of the Management Group to which this template was applied.
+* `management_group_id` - (Required) The ID of the Management Group to which this template was applied.
 
 * `name` - (Required) The name of this Management Group Template Deployment.
 
