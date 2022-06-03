@@ -94,9 +94,9 @@ func TestAccCdnFrontDoorOrigin_privateLinkBlobPrimary(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				// TODO: approve the connection by looking up and updating the private link
-				//data.CheckWithClient(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+				// data.CheckWithClient(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 				//	clients.Network.PrivateLinkServiceClient.UpdatePrivateEndpointConnection()
-				//}),
+				// }),
 			),
 		},
 		data.ImportStep(),
@@ -115,9 +115,9 @@ func TestAccCdnFrontDoorOrigin_privateLinkStorageStaticWebSite(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				// TODO: approve the connection by looking up and updating the private link
-				//data.CheckWithClient(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+				// data.CheckWithClient(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 				//	clients.Network.PrivateLinkServiceClient.UpdatePrivateEndpointConnection()
-				//}),
+				// }),
 			),
 		},
 		data.ImportStep(),
@@ -136,6 +136,10 @@ func TestAccCdnFrontDoorOrigin_privateLinkAppServices(t *testing.T) {
 			Config: r.privateLinkAppServices(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				// TODO: approve the connection by looking up and updating the private link
+				// data.CheckWithClient(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+				//	clients.Network.PrivateLinkServiceClient.UpdatePrivateEndpointConnection()
+				// }),
 			),
 		},
 		data.ImportStep(),
@@ -155,6 +159,10 @@ func TestAccCdnFrontDoorOrigin_privateLinkLoadBalancer(t *testing.T) {
 			Config: r.privateLinkLoadBalancer(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				// TODO: approve the connection by looking up and updating the private link
+				// data.CheckWithClient(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+				//	clients.Network.PrivateLinkServiceClient.UpdatePrivateEndpointConnection()
+				// }),
 			),
 		},
 		data.ImportStep(),
@@ -178,6 +186,7 @@ func (r CdnFrontDoorOriginResource) Exists(ctx context.Context, clients *clients
 
 	return utils.Bool(true), nil
 }
+
 func (r CdnFrontDoorOriginResource) templatePrivateLinkStorage(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
