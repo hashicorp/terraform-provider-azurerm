@@ -73,6 +73,18 @@ The following arguments are supported:
 
 * `status` - (Optional) The status of the Subscription. Possible values are `Active`,`ReceiveDisabled`, or `Disabled`. Defaults to `Active`.
 
+* `client_scoped_subscription_enabled` - (Optional)  whether the subscription has an affinity to the client id. Defaults to `False`. 
+
+~> **NOTE:** Client Scoped Subscription can only be used for JMS subscription.
+
+* `client_id_for_client_scoped_subscription` - (Optional)  Specifies the Client ID of the application that created the client-scoped subscription.
+
+~> **NOTE:** Client ID can be null or empty, but it must match the client ID set on the JMS client application. From the Azure Service Bus perspective, a null client ID and an empty client id have the same behavior. If the client ID is set to null or empty, it is only accessible to client applications whose client ID is also set to null or empty.
+
+* `is_client_scoped_subscription_shareable` - (Optional) Whether the client scoped subscription is shareable. Defaults to `true`
+
+* `is_client_scoped_subscription_durable` - (Optional) Whether the client scoped subscription is durable. This property can only be controlled from the application side.
+
 ## Attributes Reference
 
 The following attributes are exported:

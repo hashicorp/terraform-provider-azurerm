@@ -57,6 +57,14 @@ output "servicebus_subscription" {
 
 * `forward_dead_lettered_messages_to` - The name of a Queue or Topic to automatically forward Dead Letter messages to.
 
+* `client_scoped_subscription_enabled` - The subscription has an affinity to the client id or not. 
+
+* `client_id_for_client_scoped_subscription` - The Client ID of the application that created the client-scoped subscription.
+
+* `is_client_scoped_subscription_shareable` - The client scoped subscription is shareable or not. 
+
+* `is_client_scoped_subscription_durable` - The client scoped subscription is durable or not. 
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

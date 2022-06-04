@@ -3,6 +3,7 @@ package servicebus
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
@@ -129,6 +130,29 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 				string(servicebus.EntityStatusReceiveDisabled),
 			}, false),
 		},
+
+		"client_scoped_subscription_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"client_id_for_client_scoped_subscription": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"is_client_scoped_subscription_shareable": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"is_client_scoped_subscription_durable": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
 	}
 }
 
@@ -139,9 +163,25 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	log.Printf("[INFO] preparing arguments for ServiceBus Subscription creation.")
 
 	var resourceId parse.SubscriptionId
+	name := d.Get("name").(string)
+
+	clientId := ""
+	isSubShared := true
+	isClintAffineEnabled := d.Get("client_scoped_subscription_enabled").(bool)
+	if isClintAffineEnabled {
+		if v, ok := d.GetOk("client_id_for_client_scoped_subscription"); ok {
+			clientId = v.(string)
+		}
+		name = name + "$" + clientId + "$D"
+
+		if d.Get("is_client_scoped_subscription_shareable") != nil {
+			isSubShared = d.Get("is_client_scoped_subscription_shareable").(bool)
+		}
+	}
+
 	if topicIdLit := d.Get("topic_id").(string); topicIdLit != "" {
 		topicId, _ := parse.TopicID(topicIdLit)
-		resourceId = parse.NewSubscriptionID(topicId.SubscriptionId, topicId.ResourceGroup, topicId.NamespaceName, topicId.Name, d.Get("name").(string))
+		resourceId = parse.NewSubscriptionID(topicId.SubscriptionId, topicId.ResourceGroup, topicId.NamespaceName, topicId.Name, name)
 	}
 
 	if d.IsNewResource() {
@@ -165,7 +205,14 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 			MaxDeliveryCount:                          utils.Int32(int32(d.Get("max_delivery_count").(int))),
 			RequiresSession:                           utils.Bool(d.Get("requires_session").(bool)),
 			Status:                                    servicebus.EntityStatus(d.Get("status").(string)),
+			IsClientAffine:                            utils.Bool(isClintAffineEnabled),
+			ClientAffineProperties:                    &servicebus.SBClientAffineProperties{},
 		},
+	}
+
+	if isClintAffineEnabled {
+		parameters.SBSubscriptionProperties.ClientAffineProperties.IsShared = &isSubShared
+		parameters.SBSubscriptionProperties.ClientAffineProperties.ClientID = &clientId
 	}
 
 	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
@@ -215,8 +262,11 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
 	d.Set("topic_id", parse.NewTopicID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName).ID())
+
+	isClientAffine := false
+	userAssignedName := id.Name
+	clientId := ""
 
 	if props := resp.SBSubscriptionProperties; props != nil {
 		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
@@ -229,11 +279,30 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("forward_to", props.ForwardTo)
 		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 		d.Set("status", utils.String(string(props.Status)))
+		d.Set("client_scoped_subscription_enabled", props.IsClientAffine)
 
 		if count := props.MaxDeliveryCount; count != nil {
 			d.Set("max_delivery_count", int(*count))
 		}
+
+		if props.IsClientAffine != nil && *props.IsClientAffine {
+			isClientAffine = true
+		}
+
+		if props.ClientAffineProperties != nil {
+			d.Set("client_id_for_client_scoped_subscription", props.ClientAffineProperties.ClientID)
+			if props.ClientAffineProperties.ClientID != nil {
+				clientId = *props.ClientAffineProperties.ClientID
+			}
+			d.Set("is_client_scoped_subscription_shareable", props.ClientAffineProperties.IsShared)
+			d.Set("is_client_scoped_subscription_durable", props.ClientAffineProperties.IsDurable)
+		}
 	}
+
+	if isClientAffine {
+		userAssignedName = strings.TrimSuffix(userAssignedName, "$"+clientId+"$D")
+	}
+	d.Set("name", userAssignedName)
 
 	return nil
 }

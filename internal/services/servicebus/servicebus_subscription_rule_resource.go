@@ -79,6 +79,12 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.SqlFilter,
 		},
 
+		// Reserved for future use, currently hard-coded to 20
+		"sql_filter_compatibility_level": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
 		"correlation_filter": {
 			Type:          pluginsdk.TypeList,
 			Optional:      true,
@@ -276,6 +282,9 @@ func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta inte
 
 		if properties.SQLFilter != nil {
 			d.Set("sql_filter", properties.SQLFilter.SQLExpression)
+			if properties.SQLFilter.CompatibilityLevel != nil {
+				d.Set("sql_filter_compatibility_level", properties.SQLFilter.CompatibilityLevel)
+			}
 		}
 
 		if err := d.Set("correlation_filter", flattenAzureRmServiceBusCorrelationFilter(properties.CorrelationFilter)); err != nil {
