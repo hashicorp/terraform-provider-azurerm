@@ -394,6 +394,18 @@ func TestAccBatchPool_validateResourceFileHttpURLWithoutFilePath(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_validateResourceFileWithIdentityReference(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.validateResourceFileWithIdentityReference(data),
+			Check:  acceptance.ComposeTestCheckFunc(check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+	})
+}
+
 func TestAccBatchPool_customImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
@@ -1197,6 +1209,72 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) validateResourceFileWithIdentityReference(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccbatch%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "useridentity%s"
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  vm_size             = "Standard_A1"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-lts"
+    version   = "latest"
+  }
+
+  start_task {
+    command_line       = "echo 'Hello World from $env'"
+    task_retry_maximum = 1
+    wait_for_success   = true
+
+    common_environment_properties = {
+      env = "TEST"
+      bu  = "Research&Dev"
+    }
+
+    user_identity {
+      user_name = "testUserIndentity"
+    }
+
+    resource_file {
+      http_url  = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/main/README.md"
+      file_path = "README.md"
+      identity_reference = azurerm_user_assigned_identity.test.id
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) certificates(data acceptance.TestData) string {
