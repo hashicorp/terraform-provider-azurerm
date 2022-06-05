@@ -1004,6 +1004,10 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
+					"identity_reference": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
 				},
 			},
 		},
