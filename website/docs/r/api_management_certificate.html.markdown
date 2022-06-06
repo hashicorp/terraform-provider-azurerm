@@ -13,6 +13,10 @@ Manages an Certificate within an API Management Service.
 ## Example Usage (with Base64 Certificate)
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -39,6 +43,10 @@ resource "azurerm_api_management_certificate" "example" {
 ## Example Usage (with Key Vault Certificate)
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
@@ -65,7 +73,7 @@ resource "azurerm_key_vault" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  tenant_id = data.azurerm_client_config.example.tenant_id
+  tenant_id = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 }
@@ -76,11 +84,11 @@ resource "azurerm_key_vault_access_policy" "example" {
   object_id    = azurerm_api_management.example.identity.0.principal_id
 
   secret_permissions = [
-    "get",
+    "Get",
   ]
 
   certificate_permissions = [
-    "get",
+    "Get",
   ]
 }
 

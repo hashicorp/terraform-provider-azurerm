@@ -29,7 +29,7 @@ resource "azurerm_traffic_manager_profile" "example" {
   }
 
   monitor_config {
-    protocol                     = "http"
+    protocol                     = "HTTP"
     port                         = 80
     path                         = "/"
     interval_in_seconds          = 30

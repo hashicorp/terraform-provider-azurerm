@@ -50,9 +50,17 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 			_, hasDaily := diff.GetOk("retention_daily")
 			_, hasWeekly := diff.GetOk("retention_weekly")
 
-			frequencyI, _ := diff.GetOk("backup.0.frequency")
-			switch strings.ToLower(frequencyI.(string)) {
-			case "daily":
+			frequency, _ := diff.GetOk("backup.0.frequency")
+			switch frequency.(string) {
+			case string(backup.ScheduleRunTypeHourly):
+				if !hasDaily {
+					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is hourly")
+				}
+
+				if _, ok := diff.GetOk("backup.0.weekdays"); ok {
+					return fmt.Errorf("`backup.0.weekdays` should be not set when backup.0.frequency is hourly")
+				}
+			case string(backup.ScheduleRunTypeDaily):
 				if !hasDaily {
 					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is daily")
 				}
@@ -60,12 +68,28 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 				if _, ok := diff.GetOk("backup.0.weekdays"); ok {
 					return fmt.Errorf("`backup.0.weekdays` should be not set when backup.0.frequency is daily")
 				}
-			case "weekly":
+
+				if _, ok := diff.GetOk("backup.0.hour_interval"); ok {
+					return fmt.Errorf("`backup.0.hour_interval` should be not set when backup.0.frequency is daily")
+				}
+
+				if _, ok := diff.GetOk("backup.0.hour_duration"); ok {
+					return fmt.Errorf("`backup.0.hour_duration` should be not set when backup.0.frequency is daily")
+				}
+			case string(backup.ScheduleRunTypeWeekly):
 				if hasDaily {
 					return fmt.Errorf("`retention_daily` must be not set when backup.0.frequency is weekly")
 				}
 				if !hasWeekly {
 					return fmt.Errorf("`retention_weekly` must be set when backup.0.frequency is weekly")
+				}
+
+				if _, ok := diff.GetOk("backup.0.hour_interval"); ok {
+					return fmt.Errorf("`backup.0.hour_interval` should be not set when backup.0.frequency is weekly")
+				}
+
+				if _, ok := diff.GetOk("backup.0.hour_duration"); ok {
+					return fmt.Errorf("`backup.0.hour_duration` should be not set when backup.0.frequency is weekly")
 				}
 			default:
 				return fmt.Errorf("Unrecognized value for backup.0.frequency")
@@ -112,10 +136,17 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("The Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is greater than 7, currently %d", d.Get("retention_daily.0.count").(int))
 	}
 
+	schedulePolicy, err := expandBackupProtectionPolicyVMSchedule(d, times)
+	if err != nil {
+		return err
+	}
+
+	policyType := backup.IAASVMPolicyType(d.Get("policy_type").(string))
 	vmProtectionPolicyProperties := &backup.AzureIaaSVMProtectionPolicy{
 		TimeZone:             utils.String(d.Get("timezone").(string)),
 		BackupManagementType: backup.ManagementTypeBasicProtectionPolicyBackupManagementTypeAzureIaasVM,
-		SchedulePolicy:       expandBackupProtectionPolicyVMSchedule(d, times),
+		PolicyType:           policyType,
+		SchedulePolicy:       *schedulePolicy,
 		RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 			RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
 			DailySchedule:       expandBackupProtectionPolicyVMRetentionDaily(d, times),
@@ -126,7 +157,12 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if d.HasChange("instant_restore_retention_days") {
-		vmProtectionPolicyProperties.InstantRpRetentionRangeInDays = utils.Int32(int32(d.Get("instant_restore_retention_days").(int)))
+		days := d.Get("instant_restore_retention_days").(int)
+		if backup.IAASVMPolicyTypeV1 == policyType && days > 5 {
+			return fmt.Errorf("`instant_restore_retention_days` must be less than or equal to `5` when `policy_type` is `V1`")
+		}
+
+		vmProtectionPolicyProperties.InstantRpRetentionRangeInDays = utils.Int32(int32(days))
 	}
 
 	policy := backup.ProtectionPolicyResource{
@@ -183,6 +219,18 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `backup`: %+v", err)
 			}
 		}
+
+		if schedule, ok := properties.SchedulePolicy.AsSimpleSchedulePolicyV2(); ok && schedule != nil {
+			if err := d.Set("backup", flattenBackupProtectionPolicyVMScheduleV2(schedule)); err != nil {
+				return fmt.Errorf("setting `backup`: %+v", err)
+			}
+		}
+
+		policyType := string(backup.IAASVMPolicyTypeV1)
+		if properties.PolicyType != "" {
+			policyType = string(properties.PolicyType)
+		}
+		d.Set("policy_type", policyType)
 
 		if retention, ok := properties.RetentionPolicy.AsLongTermRetentionPolicy(); ok && retention != nil {
 			if s := retention.DailySchedule; s != nil {
@@ -257,31 +305,88 @@ func resourceBackupProtectionPolicyVMDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []date.Time) *backup.SimpleSchedulePolicy {
+func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []date.Time) (*backup.BasicSchedulePolicy, error) {
 	if bb, ok := d.Get("backup").([]interface{}); ok && len(bb) > 0 {
 		block := bb[0].(map[string]interface{})
 
-		schedule := backup.SimpleSchedulePolicy{ // LongTermSchedulePolicy has no properties
-			SchedulePolicyType: backup.SchedulePolicyTypeSimpleSchedulePolicy,
-			ScheduleRunTimes:   &times,
-		}
-
-		if v, ok := block["frequency"].(string); ok {
-			schedule.ScheduleRunFrequency = backup.ScheduleRunType(v)
-		}
-
-		if v, ok := block["weekdays"].(*pluginsdk.Set); ok {
-			days := make([]backup.DayOfWeek, 0)
-			for _, day := range v.List() {
-				days = append(days, backup.DayOfWeek(day.(string)))
+		policyType := d.Get("policy_type").(string)
+		if policyType == string(backup.IAASVMPolicyTypeV1) {
+			schedule := backup.SimpleSchedulePolicy{ // LongTermSchedulePolicy has no properties
+				SchedulePolicyType: backup.SchedulePolicyTypeSimpleSchedulePolicy,
+				ScheduleRunTimes:   &times,
 			}
-			schedule.ScheduleRunDays = &days
-		}
 
-		return &schedule
+			if v, ok := block["frequency"].(string); ok {
+				schedule.ScheduleRunFrequency = backup.ScheduleRunType(v)
+			}
+
+			if v, ok := block["weekdays"].(*pluginsdk.Set); ok {
+				days := make([]backup.DayOfWeek, 0)
+				for _, day := range v.List() {
+					days = append(days, backup.DayOfWeek(day.(string)))
+				}
+				schedule.ScheduleRunDays = &days
+			}
+
+			result, _ := schedule.AsBasicSchedulePolicy()
+			return &result, nil
+		} else {
+			frequency := block["frequency"].(string)
+			schedule := backup.SimpleSchedulePolicyV2{
+				SchedulePolicyType:   backup.SchedulePolicyTypeSimpleSchedulePolicyV2,
+				ScheduleRunFrequency: backup.ScheduleRunType(frequency),
+			}
+
+			switch frequency {
+			case string(backup.ScheduleRunTypeHourly):
+				interval, ok := block["hour_interval"].(int)
+				if !ok {
+					return nil, fmt.Errorf("`hour_interval` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+
+				duration, ok := block["hour_duration"].(int)
+				if !ok {
+					return nil, fmt.Errorf("`hour_duration` must be specified when `backup.0.frequency` is `Hourly`")
+				}
+
+				if duration%interval != 0 {
+					return nil, fmt.Errorf("`hour_duration` must be multiplier of `hour_interval`")
+				}
+
+				schedule.HourlySchedule = &backup.HourlySchedule{
+					Interval:                utils.Int32(int32(interval)),
+					ScheduleWindowStartTime: &times[0],
+					ScheduleWindowDuration:  utils.Int32(int32(duration)),
+				}
+			case string(backup.ScheduleRunTypeDaily):
+				schedule.DailySchedule = &backup.DailySchedule{
+					ScheduleRunTimes: &times,
+				}
+			case string(backup.ScheduleRunTypeWeekly):
+				weekDays, ok := block["weekdays"].(*pluginsdk.Set)
+				if !ok {
+					return nil, fmt.Errorf("`weekdays` must be specified when `backup.0.frequency` is `Weekly`")
+				}
+
+				days := make([]backup.DayOfWeek, 0)
+				for _, day := range weekDays.List() {
+					days = append(days, backup.DayOfWeek(day.(string)))
+				}
+
+				schedule.WeeklySchedule = &backup.WeeklySchedule{
+					ScheduleRunDays:  &days,
+					ScheduleRunTimes: &times,
+				}
+			default:
+				return nil, fmt.Errorf("Unrecognized value for backup.0.frequency")
+			}
+
+			result, _ := schedule.AsBasicSchedulePolicy()
+			return &result, nil
+		}
 	}
 
-	return nil
+	return nil, nil
 }
 
 func expandBackupProtectionPolicyVMRetentionDaily(d *pluginsdk.ResourceData, times []date.Time) *backup.DailyRetentionSchedule {
@@ -413,6 +518,50 @@ func flattenBackupProtectionPolicyVMSchedule(schedule *backup.SimpleSchedulePoli
 			weekdays = append(weekdays, string(d))
 		}
 		block["weekdays"] = pluginsdk.NewSet(pluginsdk.HashString, weekdays)
+	}
+
+	return []interface{}{block}
+}
+
+func flattenBackupProtectionPolicyVMScheduleV2(schedule *backup.SimpleSchedulePolicyV2) []interface{} {
+	block := map[string]interface{}{}
+
+	frequency := schedule.ScheduleRunFrequency
+	block["frequency"] = string(frequency)
+
+	switch frequency {
+	case backup.ScheduleRunTypeHourly:
+		schedule := schedule.HourlySchedule
+		if schedule.Interval != nil {
+			block["hour_interval"] = *schedule.Interval
+		}
+
+		if schedule.ScheduleWindowDuration != nil {
+			block["hour_duration"] = *schedule.ScheduleWindowDuration
+		}
+
+		if schedule.ScheduleWindowStartTime != nil {
+			block["time"] = schedule.ScheduleWindowStartTime.Format("15:04")
+		}
+	case backup.ScheduleRunTypeDaily:
+		schedule := schedule.DailySchedule
+		if times := schedule.ScheduleRunTimes; times != nil && len(*times) > 0 {
+			block["time"] = (*times)[0].Format("15:04")
+		}
+	case backup.ScheduleRunTypeWeekly:
+		schedule := schedule.WeeklySchedule
+		if days := schedule.ScheduleRunDays; days != nil {
+			weekdays := make([]interface{}, 0)
+			for _, d := range *days {
+				weekdays = append(weekdays, string(d))
+			}
+			block["weekdays"] = pluginsdk.NewSet(pluginsdk.HashString, weekdays)
+		}
+
+		if times := schedule.ScheduleRunTimes; times != nil && len(*times) > 0 {
+			block["time"] = (*times)[0].Format("15:04")
+		}
+	default:
 	}
 
 	return []interface{}{block}
@@ -584,7 +733,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: validation.IntBetween(1, 5),
+			ValidateFunc: validation.IntBetween(1, 30),
 		},
 
 		"recovery_vault_name": {
@@ -610,6 +759,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
+							string(backup.ScheduleRunTypeHourly),
 							string(backup.ScheduleRunTypeDaily),
 							string(backup.ScheduleRunTypeWeekly),
 						}, false),
@@ -634,8 +784,36 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 							ValidateFunc:     validation.IsDayOfTheWeek(true),
 						},
 					},
+
+					"hour_interval": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						ValidateFunc: validation.IntInSlice([]int{
+							4,
+							6,
+							8,
+							12,
+						}),
+					},
+
+					"hour_duration": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(4, 24),
+					},
 				},
 			},
+		},
+
+		"policy_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(backup.IAASVMPolicyTypeV1),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(backup.IAASVMPolicyTypeV1),
+				string(backup.IAASVMPolicyTypeV2),
+			}, false),
 		},
 
 		"retention_daily": {

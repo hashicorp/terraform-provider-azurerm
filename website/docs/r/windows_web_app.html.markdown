@@ -83,6 +83,10 @@ The following arguments are supported:
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
+* `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Windows Web App.
+
+~> **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`. Refer to the [Azure docs](https://docs.microsoft.com/en-us/azure/app-service/deploy-run-package) for further details.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Windows Web App.
 
 ---
@@ -413,7 +417,7 @@ A `scm_ip_restriction` block supports the following:
 
 A `site_config` block supports the following:
 
-* `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `false`.
+* `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `true`.
 
 * `api_management_api_id` - (Optional) The API Management API ID this Windows Web App Slot is associated with.
 

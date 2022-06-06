@@ -31,7 +31,7 @@ func ValidateEventHubConsumerName() pluginsdk.SchemaValidateFunc {
 
 func ValidateEventHubAuthorizationRuleName() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,48}[a-zA-Z0-9])?$"),
-		"The authorization rule name can contain only letters, numbers, periods, hyphens and underscores. The name must start and end with a letter or number and be up to 50 characters long.",
+		regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,58}[a-zA-Z0-9])?$"),
+		"The authorization rule name can contain only letters, numbers, periods, hyphens and underscores. The name must start and end with a letter or number and be up to 60 characters long.",
 	)
 }

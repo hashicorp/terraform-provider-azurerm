@@ -87,6 +87,10 @@ The following arguments are supported:
 
 * `sticky_settings` - A `sticky_settings` block as defined below.
 
+* `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Windows Web App.
+
+~> **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`. Refer to the [Azure docs](https://docs.microsoft.com/en-us/azure/app-service/deploy-run-package) for further details.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Web App.
 
 ---
@@ -405,7 +409,7 @@ A `scm_ip_restriction` block supports the following:
 
 A `site_config` block supports the following:
 
-* `always_on` - (Optional) If this Linux Web App is Always On enabled. Defaults to `false`.
+* `always_on` - (Optional) If this Linux Web App is Always On enabled. Defaults to `true`.
 
 * `api_management_config_id` - (Optional) The ID of the APIM configuration for this Linux Web App.
 
