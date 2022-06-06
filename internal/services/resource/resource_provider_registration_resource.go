@@ -151,7 +151,7 @@ func (r ResourceProviderRegistrationResource) resourceCreateUpdate(ctx context.C
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("could not retrieve context deadline for %s", resourceId)
+		return fmt.Errorf("could not retrieve context deadline for %s", resourceId.ID())
 	}
 	// TODO: @tombuildsstuff - expose a nicer means of doing this in the SDK
 	log.Printf("[DEBUG] Waiting for Resource Provider %q to finish registering..", resourceId.ResourceProvider)
@@ -258,7 +258,7 @@ func (r ResourceProviderRegistrationResource) Delete() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("could not retrieve context deadline for %s", id)
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
 			}
 			// TODO: @tombuildsstuff - we should likely expose something in the SDK to make this easier
 			stateConf := &pluginsdk.StateChangeConf{

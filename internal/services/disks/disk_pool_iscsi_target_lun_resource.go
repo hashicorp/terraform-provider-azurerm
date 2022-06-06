@@ -246,7 +246,7 @@ func (d DiskPoolIscsiTargetLunModel) Delete() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("could not retrieve context deadline for %s", id)
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
 			}
 			return d.RetryError(time.Until(deadline), "waiting for delete DisksPool iscsi target lun", id.ID(), func() error {
 				return client.UpdateThenPoll(ctx, *iscsiTargetId, patch)

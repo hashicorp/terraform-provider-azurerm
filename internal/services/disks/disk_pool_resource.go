@@ -118,7 +118,7 @@ func (r DiskPoolResource) Create() sdk.ResourceFunc {
 			}
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("could not retrieve context deadline for %s", id)
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
 			}
 
 			//lintignore:R006
@@ -239,7 +239,7 @@ func (r DiskPoolResource) Update() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("could not retrieve context deadline for %s", id)
+				return fmt.Errorf("could not retrieve context deadline for %s", id.ID())
 			}
 
 			//lintignore:R006
