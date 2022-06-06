@@ -50,6 +50,8 @@ The following arguments are supported:
 
 * `certificate_content` - (Required) The Base-64 representation of the X509 leaf certificate .cer file or just a .pem file content.
 
+* `is_verified` - (Optional) Specifies if the certificate is created in verified state. Defaults to `false`.
+
 ## Attributes Reference
 
 The following attributes are exported:
