@@ -104,7 +104,7 @@ func TestAccDigitalTwinsInstance_identity(t *testing.T) {
 	r := DigitalTwinsInstanceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.identity(data),
+			Config: r.basicWithIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
@@ -113,7 +113,7 @@ func TestAccDigitalTwinsInstance_identity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.identityNone(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").DoesNotExist(),
@@ -122,7 +122,7 @@ func TestAccDigitalTwinsInstance_identity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.identity(data),
+			Config: r.basicWithIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
@@ -216,7 +216,7 @@ resource "azurerm_digital_twins_instance" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DigitalTwinsInstanceResource) identity(data acceptance.TestData) string {
+func (r DigitalTwinsInstanceResource) basicWithIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -227,18 +227,6 @@ resource "azurerm_digital_twins_instance" "test" {
   identity {
     type = "SystemAssigned"
   }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r DigitalTwinsInstanceResource) identityNone(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_digital_twins_instance" "test" {
-  name                = "acctest-DT-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
 }
 `, r.template(data), data.RandomInteger)
 }
