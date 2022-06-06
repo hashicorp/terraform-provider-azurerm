@@ -149,6 +149,10 @@ func (r ResourceProviderRegistrationResource) resourceCreateUpdate(ctx context.C
 		return fmt.Errorf("registering Resource Provider %q: %+v", resourceId.ResourceProvider, err)
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("could not retrieve context deadline for %s", resourceId)
+	}
 	// TODO: @tombuildsstuff - expose a nicer means of doing this in the SDK
 	log.Printf("[DEBUG] Waiting for Resource Provider %q to finish registering..", resourceId.ResourceProvider)
 	stateConf := &pluginsdk.StateChangeConf{
@@ -157,7 +161,7 @@ func (r ResourceProviderRegistrationResource) resourceCreateUpdate(ctx context.C
 		Refresh:      r.registerRefreshFunc(ctx, client, resourceId.ResourceProvider),
 		MinTimeout:   15 * time.Second,
 		PollInterval: 30 * time.Second,
-		Timeout:      metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate),
+		Timeout:      time.Until(deadline),
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Resource Provider Namespace %q to be registered: %s", resourceId.ResourceProvider, err)
@@ -252,14 +256,17 @@ func (r ResourceProviderRegistrationResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("unregistering Resource Provider %q: %+v", id.ResourceProvider, err)
 			}
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("could not retrieve context deadline for %s", id)
+			}
 			// TODO: @tombuildsstuff - we should likely expose something in the SDK to make this easier
-
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{"Processing"},
 				Target:     []string{"Unregistered"},
 				Refresh:    r.unregisterRefreshFunc(ctx, client, id.ResourceProvider),
 				MinTimeout: 15 * time.Second,
-				Timeout:    metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete),
+				Timeout:    time.Until(deadline),
 			}
 			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for Resource Provider %q to become unregistered: %+v", id.ResourceProvider, err)
