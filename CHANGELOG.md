@@ -1,3 +1,9 @@
+## 3.10.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_container_group` - Double the delete check timeout for nic [GH-17115]
+
 ## 3.9.0 (June 02, 2022)
 
 FEATURES:
