@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Optional) The ID of the Key Vault Key which should be used to encrypt the data in this HPC Cache.
 
-* `auto_key_rotation_enabled` - (Optional) Specifies whether the HPC Cache automatically rotates Encryption Key to the latest version. Defaults to `false`.
+* `automatically_rotate_key_to_latest_enabled` - (Optional) Specifies whether the HPC Cache automatically rotates Encryption Key to the latest version. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the HPC Cache.
 

@@ -151,9 +151,9 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	requireAdditionalUpdate := false
 	if v, ok := d.GetOk("key_vault_key_id"); ok {
-		autoKeyRotationEnabled := d.Get("auto_key_rotation_enabled").(bool)
+		autoKeyRotationEnabled := d.Get("automatically_rotate_key_to_latest_enabled").(bool)
 		if !d.IsNewResource() && d.HasChange("key_vault_key_id") && autoKeyRotationEnabled {
-			// It is by design that `auto_key_rotation_enabled` changes to `false` when `key_vault_key_id` is changed, needs to do an additional update to set it back
+			// It is by design that `automatically_rotate_key_to_latest_enabled` changes to `false` when `key_vault_key_id` is changed, needs to do an additional update to set it back
 			requireAdditionalUpdate = true
 		}
 
@@ -339,7 +339,7 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 	d.Set("key_vault_key_id", keyVaultKeyId)
-	d.Set("auto_key_rotation_enabled", autoKeyRotationEnabled)
+	d.Set("automatically_rotate_key_to_latest_enabled", autoKeyRotationEnabled)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -1125,7 +1125,7 @@ func resourceHPCCacheSchema() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{"identity"},
 		},
 
-		"auto_key_rotation_enabled": {
+		"automatically_rotate_key_to_latest_enabled": {
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
 			RequiredWith: []string{"key_vault_key_id"},

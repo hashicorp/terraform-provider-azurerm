@@ -941,8 +941,8 @@ resource "azurerm_hpc_cache" "test" {
     ]
   }
 
-  key_vault_key_id          = azurerm_key_vault_key.test.id
-  auto_key_rotation_enabled = true
+  key_vault_key_id                           = azurerm_key_vault_key.test.id
+  automatically_rotate_key_to_latest_enabled = true
 }
 `, r.customerManagedKeyTemplate(data), data.RandomInteger)
 }
@@ -966,8 +966,8 @@ resource "azurerm_hpc_cache" "test" {
     ]
   }
 
-  key_vault_key_id          = azurerm_key_vault_key.test2.id
-  auto_key_rotation_enabled = true
+  key_vault_key_id                           = azurerm_key_vault_key.test2.id
+  automatically_rotate_key_to_latest_enabled = true
 }
 `, r.customerManagedKeyTemplate(data), data.RandomInteger)
 }
