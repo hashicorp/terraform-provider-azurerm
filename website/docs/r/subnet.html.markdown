@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `address_prefixes` - (Required) The address prefixes to use for the subnet.
 
+-> **NOTE:** The feature of `AllowMultipleAddressPrefixesOnSubnet` is not available for public as of now, so `address_prefixes` only supports setting one address prefix. 
+
 ---
 
 * `delegation` - (Optional) One or more `delegation` blocks as defined below.
