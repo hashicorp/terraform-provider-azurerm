@@ -104,7 +104,7 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificate(t *testing.T) {
 		// The "key_vault_secret_id" is skipped here since during import, there is no knowledge about whether users want
 		// versioned or versionless certificate id. That means the imported "key_vault_secret_id" is what it is at the
 		// remote API representation, which might be different than it as defined in the configuration.
-		data.ImportStep("user_managed_https.0.key_vault_secret_id"),
+		data.ImportStep("user_managed_https.0.key_vault_secret_id", "user_managed_https.0.key_vault_certificate_id"),
 	})
 }
 
@@ -126,10 +126,7 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificateDeprecated(t *tes
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// The "key_vault_certificate_id" is skipped here since during import, there is no knowledge about whether users want
-		// versioned or versionless certificate id. That means the imported "key_vault_certificate_id" is what it is at the
-		// remote API representation, which might be different than it as defined in the configuration.
-		data.ImportStep("user_managed_https.0.key_vault_certificate_id"),
+		data.ImportStep("user_managed_https.0.key_vault_secret_id", "user_managed_https.0.key_vault_certificate_id"),
 	})
 }
 
@@ -148,10 +145,7 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedSecret(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// The "key_vault_secret_id" is skipped here since during import, there is no knowledge about whether users want
-		// versioned or versionless certificate id. That means the imported "key_vault_secret_id" is what it is at the
-		// remote API representation, which might be different than it as defined in the configuration.
-		data.ImportStep("user_managed_https.0.key_vault_secret_id"),
+		data.ImportStep("user_managed_https.0.key_vault_secret_id", "user_managed_https.0.key_vault_certificate_id"),
 	})
 }
 
@@ -184,7 +178,7 @@ func TestAccCdnEndpointCustomDomain_httpsUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("user_managed_https.0.key_vault_secret_id"),
+		data.ImportStep("user_managed_https.0.key_vault_secret_id", "user_managed_https.0.key_vault_certificate_id"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -323,6 +317,8 @@ resource "azurerm_key_vault" "test" {
     secret_permissions = [
       "Get",
       "Set",
+      "Delete",
+      "Purge",
     ]
   }
   access_policy {
@@ -373,7 +369,7 @@ resource "azurerm_cdn_endpoint_custom_domain" "test" {
   cdn_endpoint_id = azurerm_cdn_endpoint.test.id
   host_name       = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
   user_managed_https {
-    key_vault_secret_id = azurerm_key_vault_certificate.test.id
+    key_vault_secret_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
 `, template, data.RandomIntOfLength(8), r.CertificateP12)
