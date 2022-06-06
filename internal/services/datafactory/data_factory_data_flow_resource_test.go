@@ -174,7 +174,7 @@ func (r DataFlowResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_data_factory_data_flow" "test" {
-  name            = "acctestdf%[2]d"
+  name            = "acctestdf3%[2]d"
   data_factory_id = azurerm_data_factory.test.id
   description     = "description for data flow"
   annotations     = ["anno1", "anno2"]
