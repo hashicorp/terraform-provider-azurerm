@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strings"
 	"time"
@@ -49,18 +51,16 @@ func resourceBatchPool() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.PoolName,
 			},
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"account_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.AccountName,
 			},
-			"display_name": {
+			"node_agent_sku_id": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
 			},
 			"vm_size": {
@@ -69,35 +69,31 @@ func resourceBatchPool() *pluginsdk.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
-			"max_tasks_per_node": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      1,
-				ForceNew:     true,
-				ValidateFunc: validation.IntAtLeast(1),
-			},
-			"fixed_scale": {
+			//TODO not able to determine support application licenses
+			"application_licenses": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MaxItems: 1,
+				Elem: &schema.Schema{
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+			"application_packages": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 10,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"target_dedicated_nodes": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      1,
-							ValidateFunc: validation.IntBetween(0, 2000),
+						"id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ApplicationID,
 						},
-						"target_low_priority_nodes": {
-							Type:         pluginsdk.TypeInt,
+						"version": {
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Default:      0,
-							ValidateFunc: validation.IntBetween(0, 1000),
-						},
-						"resize_timeout": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  "PT15M",
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -119,6 +115,69 @@ func resourceBatchPool() *pluginsdk.Resource {
 							DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
 								return strings.TrimSpace(old) == strings.TrimSpace(new)
 							},
+						},
+					},
+				},
+			},
+			"certificate": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+							// The ID returned for the certificate in the batch account and the certificate applied to the pool
+							// are not consistent in their casing which causes issues when referencing IDs across resources
+							// (as Terraform still sees differences to apply due to the casing)
+							// Handling by ignoring casing for now. Raised as an issue: https://github.com/Azure/azure-rest-api-specs/issues/5574
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
+						"store_location": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"CurrentUser",
+								"LocalMachine",
+							}, false),
+						},
+						"store_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"visibility": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"StartTask",
+									"Task",
+									"RemoteUser",
+								}, false),
+							},
+						},
+					},
+				},
+			},
+			//deploymentConfiguration in swagger
+			"cloud_service_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"os_family": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"os_version": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      utils.String("*"),
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -152,32 +211,71 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ForceNew:   true,
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"registry_server": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"user_name": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"password": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										Sensitive:    true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
+								Schema: containerRegistry(),
 							},
 							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
 						},
 					},
 				},
+			},
+			"data_disks": {},
+			"display_name": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+			"fixed_scale": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"node_deallocation_option": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(batch.ComputeNodeDeallocationOptionRequeue),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.ComputeNodeDeallocationOptionRequeue),
+								string(batch.ComputeNodeDeallocationOptionRetainedData),
+								string(batch.ComputeNodeDeallocationOptionTaskCompletion),
+								string(batch.ComputeNodeDeallocationOptionTerminate),
+							}, false),
+						},
+						"target_dedicated_nodes": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      1,
+							ValidateFunc: validation.IntBetween(0, 2000),
+						},
+						"target_low_priority_nodes": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      0,
+							ValidateFunc: validation.IntBetween(0, 1000),
+						},
+						"resize_timeout": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "PT15M",
+						},
+					},
+				},
+			},
+			"inter_node_communication": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(batch.InterNodeCommunicationStateEnabled),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(batch.InterNodeCommunicationStateEnabled),
+					string(batch.InterNodeCommunicationStateDisabled),
+				}, false),
+			},
+			"max_tasks_per_node": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ForceNew:     true,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"storage_image_reference": {
 				Type:     pluginsdk.TypeList,
@@ -229,58 +327,11 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			"node_agent_sku_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+
 			"stop_pending_resize_operation": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
-			},
-			"certificate": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-							// The ID returned for the certificate in the batch account and the certificate applied to the pool
-							// are not consistent in their casing which causes issues when referencing IDs across resources
-							// (as Terraform still sees differences to apply due to the casing)
-							// Handling by ignoring casing for now. Raised as an issue: https://github.com/Azure/azure-rest-api-specs/issues/5574
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-						"store_location": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"CurrentUser",
-								"LocalMachine",
-							}, false),
-						},
-						"store_name": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"visibility": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									"StartTask",
-									"Task",
-									"RemoteUser",
-								}, false),
-							},
-						},
-					},
-				},
 			},
 
 			"identity": commonschema.UserAssignedIdentityOptional(),
@@ -313,6 +364,17 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						//TODO test whether this is forcenew
+						"dynamic_vnet_assignment_scope": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Default:  string(batch.DynamicVNetAssignmentScopeNone),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.DynamicVNetAssignmentScopeNone),
+								string(batch.DynamicVNetAssignmentScopeJob),
+							}, false),
 						},
 						"public_ips": {
 							Type:     pluginsdk.TypeSet,
@@ -392,6 +454,12 @@ func resourceBatchPool() *pluginsdk.Resource {
 												"source_address_prefix": {
 													Type:         pluginsdk.TypeString,
 													Required:     true,
+													ForceNew:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+												"source_port_ranges": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
 													ForceNew:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
@@ -905,12 +973,91 @@ func flattenBatchPoolIdentity(input *batch.PoolIdentity) (*[]interface{}, error)
 	return identity.FlattenUserAssignedMap(transform)
 }
 
+func identityReference() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"identity_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		},
+	}
+}
+
+func containerRegistry() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"username": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"password"},
+			AtLeastOneOf: []string{"username", "identity_reference"},
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"password": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"username"},
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"registry_server": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      utils.String("docker.io"),
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+		"identity_reference": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			ForceNew:     true,
+			AtLeastOneOf: []string{"username", "identity_reference"},
+			Elem:         identityReference(),
+		},
+	}
+}
+
 func startTaskSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"command_line": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"container_settings": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"container_run_options": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"image_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"registry": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: containerRegistry(),
+						},
+					},
+					"working_directory": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(batch.ContainerWorkingDirectoryTaskWorkingDirectory),
+							string(batch.ContainerWorkingDirectoryContainerImageDefault),
+						}, false),
+					},
+				},
+			},
 		},
 
 		"task_retry_maximum": {
@@ -999,6 +1146,11 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 					"http_url": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+					},
+					"identity_reference": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem:     identityReference(),
 					},
 					"storage_container_url": {
 						Type:     pluginsdk.TypeString,
