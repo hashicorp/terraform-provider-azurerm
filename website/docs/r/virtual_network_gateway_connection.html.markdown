@@ -265,6 +265,10 @@ Changing this value will force a resource to be created.
 
 * `express_route_gateway_bypass` - (Optional) If `true`, data packets will bypass ExpressRoute Gateway for data forwarding This is only valid for ExpressRoute connections.
 
+* `egress_nat_rule_ids` - (Optional) A list of the egress NAT Rule Ids.
+
+* `ingress_nat_rule_ids` - (Optional) A list of the ingress NAT Rule Ids.
+
 * `use_policy_based_traffic_selectors` - (Optional) If `true`, policy-based traffic
     selectors are enabled for this connection. Enabling policy-based traffic
     selectors requires an `ipsec_policy` block. Defaults to `false`.

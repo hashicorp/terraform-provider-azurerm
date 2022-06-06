@@ -70,7 +70,7 @@ resource "azurerm_web_pubsub_network_acl" "example" {
   }
 
   depends_on = [
-    azurerm_private_endpoint.test
+    azurerm_private_endpoint.example
   ]
 }
 ```

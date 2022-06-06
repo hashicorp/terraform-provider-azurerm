@@ -51,5 +51,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 App Service Source GitHub Tokens can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_github_token.example /providers/Microsoft.Web/sourcecontrols/GitHub
+terraform import azurerm_source_control_token.example /providers/Microsoft.Web/sourceControls/GitHub
 ```

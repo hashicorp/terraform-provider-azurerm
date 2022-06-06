@@ -220,6 +220,21 @@ func TestAccVpnGatewayConnection_natRuleIds(t *testing.T) {
 	})
 }
 
+func TestAccVpnGatewayConnection_customBgpAddress(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_connection", "test")
+	r := VPNGatewayConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customBgpAddress(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VPNGatewayConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VpnConnectionID(state.ID)
 	if err != nil {
@@ -562,16 +577,102 @@ resource "azurerm_vpn_gateway_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r VPNGatewayConnectionResource) customBgpAddress(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_wan" "test" {
+  name                = "acctestVWAN-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctestVHUB-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.0.0/24"
+}
+
+resource "azurerm_vpn_gateway" "test" {
+  name                = "acctestVPNGW-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  virtual_hub_id      = azurerm_virtual_hub.test.id
+
+  bgp_settings {
+    asn         = 65515
+    peer_weight = 0
+
+    instance_0_bgp_peering_address {
+      custom_ips = ["169.254.21.5"]
+    }
+
+    instance_1_bgp_peering_address {
+      custom_ips = ["169.254.21.10"]
+    }
+  }
+}
+
+resource "azurerm_vpn_site" "test" {
+  name                = "acctestVPNSite-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+
+  link {
+    name       = "link1"
+    ip_address = "169.254.21.5"
+
+    bgp {
+      asn             = 1234
+      peering_address = "169.254.21.5"
+    }
+  }
+}
+
+resource "azurerm_vpn_gateway_connection" "test" {
+  name               = "acctestVPNGWConn-%[1]d"
+  vpn_gateway_id     = azurerm_vpn_gateway.test.id
+  remote_vpn_site_id = azurerm_vpn_site.test.id
+
+  vpn_link {
+    name             = "link1"
+    vpn_site_link_id = azurerm_vpn_site.test.link[0].id
+    bgp_enabled      = true
+
+    custom_bgp_address {
+      ip_address          = "169.254.21.5"
+      ip_configuration_id = azurerm_vpn_gateway.test.bgp_settings.0.instance_0_bgp_peering_address.0.ip_configuration_id
+    }
+
+    custom_bgp_address {
+      ip_address          = "169.254.21.10"
+      ip_configuration_id = azurerm_vpn_gateway.test.bgp_settings.0.instance_1_bgp_peering_address.0.ip_configuration_id
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 func (VPNGatewayConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-vpn-%[1]d"
   location = "%[2]s"
 }
-
 
 resource "azurerm_virtual_wan" "test" {
   name                = "acctest-vwan-%[1]d"
@@ -599,14 +700,16 @@ resource "azurerm_vpn_site" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   virtual_wan_id      = azurerm_virtual_wan.test.id
-  address_cidrs       = ["10.0.0.0/24"]
+  address_cidrs       = ["10.0.1.0/24"]
+
   link {
     name       = "link1"
-    ip_address = "10.0.0.1"
+    ip_address = "10.0.1.1"
   }
+
   link {
     name       = "link2"
-    ip_address = "10.0.0.2"
+    ip_address = "10.0.1.2"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

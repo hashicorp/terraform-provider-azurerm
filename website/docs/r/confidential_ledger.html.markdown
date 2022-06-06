@@ -1,7 +1,7 @@
 ---
 subcategory: "Confidential Ledger"
 layout: "azurerm"
-page_title: "Confidential Ledger: azurerm_confidential_ledger"
+page_title: "Azure Resource Manager: azurerm_confidential_ledger"
 description: |-
   Manages a Confidential Ledger.
 ---

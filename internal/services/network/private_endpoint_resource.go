@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/privatezones"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -21,8 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	postgresqlParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
-	privateDnsParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/parse"
-	privateDnsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -105,7 +105,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 							Required: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: privateDnsValidate.PrivateDnsZoneID,
+								ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 							},
 						},
 					},
@@ -762,13 +762,13 @@ func createPrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *ne
 	for _, item := range privateDnsZoneIdsRaw {
 		v := item.(string)
 
-		privateDnsZone, err := privateDnsParse.PrivateDnsZoneID(v)
+		privateDnsZone, err := privatezones.ParsePrivateDnsZoneID(v)
 		if err != nil {
 			return err
 		}
 
 		privateDnsZoneConfigs = append(privateDnsZoneConfigs, network.PrivateDNSZoneConfig{
-			Name: utils.String(privateDnsZone.Name),
+			Name: utils.String(privateDnsZone.PrivateZoneName),
 			PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
 				PrivateDNSZoneID: utils.String(privateDnsZone.ID()),
 			},
