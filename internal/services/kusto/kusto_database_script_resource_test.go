@@ -25,7 +25,7 @@ func TestAccKustoScript_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sas_token"),
+		data.ImportStep("sas_token", "script_content"),
 	})
 }
 
@@ -53,7 +53,7 @@ func TestAccKustoScript_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sas_token"),
+		data.ImportStep("sas_token", "script_content"),
 	})
 }
 
@@ -67,21 +67,21 @@ func TestAccKustoScript_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sas_token"),
+		data.ImportStep("sas_token", "script_content"),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sas_token"),
+		data.ImportStep("sas_token", "script_content"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sas_token"),
+		data.ImportStep("sas_token", "script_content"),
 	})
 }
 
@@ -98,7 +98,21 @@ func TestAccKustoScript_multiple(t *testing.T) {
 				check.That(fmt.Sprintf("%s%d", data.ResourceName, 4)).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sas_token"),
+		data.ImportStep("sas_token", "script_content"),
+	})
+}
+
+func TestAccKustoScript_scriptContent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_script", "test")
+	r := KustoScriptResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scriptContent(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sas_token", "script_content"),
 	})
 }
 
@@ -228,6 +242,21 @@ resource "azurerm_kusto_script" "test" {
   sas_token                          = data.azurerm_storage_account_blob_container_sas.test.sas
   continue_on_errors_enabled         = true
   force_an_update_when_value_changed = "first"
+}
+`, template, data.RandomInteger)
+}
+
+func (r KustoScriptResource) scriptContent(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kusto_script" "test" {
+  name                               = "acctest-ks-%d"
+  database_id                        = azurerm_kusto_database.test.id
+  continue_on_errors_enabled         = true
+  force_an_update_when_value_changed = "first"
+  script_content                     = ".create table MyTable (Level:string, Timestamp:datetime, UserId:string, TraceId:string, Message:string, ProcessId:int32)"
 }
 `, template, data.RandomInteger)
 }
