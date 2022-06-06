@@ -16,9 +16,10 @@ Manages a Subscription Policy Assignment.
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_policy_definition" "example" {
-  name        = "only-deploy-in-westeurope"
-  policy_type = "Custom"
-  mode        = "All"
+  name         = "only-deploy-in-westeurope"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "Allowed resource types"
 
   policy_rule = <<POLICY_RULE
 	{
