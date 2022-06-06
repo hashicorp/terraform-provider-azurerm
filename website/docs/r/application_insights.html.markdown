@@ -94,9 +94,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource.
-
-~> **NOTE:** This can not be removed after set. More details can be found at [Migrate to workspace-based Application Insights resources](https://docs.microsoft.com/azure/azure-monitor/app/convert-classic-resource#migration-process)
+* `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource. Changing this forces a new resource to be created.
 
 * `local_authentication_disabled` - (Optional) Disable Non-Azure AD based Auth. Defaults to `false`.
 
