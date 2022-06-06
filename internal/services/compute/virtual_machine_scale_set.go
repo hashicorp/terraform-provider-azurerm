@@ -1111,8 +1111,9 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					// whilst the API allows updating this value, it's never actually set at Azure's end
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
 					// however for now let's make this ForceNew since it can't be (successfully) updated
-					ForceNew:     true,
-					ValidateFunc: validate.DiskEncryptionSetID,
+					ForceNew:      true,
+					ValidateFunc:  validate.DiskEncryptionSetID,
+					ConflictsWith: []string{"os_disk.0.secure_vm_disk_encryption_set_id"},
 				},
 
 				"disk_size_gb": {
@@ -1120,6 +1121,24 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 4095),
+				},
+
+				"secure_vm_disk_encryption_set_id": {
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ForceNew:      true,
+					ValidateFunc:  validate.DiskEncryptionSetID,
+					ConflictsWith: []string{"os_disk.0.disk_encryption_set_id"},
+				},
+
+				"security_encryption_type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.SecurityEncryptionTypesVMGuestStateOnly),
+						string(compute.SecurityEncryptionTypesDiskWithVMGuestState),
+					}, false),
 				},
 
 				"write_accelerator_enabled": {
@@ -1132,7 +1151,7 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.OperatingSystemTypes) *compute.VirtualMachineScaleSetOSDisk {
+func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.OperatingSystemTypes) (*compute.VirtualMachineScaleSetOSDisk, error) {
 	raw := input[0].(map[string]interface{})
 	disk := compute.VirtualMachineScaleSetOSDisk{
 		Caching: compute.CachingTypes(raw["caching"].(string)),
@@ -1144,6 +1163,21 @@ func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.Oper
 		// these have to be hard-coded so there's no point exposing them
 		CreateOption: compute.DiskCreateOptionTypesFromImage,
 		OsType:       osType,
+	}
+
+	securityEncryptionType := raw["security_encryption_type"].(string)
+	if securityEncryptionType != "" {
+		disk.ManagedDisk.SecurityProfile = &compute.VMDiskSecurityProfile{
+			SecurityEncryptionType: compute.SecurityEncryptionTypes(securityEncryptionType),
+		}
+	}
+	if secureVMDiskEncryptionId := raw["secure_vm_disk_encryption_set_id"].(string); secureVMDiskEncryptionId != "" {
+		if compute.SecurityEncryptionTypesDiskWithVMGuestState != compute.SecurityEncryptionTypes(securityEncryptionType) {
+			return nil, fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`")
+		}
+		disk.ManagedDisk.SecurityProfile.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+			ID: utils.String(secureVMDiskEncryptionId),
+		}
 	}
 
 	if diskEncryptionSetId := raw["disk_encryption_set_id"].(string); diskEncryptionSetId != "" {
@@ -1163,7 +1197,7 @@ func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.Oper
 		}
 	}
 
-	return &disk
+	return &disk, nil
 }
 
 func ExpandVirtualMachineScaleSetOSDiskUpdate(input []interface{}) *compute.VirtualMachineScaleSetUpdateOSDisk {
@@ -1208,10 +1242,19 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 
 	storageAccountType := ""
 	diskEncryptionSetId := ""
+	secureVMDiskEncryptionSetId := ""
+	securityEncryptionType := ""
 	if input.ManagedDisk != nil {
 		storageAccountType = string(input.ManagedDisk.StorageAccountType)
 		if input.ManagedDisk.DiskEncryptionSet != nil && input.ManagedDisk.DiskEncryptionSet.ID != nil {
 			diskEncryptionSetId = *input.ManagedDisk.DiskEncryptionSet.ID
+		}
+
+		if securityProfile := input.ManagedDisk.SecurityProfile; securityProfile != nil {
+			securityEncryptionType = string(securityProfile.SecurityEncryptionType)
+			if securityProfile.DiskEncryptionSet != nil && securityProfile.DiskEncryptionSet.ID != nil {
+				secureVMDiskEncryptionSetId = *securityProfile.DiskEncryptionSet.ID
+			}
 		}
 	}
 
@@ -1222,12 +1265,14 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 
 	return []interface{}{
 		map[string]interface{}{
-			"caching":                   string(input.Caching),
-			"disk_size_gb":              diskSizeGb,
-			"diff_disk_settings":        diffDiskSettings,
-			"storage_account_type":      storageAccountType,
-			"write_accelerator_enabled": writeAcceleratorEnabled,
-			"disk_encryption_set_id":    diskEncryptionSetId,
+			"caching":                          string(input.Caching),
+			"disk_size_gb":                     diskSizeGb,
+			"diff_disk_settings":               diffDiskSettings,
+			"storage_account_type":             storageAccountType,
+			"write_accelerator_enabled":        writeAcceleratorEnabled,
+			"disk_encryption_set_id":           diskEncryptionSetId,
+			"secure_vm_disk_encryption_set_id": secureVMDiskEncryptionSetId,
+			"security_encryption_type":         securityEncryptionType,
 		},
 	}
 }

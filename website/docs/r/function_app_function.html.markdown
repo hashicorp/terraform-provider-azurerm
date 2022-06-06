@@ -1,7 +1,7 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "function_app_function: azurerm_function_app_function"
+page_title: "Azure Resource Manager: azurerm_function_app_function"
 description: |-
   Manages a Function App Function.
 ---

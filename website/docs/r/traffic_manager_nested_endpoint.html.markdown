@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_public_ip" "example" {
   name                = "example-publicip"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
   domain_name_label   = "example-pip"
 }
@@ -38,7 +38,7 @@ resource "azurerm_traffic_manager_profile" "parent" {
   }
 
   monitor_config {
-    protocol                     = "http"
+    protocol                     = "HTTP"
     port                         = 80
     path                         = "/"
     interval_in_seconds          = 30
@@ -53,7 +53,7 @@ resource "azurerm_traffic_manager_profile" "parent" {
 
 resource "azurerm_traffic_manager_profile" "nested" {
   name                   = "nested-profile"
-  resource_group_name    = azurerm_resource_group.test.name
+  resource_group_name    = azurerm_resource_group.example.name
   traffic_routing_method = "Priority"
 
   dns_config {
@@ -62,18 +62,19 @@ resource "azurerm_traffic_manager_profile" "nested" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTP"
     port     = 443
     path     = "/"
   }
 }
 
-resource "azurerm_traffic_manager_nested_endpoint" "test" {
-  name                = "example-endpoint"
-  target_resource_id  = azurerm_traffic_manager_profile.child.id
-  priority            = 1
-  profile_id          = azurerm_traffic_manager_profile.parent.id
-  min_child_endpoints = 5
+resource "azurerm_traffic_manager_nested_endpoint" "example" {
+  name                    = "example-endpoint"
+  target_resource_id      = azurerm_traffic_manager_profile.nested.id
+  priority                = 1
+  profile_id              = azurerm_traffic_manager_profile.parent.id
+  minimum_child_endpoints = 9
+  weight                  = 5
 }
 ```
 

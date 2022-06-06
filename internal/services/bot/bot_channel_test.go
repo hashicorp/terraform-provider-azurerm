@@ -15,6 +15,11 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 			"update":   testAccBotChannelsRegistration_update,
 			"complete": testAccBotChannelsRegistration_complete,
 		},
+		"bot": {
+			"basic":          testAccBotServiceAzureBot_basic,
+			"completeUpdate": testAccBotServiceAzureBot_completeUpdate,
+			"requiresImport": testAccBotServiceAzureBot_requiresImport,
+		},
 		"connection": {
 			"basic":    testAccBotConnection_basic,
 			"complete": testAccBotConnection_complete,
@@ -23,6 +28,8 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 			"alexaBasic":                     testAccBotChannelAlexa_basic,
 			"alexaUpdate":                    testAccBotChannelAlexa_update,
 			"alexaRequiresImport":            testAccBotChannelAlexa_requiresImport,
+			"emailBasic":                     testAccBotChannelEmail_basic,
+			"emailUpdate":                    testAccBotChannelEmail_update,
 			"slackBasic":                     testAccBotChannelSlack_basic,
 			"slackComplete":                  testAccBotChannelSlack_complete,
 			"slackUpdate":                    testAccBotChannelSlack_update,
