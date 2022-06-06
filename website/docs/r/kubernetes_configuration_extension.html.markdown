@@ -67,13 +67,15 @@ The following arguments are supported:
 
 * `extension_type` - (Required) Type of the Extension, of which this resource is an instance of.  It must be one of the Extension Types registered with Microsoft.KubernetesConfiguration by the Extension publisher. Possible Values are `microsoft.flux`, `microsoft.dapr`, `microsoft.azureml.kubernetes`, etc. Changing this forces a new Kubernetes Configuration Extension to be created.
 
+* `auto_upgrade_minor_version` - (Optional) Flag to note if this extension participates in auto upgrade of minor version, or not. Defaults to `true`.
+
 * `configuration_protected_settings` - (Optional) Configuration settings that are sensitive, as name-value pairs for configuring this extension.
 
 * `configuration_settings` - (Optional) Configuration settings, as name-value pairs for configuring this extension.
 
-* `release_train` - (Optional) ReleaseTrain this extension participates in for auto-upgrade. Possible Values are `Stable`, `Preview`, etc.
+* `release_train` - (Optional) ReleaseTrain this extension participates in for auto-upgrade. Possible Values are `Stable`, `Preview`, etc. It should be set only when `auto_upgrade_minor_version` is `true`.
 
-* `version` - (Optional) Version of the extension for this extension, if it is 'pinned' to a specific version.
+* `version` - (Optional) Version of the extension for this extension, if it is 'pinned' to a specific version. It should be set when and only when `auto_upgrade_minor_version` is `false`.
 
 * `release_namespace` - (Optional) Namespace where the extension Release must be placed, for a Cluster scoped extension.  If this namespace does not exist, it will be created. Changing this forces a new Kubernetes Configuration Extension to be created.
 
@@ -84,8 +86,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kubernetes Configuration Extension.
-
-* `auto_upgrade_minor_version` - Flag to note if this extension participates in auto upgrade of minor version, or not.
 
 * `aks_assigned_identity` - An `aks_assigned_identity` block as defined below.
 

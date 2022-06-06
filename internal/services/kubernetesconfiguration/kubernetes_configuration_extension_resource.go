@@ -1,6 +1,7 @@
 package kubernetesconfiguration
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"time"
@@ -92,20 +93,24 @@ func resourceKubernetesConfigurationExtension() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"auto_upgrade_minor_version": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"release_train": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"version"},
-				ValidateFunc:  validation.StringIsNotEmpty,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"version": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"release_train"},
-				ValidateFunc:  validation.StringIsNotEmpty,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"release_namespace": {
@@ -126,13 +131,29 @@ func resourceKubernetesConfigurationExtension() *pluginsdk.Resource {
 				ValidateFunc:  validation.StringIsNotEmpty,
 			},
 
-			"auto_upgrade_minor_version": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
 			"aks_assigned_identity": commonschema.SystemAssignedIdentityComputed(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			if diff.Get("auto_upgrade_minor_version").(bool) {
+				// d.GetOk cannot identify whether this property is from config or state file . So it has to identify it using `d.GetRawConfig()`
+				if v := diff.GetRawConfig().AsValueMap()["version"]; !v.IsNull() {
+					return fmt.Errorf("`version` should not be set when `auto_upgrade_minor_version` is `true`")
+				}
+			} else {
+				// d.GetOk cannot identify whether this property is from config or state file . So it has to identify it using `d.GetRawConfig()`
+				if v := diff.GetRawConfig().AsValueMap()["version"]; v.IsNull() {
+					return fmt.Errorf("`version` must be set when `auto_upgrade_minor_version` is `false`")
+				}
+
+				// d.GetOk cannot identify whether this property is from config or state file . So it has to identify it using `d.GetRawConfig()`
+				if v := diff.GetRawConfig().AsValueMap()["release_train"]; !v.IsNull() {
+					return fmt.Errorf("`release_train` should not be set when `auto_upgrade_minor_version` is `false`")
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
@@ -167,6 +188,7 @@ func resourceKubernetesConfigurationExtensionCreate(d *pluginsdk.ResourceData, m
 
 	props := extensions.Extension{
 		Properties: &extensions.ExtensionProperties{
+			AutoUpgradeMinorVersion:        utils.Bool(d.Get("auto_upgrade_minor_version").(bool)),
 			ConfigurationProtectedSettings: expandMapStringString(d.Get("configuration_protected_settings").(map[string]interface{})),
 			ConfigurationSettings:          expandMapStringString(d.Get("configuration_settings").(map[string]interface{})),
 			ExtensionType:                  utils.String(d.Get("extension_type").(string)),
@@ -270,6 +292,10 @@ func resourceKubernetesConfigurationExtensionUpdate(d *pluginsdk.ResourceData, m
 
 	props := extensions.PatchExtension{
 		Properties: &extensions.PatchExtensionProperties{},
+	}
+
+	if d.HasChange("auto_upgrade_minor_version") {
+		props.Properties.AutoUpgradeMinorVersion = utils.Bool(d.Get("auto_upgrade_minor_version").(bool))
 	}
 
 	if d.HasChange("configuration_protected_settings") {

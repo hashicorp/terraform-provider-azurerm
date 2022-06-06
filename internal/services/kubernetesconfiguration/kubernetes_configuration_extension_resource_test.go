@@ -3,6 +3,7 @@ package kubernetesconfiguration_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -79,6 +80,70 @@ func TestAccKubernetesConfigurationExtension_update(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesConfigurationExtension_versionShouldNotBeSetWhenEnableAutoUpgrade(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_configuration_extension", "test")
+	r := KubernetesConfigurationExtensionResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.versionShouldNotBeSetWhenEnableAutoUpgrade(data),
+			ExpectError: regexp.MustCompile("`version` should not be set when `auto_upgrade_minor_version` is `true`"),
+		},
+	})
+}
+
+func TestAccKubernetesConfigurationExtension_versionShouldBeSetWhenDisableAutoUpgrade(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_configuration_extension", "test")
+	r := KubernetesConfigurationExtensionResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.versionShouldBeSetWhenDisableAutoUpgrade(data),
+			ExpectError: regexp.MustCompile("`version` must be set when `auto_upgrade_minor_version` is `false`"),
+		},
+	})
+}
+
+func TestAccKubernetesConfigurationExtension_releaseTrainShouldNotBeSetWhenDisableAutoUpgrade(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_configuration_extension", "test")
+	r := KubernetesConfigurationExtensionResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.releaseTrainShouldNotBeSetWhenDisableAutoUpgrade(data),
+			ExpectError: regexp.MustCompile("`release_train` should not be set when `auto_upgrade_minor_version` is `false`"),
+		},
+	})
+}
+
+func TestAccKubernetesConfigurationExtension_changeAutoUpgradeStatus(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_configuration_extension", "test")
+	r := KubernetesConfigurationExtensionResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_upgrade_minor_version").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.disableAutoUpgrade(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_upgrade_minor_version").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_upgrade_minor_version").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r KubernetesConfigurationExtensionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := extensions.ParseExtensionID(state.ID)
 	if err != nil {
@@ -141,6 +206,73 @@ resource "azurerm_kubernetes_configuration_extension" "test" {
 `, template, data.RandomInteger)
 }
 
+func (r KubernetesConfigurationExtensionResource) disableAutoUpgrade(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_kubernetes_configuration_extension" "test" {
+  name                       = "acctest-kc-%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  cluster_name               = azurerm_kubernetes_cluster.test.name
+  cluster_resource_name      = "managedClusters"
+  extension_type             = "microsoft.flux"
+  auto_upgrade_minor_version = false
+  version                    = "1.2.0"
+}
+`, template, data.RandomInteger)
+}
+
+func (r KubernetesConfigurationExtensionResource) versionShouldNotBeSetWhenEnableAutoUpgrade(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_kubernetes_configuration_extension" "test" {
+  name                  = "acctest-kc-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  cluster_name          = azurerm_kubernetes_cluster.test.name
+  cluster_resource_name = "managedClusters"
+  extension_type        = "microsoft.flux"
+  version               = "1.2.0"
+}
+`, template, data.RandomInteger)
+}
+
+func (r KubernetesConfigurationExtensionResource) versionShouldBeSetWhenDisableAutoUpgrade(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_kubernetes_configuration_extension" "test" {
+  name                       = "acctest-kc-%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  cluster_name               = azurerm_kubernetes_cluster.test.name
+  cluster_resource_name      = "managedClusters"
+  extension_type             = "microsoft.flux"
+  auto_upgrade_minor_version = false
+}
+`, template, data.RandomInteger)
+}
+
+func (r KubernetesConfigurationExtensionResource) releaseTrainShouldNotBeSetWhenDisableAutoUpgrade(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_kubernetes_configuration_extension" "test" {
+  name                       = "acctest-kc-%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  cluster_name               = azurerm_kubernetes_cluster.test.name
+  cluster_resource_name      = "managedClusters"
+  extension_type             = "microsoft.flux"
+  auto_upgrade_minor_version = false
+  version                    = "1.2.0"
+  release_train              = "Stable"
+}
+`, template, data.RandomInteger)
+}
+
 func (r KubernetesConfigurationExtensionResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
@@ -162,13 +294,14 @@ func (r KubernetesConfigurationExtensionResource) complete(data acceptance.TestD
 			%s
 
 resource "azurerm_kubernetes_configuration_extension" "test" {
-  name                  = "acctest-kc-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  cluster_name          = azurerm_kubernetes_cluster.test.name
-  cluster_resource_name = "managedClusters"
-  extension_type        = "microsoft.flux"
-  version               = "1.2.0"
-  release_namespace     = "release1"
+  name                       = "acctest-kc-%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  cluster_name               = azurerm_kubernetes_cluster.test.name
+  cluster_resource_name      = "managedClusters"
+  extension_type             = "microsoft.flux"
+  auto_upgrade_minor_version = false
+  version                    = "1.2.0"
+  release_namespace          = "release1"
 
   configuration_protected_settings = {
     "omsagent.secret.key" = "secretKeyValue01"
@@ -188,13 +321,14 @@ func (r KubernetesConfigurationExtensionResource) update(data acceptance.TestDat
 			%s
 
 resource "azurerm_kubernetes_configuration_extension" "test" {
-  name                  = "acctest-kc-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  cluster_name          = azurerm_kubernetes_cluster.test.name
-  cluster_resource_name = "managedClusters"
-  extension_type        = "microsoft.flux"
-  version               = "1.2.0"
-  release_namespace     = "release1"
+  name                       = "acctest-kc-%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  cluster_name               = azurerm_kubernetes_cluster.test.name
+  cluster_resource_name      = "managedClusters"
+  extension_type             = "microsoft.flux"
+  auto_upgrade_minor_version = false
+  version                    = "1.2.0"
+  release_namespace          = "release1"
 
   configuration_protected_settings = {
     "omsagent.secret.key" = "secretKeyValue02"
