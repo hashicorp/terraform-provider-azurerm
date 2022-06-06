@@ -66,7 +66,14 @@ func TestAccSpringCloudContainerDeployment_addon(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addon(data),
+			Config: r.addon(data, "app/dev"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.addon(data, "app/prod"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -153,8 +160,8 @@ resource "azurerm_spring_cloud_container_deployment" "test" {
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
   active              = true
   instance_count      = 2
-  arguments           = ["-c", "echo hello"]
-  commands            = ["/bin/sh"]
+  arguments           = ["-cp", "/app/resources:/app/classes:/app/libs/*", "hello.Application"]
+  commands            = ["java"]
   environment_variables = {
     "Foo" : "Bar"
     "Env" : "Staging"
@@ -166,7 +173,7 @@ resource "azurerm_spring_cloud_container_deployment" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r SpringCloudContainerDeploymentResource) addon(data acceptance.TestData) string {
+func (r SpringCloudContainerDeploymentResource) addon(data acceptance.TestData, pattern string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -174,8 +181,8 @@ resource "azurerm_spring_cloud_container_deployment" "test" {
   name                = "acctest-scjd%s"
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
   instance_count      = 2
-  arguments           = ["-c", "echo hello"]
-  commands            = ["/bin/sh"]
+  arguments           = ["-cp", "/app/resources:/app/classes:/app/libs/*", "hello.Application"]
+  commands            = ["java"]
   environment_variables = {
     "Foo" : "Bar"
     "Env" : "Staging"
@@ -185,11 +192,11 @@ resource "azurerm_spring_cloud_container_deployment" "test" {
   language_framework = "springboot"
   addon_json = jsonencode({
     applicationConfigurationService = {
-      configFilePatterns = "app/dev"
+      configFilePatterns = "%s"
     }
   })
 }
-`, SpringCloudAppResource{}.addon(data), data.RandomString)
+`, SpringCloudAppResource{}.addon(data), data.RandomString, pattern)
 }
 
 func (SpringCloudContainerDeploymentResource) template(data acceptance.TestData) string {

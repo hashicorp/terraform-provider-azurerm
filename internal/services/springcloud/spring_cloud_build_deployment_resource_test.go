@@ -66,7 +66,14 @@ func TestAccSpringCloudBuildDeployment_addon(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addon(data),
+			Config: r.addon(data, "app/dev"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.addon(data, "app/prod"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -165,7 +172,7 @@ resource "azurerm_spring_cloud_build_deployment" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r SpringCloudBuildDeploymentResource) addon(data acceptance.TestData) string {
+func (r SpringCloudBuildDeploymentResource) addon(data acceptance.TestData, pattern string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -185,11 +192,11 @@ resource "azurerm_spring_cloud_build_deployment" "test" {
   }
   addon_json = jsonencode({
     applicationConfigurationService = {
-      configFilePatterns = "app/dev"
+      configFilePatterns = "%s"
     }
   })
 }
-`, SpringCloudAppResource{}.addon(data), data.RandomString)
+`, SpringCloudAppResource{}.addon(data), data.RandomString, pattern)
 }
 
 func (SpringCloudBuildDeploymentResource) template(data acceptance.TestData) string {

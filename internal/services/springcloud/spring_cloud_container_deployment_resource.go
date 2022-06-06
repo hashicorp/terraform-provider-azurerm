@@ -65,7 +65,6 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 			"active": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
 			},
 
 			"addon_json": {
@@ -163,6 +162,7 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 
 func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
+	appsClient := meta.(*clients.Client).AppPlatform.AppsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -198,6 +198,21 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 	addonConfig, err := expandSpringCloudAppAddon(d.Get("addon_json").(string))
 	if err != nil {
 		return err
+	}
+
+	if !d.IsNewResource() && d.HasChange("active") {
+		parameter := appplatform.ActiveDeploymentCollection{ActiveDeploymentNames: &[]string{}}
+		if d.Get("active").(bool) {
+			parameter = appplatform.ActiveDeploymentCollection{ActiveDeploymentNames: &[]string{id.DeploymentName}}
+		}
+		future, err := appsClient.SetActiveDeployments(ctx, appId.ResourceGroup, appId.SpringName, appId.AppName, parameter)
+		if err != nil {
+			return fmt.Errorf("setting active deployment %q: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for setting active deployment %q: %+v", id, err)
+		}
 	}
 
 	deployment := appplatform.DeploymentResource{
