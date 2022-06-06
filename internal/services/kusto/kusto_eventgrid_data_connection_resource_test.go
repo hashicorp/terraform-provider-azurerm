@@ -206,7 +206,7 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
   blob_storage_event_type = "Microsoft.Storage.BlobRenamed"
   skip_first_record       = true
 
-  database_routing = "Multi"
+  database_routing      = "Multi"
   eventgrid_resource_id = azurerm_eventgrid_event_subscription.test.id
 
   depends_on = [azurerm_eventgrid_event_subscription.test]

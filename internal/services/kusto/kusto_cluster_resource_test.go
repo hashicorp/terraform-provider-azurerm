@@ -403,10 +403,10 @@ resource "azurerm_kusto_cluster" "test" {
   location                      = azurerm_resource_group.test.location
   resource_group_name           = azurerm_resource_group.test.name
   public_network_access_enabled = false
-  public_ip_type = "DualStack"
+  public_ip_type                = "DualStack"
   sku {
-      name     = "Standard_D13_v2"
-      capacity = 2
+    name     = "Standard_D13_v2"
+    capacity = 2
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -592,7 +592,7 @@ resource "azurerm_kusto_cluster" "test" {
   disk_encryption_enabled     = true
   streaming_ingestion_enabled = true
   purge_enabled               = true
-  public_ip_type			  = "DualStack"
+  public_ip_type              = "DualStack"
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"

@@ -288,7 +288,7 @@ resource "azurerm_kusto_eventhub_data_connection" "test" {
 
   mapping_rule_name = "Json_Mapping"
   data_format       = "MULTIJSON"
-  
+
   database_routing = "Multi"
 }
 `, r.template(data), data.RandomInteger)
