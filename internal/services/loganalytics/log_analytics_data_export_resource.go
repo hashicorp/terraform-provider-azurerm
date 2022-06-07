@@ -228,9 +228,14 @@ func flattenDataExportDestinationMetaData(input *operationalinsights.Destination
 		return []interface{}{}
 	}
 
+	var eventHubName string
+	if input.DestinationMetaData.EventHubName != nil {
+		eventHubName = *input.DestinationMetaData.EventHubName
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"eventhub_name": *input.DestinationMetaData.EventHubName,
+			"eventhub_name": eventHubName,
 		},
 	}
 }
