@@ -196,15 +196,15 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 									Type:     pluginsdk.TypeInt,
 									Optional: true,
 								},
-								"monthly_occurrence ": {
+								"monthly_occurrence": {
 									Type:     pluginsdk.TypeInt,
 									Optional: true,
 								},
-								"day_of_week  ": {
+								"day_of_week": {
 									Type:     pluginsdk.TypeInt,
 									Optional: true,
 								},
-								"start_time  ": {
+								"start_time": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
@@ -826,8 +826,7 @@ func flattenSqlVirtualMachineAssessmentSettings(assessmentSettings *sqlvirtualma
 			"day_of_week":               string(assessmentSettings.Schedule.DayOfWeek),
 			"start_time":               string(assessmentSettings.Schedule.StartTime ),
 		}
-		
-		
+			
 	}
 
 	return []interface{}{
