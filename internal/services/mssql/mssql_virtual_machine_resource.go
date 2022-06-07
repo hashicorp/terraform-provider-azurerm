@@ -495,6 +495,10 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		if err := d.Set("auto_patching", flattenSqlVirtualMachineAutoPatching(props.AutoPatchingSettings)); err != nil {
 			return fmt.Errorf("setting `auto_patching`: %+v", err)
 		}
+		
+		if err := d.Set("assessment_settings", flattenSqlVirtualMachineAssessmentSettings(props.AssessmentSettings)); err != nil {
+			return fmt.Errorf("setting `assessment_settings`: %+v", err)
+		}
 
 		if err := d.Set("key_vault_credential", flattenSqlVirtualMachineKeyVaultCredential(props.KeyVaultCredentialSettings, d)); err != nil {
 			return fmt.Errorf("setting `key_vault_credential`: %+v", err)
