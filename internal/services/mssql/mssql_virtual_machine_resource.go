@@ -825,8 +825,7 @@ func flattenSqlVirtualMachineAssessmentSettings(assessmentSettings *sqlvirtualma
 			"schedule":                  schedule,
 			"day_of_week":               string(assessmentSettings.Schedule.DayOfWeek),
 			"start_time":               string(assessmentSettings.Schedule.StartTime ),
-		}
-			
+		}	
 	}
 
 	return []interface{}{
