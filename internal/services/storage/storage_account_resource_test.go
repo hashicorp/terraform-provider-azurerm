@@ -2213,10 +2213,11 @@ resource "azurerm_storage_account" "test" {
       days = 300
     }
 
-    default_service_version  = "2019-07-07"
-    versioning_enabled       = true
-    change_feed_enabled      = true
-    last_access_time_enabled = true
+    default_service_version       = "2019-07-07"
+    versioning_enabled            = true
+    change_feed_enabled           = true
+    change_feed_retention_in_days = 1
+    last_access_time_enabled      = true
     container_delete_retention_policy {
       days = 7
     }

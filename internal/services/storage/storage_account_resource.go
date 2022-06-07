@@ -403,6 +403,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							Default:  false,
 						},
 
+						"change_feed_retention_in_days": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 146000),
+						},
+
 						"default_service_version": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -2333,6 +2339,10 @@ func expandBlobProperties(input []interface{}) *storage.BlobServiceProperties {
 		Enabled: utils.Bool(v["change_feed_enabled"].(bool)),
 	}
 
+	if v := v["change_feed_retention_in_days"].(int); v != 0 {
+		props.ChangeFeed.RetentionInDays = utils.Int32((int32)(v))
+	}
+
 	if version, ok := v["default_service_version"].(string); ok && version != "" {
 		props.DefaultServiceVersion = utils.String(version)
 	}
@@ -2791,13 +2801,18 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(containerDeletePolicy)
 	}
 
-	versioning, changeFeed := false, false
+	versioning, changeFeedEnabled, changeFeedRetentionInDays := false, false, 0
 	if input.BlobServicePropertiesProperties.IsVersioningEnabled != nil {
 		versioning = *input.BlobServicePropertiesProperties.IsVersioningEnabled
 	}
 
-	if v := input.BlobServicePropertiesProperties.ChangeFeed; v != nil && v.Enabled != nil {
-		changeFeed = *v.Enabled
+	if v := input.BlobServicePropertiesProperties.ChangeFeed; v != nil {
+		if v.Enabled != nil {
+			changeFeedEnabled = *v.Enabled
+		}
+		if v.RetentionInDays != nil {
+			changeFeedRetentionInDays = int(*v.RetentionInDays)
+		}
 	}
 
 	var defaultServiceVersion string
@@ -2815,7 +2830,8 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 			"cors_rule":                         flattenedCorsRules,
 			"delete_retention_policy":           flattenedDeletePolicy,
 			"versioning_enabled":                versioning,
-			"change_feed_enabled":               changeFeed,
+			"change_feed_enabled":               changeFeedEnabled,
+			"change_feed_retention_in_days":     changeFeedRetentionInDays,
 			"default_service_version":           defaultServiceVersion,
 			"last_access_time_enabled":          LastAccessTimeTrackingPolicy,
 			"container_delete_retention_policy": flattenedContainerDeletePolicy,
