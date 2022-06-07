@@ -64,7 +64,7 @@ The following arguments are supported:
 
 ---
 
-The `metadata` block exports the following attributes:
+The `metadata` block supports the following attributes:
 
 * `eventhub_name` - (Optional) The name of the EventHub that is defined for the Log Analytics Data Export Rule.
 
