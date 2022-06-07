@@ -58,11 +58,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.AccountName,
 			},
-			"node_agent_sku_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
 			"vm_size": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
@@ -94,27 +89,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-			"auto_scale": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"evaluation_interval": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  "PT15M",
-						},
-						"formula": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
-								return strings.TrimSpace(old) == strings.TrimSpace(new)
-							},
 						},
 					},
 				},
@@ -162,104 +136,283 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			//deploymentConfiguration in swagger
-			"cloud_service_configuration": {
+			"deployment_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"os_family": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"os_version": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Default:      utils.String("*"),
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-			"container_configuration": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MinItems: 1,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
-						},
-						"container_image_names": {
-							Type:     pluginsdk.TypeSet,
+						"cloud_service_configuration": {
+							Type:     pluginsdk.TypeList,
 							Optional: true,
-							ForceNew: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
-						},
-						"container_registries": {
-							Type:       pluginsdk.TypeList,
-							Optional:   true,
-							ForceNew:   true,
-							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Elem: &pluginsdk.Resource{
-								Schema: containerRegistry(),
+								Schema: map[string]*pluginsdk.Schema{
+									"os_family": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"os_version": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      utils.String("*"),
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
 							},
-							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+						},
+						"virtual_machine_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"container_configuration": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MinItems: 1,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"type": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+													AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+												},
+												"container_image_names": {
+													Type:     pluginsdk.TypeSet,
+													Optional: true,
+													ForceNew: true,
+													Elem: &pluginsdk.Schema{
+														Type:         pluginsdk.TypeString,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+													AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+												},
+												"container_registries": {
+													Type:       pluginsdk.TypeList,
+													Optional:   true,
+													ForceNew:   true,
+													ConfigMode: pluginsdk.SchemaConfigModeAttr,
+													Elem: &pluginsdk.Resource{
+														Schema: containerRegistry(),
+													},
+													AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+												},
+											},
+										},
+									},
+									"data_disks": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"lun": {
+													Type:         pluginsdk.TypeInt,
+													Required:     true,
+													ValidateFunc: validation.IntBetween(0, 63),
+												},
+												"caching": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+													Default:  string(batch.CachingTypeReadOnly),
+													ValidateFunc: validation.StringInSlice([]string{
+														string(batch.CachingTypeNone),
+														string(batch.CachingTypeReadOnly),
+														string(batch.CachingTypeReadWrite),
+													}, false),
+												},
+												"disk_size_gb": {
+													Type:         pluginsdk.TypeInt,
+													Required:     true,
+													ValidateFunc: validation.IntAtLeast(0),
+												},
+												"storage_account_type": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+													Default:  batch.StorageAccountTypeStandardLRS,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(batch.StorageAccountTypeStandardLRS),
+														string(batch.StorageAccountTypePremiumLRS),
+													}, false),
+												},
+											},
+										},
+									},
+									"extensions": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+												"publisher": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+												"type": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+												"type_handler_version": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+												"auto_upgrade_minor_version": {
+													Type:     pluginsdk.TypeBool,
+													Optional: true,
+												},
+												"settings": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringIsJSON,
+												},
+												"protected_settings": {
+													Type:      pluginsdk.TypeString,
+													Optional:  true,
+													Sensitive: true,
+												},
+												"provision_after_extensions": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													Elem: &schema.Schema{
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
+												},
+											},
+										},
+									},
+									"image_reference": {
+										Type:     pluginsdk.TypeList,
+										Required: true,
+										ForceNew: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"id": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ForceNew:     true,
+													ValidateFunc: azure.ValidateResourceID,
+													AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+												},
+
+												"publisher": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ForceNew:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+													AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+												},
+
+												"offer": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ForceNew:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+													AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+												},
+
+												"sku": {
+													Type:             pluginsdk.TypeString,
+													Optional:         true,
+													ForceNew:         true,
+													DiffSuppressFunc: suppress.CaseDifference,
+													ValidateFunc:     validation.StringIsNotEmpty,
+													AtLeastOneOf:     []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+												},
+
+												"version": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ForceNew:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+													AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+												},
+											},
+										},
+									},
+									"license_type": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"node_agent_sku_id": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ForceNew: true,
+									},
+									"node_placement_configuration": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"policy": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+													Default:  string(batch.NodePlacementPolicyTypeRegional),
+													ValidateFunc: validation.StringInSlice([]string{
+														string(batch.NodePlacementPolicyTypeZonal),
+														string(batch.NodePlacementPolicyTypeRegional),
+													}, false),
+												},
+											},
+										},
+									},
+									"os_disk": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"ephemeral_os_disk_settings": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+															"placement": {
+																Type:     pluginsdk.TypeString,
+																Optional: true,
+																ValidateFunc: validation.StringInSlice(
+																	[]string{
+																		string(batch.DiffDiskPlacementCacheDisk),
+																	}, false),
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+									"windows_configuration": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"enable_automatic_updates": {
+													Type:     pluginsdk.TypeBool,
+													Default:  true,
+													Optional: true,
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},
 			},
-			"data_disks": {},
 			"display_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-			},
-			"fixed_scale": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"node_deallocation_option": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(batch.ComputeNodeDeallocationOptionRequeue),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(batch.ComputeNodeDeallocationOptionRequeue),
-								string(batch.ComputeNodeDeallocationOptionRetainedData),
-								string(batch.ComputeNodeDeallocationOptionTaskCompletion),
-								string(batch.ComputeNodeDeallocationOptionTerminate),
-							}, false),
-						},
-						"target_dedicated_nodes": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      1,
-							ValidateFunc: validation.IntBetween(0, 2000),
-						},
-						"target_low_priority_nodes": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      0,
-							ValidateFunc: validation.IntBetween(0, 1000),
-						},
-						"resize_timeout": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  "PT15M",
-						},
-					},
-				},
 			},
 			"inter_node_communication": {
 				Type:     pluginsdk.TypeString,
@@ -270,80 +423,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 					string(batch.InterNodeCommunicationStateDisabled),
 				}, false),
 			},
-			"max_tasks_per_node": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      1,
-				ForceNew:     true,
-				ValidateFunc: validation.IntAtLeast(1),
-			},
-			"storage_image_reference": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
-							AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
-						},
-
-						"publisher": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
-						},
-
-						"offer": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
-						},
-
-						"sku": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							ForceNew:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validation.StringIsNotEmpty,
-							AtLeastOneOf:     []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
-						},
-
-						"version": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
-						},
-					},
-				},
-			},
-
-			"stop_pending_resize_operation": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"identity": commonschema.UserAssignedIdentityOptional(),
-
-			"start_task": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: startTaskSchema(),
-				},
-			},
 			"metadata": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
@@ -352,6 +431,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
+			"mount_configuration": {},
 			"network_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -472,6 +552,175 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+			"scale_settings": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"auto_scale": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"evaluation_interval": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  "PT15M",
+									},
+									"formula": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+											return strings.TrimSpace(old) == strings.TrimSpace(new)
+										},
+									},
+								},
+							},
+						},
+						"fixed_scale": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"node_deallocation_option": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(batch.ComputeNodeDeallocationOptionRequeue),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(batch.ComputeNodeDeallocationOptionRequeue),
+											string(batch.ComputeNodeDeallocationOptionRetainedData),
+											string(batch.ComputeNodeDeallocationOptionTaskCompletion),
+											string(batch.ComputeNodeDeallocationOptionTerminate),
+										}, false),
+									},
+									"target_dedicated_nodes": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      1,
+										ValidateFunc: validation.IntBetween(0, 2000),
+									},
+									"target_low_priority_nodes": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 1000),
+									},
+									"resize_timeout": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  "PT15M",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"start_task": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: startTaskSchema(),
+				},
+			},
+			"task_scheduling_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"node_fill_type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.ComputeNodeFillTypeSpread),
+								string(batch.ComputeNodeFillTypePack),
+							}, false),
+						},
+					},
+				},
+			},
+			"max_tasks_per_node": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ForceNew:     true,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
+			"stop_pending_resize_operation": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"user_accounts": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"password": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"elevation_level": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.ElevationLevelNonAdmin),
+								string(batch.ElevationLevelAdmin),
+							}, false),
+						},
+						"linux_user_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"uid": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										RequiredWith: []string{"gid"},
+									},
+									"gid": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										RequiredWith: []string{"uid"},
+									},
+									"ssh_private_key": {
+										Type:      pluginsdk.TypeString,
+										Optional:  true,
+										Sensitive: true,
+									},
+								},
+							},
+						},
+						"windows_user_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"login_mode": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(batch.LoginModeBatch),
+											string(batch.LoginModeInteractive),
+										}, false),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"identity": commonschema.UserAssignedIdentityOptional(),
 		},
 	}
 }
