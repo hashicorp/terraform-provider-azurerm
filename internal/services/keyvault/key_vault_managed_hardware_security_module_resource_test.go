@@ -23,14 +23,14 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 			"basic": testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic,
 		},
 		"resource": {
-			"basic":    testAccKeyVaultManagedHardwareSecurityModule_basic,
+			"basic":    TestAccKeyVaultManagedHardwareSecurityModule_basic,
 			"update":   testAccKeyVaultManagedHardwareSecurityModule_requiresImport,
 			"complete": testAccKeyVaultManagedHardwareSecurityModule_complete,
 		},
 	})
 }
 
-func testAccKeyVaultManagedHardwareSecurityModule_basic(t *testing.T) {
+func TestAccKeyVaultManagedHardwareSecurityModule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module", "test")
 	r := KeyVaultManagedHardwareSecurityModuleResource{}
 
@@ -105,6 +105,7 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   sku_name            = "Standard_B1"
   tenant_id           = data.azurerm_client_config.current.tenant_id
   admin_object_ids    = [data.azurerm_client_config.current.object_id]
+  purge_protection_enabled   = false
 }
 `, template, data.RandomInteger)
 }
@@ -140,7 +141,7 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   location                   = azurerm_resource_group.test.location
   sku_name                   = "Standard_B1"
   soft_delete_retention_days = 7
-  purge_protection_enabled   = true
+  purge_protection_enabled   = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   admin_object_ids           = [data.azurerm_client_config.current.object_id]
 
