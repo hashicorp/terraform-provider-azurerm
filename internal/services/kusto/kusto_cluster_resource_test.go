@@ -160,7 +160,7 @@ func TestAccKustoCluster_zones(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
-				check.That(data.ResourceName).Key("zones.0").HasValue("1"),
+				check.That(data.ResourceName).Key("zones.0").HasValue("3"),
 			),
 		},
 	})
@@ -568,7 +568,7 @@ resource "azurerm_kusto_cluster" "test" {
     capacity = 1
   }
 
-  zones = ["1"]
+  zones = ["3"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -811,7 +811,11 @@ resource "azurerm_kusto_cluster" "test" {
 func (KustoClusterResource) vnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -861,7 +865,7 @@ resource "azurerm_network_security_group" "test" {
 
 resource "azurerm_network_security_rule" "test_allow_management_inbound" {
   name                        = "AllowAzureDataExplorerManagement"
-  priority                    = 106
+  priority                    = 200
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
