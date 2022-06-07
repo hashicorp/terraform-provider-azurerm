@@ -1,5 +1,29 @@
 # HCL Changelog
 
+## v2.11.1 (Dec 1, 2021)
+
+### Bugs Fixed
+
+* hclsyntax: The type for an upgraded unknown value with a splat expression cannot be known ([#495](https://github.com/hashicorp/hcl/pull/495))
+
+
+## v2.11.0 (Dec 1, 2021)
+
+### Enhancements
+
+* hclsyntax: Various error messages related to unexpectedly reaching end of file while parsing a delimited subtree will now return specialized messages describing the opening tokens as "unclosed", instead of returning a generic diagnostic that just happens to refer to the empty source range at the end of the file. This gives better feedback when error messages are being presented alongside a source code snippet, as is common in HCL-based applications, because it shows which innermost container the parser was working on when it encountered the error. ([#492](https://github.com/hashicorp/hcl/pull/492))
+
+### Bugs Fixed
+
+* hclsyntax: Upgrading an unknown single value to a list using a splat expression must return unknown ([#493](https://github.com/hashicorp/hcl/pull/493))
+
+## v2.10.1 (July 21, 2021)
+
+* dynblock: Decode unknown dynamic blocks in order to obtain any diagnostics even though the decoded value is not used ([#476](https://github.com/hashicorp/hcl/pull/476))
+* hclsyntax: Calling functions is now more robust in the face of an incorrectly-implemented function which returns a `function.ArgError` whose argument index is out of range for the length of the arguments. Previously this would often lead to a panic, but now it'll return a less-precice error message instead. Functions that return out-of-bounds argument indices still ought to be fixed so that the resulting error diagnostics can be as precise as possible. ([#472](https://github.com/hashicorp/hcl/pull/472))
+* hclsyntax: Ensure marks on unknown values are maintained when processing string templates. ([#478](https://github.com/hashicorp/hcl/pull/478))
+* hcl: Improved error messages for various common error situtions in `hcl.Index` and `hcl.GetAttr`. These are part of the implementation of indexing and attribute lookup in the native syntax expression language too, so the new error messages will apply to problems using those operators. ([#474](https://github.com/hashicorp/hcl/pull/474))
+
 ## v2.10.0 (April 20, 2021)
 
 ### Enhancements

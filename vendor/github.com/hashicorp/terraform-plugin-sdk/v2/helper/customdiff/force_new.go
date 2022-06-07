@@ -2,6 +2,7 @@ package customdiff
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -15,7 +16,9 @@ import (
 func ForceNewIf(key string, f ResourceConditionFunc) schema.CustomizeDiffFunc {
 	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 		if f(ctx, d, meta) {
-			d.ForceNew(key)
+			if err := d.ForceNew(key); err != nil {
+				return fmt.Errorf("unable to set %q to require replacement: %w", key, err)
+			}
 		}
 		return nil
 	}
@@ -33,9 +36,11 @@ func ForceNewIf(key string, f ResourceConditionFunc) schema.CustomizeDiffFunc {
 // only the specific field value.
 func ForceNewIfChange(key string, f ValueChangeConditionFunc) schema.CustomizeDiffFunc {
 	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-		old, new := d.GetChange(key)
-		if f(ctx, old, new, meta) {
-			d.ForceNew(key)
+		oldValue, newValue := d.GetChange(key)
+		if f(ctx, oldValue, newValue, meta) {
+			if err := d.ForceNew(key); err != nil {
+				return fmt.Errorf("unable to set %q to require replacement: %w", key, err)
+			}
 		}
 		return nil
 	}
