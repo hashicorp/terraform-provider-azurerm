@@ -15,6 +15,10 @@ Manages an Azure Subscription Policy Remediation.
 ```hcl
 data "azurerm_subscription" "example" {}
 
+data "azurerm_policy_definition" "example" {
+  display_name = "Allowed resource types"
+}
+
 resource "azurerm_subscription_policy_assignment" "example" {
   name                 = "exampleAssignment"
   subscription_id      = data.azurerm_subscription.example.id
@@ -27,7 +31,7 @@ resource "azurerm_subscription_policy_assignment" "example" {
 }
 
 resource "azurerm_subscription_policy_remediation" "example" {
-  name                 = "exampleRemediation"
+  name                 = "example"
   subscription_id      = data.azurerm_subscription.example.id
   policy_assignment_id = azurerm_subscription_policy_assignment.example.id
 }
