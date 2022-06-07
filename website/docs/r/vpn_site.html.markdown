@@ -102,17 +102,17 @@ A `link` block supports the following:
 
 A `o365_policy` block supports the following:
 
-* `breakout_category` - (Optional) A `breakout_category` block as defined above.
+* `traffic_category` - (Optional) A `traffic_category` block as defined above.
 
 ---
 
-A `breakout_category` block supports the following:
+A `traffic_category` block supports the following:
 
-* `allow_category_enabled` - (Optional) Is allow category controlled? Defaults to `false`.
+* `allow_controlled` - (Optional) Is allow category controlled? Defaults to `false`.
 
-* `default_category_enabled` - (Optional) Is default category controlled? Defaults to `false`.
+* `default_controlled` - (Optional) Is default category controlled? Defaults to `false`.
 
-* `optimize_category_enabled` - (Optional) Is optimize category controlled? Defaults to `false`.
+* `optimize_controlled` - (Optional) Is optimize category controlled? Defaults to `false`.
 
 ## Attributes Reference
 

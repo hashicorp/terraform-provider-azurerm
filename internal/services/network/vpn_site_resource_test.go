@@ -208,10 +208,10 @@ resource "azurerm_vpn_site" "test" {
   address_cidrs       = ["10.0.0.0/24"]
 
   o365_policy {
-    breakout_category {
-      allow_category_enabled    = %t
-      default_category_enabled  = %t
-      optimize_category_enabled = %t
+    traffic_category {
+      allow_controlled    = %t
+      default_controlled  = %t
+      optimize_controlled = %t
     }
   }
 

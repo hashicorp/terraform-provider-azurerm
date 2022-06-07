@@ -144,26 +144,26 @@ func resourceVpnSite() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"breakout_category": {
+						"traffic_category": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"allow_category_enabled": {
+									"allow_controlled": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
 										Default:  false,
 									},
 
-									"default_category_enabled": {
+									"default_controlled": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
 										Default:  false,
 									},
 
-									"optimize_category_enabled": {
+									"optimize_controlled": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
 										Default:  false,
@@ -498,21 +498,21 @@ func expandVpnSiteO365Policy(input []interface{}) *network.O365PolicyProperties 
 	o365Policy := input[0].(map[string]interface{})
 
 	return &network.O365PolicyProperties{
-		BreakOutCategories: expandVpnSiteO365BreakOutCategoryPolicy(o365Policy["breakout_category"].([]interface{})),
+		BreakOutCategories: expandVpnSiteO365TrafficCategoryPolicy(o365Policy["traffic_category"].([]interface{})),
 	}
 }
 
-func expandVpnSiteO365BreakOutCategoryPolicy(input []interface{}) *network.O365BreakOutCategoryPolicies {
+func expandVpnSiteO365TrafficCategoryPolicy(input []interface{}) *network.O365BreakOutCategoryPolicies {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	breakoutCategory := input[0].(map[string]interface{})
+	trafficCategory := input[0].(map[string]interface{})
 
 	return &network.O365BreakOutCategoryPolicies{
-		Allow:    utils.Bool(breakoutCategory["allow_category_enabled"].(bool)),
-		Default:  utils.Bool(breakoutCategory["default_category_enabled"].(bool)),
-		Optimize: utils.Bool(breakoutCategory["optimize_category_enabled"].(bool)),
+		Allow:    utils.Bool(trafficCategory["allow_controlled"].(bool)),
+		Default:  utils.Bool(trafficCategory["default_controlled"].(bool)),
+		Optimize: utils.Bool(trafficCategory["optimize_controlled"].(bool)),
 	}
 }
 
@@ -521,19 +521,19 @@ func flattenVpnSiteO365Policy(input *network.O365PolicyProperties) []interface{}
 		return []interface{}{}
 	}
 
-	var breakoutCategory []interface{}
+	var trafficCategory []interface{}
 	if input.BreakOutCategories != nil {
-		breakoutCategory = flattenVpnSiteO365BreakOutCategoryPolicy(input.BreakOutCategories)
+		trafficCategory = flattenVpnSiteO365TrafficCategoryPolicy(input.BreakOutCategories)
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"breakout_category": breakoutCategory,
+			"traffic_category": trafficCategory,
 		},
 	}
 }
 
-func flattenVpnSiteO365BreakOutCategoryPolicy(input *network.O365BreakOutCategoryPolicies) []interface{} {
+func flattenVpnSiteO365TrafficCategoryPolicy(input *network.O365BreakOutCategoryPolicies) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -555,9 +555,9 @@ func flattenVpnSiteO365BreakOutCategoryPolicy(input *network.O365BreakOutCategor
 
 	return []interface{}{
 		map[string]interface{}{
-			"allow_category_enabled":    isAllowed,
-			"default_category_enabled":  isDefault,
-			"optimize_category_enabled": isOptimized,
+			"allow_controlled":    isAllowed,
+			"default_controlled":  isDefault,
+			"optimize_controlled": isOptimized,
 		},
 	}
 }
