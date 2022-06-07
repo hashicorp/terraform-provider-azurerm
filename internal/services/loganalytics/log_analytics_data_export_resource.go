@@ -223,14 +223,14 @@ func flattenDataExportDestinationMetaData(input *operationalinsights.Destination
 		return []interface{}{}
 	}
 
-	result := make([]interface{}, 0)
-
-	// As API always returns `"metaData": {}` when it isn't specified in tf config, so here `eventhub_name` cannot be set otherwise TF would cause diff
-	if input.DestinationMetaData.EventHubName != nil {
-		output := make(map[string]interface{})
-		output["eventhub_name"] = *input.DestinationMetaData.EventHubName
-		result = append(result, output)
+	// As API always returns `"metaData": {}` when it isn't specified, so here it has to return `[]interface{}{}` otherwise TF would cause diff
+	if input.DestinationMetaData.EventHubName == nil {
+		return []interface{}{}
 	}
 
-	return result
+	return []interface{}{
+		map[string]interface{}{
+			"eventhub_name": *input.DestinationMetaData.EventHubName,
+		},
+	}
 }
