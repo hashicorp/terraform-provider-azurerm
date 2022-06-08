@@ -236,6 +236,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"request_timeout": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
+							Default:      30,
 							ValidateFunc: validation.IntBetween(1, 86400),
 						},
 
