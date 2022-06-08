@@ -25,10 +25,17 @@ resource "azurerm_virtual_network" "example" {
   address_space       = ["10.0.0.0/16"]
 }
 
+resource "azurerm_policy_definition" "example" {
+  name         = "only-deploy-in-westeurope"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "my-policy-definition"
+}
+
 resource "azurerm_resource_policy_assignment" "example" {
   name                 = "assignment1"
   resource_id          = azurerm_virtual_network.example.id
-  policy_definition_id = data.azurerm_policy_definition.example.id
+  policy_definition_id = azurerm_policy_definition.example.id
   parameters = jsonencode({
     "listOfAllowedLocations" = {
       "value" = [azurerm_resource_group.example.location, "East US"]
@@ -36,10 +43,16 @@ resource "azurerm_resource_policy_assignment" "example" {
   })
 }
 
+resource "azurerm_resource_group_policy_assignment" "example" {
+  name                 = "example"
+  resource_group_id    = azurerm_resource_group.example.id
+  policy_definition_id = azurerm_policy_definition.example.id
+}
+
 resource "azurerm_resource_policy_remediation" "example" {
   name                 = "remediation1"
   resource_id          = azurerm_virtual_network.example.id
-  policy_assignment_id = azurerm_resource_group_policy_assignment.test.id
+  policy_assignment_id = azurerm_resource_group_policy_assignment.example.id
 }
 ```
 
