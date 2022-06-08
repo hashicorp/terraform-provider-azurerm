@@ -1,5 +1,10 @@
 ## 3.10.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_capacity_reservation_group` [GH-16464]
+* **New Resource**: `azurerm_capacity_reservation` [GH-16464]
+
 BUG FIXES:
 
 * `azurerm_application_gateway` - add default value for `backend_http_settings.0.request_timeout` [GH-17162]
