@@ -776,7 +776,7 @@ func flattenSqlVirtualMachineAutoPatching(autoPatching *sqlvirtualmachine.AutoPa
 
 func expandSqlVirtualMachineAssessmentSettings(input []interface{}) *sqlvirtualmachine.AssessmentSettings {
 	if len(input) == 0 {
-		return nil
+		return &sqlvirtualmachine.AssessmentSettings{}
 	}
 	assessmentSetting := input[0].(map[string]interface{})
 
