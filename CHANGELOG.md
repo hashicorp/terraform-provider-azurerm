@@ -5,6 +5,10 @@ FEATURES:
 * **New Resource**: `azurerm_capacity_reservation_group` [GH-16464]
 * **New Resource**: `azurerm_capacity_reservation` [GH-16464]
 
+ENHANCEMENTS:
+
+* `azurerm_cosmosdb_cassandra_cluster` - support for the `authentication_method`, `client_certificate`, `external_gossip_certificate`, `external_seed_node`, `identity`, `repair_enabled` and `version` properties [GH-16799]
+
 BUG FIXES:
 
 * `azurerm_application_gateway` - add default value for `backend_http_settings.0.request_timeout` [GH-17162]
