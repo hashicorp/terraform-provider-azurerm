@@ -37,7 +37,7 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "example" {
   name                     = "example"
-  location                 = azurerm_resource_group.exampl.location
+  location                 = azurerm_resource_group.example.location
   resource_group_name      = azurerm_resource_group.example.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
@@ -50,12 +50,12 @@ resource "azurerm_key_vault_access_policy" "deployer" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create", "get", "delete", "purge"
+    "Create", "Get", "Delete", "Purge"
   ]
 }
 
 resource "azurerm_key_vault_key" "example" {
-  name         = "workspace_encryption_key"
+  name         = "workspace-encryption-key"
   key_vault_id = azurerm_key_vault.example.id
   key_type     = "RSA"
   key_size     = 2048
@@ -76,13 +76,17 @@ resource "azurerm_synapse_workspace" "example" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   tags = {
     Env = "production"
   }
 }
 
-resource "azurerm_synapse_workspace_aad_admin" "test" {
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
+resource "azurerm_synapse_workspace_aad_admin" "example" {
+  synapse_workspace_id = azurerm_synapse_workspace.example.id
   login                = "AzureAD Admin"
   object_id            = data.azurerm_client_config.current.object_id
   tenant_id            = data.azurerm_client_config.current.tenant_id
