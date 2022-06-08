@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"strings"
 	"time"
@@ -431,7 +432,153 @@ func resourceBatchPool() *pluginsdk.Resource {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
-			"mount_configuration": {},
+			"mount_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"azure_blob_file_system_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"account_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"container_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"relative_mount_path": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"account_key": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ExactlyOneOf: []string{"account_key", "sas_key", "identity_reference"},
+										Sensitive:    true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"sas_key": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ExactlyOneOf: []string{"account_key", "sas_key", "identity_reference"},
+										Sensitive:    true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"identity_reference": {
+										Type:         pluginsdk.TypeList,
+										Optional:     true,
+										ExactlyOneOf: []string{"account_key", "sas_key", "identity_reference"},
+										Elem:         identityReference(),
+									},
+									"blobfuse_options": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+						"azure_file_share_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"account_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"azure_file_url": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.IsURLWithHTTPS,
+									},
+									"account_key": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										Sensitive:    true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"relative_mount_path": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"mount_options": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+						"cifs_mount_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"user_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"source": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"relative_mount_path": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"mount_options": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"password": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										Sensitive:    true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+						"nfs_mount_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"source": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"relative_mount_path": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"mount_options": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"network_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -555,6 +702,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 			"scale_settings": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: !features.FourPointOhBeta(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"auto_scale": {
