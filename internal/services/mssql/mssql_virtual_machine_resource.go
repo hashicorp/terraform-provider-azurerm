@@ -180,7 +180,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 					},
 				},
 			},
-			
+
 			"assessment_settings": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -208,7 +208,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
-							),
+							},
 						},
 
 						"run_immediately": {
@@ -495,7 +495,7 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		if err := d.Set("auto_patching", flattenSqlVirtualMachineAutoPatching(props.AutoPatchingSettings)); err != nil {
 			return fmt.Errorf("setting `auto_patching`: %+v", err)
 		}
-		
+
 		if err := d.Set("assessment_settings", flattenSqlVirtualMachineAssessmentSettings(props.AssessmentSettings)); err != nil {
 			return fmt.Errorf("setting `assessment_settings`: %+v", err)
 		}
@@ -773,65 +773,64 @@ func flattenSqlVirtualMachineAutoPatching(autoPatching *sqlvirtualmachine.AutoPa
 		},
 	}
 }
-	
+
 func expandSqlVirtualMachineAssessmentSettings(input []interface{}) *sqlvirtualmachine.AssessmentSettings {
 	if len(input) == 0 {
 		return nil
 	}
 	assessmentSetting := input[0].(map[string]interface{})
-	
+
 	if len(assessmentSetting["schedule"]) == 0 {
 		schedule_data := nil
-	}
-	else {
+	} else {
 		schedule_data := &sqlvirtualmachine.Schedule{
-			Enable:                        utils.Bool(true),
-			WeeklyInterval:                utils.Int32(int32(autoPatchingSetting["weekly_interval"].(int))),
-			MonthlyOccurrence:             utils.Int32(int32(autoPatchingSetting["monthly_occurrence"].(int))),
-			DayOfWeek:                     sqlvirtualmachine.DayOfWeek(autoPatchingSetting["day_of_week"].(string)),
-			StartTime:                     autoPatchingSetting["start_time"]
+			Enable:            utils.Bool(true),
+			WeeklyInterval:    utils.Int32(int32(autoPatchingSetting["weekly_interval"].(int))),
+			MonthlyOccurrence: utils.Int32(int32(autoPatchingSetting["monthly_occurrence"].(int))),
+			DayOfWeek:         sqlvirtualmachine.DayOfWeek(autoPatchingSetting["day_of_week"].(string)),
+			StartTime:         autoPatchingSetting["start_time"],
 		}
 	}
 	return &sqlvirtualmachine.AssessmentSettings{
-		Enable:                        utils.Bool(true),
-		RunImmediately:                utils.Bool(assessmentSetting["run_immediately"].(bool)),
-		schedule:                      schedule_data,
+		Enable:         utils.Bool(true),
+		RunImmediately: utils.Bool(assessmentSetting["run_immediately"].(bool)),
+		schedule:       schedule_data,
 	}
 }
-	
+
 func flattenSqlVirtualMachineAssessmentSettings(assessmentSettings *sqlvirtualmachine.AssessmentSettings) []interface{} {
 	if assessmentSettings == nil || assessmentSettings.Enable == nil || !*assessmentSettings.Enable {
 		return []interface{}{}
 	}
 
 	var runImmediately bool
-	if assessmentSettings.RunImmediately  != nil {
-		runImmediately = *assessmentSettings.RunImmediately 
+	if assessmentSettings.RunImmediately != nil {
+		runImmediately = *assessmentSettings.RunImmediately
 	}
 
-	var schedule *sqlvirtualmachine.Schedule 
+	var schedule *sqlvirtualmachine.Schedule
 	if assessmentSettings.Schedule != nil {
 		var weeklyInterval int32
 		var monthlyOccurrence int32
 		if assessmentSettings.Schedule.WeeklyInterval != nil {
-			weeklyInterval = *assessmentSettings.Schedule.WeeklyInterval 
+			weeklyInterval = *assessmentSettings.Schedule.WeeklyInterval
 		}
 		if assessmentSettings.Schedule.MonthlyOccurrence != nil {
-			monthlyOccurrence = *assessmentSettings.Schedule.MonthlyOccurrence 
+			monthlyOccurrence = *assessmentSettings.Schedule.MonthlyOccurrence
 		}
-		
-		schedule =  map[string]interface{}{
-			"weekly_interval":           weeklyInterval,
-			"schedule":                  schedule,
-			"day_of_week":               string(assessmentSettings.Schedule.DayOfWeek),
-			"start_time":               string(assessmentSettings.Schedule.StartTime ),
-		}	
+
+		schedule = map[string]interface{}{
+			"weekly_interval": weeklyInterval,
+			"schedule":        schedule,
+			"day_of_week":     string(assessmentSettings.Schedule.DayOfWeek),
+			"start_time":      string(assessmentSettings.Schedule.StartTime),
+		}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"run_immediately":           runImmediately,
-			"schedule":                  schedule,
+			"run_immediately": runImmediately,
+			"schedule":        schedule,
 		},
 	}
 }
