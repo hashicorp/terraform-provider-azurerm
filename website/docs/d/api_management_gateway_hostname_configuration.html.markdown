@@ -24,7 +24,7 @@ data "azurerm_api_management_gateway" "example" {
 }
 
 data "azurerm_api_management_gateway_hostname_configuration" "example" {
-  name = "example-host-configuration"
+  name                      = "example-host-configuration"
   api_management_gateway_id = data.azurerm_api_management_gateway.example.id
 }
 
