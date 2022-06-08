@@ -66,11 +66,12 @@ resource "azurerm_api_management_certificate" "test" {
 }
 
 resource "azurerm_api_management_gateway_hostname_configuration" "test" {
-  name = "example-hostname"
+  name                      = "example-hostname"
   api_management_gateway_id = data.azurerm_api_management_gateway.test.id
-  hostname = "example.apim.net"
-  certificate_id = azurerm_api_management_certificate.test.id
+  hostname                  = "example.apim.net"
+  certificate_id            = azurerm_api_management_certificate.test.id
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
