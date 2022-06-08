@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `address_prefixes` - (Required) The address prefixes to use for the subnet.
 
--> **NOTE:** The feature of `AllowMultipleAddressPrefixesOnSubnet` is not available for public as of now, so `address_prefixes` only supports setting one address prefix. 
+-> **NOTE:** Currently only a single address prefix can be set as the [Multiple Subnet Address Prefixes Feature](https://github.com/Azure/azure-cli/issues/18194#issuecomment-880484269) is not yet in public preview or general availability.
 
 ---
 
