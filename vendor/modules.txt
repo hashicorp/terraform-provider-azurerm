@@ -612,3 +612,4 @@ google.golang.org/protobuf/types/known/timestamppb
 # gopkg.in/yaml.v3 v3.0.0
 ## explicit
 gopkg.in/yaml.v3
+# github.com/hashicorp/go-azure-sdk => ../go-azure-sdk

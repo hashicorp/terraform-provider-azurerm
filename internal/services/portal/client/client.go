@@ -2,9 +2,9 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/sdk/2019-01-01-preview/dashboard"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/sdk/2019-01-01-preview/tenantconfiguration"
 )
 
 type Client struct {

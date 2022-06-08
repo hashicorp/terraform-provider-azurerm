@@ -30,6 +30,8 @@ require (
 	gopkg.in/yaml.v3 v3.0.0
 )
 
+replace github.com/hashicorp/go-azure-sdk => ../go-azure-sdk
+
 require (
 	cloud.google.com/go/storage v1.16.0 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
