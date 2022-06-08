@@ -273,6 +273,22 @@ func PossibleDiskEncryptionTargetValues() []DiskEncryptionTarget {
 	return []DiskEncryptionTarget{DiskEncryptionTargetOsDisk, DiskEncryptionTargetTemporaryDisk}
 }
 
+// DynamicVNetAssignmentScope enumerates the values for dynamic v net assignment scope.
+type DynamicVNetAssignmentScope string
+
+const (
+	// DynamicVNetAssignmentScopeJob Dynamic VNet assignment is done per-job. Don't use this option unless your
+	// batch account has been approved to use this feature.
+	DynamicVNetAssignmentScopeJob DynamicVNetAssignmentScope = "job"
+	// DynamicVNetAssignmentScopeNone No dynamic VNet assignment is enabled.
+	DynamicVNetAssignmentScopeNone DynamicVNetAssignmentScope = "none"
+)
+
+// PossibleDynamicVNetAssignmentScopeValues returns an array of possible values for the DynamicVNetAssignmentScope const type.
+func PossibleDynamicVNetAssignmentScopeValues() []DynamicVNetAssignmentScope {
+	return []DynamicVNetAssignmentScope{DynamicVNetAssignmentScopeJob, DynamicVNetAssignmentScopeNone}
+}
+
 // ElevationLevel enumerates the values for elevation level.
 type ElevationLevel string
 

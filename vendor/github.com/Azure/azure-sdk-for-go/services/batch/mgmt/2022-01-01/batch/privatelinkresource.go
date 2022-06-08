@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// PrivateLinkResourceClient is the client for the PrivateLinkResource methods of the Batch service.
+// PrivateLinkResourceClient is the batch Client
 type PrivateLinkResourceClient struct {
 	BaseClient
 }
@@ -91,7 +91,7 @@ func (client PrivateLinkResourceClient) GetPreparer(ctx context.Context, resourc
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -181,7 +181,7 @@ func (client PrivateLinkResourceClient) ListByBatchAccountPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
