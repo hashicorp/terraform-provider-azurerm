@@ -29,7 +29,7 @@ func TestAccHealthCareMedTechService_basic(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareMedTechService_updateIdentitys(t *testing.T) {
+func TestAccHealthCareMedTechService_updateIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service", "test")
 	r := HealthCareWorkspaceMedTechServiceResource{}
 
