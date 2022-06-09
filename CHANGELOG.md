@@ -4,7 +4,6 @@ FEATURES:
 
 * **New Resource**: `azurerm_capacity_reservation_group` [GH-16464]
 * **New Resource**: `azurerm_capacity_reservation` [GH-16464]
-* **New Resource:** `azurerm_monitor_workbook` [GH-17161]
 
 ENHANCEMENTS:
 
