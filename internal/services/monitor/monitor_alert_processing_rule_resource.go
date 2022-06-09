@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/sdk/2021-08-08/alertsmanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -37,7 +36,7 @@ func resourceMonitorAlertProcessingRule() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ActionRuleID(id)
+			_, err := alertsmanagement.ParseActionRuleID(id)
 			return err
 		}),
 

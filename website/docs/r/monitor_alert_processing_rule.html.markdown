@@ -55,7 +55,7 @@ resource "azurerm_monitor_alert_processing_rule" "example" {
         end_time   = "09:00:00"
       }
       weekly {
-        days_of_week = ["Saturday"， "Sunday"]
+        days_of_week = ["Saturday", "Sunday"]
       }
     }
   }
