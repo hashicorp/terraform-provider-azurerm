@@ -1261,11 +1261,6 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 			output["host_name"] = *config.HostName
 		}
 
-		// There'll always be a default custom domain with hostName "apim_name.azure-api.net" and Type "Proxy", which should be ignored
-		if *config.HostName == strings.ToLower(name)+"."+apimHostNameSuffix && config.Type == apimanagement.HostnameTypeProxy {
-			continue
-		}
-
 		if config.NegotiateClientCertificate != nil {
 			output["negotiate_client_certificate"] = *config.NegotiateClientCertificate
 		}
