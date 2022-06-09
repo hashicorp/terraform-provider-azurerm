@@ -2,8 +2,11 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_cdn_frontdoor_rule_set` [GH-17094]
 * **New Resource**: `azurerm_capacity_reservation_group` [GH-16464]
 * **New Resource**: `azurerm_capacity_reservation` [GH-16464]
+* **New Resource**: `azurerm_cdn_frontdoor_rule_set` [GH-17094]
+
 
 ENHANCEMENTS:
 
