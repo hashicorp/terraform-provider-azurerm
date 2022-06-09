@@ -77,7 +77,7 @@ func resourceLogAnalyticsDataExport() *pluginsdk.Resource {
 				},
 			},
 
-			"metadata": {
+			"destination_metadata": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -126,7 +126,7 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 	parameters := operationalinsights.DataExport{
 		DataExportProperties: &operationalinsights.DataExportProperties{
 			Destination: &operationalinsights.Destination{
-				DestinationMetaData: expandDataExportDestinationMetaData(d.Get("metadata").([]interface{})),
+				DestinationMetaData: expandDataExportDestinationMetaData(d.Get("destination_metadata").([]interface{})),
 				ResourceID:          utils.String(d.Get("destination_resource_id").(string)),
 			},
 			TableNames: utils.ExpandStringSlice(d.Get("table_names").(*pluginsdk.Set).List()),
@@ -170,8 +170,8 @@ func resourceOperationalinsightsDataExportRead(d *pluginsdk.ResourceData, meta i
 		d.Set("enabled", props.Enable)
 		d.Set("table_names", utils.FlattenStringSlice(props.TableNames))
 
-		if err := d.Set("metadata", flattenDataExportDestinationMetaData(props.Destination)); err != nil {
-			return fmt.Errorf("setting `metadata`")
+		if err := d.Set("destination_metadata", flattenDataExportDestinationMetaData(props.Destination)); err != nil {
+			return fmt.Errorf("setting `destination_metadata`")
 		}
 	}
 	return nil

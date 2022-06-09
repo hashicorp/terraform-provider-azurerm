@@ -60,11 +60,11 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is this Log Analytics Data Export Rule enabled? Possible values include `true` or `false`. Defaults to `false`.
 
-* `metadata` - (Optional) A `metadata` block as defined below.
+* `destination_metadata` - (Optional) A `destination_metadata` block as defined below.
 
 ---
 
-The `metadata` block supports the following attributes:
+The `destination_metadata` block supports the following attributes:
 
 * `eventhub_name` - (Optional) The name of the EventHub that is defined for the Log Analytics Data Export Rule.
 

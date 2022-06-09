@@ -85,13 +85,13 @@ func TestAccLogAnalyticsDataExportRule_complete(t *testing.T) {
 	})
 }
 
-func TestAccLogAnalyticsDataExportRule_metadata(t *testing.T) {
+func TestAccLogAnalyticsDataExportRule_destinationMetadata(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_data_export_rule", "test")
 	r := LogAnalyticsDataExportRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.metadata(data),
+			Config: r.destinationMetadata(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -200,7 +200,7 @@ resource "azurerm_log_analytics_data_export_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LogAnalyticsDataExportRuleResource) metadata(data acceptance.TestData) string {
+func (r LogAnalyticsDataExportRuleResource) destinationMetadata(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -241,7 +241,7 @@ resource "azurerm_log_analytics_data_export_rule" "test" {
   destination_resource_id = azurerm_eventhub.test.id
   table_names             = ["Heartbeat"]
 
-  metadata {
+  destination_metadata {
     eventhub_name = azurerm_eventhub.test.name
   }
 }
