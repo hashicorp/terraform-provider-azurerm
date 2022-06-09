@@ -635,6 +635,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = "httplistener"
     backend_address_pool_name  = "backendaddresspool"
     backend_http_settings_name = "backendhttpsettings"
+    priority                   = 1
   }
 }
 

@@ -3543,6 +3543,8 @@ resource "azurerm_application_gateway" "test" {
 
     # backend_http_settings_id = computed
     backend_http_settings_name = "backend-http-1"
+
+    priority = 1
   }
 
   tags = {
