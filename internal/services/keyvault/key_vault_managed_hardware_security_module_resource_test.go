@@ -23,14 +23,14 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 			"basic": testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic,
 		},
 		"resource": {
-			"basic":    TestAccKeyVaultManagedHardwareSecurityModule_basic,
+			"basic":    testAccKeyVaultManagedHardwareSecurityModule_basic,
 			"update":   testAccKeyVaultManagedHardwareSecurityModule_requiresImport,
 			"complete": testAccKeyVaultManagedHardwareSecurityModule_complete,
 		},
 	})
 }
 
-func TestAccKeyVaultManagedHardwareSecurityModule_basic(t *testing.T) {
+func testAccKeyVaultManagedHardwareSecurityModule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module", "test")
 	r := KeyVaultManagedHardwareSecurityModuleResource{}
 
