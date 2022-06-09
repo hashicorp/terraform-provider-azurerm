@@ -1115,7 +1115,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 			if memLimit != 0.0 {
 				limits.MemoryInGB = &memLimit
 			}
-			if gpuLimit[0] != nil {
+			if len(gpuLimit) == 1 && gpuLimit[0] != nil {
 				v := gpuLimit[0].(map[string]interface{})
 				limits.Gpu = &containerinstance.GpuResource{}
 				if v := int32(v["count"].(int)); v != 0 {
