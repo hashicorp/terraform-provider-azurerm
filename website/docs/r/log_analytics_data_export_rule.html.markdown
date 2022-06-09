@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `workspace_resource_id` - (Required) The resource ID of the workspace. Changing this forces a new Log Analytics Data Export Rule to be created.
 
-* `destination_resource_id` - (Required) The destination resource ID. It should be a storage account or an event hub namespace.
+* `destination_resource_id` - (Required) The destination resource ID. It should be a Storage Account or an Event Hub Namespace.
 
 * `table_names` - (Required) A list of table names to export to the destination resource, for example: `["Heartbeat", "SecurityEvent"]`.
 
@@ -66,9 +66,9 @@ The following arguments are supported:
 
 The `destination_metadata` block supports the following attributes:
 
-* `eventhub_name` - (Optional) The name of the EventHub that is defined for the Log Analytics Data Export Rule.
+* `eventhub_name` - (Optional) The name of the Event Hub that is used to send data from all tables in the rule to a specific Event Hub.
 
--> **Note:** If `eventhub_name` isn't specified, a separate Event Hub is created for each table. If `eventhub_name` is specified, it would export all tables to this specific Event Hub.
+-> **Note:** If `eventhub_name` isn't specified, an Event Hub is created for each table in the specified Event Hub Namespace.
 
 ## Attributes Reference
 
