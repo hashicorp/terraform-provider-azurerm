@@ -14,12 +14,14 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		Servers{},
+		Server{},
 	}
 }
 
 func (r Registration) WebsiteCategories() []string {
-	return []string{}
+	return []string{
+		"Active Directory Domain Service",
+	}
 }
 
 var (

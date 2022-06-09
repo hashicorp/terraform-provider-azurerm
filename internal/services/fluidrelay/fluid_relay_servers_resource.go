@@ -19,12 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//type Identity struct {
-//	Type        string `tfschema:"type"`
-//	PrincipalID string `tfschema:"principal_id"`
-//	TenantID    string `tfschea:"tenant_id"`
-//}
-
 type UserAssignedIdentity struct {
 	IdentityID  string `tfschema:"identity_id"`
 	ClientID    string `tfschema:"client_id"`
@@ -37,7 +31,7 @@ type Encryption struct {
 	KeyEncryptionKeyUrl string `tfschema:"key_encryption_key_url"`
 }
 
-type ServersModel struct {
+type ServerModel struct {
 	Name                   string                 `tfschema:"name"`
 	ResourceGroup          string                 `tfschema:"resource_group_name"`
 	Location               string                 `tfschema:"location"`
@@ -53,7 +47,7 @@ type ServersModel struct {
 	Encryption             []Encryption           `tfschema:"encryption"`
 }
 
-func (s *ServersModel) GenUserIdentities() *identity.SystemAndUserAssignedMap {
+func (s *ServerModel) GenUserIdentities() *identity.SystemAndUserAssignedMap {
 	res := &identity.SystemAndUserAssignedMap{
 		Type: "None",
 	}
@@ -79,7 +73,7 @@ func (s *ServersModel) GenUserIdentities() *identity.SystemAndUserAssignedMap {
 	return res
 }
 
-func (s *ServersModel) GenEncryption() *fluidrelayservers.EncryptionProperties {
+func (s *ServerModel) GenEncryption() *fluidrelayservers.EncryptionProperties {
 	if len(s.Encryption) == 0 {
 		return nil
 	}
@@ -95,11 +89,11 @@ func (s *ServersModel) GenEncryption() *fluidrelayservers.EncryptionProperties {
 	return res
 }
 
-type Servers struct{}
+type Server struct{}
 
-var _ sdk.ResourceWithUpdate = (*Servers)(nil)
+var _ sdk.ResourceWithUpdate = (*Server)(nil)
 
-func (s Servers) Arguments() map[string]*pluginsdk.Schema {
+func (s Server) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -182,7 +176,7 @@ func (s Servers) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (s Servers) Attributes() map[string]*pluginsdk.Schema {
+func (s Server) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"frs_tenant_id": {
 			Type:        pluginsdk.TypeString,
@@ -220,21 +214,21 @@ func (s Servers) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (s Servers) ModelObject() interface{} {
-	return &ServersModel{}
+func (s Server) ModelObject() interface{} {
+	return &ServerModel{}
 }
 
-func (s Servers) ResourceType() string {
-	return "azurerm_fluid_relay_servers"
+func (s Server) ResourceType() string {
+	return "azurerm_fluid_relay_server"
 }
 
-func (s Servers) Create() sdk.ResourceFunc {
+func (s Server) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
 			client := meta.Client.FluidRelay.ServerClient
 
-			var model ServersModel
+			var model ServerModel
 			if err = meta.Decode(&model); err != nil {
 				return err
 			}
@@ -275,7 +269,7 @@ func (s Servers) Create() sdk.ResourceFunc {
 }
 
 // Update tags
-func (s Servers) Update() sdk.ResourceFunc {
+func (s Server) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
@@ -285,7 +279,7 @@ func (s Servers) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model ServersModel
+			var model ServerModel
 			if err = meta.Decode(&model); err != nil {
 				return fmt.Errorf("decoding err: %+v", err)
 			}
@@ -312,7 +306,7 @@ func (s Servers) Update() sdk.ResourceFunc {
 	}
 }
 
-func (s Servers) Read() sdk.ResourceFunc {
+func (s Server) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
@@ -337,7 +331,7 @@ func (s Servers) Read() sdk.ResourceFunc {
 				return fmt.Errorf("got fluid relay server as nil")
 			}
 
-			output := ServersModel{
+			output := ServerModel{
 				Name:          id.FluidRelayServerName,
 				ResourceGroup: id.ResourceGroup,
 				Location:      model.Location,
@@ -383,7 +377,7 @@ func (s Servers) Read() sdk.ResourceFunc {
 	}
 }
 
-func (s Servers) Delete() sdk.ResourceFunc {
+func (s Server) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
@@ -403,6 +397,6 @@ func (s Servers) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (s Servers) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (s Server) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return fluidrelayservers.ValidateFluidRelayServerID
 }
