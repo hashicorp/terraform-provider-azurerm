@@ -317,6 +317,26 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
+
+						"custom_bgp_address": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"ip_address": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.IsIPv4Address,
+									},
+
+									"ip_configuration_id": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -528,6 +548,7 @@ func expandVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]ne
 				EnableRateLimiting:             utils.Bool(e["ratelimit_enabled"].(bool)),
 				UseLocalAzureIPAddress:         utils.Bool(e["local_azure_ip_address_enabled"].(bool)),
 				UsePolicyBasedTrafficSelectors: utils.Bool(e["policy_based_traffic_selector_enabled"].(bool)),
+				VpnGatewayCustomBgpAddresses:   expandVpnGatewayConnectionCustomBgpAddresses(e["custom_bgp_address"].(*pluginsdk.Set).List()),
 			},
 		}
 
@@ -617,6 +638,7 @@ func flattenVpnGatewayConnectionVpnSiteLinkConnections(input *[]network.VpnSiteL
 			"ratelimit_enabled":                     rateLimitEnabled,
 			"local_azure_ip_address_enabled":        useLocalAzureIpAddress,
 			"policy_based_traffic_selector_enabled": usePolicyBased,
+			"custom_bgp_address":                    flattenVpnGatewayConnectionCustomBgpAddresses(e.VpnGatewayCustomBgpAddresses),
 		}
 
 		output = append(output, v)
@@ -816,6 +838,47 @@ func flattenVpnGatewayConnectionNatRuleIds(input *[]network.SubResource) []inter
 		}
 
 		results = append(results, id)
+	}
+
+	return results
+}
+
+func expandVpnGatewayConnectionCustomBgpAddresses(input []interface{}) *[]network.GatewayCustomBgpIPAddressIPConfiguration {
+	results := make([]network.GatewayCustomBgpIPAddressIPConfiguration, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		results = append(results, network.GatewayCustomBgpIPAddressIPConfiguration{
+			CustomBgpIPAddress: utils.String(v["ip_address"].(string)),
+			IPConfigurationID:  utils.String(v["ip_configuration_id"].(string)),
+		})
+	}
+
+	return &results
+}
+
+func flattenVpnGatewayConnectionCustomBgpAddresses(input *[]network.GatewayCustomBgpIPAddressIPConfiguration) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var customBgpIpAddress string
+		if item.CustomBgpIPAddress != nil {
+			customBgpIpAddress = *item.CustomBgpIPAddress
+		}
+
+		var ipConfigurationId string
+		if item.IPConfigurationID != nil {
+			ipConfigurationId = *item.IPConfigurationID
+		}
+
+		results = append(results, map[string]interface{}{
+			"ip_address":          customBgpIpAddress,
+			"ip_configuration_id": ipConfigurationId,
+		})
 	}
 
 	return results

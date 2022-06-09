@@ -1,7 +1,7 @@
 ---
 subcategory: "Database"
 layout: "azurerm"
-page_title: "Azure Resource manager: azurerm_mssql_managed_instance_active_directory_administrator"
+page_title: "Azure Resource Manager: azurerm_mssql_managed_instance_active_directory_administrator"
 description: |-
   Manages an Active Directory Administrator on a Microsoft Azure SQL Managed Instance
 ---

@@ -214,13 +214,15 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 
 	name := d.Get("name").(string)
 	managementGroupName := ""
-	managementGroupID, err := mgmtGrpParse.ManagementGroupID(d.Get("management_group_id").(string))
-	if err != nil {
-		return err
+	if v, ok := d.GetOk("management_group_id"); ok {
+		managementGroupID, err := mgmtGrpParse.ManagementGroupID(v.(string))
+		if err != nil {
+			return err
+		}
+		managementGroupName = managementGroupID.Name
 	}
-	managementGroupName = managementGroupID.Name
 
-	existing, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupID.Name)
+	existing, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for presence of existing Policy Set Definition %q: %+v", name, err)

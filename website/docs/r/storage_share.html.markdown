@@ -54,7 +54,7 @@ The following arguments are supported:
 * `storage_account_name` - (Required) Specifies the storage account in which to create the share.
  Changing this forces a new resource to be created.
 
-* `access_tier` - (Optional) The access tier of the File Share. Possible values are `Hot`, `Cool` and `TransactionOptimized`.
+* `access_tier` - (Optional) The access tier of the File Share. Possible values are `Hot`, `Cool` and `TransactionOptimized`, `Premium`.
 
 * `acl` - (Optional) One or more `acl` blocks as defined below.
 

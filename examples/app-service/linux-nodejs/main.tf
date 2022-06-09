@@ -2,31 +2,28 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "main" {
+resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
   location = var.location
 }
 
-resource "azurerm_app_service_plan" "main" {
-  name                = "${var.prefix}-asp"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-  kind                = "Linux"
-  reserved            = true
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+resource "azurerm_service_plan" "example" {
+  name                = "${var.prefix}-sp"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  os_type             = "Linux"
+  sku_name            = "S1"
 }
 
-resource "azurerm_app_service" "main" {
-  name                = "${var.prefix}-appservice"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-  app_service_plan_id = azurerm_app_service_plan.main.id
+resource "azurerm_linux_web_app" "example" {
+  name                = "${var.prefix}-example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  service_plan_id     = azurerm_service_plan.example.id
 
   site_config {
-    linux_fx_version = "NODE|10.14"
+    application_stack {
+      node_version = "16-lts"
+    }
   }
 }

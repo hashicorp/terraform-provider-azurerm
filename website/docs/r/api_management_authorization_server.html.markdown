@@ -14,11 +14,13 @@ Manages an Authorization Server within an API Management Service.
 ## Example Usage
 
 ```hcl
-data "azurerm_api_management_api" "example" {
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_api_management" "example" {
   name                = "search-api"
-  api_management_name = "search-api-management"
   resource_group_name = "search-service"
-  revision            = "2"
 }
 
 resource "azurerm_api_management_authorization_server" "example" {
@@ -32,6 +34,9 @@ resource "azurerm_api_management_authorization_server" "example" {
 
   grant_types = [
     "authorizationCode",
+  ]
+  authorization_methods = [
+    "GET",
   ]
 }
 ```

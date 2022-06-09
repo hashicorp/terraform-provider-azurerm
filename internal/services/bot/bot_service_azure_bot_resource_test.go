@@ -15,11 +15,11 @@ import (
 
 type BotServiceAzureBotResource struct{}
 
-func TestAccBotServiceAzureBot_basic(t *testing.T) {
+func testAccBotServiceAzureBot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -33,11 +33,11 @@ func TestAccBotServiceAzureBot_basic(t *testing.T) {
 	})
 }
 
-func TestAccBotServiceAzureBot_completeUpdate(t *testing.T) {
+func testAccBotServiceAzureBot_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -55,11 +55,11 @@ func TestAccBotServiceAzureBot_completeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccBotServiceAzureBot_requiresImport(t *testing.T) {
+func testAccBotServiceAzureBot_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

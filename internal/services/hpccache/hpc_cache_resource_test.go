@@ -760,7 +760,7 @@ ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f /tmp/rpw.ldif
 # Setup self signed certificate
 cp /etc/ssl/certs/ca-certificates.crt /etc/ldap/sasl2
 cd /etc/ldap/sasl2
-openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=CN/ST=SH/L=SH/O=NA/CN=www.example.com" -keyout server.key -out server.crt
+openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=CN/ST=SH/L=SH/O=NA/CN=${azurerm_network_interface.test.private_ip_address}" -keyout server.key -out server.crt
 chown openldap. /etc/ldap/sasl2/*
 
 cat << EOF > /tmp/cert.ldif
