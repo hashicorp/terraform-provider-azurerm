@@ -8,6 +8,7 @@ import (
 	newActionGroupClient "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	newAlertsManagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/sdk/2021-08-08/alertsmanagement"
+	workbook "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/sdk/2022-04-01/insights"
 )
 
 type Client struct {
@@ -33,6 +34,7 @@ type Client struct {
 	PrivateLinkScopesClient          *classic.PrivateLinkScopesClient
 	PrivateLinkScopedResourcesClient *classic.PrivateLinkScopedResourcesClient
 	ScheduledQueryRulesClient        *classic.ScheduledQueryRulesClient
+	WorkbookClient                   *workbook.InsightsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -81,6 +83,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	ScheduledQueryRulesClient := classic.NewScheduledQueryRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ScheduledQueryRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	workbookClient := workbook.NewInsightsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&workbookClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AADDiagnosticSettingsClient:      &AADDiagnosticSettingsClient,
 		AutoscaleSettingsClient:          &AutoscaleSettingsClient,
@@ -97,5 +102,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		PrivateLinkScopesClient:          &PrivateLinkScopesClient,
 		PrivateLinkScopedResourcesClient: &PrivateLinkScopedResourcesClient,
 		ScheduledQueryRulesClient:        &ScheduledQueryRulesClient,
+		WorkbookClient:                   &workbookClient,
 	}
 }

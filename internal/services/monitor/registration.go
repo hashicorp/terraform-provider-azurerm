@@ -54,5 +54,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_monitor_scheduled_query_rules_alert": resourceMonitorScheduledQueryRulesAlert(),
 		"azurerm_monitor_scheduled_query_rules_log":   resourceMonitorScheduledQueryRulesLog(),
 		"azurerm_monitor_smart_detector_alert_rule":   resourceMonitorSmartDetectorAlertRule(),
+		"azurerm_monitor_workbook":                    resourceMonitorWorkbook(),
 	}
 }

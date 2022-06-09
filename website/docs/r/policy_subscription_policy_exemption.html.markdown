@@ -32,7 +32,7 @@ resource "azurerm_subscription_policy_assignment" "example" {
 
 resource "azurerm_subscription_policy_exemption" "example" {
   name                 = "exampleExemption"
-  resource_group_id    = data.azurerm_subscription.example.id
+  subscription_id      = data.azurerm_subscription.example.id
   policy_assignment_id = azurerm_subscription_policy_assignment.example.id
   exemption_category   = "Mitigated"
 }

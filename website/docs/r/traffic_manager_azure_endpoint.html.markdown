@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_public_ip" "example" {
   name                = "example-public-ip"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
   domain_name_label   = "example-public-ip"
 }
@@ -38,7 +38,7 @@ resource "azurerm_traffic_manager_profile" "example" {
   }
 
   monitor_config {
-    protocol                     = "http"
+    protocol                     = "HTTP"
     port                         = 80
     path                         = "/"
     interval_in_seconds          = 30
@@ -55,7 +55,7 @@ resource "azurerm_traffic_manager_azure_endpoint" "example" {
   name               = "example-endpoint"
   profile_id         = azurerm_traffic_manager_profile.example.id
   weight             = 100
-  target_resource_id = azurerm_public_ip.test.id
+  target_resource_id = azurerm_public_ip.example.id
 }
 ```
 

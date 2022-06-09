@@ -1,29 +1,86 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
+	cdnSdk "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"
+	cdnFrontDoorSdk "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	CustomDomainsClient *cdn.CustomDomainsClient
-	EndpointsClient     *cdn.EndpointsClient
-	ProfilesClient      *cdn.ProfilesClient
+	FrontDoorEndpointsClient        *cdnFrontDoorSdk.AFDEndpointsClient
+	FrontDoorOriginGroupsClient     *cdnFrontDoorSdk.AFDOriginGroupsClient
+	FrontDoorOriginsClient          *cdnFrontDoorSdk.AFDOriginsClient
+	FrontDoorCustomDomainsClient    *cdnFrontDoorSdk.AFDCustomDomainsClient
+	FrontDoorSecurityPoliciesClient *cdnFrontDoorSdk.SecurityPoliciesClient
+	FrontDoorRoutesClient           *cdnFrontDoorSdk.RoutesClient
+	FrontDoorRulesClient            *cdnFrontDoorSdk.RulesClient
+	FrontDoorProfileClient          *cdnFrontDoorSdk.ProfilesClient
+	FrontDoorSecretsClient          *cdnFrontDoorSdk.SecretsClient
+	FrontDoorRuleSetsClient         *cdnFrontDoorSdk.RuleSetsClient
+	FrontDoorLegacyPoliciesClient   *frontdoor.PoliciesClient
+	CustomDomainsClient             *cdnSdk.CustomDomainsClient
+	EndpointsClient                 *cdnSdk.EndpointsClient
+	ProfilesClient                  *cdnSdk.ProfilesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	customDomainsClient := cdn.NewCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	frontDoorEndpointsClient := cdnFrontDoorSdk.NewAFDEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&frontDoorEndpointsClient.Client, o.ResourceManagerAuthorizer)
+
+	frontDoorOriginGroupsClient := cdnFrontDoorSdk.NewAFDOriginGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&frontDoorOriginGroupsClient.Client, o.ResourceManagerAuthorizer)
+
+	frontDoorOriginsClient := cdnFrontDoorSdk.NewAFDOriginsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&frontDoorOriginsClient.Client, o.ResourceManagerAuthorizer)
+
+	frontDoorCustomDomainsClient := cdnFrontDoorSdk.NewAFDCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&frontDoorCustomDomainsClient.Client, o.ResourceManagerAuthorizer)
+
+	frontDoorPolicySecurityPoliciesClient := cdnFrontDoorSdk.NewSecurityPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&frontDoorPolicySecurityPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	frontDoorLegacyPoliciesClient := frontdoor.NewPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&frontDoorLegacyPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	frontDoorRoutesClient := cdnFrontDoorSdk.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&frontDoorRoutesClient.Client, o.ResourceManagerAuthorizer)
+
+	frontDoorRulesClient := cdnFrontDoorSdk.NewRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&frontDoorRulesClient.Client, o.ResourceManagerAuthorizer)
+
+	frontDoorProfilesClient := cdnFrontDoorSdk.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&frontDoorProfilesClient.Client, o.ResourceManagerAuthorizer)
+
+	frontDoorPolicySecretsClient := cdnFrontDoorSdk.NewSecretsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&frontDoorPolicySecretsClient.Client, o.ResourceManagerAuthorizer)
+
+	frontDoorRuleSetsClient := cdnFrontDoorSdk.NewRuleSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&frontDoorRuleSetsClient.Client, o.ResourceManagerAuthorizer)
+
+	customDomainsClient := cdnSdk.NewCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&customDomainsClient.Client, o.ResourceManagerAuthorizer)
 
-	endpointsClient := cdn.NewEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	endpointsClient := cdnSdk.NewEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&endpointsClient.Client, o.ResourceManagerAuthorizer)
 
-	profilesClient := cdn.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	profilesClient := cdnSdk.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&profilesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		CustomDomainsClient: &customDomainsClient,
-		EndpointsClient:     &endpointsClient,
-		ProfilesClient:      &profilesClient,
+		FrontDoorEndpointsClient:        &frontDoorEndpointsClient,
+		FrontDoorOriginGroupsClient:     &frontDoorOriginGroupsClient,
+		FrontDoorOriginsClient:          &frontDoorOriginsClient,
+		FrontDoorCustomDomainsClient:    &frontDoorCustomDomainsClient,
+		FrontDoorSecurityPoliciesClient: &frontDoorPolicySecurityPoliciesClient,
+		FrontDoorRoutesClient:           &frontDoorRoutesClient,
+		FrontDoorRulesClient:            &frontDoorRulesClient,
+		FrontDoorProfileClient:          &frontDoorProfilesClient,
+		FrontDoorSecretsClient:          &frontDoorPolicySecretsClient,
+		FrontDoorRuleSetsClient:         &frontDoorRuleSetsClient,
+		FrontDoorLegacyPoliciesClient:   &frontDoorLegacyPoliciesClient,
+		CustomDomainsClient:             &customDomainsClient,
+		EndpointsClient:                 &endpointsClient,
+		ProfilesClient:                  &profilesClient,
 	}
 }

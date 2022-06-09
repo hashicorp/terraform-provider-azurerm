@@ -13,6 +13,10 @@ Manages an API Schema within an API Management Service.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_api_management_api" "example" {
   name                = "search-api"
   api_management_name = "search-api-management"

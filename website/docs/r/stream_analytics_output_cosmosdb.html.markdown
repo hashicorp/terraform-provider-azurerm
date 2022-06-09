@@ -59,7 +59,7 @@ resource "azurerm_cosmosdb_sql_container" "example" {
 
 resource "azurerm_stream_analytics_output_cosmosdb" "example" {
   name                     = "output-to-cosmosdb"
-  stream_analytics_job_id  = azurerm_stream_analytics_job.example.id
+  stream_analytics_job_id  = data.azurerm_stream_analytics_job.example.id
   cosmosdb_account_key     = azurerm_cosmosdb_account.example.primary_key
   cosmosdb_sql_database_id = azurerm_cosmosdb_sql_database.example.id
   container_name           = azurerm_cosmosdb_sql_container.example.name

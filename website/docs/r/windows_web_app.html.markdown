@@ -417,7 +417,7 @@ A `scm_ip_restriction` block supports the following:
 
 A `site_config` block supports the following:
 
-* `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `false`.
+* `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `true`.
 
 * `api_management_api_id` - (Optional) The API Management API ID this Windows Web App Slot is associated with.
 
