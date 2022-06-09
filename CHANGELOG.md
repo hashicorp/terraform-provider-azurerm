@@ -11,6 +11,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_cosmosdb_cassandra_cluster` - support for the `authentication_method`, `client_certificate`, `external_gossip_certificate`, `external_seed_node`, `identity`, `repair_enabled` and `version` properties [GH-16799]
+* `azurerm_key_vault_managed_hardware_security_module` - support for purging when soft deleted [GH-17148]
 * `azurerm_hpc_cache` - support for `identity` block and the `key_vault_key_id` and `automatically_rotate_key_to_latest_enabled` properties [GH-16972]
 
 BUG FIXES:
