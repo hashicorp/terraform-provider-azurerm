@@ -16,6 +16,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_api_management` - Default hostname proxy configuration is no longer ignored [GH-16524]
 * `azurerm_application_gateway` - add default value for `backend_http_settings.0.request_timeout` [GH-17162]
 * `azurerm_container_group` - Double the delete check timeout for nic [GH-17115]
 * `azurerm_windows_function_app_x` - `custom_domain_verification_id` is now written to state file ([GH-17183]
