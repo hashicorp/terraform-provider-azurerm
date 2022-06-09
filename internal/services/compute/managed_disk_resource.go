@@ -181,6 +181,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validate.DiskEncryptionSetID,
+				ConflictsWith:    []string{"secure_vm_disk_encryption_set_id"},
 			},
 
 			"encryption_settings": encryptionSettingsSchema(),
@@ -226,6 +227,25 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
+			},
+
+			"secure_vm_disk_encryption_set_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.DiskEncryptionSetID,
+				ConflictsWith: []string{"disk_encryption_set_id"},
+			},
+
+			"security_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.DiskSecurityTypesConfidentialVMVMGuestStateOnlyEncryptedWithPlatformKey),
+					string(compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithPlatformKey),
+					string(compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey),
+				}, false),
 			},
 
 			"hyper_v_generation": {
@@ -434,6 +454,36 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		default:
 			return fmt.Errorf("trusted_launch_enabled cannot be set to true with create_option %q. Supported Create Options when Trusted Launch is enabled are FromImage, Import", createOption)
 		}
+	}
+
+	securityType := d.Get("security_type").(string)
+	secureVMDiskEncryptionId := d.Get("secure_vm_disk_encryption_set_id")
+	if securityType != "" {
+		if d.Get("trusted_launch_enabled").(bool) {
+			return fmt.Errorf("`security_type` cannot be specified when `trusted_launch_enabled` is set to `true`")
+		}
+
+		switch createOption {
+		case compute.DiskCreateOptionFromImage:
+		case compute.DiskCreateOptionImport:
+		default:
+			return fmt.Errorf("`security_type` can only be specified when `create_option` is set to `FromImage` or `Import`")
+		}
+
+		if compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey == compute.DiskSecurityTypes(securityType) && secureVMDiskEncryptionId == "" {
+			return fmt.Errorf("`secure_vm_disk_encryption_set_id` must be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
+		}
+
+		props.SecurityProfile = &compute.DiskSecurityProfile{
+			SecurityType: compute.DiskSecurityTypes(securityType),
+		}
+	}
+
+	if secureVMDiskEncryptionId != "" {
+		if compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey != compute.DiskSecurityTypes(securityType) {
+			return fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
+		}
+		props.SecurityProfile.SecureVMDiskEncryptionSetID = utils.String(secureVMDiskEncryptionId.(string))
 	}
 
 	if d.Get("on_demand_bursting_enabled").(bool) {
@@ -691,7 +741,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("retrieving InstanceView for Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 		}
 
-		shouldTurnBackOn := true
+		shouldTurnBackOn := virtualMachineShouldBeStarted(instanceView)
 		shouldDeallocate := true
 
 		if instanceView.Statuses != nil {
@@ -709,14 +759,16 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				state = strings.TrimPrefix(state, "powerstate/")
 				switch strings.ToLower(state) {
 				case "deallocated":
-				case "deallocating":
-					shouldTurnBackOn = false
+					// VM already deallocated, no shutdown and deallocation needed anymore
 					shouldShutDown = false
 					shouldDeallocate = false
-				case "stopping":
+				case "deallocating":
+					// VM is deallocating
+					// To make sure we do not start updating before this action has finished,
+					// only skip the shutdown and send another deallocation request if shouldDeallocate == true
+					shouldShutDown = false
 				case "stopped":
 					shouldShutDown = false
-					shouldTurnBackOn = false
 				}
 			}
 		}
@@ -762,7 +814,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("waiting for update of Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		if shouldTurnBackOn {
+		if shouldTurnBackOn && (shouldShutDown || shouldDeallocate) {
 			log.Printf("[DEBUG] Starting Linux Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
 			future, err := vmClient.Start(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
 			if err != nil {
@@ -877,12 +929,22 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 
 		trustedLaunchEnabled := false
+		securityType := ""
+		secureVMDiskEncryptionSetId := ""
 		if securityProfile := props.SecurityProfile; securityProfile != nil {
 			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
 				trustedLaunchEnabled = true
+			} else {
+				securityType = string(securityProfile.SecurityType)
+			}
+
+			if securityProfile.SecureVMDiskEncryptionSetID != nil {
+				secureVMDiskEncryptionSetId = *securityProfile.SecureVMDiskEncryptionSetID
 			}
 		}
 		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+		d.Set("security_type", securityType)
+		d.Set("secure_vm_disk_encryption_set_id", secureVMDiskEncryptionSetId)
 
 		onDemandBurstingEnabled := false
 		if props.BurstingEnabled != nil {

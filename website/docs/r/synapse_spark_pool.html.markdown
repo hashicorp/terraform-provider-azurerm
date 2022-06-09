@@ -40,6 +40,10 @@ resource "azurerm_synapse_workspace" "example" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.example.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_synapse_spark_pool" "example" {
@@ -115,7 +119,7 @@ The following arguments are supported:
 
 * `spark_events_folder` - (Optional) The Spark events folder. Defaults to `/events`.
 
-* `spark_version` - (Optional) The Apache Spark version. Possible values are `2.4` and `3.1`. Defaults to `2.4`.
+* `spark_version` - (Optional) The Apache Spark version. Possible values are `2.4` and `3.1` and `3.2`. Defaults to `2.4`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Spark Pool.
 

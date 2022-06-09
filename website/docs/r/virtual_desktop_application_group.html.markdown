@@ -6,7 +6,7 @@ description: |-
   Manages a Virtual Desktop Application Group.
 ---
 
-# virtual_desktop_application_group
+# azurerm_virtual_desktop_application_group
 
 Manages a Virtual Desktop Application Group.
 
@@ -38,6 +38,7 @@ resource "azurerm_virtual_desktop_host_pool" "personalautomatic" {
 
   type                             = "Personal"
   personal_desktop_assignment_type = "Automatic"
+  load_balancer_type               = "BreadthFirst"
 }
 
 resource "azurerm_virtual_desktop_application_group" "remoteapp" {

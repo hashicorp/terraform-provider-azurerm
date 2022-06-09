@@ -55,7 +55,7 @@ resource "azurerm_windows_function_app_slot" "example" {
   function_app_id      = azurerm_windows_function_app.example.id
   storage_account_name = azurerm_storage_account.example.name
 
-  site_config = {}
+  site_config {}
 }
 
 resource "azurerm_function_app_active_slot" "example" {
@@ -147,5 +147,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 a Function App Active Slot can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import function_app_active_slot.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1"
+terraform import azurerm_function_app_active_slot.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1"
 ```

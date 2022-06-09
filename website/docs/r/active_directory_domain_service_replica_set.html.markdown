@@ -13,6 +13,10 @@ Manages a Replica Set for an Active Directory Domain Service.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "primary" {
   name     = "aadds-primary-rg"
   location = "West Europe"
@@ -86,18 +90,18 @@ resource "azurerm_network_security_group" "primary" {
   }
 }
 
-resource azurerm_subnet_network_security_group_association "primary" {
+resource "azurerm_subnet_network_security_group_association" "primary" {
   subnet_id                 = azurerm_subnet.primary.id
   network_security_group_id = azurerm_network_security_group.primary.id
 }
 
 resource "azuread_group" "dc_admins" {
-  name             = "AAD DC Administrators"
+  display_name     = "aad-dc-administrators"
   security_enabled = true
 }
 
 resource "azuread_user" "admin" {
-  user_principal_name = "dc-admin@$hashicorp-example.net"
+  user_principal_name = "dc-admin@hashicorp-example.net"
   display_name        = "DC Administrator"
   password            = "Pa55w0Rd!!1"
 }
@@ -225,7 +229,7 @@ resource "azurerm_network_security_group" "aadds_replica" {
   }
 }
 
-resource azurerm_subnet_network_security_group_association "replica" {
+resource "azurerm_subnet_network_security_group_association" "replica" {
   subnet_id                 = azurerm_subnet.aadds_replica.id
   network_security_group_id = azurerm_network_security_group.aadds_replica.id
 }

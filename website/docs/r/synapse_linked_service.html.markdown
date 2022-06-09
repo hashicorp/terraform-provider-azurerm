@@ -40,6 +40,10 @@ resource "azurerm_synapse_workspace" "example" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
   managed_virtual_network_enabled      = true
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_synapse_firewall_rule" "example" {
@@ -55,7 +59,7 @@ resource "azurerm_synapse_linked_service" "example" {
   type                 = "AzureBlobStorage"
   type_properties_json = <<JSON
 {
-  "connectionString": "${azurerm_storage_account.test.primary_connection_string}"
+  "connectionString": "${azurerm_storage_account.example.primary_connection_string}"
 }
 JSON
 

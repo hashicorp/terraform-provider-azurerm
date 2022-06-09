@@ -492,6 +492,25 @@ func resourceMySqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
+	// Issue tracking the REST API update failure: https://github.com/Azure/azure-rest-api-specs/issues/14117
+	if mode == mysql.CreateModeReplica {
+		log.Printf("[INFO] changing `public_network_access_enabled` for AzureRM MySQL Server %q (Resource Group %q)", id.Name, id.ResourceGroup)
+		properties := mysql.ServerUpdateParameters{
+			ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
+				PublicNetworkAccess: publicAccess,
+			},
+		}
+
+		future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
+		if err != nil {
+			return fmt.Errorf("updating MySQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for update of MySQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+	}
+
 	return resourceMySqlServerRead(d, meta)
 }
 

@@ -109,6 +109,7 @@ func resourceSharedImage() *pluginsdk.Resource {
 			"eula": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"purchase_plan": {
@@ -212,7 +213,6 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		GalleryImageProperties: &compute.GalleryImageProperties{
 			Description:         utils.String(d.Get("description").(string)),
-			Eula:                utils.String(d.Get("eula").(string)),
 			Identifier:          expandGalleryImageIdentifier(d),
 			PrivacyStatementURI: utils.String(d.Get("privacy_statement_uri").(string)),
 			ReleaseNoteURI:      utils.String(d.Get("release_note_uri").(string)),
@@ -222,6 +222,10 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			Features:            &features,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("eula"); ok {
+		image.GalleryImageProperties.Eula = utils.String(v.(string))
 	}
 
 	if d.Get("specialized").(bool) {

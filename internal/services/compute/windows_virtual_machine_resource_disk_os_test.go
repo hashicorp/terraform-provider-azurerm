@@ -314,6 +314,36 @@ func TestAccWindowsVirtualMachine_diskOSWriteAcceleratorEnabled(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_diskOSConfidentialVmWithGuestStateOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSConfidentialVmWithGuestStateOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachine_diskOSConfidentialVmWithDiskAndVMGuestStateCMK(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSConfidentialVmWithDiskAndVMGuestStateCMK(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func (r WindowsVirtualMachineResource) diskOSBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -774,4 +804,167 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 }
 `, r.template(data), enabled)
+}
+
+func (r WindowsVirtualMachineResource) diskOSConfidentialVmWithGuestStateOnly(data acceptance.TestData) string {
+	// Confidential VM has limited region support
+	data.Locations.Primary = "northeurope"
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_DC2as_v5"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching                  = "ReadWrite"
+    storage_account_type     = "Standard_LRS"
+    security_encryption_type = "VMGuestStateOnly"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "windows-cvm"
+    sku       = "2022-datacenter-cvm"
+    version   = "latest"
+  }
+
+  vtpm_enabled        = true
+  secure_boot_enabled = true
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineResource) diskOSConfidentialVmWithDiskAndVMGuestStateCMK(data acceptance.TestData) string {
+	// Confidential VM has limited region support
+	data.Locations.Primary = "northeurope"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults    = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+%[1]s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_DC2as_v5"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching                          = "ReadWrite"
+    storage_account_type             = "Standard_LRS"
+    security_encryption_type         = "DiskWithVMGuestState"
+    secure_vm_disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "windows-cvm"
+    sku       = "2022-datacenter-cvm"
+    version   = "latest"
+  }
+
+  vtpm_enabled        = true
+  secure_boot_enabled = true
+
+  depends_on = [
+    azurerm_key_vault_access_policy.disk-encryption,
+  ]
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "acctestkv%[3]s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  sku_name                    = "premium"
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  enabled_for_disk_encryption = true
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = true
+}
+
+resource "azurerm_key_vault_access_policy" "service-principal" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Update",
+  ]
+
+  secret_permissions = [
+    "Get",
+    "Delete",
+    "Set",
+  ]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "examplekey"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA-HSM"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault_access_policy.service-principal]
+}
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                = "acctestdes-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_key_id    = azurerm_key_vault_key.test.id
+  encryption_type     = "ConfidentialVmEncryptedWithCustomerKey"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_key_vault_access_policy" "disk-encryption" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  key_permissions = [
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
+  ]
+
+  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
 }

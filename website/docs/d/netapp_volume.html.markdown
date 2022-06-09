@@ -51,12 +51,14 @@ The following attributes are exported:
 
 * `subnet_id` - The ID of a Subnet in which the NetApp Volume resides.
 
+* `network_features` - Network features in use `Basic` or `Standard`.
+  
 * `storage_quota_in_gb` - The maximum Storage Quota in Gigabytes allowed for a file system.
  
 * `security_style` - Volume security style
 
 * `data_protection_replication` - Volume data protection block
-* 
+  
 * `volume_path` - The unique file path of the volume.
 
 ---

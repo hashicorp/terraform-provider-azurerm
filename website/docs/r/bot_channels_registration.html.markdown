@@ -65,6 +65,10 @@ The following arguments are supported:
 
 * `isolated_network_enabled` - (Optional) Is the Bot Channels Registration in an isolated network?
 
+~> **NOTE:** `isolated_network_enabled` is deprecated and will be removed in favour of the property `public_network_access_enabled` in version 4.0 of the AzureRM Provider.
+
+* `public_network_access_enabled` - (Optional) Is the Bot Channels Registration in an isolated network?
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 

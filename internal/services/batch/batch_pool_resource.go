@@ -818,7 +818,7 @@ func validateUserIdentity(userIdentity *batch.UserIdentity) error {
 		return errors.New("auto_user or user_name needs to be specified in the user_identity block")
 	}
 
-	if userIdentity.AutoUser != nil && userIdentity.UserName != nil {
+	if userIdentity.AutoUser != nil && userIdentity.UserName != nil && *userIdentity.UserName != "" {
 		return errors.New("auto_user and user_name cannot be specified in the user_identity at the same time")
 	}
 
