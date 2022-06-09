@@ -42,7 +42,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
   admin_ssh_key {
     username   = "adminuser"
-    public_key = local.first_public_key
+    public_key = file("~/.ssh/id_rsa.pub")
   }
 
   source_image_reference {
