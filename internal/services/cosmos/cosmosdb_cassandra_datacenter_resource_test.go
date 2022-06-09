@@ -102,8 +102,10 @@ func (r CassandraDatacenterResource) complete(data acceptance.TestData, nodeCoun
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_key_vault" "test" {
-  name                       = "acctestkv-%d"
+  name                       = "acctestkv-%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -149,7 +151,7 @@ resource "azurerm_key_vault_access_policy" "system_identity" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "acctestkey-%d"
+  name         = "acctestkey-%s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -186,15 +188,17 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
     azurerm_key_vault_key.test
   ]
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, nodeCount)
+`, r.template(data), data.RandomString, data.RandomString, data.RandomInteger, nodeCount)
 }
 
 func (r CassandraDatacenterResource) update(data acceptance.TestData, nodeCount int) string {
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_key_vault" "test" {
-  name                       = "acctestkv-%d"
+  name                       = "acctestkv-%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -240,7 +244,7 @@ resource "azurerm_key_vault_access_policy" "system_identity" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "acctestkey-%d"
+  name         = "acctestkey-%s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -261,7 +265,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_key_vault_key" "test2" {
-  name         = "acctestkey2-%d"
+  name         = "acctestkey2-%s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -294,7 +298,7 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
     azurerm_key_vault_key.test2
   ]
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, nodeCount)
+`, r.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, nodeCount)
 }
 
 func (CassandraDatacenterResource) template(data acceptance.TestData) string {
@@ -343,6 +347,10 @@ resource "azurerm_cosmosdb_cassandra_cluster" "test" {
   location                       = azurerm_resource_group.test.location
   delegated_management_subnet_id = azurerm_subnet.test.id
   default_admin_password         = "Password1234"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   depends_on = [azurerm_role_assignment.test]
 }
