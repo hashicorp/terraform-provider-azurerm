@@ -238,7 +238,7 @@ resource "azurerm_log_analytics_data_export_rule" "test" {
   name                    = "acctest-DER-%d"
   resource_group_name     = azurerm_resource_group.test.name
   workspace_resource_id   = azurerm_log_analytics_workspace.test.id
-  destination_resource_id = azurerm_eventhub.test.id
+  destination_resource_id = azurerm_eventhub_namespace.test.id
   table_names             = ["Heartbeat"]
 
   destination_metadata {
