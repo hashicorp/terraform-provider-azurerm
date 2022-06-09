@@ -14,7 +14,7 @@ Manages a Synapse Private Link Hub.
 
 ```hcl
 resource "azurerm_synapse_private_link_hub" "example" {
-  name                = "example-resource"
+  name                = "example"
   resource_group_name = "example-rg"
   location            = "West Europe"
 }

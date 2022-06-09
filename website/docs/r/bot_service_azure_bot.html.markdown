@@ -31,6 +31,8 @@ resource "azurerm_application_insights_api_key" "example" {
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_bot_service_azure_bot" "example" {
   name                = "exampleazurebot"
   resource_group_name = azurerm_resource_group.example.name
