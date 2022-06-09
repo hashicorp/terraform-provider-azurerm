@@ -24,7 +24,7 @@ data "azurerm_active_directory_domain_service" "example" {
 
 resource "azurerm_active_directory_domain_service_trust" "example" {
   name                       = "example-trust"
-  domain_service_resource_id = data.azurerm_active_directory_domain_service.example.resource_id
+  domain_service_id = data.azurerm_active_directory_domain_service.example.id
   trusted_domain_fqdn        = "example.com"
   trusted_domain_dns_ips     = ["10.1.0.3", "10.1.0.4"]
   password                   = "Password123"
@@ -35,7 +35,7 @@ resource "azurerm_active_directory_domain_service_trust" "example" {
 
 The following arguments are supported:
 
-* `domain_service_resource_id` - (Required) The `resource_id` of the Active Directory Domain Service. Changing this forces a new Active Directory Domain Service Trust to be created.
+* `domain_service_id` - (Required) The ID of the Active Directory Domain Service. Changing this forces a new Active Directory Domain Service Trust to be created.
 
 * `name` - (Required) The name which should be used for this Active Directory Domain Service Trust. Changing this forces a new Active Directory Domain Service Trust to be created.
 

@@ -146,11 +146,11 @@ func (r DomainServiceTrustResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_active_directory_domain_service_trust" "test" {
-  domain_service_resource_id = data.azurerm_active_directory_domain_service.test.resource_id
-  name                       = "acctest-trust-%s"
-  trusted_domain_fqdn        = %q
-  trusted_domain_dns_ips     = [%q, %q]
-  password                   = %q
+  domain_service_id      = data.azurerm_active_directory_domain_service.test.id
+  name                   = "acctest-trust-%s"
+  trusted_domain_fqdn    = %q
+  trusted_domain_dns_ips = [%q, %q]
+  password               = %q
 }
 `, template, data.RandomString, r.ADDSFqdn, r.ADDSIp1, r.ADDSIp2, r.TrustPassword)
 }
@@ -161,11 +161,11 @@ func (r DomainServiceTrustResource) requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_active_directory_domain_service_trust" "import" {
-  domain_service_resource_id = azurerm_active_directory_domain_service_trust.test.domain_service_resource_id
-  name                       = azurerm_active_directory_domain_service_trust.test.name
-  trusted_domain_fqdn        = azurerm_active_directory_domain_service_trust.test.trusted_domain_fqdn
-  trusted_domain_dns_ips     = azurerm_active_directory_domain_service_trust.test.trusted_domain_dns_ips
-  password                   = azurerm_active_directory_domain_service_trust.test.password
+  domain_service_id      = azurerm_active_directory_domain_service_trust.test.domain_service_id
+  name                   = azurerm_active_directory_domain_service_trust.test.name
+  trusted_domain_fqdn    = azurerm_active_directory_domain_service_trust.test.trusted_domain_fqdn
+  trusted_domain_dns_ips = azurerm_active_directory_domain_service_trust.test.trusted_domain_dns_ips
+  password               = azurerm_active_directory_domain_service_trust.test.password
 }
 `, template)
 }
