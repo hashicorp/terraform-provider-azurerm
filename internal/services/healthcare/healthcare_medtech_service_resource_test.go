@@ -29,7 +29,7 @@ func TestAccHealthCareMedTechService_basic(t *testing.T) {
 	})
 }
 
-func TestAccHealthCareMedTechService_updateIdentity(t *testing.T) {
+func TestAccHealthCareMedTechService_updateIdentitys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_medtech_service", "test")
 	r := HealthCareWorkspaceMedTechServiceResource{}
 
@@ -299,7 +299,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub" "test1" {
-  name                = "acctest-eh-%d"
+  name                = "acctest-eh1-%d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   partition_count     = 1
@@ -314,9 +314,9 @@ resource "azurerm_eventhub_consumer_group" "test" {
 }
 
 resource "azurerm_eventhub_consumer_group" "test1" {
-  name                = "acctestCG-%d"
+  name                = "acctestCG1-%d"
   namespace_name      = azurerm_eventhub_namespace.test.name
-  eventhub_name       = azurerm_eventhub.test.name
+  eventhub_name       = azurerm_eventhub.test1.name
   resource_group_name = azurerm_resource_group.test.name
 }
 
