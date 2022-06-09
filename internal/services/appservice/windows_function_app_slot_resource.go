@@ -573,7 +573,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				Tags:                        tags.ToTypedObject(functionAppSlot.Tags),
 				Kind:                        utils.NormalizeNilableString(functionAppSlot.Kind),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
-				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationId),
+				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 			}
 
 			configResp, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
