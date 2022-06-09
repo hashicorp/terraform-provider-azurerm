@@ -193,7 +193,7 @@ func (r DomainServiceTrustResource) Read() sdk.ResourceFunc {
 				return metadata.MarkAsGone(id)
 			}
 
-			// Retrieve the initial replica set id to construt the domain service id.
+			// Retrieve the initial replica set id to construct the domain service id.
 			replicaSets := flattenDomainServiceReplicaSets(props.ReplicaSets)
 			if len(replicaSets) == 0 {
 				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing replica set details", dsrid)
