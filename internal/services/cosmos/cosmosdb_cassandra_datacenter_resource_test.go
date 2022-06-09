@@ -30,21 +30,6 @@ func testAccCassandraDatacenter_basic(t *testing.T) {
 	})
 }
 
-func testAccCassandraDatacenter_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
-	r := CassandraDatacenterResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data, 3),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func testAccCassandraDatacenter_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
 	r := CassandraDatacenterResource{}
@@ -283,15 +268,16 @@ resource "azurerm_key_vault_key" "test2" {
 }
 
 resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
-  name                           = "acctca-mi-dc-%d"
-  cassandra_cluster_id           = azurerm_cosmosdb_cassandra_cluster.test.id
-  location                       = azurerm_cosmosdb_cassandra_cluster.test.location
-  delegated_management_subnet_id = azurerm_subnet.test.id
-  node_count                     = %d
-  disk_count                     = 4
-  sku_name                       = "Standard_DS14_v2"
-  availability_zones_enabled     = false
-  base64_encoded_yaml_fragment   = "Z29tcGFjdGlvbl90aHJvdWdocHV0X21iX3Blcl9zZWM6IDMyCmNvbXBhY3Rpb25fbGFyZ2VfcGFydGl0aW9uX3dhcm5pbmdfdGhyZXNob2xkX21iOiAxMDA="
+  name                            = "acctca-mi-dc-%d"
+  cassandra_cluster_id            = azurerm_cosmosdb_cassandra_cluster.test.id
+  location                        = azurerm_cosmosdb_cassandra_cluster.test.location
+  delegated_management_subnet_id  = azurerm_subnet.test.id
+  node_count                      = %d
+  disk_count                      = 4
+  sku_name                        = "Standard_DS14_v2"
+  availability_zones_enabled      = false
+  backup_storage_customer_key_uri = azurerm_key_vault_key.test2.id
+  base64_encoded_yaml_fragment    = "Z29tcGFjdGlvbl90aHJvdWdocHV0X21iX3Blcl9zZWM6IDMyCmNvbXBhY3Rpb25fbGFyZ2VfcGFydGl0aW9uX3dhcm5pbmdfdGhyZXNob2xkX21iOiAxMDA="
 
   depends_on = [
     azurerm_key_vault_key.test,
