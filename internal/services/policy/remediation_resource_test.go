@@ -120,6 +120,9 @@ resource "azurerm_resource_policy_remediation" "test" {
   location_filters        = ["westus"]
   policy_definition_id    = data.azurerm_policy_definition.test.id
   resource_discovery_mode = "ReEvaluateCompliance"
+  failure_percentage      = 0.5
+  parallel_deployments    = 3
+  resource_count 	      = 3
 }
 `, r.template(data), data.RandomString)
 }
