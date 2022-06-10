@@ -333,7 +333,7 @@ A `site_config` block exports the following:
 
 * `use_32_bit_worker` - Is the Windows Function App using a 32-bit worker process?
 
-* `vnet_route_all_enabled` - Are all outbound traffic to Virtual Network Security Groups and User Defined Routes applied?
+* `vnet_route_all_enabled` - Are all outbound traffic to NAT Gateways, Network Security Groups and User Defined Routes applied?
 
 * `websockets_enabled` - Are Web Sockets enabled?
 
