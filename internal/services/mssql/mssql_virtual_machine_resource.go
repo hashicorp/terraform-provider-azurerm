@@ -417,6 +417,29 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
+	// Wait for the auto patching settings to take effect
+	// See: https://github.com/Azure/azure-rest-api-specs/issues/12818
+	if autoPatching := d.Get("auto_patching"); (d.IsNewResource() && len(autoPatching.([]interface{})) > 0) || (!d.IsNewResource() && d.HasChange("auto_patching")) {
+		log.Printf("[DEBUG] Waiting for SQL Virtual Machine %q AutoPatchingSettings to take effect", d.Id())
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending:                   []string{"Retry", "Pending"},
+			Target:                    []string{"Updated"},
+			Refresh:                   resourceMsSqlVirtualMachineAutoPatchingSettingsRefreshFunc(ctx, client, d),
+			MinTimeout:                1 * time.Minute,
+			ContinuousTargetOccurence: 2,
+		}
+
+		if d.IsNewResource() {
+			stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
+		} else {
+			stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+		}
+
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for SQL Virtual Machine %q AutoPatchingSettings to take effect: %+v", d.Id(), err)
+		}
+	}
+
 	return resourceMsSqlVirtualMachineRead(d, meta)
 }
 
@@ -687,6 +710,46 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachine.AutoBackup
 	}
 }
 
+func resourceMsSqlVirtualMachineAutoPatchingSettingsRefreshFunc(ctx context.Context, client *sqlvirtualmachine.SQLVirtualMachinesClient, d *pluginsdk.ResourceData) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		id, err := parse.SqlVirtualMachineID(d.Id())
+		if err != nil {
+			return nil, "Error", err
+		}
+
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "*")
+		if err != nil {
+			return nil, "Retry", err
+		}
+
+		if props := resp.Properties; props != nil {
+			autoPatchingSettings := flattenSqlVirtualMachineAutoPatching(props.AutoPatchingSettings)
+
+			if len(autoPatchingSettings) == 0 {
+				if v, ok := d.GetOk("auto_patching"); !ok || len(v.([]interface{})) == 0 {
+					return resp, "Updated", nil
+				}
+				return resp, "Pending", nil
+			}
+
+			if v, ok := d.GetOk("auto_patching"); !ok || len(v.([]interface{})) == 0 {
+				return resp, "Pending", nil
+			}
+
+			for prop, val := range autoPatchingSettings[0].(map[string]interface{}) {
+				v := d.Get(fmt.Sprintf("auto_patching.0.%s", prop))
+				if v != val {
+					return resp, "Pending", nil
+				}
+			}
+
+			return resp, "Updated", nil
+		}
+
+		return resp, "Retry", nil
+	}
+}
+
 func expandSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvirtualmachine.AutoPatchingSettings {
 	if len(input) == 0 {
 		return nil
@@ -706,14 +769,14 @@ func flattenSqlVirtualMachineAutoPatching(autoPatching *sqlvirtualmachine.AutoPa
 		return []interface{}{}
 	}
 
-	var startHour int32
+	var startHour int
 	if autoPatching.MaintenanceWindowStartingHour != nil {
-		startHour = *autoPatching.MaintenanceWindowStartingHour
+		startHour = int(*autoPatching.MaintenanceWindowStartingHour)
 	}
 
-	var duration int32
+	var duration int
 	if autoPatching.MaintenanceWindowDuration != nil {
-		duration = *autoPatching.MaintenanceWindowDuration
+		duration = int(*autoPatching.MaintenanceWindowDuration)
 	}
 
 	return []interface{}{
