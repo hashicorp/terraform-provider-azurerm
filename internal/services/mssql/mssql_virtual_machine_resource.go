@@ -783,7 +783,7 @@ func expandSqlVirtualMachineAssessmentSettings(input []interface{}) *sqlvirtualm
 	assessmentSetting := input[0].(map[string]interface{})
 
 	if len(assessmentSetting["schedule"]) == 0 {
-		schedule_data := nil
+		schedule_data :=  &sqlvirtualmachine.Schedule{}
 	} else {
 		schedule_data := &sqlvirtualmachine.Schedule{
 			Enable:            utils.Bool(true),
