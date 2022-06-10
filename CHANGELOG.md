@@ -1,3 +1,9 @@
+## 3.11.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_shared_image_*` - Fix validation for `gallery_name` [GH-17201]
+
 ## 3.10.0 (June 09, 2022)
 
 FEATURES:
