@@ -96,6 +96,11 @@ resource "azurerm_batch_account" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
+  allowed_authentication_modes = [
+    "AAD",
+    "SharedKey",
+    "TaskAuthenticationToken"
+  ]
 }
 
 data "azurerm_batch_account" "test" {
@@ -125,11 +130,17 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = azurerm_storage_account.test.id
+  name                                = "testaccbatch%s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
+  allowed_authentication_modes = [
+    "AAD",
+    "SharedKey",
+    "TaskAuthenticationToken"
+  ]
 
   tags = {
     env = "test"
@@ -198,6 +209,11 @@ resource "azurerm_batch_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
 
   pool_allocation_mode = "UserSubscription"
+  allowed_authentication_modes = [
+    "AAD",
+    "SharedKey",
+    "TaskAuthenticationToken"
+  ]
 
   key_vault_reference {
     id  = "${azurerm_key_vault.test.id}"
@@ -246,11 +262,17 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = azurerm_storage_account.test.id
+  name                                = "testaccbatch%s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
+  allowed_authentication_modes = [
+    "AAD",
+    "SharedKey",
+    "TaskAuthenticationToken"
+  ]
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
