@@ -209,9 +209,9 @@ resource "azurerm_vpn_site" "test" {
 
   o365_policy {
     traffic_category {
-      allow_controlled    = %t
-      default_controlled  = %t
-      optimize_controlled = %t
+      allow_endpoint_enabled    = %t
+      default_endpoint_enabled  = %t
+      optimize_endpoint_enabled = %t
     }
   }
 

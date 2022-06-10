@@ -151,19 +151,19 @@ func resourceVpnSite() *pluginsdk.Resource {
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"allow_controlled": {
+									"allow_endpoint_enabled": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
 										Default:  false,
 									},
 
-									"default_controlled": {
+									"default_endpoint_enabled": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
 										Default:  false,
 									},
 
-									"optimize_controlled": {
+									"optimize_endpoint_enabled": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
 										Default:  false,
@@ -510,9 +510,9 @@ func expandVpnSiteO365TrafficCategoryPolicy(input []interface{}) *network.O365Br
 	trafficCategory := input[0].(map[string]interface{})
 
 	return &network.O365BreakOutCategoryPolicies{
-		Allow:    utils.Bool(trafficCategory["allow_controlled"].(bool)),
-		Default:  utils.Bool(trafficCategory["default_controlled"].(bool)),
-		Optimize: utils.Bool(trafficCategory["optimize_controlled"].(bool)),
+		Allow:    utils.Bool(trafficCategory["allow_endpoint_enabled"].(bool)),
+		Default:  utils.Bool(trafficCategory["default_endpoint_enabled"].(bool)),
+		Optimize: utils.Bool(trafficCategory["optimize_endpoint_enabled"].(bool)),
 	}
 }
 
@@ -555,9 +555,9 @@ func flattenVpnSiteO365TrafficCategoryPolicy(input *network.O365BreakOutCategory
 
 	return []interface{}{
 		map[string]interface{}{
-			"allow_controlled":    isAllowed,
-			"default_controlled":  isDefault,
-			"optimize_controlled": isOptimized,
+			"allow_endpoint_enabled":    isAllowed,
+			"default_endpoint_enabled":  isDefault,
+			"optimize_endpoint_enabled": isOptimized,
 		},
 	}
 }
