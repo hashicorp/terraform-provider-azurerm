@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `network_rulesets` - (Optional) A `network_rulesets` block as defined below.
 
+* `local_auth_enabled` - (Optional) Is SAS authentication enabled for the EventHub Namespace?
+
 ---
 
 A `identity` block supports the following:
