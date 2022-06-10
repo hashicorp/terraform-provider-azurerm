@@ -11,8 +11,9 @@ func TestAccCassandraSequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"cluster": {
 			"basic":          testAccCassandraCluster_basic,
+			"complete":       testAccCassandraCluster_complete,
+			"update":         testAccCassandraCluster_update,
 			"requiresImport": testAccCassandraCluster_requiresImport,
-			"tags":           testAccCassandraCluster_tags,
 		},
 		"dataCenter": {
 			"basic":          testAccCassandraDatacenter_basic,
