@@ -159,19 +159,20 @@ func (r DomainServiceTrustResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			dsrid := parse.NewDomainServiceResourceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName)
+
+			resourceErrorName := fmt.Sprintf("Domain Service (Name: %q, Resource Group: %q)", id.DomainServiceName, id.ResourceGroup)
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.DomainServiceName)
 			if err != nil {
 				if utils.ResponseWasNotFound(existing.Response) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", dsrid, err)
+				return fmt.Errorf("retrieving %s: %+v", resourceErrorName, err)
 			}
 
 			props := existing.DomainServiceProperties
 			if props == nil {
-				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing properties", dsrid)
+				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing properties", resourceErrorName)
 			}
 
 			existingTrusts := []aad.ForestTrust{}
@@ -196,7 +197,7 @@ func (r DomainServiceTrustResource) Read() sdk.ResourceFunc {
 			// Retrieve the initial replica set id to construct the domain service id.
 			replicaSets := flattenDomainServiceReplicaSets(props.ReplicaSets)
 			if len(replicaSets) == 0 {
-				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing replica set details", dsrid)
+				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing replica set details", resourceErrorName)
 			}
 			initialReplicaSetId := replicaSets[0].(map[string]interface{})["id"].(string)
 			dsid := parse.NewDomainServiceID(client.SubscriptionID, id.ResourceGroup, id.DomainServiceName, initialReplicaSetId)
@@ -236,7 +237,8 @@ func (r DomainServiceTrustResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			dsrid := parse.NewDomainServiceResourceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName)
+
+			resourceErrorName := fmt.Sprintf("Domain Service (Name: %q, Resource Group: %q)", id.DomainServiceName, id.ResourceGroup)
 
 			locks.ByName(id.DomainServiceName, DomainServiceResourceName)
 			defer locks.UnlockByName(id.DomainServiceName, DomainServiceResourceName)
@@ -246,7 +248,7 @@ func (r DomainServiceTrustResource) Delete() sdk.ResourceFunc {
 				if utils.ResponseWasNotFound(existing.Response) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", dsrid, err)
+				return fmt.Errorf("retrieving %s: %+v", resourceErrorName, err)
 			}
 			existingTrusts := []aad.ForestTrust{}
 			if props := existing.DomainServiceProperties; props != nil {
@@ -301,14 +303,15 @@ func (r DomainServiceTrustResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			dsrid := parse.NewDomainServiceResourceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName)
+
+			resourceErrorName := fmt.Sprintf("Domain Service (Name: %q, Resource Group: %q)", id.DomainServiceName, id.ResourceGroup)
 
 			locks.ByName(id.DomainServiceName, DomainServiceResourceName)
 			defer locks.UnlockByName(id.DomainServiceName, DomainServiceResourceName)
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.DomainServiceName)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", dsrid, err)
+				return fmt.Errorf("retrieving %s: %+v", resourceErrorName, err)
 			}
 			existingTrusts := []aad.ForestTrust{}
 			if props := existing.DomainServiceProperties; props != nil {
