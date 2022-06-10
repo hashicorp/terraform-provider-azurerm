@@ -71,6 +71,8 @@ The following arguments are supported:
 
 ---
 
+* `capacity_reservation_group_id` - (Optional) AKS will associate the specified agent pool with the Capacity Reservation Group. Changing this forces a new resource to be created.
+
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler). Defaults to `false`.
 
 * `enable_host_encryption` - (Optional) Should the nodes in this Node Pool have host encryption enabled? Defaults to `false`.

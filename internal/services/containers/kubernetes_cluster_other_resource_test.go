@@ -464,6 +464,21 @@ func TestAccKubernetesCluster_basicMaintenanceConfig(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_capacityReservationGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.capacityReservationGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_completeMaintenanceConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -1729,6 +1744,62 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) capacityReservationGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_capacity_reservation_group" "test" {
+  name                = "acctest-ccrg-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  zones               = ["1", "2"]
+}
+
+resource "azurerm_capacity_reservation" "test" {
+  name                          = "acctest-ccr-%[1]d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+  zone                          = "2"
+  sku {
+    name     = "Standard_F2"
+    capacity = 2
+  }
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+  default_node_pool {
+    name                          = "default"
+    node_count                    = 1
+    vm_size                       = "Standard_DS2_v2"
+    capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  maintenance_window {
+    allowed {
+      day   = "Monday"
+      hours = [1, 2]
+    }
+  }
+
+  depends_on = [
+    azurerm_capacity_reservation.test
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (KubernetesClusterResource) completeMaintenanceConfig(data acceptance.TestData) string {
