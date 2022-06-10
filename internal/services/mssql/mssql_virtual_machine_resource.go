@@ -192,22 +192,24 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 							Optional: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
-								"weekly_interval": {
-									Type:     pluginsdk.TypeInt,
-									Optional: true,
-								},
-								"monthly_occurrence": {
-									Type:     pluginsdk.TypeInt,
-									Optional: true,
-								},
-								"day_of_week": {
-									Type:     pluginsdk.TypeInt,
-									Optional: true,
-								},
-								"start_time": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-								},
+								Schema: map[string]*pluginsdk.Schema{
+									"weekly_interval": {
+										Type:     pluginsdk.TypeInt,
+										Optional: true,
+									},
+									"monthly_occurrence": {
+										Type:     pluginsdk.TypeInt,
+										Optional: true,
+									},
+									"day_of_week": {
+										Type:     pluginsdk.TypeInt,
+										Optional: true,
+									},
+									"start_time": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+									},
+								}
 							},
 						},
 
