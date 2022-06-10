@@ -895,6 +895,7 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 			MinTimeout:                15 * time.Second,
 			ContinuousTargetOccurence: 5,
 			Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
+			NotFoundChecks:            40,
 		}
 
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {

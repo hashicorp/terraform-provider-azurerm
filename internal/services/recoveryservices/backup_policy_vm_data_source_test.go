@@ -35,5 +35,5 @@ data "azurerm_backup_policy_vm" "test" {
   recovery_vault_name = azurerm_recovery_services_vault.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, BackupProtectionPolicyVMResource{}.basicDaily(data))
+`, BackupProtectionPolicyVMResource{}.basicDaily(data, "V1"))
 }

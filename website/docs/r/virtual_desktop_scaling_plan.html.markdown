@@ -20,6 +20,8 @@ Manages a Virtual Desktop Scaling Plan.
 
 ```hcl
 
+resource "random_uuid" "example" {
+}
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
