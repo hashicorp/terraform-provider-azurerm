@@ -33,40 +33,6 @@ func parseCmkIdentityType(input string) (*CmkIdentityType, error) {
 	return &out, nil
 }
 
-type CreatedByType string
-
-const (
-	CreatedByTypeApplication     CreatedByType = "Application"
-	CreatedByTypeKey             CreatedByType = "Key"
-	CreatedByTypeManagedIdentity CreatedByType = "ManagedIdentity"
-	CreatedByTypeUser            CreatedByType = "User"
-)
-
-func PossibleValuesForCreatedByType() []string {
-	return []string{
-		string(CreatedByTypeApplication),
-		string(CreatedByTypeKey),
-		string(CreatedByTypeManagedIdentity),
-		string(CreatedByTypeUser),
-	}
-}
-
-func parseCreatedByType(input string) (*CreatedByType, error) {
-	vals := map[string]CreatedByType{
-		"application":     CreatedByTypeApplication,
-		"key":             CreatedByTypeKey,
-		"managedidentity": CreatedByTypeManagedIdentity,
-		"user":            CreatedByTypeUser,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := CreatedByType(input)
-	return &out, nil
-}
-
 type KeyName string
 
 const (
@@ -123,5 +89,33 @@ func parseProvisioningState(input string) (*ProvisioningState, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := ProvisioningState(input)
+	return &out, nil
+}
+
+type StorageSKU string
+
+const (
+	StorageSKUBasic    StorageSKU = "basic"
+	StorageSKUStandard StorageSKU = "standard"
+)
+
+func PossibleValuesForStorageSKU() []string {
+	return []string{
+		string(StorageSKUBasic),
+		string(StorageSKUStandard),
+	}
+}
+
+func parseStorageSKU(input string) (*StorageSKU, error) {
+	vals := map[string]StorageSKU{
+		"basic":    StorageSKUBasic,
+		"standard": StorageSKUStandard,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := StorageSKU(input)
 	return &out, nil
 }

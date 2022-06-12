@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	servers "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/sdk/2022-04-21/fluidrelayservers"
+	servers "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/sdk/2022-05-26/fluidrelayservers"
 )
 
 type Client struct {

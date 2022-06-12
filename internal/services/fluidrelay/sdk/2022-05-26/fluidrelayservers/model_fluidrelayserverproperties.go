@@ -8,4 +8,5 @@ type FluidRelayServerProperties struct {
 	FluidRelayEndpoints *FluidRelayEndpoints  `json:"fluidRelayEndpoints,omitempty"`
 	FrsTenantId         *string               `json:"frsTenantId,omitempty"`
 	ProvisioningState   *ProvisioningState    `json:"provisioningState,omitempty"`
+	Storagesku          *StorageSKU           `json:"storagesku,omitempty"`
 }

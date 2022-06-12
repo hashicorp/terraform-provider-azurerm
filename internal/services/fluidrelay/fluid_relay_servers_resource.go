@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/sdk/2022-04-21/fluidrelayservers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/sdk/2022-05-26/fluidrelayservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/sdk/2018-11-30/managedidentity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"

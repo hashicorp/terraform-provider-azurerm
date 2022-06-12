@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/sdk/2022-04-21/fluidrelayservers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/sdk/2022-05-26/fluidrelayservers"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"

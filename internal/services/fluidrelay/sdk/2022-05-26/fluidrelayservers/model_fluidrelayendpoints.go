@@ -5,5 +5,6 @@ package fluidrelayservers
 
 type FluidRelayEndpoints struct {
 	OrdererEndpoints *[]string `json:"ordererEndpoints,omitempty"`
+	ServiceEndpoints *[]string `json:"serviceEndpoints,omitempty"`
 	StorageEndpoints *[]string `json:"storageEndpoints,omitempty"`
 }
