@@ -87,9 +87,15 @@ A `destination` block supports the following:
 
 * `archive_name_format` - The Blob naming convention for archiving. e.g. `{Namespace}/{EventHub}/{PartitionId}/{Year}/{Month}/{Day}/{Hour}/{Minute}/{Second}`. Here all the parameters (Namespace,EventHub .. etc) are mandatory irrespective of order
 
-* `blob_container_name` - (Required) The name of the Container within the Blob Storage Account where messages should be archived.
+* `blob_container_name` - (Optional) The name of the Container within the Blob Storage Account where messages should be archived.
 
-* `storage_account_id` - (Required) The ID of the Blob Storage Account where messages should be archived.
+* `storage_account_id` - (Optional) The ID of the Blob Storage Account where messages should be archived.
+
+* `datalake_account_name` - (Optional) The name of the Azure Data Lake account where messages should be archived.
+
+* `datalake_subscription_id` - (Optional) The ID of the Azure Data Lake Subscription where messages should be archived.
+
+~> **Note:** Only one of destinations can be selected, either blob container or data lake.
 
 ## Attributes Reference
 

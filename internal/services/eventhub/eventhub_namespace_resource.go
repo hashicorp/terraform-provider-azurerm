@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/networkrulesets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-11-01/eventhubsclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-11-01/namespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-11-01/networkrulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -620,7 +620,7 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 	return &ruleset
 }
 
-func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGetNetworkRuleSetResponse) []interface{} {
+func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGetNetworkRuleSetOperationResponse) []interface{} {
 	if ruleset.Model == nil || ruleset.Model.Properties == nil {
 		return nil
 	}

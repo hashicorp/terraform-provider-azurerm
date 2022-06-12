@@ -79,11 +79,13 @@ func resourceEventHub() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
+
 						"skip_empty_archives": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
+
 						"encoding": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
@@ -92,18 +94,21 @@ func resourceEventHub() *pluginsdk.Resource {
 								string(eventhubs.EncodingCaptureDescriptionAvroDeflate),
 							}, false),
 						},
+
 						"interval_in_seconds": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      300,
 							ValidateFunc: validation.IntBetween(60, 900),
 						},
+
 						"size_limit_in_bytes": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      314572800,
 							ValidateFunc: validation.IntBetween(10485760, 524288000),
 						},
+
 						"destination": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
@@ -115,24 +120,46 @@ func resourceEventHub() *pluginsdk.Resource {
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"EventHubArchive.AzureBlockBlob",
+											"EventHubArchive.AzureDataLake",
 											// TODO: support `EventHubArchive.AzureDataLake` once supported in the Swagger / SDK
 											// https://github.com/Azure/azure-rest-api-specs/issues/2255
 											// BlobContainerName & StorageAccountID can then become Optional
 										}, false),
 									},
+
 									"archive_name_format": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: validate.ValidateEventHubArchiveNameFormat,
 									},
+
 									"blob_container_name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
+										Type:          pluginsdk.TypeString,
+										Optional:      true,
+										AtLeastOneOf:  []string{"capture_description.0.destination.0.blob_container_name", "destination.0.datalake_account_name"},
+										ConflictsWith: []string{"capture_description.0.destination.0.datalake_account_name"},
 									},
+
 									"storage_account_id": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: azure.ValidateResourceID,
+										Type:          pluginsdk.TypeString,
+										Optional:      true,
+										ValidateFunc:  azure.ValidateResourceID,
+										ConflictsWith: []string{"capture_description.0.destination.0.datalake_subscription_id"},
+										RequiredWith:  []string{"capture_description.0.destination.0.blob_container_name"},
+									},
+
+									"datalake_account_name": {
+										Type:          pluginsdk.TypeString,
+										Optional:      true,
+										AtLeastOneOf:  []string{"capture_description.0.destination.0.blob_container_name", "destination.0.datalake_account_name"},
+										ConflictsWith: []string{"capture_description.0.destination.0.blob_container_name"},
+									},
+
+									"datalake_subscription_id": {
+										Type:          pluginsdk.TypeString,
+										Optional:      true,
+										ConflictsWith: []string{"capture_description.0.destination.0.storage_account_id"},
+										RequiredWith:  []string{"capture_description.0.destination.0.datalake_account_name"},
 									},
 								},
 							},
@@ -348,14 +375,23 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 			archiveNameFormat := destination["archive_name_format"].(string)
 			blobContainerName := destination["blob_container_name"].(string)
 			storageAccountId := destination["storage_account_id"].(string)
+			datalakeAccountName := destination["datalake_account_name"].(string)
+			datalakeSubsId := destination["datalake_subscription_id"].(string)
 
 			captureDescription.Destination = &eventhubs.Destination{
 				Name: utils.String(destinationName),
 				Properties: &eventhubs.DestinationProperties{
-					ArchiveNameFormat:        utils.String(archiveNameFormat),
-					BlobContainer:            utils.String(blobContainerName),
-					StorageAccountResourceId: utils.String(storageAccountId),
+					ArchiveNameFormat: utils.String(archiveNameFormat),
 				},
+			}
+			if blobContainerName != "" {
+				captureDescription.Destination.Properties.BlobContainer = utils.String(blobContainerName)
+				captureDescription.Destination.Properties.StorageAccountResourceId = utils.String(storageAccountId)
+			}
+
+			if datalakeAccountName != "" {
+				captureDescription.Destination.Properties.DataLakeAccountName = utils.String(datalakeAccountName)
+				captureDescription.Destination.Properties.DataLakeSubscriptionId = utils.String(datalakeSubsId)
 			}
 		}
 	}
@@ -407,6 +443,12 @@ func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription
 				}
 				if storageAccountId := props.StorageAccountResourceId; storageAccountId != nil {
 					destinationOutput["storage_account_id"] = *storageAccountId
+				}
+				if datalakeAccountName := props.DataLakeAccountName; datalakeAccountName != nil {
+					destinationOutput["datalake_account_name"] = *datalakeAccountName
+				}
+				if datalakeSubsId := props.DataLakeSubscriptionId; datalakeSubsId != nil {
+					destinationOutput["datalake_subscription_id"] = *datalakeSubsId
 				}
 			}
 
