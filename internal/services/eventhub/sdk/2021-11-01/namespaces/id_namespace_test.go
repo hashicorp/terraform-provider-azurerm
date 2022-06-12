@@ -1,7 +1,6 @@
 package namespaces
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
