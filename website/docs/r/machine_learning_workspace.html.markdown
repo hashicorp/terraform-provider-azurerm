@@ -60,7 +60,6 @@ resource "azurerm_machine_learning_workspace" "example" {
     type = "SystemAssigned"
   }
   
-  public_network_access_enabled = false
 }
 ```
 
