@@ -564,10 +564,10 @@ resource "azurerm_eventhub" "test" {
     skip_empty_archives = true
 
     destination {
-      name                = "EventHubArchive.AzureDataLake"
-      archive_name_format = "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}"
+      name                  = "EventHubArchive.AzureDataLake"
+      archive_name_format   = "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}"
       datalake_account_name = "exampledl"
-      datalake_folder_path = "/examplefolder"
+      datalake_folder_path  = "/examplefolder"
     }
   }
 }
