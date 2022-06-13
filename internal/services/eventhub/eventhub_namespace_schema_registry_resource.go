@@ -117,6 +117,13 @@ func resourceEventHubNamespaceSchemaRegistryCreateUpdate(d *pluginsdk.ResourceDa
 		},
 	}
 
+	// todo: confirm the SDK property type, current type doesn't accept the null as a valid value
+	//if d.HasChange("schema_group_property") {
+	//	oldList, newList := d.GetChange("schema_group_property")
+	//	for k, v := range oldList.(map[string]interface{}) {
+	//		if
+	//	}
+	//}
 	if value, ok := d.GetOk("schema_group_property"); ok {
 		result := make(map[string]string)
 		for k, v := range value.(map[string]interface{}) {
