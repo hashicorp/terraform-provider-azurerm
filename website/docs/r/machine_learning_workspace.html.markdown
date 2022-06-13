@@ -361,8 +361,6 @@ The following arguments are supported:
 
 -> **NOTE:** The `admin_enabled` should be `true` in order to associate the Container Registry to this Machine Learning Workspace.
 
-* `public_access_behind_virtual_network_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind a VNet.
-
 * `public_network_access_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind VNet.
 
 ~> **NOTE:** `public_access_behind_virtual_network_enabled` is deprecated and will be removed in favour of the `public_network_access` property in version 4.0 of the AzureRM Provider.
