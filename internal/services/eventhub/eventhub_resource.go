@@ -3,6 +3,7 @@ package eventhub
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -136,30 +137,30 @@ func resourceEventHub() *pluginsdk.Resource {
 									"blob_container_name": {
 										Type:          pluginsdk.TypeString,
 										Optional:      true,
-										AtLeastOneOf:  []string{"capture_description.0.destination.0.blob_container_name", "destination.0.datalake_account_name"},
+										AtLeastOneOf:  []string{"capture_description.0.destination.0.blob_container_name", "capture_description.0.destination.0.datalake_account_name"},
 										ConflictsWith: []string{"capture_description.0.destination.0.datalake_account_name"},
 									},
 
 									"storage_account_id": {
-										Type:          pluginsdk.TypeString,
-										Optional:      true,
-										ValidateFunc:  azure.ValidateResourceID,
-										ConflictsWith: []string{"capture_description.0.destination.0.datalake_subscription_id"},
-										RequiredWith:  []string{"capture_description.0.destination.0.blob_container_name"},
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: azure.ValidateResourceID,
+										RequiredWith: []string{"capture_description.0.destination.0.blob_container_name"},
 									},
 
+									// can not use the id since service won't return resource group data
 									"datalake_account_name": {
 										Type:          pluginsdk.TypeString,
 										Optional:      true,
-										AtLeastOneOf:  []string{"capture_description.0.destination.0.blob_container_name", "destination.0.datalake_account_name"},
+										AtLeastOneOf:  []string{"capture_description.0.destination.0.blob_container_name", "capture_description.0.destination.0.datalake_account_name"},
 										ConflictsWith: []string{"capture_description.0.destination.0.blob_container_name"},
 									},
 
-									"datalake_subscription_id": {
-										Type:          pluginsdk.TypeString,
-										Optional:      true,
-										ConflictsWith: []string{"capture_description.0.destination.0.storage_account_id"},
-										RequiredWith:  []string{"capture_description.0.destination.0.datalake_account_name"},
+									"datalake_folder_path": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringMatch(regexp.MustCompile(`^\/`), "It must start with '/'"),
+										RequiredWith: []string{"capture_description.0.destination.0.datalake_account_name"},
 									},
 								},
 							},
@@ -222,7 +223,7 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if _, ok := d.GetOk("capture_description"); ok {
-		parameters.Properties.CaptureDescription = expandEventHubCaptureDescription(d)
+		parameters.Properties.CaptureDescription = expandEventHubCaptureDescription(d, subscriptionId)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -268,7 +269,7 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("capture_description") {
-		parameters.Properties.CaptureDescription = expandEventHubCaptureDescription(d)
+		parameters.Properties.CaptureDescription = expandEventHubCaptureDescription(d, subscriptionId)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -342,7 +343,7 @@ func resourceEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.CaptureDescription {
+func expandEventHubCaptureDescription(d *pluginsdk.ResourceData, subscriptionId string) *eventhubs.CaptureDescription {
 	inputs := d.Get("capture_description").([]interface{})
 	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
@@ -376,7 +377,7 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 			blobContainerName := destination["blob_container_name"].(string)
 			storageAccountId := destination["storage_account_id"].(string)
 			datalakeAccountName := destination["datalake_account_name"].(string)
-			datalakeSubsId := destination["datalake_subscription_id"].(string)
+			datalakeFolderPath := destination["datalake_folder_path"].(string)
 
 			captureDescription.Destination = &eventhubs.Destination{
 				Name: utils.String(destinationName),
@@ -391,7 +392,8 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 
 			if datalakeAccountName != "" {
 				captureDescription.Destination.Properties.DataLakeAccountName = utils.String(datalakeAccountName)
-				captureDescription.Destination.Properties.DataLakeSubscriptionId = utils.String(datalakeSubsId)
+				captureDescription.Destination.Properties.DataLakeFolderPath = utils.String(datalakeFolderPath)
+				captureDescription.Destination.Properties.DataLakeSubscriptionId = utils.String(subscriptionId)
 			}
 		}
 	}
@@ -444,11 +446,11 @@ func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription
 				if storageAccountId := props.StorageAccountResourceId; storageAccountId != nil {
 					destinationOutput["storage_account_id"] = *storageAccountId
 				}
-				if datalakeAccountName := props.DataLakeAccountName; datalakeAccountName != nil {
-					destinationOutput["datalake_account_name"] = *datalakeAccountName
+				if props.DataLakeAccountName != nil {
+					destinationOutput["datalake_account_name"] = *props.DataLakeAccountName
 				}
-				if datalakeSubsId := props.DataLakeSubscriptionId; datalakeSubsId != nil {
-					destinationOutput["datalake_subscription_id"] = *datalakeSubsId
+				if props.DataLakeFolderPath != nil {
+					destinationOutput["datalake_folder_path"] = *props.DataLakeFolderPath
 				}
 			}
 

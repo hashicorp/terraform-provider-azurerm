@@ -276,6 +276,21 @@ func TestAccEventHub_captureDescription(t *testing.T) {
 	})
 }
 
+func TestAccEventHub_captureDescriptionWithDataLake(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.captureDescriptionWithDataLake(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccEventHub_captureDescriptionDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 	r := EventHubResource{}
@@ -512,6 +527,51 @@ resource "azurerm_eventhub" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, enabledString)
+}
+
+// We need to hard code the data lake since data lake is not supported by TF currently
+func (EventHubResource) captureDescriptionWithDataLake(data acceptance.TestData, enabled bool) string {
+	enabledString := strconv.FormatBool(enabled)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eventhub-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctest-EH%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 7
+
+  capture_description {
+    enabled             = %s
+    encoding            = "Avro"
+    interval_in_seconds = 60
+    size_limit_in_bytes = 10485760
+    skip_empty_archives = true
+
+    destination {
+      name                = "EventHubArchive.AzureDataLake"
+      archive_name_format = "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}"
+      datalake_account_name = "exampledl"
+      datalake_folder_path = "/examplefolder"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabledString)
 }
 
 func (EventHubResource) messageRetentionUpdate(data acceptance.TestData) string {
