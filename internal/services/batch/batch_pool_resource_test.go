@@ -414,7 +414,7 @@ func TestAccBatchPool_customImage(t *testing.T) {
 				check.That(data.ResourceName).Key("start_task.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep("stop_pending_resize_operation", "tags.1.azsecpack", "tags.1.platformsettings.host_environment.service.platform_optedin_for_rootcerts"),
 	})
 }
 
