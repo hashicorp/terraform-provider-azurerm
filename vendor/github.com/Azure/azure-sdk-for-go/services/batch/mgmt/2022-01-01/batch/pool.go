@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// PoolClient is the client for the Pool methods of the Batch service.
+// PoolClient is the batch Client
 type PoolClient struct {
 	BaseClient
 }
@@ -127,7 +127,7 @@ func (client PoolClient) CreatePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -220,7 +220,7 @@ func (client PoolClient) DeletePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -319,7 +319,7 @@ func (client PoolClient) DisableAutoScalePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -409,7 +409,7 @@ func (client PoolClient) GetPreparer(ctx context.Context, resourceGroupName stri
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -514,7 +514,7 @@ func (client PoolClient) ListByBatchAccountPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -654,7 +654,7 @@ func (client PoolClient) StopResizePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -748,7 +748,7 @@ func (client PoolClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// AccountClient is the client for the Account methods of the Batch service.
+// AccountClient is the batch Client
 type AccountClient struct {
 	BaseClient
 }
@@ -92,7 +92,7 @@ func (client AccountClient) CreatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -181,7 +181,7 @@ func (client AccountClient) DeletePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -274,7 +274,7 @@ func (client AccountClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -296,6 +296,92 @@ func (client AccountClient) GetSender(req *http.Request) (*http.Response, error)
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client AccountClient) GetResponder(resp *http.Response) (result Account, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetDetector gets information about the given detector for a given Batch account.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the Batch account.
+// accountName - the name of the Batch account.
+// detectorID - the name of the detector.
+func (client AccountClient) GetDetector(ctx context.Context, resourceGroupName string, accountName string, detectorID string) (result DetectorResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountClient.GetDetector")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("batch.AccountClient", "GetDetector", err.Error())
+	}
+
+	req, err := client.GetDetectorPreparer(ctx, resourceGroupName, accountName, detectorID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "GetDetector", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetDetectorSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "GetDetector", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetDetectorResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "GetDetector", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetDetectorPreparer prepares the GetDetector request.
+func (client AccountClient) GetDetectorPreparer(ctx context.Context, resourceGroupName string, accountName string, detectorID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"detectorId":        autorest.Encode("path", detectorID),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2022-01-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Batch/batchAccounts/{accountName}/detectors/{detectorId}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetDetectorSender sends the GetDetector request. The method will close the
+// http.Response Body if it receives an error.
+func (client AccountClient) GetDetectorSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetDetectorResponder handles the response to the GetDetector request. The method always
+// closes the http.Response Body.
+func (client AccountClient) GetDetectorResponder(resp *http.Response) (result DetectorResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -360,7 +446,7 @@ func (client AccountClient) GetKeysPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -436,7 +522,7 @@ func (client AccountClient) ListPreparer(ctx context.Context) (*http.Request, er
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -552,7 +638,7 @@ func (client AccountClient) ListByResourceGroupPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -620,6 +706,132 @@ func (client AccountClient) ListByResourceGroupComplete(ctx context.Context, res
 	return
 }
 
+// ListDetectors gets information about the detectors available for a given Batch account.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the Batch account.
+// accountName - the name of the Batch account.
+func (client AccountClient) ListDetectors(ctx context.Context, resourceGroupName string, accountName string) (result DetectorListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountClient.ListDetectors")
+		defer func() {
+			sc := -1
+			if result.dlr.Response.Response != nil {
+				sc = result.dlr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("batch.AccountClient", "ListDetectors", err.Error())
+	}
+
+	result.fn = client.listDetectorsNextResults
+	req, err := client.ListDetectorsPreparer(ctx, resourceGroupName, accountName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "ListDetectors", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListDetectorsSender(req)
+	if err != nil {
+		result.dlr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "ListDetectors", resp, "Failure sending request")
+		return
+	}
+
+	result.dlr, err = client.ListDetectorsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "ListDetectors", resp, "Failure responding to request")
+		return
+	}
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+		return
+	}
+
+	return
+}
+
+// ListDetectorsPreparer prepares the ListDetectors request.
+func (client AccountClient) ListDetectorsPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2022-01-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Batch/batchAccounts/{accountName}/detectors", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListDetectorsSender sends the ListDetectors request. The method will close the
+// http.Response Body if it receives an error.
+func (client AccountClient) ListDetectorsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListDetectorsResponder handles the response to the ListDetectors request. The method always
+// closes the http.Response Body.
+func (client AccountClient) ListDetectorsResponder(resp *http.Response) (result DetectorListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listDetectorsNextResults retrieves the next set of results, if any.
+func (client AccountClient) listDetectorsNextResults(ctx context.Context, lastResults DetectorListResult) (result DetectorListResult, err error) {
+	req, err := lastResults.detectorListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "batch.AccountClient", "listDetectorsNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListDetectorsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "batch.AccountClient", "listDetectorsNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListDetectorsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "batch.AccountClient", "listDetectorsNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListDetectorsComplete enumerates all values, automatically crossing page boundaries as required.
+func (client AccountClient) ListDetectorsComplete(ctx context.Context, resourceGroupName string, accountName string) (result DetectorListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountClient.ListDetectors")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListDetectors(ctx, resourceGroupName, accountName)
+	return
+}
+
 // ListOutboundNetworkDependenciesEndpoints lists the endpoints that a Batch Compute Node under this Batch Account may
 // call as part of Batch service administration. If you are deploying a Pool inside of a virtual network that you
 // specify, you must make sure your network allows outbound access to these endpoints. Failure to allow access to these
@@ -682,7 +894,7 @@ func (client AccountClient) ListOutboundNetworkDependenciesEndpointsPreparer(ctx
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -807,7 +1019,7 @@ func (client AccountClient) RegenerateKeyPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -894,7 +1106,7 @@ func (client AccountClient) SynchronizeAutoStorageKeysPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -978,7 +1190,7 @@ func (client AccountClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// LocationClient is the client for the Location methods of the Batch service.
+// LocationClient is the batch Client
 type LocationClient struct {
 	BaseClient
 }
@@ -82,7 +82,7 @@ func (client LocationClient) CheckNameAvailabilityPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -158,7 +158,7 @@ func (client LocationClient) GetQuotasPreparer(ctx context.Context, locationName
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -240,7 +240,7 @@ func (client LocationClient) ListSupportedCloudServiceSkusPreparer(ctx context.C
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -365,7 +365,7 @@ func (client LocationClient) ListSupportedVirtualMachineSkusPreparer(ctx context
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

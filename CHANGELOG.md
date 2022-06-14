@@ -1,3 +1,13 @@
+## 3.11.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* batch: updating to use API Version `2022-01-01` [GH-17219]
+
+BUG FIXES:
+
+* `azurerm_shared_image_*` - Fix validation for `gallery_name` [GH-17201]
+
 ## 3.10.0 (June 09, 2022)
 
 FEATURES:

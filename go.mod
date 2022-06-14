@@ -10,7 +10,7 @@ require (
 	github.com/btubbs/datetime v0.1.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gofrs/uuid v4.0.0+incompatible
-	github.com/google/go-cmp v0.5.6
+	github.com/google/go-cmp v0.5.8
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/go-azure-helpers v0.33.0
 	github.com/hashicorp/go-multierror v1.1.1
@@ -53,7 +53,7 @@ require (
 	github.com/hashicorp/go-hclog v0.16.1 // indirect
 	github.com/hashicorp/go-plugin v1.4.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
-	github.com/hashicorp/hc-install v0.3.1 // indirect
+	github.com/hashicorp/hc-install v0.3.2 // indirect
 	github.com/hashicorp/hcl/v2 v2.10.0 // indirect
 	github.com/hashicorp/hcl2 v0.0.0-20191002203319-fb75b3253c80 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect

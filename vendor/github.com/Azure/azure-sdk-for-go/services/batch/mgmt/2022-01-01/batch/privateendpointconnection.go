@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// PrivateEndpointConnectionClient is the client for the PrivateEndpointConnection methods of the Batch service.
+// PrivateEndpointConnectionClient is the batch Client
 type PrivateEndpointConnectionClient struct {
 	BaseClient
 }
@@ -92,7 +92,7 @@ func (client PrivateEndpointConnectionClient) GetPreparer(ctx context.Context, r
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -182,7 +182,7 @@ func (client PrivateEndpointConnectionClient) ListByBatchAccountPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -310,7 +310,7 @@ func (client PrivateEndpointConnectionClient) UpdatePreparer(ctx context.Context
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
