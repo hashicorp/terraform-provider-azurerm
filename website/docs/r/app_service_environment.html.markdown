@@ -42,6 +42,7 @@ resource "azurerm_subnet" "gateway" {
 
 resource "azurerm_app_service_environment" "example" {
   name                         = "example-ase"
+  resource_group_name          = azurerm_resource_group.example.name
   subnet_id                    = azurerm_subnet.ase.id
   pricing_tier                 = "I2"
   front_end_scale_factor       = 10

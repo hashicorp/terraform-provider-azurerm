@@ -14,7 +14,8 @@ Manages a Stream Analytics Output Function.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name = "example-resources"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {

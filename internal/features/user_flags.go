@@ -33,6 +33,7 @@ type KeyVaultFeatures struct {
 	PurgeSoftDeletedKeysOnDestroy    bool
 	PurgeSoftDeletedCertsOnDestroy   bool
 	PurgeSoftDeletedSecretsOnDestroy bool
+	PurgeSoftDeletedHSMsOnDestroy    bool
 	RecoverSoftDeletedKeyVaults      bool
 	RecoverSoftDeletedKeys           bool
 	RecoverSoftDeletedCerts          bool
