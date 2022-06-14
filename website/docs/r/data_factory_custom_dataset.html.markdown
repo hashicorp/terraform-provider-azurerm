@@ -47,7 +47,6 @@ resource "azurerm_data_factory_linked_custom_service" "example" {
 JSON
 }
 
-
 resource "azurerm_storage_container" "example" {
   name                  = "content"
   storage_account_name  = azurerm_storage_account.example.name
