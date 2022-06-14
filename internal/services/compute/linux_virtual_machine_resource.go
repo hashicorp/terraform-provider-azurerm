@@ -114,12 +114,26 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				// TODO: raise a GH issue for the broken API
 				// availability_set_id:                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/ACCTESTAVSET-200122113424880096" => "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/acctestavset-200122113424880096" (forces new resource)
 				ConflictsWith: []string{
+					"capacity_reservation_group_id",
 					"virtual_machine_scale_set_id",
 					"zone",
 				},
 			},
 
 			"boot_diagnostics": bootDiagnosticsSchema(),
+
+			"capacity_reservation_group_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
+				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     computeValidate.CapacityReservationGroupID,
+				ConflictsWith: []string{
+					"availability_set_id",
+					"proximity_placement_group_id",
+				},
+			},
 
 			"computer_name": {
 				Type:     pluginsdk.TypeString,
@@ -246,6 +260,9 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.ProximityPlacementGroupID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
+				ConflictsWith: []string{
+					"capacity_reservation_group_id",
+				},
 			},
 
 			"secret": linuxSecretSchema(),
@@ -543,6 +560,14 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+		params.CapacityReservation = &compute.CapacityReservationProfile{
+			CapacityReservationGroup: &compute.SubResource{
+				ID: utils.String(v.(string)),
+			},
+		}
+	}
+
 	if v, ok := d.GetOk("custom_data"); ok {
 		params.OsProfile.CustomData = utils.String(v.(string))
 	}
@@ -686,6 +711,12 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		availabilitySetId = *props.AvailabilitySet.ID
 	}
 	d.Set("availability_set_id", availabilitySetId)
+
+	capacityReservationGroupId := ""
+	if props.CapacityReservation != nil && props.CapacityReservation.CapacityReservationGroup != nil && props.CapacityReservation.CapacityReservationGroup.ID != nil {
+		capacityReservationGroupId = *props.CapacityReservation.CapacityReservationGroup.ID
+	}
+	d.Set("capacity_reservation_group_id", capacityReservationGroupId)
 
 	licenseType := ""
 	if props.LicenseType != nil {
@@ -941,6 +972,23 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 
 		if v, ok := d.GetOk("license_type"); ok {
 			update.LicenseType = utils.String(v.(string))
+		}
+	}
+
+	if d.HasChange("capacity_reservation_group_id") {
+		shouldUpdate = true
+		shouldDeallocate = true
+
+		if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+			update.CapacityReservation = &compute.CapacityReservationProfile{
+				CapacityReservationGroup: &compute.SubResource{
+					ID: utils.String(v.(string)),
+				},
+			}
+		} else {
+			update.CapacityReservation = &compute.CapacityReservationProfile{
+				CapacityReservationGroup: &compute.SubResource{},
+			}
 		}
 	}
 
