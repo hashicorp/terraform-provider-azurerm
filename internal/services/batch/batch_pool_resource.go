@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"strings"
 	"time"
@@ -64,6 +63,27 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
+			},
+			"auto_scale": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"evaluation_interval": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "PT15M",
+						},
+						"formula": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+								return strings.TrimSpace(old) == strings.TrimSpace(new)
+							},
+						},
+					},
+				},
 			},
 			//TODO not able to determine support application licenses
 			"application_licenses": {
@@ -415,6 +435,43 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			"fixed_scale": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"node_deallocation_option": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(batch.ComputeNodeDeallocationOptionRequeue),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.ComputeNodeDeallocationOptionRequeue),
+								string(batch.ComputeNodeDeallocationOptionRetainedData),
+								string(batch.ComputeNodeDeallocationOptionTaskCompletion),
+								string(batch.ComputeNodeDeallocationOptionTerminate),
+							}, false),
+						},
+						"target_dedicated_nodes": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      1,
+							ValidateFunc: validation.IntBetween(0, 2000),
+						},
+						"target_low_priority_nodes": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      0,
+							ValidateFunc: validation.IntBetween(0, 1000),
+						},
+						"resize_timeout": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "PT15M",
+						},
+					},
+				},
+			},
 			"inter_node_communication": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -692,73 +749,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 												},
 											},
 										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			"scale_settings": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: !features.FourPointOhBeta(),
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"auto_scale": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"evaluation_interval": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  "PT15M",
-									},
-									"formula": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
-											return strings.TrimSpace(old) == strings.TrimSpace(new)
-										},
-									},
-								},
-							},
-						},
-						"fixed_scale": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"node_deallocation_option": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  string(batch.ComputeNodeDeallocationOptionRequeue),
-										ValidateFunc: validation.StringInSlice([]string{
-											string(batch.ComputeNodeDeallocationOptionRequeue),
-											string(batch.ComputeNodeDeallocationOptionRetainedData),
-											string(batch.ComputeNodeDeallocationOptionTaskCompletion),
-											string(batch.ComputeNodeDeallocationOptionTerminate),
-										}, false),
-									},
-									"target_dedicated_nodes": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										Default:      1,
-										ValidateFunc: validation.IntBetween(0, 2000),
-									},
-									"target_low_priority_nodes": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										Default:      0,
-										ValidateFunc: validation.IntBetween(0, 1000),
-									},
-									"resize_timeout": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  "PT15M",
 									},
 								},
 							},
