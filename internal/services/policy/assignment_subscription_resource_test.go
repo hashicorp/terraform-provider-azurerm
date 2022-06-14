@@ -660,7 +660,7 @@ resource "azurerm_subscription_policy_assignment" "test" {
   subscription_id      = data.azurerm_subscription.test.id
   policy_definition_id = data.azurerm_policy_set_definition.test.id
   location             = %[3]q
-  description		   = "%[4]s"
+  description          = "%[4]s"
 
   identity {
     type         = "UserAssigned"
