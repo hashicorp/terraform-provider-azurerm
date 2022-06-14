@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"encoding/json"
 	"reflect"
 )
 
@@ -29,7 +28,7 @@ func String(input string) *string {
 	return &input
 }
 
-// Ptr input MUST be not nil object
+// Ptr input MUST NOT be nil object
 func Ptr[T any](input T) *T {
 	//v := reflect.ValueOf(input)
 	return &input
@@ -53,9 +52,4 @@ func Value[T any](ptr *T) T {
 		return *t
 	}
 	return *ptr
-}
-
-func JSONStr(obj interface{}) string {
-	bs, _ := json.Marshal(obj)
-	return string(bs)
 }

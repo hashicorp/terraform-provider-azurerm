@@ -70,7 +70,30 @@ func TestAccFluidRelayServer_requiresImport(t *testing.T) {
 	})
 }
 
-func (f FluidRelayResource) basic(data acceptance.TestData) string {
+func TestAccFluidRelayServer_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, s.ResourceType(), "test")
+	var f FluidRelayResource
+
+	data.ResourceTest(t, f, []acceptance.TestStep{
+		{
+			Config: f.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(f),
+				check.That(data.ResourceName).Key("tags.foo").HasValue("bar"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: f.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(f),
+				check.That(data.ResourceName).Key("tags.foo").HasValue("bar2"),
+			),
+		},
+	})
+}
+
+func (f FluidRelayResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -86,11 +109,18 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (f FluidRelayResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%[1]s
 
 resource "azurerm_fluid_relay_server" "test" {
-  name                = "acctestRG-fuildRelayServer-%[1]d"
+  name                = "acctestRG-fuildRelayServer-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "%[2]s"
+  location            = "%[3]s"
   identity_type = "SystemAssigned, UserAssigned"
   user_assigned_identity {
      identity_id= azurerm_user_assigned_identity.test.id
@@ -99,7 +129,7 @@ resource "azurerm_fluid_relay_server" "test" {
     foo = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, f.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (f FluidRelayResource) requiresImport(data acceptance.TestData) string {
@@ -113,4 +143,24 @@ resource "azurerm_fluid_relay_server" "import" {
   location            = azurerm_fluid_relay_server.test.location
 }
 `, f.basic(data))
+}
+
+func (f FluidRelayResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%[1]s
+
+resource "azurerm_fluid_relay_server" "test" {
+  name                = "acctestRG-fuildRelayServer-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  identity_type = "SystemAssigned, UserAssigned"
+  user_assigned_identity {
+     identity_id= azurerm_user_assigned_identity.test.id
+  }
+  tags = {
+    foo = "bar2"
+  }
+}
+`, f.template(data), data.RandomInteger, data.Locations.Primary)
 }

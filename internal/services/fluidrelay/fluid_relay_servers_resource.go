@@ -254,9 +254,6 @@ func (s Server) Create() sdk.ResourceFunc {
 			serverReq.Properties.Encryption = model.GenEncryption()
 			serverReq.Identity = model.GenUserIdentities()
 
-			log := fmt.Sprintf("generate req: %s by model: %s", utils.JSONStr(serverReq), utils.JSONStr(model))
-			meta.Logger.Infof("start creating: %s, data: %s", id, log)
-			//return fmt.Errorf("interrupt by test: %s", log)
 			resp, err := client.CreateOrUpdate(ctx, id, serverReq)
 			if err != nil {
 				return fmt.Errorf("creating %v err: %+v, resp: %+v", id, err, resp)
