@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/polling"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
@@ -41,6 +42,12 @@ type LedgerListByResourceGroupOperationOptions struct {
 
 func DefaultLedgerListByResourceGroupOperationOptions() LedgerListByResourceGroupOperationOptions {
 	return LedgerListByResourceGroupOperationOptions{}
+}
+
+func (o LedgerListByResourceGroupOperationOptions) toHeaders() map[string]interface{} {
+	out := make(map[string]interface{})
+
+	return out
 }
 
 func (o LedgerListByResourceGroupOperationOptions) toQueryString() map[string]interface{} {
@@ -133,6 +140,7 @@ func (c ConfidentialLedgerClient) preparerForLedgerListByResourceGroup(ctx conte
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
+		autorest.WithHeaders(options.toHeaders()),
 		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.ConfidentialLedger/ledgers", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
