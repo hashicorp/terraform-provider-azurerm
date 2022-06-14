@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/sdk/2020-05-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -27,6 +26,31 @@ func TestAccSignalRService_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSignalRService_premium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Premium_P1"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
@@ -448,6 +472,30 @@ resource "azurerm_signalr_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (r SignalRServiceResource) premium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Premium_P1"
+    capacity = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (r SignalRServiceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -521,28 +569,6 @@ resource "azurerm_signalr_service" "test" {
 }
 
 func (r SignalRServiceResource) withServiceMode(data acceptance.TestData, serviceMode string) string {
-	featuresSnippet := fmt.Sprintf(`
-  features {
-    flag  = "ServiceMode"
-    value = "%s"
-  }
-  features {
-    flag  = "EnableConnectivityLogs"
-    value = "False"
-  }
-  features {
-    flag  = "EnableMessagingLogs"
-    value = "False"
-  }
-`, serviceMode)
-	if features.ThreePointOhBeta() {
-		featuresSnippet = fmt.Sprintf(`
-  service_mode = "%s"
-  connectivity_logs_enabled = false
-  messaging_logs_enabled = false
-`, serviceMode)
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -563,37 +589,14 @@ resource "azurerm_signalr_service" "test" {
     capacity = 1
   }
 
-  %[3]s
-
+  service_mode              = "%s"
+  connectivity_logs_enabled = false
+  messaging_logs_enabled    = false
 }
-`, data.RandomInteger, data.Locations.Primary, featuresSnippet)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r SignalRServiceResource) withUpstreamEndpoints(data acceptance.TestData) string {
-	featuresSnippet := `
-  features {
-    flag  = "ServiceMode"
-    value = "Serverless"
-  }
-
-  features {
-    flag  = "EnableConnectivityLogs"
-    value = "False"
-  }
-
-  features {
-    flag  = "EnableMessagingLogs"
-    value = "False"
-  }
-`
-	if features.ThreePointOhBeta() {
-		featuresSnippet = `
-  service_mode = "Serverless"
-  connectivity_logs_enabled = false
-  messaging_logs_enabled = false
-`
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -614,7 +617,9 @@ resource "azurerm_signalr_service" "test" {
     capacity = 1
   }
 
-  %s
+  service_mode              = "Serverless"
+  connectivity_logs_enabled = false
+  messaging_logs_enabled    = false
 
   upstream_endpoint {
     category_pattern = ["*"]
@@ -644,7 +649,7 @@ resource "azurerm_signalr_service" "test" {
     url_template     = "http://foo4.com"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, featuresSnippet)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (r SignalRServiceResource) withFeatureFlags(data acceptance.TestData) string {

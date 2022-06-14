@@ -14,6 +14,10 @@ Manages an API Management API Operation Policy
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_api_management_api_operation" "example" {
   #...
 }

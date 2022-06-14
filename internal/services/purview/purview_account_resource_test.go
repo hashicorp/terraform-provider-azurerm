@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,22 +96,6 @@ func (r PurviewAccountResource) Exists(ctx context.Context, client *clients.Clie
 
 func (r PurviewAccountResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_purview_account" "test" {
-  name                = "acctestsw%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-`, template, data.RandomInteger)
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -135,26 +117,6 @@ resource "azurerm_purview_account" "test" {
 
 func (r PurviewAccountResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_purview_account" "test" {
-  name                   = "acctestsw%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  public_network_enabled = false
-
-  tags = {
-    ENV = "Test"
-  }
-}
-`, template, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -181,17 +143,6 @@ resource "azurerm_purview_account" "test" {
 
 func (r PurviewAccountResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_purview_account" "import" {
-  name                = azurerm_purview_account.test.name
-  resource_group_name = azurerm_purview_account.test.resource_group_name
-  location            = azurerm_purview_account.test.location
-}
-`, template)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -209,22 +160,6 @@ resource "azurerm_purview_account" "import" {
 
 func (r PurviewAccountResource) withManagedResourceGroupName(data acceptance.TestData, managedResourceGroupName string) string {
 	template := r.template(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_purview_account" "test" {
-  name                        = "acctestsw%d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  managed_resource_group_name = %q
-}
-`, template, data.RandomInteger, managedResourceGroupName)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

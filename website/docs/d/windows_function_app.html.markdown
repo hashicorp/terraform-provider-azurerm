@@ -85,6 +85,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `site_credential` - A `site_credential` block as defined below.
 
+* `sticky_settings` - A `sticky_settings` block as defined below.
+
 * `storage_account_access_key` - The access key which is used to access the backend storage account for the Function App.
 
 * `storage_account_name` - The backend storage account name which is used by this Function App.
@@ -231,15 +233,15 @@ A `google` block exports the following:
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `identity_ids` - A list of User Assigned Identity IDs.
+* `type` - The type of Managed Service Identity that is configured on this Windows Function App.
 
-* `principal_id` - The ID of the Service Principal.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Windows Function App.
 
-* `tenant_id` - The ID of the tenant.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Windows Function App.
 
-* `type` - The type of managed service identity.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Windows Function App.
 
 ---
 
@@ -303,7 +305,7 @@ A `site_config` block exports the following:
 
 * `health_check_path` - The path to be checked for this Windows Function App health.
 
-* `http2_enabled` - Is the http2 protocol enabled?
+* `http2_enabled` - Is the HTTP2 protocol enabled?
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 
@@ -346,6 +348,14 @@ A `site_credential` block exports the following:
 * `name` - The Site Credentials Username used for publishing.
 
 * `password` - The Site Credentials Password used for publishing.
+
+---
+
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - A list of `app_setting` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - A list of `connection_string` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
 
 ---
 

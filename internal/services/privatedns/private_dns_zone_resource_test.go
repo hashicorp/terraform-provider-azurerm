@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/privatezones"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -94,17 +95,17 @@ func TestAccPrivateDnsZone_withSOARecord(t *testing.T) {
 }
 
 func (t PrivateDnsZoneResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PrivateDnsZoneID(state.ID)
+	id, err := privatezones.ParsePrivateDnsZoneID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.PrivateDns.PrivateZonesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.PrivateDns.PrivateZonesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Private DNS Zone (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (PrivateDnsZoneResource) basic(data acceptance.TestData) string {

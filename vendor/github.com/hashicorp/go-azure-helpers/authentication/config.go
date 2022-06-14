@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
+	authWrapper "github.com/manicminer/hamilton-autorest/auth"
 	"github.com/manicminer/hamilton/auth"
 	"github.com/manicminer/hamilton/environments"
 )
@@ -24,6 +25,7 @@ type Config struct {
 
 	GetAuthenticatedObjectID         func(context.Context) (*string, error)
 	AuthenticatedAsAServicePrincipal bool
+	AuthenticatedViaOIDC             bool
 
 	// A Custom Resource Manager Endpoint
 	// at this time this should only be applicable for Azure Stack.
@@ -134,14 +136,21 @@ func (c Config) MSALBearerAuthorizerCallback(ctx context.Context, api environmen
 		})
 	}
 
-	cast, ok := authorizer.(*auth.CachedAuthorizer)
-	if !ok {
-		return autorest.NewBearerAuthorizerCallback(nil, func(_, _ string) (*autorest.BearerAuthorizer, error) {
-			return nil, fmt.Errorf("authorizer was not an auth.CachedAuthorizer for %s", api.Endpoint)
+	// For compatibility with Azure CLI which still uses ADAL, first check if we got an autorest.BearerAuthorizer
+	if cast, ok := authorizer.(*autorest.BearerAuthorizer); ok {
+		return autorest.NewBearerAuthorizerCallback(sender, func(_, _ string) (*autorest.BearerAuthorizer, error) {
+			return cast, nil
 		})
 	}
 
-	return cast.BearerAuthorizerCallback()
+	cast, ok := authorizer.(auth.Authorizer)
+	if !ok {
+		return autorest.NewBearerAuthorizerCallback(nil, func(_, _ string) (*autorest.BearerAuthorizer, error) {
+			return nil, fmt.Errorf("authorizer was not an auth.Authorizer for %s", api.Endpoint)
+		})
+	}
+
+	return (&authWrapper.Authorizer{Authorizer: cast}).BearerAuthorizerCallback()
 }
 
 // GetADALToken returns an autorest.Authorizer using an ADAL token via the authentication method defined in the Config

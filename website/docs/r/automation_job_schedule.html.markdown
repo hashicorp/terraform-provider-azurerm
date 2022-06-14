@@ -12,7 +12,7 @@ Links an Automation Runbook and Schedule.
 
 ## Example Usage
 
-This is an example of just the Job Schedule. A full example of the `azurerm_automation_job_schedule` resource can be found in [the `./examples/automation-account` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/automation-account)
+This is an example of just the Job Schedule. A full example of the `azurerm_automation_job_schedule` resource can be found in [the `./examples/automation-account` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/automation-account)
 
 ```hcl
 resource "azurerm_automation_job_schedule" "example" {
@@ -37,6 +37,8 @@ The following arguments are supported:
 * `automation_account_name` - (Required) The name of the Automation Account in which the Job Schedule is created. Changing this forces a new resource to be created.
 
 * `runbook_name` - (Required) The name of a Runbook to link to a Schedule. It needs to be in the same Automation Account as the Schedule and Job Schedule. Changing this forces a new resource to be created.
+
+* `schedule_name` - (Required) The name of the Schedule. Changing this forces a new resource to be created.
 
 * `parameters` -  (Optional) A map of key/value pairs corresponding to the arguments that can be passed to the Runbook. Changing this forces a new resource to be created.
 

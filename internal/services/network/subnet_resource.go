@@ -7,12 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -57,44 +56,22 @@ func resourceSubnet() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"address_prefix": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				// TODO Remove this in the next major version release
-				Deprecated:   "Use the `address_prefixes` property instead.",
-				ExactlyOneOf: []string{"address_prefix", "address_prefixes"},
-			},
-
 			"address_prefixes": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				ExactlyOneOf: []string{"address_prefix", "address_prefixes"},
 			},
 
-			"service_endpoints": func() *pluginsdk.Schema {
-				if !features.ThreePointOhBeta() {
-					return &pluginsdk.Schema{
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					}
-				}
-				return &pluginsdk.Schema{
-					Type:     pluginsdk.TypeSet,
-					Optional: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-					Set:      pluginsdk.HashString,
-				}
-			}(),
+			"service_endpoints": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
+			},
 
 			"service_endpoint_policy_ids": {
 				Type:     pluginsdk.TypeSet,
@@ -227,10 +204,6 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		properties.AddressPrefixes = &addressPrefixes
 	}
-	if value, ok := d.GetOk("address_prefix"); ok {
-		addressPrefix := value.(string)
-		properties.AddressPrefix = &addressPrefix
-	}
 	if properties.AddressPrefixes != nil && len(*properties.AddressPrefixes) == 1 {
 		properties.AddressPrefix = &(*properties.AddressPrefixes)[0]
 		properties.AddressPrefixes = nil
@@ -246,13 +219,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*pluginsdk.Set).List()
 	properties.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
 
-	if features.ThreePointOhBeta() {
-		serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
-		properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
-	} else {
-		serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
-		properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
-	}
+	serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
+	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 
 	delegationsRaw := d.Get("delegation").([]interface{})
 	properties.Delegations = expandSubnetDelegation(delegationsRaw)
@@ -330,10 +298,6 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	props := *existing.SubnetPropertiesFormat
 
-	if d.HasChange("address_prefix") {
-		props.AddressPrefix = utils.String(d.Get("address_prefix").(string))
-	}
-
 	if d.HasChange("address_prefixes") {
 		addressPrefixesRaw := d.Get("address_prefixes").([]interface{})
 		switch len(addressPrefixesRaw) {
@@ -367,13 +331,8 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("service_endpoints") {
-		if features.ThreePointOhBeta() {
-			serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
-			props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
-		} else {
-			serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
-			props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
-		}
+		serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
+		props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 	}
 
 	if d.HasChange("service_endpoint_policy_ids") {
@@ -447,7 +406,6 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.SubnetPropertiesFormat; props != nil {
-		d.Set("address_prefix", props.AddressPrefix)
 		if props.AddressPrefixes == nil {
 			if props.AddressPrefix != nil && len(*props.AddressPrefix) > 0 {
 				d.Set("address_prefixes", []string{*props.AddressPrefix})

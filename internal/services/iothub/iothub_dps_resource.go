@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -108,18 +107,12 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 						"apply_allocation_policy": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  features.ThreePointOhBeta(),
+							Default:  true,
 						},
-						// TODO update docs with new default for 3.0
 						"allocation_weight": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							Default: func() interface{} {
-								if features.ThreePointOhBeta() {
-									return 1
-								}
-								return 0
-							}(),
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      1,
 							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 						"hostname": {
@@ -157,9 +150,9 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								strings.Title(string(iothub.IPFilterTargetTypeAll)),
-								strings.Title(string(iothub.IPFilterTargetTypeServiceAPI)),
-								strings.Title(string(iothub.IPFilterTargetTypeDeviceAPI)),
+								azure.TitleCase(string(iothub.IPFilterTargetTypeAll)),
+								azure.TitleCase(string(iothub.IPFilterTargetTypeServiceAPI)),
+								azure.TitleCase(string(iothub.IPFilterTargetTypeDeviceAPI)),
 							}, false),
 						},
 					},
@@ -448,7 +441,7 @@ func expandDpsIPFilterRules(d *pluginsdk.ResourceData) *[]iothub.IPFilterRule {
 			FilterName: utils.String(rawRule["name"].(string)),
 			Action:     iothub.IPFilterActionType(rawRule["action"].(string)),
 			IPMask:     utils.String(rawRule["ip_mask"].(string)),
-			Target:     iothub.IPFilterTargetType(strings.Title(rawRule["target"].(string))),
+			Target:     iothub.IPFilterTargetType(azure.TitleCase(rawRule["target"].(string))),
 		}
 
 		rules = append(rules, *rule)

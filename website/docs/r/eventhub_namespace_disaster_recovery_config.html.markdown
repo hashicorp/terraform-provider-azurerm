@@ -27,7 +27,7 @@ resource "azurerm_eventhub_namespace" "primary" {
 
 resource "azurerm_eventhub_namespace" "secondary" {
   name                = "eventhub-secondary"
-  location            = "West US"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 }

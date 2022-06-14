@@ -180,7 +180,6 @@ func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	description := d.Get("description").(string)
-	// TODO
 	cosmosDbTableset := datafactory.CosmosDbSQLAPICollectionDataset{
 		CosmosDbSQLAPICollectionDatasetTypeProperties: &cosmosDbDatasetProperties,
 		LinkedServiceName: linkedService,

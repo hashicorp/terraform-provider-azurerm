@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -21,15 +21,16 @@ type OutputTableResource struct{}
 var _ sdk.ResourceWithCustomImporter = OutputTableResource{}
 
 type OutputTableResourceModel struct {
-	Name               string `tfschema:"name"`
-	StreamAnalyticsJob string `tfschema:"stream_analytics_job_name"`
-	ResourceGroup      string `tfschema:"resource_group_name"`
-	StorageAccount     string `tfschema:"storage_account_name"`
-	StorageAccountKey  string `tfschema:"storage_account_key"`
-	Table              string `tfschema:"table"`
-	PartitionKey       string `tfschema:"partition_key"`
-	RowKey             string `tfschema:"row_key"`
-	BatchSize          int32  `tfschema:"batch_size"`
+	Name               string   `tfschema:"name"`
+	StreamAnalyticsJob string   `tfschema:"stream_analytics_job_name"`
+	ResourceGroup      string   `tfschema:"resource_group_name"`
+	StorageAccount     string   `tfschema:"storage_account_name"`
+	StorageAccountKey  string   `tfschema:"storage_account_key"`
+	Table              string   `tfschema:"table"`
+	PartitionKey       string   `tfschema:"partition_key"`
+	RowKey             string   `tfschema:"row_key"`
+	BatchSize          int32    `tfschema:"batch_size"`
+	ColumnsToRemove    []string `tfschema:"columns_to_remove"`
 }
 
 func (r OutputTableResource) Arguments() map[string]*pluginsdk.Schema {
@@ -86,6 +87,15 @@ func (r OutputTableResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1, 100),
 		},
+
+		"columns_to_remove": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
 	}
 }
 
@@ -137,11 +147,15 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 				BatchSize:    utils.Int32(model.BatchSize),
 			}
 
+			if v := model.ColumnsToRemove; v != nil && len(v) > 0 {
+				tableOutputProps.ColumnsToRemove = &v
+			}
+
 			props := streamanalytics.Output{
 				Name: utils.String(model.Name),
 				OutputProperties: &streamanalytics.OutputProperties{
 					Datasource: &streamanalytics.AzureTableOutputDataSource{
-						Type:                                 streamanalytics.TypeMicrosoftStorageTable,
+						Type:                                 streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageTable,
 						AzureTableOutputDataSourceProperties: tableOutputProps,
 					},
 				},
@@ -197,6 +211,13 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 					RowKey:             *v.RowKey,
 					BatchSize:          *v.BatchSize,
 				}
+
+				var columnsToRemove []string
+				if columns := v.ColumnsToRemove; columns != nil && len(*columns) > 0 {
+					columnsToRemove = *columns
+				}
+				state.ColumnsToRemove = columnsToRemove
+
 				return metadata.Encode(&state)
 			}
 			return nil
@@ -223,7 +244,7 @@ func (r OutputTableResource) Update() sdk.ResourceFunc {
 				Name: utils.String(state.Name),
 				OutputProperties: &streamanalytics.OutputProperties{
 					Datasource: &streamanalytics.AzureTableOutputDataSource{
-						Type: streamanalytics.TypeMicrosoftStorageTable,
+						Type: streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageTable,
 						AzureTableOutputDataSourceProperties: &streamanalytics.AzureTableOutputDataSourceProperties{
 							AccountName:  utils.String(state.StorageAccount),
 							AccountKey:   utils.String(state.StorageAccountKey),
@@ -234,6 +255,14 @@ func (r OutputTableResource) Update() sdk.ResourceFunc {
 						},
 					},
 				},
+			}
+
+			if metadata.ResourceData.HasChange("columns_to_remove") {
+				tableOutput, ok := props.OutputProperties.Datasource.AsAzureTableOutputDataSource()
+				if !ok {
+					return fmt.Errorf("converting output data source to a table output: %+v", err)
+				}
+				tableOutput.ColumnsToRemove = &state.ColumnsToRemove
 			}
 
 			if _, err = client.Update(ctx, props, id.ResourceGroup, id.StreamingjobName, id.Name, ""); err != nil {
@@ -282,7 +311,7 @@ func (r OutputTableResource) CustomImporter() sdk.ResourceRunFunc {
 
 		props := resp.OutputProperties
 		if _, ok := props.Datasource.AsAzureTableOutputDataSource(); !ok {
-			return fmt.Errorf("specified output is not of type %s", streamanalytics.TypeMicrosoftStorageTable)
+			return fmt.Errorf("specified output is not of type %s", streamanalytics.TypeBasicOutputDataSourceTypeMicrosoftStorageTable)
 		}
 		return nil
 	}

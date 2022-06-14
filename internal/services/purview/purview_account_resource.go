@@ -10,11 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -75,18 +73,12 @@ func resourcePurviewAccountCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		Tags:              tags.Expand(t),
 	}
 
-	if features.ThreePointOhBeta() {
-		expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
-		}
-
-		account.Identity = expandedIdentity
-	} else {
-		account.Identity = &purview.Identity{
-			Type: purview.TypeSystemAssigned,
-		}
+	expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
+
+	account.Identity = expandedIdentity
 
 	if d.Get("public_network_enabled").(bool) {
 		account.AccountProperties.PublicNetworkAccess = purview.PublicNetworkAccessEnabled
@@ -247,7 +239,7 @@ func flattenPurviewAccountManagedResources(managedResources *purview.AccountProp
 }
 
 func resourcePurviewSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -275,14 +267,7 @@ func resourcePurviewSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: resourcegroups.ValidateName,
 		},
 
-		"identity": func() *schema.Schema {
-			// TODO: document that this will become required in 3.0
-			if features.ThreePointOhBeta() {
-				return commonschema.SystemAssignedIdentityRequired()
-			}
-
-			return commonschema.SystemAssignedIdentityComputed()
-		}(),
+		"identity": commonschema.SystemAssignedIdentityRequired(),
 
 		"managed_resources": {
 			Type:     pluginsdk.TypeList,
@@ -334,15 +319,4 @@ func resourcePurviewSchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-
-		schema["sku_name"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Deprecated: "This property can no longer be specified on create/update, it can only be updated by creating a support ticket at Azure",
-		}
-	}
-
-	return schema
 }

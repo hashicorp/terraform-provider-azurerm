@@ -6,8 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -115,9 +114,6 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 		maxTaskRetryCount = *startTask.MaxTaskRetryCount
 	}
 
-	if !features.ThreePointOhBeta() {
-		result["max_task_retry_count"] = maxTaskRetryCount
-	}
 	result["task_retry_maximum"] = maxTaskRetryCount
 
 	if startTask.UserIdentity != nil {
@@ -172,9 +168,6 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 		}
 	}
 
-	if !features.ThreePointOhBeta() {
-		result["environment"] = environment
-	}
 	result["common_environment_properties"] = environment
 
 	result["resource_file"] = resourceFiles
@@ -430,12 +423,6 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 
 	maxTaskRetryCount := int32(1)
 
-	if !features.ThreePointOhBeta() {
-		if v, ok := startTaskValue["max_task_retry_count"]; ok && v.(int) > 0 {
-			maxTaskRetryCount = int32(v.(int))
-		}
-	}
-
 	if v := startTaskValue["task_retry_maximum"].(int); v > 0 {
 		maxTaskRetryCount = int32(v)
 	}
@@ -459,11 +446,12 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 				Scope:          batch.AutoUserScope(autoUserMap["scope"].(string)),
 			}
 		}
-	} else if userNameValue, ok := userIdentityValue["username"]; ok {
+	}
+	if userNameValue, ok := userIdentityValue["user_name"]; ok {
 		userName := userNameValue.(string)
-		userIdentity.UserName = &userName
-	} else {
-		return nil, fmt.Errorf("either auto_user or user_name should be specified for Batch pool start task")
+		if len(userName) != 0 {
+			userIdentity.UserName = &userName
+		}
 	}
 
 	resourceFileList := startTaskValue["resource_file"].([]interface{})
@@ -519,12 +507,6 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		WaitForSuccess:    &waitForSuccess,
 		UserIdentity:      &userIdentity,
 		ResourceFiles:     &resourceFiles,
-	}
-
-	if !features.ThreePointOhBeta() {
-		if v, ok := startTaskValue["environment"]; ok && len(v.(map[string]interface{})) > 0 {
-			startTask.EnvironmentSettings = expandCommonEnvironmentProperties(v.(map[string]interface{}))
-		}
 	}
 
 	if v := startTaskValue["common_environment_properties"].(map[string]interface{}); len(v) > 0 {

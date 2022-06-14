@@ -122,6 +122,9 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, model.ConfigurationStoreId)
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", model.ConfigurationStoreId)
+			}
 			if err != nil {
 				return err
 			}
@@ -129,7 +132,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			appCfgKeyResourceID := parse.AppConfigurationKeyId{
 				ConfigurationStoreId: model.ConfigurationStoreId,
 				Key:                  url.QueryEscape(model.Key),
-				Label:                model.Label,
+				Label:                url.QueryEscape(model.Label),
 			}
 
 			kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []string{})
@@ -202,6 +205,10 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if client == nil {
+				// if the parent AppConfiguration is gone, all the data will be too
+				return metadata.MarkAsGone(resourceID)
+			}
 			if err != nil {
 				return err
 			}
@@ -211,7 +218,12 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while decoding key of resource ID: %+v", err)
 			}
 
-			kv, err := client.GetKeyValue(ctx, decodedKey, resourceID.Label, "", "", "", []string{})
+			decodedLabel, err := url.QueryUnescape(resourceID.Label)
+			if err != nil {
+				return fmt.Errorf("while decoding label of resource ID: %+v", err)
+			}
+
+			kv, err := client.GetKeyValue(ctx, decodedKey, decodedLabel, "", "", "", []string{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
 					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
@@ -267,6 +279,9 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
+			}
 			if err != nil {
 				return err
 			}
@@ -326,6 +341,9 @@ func (k KeyResource) Delete() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
+			}
 			if err != nil {
 				return err
 			}
@@ -335,7 +353,12 @@ func (k KeyResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("while decoding key of resource ID: %+v", err)
 			}
 
-			if _, err = client.DeleteLock(ctx, decodedKey, resourceID.Label, "", ""); err != nil {
+			decodedLabel, err := url.QueryUnescape(resourceID.Label)
+			if err != nil {
+				return fmt.Errorf("while decoding label of resource ID: %+v", err)
+			}
+
+			if _, err = client.DeleteLock(ctx, decodedKey, decodedLabel, "", ""); err != nil {
 				return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", decodedKey, resourceID.Label, err)
 			}
 

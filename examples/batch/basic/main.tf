@@ -43,11 +43,11 @@ resource "azurerm_batch_pool" "fixed" {
   }
 
   start_task {
-    command_line         = "echo 'Hello World from $env'"
-    max_task_retry_count = 1
-    wait_for_success     = true
+    command_line       = "echo 'Hello World from $env'"
+    task_retry_maximum = 1
+    wait_for_success   = true
 
-    environment = {
+    common_environment_properties = {
       env = "TEST"
     }
 

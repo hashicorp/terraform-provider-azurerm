@@ -316,7 +316,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal-${count.index}"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.${count.index}.0/24"
+  address_prefixes     = ["10.0.${count.index}.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -376,9 +376,12 @@ resource "azurerm_monitor_metric_alert" "test" {
     metric_name      = "CPU Credits Consumed"
     aggregation      = "Average"
 
-    operator               = "GreaterOrLessThan"
-    alert_sensitivity      = "Medium"
-    skip_metric_validation = true
+    operator                 = "GreaterOrLessThan"
+    alert_sensitivity        = "Medium"
+    skip_metric_validation   = true
+    evaluation_failure_count = 4
+    evaluation_total_count   = 5
+    ignore_data_before       = "2022-03-02T15:04:05Z"
   }
   window_size              = "PT5M"
   frequency                = "PT5M"

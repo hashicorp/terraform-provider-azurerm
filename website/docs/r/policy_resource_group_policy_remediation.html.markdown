@@ -52,25 +52,16 @@ POLICY_RULE
 PARAMETERS
 }
 
-resource "azurerm_policy_assignment" "example" {
-  name                 = "example-policy-assignment"
-  scope                = azurerm_resource_group.example.id
+resource "azurerm_resource_group_policy_assignment" "example" {
+  name                 = "example"
+  resource_group_id    = azurerm_resource_group.example.id
   policy_definition_id = azurerm_policy_definition.example.id
-  display_name         = "My Example Policy Assignment"
-
-  parameters = <<PARAMETERS
-{
-  "allowedLocations": {
-    "value": [ "West Europe" ]
-  }
-}
-PARAMETERS
 }
 
 resource "azurerm_resource_group_policy_remediation" "example" {
   name                 = "example-policy-remediation"
   resource_group_id    = azurerm_resource_group.example.id
-  policy_assignment_id = azurerm_policy_assignment.example.id
+  policy_assignment_id = azurerm_resource_group_policy_assignment.example.id
   location_filters     = ["West Europe"]
 }
 ```
@@ -85,7 +76,7 @@ The following arguments are supported:
 
 * `policy_assignment_id` - (Required) The ID of the Policy Assignment that should be remediated.
 
-* `policy_definition_reference_id` - (Optional) The unique ID for the policy definition within the policy set definition that should be remediated. Required when the policy assignment being remediated assigns a policy set definition.
+* `policy_definition_id` - (Optional) The unique ID for the policy definition within the policy set definition that should be remediated. Required when the policy assignment being remediated assigns a policy set definition.
 
 * `location_filters` - (Optional) A list of the resource locations that will be remediated.
 

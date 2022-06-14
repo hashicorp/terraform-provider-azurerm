@@ -61,14 +61,6 @@ func resourceEventHubNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
-
-			// this property is broken and should not be reimplemented after 3.0 until this is addressed: https://github.com/Azure/azure-sdk-for-go/issues/5893
-			"alternate_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.ValidateEventHubNamespaceName(),
-				Deprecated:   "This property has been deprecated and will be removed in v3.0 of the provider as any DRC created with an alternate name cannot be deleted and the service is not going to change this. Please see: https://github.com/Azure/azure-sdk-for-go/issues/5893",
-			},
 		},
 	}
 }
@@ -103,10 +95,6 @@ func resourceEventHubNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resource
 		Properties: &disasterrecoveryconfigs.ArmDisasterRecoveryProperties{
 			PartnerNamespace: utils.String(d.Get("partner_namespace_id").(string)),
 		},
-	}
-
-	if v, ok := d.GetOk("alternate_name"); ok {
-		parameters.Properties.AlternateName = utils.String(v.(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -151,10 +139,6 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 		},
 	}
 
-	if v, ok := d.GetOk("alternate_name"); ok {
-		parameters.Properties.AlternateName = utils.String(v.(string))
-	}
-
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -191,7 +175,6 @@ func resourceEventHubNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceDa
 
 	if model := resp.Model; model != nil && model.Properties != nil {
 		d.Set("partner_namespace_id", model.Properties.PartnerNamespace)
-		d.Set("alternate_name", model.Properties.AlternateName)
 	}
 
 	return nil

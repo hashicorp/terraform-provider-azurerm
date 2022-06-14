@@ -25,7 +25,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_load_test" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "West Europe"
+  location            = azurerm_resource_group.example.location
 }
 ```
 

@@ -53,12 +53,6 @@ func dataSourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"portal_url": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
-			},
-
 			"primary_shared_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -89,7 +83,7 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Log Analytics workspaces %q (Resource Group %q) was not found", name, resGroup)
+			return fmt.Errorf("log analytics workspaces %q (Resource Group %q) was not found", name, resGroup)
 		}
 		return fmt.Errorf("making Read request on AzureRM Log Analytics workspaces '%s': %+v", name, err)
 	}
@@ -99,11 +93,9 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	d.Set("workspace_id", resp.CustomerID)
-	d.Set("portal_url", "")
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", sku.Name)
 	}
