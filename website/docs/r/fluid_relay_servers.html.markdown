@@ -1,5 +1,5 @@
 ---
-subcategory: "Active Directory Domain Service"
+subcategory: "Active Directory Domain Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_fluid_relay_server"
 description: |-
@@ -43,15 +43,15 @@ The following arguments are supported:
 
 * `encryption` - (Optional) One or more `encryption` blocks as defined below.
 
-* `identity_type` - (Optional) The identity type,  value can be `SystemAssigned`, `UserAssigned`,`SystemAssigned, UserAssigned`, `None`.
+* `identity_type` - (Optional) The identity type for this Fluid Relay Server. Possible  values are `SystemAssigned`, `UserAssigned`,`SystemAssigned, UserAssigned` and `None`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Fuild Relay Server.
 
-* `user_assigned_identity` - (Optional) One or more `user_assigned_identity` blocks as defined below.
+* An `identity` block supports the following:
 
 ---
 
-A `encryption` block supports the following:
+An `encryption` block supports the following:
 
 * `identity_resource_id` - (Optional) user assigned identity to use for accessing key encryption key Url. Ex: /subscriptions/fa5fc227-a624-475e-b696-cdd604c735bc/resourceGroups/<resource group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/myId. Mutually exclusive with identityType systemAssignedIdentity.
 
@@ -61,7 +61,9 @@ A `encryption` block supports the following:
 
 ---
 
-A `user_assigned_identity` block supports the following:
+An `identity` block supports the following:
+
+* `type` - can be `SystemAssigned` or `UserAssigned`.
 
 * `client_id` - (Optional) The client id of user assigned identity.
 
@@ -77,15 +79,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `frs_tenant_id` - The Fluid tenantId for this server.
 
-* `orderer_endpoints` - A `orderer_endpoints` block as defined below.
+* `orderer_endpoints` - The Fluid Relay Orderer endpoints.
 
-* `principal_id` - The principal ID of resource identity.
+* `principal_id` - The principal ID of the Fluid Relay Server.
 
-* `provisioning_state` - Provision states for FluidRelay RP, value can be `Succeeded`, `Failed`, `Canceled`.
+* `storage_endpoints` - The Fluid Relay storage endpoints.
 
-* `storage_endpoints` - A `storage_endpoints` block as defined below.
-
-* `tenant_id` - The tenant ID of resource.
+* `tenant_id` - The tenant ID of the Fluid Relay Server.
 
 ## Timeouts
 
@@ -101,5 +101,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Fuild Relay Servers can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_fluid_relay_server.example /subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/myrg/providers/Microsoft.FluidRelay/fluidRelayServers/myFluid
+terraform import azurerm_fluid_relay_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.FluidRelay/fluidRelayServers/server1
 ```

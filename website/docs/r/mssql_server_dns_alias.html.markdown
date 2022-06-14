@@ -63,7 +63,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-MSSQL Server DNS Alias can be imported using the `resource id`, e.g.
+MSSQL Server DNS Aliass can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_mssql_server_dns_alias.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/dnsAliases/default

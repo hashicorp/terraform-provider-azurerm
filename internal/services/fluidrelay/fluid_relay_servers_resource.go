@@ -99,7 +99,6 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			Description:  "The Fluid Relay server resource name",
 			ValidateFunc: validate.FluidRelayServerName,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -117,12 +116,12 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 				"None",
 			}, false),
 		},
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 		"user_assigned_identity": {
-			Type:        pluginsdk.TypeList,
-			Optional:    true,
-			Computed:    true,
-			ConfigMode:  pluginsdk.SchemaConfigModeBlock,
-			Description: "The list of user identities associated with the resource.",
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeBlock,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"identity_id": {
@@ -132,24 +131,21 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: managedidentity.ValidateUserAssignedIdentitiesID,
 					},
 					"client_id": {
-						Type:        pluginsdk.TypeString,
-						Computed:    true,
-						Optional:    true,
-						Description: "The client id of user assigned identity.",
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+						Optional: true,
 					},
 					"principal_id": {
-						Type:        pluginsdk.TypeString,
-						Optional:    true,
-						Computed:    true,
-						Description: "The principal id of user assigned identity.",
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
 					},
 				},
 			},
 		},
 		"encryption": {
-			Type:        pluginsdk.TypeList,
-			Optional:    true,
-			Description: "Create with Cmk.",
+			Type:     pluginsdk.TypeList,
+			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"identity_type": {
@@ -158,12 +154,10 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice(
 							fluidrelayservers.PossibleValuesForCmkIdentityType(),
 							false),
-						Description: "Values can be SystemAssigned or UserAssigned.",
 					},
 					"key_encryption_key_url": {
-						Type:        pluginsdk.TypeString,
-						Optional:    true,
-						Description: "user assigned identity to use for accessing key encryption key Url. Ex: /subscriptions/fa5fc227-a624-475e-b696-cdd604c735bc/resourceGroups/<resource group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/myId. Mutually exclusive with identityType systemAssignedIdentity.",
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 					},
 					"identity_resource_id": {
 						Type:         pluginsdk.TypeString,
@@ -179,9 +173,8 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 func (s Server) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"frs_tenant_id": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The Fluid tenantId for this server",
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
@@ -202,14 +195,12 @@ func (s Server) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 		"principal_id": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The principal ID of resource identity",
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 		"tenant_id": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The tenant ID of resource",
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }
@@ -256,7 +247,7 @@ func (s Server) Create() sdk.ResourceFunc {
 
 			resp, err := client.CreateOrUpdate(ctx, id, serverReq)
 			if err != nil {
-				return fmt.Errorf("creating %v err: %+v, resp: %+v", id, err, resp)
+				return fmt.Errorf("creating %v err: %+v", id, err)
 			}
 			meta.SetID(id)
 
