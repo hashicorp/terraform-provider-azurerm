@@ -44,6 +44,8 @@ func flattenBatchPoolFixedScaleSettings(settings *batch.FixedScaleSettings) []in
 
 	result := make(map[string]interface{})
 
+	result["node_deallocation_option"] = settings.NodeDeallocationOption
+
 	if settings.TargetDedicatedNodes != nil {
 		result["target_dedicated_nodes"] = *settings.TargetDedicatedNodes
 	}
@@ -283,6 +285,46 @@ func findBatchPoolContainerRegistryPassword(d *pluginsdk.ResourceData, armServer
 	}
 
 	return ""
+}
+
+func ExpandApplicationLicenses(d *pluginsdk.ResourceData) (*[]string, error) {
+	if applicationLicensesList, ok := d.GetOk("application_licenses"); ok {
+		applicationLicenses := applicationLicensesList.([]string)
+		if len(applicationLicenses) > 0 {
+			return &applicationLicenses, nil
+		}
+	}
+	return nil, fmt.Errorf("application_license either empty or parse failure")
+}
+
+func ExpendApplicationPackages(d *pluginsdk.ResourceData) (*[]batch.ApplicationPackageReference, error) {
+	var result []batch.ApplicationPackageReference
+
+	if applicationPackageList, ok := d.GetOk("application_packages"); ok {
+		applicationPackages := applicationPackageList.([]interface{})
+		for _, tempItem := range applicationPackages {
+			item := tempItem.(map[string]interface{})
+			applicationPackage, err := expendApplicationPackages(item)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, *applicationPackage)
+		}
+		return &result, nil
+	}
+	return nil, nil
+}
+
+func expendApplicationPackages(ref map[string]interface{}) (*batch.ApplicationPackageReference, error) {
+	if len(ref) == 0 {
+		return nil, fmt.Errorf("Error: application_package reference should be defined")
+	}
+
+	applicationPackage := batch.ApplicationPackageReference{
+		ID:      utils.String(ref["id"].(string)),
+		Version: utils.String(ref["version"].(string)),
+	}
+	return &applicationPackage, nil
 }
 
 // ExpandBatchPoolImageReference expands Batch pool image reference

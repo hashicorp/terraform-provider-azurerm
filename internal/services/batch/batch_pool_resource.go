@@ -886,10 +886,19 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	parameters := batch.Pool{
 		PoolProperties: &batch.PoolProperties{
-			VMSize:           utils.String(d.Get("vm_size").(string)),
-			DisplayName:      utils.String(d.Get("display_name").(string)),
-			TaskSlotsPerNode: utils.Int32(int32(d.Get("max_tasks_per_node").(int))),
+			VMSize:                 utils.String(d.Get("vm_size").(string)),
+			DisplayName:            utils.String(d.Get("display_name").(string)),
+			InterNodeCommunication: batch.InterNodeCommunicationState(d.Get("inter_node_communication").(string)),
+			TaskSlotsPerNode:       utils.Int32(int32(d.Get("max_tasks_per_node").(int))),
 		},
+	}
+
+	if applicationLicences, err := ExpandApplicationLicenses(d); err == nil {
+		parameters.PoolProperties.ApplicationLicenses = applicationLicences
+	}
+
+	if applicationPackages, err := ExpendApplicationPackages(d); err == nil {
+		parameters.PoolProperties.ApplicationPackages = applicationPackages
 	}
 
 	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
@@ -1230,11 +1239,13 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*batch.ScaleSettin
 
 		fixedScaleSettings := fixedScale[0].(map[string]interface{})
 
+		nodeDeallocationOption := batch.ComputeNodeDeallocationOption(fixedScaleSettings["node_deallocation_option"].(string))
 		targetDedicatedNodes := int32(fixedScaleSettings["target_dedicated_nodes"].(int))
 		targetLowPriorityNodes := int32(fixedScaleSettings["target_low_priority_nodes"].(int))
 		resizeTimeout := fixedScaleSettings["resize_timeout"].(string)
 
 		scaleSettings.FixedScale = &batch.FixedScaleSettings{
+			NodeDeallocationOption: nodeDeallocationOption,
 			ResizeTimeout:          &resizeTimeout,
 			TargetDedicatedNodes:   &targetDedicatedNodes,
 			TargetLowPriorityNodes: &targetLowPriorityNodes,
