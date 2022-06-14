@@ -55,12 +55,12 @@ resource "azurerm_cosmosdb_account" "db" {
   }
 
   geo_location {
-    location          = azurerm_resource_group.example.location
+    location          = "eastus"
     failover_priority = 1
   }
 
   geo_location {
-    location          = azurerm_resource_group.example.location
+    location          = "eastus"
     failover_priority = 0
   }
 }
