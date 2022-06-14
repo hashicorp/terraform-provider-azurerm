@@ -9,6 +9,7 @@ type Client struct {
 	ApplicationGatewaysClient              *network.ApplicationGatewaysClient
 	ApplicationSecurityGroupsClient        *network.ApplicationSecurityGroupsClient
 	BastionHostsClient                     *network.BastionHostsClient
+	ConfigurationPolicyGroupClient         *network.ConfigurationPolicyGroupsClient
 	ConnectionMonitorsClient               *network.ConnectionMonitorsClient
 	DDOSProtectionPlansClient              *network.DdosProtectionPlansClient
 	ExpressRouteAuthsClient                *network.ExpressRouteCircuitAuthorizationsClient
@@ -72,6 +73,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	BastionHostsClient := network.NewBastionHostsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&BastionHostsClient.Client, o.ResourceManagerAuthorizer)
+
+	configurationPolicyGroupClient := network.NewConfigurationPolicyGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&configurationPolicyGroupClient.Client, o.ResourceManagerAuthorizer)
 
 	ConnectionMonitorsClient := network.NewConnectionMonitorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ConnectionMonitorsClient.Client, o.ResourceManagerAuthorizer)
@@ -233,6 +237,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ApplicationGatewaysClient:              &ApplicationGatewaysClient,
 		ApplicationSecurityGroupsClient:        &ApplicationSecurityGroupsClient,
 		BastionHostsClient:                     &BastionHostsClient,
+		ConfigurationPolicyGroupClient:         &configurationPolicyGroupClient,
 		ConnectionMonitorsClient:               &ConnectionMonitorsClient,
 		DDOSProtectionPlansClient:              &DDOSProtectionPlansClient,
 		ExpressRouteAuthsClient:                &ExpressRouteAuthsClient,

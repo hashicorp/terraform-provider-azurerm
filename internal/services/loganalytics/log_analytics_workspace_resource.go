@@ -1,6 +1,7 @@
 package loganalytics
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -27,6 +28,8 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 		Read:   resourceLogAnalyticsWorkspaceRead,
 		Update: resourceLogAnalyticsWorkspaceCreateUpdate,
 		Delete: resourceLogAnalyticsWorkspaceDelete,
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceLogAnalyticsWorkspaceCustomDiff),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.LogAnalyticsWorkspaceID(id)
@@ -70,11 +73,11 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// TODO 4.0: Clean up lacluster "workaround" to make it more readable and easier to understand. (@WodansSon already has the code written for the clean up)
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
-				Default:  string(operationalinsights.WorkspaceSkuNameEnumPerGB2018),
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(operationalinsights.WorkspaceSkuNameEnumFree),
 					string(operationalinsights.WorkspaceSkuNameEnumPerGB2018),
@@ -131,6 +134,26 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 	}
 }
 
+func resourceLogAnalyticsWorkspaceCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	// Since sku needs to be a force new if the sku changes we need to have this
+	// custom diff here because when you link the workspace to a cluster the
+	// cluster changes the sku to LACluster, so we need to ignore the change
+	// if it is LACluster else invoke the ForceNew as before...
+	//
+	// NOTE: Since LACluster is not in our enum the value is returned as ""
+	if d.HasChange("sku") {
+		old, new := d.GetChange("sku")
+		log.Printf("[INFO] Log Analytics Workspace SKU: OLD: %q, NEW: %q", old, new)
+		// If the old value is not LACluster(e.g. "") return ForceNew because they are
+		// really changing the sku...
+		if !strings.EqualFold(old.(string), "") {
+			d.ForceNew("sku")
+		}
+	}
+
+	return nil
+}
+
 func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -138,6 +161,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace creation.")
 
+	var isLACluster bool
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	id := parse.NewLogAnalyticsWorkspaceID(subscriptionId, resourceGroup, name)
@@ -162,14 +186,15 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	// (@WodansSon) - If the workspace is connected to a cluster via the linked service resource
-	// the workspace cannot be modified since the linked service changes the sku value within
-	// the workspace
+	// the workspace SKU cannot be modified since the linked service owns the sku value within
+	// the workspace once it is linked
 	if !d.IsNewResource() {
 		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 		if err == nil {
 			if azSku := resp.Sku; azSku != nil {
 				if strings.EqualFold(string(azSku.Name), "lacluster") {
-					return fmt.Errorf("Log Analytics Workspace %q (Resource Group %q): cannot be modified while it is connected to a Log Analytics cluster", name, resourceGroup)
+					isLACluster = true
+					log.Printf("[INFO] Log Analytics Workspace %q (Resource Group %q): SKU is linked to Log Analytics cluster", name, resourceGroup)
 				}
 			}
 		}
@@ -187,6 +212,13 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 	retentionInDays := int32(d.Get("retention_in_days").(int))
 
 	t := d.Get("tags").(map[string]interface{})
+
+	if isLACluster {
+		sku.Name = "lacluster"
+	} else if skuName == "" {
+		// Default value if sku is not defined
+		sku.Name = operationalinsights.WorkspaceSkuNameEnumPerGB2018
+	}
 
 	parameters := operationalinsights.Workspace{
 		Name:     &name,

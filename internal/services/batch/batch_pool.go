@@ -449,7 +449,9 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 	}
 	if userNameValue, ok := userIdentityValue["user_name"]; ok {
 		userName := userNameValue.(string)
-		userIdentity.UserName = &userName
+		if len(userName) != 0 {
+			userIdentity.UserName = &userName
+		}
 	}
 
 	resourceFileList := startTaskValue["resource_file"].([]interface{})

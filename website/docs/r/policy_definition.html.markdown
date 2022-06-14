@@ -76,9 +76,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the policy definition.
 
-* `management_group_id` -  (Optional) The name of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
-
-~> **Note:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `name` or `group_id` attribute, but not `id`.
+* `management_group_id` -  (Optional) The id of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
 
 * `policy_rule` - (Optional) The policy rule for the policy definition. This
     is a JSON string representing the rule that contains an if and

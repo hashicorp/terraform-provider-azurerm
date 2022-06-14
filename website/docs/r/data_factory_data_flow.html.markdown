@@ -115,7 +115,9 @@ The following arguments are supported:
 
 * `data_factory_id` - (Required) The ID of Data Factory in which to associate the Data Flow with. Changing this forces a new resource.
 
-* `script` - (Required) The script for the Data Factory Data Flow.
+* `script` - (Optional) The script for the Data Factory Data Flow.
+
+* `script_lines` - (Optional) The script lines for the Data Factory Data Flow.
 
 * `source` - (Required) One or more `source` blocks as defined below.
 
@@ -188,6 +190,10 @@ A `transformation` block supports the following:
 * `name` - (Required) The name for the Data Flow transformation.
 
 * `description` - (Optional) The description for the Data Flow transformation.
+
+* `dataset` - (Optional) A `dataset` block as defined below.
+
+* `linked_service` - (Optional) A `linked_service` block as defined below.
 
 ## Attributes Reference
 

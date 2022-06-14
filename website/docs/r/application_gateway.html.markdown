@@ -109,6 +109,7 @@ resource "azurerm_application_gateway" "network" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+    priority                   = 10
   }
 }
 ```
@@ -241,7 +242,7 @@ A `backend_http_settings` block supports the following:
 
 * `protocol`- (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
 
-* `request_timeout` - (Required) The request timeout in seconds, which must be between 1 and 86400 seconds.
+* `request_timeout` - (Required) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
 
 * `host_name` - (Optional) Host header to be sent to the backend servers. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
 

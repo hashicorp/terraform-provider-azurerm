@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -152,7 +152,7 @@ func resourceKeyVaultAccessPolicyCreateOrDelete(d *pluginsdk.ResourceData, meta 
 
 	var accessPolicy keyvault.AccessPolicyEntry
 	switch action {
-	case keyvault.Remove:
+	case keyvault.AccessPolicyUpdateKindRemove:
 		// To remove a policy correctly, we need to send it with all permissions in the correct case which may have drifted
 		// in config over time so we read it back from the vault by objectId
 		resp, err := client.Get(ctx, vaultId.ResourceGroup, vaultId.Name)
@@ -230,13 +230,13 @@ func resourceKeyVaultAccessPolicyCreateOrDelete(d *pluginsdk.ResourceData, meta 
 		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
-	if action == keyvault.Remove {
+	if action == keyvault.AccessPolicyUpdateKindRemove {
 		stateConf.Target = []string{"notfound"}
 		stateConf.Pending = []string{"found", "vaultnotfound"}
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutDelete)
 	}
 
-	if action == keyvault.Replace {
+	if action == keyvault.AccessPolicyUpdateKindReplace {
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
@@ -252,15 +252,15 @@ func resourceKeyVaultAccessPolicyCreateOrDelete(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Add)
+	return resourceKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.AccessPolicyUpdateKindAdd)
 }
 
 func resourceKeyVaultAccessPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Remove)
+	return resourceKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.AccessPolicyUpdateKindRemove)
 }
 
 func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Replace)
+	return resourceKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.AccessPolicyUpdateKindReplace)
 }
 
 func resourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
