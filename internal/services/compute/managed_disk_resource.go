@@ -263,6 +263,11 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"no_downtime_resize_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"zone": commonschema.ZoneSingleOptionalForceNew(),
 
 			"tags": tags.Schema(),
@@ -652,7 +657,9 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("disk_size_gb") {
 		if old, new := d.GetChange("disk_size_gb"); new.(int) > old.(int) {
-			shouldShutDown = true
+			if !d.Get("no_downtime_resize_enabled").(bool) || shutDownOnResize(old.(int), new.(int)) {
+				shouldShutDown = true
+			}
 			diskUpdate.DiskUpdateProperties.DiskSizeGB = utils.Int32(int32(new.(int)))
 		} else {
 			return fmt.Errorf("- New size must be greater than original size. Shrinking disks is not supported on Azure")
@@ -976,4 +983,12 @@ func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+}
+
+func shutDownOnResize(oldSizeGB, newSizeGB int) bool {
+	// Disks smaller than 4 TiB can't be expanded to 4 TiB or larger without downtime.
+	if oldSizeGB < 4096 && newSizeGB >= 4096 {
+		return true
+	}
+	return false
 }

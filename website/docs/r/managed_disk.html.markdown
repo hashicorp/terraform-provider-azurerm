@@ -155,6 +155,8 @@ The following arguments are supported:
 
 * `on_demand_bursting_enabled` (Optional) Specifies if On-Demand Bursting is enabled for the Managed Disk. Defaults to `false`.
 
+* `no_downtime_resize_enabled` (Optional) Specifies if no-downtime resizes are enabled for the Managed Disk. Feature is currently in public preview and needs to be opted in. More information can be found in [Resize without downtime (preview) documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/expand-disks#resize-without-downtime-preview) Defaults to `false`.
+
 -> **Note:** Credit-Based Bursting is enabled by default on all eligible disks. More information on [Credit-Based and On-Demand Bursting can be found in the documentation](https://docs.microsoft.com/azure/virtual-machines/disk-bursting#disk-level-bursting).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
