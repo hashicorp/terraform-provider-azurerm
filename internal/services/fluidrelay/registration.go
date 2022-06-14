@@ -20,7 +20,7 @@ func (r Registration) Resources() []sdk.Resource {
 
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"Active Directory Domain Service",
+		"Active Directory Domain Services",
 	}
 }
 

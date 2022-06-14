@@ -28,7 +28,7 @@ func String(input string) *string {
 	return &input
 }
 
-// Ptr input MUST NOT be nil object
+// Ptr input MUST NOT  nil object
 func Ptr[T any](input T) *T {
 	//v := reflect.ValueOf(input)
 	return &input
