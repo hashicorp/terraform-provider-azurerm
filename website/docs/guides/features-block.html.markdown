@@ -49,6 +49,10 @@ provider "azurerm" {
       permanently_delete_on_destroy = true
     }
 
+    managed_disk {
+      no_downtime_resize = true
+    }
+
     resource_group {
       prevent_deletion_if_contains_resources = true
     }
@@ -85,6 +89,8 @@ The `features` block supports the following:
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
+
+* `managed_disk` - (Optional) A `managed_disk` block as defined below.
 
 * `resource_group` - (Optional) A `resource_group` block as defined below.
 
@@ -145,6 +151,12 @@ The `key_vault` block supports the following:
 The `log_analytics_workspace` block supports the following:
 
 * `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+---
+
+The `managed_disk` block supports the following:
+
+* `no_downtime_resize` (Optional) Specifies if no-downtime resizes are enabled for the Managed Disk. Feature is currently in public preview and needs to be opted in. More information can be found in [Resize without downtime (preview) documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/expand-disks#resize-without-downtime-preview) Defaults to `false`.
 
 ---
 

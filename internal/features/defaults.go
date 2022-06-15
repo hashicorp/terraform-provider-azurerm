@@ -27,6 +27,9 @@ func Default() UserFeatures {
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
 			PermanentlyDeleteOnDestroy: true,
 		},
+		ManagedDisk: ManagedDiskFeatures{
+			NoDowntimeResize: false,
+		},
 		ResourceGroup: ResourceGroupFeatures{
 			PreventDeletionIfContainsResources: true,
 		},

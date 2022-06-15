@@ -263,11 +263,6 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"no_downtime_resize_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
 			"zone": commonschema.ZoneSingleOptionalForceNew(),
 
 			"tags": tags.Schema(),
@@ -657,7 +652,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("disk_size_gb") {
 		if old, new := d.GetChange("disk_size_gb"); new.(int) > old.(int) {
-			if !d.Get("no_downtime_resize_enabled").(bool) || shutDownOnResize(old.(int), new.(int)) {
+			if !meta.(*clients.Client).Features.ManagedDisk.NoDowntimeResize || shutDownOnResize(old.(int), new.(int)) {
 				shouldShutDown = true
 			}
 			diskUpdate.DiskUpdateProperties.DiskSizeGB = utils.Int32(int32(new.(int)))
