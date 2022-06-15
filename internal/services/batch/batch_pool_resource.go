@@ -259,6 +259,22 @@ func resourceBatchPool() *pluginsdk.Resource {
 											},
 										},
 									},
+									"disk_encryption_configuration": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"disk_encryption_target": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(batch.DiskEncryptionTargetTemporaryDisk),
+														string(batch.DiskEncryptionTargetOsDisk),
+													}, false),
+												},
+											},
+										},
+									},
 									"extensions": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -742,10 +758,14 @@ func resourceBatchPool() *pluginsdk.Resource {
 													ValidateFunc: validation.StringIsNotEmpty,
 												},
 												"source_port_ranges": {
-													Type:         pluginsdk.TypeString,
-													Optional:     true,
-													ForceNew:     true,
-													ValidateFunc: validation.StringIsNotEmpty,
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													ForceNew: true,
+													Elem: &schema.Schema{
+														Type:         pluginsdk.TypeString,
+														Optional:     true,
+														ValidateFunc: validation.StringIsNotEmpty,
+													},
 												},
 											},
 										},
@@ -893,12 +913,16 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		},
 	}
 
-	if applicationLicences, err := ExpandApplicationLicenses(d); err == nil {
+	if applicationLicences, err := ExpandBatchPoolApplicationLicenses(d); err == nil {
 		parameters.PoolProperties.ApplicationLicenses = applicationLicences
 	}
 
-	if applicationPackages, err := ExpendApplicationPackages(d); err == nil {
+	if applicationPackages, err := ExpendBatchPoolApplicationPackages(d); err == nil {
 		parameters.PoolProperties.ApplicationPackages = applicationPackages
+	}
+
+	if taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d); err == nil {
+		parameters.PoolProperties.TaskSchedulingPolicy = taskSchedulingPolicy
 	}
 
 	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
@@ -914,24 +938,17 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	parameters.PoolProperties.ScaleSettings = scaleSettings
 
-	nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
-
-	storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
-	imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet)
-	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if deploymentConfiguration, err := ExpandBatchPoolDeploymentConfiguration(d); err == nil {
+		parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
 	}
 
-	if imageReference != nil {
-		// if an image reference ID is specified, the user wants use a custom image. This property is mutually exclusive with other properties.
-		if imageReference.ID != nil && (imageReference.Offer != nil || imageReference.Publisher != nil || imageReference.Sku != nil || imageReference.Version != nil) {
-			return fmt.Errorf("creating %s: Properties version, offer, publish cannot be defined when using a custom image id", id)
-		} else if imageReference.ID == nil && (imageReference.Offer == nil || imageReference.Publisher == nil || imageReference.Sku == nil || imageReference.Version == nil) {
-			return fmt.Errorf("creating %s: Properties version, offer, publish and sku are mandatory when not using a custom image", id)
-		}
-	} else {
-		return fmt.Errorf("creating %s: image reference property can not be empty", id)
-	}
+	//nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
+	//
+	//storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
+	//imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet)
+	//if err != nil {
+	//	return fmt.Errorf("creating %s: %+v", id, err)
+	//}
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
 		startTaskList := startTaskValue.([]interface{})
@@ -950,18 +967,18 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		parameters.PoolProperties.StartTask = startTask
 	}
 
-	containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
-	}
+	//containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{}))
+	//if err != nil {
+	//	return fmt.Errorf("creating %s: %+v", id, err)
+	//}
 
-	parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
-		VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
-			NodeAgentSkuID:         &nodeAgentSkuID,
-			ImageReference:         imageReference,
-			ContainerConfiguration: containerConfiguration,
-		},
-	}
+	//parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
+	//	VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
+	//		NodeAgentSkuID:         &nodeAgentSkuID,
+	//		ImageReference:         imageReference,
+	//		ContainerConfiguration: containerConfiguration,
+	//	},
+	//}
 
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)

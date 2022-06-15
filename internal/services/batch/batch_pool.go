@@ -287,17 +287,17 @@ func findBatchPoolContainerRegistryPassword(d *pluginsdk.ResourceData, armServer
 	return ""
 }
 
-func ExpandApplicationLicenses(d *pluginsdk.ResourceData) (*[]string, error) {
+func ExpandBatchPoolApplicationLicenses(d *pluginsdk.ResourceData) (*[]string, error) {
 	if applicationLicensesList, ok := d.GetOk("application_licenses"); ok {
 		applicationLicenses := applicationLicensesList.([]string)
 		if len(applicationLicenses) > 0 {
 			return &applicationLicenses, nil
 		}
 	}
-	return nil, fmt.Errorf("application_license either empty or parse failure")
+	return nil, fmt.Errorf("application_license is either empty or contains parsing errors")
 }
 
-func ExpendApplicationPackages(d *pluginsdk.ResourceData) (*[]batch.ApplicationPackageReference, error) {
+func ExpendBatchPoolApplicationPackages(d *pluginsdk.ResourceData) (*[]batch.ApplicationPackageReference, error) {
 	var result []batch.ApplicationPackageReference
 
 	if applicationPackageList, ok := d.GetOk("application_packages"); ok {
@@ -325,6 +325,167 @@ func expendApplicationPackages(ref map[string]interface{}) (*batch.ApplicationPa
 		Version: utils.String(ref["version"].(string)),
 	}
 	return &applicationPackage, nil
+}
+
+func ExpandBatchPoolTaskSchedulingPolicy(d *pluginsdk.ResourceData) (*batch.TaskSchedulingPolicy, error) {
+	var result batch.TaskSchedulingPolicy
+
+	if taskSchedulingPolicyString, ok := d.GetOk("task_scheduling_policy"); ok {
+		taskSchedulingPolicy := taskSchedulingPolicyString.([]interface{})
+		item := taskSchedulingPolicy[0].(map[string]interface{})
+		result.NodeFillType = batch.ComputeNodeFillType(item["node_fill_type"].(string))
+		return &result, nil
+	}
+	return nil, fmt.Errorf("task_scheduling_policy is either empty or contains parsing errors")
+}
+
+func ExpandBatchPoolDeploymentConfiguration(d *pluginsdk.ResourceData) (*batch.DeploymentConfiguration, error) {
+	var result batch.DeploymentConfiguration
+
+	if deploymentConfig, ok := d.GetOk("deployment_configuration"); ok {
+		//Although in schema this is a list, actually deployment_configuration has only one element
+		deploymentConfigMap := deploymentConfig.([]interface{})[0].(map[string]interface{})
+		cloudServiceConfig, cloudServiceErr := expandBatchPoolCloudServiceConfig(deploymentConfigMap)
+		virtualMachineConfig, virtualMachineErr := expandBatchPoolVirtualMachineConfig(deploymentConfigMap)
+		if cloudServiceErr == nil || virtualMachineErr == nil {
+			result.CloudServiceConfiguration = cloudServiceConfig
+			result.VirtualMachineConfiguration = virtualMachineConfig
+			return &result, nil
+		}
+	}
+	return nil, fmt.Errorf("deployment_configuration is either empty or contains parsing errors")
+}
+
+func expandBatchPoolVirtualMachineConfig(configMap map[string]interface{}) (*batch.VirtualMachineConfiguration, error) {
+	var result batch.VirtualMachineConfiguration
+
+	if vmConfig, ok := configMap["virtual_machine_configuration"]; ok {
+		vmConfigSet := vmConfig.(map[string]interface{})
+		if imageReference, iRErr := ExpandBatchPoolImageReference(vmConfigSet["image_reference"].([]interface{})); iRErr == nil {
+			result.ImageReference = imageReference
+		} else {
+			return nil, iRErr
+		}
+		if nodeAgentSkuID, ok := vmConfigSet["node_agent_sku_id"]; ok {
+			result.NodeAgentSkuID = utils.String(nodeAgentSkuID.(string))
+		}
+		if containerConfig, cCfgErr := ExpandBatchPoolContainerConfiguration(vmConfigSet["container_configuration"].([]interface{})); cCfgErr == nil {
+			result.ContainerConfiguration = containerConfig
+		}
+		if dataDisk, diskErr := expandBatchPoolDataDisks(vmConfigSet["data_disks"].([]interface{})); diskErr == nil {
+			result.DataDisks = dataDisk
+		}
+		if diskEncryptionConfig, diskEncryptionErr := expandBatchPoolDiskEncryptionConfiguration(vmConfigSet["disk_encryption_configuration"].([]interface{})); diskEncryptionErr == nil {
+			result.DiskEncryptionConfiguration = diskEncryptionConfig
+		}
+		if extensions, extErr := expandBatchPoolExtensions(vmConfigSet["disk_encryption_configuration"].([]interface{})); extErr == nil {
+			result.Extensions = extensions
+		}
+		if licenseType, ok := vmConfigSet["license_type"]; ok {
+			result.LicenseType = utils.String(licenseType.(string))
+		}
+		if windowsConfiguration, windowsConfigErr := expandBatchPoolWindowsConfiguration(vmConfigSet["windows_configuration"].([]interface{})); windowsConfigErr == nil {
+			result.WindowsConfiguration = windowsConfiguration
+		}
+		return &result, nil
+	}
+	return nil, fmt.Errorf("virtual_machine_configuration is either empty or contains parsing errors")
+}
+
+func expandBatchPoolCloudServiceConfig(configMap map[string]interface{}) (*batch.CloudServiceConfiguration, error) {
+	return nil, fmt.Errorf("cloud_service_configuration is either empty or contains parsing errors")
+}
+
+func expandBatchPoolWindowsConfiguration(list []interface{}) (*batch.WindowsConfiguration, error) {
+	if list == nil || len(list) == 0 {
+		return nil, fmt.Errorf("windows_configuration is empty")
+	}
+	item := list[0].(map[string]interface{})["enable_automatic_updates"].(bool)
+	result := batch.WindowsConfiguration{
+		EnableAutomaticUpdates: utils.Bool(item),
+	}
+	return &result, nil
+}
+
+func expandBatchPoolExtensions(list []interface{}) (*[]batch.VMExtension, error) {
+	var result []batch.VMExtension
+
+	for _, tempItem := range list {
+		item := tempItem.(map[string]interface{})
+		if batchPoolExtension, err := expandBatchPoolExtension(item); err == nil {
+			result = append(result, batchPoolExtension)
+		} else {
+			return nil, fmt.Errorf("cloud_service_configuration is either empty or contains parsing errors")
+		}
+	}
+
+	return &result, nil
+}
+
+func expandBatchPoolExtension(ref map[string]interface{}) (batch.VMExtension, error) {
+	result := batch.VMExtension{
+		Name:      utils.String(ref["name"].(string)),
+		Publisher: utils.String(ref["publisher"].(string)),
+		Type:      utils.String(ref["type"].(string)),
+	}
+	if autoUpgradeMinorVersion, ok := ref["auto_upgrade_minor_version"]; ok {
+		result.AutoUpgradeMinorVersion = utils.Bool(autoUpgradeMinorVersion.(bool))
+	}
+	if typeHandlerVersion, ok := ref["type_handler_version"]; ok {
+		result.TypeHandlerVersion = utils.String(typeHandlerVersion.(string))
+	}
+	if settings, ok := ref["settings"]; ok {
+		result.TypeHandlerVersion = utils.String(settings.(string))
+	}
+	if protectedSettings, ok := ref["protected_settings"]; ok {
+		result.TypeHandlerVersion = utils.String(protectedSettings.(string))
+	}
+	if tmpItem, ok := ref["provision_after_extensions"]; ok {
+		provisionAfterExtensionsList := tmpItem.([]string)
+		result.ProvisionAfterExtensions = &provisionAfterExtensionsList
+	}
+	return result, nil
+}
+
+func expandBatchPoolDiskEncryptionConfiguration(list []interface{}) (*batch.DiskEncryptionConfiguration, error) {
+	var result batch.DiskEncryptionConfiguration
+
+	var targetList []batch.DiskEncryptionTarget
+
+	for _, tempItem := range list {
+		item := tempItem.(map[string]interface{})
+		if dataDiskEncryptionTarget, ok := item["disk_encryption_target"]; ok {
+			targetList = append(targetList, batch.DiskEncryptionTarget(dataDiskEncryptionTarget.(string)))
+		} else {
+			return nil, fmt.Errorf("disk_encryption_target is either empty or contains parsing errors")
+		}
+	}
+	result.Targets = &targetList
+	return &result, nil
+}
+
+func expandBatchPoolDataDisks(list []interface{}) (*[]batch.DataDisk, error) {
+	var result []batch.DataDisk
+
+	for _, tempItem := range list {
+		item := tempItem.(map[string]interface{})
+		dataDisk, err := expandBatchPoolDataDisk(item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *dataDisk)
+	}
+	return &result, nil
+}
+
+func expandBatchPoolDataDisk(ref map[string]interface{}) (*batch.DataDisk, error) {
+	result := batch.DataDisk{
+		Lun:                utils.Int32(ref["lun"].(int32)),
+		Caching:            batch.CachingType(ref["caching"].(string)),
+		DiskSizeGB:         utils.Int32(ref["disk_size_gb"].(int32)),
+		StorageAccountType: batch.StorageAccountType(ref["storage_account_type"].(int32)),
+	}
+	return &result, nil
 }
 
 // ExpandBatchPoolImageReference expands Batch pool image reference
@@ -360,7 +521,16 @@ func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, e
 		storageImageRefVersion := storageImageRef["version"].(string)
 		imageRef.Version = &storageImageRefVersion
 	}
-
+	if imageRef != nil {
+		// if an image reference ID is specified, the user wants use a custom image. This property is mutually exclusive with other properties.
+		if imageRef.ID != nil && (imageRef.Offer != nil || imageRef.Publisher != nil || imageRef.Sku != nil || imageRef.Version != nil) {
+			return nil, fmt.Errorf("properties version, offer, publish cannot be defined when using a custom image id")
+		} else if imageRef.ID == nil && (imageRef.Offer == nil || imageRef.Publisher == nil || imageRef.Sku == nil || imageRef.Version == nil) {
+			return nil, fmt.Errorf("properties version, offer, publish and sku are mandatory when not using a custom image")
+		}
+	} else {
+		return nil, fmt.Errorf("image reference property can not be empty")
+	}
 	return imageRef, nil
 }
 
@@ -387,7 +557,7 @@ func ExpandBatchPoolContainerConfiguration(list []interface{}) (*batch.Container
 }
 
 func expandBatchPoolContainerRegistries(list []interface{}) (*[]batch.ContainerRegistry, error) {
-	result := []batch.ContainerRegistry{}
+	var result []batch.ContainerRegistry
 
 	for _, tempItem := range list {
 		item := tempItem.(map[string]interface{})
@@ -410,7 +580,21 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*batch.Contai
 		UserName:       utils.String(ref["user_name"].(string)),
 		Password:       utils.String(ref["password"].(string)),
 	}
+	if idRef, err := expandBatchPoolIdentityReference(ref["identity_reference"].(map[string]interface{})); err == nil {
+		containerRegistry.IdentityReference = idRef
+	} else {
+		return nil, err
+	}
+
 	return &containerRegistry, nil
+}
+
+func expandBatchPoolIdentityReference(ref map[string]interface{}) (*batch.ComputeNodeIdentityReference, error) {
+	var result batch.ComputeNodeIdentityReference
+	if iid, ok := ref["identity_id"]; ok {
+		result.ResourceID = utils.String(iid.(string))
+	}
+	return nil, fmt.Errorf("identity_id is required in building identity_reference")
 }
 
 // ExpandBatchPoolCertificateReferences expands Batch pool certificate references
@@ -707,11 +891,13 @@ func expandPoolNetworkSecurityGroupRule(list []interface{}) []batch.NetworkSecur
 		priority := int32(groupRuleMap["priority"].(int))
 		sourceAddressPrefix := groupRuleMap["source_address_prefix"].(string)
 		access := batch.NetworkSecurityGroupRuleAccess(groupRuleMap["access"].(string))
+		portRanges := groupRuleMap["source_address_prefix"].([]string)
 
 		networkSecurityGroupRule = append(networkSecurityGroupRule, batch.NetworkSecurityGroupRule{
 			Priority:            &priority,
 			SourceAddressPrefix: &sourceAddressPrefix,
 			Access:              access,
+			SourcePortRanges:    &portRanges,
 		})
 	}
 
