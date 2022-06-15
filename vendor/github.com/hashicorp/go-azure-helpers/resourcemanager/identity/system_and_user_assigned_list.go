@@ -40,7 +40,10 @@ func (s *SystemAndUserAssignedList) MarshalJSON() ([]byte, error) {
 
 	out := map[string]interface{}{
 		"type":                   string(identityType),
-		"userAssignedIdentities": userAssignedIdentityIds,
+		"userAssignedIdentities": nil,
+	}
+	if len(userAssignedIdentityIds) > 0 {
+		out["userAssignedIdentities"] = userAssignedIdentityIds
 	}
 	return json.Marshal(out)
 }
@@ -114,7 +117,7 @@ func ExpandSystemAndUserAssignedListFromModel(input []ModelSystemAssignedUserAss
 	if len(input) == 0 {
 		return &SystemAndUserAssignedList{
 			Type:        TypeNone,
-			IdentityIds: []string{},
+			IdentityIds: nil,
 		}, nil
 	}
 
