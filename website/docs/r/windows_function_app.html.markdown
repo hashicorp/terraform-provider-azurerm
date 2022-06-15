@@ -411,7 +411,7 @@ A `site_config` block supports the following:
 
 * `use_32_bit_worker` - (Optional) Should the Windows Function App use a 32-bit worker process. Defaults to `true`.
 
-* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.
+* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
