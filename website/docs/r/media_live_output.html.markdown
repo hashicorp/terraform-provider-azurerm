@@ -64,7 +64,7 @@ resource "azurerm_media_live_event" "example" {
 resource "azurerm_media_live_event_output" "example" {
   name                         = "exampleoutput"
   live_event_id                = azurerm_media_live_event.example.id
-  archive_window_length        = "PT5M"
+  archive_window_duration      = "PT5M"
   asset_name                   = azurerm_media_asset.example.name
   description                  = "Test live output 1"
   manifest_name                = "testmanifest"
