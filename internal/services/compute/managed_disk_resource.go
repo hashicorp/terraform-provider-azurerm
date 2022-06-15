@@ -652,7 +652,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("disk_size_gb") {
 		if old, new := d.GetChange("disk_size_gb"); new.(int) > old.(int) {
-			if !meta.(*clients.Client).Features.ManagedDisk.NoDowntimeResize || shutDownOnResize(old.(int), new.(int)) {
+			if !meta.(*clients.Client).Features.ManagedDisk.NoDowntimeResize || shutDownOnResize(disk, old.(int), new.(int)) {
 				shouldShutDown = true
 			}
 			diskUpdate.DiskUpdateProperties.DiskSizeGB = utils.Int32(int32(new.(int)))
@@ -980,7 +980,11 @@ func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func shutDownOnResize(oldSizeGB, newSizeGB int) bool {
+func shutDownOnResize(disk compute.Disk, oldSizeGB, newSizeGB int) bool {
+	// OS disks can't be expanded without downtime.
+	if disk.OsType != "" {
+		return true
+	}
 	// Disks smaller than 4 TiB can't be expanded to 4 TiB or larger without downtime.
 	if oldSizeGB < 4096 && newSizeGB >= 4096 {
 		return true
