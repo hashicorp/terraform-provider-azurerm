@@ -129,7 +129,7 @@ The following arguments are supported:
 
 ~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be SKU "Basic" not "Standard"
 
-~> **NOTE:** Not all SKU's (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region.
+~> **NOTE:** Not all SKUs (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region.
 
 * `type` - (Required) The type of the Virtual Network Gateway. Valid options are
   `Vpn` or `ExpressRoute`. Changing the type forces a new resource to be created.
@@ -144,13 +144,15 @@ The following arguments are supported:
 * `default_local_network_gateway_id` -  (Optional) The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
     gateway is created will be routed (*forced tunnelling*). Refer to the
-    [Azure documentation on forced tunnelling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
+    [Azure documentation on forced tunnelling](https://docs.microsoft.com/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
     If not specified, forced tunnelling is disabled.
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Virtual Network Gateway should exist. Changing this forces a new Virtual Network Gateway to be created.
 
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled
   for this Virtual Network Gateway. Defaults to `false`.
+  
+* `bgp_settings` - (Optional) A `bgp_settings` block which is documented below. In this block the BGP specific settings can be defined.
 
 * `generation` - (Optional) The Generation of the Virtual Network gateway. Possible values include `Generation1`, `Generation2` or `None`.
 

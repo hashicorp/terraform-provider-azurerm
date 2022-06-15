@@ -350,7 +350,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			availabilityRequest := web.ResourceNameAvailabilityRequest{
-				Name: utils.String(functionAppSlot.Name),
+				Name: utils.String(fmt.Sprintf("%s-%s", id.SiteName, id.SlotName)),
 				Type: web.CheckNameResourceTypesMicrosoftWebsites,
 			}
 
@@ -573,6 +573,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				Tags:                        tags.ToTypedObject(functionAppSlot.Tags),
 				Kind:                        utils.NormalizeNilableString(functionAppSlot.Kind),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
+				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 			}
 
 			configResp, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)

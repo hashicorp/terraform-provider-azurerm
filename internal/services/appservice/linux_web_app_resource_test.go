@@ -674,6 +674,7 @@ func TestAccLinuxWebApp_withRuby26(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccLinuxWebApp_withRuby27(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -988,6 +989,103 @@ func TestAccLinuxWebApp_appSettings(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_stickySettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.stickySettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebApp_stickySettingsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings").DoesNotExist(),
+				check.That(data.ResourceName).Key("sticky_settings").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.stickySettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.stickySettingsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.stickySettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.stickySettingsRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("sticky_settings").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// Deployments
+
+func TestAccLinuxWebApp_zipDeploy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zipDeploy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("zip_deploy_file"),
+	})
+}
+
 // Exists func
 
 func (r LinuxWebAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -1197,6 +1295,11 @@ resource "azurerm_linux_web_app" "test" {
         minimum_process_execution_time = "00:05:00"
       }
     }
+  }
+
+  sticky_settings {
+    app_setting_names       = ["foo"]
+    connection_string_names = ["First", "Third"]
   }
 
   storage_account {
@@ -1506,6 +1609,144 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
+func (r LinuxWebAppResource) stickySettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+    third  = "degree"
+  }
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "Third"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  sticky_settings {
+    app_setting_names       = ["foo", "secret"]
+    connection_string_names = ["First", "Third"]
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) stickySettingsRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+    third  = "degree"
+  }
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "Third"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) stickySettingsUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+    third  = "degree"
+  }
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "Third"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  sticky_settings {
+    app_setting_names = ["foo", "secret", "third"]
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
 func (r LinuxWebAppResource) secondServicePlan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1724,6 +1965,18 @@ resource "azurerm_linux_web_app" "test" {
       ip_address = "10.10.10.10/32"
       name       = "test-restriction"
       priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da", "6bde7211-57bc-4476-866a-c9676e22b9d7"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64", "9.9.9.8/32"]
+        x_forwarded_host  = ["example.com", "anotherexample.com"]
+      }
+    }
+    ip_restriction {
+      ip_address = "fe80::/64"
+      name       = "test-restriction-v6"
+      priority   = 124
       action     = "Allow"
       headers {
         x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da", "6bde7211-57bc-4476-866a-c9676e22b9d7"]
@@ -2337,6 +2590,36 @@ resource "azurerm_linux_web_app" "test" {
   }
 
   key_vault_reference_identity_id = azurerm_user_assigned_identity.kv.id
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) zipDeploy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  app_settings = {
+    WEBSITE_RUN_FROM_PACKAGE       = "1"
+    SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
+  }
+
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+  }
+
+  zip_deploy_file = "./testdata/msdocs-python-flask-webapp-quickstart-main.zip"
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }

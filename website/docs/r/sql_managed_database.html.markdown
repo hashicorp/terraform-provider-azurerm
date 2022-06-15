@@ -15,6 +15,11 @@ Manages a SQL Azure Managed Database.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
+}
+
 resource "azurerm_sql_managed_database" "example" {
   name                    = "exampledatabase"
   sql_managed_instance_id = azurerm_sql_managed_instance.example.id

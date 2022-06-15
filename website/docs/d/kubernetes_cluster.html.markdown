@@ -38,7 +38,7 @@ The following attributes are exported:
 
 * `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the primaries.
 
--> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
+-> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/azure/firewall/public-preview)
 
 * `aci_connector_linux` - An `aci_connector_linux` block as documented below.
 
@@ -243,9 +243,9 @@ A `network_profile` block exports the following:
 
 * `network_plugin` - Network plugin used such as `azure` or `kubenet`.
 
-* `network_policy` - Network policy to be used with Azure CNI. Eg: `calico` or `azure`
+* `network_policy` - Network policy to be used with Azure CNI. e.g. `calico` or `azure`
 
-* `network_mode` - Network mode to be used with Azure CNI. Eg: `bridge` or `transparent`
+* `network_mode` - Network mode to be used with Azure CNI. e.g. `bridge` or `transparent`
 
 -> **NOTE:** `network_mode` Is currently in Preview on an opt-in basis. To use it, enable feature `AKSNetworkModePreview` for `namespace Microsoft.ContainerService`.
 

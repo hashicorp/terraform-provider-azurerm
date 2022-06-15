@@ -14,15 +14,15 @@ Manages an EventGrid Event Subscription
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "default" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_storage_account" "default" {
   name                     = "defaultStorageAccount"
-  resource_group_name      = azurerm_resource_group.default.name
-  location                 = azurerm_resource_group.default.location
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -38,7 +38,7 @@ resource "azurerm_storage_queue" "default" {
 
 resource "azurerm_eventgrid_event_subscription" "default" {
   name  = "defaultEventSubscription"
-  scope = azurerm_resource_group.default.id
+  scope = azurerm_resource_group.example.id
 
   storage_queue_endpoint {
     storage_account_id = azurerm_storage_account.default.id
@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **NOTE:** One of `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
+~> **NOTE:** One of `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint`, `webhook_endpoint` or `azure_function_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `delivery_identity` - (Optional) A `delivery_identity` block as defined below.
 
-* `delivery_property` - (Optional) A `delivery_property` block as defined below.
+* `delivery_property` - (Optional) One or more `delivery_property` blocks as defined below.
 
 * `dead_letter_identity` - (Optional) A `dead_letter_identity` block as defined below.
 
@@ -223,7 +223,7 @@ A `retry_policy` supports the following:
 
 * `max_delivery_attempts` - (Required) Specifies the maximum number of delivery retry attempts for events.
 
-* `event_time_to_live` - (Required) Specifies the time to live (in minutes) for events. Supported range is `1` to `1440`. Defaults to `1440`. See [official documentation](https://docs.microsoft.com/en-us/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.
+* `event_time_to_live` - (Required) Specifies the time to live (in minutes) for events. Supported range is `1` to `1440`. Defaults to `1440`. See [official documentation](https://docs.microsoft.com/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.
 
 ## Attributes Reference
 
@@ -247,6 +247,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 EventGrid Event Subscription's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_eventgrid_event_subscription.eventSubscription1
-/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/topics/topic1/providers/Microsoft.EventGrid/eventSubscriptions/eventSubscription1
+terraform import azurerm_eventgrid_event_subscription.eventSubscription1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/topics/topic1/providers/Microsoft.EventGrid/eventSubscriptions/eventSubscription1
 ```

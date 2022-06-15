@@ -29,7 +29,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -115,12 +114,11 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 
 			// resource fields
 			"offer_type": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.DatabaseAccountOfferTypeStandard),
-				}, !features.ThreePointOhBeta()),
+				}, false),
 			},
 
 			"analytical_storage": {
@@ -183,16 +181,15 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"kind": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				Default:          string(documentdb.DatabaseAccountKindGlobalDocumentDB),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(documentdb.DatabaseAccountKindGlobalDocumentDB),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.DatabaseAccountKindGlobalDocumentDB),
 					string(documentdb.DatabaseAccountKindMongoDB),
 					string(documentdb.DatabaseAccountKindParse),
-				}, !features.ThreePointOhBeta()),
+				}, false),
 			},
 
 			"ip_range_filter": func() *schema.Schema {
@@ -259,16 +256,15 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"consistency_level": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(documentdb.DefaultConsistencyLevelBoundedStaleness),
 								string(documentdb.DefaultConsistencyLevelConsistentPrefix),
 								string(documentdb.DefaultConsistencyLevelEventual),
 								string(documentdb.DefaultConsistencyLevelSession),
 								string(documentdb.DefaultConsistencyLevelStrong),
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 
 						"max_interval_in_seconds": {
@@ -326,27 +322,20 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-							ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-								out := []string{
-									"EnableAggregationPipeline",
-									"EnableCassandra",
-									"EnableGremlin",
-									"EnableTable",
-									"EnableServerless",
-									"EnableMongo",
-									"MongoDBv3.4",
-									"mongoEnableDocLevelTTL",
-									"DisableRateLimitingResponses",
-									"AllowSelfServeUpgradeToMongo36",
-								}
-								if !features.ThreePointOhBeta() {
-									out = append(out, "EnableAnalyticalStorage")
-								}
-								return validation.StringInSlice(out, !features.ThreePointOhBeta())
-							}(),
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"EnableAggregationPipeline",
+								"EnableCassandra",
+								"EnableGremlin",
+								"EnableTable",
+								"EnableServerless",
+								"EnableMongo",
+								"MongoDBv3.4",
+								"mongoEnableDocLevelTTL",
+								"DisableRateLimitingResponses",
+								"AllowSelfServeUpgradeToMongo36",
+							}, false),
 						},
 					},
 				},
@@ -406,6 +395,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 					string(documentdb.ServerVersionThreeFullStopTwo),
 					string(documentdb.ServerVersionThreeFullStopSix),
 					string(documentdb.ServerVersionFourFullStopZero),
+					string(documentdb.ServerVersionFourFullStopTwo),
 				}, false),
 			},
 
@@ -975,7 +965,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("analytical_storage_enabled", props.EnableAnalyticalStorage)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == documentdb.PublicNetworkAccessEnabled)
 		defaultIdentity := props.DefaultIdentity
-		if defaultIdentity == nil {
+		if defaultIdentity == nil || *defaultIdentity == "" {
 			defaultIdentity = utils.String("FirstPartyIdentity")
 		}
 		d.Set("default_identity_type", defaultIdentity)

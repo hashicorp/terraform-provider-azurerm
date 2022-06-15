@@ -9,11 +9,10 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -1213,6 +1212,21 @@ func TestAccApplicationGateway_updateFeipConfig(t *testing.T) {
 	})
 }
 
+func TestAccApplicationGateway_withoutRequestTimeout(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	r := ApplicationGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withoutRequestTimeout(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t ApplicationGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ApplicationGatewayID(state.ID)
 	if err != nil {
@@ -1992,10 +2006,6 @@ resource "azurerm_application_gateway" "test" {
 
 // nolint unused - mistakenly marked as unused
 func (r ApplicationGatewayResource) trustedRootCertificate_keyvault(data acceptance.TestData) string {
-	softDeleteSnippet := "soft_delete_enabled = true"
-	if features.ThreePointOhBeta() {
-		softDeleteSnippet = ""
-	}
 	out := fmt.Sprintf(`
 %[1]s
 
@@ -2033,7 +2043,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.test.tenant_id}"
   sku_name            = "standard"
-  %[3]s
 
   access_policy {
     tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
@@ -2140,15 +2149,11 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = local.http_setting_name
   }
 }
-`, r.template(data), data.RandomInteger, softDeleteSnippet)
+`, r.template(data), data.RandomInteger)
 	return out
 }
 
 func (r ApplicationGatewayResource) update_trustedRootCertificate_keyvault(data acceptance.TestData) string {
-	softDeleteSnippet := "soft_delete_enabled = true"
-	if features.ThreePointOhBeta() {
-		softDeleteSnippet = ""
-	}
 	out := fmt.Sprintf(`
 %[1]s
 
@@ -2185,7 +2190,6 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
   sku_name            = "standard"
-  %[3]s
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
@@ -2319,7 +2323,7 @@ resource "azurerm_application_gateway" "test" {
     backend_http_settings_name = local.http_setting_name
   }
 }
-`, r.template(data), data.RandomInteger, softDeleteSnippet)
+`, r.template(data), data.RandomInteger)
 	return out
 }
 
@@ -4018,11 +4022,7 @@ resource "azurerm_application_gateway" "test" {
 }
 
 func (r ApplicationGatewayResource) sslCertificate_keyvault_versionless(data acceptance.TestData) string {
-	softDeleteSnippet := "soft_delete_enabled = true"
-	if features.ThreePointOhBeta() {
-		softDeleteSnippet = ""
-	}
-	out := fmt.Sprintf(`
+	return fmt.Sprintf(`
 %s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -4074,8 +4074,6 @@ resource "azurerm_key_vault" "test" {
     secret_permissions      = ["Get"]
     certificate_permissions = ["Get"]
   }
-
-  %[3]s
 }
 
 resource "azurerm_key_vault_certificate" "test" {
@@ -4169,16 +4167,11 @@ resource "azurerm_application_gateway" "test" {
     key_vault_secret_id = "${azurerm_key_vault.test.vault_uri}secrets/${azurerm_key_vault_certificate.test.name}"
   }
 }
-`, r.template(data), data.RandomInteger, softDeleteSnippet)
-	return out
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ApplicationGatewayResource) sslCertificate_keyvault_versioned(data acceptance.TestData) string {
-	softDeleteSnippet := "soft_delete_enabled = true"
-	if features.ThreePointOhBeta() {
-		softDeleteSnippet = ""
-	}
-	out := fmt.Sprintf(`
+	return fmt.Sprintf(`
 %s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -4230,8 +4223,6 @@ resource "azurerm_key_vault" "test" {
     secret_permissions      = ["Get"]
     certificate_permissions = ["Get"]
   }
-
-  %[3]s
 }
 
 resource "azurerm_key_vault_certificate" "test" {
@@ -4325,8 +4316,7 @@ resource "azurerm_application_gateway" "test" {
     key_vault_secret_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
-`, r.template(data), data.RandomInteger, softDeleteSnippet)
-	return out
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ApplicationGatewayResource) sslCertificate(data acceptance.TestData) string {
@@ -7662,6 +7652,75 @@ resource "azurerm_application_gateway" "test" {
   http_listener {
     name                           = local.listener_name
     frontend_ip_configuration_name = local.frontend_ip_configuration_name_new
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) withoutRequestTimeout(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_Small"
+    tier     = "Standard"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
     frontend_port_name             = local.frontend_port_name
     protocol                       = "Http"
   }

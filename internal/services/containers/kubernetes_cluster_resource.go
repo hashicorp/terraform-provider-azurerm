@@ -25,7 +25,7 @@ import (
 	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
-	privateDnsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -418,6 +418,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.NetworkPluginAzure),
 								string(containerservice.NetworkPluginKubenet),
+								string(containerservice.NetworkPluginNone),
 							}, false),
 						},
 
@@ -479,11 +480,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"load_balancer_sku": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							Default:          string(containerservice.LoadBalancerSkuStandard),
-							ForceNew:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(containerservice.LoadBalancerSkuStandard),
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.LoadBalancerSkuBasic),
 								string(containerservice.LoadBalancerSkuStandard),
@@ -651,13 +651,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"run_command_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"private_dns_zone_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true, // a Private Cluster is `System` by default even if unspecified
 				ForceNew: true,
 				ValidateFunc: validation.Any(
-					privateDnsValidate.PrivateDnsZoneID,
+					privatezones.ValidatePrivateDnsZoneID,
 					validation.StringInSlice([]string{
 						"System",
 						"None",
@@ -1019,6 +1025,16 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("expanding `default_node_pool`: %+v", err)
 	}
 
+	// the AKS API will create the default node pool with the same version as the control plane regardless of what is
+	// supplied by the user which will result in a diff in some cases, so if versions have been supplied check that they
+	// are identical
+	agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
+	if nodePoolVersion := agentProfile.ManagedClusterAgentPoolProfileProperties.OrchestratorVersion; nodePoolVersion != nil {
+		if kubernetesVersion != "" && kubernetesVersion != *nodePoolVersion {
+			return fmt.Errorf("version mismatch between the control plane running %s and default node pool running %s, they must use the same kubernetes versions", kubernetesVersion, *nodePoolVersion)
+		}
+	}
+
 	var addonProfiles *map[string]*containerservice.ManagedClusterAddonProfile
 	addOns := collectKubernetesAddons(d)
 	addonProfiles, err = expandKubernetesAddOns(d, addOns, env)
@@ -1061,6 +1077,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		EnablePrivateCluster:           &enablePrivateCluster,
 		AuthorizedIPRanges:             apiServerAuthorizedIPRanges,
 		EnablePrivateClusterPublicFQDN: utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool)),
+		DisableRunCommand:              utils.Bool(!d.Get("run_command_enabled").(bool)),
 	}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
@@ -1350,6 +1367,14 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.APIServerAccessProfile.EnablePrivateClusterPublicFQDN = utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool))
 	}
 
+	if d.HasChange("run_command_enabled") {
+		updateCluster = true
+		if existing.ManagedClusterProperties.APIServerAccessProfile == nil {
+			existing.ManagedClusterProperties.APIServerAccessProfile = &containerservice.ManagedClusterAPIServerAccessProfile{}
+		}
+		existing.ManagedClusterProperties.APIServerAccessProfile.DisableRunCommand = utils.Bool(!d.Get("run_command_enabled").(bool))
+	}
+
 	if d.HasChange("auto_scaler_profile") {
 		updateCluster = true
 		autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
@@ -1613,7 +1638,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		// if a users specified a version - confirm that version is supported on the cluster
 		if nodePoolVersion := agentProfile.ManagedClusterAgentPoolProfileProperties.OrchestratorVersion; nodePoolVersion != nil {
-			if err := validateNodePoolSupportsVersion(ctx, containersClient, defaultNodePoolId, *nodePoolVersion); err != nil {
+			existingNodePool, err := nodePoolsClient.Get(ctx, defaultNodePoolId.ResourceGroup, defaultNodePoolId.ManagedClusterName, defaultNodePoolId.AgentPoolName)
+			if err != nil {
+				return fmt.Errorf("retrieving Default Node Pool %s: %+v", defaultNodePoolId, err)
+			}
+			currentNodePoolVersion := ""
+			if v := existingNodePool.OrchestratorVersion; v != nil {
+				currentNodePoolVersion = *v
+			}
+
+			if err := validateNodePoolSupportsVersion(ctx, containersClient, currentNodePoolVersion, defaultNodePoolId, *nodePoolVersion); err != nil {
 				return err
 			}
 		}
@@ -1714,6 +1748,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_cluster_public_fqdn_enabled", accessProfile.EnablePrivateClusterPublicFQDN)
+			runCommandEnabled := true
+			if accessProfile.DisableRunCommand != nil {
+				runCommandEnabled = !*accessProfile.DisableRunCommand
+			}
+			d.Set("run_command_enabled", runCommandEnabled)
 			switch {
 			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
 				d.Set("private_dns_zone_id", "System")

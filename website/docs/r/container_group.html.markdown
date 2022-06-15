@@ -12,7 +12,7 @@ Manages as an Azure Container Group instance.
 
 ## Example Usage
 
-This example provisions a Basic Container. Other examples of the `azurerm_container_group` resource can be found in [the `./examples/container-instance` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/container-instance).
+This example provisions a Basic Container. Other examples of the `azurerm_container_group` resource can be found in [the `./examples/container-instance` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/container-instance).
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -24,7 +24,7 @@ resource "azurerm_container_group" "example" {
   name                = "example-continst"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   dns_name_label      = "aci-label"
   os_type             = "Linux"
 
@@ -90,6 +90,8 @@ The following arguments are supported:
 
 ~> **Note:** `dns_name_label` and `os_type` set to `windows` are not compatible with `Private` `ip_address_type`
 
+* `key_vault_key_id` - (Optional) The Key Vault key URI for CMK encryption. Changing this forces a new resource to be created.
+
 * `network_profile_id` - (Optional) Network profile ID for deploying to virtual network.
 
 * `image_registry_credential` - (Optional) A `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
@@ -104,7 +106,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Container Group. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the container group has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
+~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the container group has been created. See [documentation](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview) for more information.
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Container Group.
 

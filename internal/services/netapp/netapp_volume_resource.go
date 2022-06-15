@@ -8,11 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-10-01/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -27,77 +25,6 @@ import (
 )
 
 func resourceNetAppVolume() *pluginsdk.Resource {
-	exportPolicyRuleSchema := map[string]*pluginsdk.Schema{
-		"rule_index": {
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ValidateFunc: validation.IntBetween(1, 5),
-		},
-
-		"allowed_clients": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.CIDR,
-			},
-		},
-
-		"protocols_enabled": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
-			MinItems: 1,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{
-					"NFSv3",
-					"NFSv4.1",
-					"CIFS",
-				}, false),
-			},
-		},
-
-		"unix_read_only": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"unix_read_write": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"root_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-	}
-
-	if !features.ThreePointOhBeta() {
-		exportPolicyRuleSchema["cifs_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "Deprecated in favour of `protocols_enabled`",
-		}
-
-		exportPolicyRuleSchema["nfsv3_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "Deprecated in favour of `protocols_enabled`",
-		}
-
-		exportPolicyRuleSchema["nfsv4_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "Deprecated in favour of `protocols_enabled`",
-		}
-	}
-
 	return &pluginsdk.Resource{
 		Create: resourceNetAppVolumeCreate,
 		Read:   resourceNetAppVolumeRead,
@@ -174,6 +101,17 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				ValidateFunc: netAppValidate.SnapshotID,
 			},
 
+			"network_features": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(netapp.NetworkFeaturesBasic),
+					string(netapp.NetworkFeaturesStandard),
+				}, false),
+			},
+
 			"protocols": {
 				Type:     pluginsdk.TypeSet,
 				ForceNew: true,
@@ -218,7 +156,53 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Optional: true,
 				MaxItems: 5,
 				Elem: &pluginsdk.Resource{
-					Schema: exportPolicyRuleSchema,
+					Schema: map[string]*pluginsdk.Schema{
+						"rule_index": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 5),
+						},
+
+						"allowed_clients": {
+							Type:     pluginsdk.TypeSet,
+							Required: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.CIDR,
+							},
+						},
+
+						"protocols_enabled": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							MinItems: 1,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"NFSv3",
+									"NFSv4.1",
+									"CIFS",
+								}, false),
+							},
+						},
+
+						"unix_read_only": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"unix_read_write": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"root_access_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+					},
 				},
 			},
 
@@ -316,6 +300,12 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	volumePath := d.Get("volume_path").(string)
 	serviceLevel := d.Get("service_level").(string)
 	subnetID := d.Get("subnet_id").(string)
+
+	networkFeatures := d.Get("network_features").(string)
+	if networkFeatures == "" {
+		networkFeatures = string(netapp.NetworkFeaturesBasic)
+	}
+
 	protocols := d.Get("protocols").(*pluginsdk.Set).List()
 	if len(protocols) == 0 {
 		protocols = append(protocols, "NFSv3")
@@ -425,15 +415,16 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	parameters := netapp.Volume{
 		Location: utils.String(location),
 		VolumeProperties: &netapp.VolumeProperties{
-			CreationToken:  utils.String(volumePath),
-			ServiceLevel:   netapp.ServiceLevel(serviceLevel),
-			SubnetID:       utils.String(subnetID),
-			ProtocolTypes:  utils.ExpandStringSlice(protocols),
-			SecurityStyle:  netapp.SecurityStyle(securityStyle),
-			UsageThreshold: utils.Int64(storageQuotaInGB),
-			ExportPolicy:   exportPolicyRule,
-			VolumeType:     utils.String(volumeType),
-			SnapshotID:     utils.String(snapshotID),
+			CreationToken:   utils.String(volumePath),
+			ServiceLevel:    netapp.ServiceLevel(serviceLevel),
+			SubnetID:        utils.String(subnetID),
+			NetworkFeatures: netapp.NetworkFeatures(networkFeatures),
+			ProtocolTypes:   utils.ExpandStringSlice(protocols),
+			SecurityStyle:   netapp.SecurityStyle(securityStyle),
+			UsageThreshold:  utils.Int64(storageQuotaInGB),
+			ExportPolicy:    exportPolicyRule,
+			VolumeType:      utils.String(volumeType),
+			SnapshotID:      utils.String(snapshotID),
 			DataProtection: &netapp.VolumePropertiesDataProtection{
 				Replication: dataProtectionReplication.Replication,
 				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
@@ -601,6 +592,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", props.ServiceLevel)
 		d.Set("subnet_id", props.SubnetID)
+		d.Set("network_features", props.NetworkFeatures)
 		d.Set("protocols", props.ProtocolTypes)
 		d.Set("security_style", props.SecurityStyle)
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
@@ -683,22 +675,30 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		// Deleting replication and waiting for it to fully complete the operation
-		if _, err = client.DeleteReplication(ctx, replicaVolumeId.ResourceGroup, replicaVolumeId.NetAppAccountName, replicaVolumeId.CapacityPoolName, replicaVolumeId.Name); err != nil {
+		future, err := client.DeleteReplication(ctx, replicaVolumeId.ResourceGroup, replicaVolumeId.NetAppAccountName, replicaVolumeId.CapacityPoolName, replicaVolumeId.Name)
+		if err != nil {
 			return fmt.Errorf("deleting replicate %s: %+v", *replicaVolumeId, err)
 		}
 
 		log.Printf("[DEBUG] Waiting for the replica of %s to be deleted", replicaVolumeId)
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for the replica %s to be deleted: %+v", *replicaVolumeId, err)
+		}
 		if err := waitForReplicationDeletion(ctx, client, *replicaVolumeId); err != nil {
 			return fmt.Errorf("waiting for the replica %s to be deleted: %+v", *replicaVolumeId, err)
 		}
 	}
 
 	// Deleting volume and waiting for it fo fully complete the operation
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name, utils.Bool(true))
+	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
+	}
 	if err := waitForVolumeDeletion(ctx, client, *id); err != nil {
 		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
@@ -902,10 +902,6 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePrope
 							}
 						}
 					}
-				} else if !features.ThreePointOhBeta() {
-					cifsEnabled = v["cifs_enabled"].(bool)
-					nfsv3Enabled = v["nfsv3_enabled"].(bool)
-					nfsv41Enabled = v["nfsv4_enabled"].(bool)
 				}
 			}
 
@@ -960,10 +956,6 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *netapp.Volume
 							}
 						}
 					}
-				} else if features.ThreePointOhBeta() {
-					cifsEnabled = v["cifs_enabled"].(bool)
-					nfsv3Enabled = v["nfsv3_enabled"].(bool)
-					nfsv41Enabled = v["nfsv4_enabled"].(bool)
 				}
 			}
 
@@ -1070,32 +1062,21 @@ func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPol
 			allowedClients = strings.Split(*v, ",")
 		}
 
-		cifsEnabled := false
-		nfsv3Enabled := false
-		nfsv4Enabled := false
-
 		protocolsEnabled := []string{}
 		if v := item.Cifs; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "CIFS")
-			}
-			if !features.ThreePointOhBeta() {
-				cifsEnabled = *v
 			}
 		}
 		if v := item.Nfsv3; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv3")
 			}
-			if !features.ThreePointOhBeta() {
-				nfsv3Enabled = *v
-			}
 		}
 		if v := item.Nfsv41; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 			}
-			nfsv4Enabled = *v
 		}
 		unixReadOnly := false
 		if v := item.UnixReadOnly; v != nil {
@@ -1117,11 +1098,6 @@ func flattenNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExportPol
 			"unix_read_write":     unixReadWrite,
 			"root_access_enabled": rootAccessEnabled,
 			"protocols_enabled":   utils.FlattenStringSlice(&protocolsEnabled),
-		}
-		if !features.ThreePointOhBeta() {
-			result["cifs_enabled"] = cifsEnabled
-			result["nfsv3_enabled"] = nfsv3Enabled
-			result["nfsv4_enabled"] = nfsv4Enabled
 		}
 		results = append(results, result)
 	}

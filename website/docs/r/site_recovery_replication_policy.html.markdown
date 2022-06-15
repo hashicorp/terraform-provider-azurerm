@@ -13,21 +13,21 @@ Manages a Azure Site Recovery replication policy within a recovery vault. Replic
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "secondary" {
+resource "azurerm_resource_group" "example" {
   name     = "tfex-network-mapping-secondary"
   location = "East US"
 }
 
 resource "azurerm_recovery_services_vault" "vault" {
   name                = "example-recovery-vault"
-  location            = azurerm_resource_group.secondary.location
-  resource_group_name = azurerm_resource_group.secondary.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 }
 
 resource "azurerm_site_recovery_replication_policy" "policy" {
   name                                                 = "policy"
-  resource_group_name                                  = azurerm_resource_group.secondary.name
+  resource_group_name                                  = azurerm_resource_group.example.name
   recovery_vault_name                                  = azurerm_recovery_services_vault.vault.name
   recovery_point_retention_in_minutes                  = 24 * 60
   application_consistent_snapshot_frequency_in_minutes = 4 * 60

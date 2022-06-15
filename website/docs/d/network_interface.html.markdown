@@ -55,9 +55,9 @@ A `ip_configuration` block contains:
 * `private_ip_address` - The Private IP Address assigned to this Network Interface.
 * `private_ip_address_allocation` - The IP Address allocation type for the Private address, such as `Dynamic` or `Static`.
 * `public_ip_address_id` - The ID of the Public IP Address which is connected to this Network Interface.
-* `application_gateway_backend_address_pools_ids` - A list of Backend Address Pool ID's within a Application Gateway that this Network Interface is connected to.
-* `load_balancer_backend_address_pools_ids` - A list of Backend Address Pool ID's within a Load Balancer that this Network Interface is connected to.
-* `load_balancer_inbound_nat_rules_ids` - A list of Inbound NAT Rule ID's within a Load Balancer that this Network Interface is connected to.
+* `application_gateway_backend_address_pools_ids` - A list of Backend Address Pool IDs within a Application Gateway that this Network Interface is connected to.
+* `load_balancer_backend_address_pools_ids` - A list of Backend Address Pool IDs within a Load Balancer that this Network Interface is connected to.
+* `load_balancer_inbound_nat_rules_ids` - A list of Inbound NAT Rule IDs within a Load Balancer that this Network Interface is connected to.
 * `primary` - is this the Primary IP Configuration for this Network Interface?
 * `gateway_load_balancer_frontend_ip_configuration_id` - The Frontend IP Configuration ID of a Gateway SKU Load Balancer the Network Interface is consuming.
 

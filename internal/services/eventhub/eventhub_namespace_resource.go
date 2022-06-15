@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	legacyIdentity "github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
@@ -70,14 +69,13 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.SkuNameBasic),
 					string(namespaces.SkuNameStandard),
 					string(namespaces.SkuNamePremium),
-				}, !features.ThreePointOhBeta()),
+				}, false),
 			},
 
 			"capacity": {

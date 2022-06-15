@@ -15,11 +15,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/sdk/2017-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -119,8 +117,7 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.ConnectionModeAll),
 					string(servers.ConnectionModeReadOnly),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"backup_blob_container_uri": {

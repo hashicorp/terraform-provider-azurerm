@@ -344,7 +344,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			availabilityRequest := web.ResourceNameAvailabilityRequest{
-				Name: utils.String(functionAppSlot.Name),
+				Name: utils.String(fmt.Sprintf("%s-%s", id.SiteName, id.SlotName)),
 				Type: web.CheckNameResourceTypesMicrosoftWebsites,
 			}
 
@@ -867,6 +867,11 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input web.Str
 
 		case "AzureWebJobsDashboard__accountName":
 			m.BuiltinLogging = true
+
+		case "WEBSITE_RUN_FROM_PACKAGE":
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_RUN_FROM_PACKAGE"); ok {
+				appSettings[k] = utils.NormalizeNilableString(v)
+			}
 
 		default:
 			appSettings[k] = utils.NormalizeNilableString(v)
