@@ -5,17 +5,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/sdk/2022-05-26/fluidrelayservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/sdk/2018-11-30/managedidentity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -25,68 +24,51 @@ type UserAssignedIdentity struct {
 	PrincipalID string `tfschema:"principal_id"`
 }
 
-type Encryption struct {
-	IdentityType        string `tfschema:"identity_type"`
-	IdentityResourceId  string `tfschema:"identity_resource_id"`
-	KeyEncryptionKeyUrl string `tfschema:"key_encryption_key_url"`
-}
-
 type ServerModel struct {
-	Name                   string                 `tfschema:"name"`
-	ResourceGroup          string                 `tfschema:"resource_group_name"`
-	Location               string                 `tfschema:"location"`
-	Tags                   map[string]string      `tfschema:"tags"`
-	FrsTenantId            string                 `tfschema:"frs_tenant_id"`
-	ProvisioningState      string                 `tfschema:"provisioning_state"`
-	OrdererEndpoints       []string               `tfschema:"orderer_endpoints"`
-	StorageEndpoints       []string               `tfschema:"storage_endpoints"`
-	IdentityType           string                 `tfschema:"identity_type"`
-	TenantID               string                 `tfschema:"tenant_id"`
-	PrincipalID            string                 `tfschema:"principal_id"`
-	UserAssignedIdentities []UserAssignedIdentity `tfschema:"user_assigned_identity"`
-	Encryption             []Encryption           `tfschema:"encryption"`
+	Name             string            `tfschema:"name"`
+	ResourceGroup    string            `tfschema:"resource_group_name"`
+	Location         string            `tfschema:"location"`
+	Tags             map[string]string `tfschema:"tags"`
+	FrsTenantId      string            `tfschema:"frs_tenant_id"`
+	OrdererEndpoints []string          `tfschema:"orderer_endpoints"`
+	StorageEndpoints []string          `tfschema:"storage_endpoints"`
+	//IdentityType           string                 `tfschema:"identity_type"`
+	TenantID    string `tfschema:"tenant_id"`
+	PrincipalID string `tfschema:"principal_id"`
+	//UserAssignedIdentities []UserAssignedIdentity                     `tfschema:"user_assigned_identity"`
+	Identity []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 }
 
-func (s *ServerModel) GenUserIdentities() *identity.SystemAndUserAssignedMap {
-	res := &identity.SystemAndUserAssignedMap{
-		Type: "None",
-	}
-	if s == nil || len(s.UserAssignedIdentities) == 0 {
-		return res
-	}
-	if s.IdentityType != "" {
-		res.Type = identity.Type(s.IdentityType)
-	}
-	if s.PrincipalID != "" {
-		res.PrincipalId = s.PrincipalID
-	}
-	if s.TenantID != "" {
-		res.TenantId = s.TenantID
-	}
-	res.IdentityIds = map[string]identity.UserAssignedIdentityDetails{}
-	for _, id := range s.UserAssignedIdentities {
-		res.IdentityIds[id.IdentityID] = identity.UserAssignedIdentityDetails{
-			ClientId:    utils.Ptr(id.ClientID),
-			PrincipalId: utils.Ptr(id.PrincipalID),
-		}
-	}
-	return res
+func (s ServerModel) expandUserIdentities() (res *identity.SystemAndUserAssignedMap, err error) {
+	//res := &identity.SystemAndUserAssignedMap{
+	//	Type: "None",
+	//}
+	res, err = identity.ExpandSystemAndUserAssignedMapFromModel(s.Identity)
+	return res, err
 }
 
-func (s *ServerModel) GenEncryption() *fluidrelayservers.EncryptionProperties {
-	if len(s.Encryption) == 0 {
+func (s *ServerModel) flattenIdentity(input *identity.SystemAndUserAssignedMap) error {
+	if input == nil {
 		return nil
 	}
-	encryption := s.Encryption[0]
-	res := &fluidrelayservers.EncryptionProperties{
-		CustomerManagedKeyEncryption: &fluidrelayservers.CustomerManagedKeyEncryptionProperties{
-			KeyEncryptionKeyIdentity: &fluidrelayservers.CustomerManagedKeyEncryptionPropertiesKeyEncryptionKeyIdentity{
-				IdentityType:                   utils.Ptr(fluidrelayservers.CmkIdentityType(encryption.IdentityType)),
-				UserAssignedIdentityResourceId: utils.Ptr(encryption.IdentityResourceId),
-			},
-			KeyEncryptionKeyUrl: utils.Ptr(encryption.KeyEncryptionKeyUrl),
-		}}
-	return res
+	config := identity.SystemOrUserAssignedMap{
+		Type:        input.Type,
+		PrincipalId: input.PrincipalId,
+		TenantId:    input.TenantId,
+		IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+	}
+	for k, v := range input.IdentityIds {
+		config.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+			ClientId:    v.ClientId,
+			PrincipalId: v.PrincipalId,
+		}
+	}
+	model, err := identity.FlattenSystemOrUserAssignedMapToModel(&config)
+	if err != nil {
+		return err
+	}
+	s.Identity = *model
+	return nil
 }
 
 type Server struct{}
@@ -104,79 +86,13 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"location":            commonschema.Location(),
 		"tags":                commonschema.Tags(),
-		"identity_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			//Default:  "SystemAssigned",
-			ValidateFunc: validation.StringInSlice([]string{
-				"SystemAssigned",
-				"UserAssigned",
-				"SystemAssigned, UserAssigned",
-				"None",
-			}, false),
-		},
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
-		"user_assigned_identity": {
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeBlock,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"identity_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: managedidentity.ValidateUserAssignedIdentitiesID,
-					},
-					"client_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-						Optional: true,
-					},
-					"principal_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-		},
-		"encryption": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"identity_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice(
-							fluidrelayservers.PossibleValuesForCmkIdentityType(),
-							false),
-					},
-					"key_encryption_key_url": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-					"identity_resource_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: managedidentity.ValidateUserAssignedIdentitiesID,
-					},
-				},
-			},
-		},
+		"identity":            commonschema.SystemAssignedUserAssignedIdentityOptional(),
 	}
 }
 
 func (s Server) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"frs_tenant_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -242,10 +158,12 @@ func (s Server) Create() sdk.ResourceFunc {
 			}
 			serverReq.Tags = utils.TryPtr(model.Tags)
 			serverReq.Properties = &fluidrelayservers.FluidRelayServerProperties{}
-			serverReq.Properties.Encryption = model.GenEncryption()
-			serverReq.Identity = model.GenUserIdentities()
+			serverReq.Identity, err = model.expandUserIdentities()
+			if err != nil {
+				return fmt.Errorf("expanding user identities: %+v", err)
+			}
 
-			resp, err := client.CreateOrUpdate(ctx, id, serverReq)
+			_, err = client.CreateOrUpdate(ctx, id, serverReq)
 			if err != nil {
 				return fmt.Errorf("creating %v err: %+v", id, err)
 			}
@@ -262,7 +180,7 @@ func (s Server) Update() sdk.ResourceFunc {
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
 			client := meta.Client.FluidRelay.ServerClient
-			id, err := fluidrelayservers.ParseFluidRelayServerIDInsensitively(meta.ResourceData.Id())
+			id, err := fluidrelayservers.ParseFluidRelayServerID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -273,22 +191,22 @@ func (s Server) Update() sdk.ResourceFunc {
 			}
 
 			var upd fluidrelayservers.FluidRelayServerUpdate
-			if meta.ResourceData.HasChanges("tags", "location") {
+			if meta.ResourceData.HasChange("tags") {
 				upd.Tags = &model.Tags
-				upd.Location = utils.String(azure.NormalizeLocation(model.Location))
 			}
-			if meta.ResourceData.HasChanges("identity_type", "user_assigned_identity") {
-				upd.Identity = model.GenUserIdentities()
-			}
-			if meta.ResourceData.HasChanges("encryption") {
-				upd.Properties = &fluidrelayservers.FluidRelayServerUpdateProperties{}
-				upd.Properties.Encryption = model.GenEncryption()
+			if meta.ResourceData.HasChange("identity") {
+				upd.Identity, err = model.expandUserIdentities()
+				if err != nil {
+					return fmt.Errorf("expanding user identities: %+v", err)
+				}
 			}
 			_, err = client.Update(ctx, *id, upd)
 			if err != nil {
-				return fmt.Errorf("updating fluid relay err: %v", err)
+				return fmt.Errorf("updating %s: %v", id, err)
 			}
-			// do a read after update
+
+			meta.SetID(id)
+
 			return nil
 		},
 	}
@@ -305,51 +223,25 @@ func (s Server) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			if id == nil {
-				return fmt.Errorf("parsed id is nil")
-			}
-
 			server, err := client.Get(ctx, *id)
 			if err != nil {
-				return err
+				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
 			model := server.Model
-			if model == nil {
-				return fmt.Errorf("got fluid relay server as nil")
-			}
 
 			output := ServerModel{
 				Name:          id.FluidRelayServerName,
 				ResourceGroup: id.ResourceGroup,
-				Location:      model.Location,
-				IdentityType:  string(model.Identity.Type),
+				Location:      location.Normalize(model.Location),
 			}
-			if model.Identity != nil {
-				output.TenantID = model.Identity.TenantId
-				output.PrincipalID = model.Identity.PrincipalId
-				for id, details := range model.Identity.IdentityIds {
-					// try parse id, because the response id could be modified to lower-case
-					iid, err := commonids.ParseUserAssignedIdentityIDInsensitively(id)
-					if err != nil {
-						meta.Logger.Warnf("normalize managed identity id `%s` parse err: %v", id, err)
-					} else {
-						id = iid.ID()
-					}
-					output.UserAssignedIdentities = append(output.UserAssignedIdentities, UserAssignedIdentity{
-						IdentityID:  id,
-						ClientID:    utils.Value(details.ClientId),
-						PrincipalID: utils.Value(details.PrincipalId),
-					})
-				}
+			if err = output.flattenIdentity(model.Identity); err != nil {
+				return fmt.Errorf("flattening `identity`: %v", err)
 			}
 			output.Tags = utils.Value(server.Model.Tags)
 			if prop := model.Properties; prop != nil {
 				if prop.FrsTenantId != nil {
 					output.FrsTenantId = *prop.FrsTenantId
-				}
-				if prop.ProvisioningState != nil {
-					output.ProvisioningState = string(*prop.ProvisioningState)
 				}
 				if points := prop.FluidRelayEndpoints; points != nil {
 					if points.OrdererEndpoints != nil {
@@ -378,7 +270,7 @@ func (s Server) Delete() sdk.ResourceFunc {
 
 			meta.Logger.Infof("deleting %s", id)
 			if _, err := client.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("delete %s err: %v", id, err)
+				return fmt.Errorf("delete %s: %v", id, err)
 			}
 			return nil
 		},

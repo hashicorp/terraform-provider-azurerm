@@ -52,6 +52,37 @@ func TestAccFluidRelay_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(f),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFluidRelay_userAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, s.ResourceType(), "test")
+	f := FluidRelayResource{}
+
+	data.ResourceTest(t, f, []acceptance.TestStep{
+		{
+			Config: f.userAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(f),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFluidRelay_systemAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, s.ResourceType(), "test")
+	f := FluidRelayResource{}
+
+	data.ResourceTest(t, f, []acceptance.TestStep{
+		{
+			Config: f.systemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(f),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -70,7 +101,7 @@ func TestAccFluidRelayServer_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccFluidRelayServer_complete(t *testing.T) {
+func TestAccFluidRelayServer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, s.ResourceType(), "test")
 	var f FluidRelayResource
 
@@ -79,7 +110,6 @@ func TestAccFluidRelayServer_complete(t *testing.T) {
 			Config: f.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(f),
-				check.That(data.ResourceName).Key("tags.foo").HasValue("bar"),
 			),
 		},
 		data.ImportStep(),
@@ -87,7 +117,13 @@ func TestAccFluidRelayServer_complete(t *testing.T) {
 			Config: f.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(f),
-				check.That(data.ResourceName).Key("tags.foo").HasValue("bar2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: f.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(f),
 			),
 		},
 	})
@@ -100,7 +136,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appServerDNSAlias-%[1]d"
+  name     = "acctestRG-fluidrelay-%[1]d"
   location = "%[2]s"
 }
 
@@ -121,9 +157,41 @@ resource "azurerm_fluid_relay_server" "test" {
   name                = "acctestRG-fuildRelayServer-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
-  identity_type = "SystemAssigned, UserAssigned"
-  user_assigned_identity {
-     identity_id= azurerm_user_assigned_identity.test.id
+  tags = {
+    foo = "bar"
+  }
+}
+`, f.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (f FluidRelayResource) userAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%[1]s
+
+resource "azurerm_fluid_relay_server" "test" {
+  name                = "acctestRG-fuildRelayServer-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  identity {
+	type = "UserAssigned"
+	identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, f.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (f FluidRelayResource) systemAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%[1]s
+
+resource "azurerm_fluid_relay_server" "test" {
+  name                = "acctestRG-fuildRelayServer-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  identity {
+	type = "SystemAssigned"
   }
   tags = {
     foo = "bar"
@@ -154,10 +222,10 @@ resource "azurerm_fluid_relay_server" "test" {
   name                = "acctestRG-fuildRelayServer-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
-  identity_type = "SystemAssigned, UserAssigned"
-  user_assigned_identity {
-     identity_id= azurerm_user_assigned_identity.test.id
-  }
+#  identity {
+#    type = "SystemAssigned, UserAssigned"
+#	identity_ids = [azurerm_user_assigned_identity.test.id]
+#  }
   tags = {
     foo = "bar2"
   }

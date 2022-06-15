@@ -1,5 +1,5 @@
 ---
-subcategory: "Active Directory Domain Services"
+subcategory: "Fluid Relay Service"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_fluid_relay_server"
 description: |-
@@ -39,37 +39,21 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Fuild Relay Server should exist. Changing this forces a new Fuild Relay Server to be created.
 
----
-
-* `encryption` - (Optional) One or more `encryption` blocks as defined below.
-
-* `identity_type` - (Optional) The identity type for this Fluid Relay Server. Possible  values are `SystemAssigned`, `UserAssigned`,`SystemAssigned, UserAssigned` and `None`.
-
 * `tags` - (Optional) A mapping of tags which should be assigned to the Fuild Relay Server.
 
-* An `identity` block supports the following:
-
----
-
-An `encryption` block supports the following:
-
-* `identity_resource_id` - (Optional) user assigned identity to use for accessing key encryption key Url. Ex: /subscriptions/fa5fc227-a624-475e-b696-cdd604c735bc/resourceGroups/<resource group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/myId. Mutually exclusive with identityType systemAssignedIdentity.
-
-* `identity_type` - (Optional) Values can be `SystemAssigned` or `UserAssigned`.
-
-* `key_encryption_key_url` - (Optional) key encryption key Url, with or without a version. Ex: https://contosovault.vault.azure.net/keys/contosokek/562a4bb76b524a1493a6afe8e536ee78 or https://contosovault.vault.azure.net/keys/contosokek. Key auto rotation is enabled by providing a key uri without version. Otherwise, customer is responsible for rotating the key. The keyEncryptionKeyIdentity(either SystemAssigned or UserAssigned) should have permission to access this key url.
+* `identity` - (Optional) An `identity` block as defined below.
 
 ---
 
 An `identity` block supports the following:
 
-* `type` - can be `SystemAssigned` or `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`.
 
-* `client_id` - (Optional) The client id of user assigned identity.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
 
-* `identity_id` - (Optional) user assigned identity to use for accessing key encryption key Url. Ex: /subscriptions/fa5fc227-a624-475e-b696-cdd604c735bc/resourceGroups/<resource group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/myId. Mutually exclusive with identityType systemAssignedIdentity..
+~> **NOTE:** This is required when `type` is set to `UserAssigned`
 
-* `principal_id` - (Optional) The principal id of user assigned identity.
+~> **NOTE:** When `type` is set to `SystemAssigned`, the assigned `principal_id` and `tenant_id` can be retrieved after the Fluid Relay Server has been created. More details are available below.
 
 ## Attributes Reference
 
@@ -79,13 +63,23 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `frs_tenant_id` - The Fluid tenantId for this server.
 
-* `orderer_endpoints` - The Fluid Relay Orderer endpoints.
+* `orderer_endpoints` - An array of the Fluid Relay Orderer endpoints.
 
 * `principal_id` - The principal ID of the Fluid Relay Server.
 
-* `storage_endpoints` - The Fluid Relay storage endpoints.
+* `storage_endpoints` - An array of the Fluid Relay storage endpoints.
 
 * `tenant_id` - The tenant ID of the Fluid Relay Server.
+
+---
+
+`identity` exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Server.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
+
+-> You can access the Principal ID via `azurerm_fluid_relay_server.example.identity.0.principal_id` and the Tenant ID via `azurerm_fluid_relay_server.example.identity.0.tenant_id`
 
 ## Timeouts
 
