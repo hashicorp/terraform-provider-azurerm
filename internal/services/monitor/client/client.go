@@ -7,6 +7,7 @@ import (
 	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	newActionGroupClient "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/sdk/2021-04-01/datacollectionrules"
 )
 
 type Client struct {
@@ -31,6 +32,8 @@ type Client struct {
 	PrivateLinkScopesClient          *classic.PrivateLinkScopesClient
 	PrivateLinkScopedResourcesClient *classic.PrivateLinkScopedResourcesClient
 	ScheduledQueryRulesClient        *classic.ScheduledQueryRulesClient
+
+	DataCollectionRulesClient *datacollectionrules.DataCollectionRulesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -76,6 +79,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	ScheduledQueryRulesClient := classic.NewScheduledQueryRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ScheduledQueryRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	DataCollectionRulesClient := datacollectionrules.NewDataCollectionRulesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&DataCollectionRulesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AADDiagnosticSettingsClient:      &AADDiagnosticSettingsClient,
 		AutoscaleSettingsClient:          &AutoscaleSettingsClient,
@@ -91,5 +97,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		PrivateLinkScopesClient:          &PrivateLinkScopesClient,
 		PrivateLinkScopedResourcesClient: &PrivateLinkScopedResourcesClient,
 		ScheduledQueryRulesClient:        &ScheduledQueryRulesClient,
+		DataCollectionRulesClient:        &DataCollectionRulesClient,
 	}
 }
