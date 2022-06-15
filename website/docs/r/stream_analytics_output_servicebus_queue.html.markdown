@@ -46,7 +46,8 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "example" {
   shared_access_policy_name = "RootManageSharedAccessKey"
 
   serialization {
-    format = "Avro"
+    type   = "Csv"
+    format = "Array"
   }
 }
 ```
