@@ -156,7 +156,7 @@ The `log_analytics_workspace` block supports the following:
 
 The `managed_disk` block supports the following:
 
-* `no_downtime_resize` (Optional) Specifies if no-downtime resizes are enabled for the Managed Disk. Feature is currently in public preview and needs to be opted in. More information can be found in [Resize without downtime (preview) documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/expand-disks#resize-without-downtime-preview) Defaults to `false`.
+* `no_downtime_resize` (Optional) Specifies if no-downtime resizes are enabled for the managed disk resources. Feature is currently in public preview and needs to be opted in. More information can be found in [Resize without downtime (preview) documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/expand-disks#resize-without-downtime-preview). Defaults to `false`.
 
 ---
 
