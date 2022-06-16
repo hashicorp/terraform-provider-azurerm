@@ -1210,16 +1210,16 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if val, ok := d.GetOk("share_properties"); ok {
-		// BlobStorage does not support file share settings
-		// FileStorage Premium is supported
-		if accountKind == string(storage.KindFileStorage) || accountKind != string(storage.KindBlobStorage) && accountKind != string(storage.KindBlockBlobStorage) && accountTier != string(storage.SkuTierPremium) {
+		// File share is only supported for StorageV2 and FileStorage.
+		// See: https://docs.microsoft.com/en-us/azure/storage/files/storage-files-planning#management-concepts
+		if accountKind == string(storage.KindFileStorage) || accountKind == string(storage.KindStorageV2) {
 			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
 			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, expandShareProperties(val.([]interface{}))); err != nil {
 				return fmt.Errorf("updating Azure Storage Account `share_properties` %q: %+v", id.Name, err)
 			}
 		} else {
-			return fmt.Errorf("`share_properties` aren't supported for Blob Storage / Block Blob / StorageV2 Premium Storage accounts")
+			return fmt.Errorf("`share_properties` are only supported for `FileStorage` / `StorageV2` Storage accounts")
 		}
 	}
 
@@ -1608,16 +1608,16 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("share_properties") {
-		// BlobStorage, BlockBlobStorage does not support file share settings
-		// FileStorage Premium is supported
-		if accountKind == string(storage.KindFileStorage) || accountKind != string(storage.KindBlobStorage) && accountKind != string(storage.KindBlockBlobStorage) && accountTier != string(storage.SkuTierPremium) {
+		// File share is only supported for StorageV2 and FileStorage.
+		// See: https://docs.microsoft.com/en-us/azure/storage/files/storage-files-planning#management-concepts
+		if accountKind == string(storage.KindFileStorage) || accountKind == string(storage.KindStorageV2) {
 			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
 			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, expandShareProperties(d.Get("share_properties").([]interface{}))); err != nil {
 				return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", id.Name, err)
 			}
 		} else {
-			return fmt.Errorf("`share_properties` aren't supported for Blob Storage /Block Blob /StorageV2 Premium Storage accounts")
+			return fmt.Errorf("`share_properties` are only supported for `FileStorage` / `StorageV2` Storage accounts")
 		}
 	}
 
@@ -1887,8 +1887,9 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	fileServiceClient := storageClient.FileServicesClient
 
-	// FileStorage does not support blob kind, FileStorage Premium is supported
-	if resp.Kind == storage.KindFileStorage || resp.Kind != storage.KindBlobStorage && resp.Kind != storage.KindBlockBlobStorage && resp.Sku != nil && resp.Sku.Tier != storage.SkuTierPremium {
+	// File share is only supported for StorageV2 and FileStorage.
+	// See: https://docs.microsoft.com/en-us/azure/storage/files/storage-files-planning#management-concepts
+	if resp.Kind == storage.KindFileStorage || resp.Kind == storage.KindStorageV2 {
 		shareProps, err := fileServiceClient.GetServiceProperties(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(shareProps.Response) {
