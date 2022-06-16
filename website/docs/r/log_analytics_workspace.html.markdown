@@ -49,9 +49,9 @@ The following arguments are supported:
 
 ~> **NOTE:** When `sku` is set to `Free` this field should not be set and has a default value of `0.5`. 
 
-* `internet_ingestion_enabled ` - (Optional) Should the Log Analytics Workflow support ingestion over the Public Internet? Defaults to `true`.
+* `internet_ingestion_enabled ` - (Optional) Should the Log Analytics Workspace support ingestion over the Public Internet? Defaults to `true`.
 
-* `internet_query_enabled` - (Optional) Should the Log Analytics Workflow support querying over the Public Internet? Defaults to `true`.
+* `internet_query_enabled` - (Optional) Should the Log Analytics Workspace support querying over the Public Internet? Defaults to `true`.
 
 * `reservation_capacity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace.  Must be in increments of 100  between 100 and 5000.
 
