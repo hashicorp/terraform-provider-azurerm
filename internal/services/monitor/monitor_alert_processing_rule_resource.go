@@ -444,25 +444,51 @@ func resourceMonitorAlertProcessingRuleUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	actions, err := expandAlertProcessingRuleActions(d.Get("action").([]interface{}))
+	resp, err := client.AlertProcessingRulesGetByName(ctx, *id)
 	if err != nil {
-		return err
+		return fmt.Errorf("retrieving Monitor %s: %+v", *id, err)
 	}
-	alertProcessingRule := alertsmanagement.AlertProcessingRule{
-		// Location support "global" only
-		Location: "global",
-		Properties: &alertsmanagement.AlertProcessingRuleProperties{
-			Actions:     actions,
-			Conditions:  expandAlertProcessingRuleConditions(d.Get("condition").([]interface{})),
-			Description: utils.String(d.Get("description").(string)),
-			Enabled:     utils.Bool(d.Get("enabled").(bool)),
-			Schedule:    expandAlertProcessingRuleSchedule(d.Get("schedule").([]interface{})),
-			Scopes:      *utils.ExpandStringSlice(d.Get("scopes").([]interface{})),
-		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	if resp.Model == nil {
+		return fmt.Errorf("unexpected null model of %s", *id)
+	}
+	model := resp.Model
+	if model.Properties == nil {
+		return fmt.Errorf("unexpected null properties of %s", *id)
 	}
 
-	if _, err := client.AlertProcessingRulesCreateOrUpdate(ctx, *id, alertProcessingRule); err != nil {
+	if d.HasChange("action") {
+		actions, err := expandAlertProcessingRuleActions(d.Get("action").([]interface{}))
+		if err != nil {
+			return err
+		}
+		model.Properties.Actions = actions
+	}
+
+	if d.HasChange("condition") {
+		model.Properties.Conditions = expandAlertProcessingRuleConditions(d.Get("condition").([]interface{}))
+	}
+
+	if d.HasChange("description") {
+		model.Properties.Description = utils.String(d.Get("description").(string))
+	}
+
+	if d.HasChange("enabled") {
+		model.Properties.Enabled = utils.Bool(d.Get("enabled").(bool))
+	}
+
+	if d.HasChange("schedule") {
+		model.Properties.Schedule = expandAlertProcessingRuleSchedule(d.Get("schedule").([]interface{}))
+	}
+
+	if d.HasChange("scopes") {
+		model.Properties.Scopes = *utils.ExpandStringSlice(d.Get("scopes").([]interface{}))
+	}
+
+	if d.HasChange("tags") {
+		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if _, err := client.AlertProcessingRulesCreateOrUpdate(ctx, *id, *model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
