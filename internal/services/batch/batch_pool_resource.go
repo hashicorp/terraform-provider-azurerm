@@ -925,6 +925,10 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		parameters.PoolProperties.TaskSchedulingPolicy = taskSchedulingPolicy
 	}
 
+	if userAccounts, err := ExpandBatchPoolUserAccounts(d); err == nil {
+		parameters.PoolProperties.UserAccounts = userAccounts
+	}
+
 	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
@@ -940,6 +944,10 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if deploymentConfiguration, err := ExpandBatchPoolDeploymentConfiguration(d); err == nil {
 		parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
+	}
+
+	if mountConfiguration, err := ExpandBatchPoolMountConfigurations(d); err == nil {
+		parameters.PoolProperties.MountConfiguration = mountConfiguration
 	}
 
 	//nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
