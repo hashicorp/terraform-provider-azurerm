@@ -29,38 +29,6 @@ resource "azurerm_monitor_data_collection_rule" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  data_sources {
-    syslog {
-      facility_names = ["*"]
-      log_levels     = ["*"]
-      name           = "test-datasource-syslog"
-    }
-
-    performance_counters {
-      streams                       = ["Microsoft-Perf", "Microsoft-InsightsMetrics"]
-      sampling_frequency_in_seconds = 10
-      counter_specifiers            = ["Processor(*)\\%% Processor Time"]
-      name                          = "test-datasource-perfcounter"
-    }
-
-    windows_event_logs {
-      streams        = ["Microsoft-WindowsEvent"]
-      x_path_queries = ["*[System/Level=1]"]
-      name           = "test-datasource-wineventlog"
-    }
-
-    extensions {
-      streams            = ["Microsoft-WindowsEvent"]
-      input_data_sources = ["test-datasource-wineventlog"]
-      extension_name     = "test-extension-name"
-      extension_settings = jsonencode({
-        a = 1
-        b = "hello"
-      })
-      name = "test-datasource-extension"
-    }
-  }
-
   destinations {
     log_analytics {
       workspace_resource_id = azurerm_log_analytics_workspace.example.id
@@ -72,14 +40,46 @@ resource "azurerm_monitor_data_collection_rule" "example" {
     }
   }
 
-  data_flows {
+  data_flow {
     streams      = ["Microsoft-InsightsMetrics"]
     destinations = ["test-destination-metrics"]
   }
 
-  data_flows {
+  data_flow {
     streams      = ["Microsoft-InsightsMetrics", "Microsoft-Syslog", "Microsoft-Perf"]
-    destinations = ["test-destination-log1"]
+    destinations = ["test-destination-log"]
+  }
+
+  data_sources {
+    syslog {
+      facility_names = ["*"]
+      log_levels     = ["*"]
+      name           = "test-datasource-syslog"
+    }
+
+    performance_counter {
+      streams                       = ["Microsoft-Perf", "Microsoft-InsightsMetrics"]
+      sampling_frequency_in_seconds = 10
+      counter_specifiers            = ["Processor(*)\\%% Processor Time"]
+      name                          = "test-datasource-perfcounter"
+    }
+
+    windows_event_log {
+      streams        = ["Microsoft-WindowsEvent"]
+      x_path_queries = ["*[System/Level=1]"]
+      name           = "test-datasource-wineventlog"
+    }
+
+    extension {
+      streams            = ["Microsoft-WindowsEvent"]
+      input_data_sources = ["test-datasource-wineventlog"]
+      extension_name     = "test-extension-name"
+      extension_setting = jsonencode({
+        a = 1
+        b = "hello"
+      })
+      name = "test-datasource-extension"
+    }
   }
 
   description = "data collection rule example"
@@ -93,7 +93,7 @@ resource "azurerm_monitor_data_collection_rule" "example" {
 
 The following arguments are supported:
 
-* `data_flows` - (Required) One or more `data_flows` blocks as defined below.
+* `data_flow` - (Required) One or more `data_flow` blocks as defined below.
 
 * `destinations` - (Required) A `destinations` block as defined below.
 
@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the Data Collection Rule.
 
-* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux` and `Windows`. A rule of kind `Linux` does not allow for `windows_event_logs` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources.
+* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux` and `Windows`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Data Collection Rule.
 
@@ -121,7 +121,7 @@ A `azure_monitor_metrics` block supports the following:
 
 ---
 
-A `data_flows` block supports the following:
+A `data_flow` block supports the following:
 
 * `destinations` - (Required) Specifies a list of destination names. A `azure_monitor_metrics` data source only allows for stream of kind `Microsoft-InsightsMetrics`.
 
@@ -131,13 +131,13 @@ A `data_flows` block supports the following:
 
 A `data_sources` block supports the following:
 
-* `extensions` - (Optional) One or more `extensions` blocks as defined below.
+* `extension` - (Optional) One or more `extension` blocks as defined below.
 
-* `performance_counters` - (Optional) One or more `performance_counters` blocks as defined below.
+* `performance_counter` - (Optional) One or more `performance_counter` blocks as defined below.
 
 * `syslog` - (Optional) One or more `syslog` blocks as defined below.
 
-* `windows_event_logs` - (Optional) One or more `windows_event_logs` blocks as defined below.
+* `windows_event_log` - (Optional) One or more `windows_event_log` blocks as defined below.
 
 ---
 
@@ -151,7 +151,7 @@ A `destinations` block supports the following:
 
 ---
 
-A `extensions` block supports the following:
+A `extension` block supports the following:
 
 * `extension_name` - (Required) The name of the VM extension.
 
@@ -159,9 +159,9 @@ A `extensions` block supports the following:
 
 * `streams` - (Required) Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values are `Microsoft-Event`, `Microsoft-InsightsMetrics`, `Microsoft-Perf`, `Microsoft-Syslog`,and `Microsoft-WindowsEvent`.
 
-* `extension_settings` - (Optional) A JSON String which specifies the extension settings.
+* `extension_setting` - (Optional) A JSON String which specifies the extension setting.
 
-* `input_data_sources` - (Optional) Specifies a list of data sources this extension needs data from. An item should be a name of a supported data source which produces only one stream. Supported data sources type: `performance_counters`, `windows_event_logs`,and `Syslog`.
+* `input_data_sources` - (Optional) Specifies a list of data sources this extension needs data from. An item should be a name of a supported data source which produces only one stream. Supported data sources type: `performance_counter`, `windows_event_log`,and `syslog`.
 
 ---
 
@@ -173,7 +173,7 @@ A `log_analytics` block supports the following:
 
 ---
 
-A `performance_counters` block supports the following:
+A `performance_counter` block supports the following:
 
 * `counter_specifiers` - (Required) Specifies a list of specifier names of the performance counters you want to collect. Use a wildcard `*` to collect counters for all instances. To get a list of performance counters on Windows, run the command `typeperf`.
 
@@ -195,7 +195,7 @@ A `syslog` block supports the following:
 
 ---
 
-A `windows_event_logs` block supports the following:
+A `windows_event_log` block supports the following:
 
 * `name` - (Required) The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 

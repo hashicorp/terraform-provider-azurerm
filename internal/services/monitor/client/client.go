@@ -25,6 +25,7 @@ type Client struct {
 	ActionGroupsClient               *newActionGroupClient.ActionGroupsClient
 	ActivityLogAlertsClient          *insights.ActivityLogAlertsClient
 	AlertRulesClient                 *classic.AlertRulesClient
+	DataCollectionRulesClient        *datacollectionrules.DataCollectionRulesClient
 	DiagnosticSettingsClient         *classic.DiagnosticSettingsClient
 	DiagnosticSettingsCategoryClient *classic.DiagnosticSettingsCategoryClient
 	LogProfilesClient                *classic.LogProfilesClient
@@ -32,8 +33,6 @@ type Client struct {
 	PrivateLinkScopesClient          *classic.PrivateLinkScopesClient
 	PrivateLinkScopedResourcesClient *classic.PrivateLinkScopedResourcesClient
 	ScheduledQueryRulesClient        *classic.ScheduledQueryRulesClient
-
-	DataCollectionRulesClient *datacollectionrules.DataCollectionRulesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -58,6 +57,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	AlertRulesClient := classic.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AlertRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	DataCollectionRulesClient := datacollectionrules.NewDataCollectionRulesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&DataCollectionRulesClient.Client, o.ResourceManagerAuthorizer)
+
 	DiagnosticSettingsClient := classic.NewDiagnosticSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DiagnosticSettingsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -79,9 +81,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	ScheduledQueryRulesClient := classic.NewScheduledQueryRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ScheduledQueryRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	DataCollectionRulesClient := datacollectionrules.NewDataCollectionRulesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DataCollectionRulesClient.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
 		AADDiagnosticSettingsClient:      &AADDiagnosticSettingsClient,
 		AutoscaleSettingsClient:          &AutoscaleSettingsClient,
@@ -90,6 +89,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ActionGroupsClient:               &ActionGroupsClient,
 		ActivityLogAlertsClient:          &ActivityLogAlertsClient,
 		AlertRulesClient:                 &AlertRulesClient,
+		DataCollectionRulesClient:        &DataCollectionRulesClient,
 		DiagnosticSettingsClient:         &DiagnosticSettingsClient,
 		DiagnosticSettingsCategoryClient: &DiagnosticSettingsCategoryClient,
 		LogProfilesClient:                &LogProfilesClient,
@@ -97,6 +97,5 @@ func NewClient(o *common.ClientOptions) *Client {
 		PrivateLinkScopesClient:          &PrivateLinkScopesClient,
 		PrivateLinkScopedResourcesClient: &PrivateLinkScopedResourcesClient,
 		ScheduledQueryRulesClient:        &ScheduledQueryRulesClient,
-		DataCollectionRulesClient:        &DataCollectionRulesClient,
 	}
 }

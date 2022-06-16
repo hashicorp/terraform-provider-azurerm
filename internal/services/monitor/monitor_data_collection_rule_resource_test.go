@@ -47,7 +47,7 @@ func TestAccMonitorDataCollectionRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccApiManagementNotificationRecipientEmail_requiresImport(t *testing.T) {
+func TestAccMonitorDataCollectionRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
 	r := MonitorDataCollectionRuleResource{}
 
@@ -73,6 +73,7 @@ func TestAccMonitorDataCollectionRule_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -125,7 +126,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       name = "test-destination-metrics"
     }
   }
-  data_flows {
+  data_flow {
     streams      = ["Microsoft-InsightsMetrics"]
     destinations = ["test-destination-metrics"]
   }
@@ -146,36 +147,35 @@ resource "azurerm_monitor_data_collection_rule" "test" {
   name                = "acctestmdcr-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  destinations {
+    log_analytics {
+      workspace_resource_id = azurerm_log_analytics_workspace.test1.id
+      name                  = "test-destination-log"
+    }
+    azure_monitor_metrics {
+      name = "test-destination-metrics"
+    }
+  }
+  data_flow {
+    streams      = ["Microsoft-InsightsMetrics"]
+    destinations = ["test-destination-metrics"]
+  }
+  data_flow {
+    streams      = ["Microsoft-InsightsMetrics", "Microsoft-Syslog", "Microsoft-Perf"]
+    destinations = ["test-destination-log"]
+  }
   data_sources {
     syslog {
       facility_names = ["*"]
       log_levels     = ["*"]
       name           = "test-datasource-syslog"
     }
-    performance_counters {
+    performance_counter {
       streams                       = ["Microsoft-Perf", "Microsoft-InsightsMetrics"]
       sampling_frequency_in_seconds = 10
       counter_specifiers            = ["Processor(*)\\%% Processor Time"]
       name                          = "test-datasource-perfcounter"
     }
-  }
-  destinations {
-    log_analytics {
-      workspace_resource_id = azurerm_log_analytics_workspace.test1.id
-      name                  = "test-destination-log1"
-    }
-    azure_monitor_metrics {
-      name = "test-destination-metrics"
-    }
-
-  }
-  data_flows {
-    streams      = ["Microsoft-InsightsMetrics"]
-    destinations = ["test-destination-metrics"]
-  }
-  data_flows {
-    streams      = ["Microsoft-InsightsMetrics", "Microsoft-Syslog", "Microsoft-Perf"]
-    destinations = ["test-destination-log1"]
   }
   kind        = "Linux"
   description = "acc test monitor_data_collection_rule"
@@ -205,6 +205,31 @@ resource "azurerm_monitor_data_collection_rule" "test" {
   name                = "acctestmdcr-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  destinations {
+    log_analytics {
+      workspace_resource_id = azurerm_log_analytics_workspace.test1.id
+      name                  = "test-destination-log1"
+    }
+    log_analytics {
+      workspace_resource_id = azurerm_log_analytics_workspace.test2.id
+      name                  = "test-destination-log2"
+    }
+    azure_monitor_metrics {
+      name = "test-destination-metrics"
+    }
+  }
+  data_flow {
+    streams      = ["Microsoft-InsightsMetrics"]
+    destinations = ["test-destination-metrics"]
+  }
+  data_flow {
+    streams      = ["Microsoft-InsightsMetrics", "Microsoft-Syslog", "Microsoft-Perf"]
+    destinations = ["test-destination-log1"]
+  }
+  data_flow {
+    streams      = ["Microsoft-Event", "Microsoft-WindowsEvent"]
+    destinations = ["test-destination-log1", "test-destination-log2"]
+  }
   data_sources {
     syslog {
       facility_names = [
@@ -213,35 +238,15 @@ resource "azurerm_monitor_data_collection_rule" "test" {
         "cron",
         "daemon",
         "kern",
-        "lpr",
-        "mail",
-        "mark",
-        "news",
-        "syslog",
-        "user",
-        "uucp",
-        "local0",
-        "local1",
-        "local2",
-        "local3",
-        "local4",
-        "local5",
-        "local6",
-        "local7",
       ]
       log_levels = [
         "Debug",
         "Info",
         "Notice",
-        "Warning",
-        "Error",
-        "Critical",
-        "Alert",
-        "Emergency",
       ]
       name = "test-datasource-syslog"
     }
-    performance_counters {
+    performance_counter {
       streams                       = ["Microsoft-Perf", "Microsoft-InsightsMetrics"]
       sampling_frequency_in_seconds = 10
       counter_specifiers = [
@@ -256,32 +261,10 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       ]
       name = "test-datasource-perfcounter"
     }
-    performance_counters {
+    performance_counter {
       streams                       = ["Microsoft-Perf"]
       sampling_frequency_in_seconds = 20
       counter_specifiers = [
-        "Memory(*)\\Available MBytes Memory",
-        "Memory(*)\\%% Available Memory",
-        "Memory(*)\\Used Memory MBytes",
-        "Memory(*)\\%% Used Memory",
-        "Memory(*)\\Pages/sec",
-        "Memory(*)\\Page Reads/sec",
-        "Memory(*)\\Page Writes/sec",
-        "Memory(*)\\Available MBytes Swap",
-        "Memory(*)\\%% Available Swap Space",
-        "Memory(*)\\Used MBytes Swap Space",
-        "Memory(*)\\%% Used Swap Space",
-        "Logical Disk(*)\\%% Free Inodes",
-        "Logical Disk(*)\\%% Used Inodes",
-        "Logical Disk(*)\\Free Megabytes",
-        "Logical Disk(*)\\%% Free Space",
-        "Logical Disk(*)\\%% Used Space",
-        "Logical Disk(*)\\Logical Disk Bytes/sec",
-        "Logical Disk(*)\\Disk Read Bytes/sec",
-        "Logical Disk(*)\\Disk Write Bytes/sec",
-        "Logical Disk(*)\\Disk Transfers/sec",
-        "Logical Disk(*)\\Disk Reads/sec",
-        "Logical Disk(*)\\Disk Writes/sec",
         "Network(*)\\Total Bytes Transmitted",
         "Network(*)\\Total Bytes Received",
         "Network(*)\\Total Bytes",
@@ -293,46 +276,21 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       ]
       name = "test-datasource-perfcounter2"
     }
-    windows_event_logs {
+    windows_event_log {
       streams        = ["Microsoft-WindowsEvent"]
       x_path_queries = ["*[System/Level=1]"]
       name           = "test-datasource-wineventlog"
     }
-    extensions {
+    extension {
       streams            = ["Microsoft-WindowsEvent"]
       input_data_sources = ["test-datasource-wineventlog"]
       extension_name     = "test-extension-name"
-      extension_settings = jsonencode({
+      extension_setting = jsonencode({
         a = 1
         b = "hello"
       })
       name = "test-datasource-extension"
     }
-  }
-  destinations {
-    log_analytics {
-      workspace_resource_id = azurerm_log_analytics_workspace.test1.id
-      name                  = "test-destination-log1"
-    }
-    log_analytics {
-      workspace_resource_id = azurerm_log_analytics_workspace.test2.id
-      name                  = "test-destination-log2"
-    }
-    azure_monitor_metrics {
-      name = "test-destination-metrics"
-    }
-  }
-  data_flows {
-    streams      = ["Microsoft-InsightsMetrics"]
-    destinations = ["test-destination-metrics"]
-  }
-  data_flows {
-    streams      = ["Microsoft-InsightsMetrics", "Microsoft-Syslog", "Microsoft-Perf"]
-    destinations = ["test-destination-log1"]
-  }
-  data_flows {
-    streams      = ["Microsoft-Event", "Microsoft-WindowsEvent"]
-    destinations = ["test-destination-log1", "test-destination-log2"]
   }
   description = "acc test monitor_data_collection_rule complete"
   tags = {
@@ -352,10 +310,17 @@ resource "azurerm_monitor_data_collection_rule" "import" {
   name                = azurerm_monitor_data_collection_rule.test.name
   resource_group_name = azurerm_monitor_data_collection_rule.test.resource_group_name
   location            = azurerm_monitor_data_collection_rule.test.location
-  destinations        = azurerm_monitor_data_collection_rule.test.destinations
-  data_flows          = azurerm_monitor_data_collection_rule.test.data_flows
+  destinations {
+    azure_monitor_metrics {
+      name = azurerm_monitor_data_collection_rule.test.destinations.0.azure_monitor_metrics.0.name
+    }
+  }
+  data_flow {
+    streams      = azurerm_monitor_data_collection_rule.test.data_flow.0.streams
+    destinations = azurerm_monitor_data_collection_rule.test.data_flow.0.destinations
+  }
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (r MonitorDataCollectionRuleResource) template(data acceptance.TestData) string {

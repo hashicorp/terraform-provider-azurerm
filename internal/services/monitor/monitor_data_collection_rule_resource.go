@@ -19,7 +19,7 @@ import (
 )
 
 type DataCollectionRule struct {
-	DataFlows         []DataFlow             `tfschema:"data_flows"`
+	DataFlows         []DataFlow             `tfschema:"data_flow"`
 	DataSources       []DataSource           `tfschema:"data_sources"`
 	Description       string                 `tfschema:"description"`
 	Destinations      []Destination          `tfschema:"destinations"`
@@ -36,10 +36,10 @@ type DataFlow struct {
 }
 
 type DataSource struct {
-	Extensions          []Extension       `tfschema:"extensions"`
-	PerformanceCounters []PerfCounter     `tfschema:"performance_counters"`
+	Extensions          []Extension       `tfschema:"extension"`
+	PerformanceCounters []PerfCounter     `tfschema:"performance_counter"`
 	Syslog              []Syslog          `tfschema:"syslog"`
-	WindowsEventLogs    []WindowsEventLog `tfschema:"windows_event_logs"`
+	WindowsEventLogs    []WindowsEventLog `tfschema:"windows_event_log"`
 }
 
 type Destination struct {
@@ -49,7 +49,7 @@ type Destination struct {
 
 type Extension struct {
 	ExtensionName     string   `tfschema:"extension_name"`
-	ExtensionSettings string   `tfschema:"extension_settings"`
+	ExtensionSettings string   `tfschema:"extension_setting"`
 	InputDataSources  []string `tfschema:"input_data_sources"`
 	Name              string   `tfschema:"name"`
 	Streams           []string `tfschema:"streams"`
@@ -89,14 +89,15 @@ type DataCollectionRuleResource struct {
 func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"data_flows": {
+		"data_flow": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 1,
@@ -125,13 +126,58 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"destinations": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			MinItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"azure_monitor_metrics": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
+					},
+					"log_analytics": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"workspace_resource_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
+								},
+							},
+						},
+						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
+					},
+				},
+			},
+		},
+
 		"data_sources": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"extensions": {
+					"extension": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Resource{
@@ -146,12 +192,6 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
-								"extension_settings": {
-									Type:             pluginsdk.TypeString,
-									Optional:         true,
-									ValidateFunc:     validation.StringIsJSON,
-									DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-								},
 								"streams": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
@@ -162,6 +202,12 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 											datacollectionrules.PossibleValuesForKnownExtensionDataSourceStreams(),
 											false),
 									},
+								},
+								"extension_setting": {
+									Type:             pluginsdk.TypeString,
+									Optional:         true,
+									ValidateFunc:     validation.StringIsJSON,
+									DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 								},
 								"input_data_sources": {
 									Type:     pluginsdk.TypeList,
@@ -174,7 +220,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
-					"performance_counters": {
+					"performance_counter": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Resource{
@@ -246,7 +292,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
-					"windows_event_logs": {
+					"windows_event_log": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Resource{
@@ -278,51 +324,6 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 							},
 						},
-					},
-				},
-			},
-		},
-
-		"destinations": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			MinItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*schema.Schema{
-					"azure_monitor_metrics": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-							},
-						},
-						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
-					},
-					"log_analytics": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								"workspace_resource_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
-								},
-							},
-						},
-						AtLeastOneOf: []string{"destinations.0.azure_monitor_metrics", "destinations.0.log_analytics"},
 					},
 				},
 			},
@@ -371,14 +372,15 @@ func (r DataCollectionRuleResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("creating Data Collection Rule %q..", state.Name)
 			client := metadata.Client.Monitor.DataCollectionRulesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := datacollectionrules.NewDataCollectionRuleID(subscriptionId, state.ResourceGroupName, state.Name)
+			metadata.Logger.Infof("creating %s", id)
+
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing Data Collection Rule %q: %+v", state.Name, err)
+				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
@@ -403,7 +405,7 @@ func (r DataCollectionRuleResource) Create() sdk.ResourceFunc {
 			}
 
 			if _, err := client.Create(ctx, id, input); err != nil {
-				return fmt.Errorf("creating Data Collection Rule %q: %+v", state.Name, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -422,7 +424,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("retrieving Data Collection Rule %q..", id.DataCollectionRuleName)
+			metadata.Logger.Infof("retrieving %s", *id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -474,34 +476,55 @@ func (r DataCollectionRuleResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state..")
+			metadata.Logger.Infof("updating %s..", *id)
+			client := metadata.Client.Monitor.DataCollectionRulesClient
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if resp.Model == nil {
+				return fmt.Errorf("unexpected null model of %s", *id)
+			}
+			existing := resp.Model
+			if existing.Properties == nil {
+				return fmt.Errorf("unexpected null properties of %s", *id)
+			}
+
 			var state DataCollectionRule
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
 
-			metadata.Logger.Infof("updating %s..", *id)
-			client := metadata.Client.Monitor.DataCollectionRulesClient
-
-			dataSources, err := expandDataCollectionRuleDataSources(state.DataSources)
-			if err != nil {
-				return err
+			if metadata.ResourceData.HasChange("kind") {
+				existing.Kind = expandDataCollectionRuleKind(state.Kind)
 			}
 
-			input := datacollectionrules.DataCollectionRuleResource{
-				Kind:     expandDataCollectionRuleKind(state.Kind),
-				Location: state.Location,
-				Name:     utils.String(state.Name),
-				Properties: &datacollectionrules.DataCollectionRule{
-					DataFlows:    expandDataCollectionRuleDataFlows(state.DataFlows),
-					DataSources:  dataSources,
-					Description:  utils.String(state.Description),
-					Destinations: expandDataCollectionRuleDestinations(state.Destinations),
-				},
-				Tags: tags.Expand(state.Tags),
+			if metadata.ResourceData.HasChange("tags") {
+				existing.Tags = tags.Expand(state.Tags)
 			}
-			if _, err := client.Create(ctx, *id, input); err != nil {
-				return fmt.Errorf("updating Data Collection Rule %q: %+v", state.Name, err)
+
+			if metadata.ResourceData.HasChange("data_flow") {
+				existing.Properties.DataFlows = expandDataCollectionRuleDataFlows(state.DataFlows)
+			}
+
+			if metadata.ResourceData.HasChange("data_sources") {
+				dataSource, err := expandDataCollectionRuleDataSources(state.DataSources)
+				if err != nil {
+					return err
+				}
+				existing.Properties.DataSources = dataSource
+			}
+
+			if metadata.ResourceData.HasChange("description") {
+				existing.Properties.Description = utils.String(state.Description)
+			}
+
+			if metadata.ResourceData.HasChange("destinations") {
+				existing.Properties.Destinations = expandDataCollectionRuleDestinations(state.Destinations)
+			}
+
+			if _, err := client.Create(ctx, *id, *existing); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil
 
