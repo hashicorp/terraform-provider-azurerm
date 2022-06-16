@@ -97,6 +97,8 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
+		"location": commonschema.Location(),
+
 		"data_flow": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -340,8 +342,6 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(
 				datacollectionrules.PossibleValuesForKnownDataCollectionRuleResourceKind(), false),
 		},
-
-		"location": commonschema.Location(),
 
 		"tags": commonschema.Tags(),
 	}
