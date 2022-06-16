@@ -31,7 +31,7 @@ func (f FluidRelayResource) Exists(ctx context.Context, client *clients.Client, 
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Ptr(false), nil
 		}
-		return nil, fmt.Errorf("retriving %s: %v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 	if response.WasNotFound(resp.HttpResponse) {
 		return utils.Ptr(false), nil
