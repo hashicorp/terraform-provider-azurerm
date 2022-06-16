@@ -11,8 +11,8 @@ import (
 var _ resourceids.Id = FluidRelayServersId{}
 
 func TestFluidRelayServersIDFormatter(t *testing.T) {
-	actual := NewFluidRelayServersID("67a9759d-d099-4aa8-8675-e6cfd669c3f4", "myrg", "myFluid").ID()
-	expected := "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/myrg/providers/Microsoft.FluidRelay/fluidRelayServers/myFluid"
+	actual := NewFluidRelayServersID("00000000-0000-0000-0000-000000000000", "rg1", "server1").ID()
+	expected := "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.FluidRelay/fluidRelayServers/server1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -45,41 +45,41 @@ func TestFluidRelayServersID(t *testing.T) {
 
 		{
 			// missing ResourceGroup
-			Input: "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/",
 			Error: true,
 		},
 
 		{
 			// missing value for ResourceGroup
-			Input: "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
 			Error: true,
 		},
 
 		{
 			// missing FluidRelayServerName
-			Input: "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/myrg/providers/Microsoft.FluidRelay/",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.FluidRelay/",
 			Error: true,
 		},
 
 		{
 			// missing value for FluidRelayServerName
-			Input: "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/myrg/providers/Microsoft.FluidRelay/fluidRelayServers/",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.FluidRelay/fluidRelayServers/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/myrg/providers/Microsoft.FluidRelay/fluidRelayServers/myFluid",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.FluidRelay/fluidRelayServers/server1",
 			Expected: &FluidRelayServersId{
-				SubscriptionId:       "67a9759d-d099-4aa8-8675-e6cfd669c3f4",
-				ResourceGroup:        "myrg",
-				FluidRelayServerName: "myFluid",
+				SubscriptionId:       "00000000-0000-0000-0000-000000000000",
+				ResourceGroup:        "rg1",
+				FluidRelayServerName: "server1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/67A9759D-D099-4AA8-8675-E6CFD669C3F4/RESOURCEGROUPS/MYRG/PROVIDERS/MICROSOFT.FLUIDRELAY/FLUIDRELAYSERVERS/MYFLUID",
+			Input: "/SUBSCRIPTIONS/00000000-0000-0000-0000-000000000000/RESOURCEGROUPS/RG1/PROVIDERS/MICROSOFT.FLUIDRELAY/FLUIDRELAYSERVERS/SERVER1",
 			Error: true,
 		},
 	}
