@@ -47,13 +47,9 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Fluid Relay Service. Possible values are `SystemAssigned`,`UserAssigned` and `SystemAssigned, UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
-
-~> **NOTE:** This is required when `type` is set to `UserAssigned`
-
-~> **NOTE:** When `type` is set to `SystemAssigned`, the assigned `principal_id` and `tenant_id` can be retrieved after the Fluid Relay Server has been created. More details are available below.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Fluid Relay Service.
 
 ## Attributes Reference
 
@@ -78,8 +74,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Server.
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
-
--> You can access the Principal ID via `azurerm_fluid_relay_server.example.identity.0.principal_id` and the Tenant ID via `azurerm_fluid_relay_server.example.identity.0.tenant_id`
 
 ## Timeouts
 

@@ -5,7 +5,7 @@ import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 type Registration struct{}
 
 func (r Registration) Name() string {
-	return "Fluid Relay"
+	return "Fluid Relay Service"
 }
 
 func (r Registration) DataSources() []sdk.DataSource {

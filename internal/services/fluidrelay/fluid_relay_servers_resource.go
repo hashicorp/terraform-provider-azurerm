@@ -25,26 +25,16 @@ type UserAssignedIdentity struct {
 }
 
 type ServerModel struct {
-	Name             string            `tfschema:"name"`
-	ResourceGroup    string            `tfschema:"resource_group_name"`
-	Location         string            `tfschema:"location"`
-	Tags             map[string]string `tfschema:"tags"`
-	FrsTenantId      string            `tfschema:"frs_tenant_id"`
-	OrdererEndpoints []string          `tfschema:"orderer_endpoints"`
-	StorageEndpoints []string          `tfschema:"storage_endpoints"`
-	//IdentityType           string                 `tfschema:"identity_type"`
-	TenantID    string `tfschema:"tenant_id"`
-	PrincipalID string `tfschema:"principal_id"`
-	//UserAssignedIdentities []UserAssignedIdentity                     `tfschema:"user_assigned_identity"`
-	Identity []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-}
-
-func (s ServerModel) expandUserIdentities() (res *identity.SystemAndUserAssignedMap, err error) {
-	//res := &identity.SystemAndUserAssignedMap{
-	//	Type: "None",
-	//}
-	res, err = identity.ExpandSystemAndUserAssignedMapFromModel(s.Identity)
-	return res, err
+	Name             string                                     `tfschema:"name"`
+	ResourceGroup    string                                     `tfschema:"resource_group_name"`
+	Location         string                                     `tfschema:"location"`
+	Tags             map[string]string                          `tfschema:"tags"`
+	FrsTenantId      string                                     `tfschema:"frs_tenant_id"`
+	OrdererEndpoints []string                                   `tfschema:"orderer_endpoints"`
+	StorageEndpoints []string                                   `tfschema:"storage_endpoints"`
+	TenantID         string                                     `tfschema:"tenant_id"`
+	PrincipalID      string                                     `tfschema:"principal_id"`
+	Identity         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 }
 
 func (s *ServerModel) flattenIdentity(input *identity.SystemAndUserAssignedMap) error {
@@ -140,8 +130,8 @@ func (s Server) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			account := meta.Client.Account
-			id := fluidrelayservers.NewFluidRelayServerID(account.SubscriptionId, model.ResourceGroup, model.Name)
+			subscriptionID := meta.Client.Account.SubscriptionId
+			id := fluidrelayservers.NewFluidRelayServerID(subscriptionID, model.ResourceGroup, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -154,11 +144,13 @@ func (s Server) Create() sdk.ResourceFunc {
 
 			serverReq := fluidrelayservers.FluidRelayServer{
 				Location: azure.NormalizeLocation(model.Location),
-				Name:     utils.Ptr(model.Name),
+				Name:     utils.String(model.Name),
 			}
-			serverReq.Tags = utils.TryPtr(model.Tags)
+			if model.Tags != nil {
+				serverReq.Tags = &model.Tags
+			}
 			serverReq.Properties = &fluidrelayservers.FluidRelayServerProperties{}
-			serverReq.Identity, err = model.expandUserIdentities()
+			serverReq.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding user identities: %+v", err)
 			}
@@ -174,7 +166,6 @@ func (s Server) Create() sdk.ResourceFunc {
 	}
 }
 
-// Update tags
 func (s Server) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
@@ -195,7 +186,7 @@ func (s Server) Update() sdk.ResourceFunc {
 				upd.Tags = &model.Tags
 			}
 			if meta.ResourceData.HasChange("identity") {
-				upd.Identity, err = model.expandUserIdentities()
+				upd.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding user identities: %+v", err)
 				}
@@ -238,7 +229,9 @@ func (s Server) Read() sdk.ResourceFunc {
 			if err = output.flattenIdentity(model.Identity); err != nil {
 				return fmt.Errorf("flattening `identity`: %v", err)
 			}
-			output.Tags = utils.Value(server.Model.Tags)
+			if server.Model.Tags != nil {
+				output.Tags = *server.Model.Tags
+			}
 			if prop := model.Properties; prop != nil {
 				if prop.FrsTenantId != nil {
 					output.FrsTenantId = *prop.FrsTenantId

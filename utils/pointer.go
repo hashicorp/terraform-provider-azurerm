@@ -1,9 +1,5 @@
 package utils
 
-import (
-	"reflect"
-)
-
 func Bool(input bool) *bool {
 	return &input
 }
@@ -26,30 +22,4 @@ func Float(input float64) *float64 {
 
 func String(input string) *string {
 	return &input
-}
-
-// Ptr input MUST NOT  nil object
-func Ptr[T any](input T) *T {
-	//v := reflect.ValueOf(input)
-	return &input
-}
-
-// TryPtr input can be nil of any type
-func TryPtr[T any](input T) *T {
-	v := reflect.ValueOf(input)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface:
-		if v.IsNil() {
-			return nil
-		}
-	}
-	return &input
-}
-
-func Value[T any](ptr *T) T {
-	if ptr == nil {
-		t := new(T)
-		return *t
-	}
-	return *ptr
 }
