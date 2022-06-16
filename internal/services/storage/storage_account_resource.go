@@ -46,6 +46,36 @@ var (
 	storageAccountResourceName = "azurerm_storage_account"
 )
 
+type storageAccountServiceSupportLevel struct {
+	supportBlob          bool
+	supportQueue         bool
+	supportShare         bool
+	supportStaticWebsite bool
+}
+
+func resolveStorageAccountServiceSupportLevel(kind storage.Kind, tier storage.SkuTier) storageAccountServiceSupportLevel {
+	// FileStorage doesn't support blob
+	supportBlob := kind != storage.KindFileStorage
+
+	// Queue is only supported for Storage and StorageV2, in Standard sku tier.
+	supportQueue := tier == storage.SkuTierStandard && kind == storage.KindStorageV2
+
+	// File share is only supported for StorageV2 and FileStorage.
+	// See: https://docs.microsoft.com/en-us/azure/storage/files/storage-files-planning#management-concepts
+	// Per test, the StorageV2 with Premium sku tier also doesn't support file share.
+	supportShare := kind == storage.KindFileStorage || (kind == storage.KindStorageV2 && tier != storage.SkuTierPremium)
+
+	// Static Website is only supported for StorageV2 and BlockBlobStorage
+	supportStaticWebSite := kind == storage.KindStorageV2 || kind == storage.KindBlockBlobStorage
+
+	return storageAccountServiceSupportLevel{
+		supportBlob:          supportBlob,
+		supportQueue:         supportQueue,
+		supportShare:         supportShare,
+		supportStaticWebsite: supportStaticWebSite,
+	}
+}
+
 func resourceStorageAccount() *pluginsdk.Resource {
 	upgraders := map[int]pluginsdk.StateUpgrade{
 		0: migration.AccountV0ToV1{},
@@ -1157,34 +1187,37 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("populating cache for %s: %+v", id, err)
 	}
 
+	supportLevel := resolveStorageAccountServiceSupportLevel(storage.Kind(accountKind), storage.SkuTier(accountTier))
+
 	if val, ok := d.GetOk("blob_properties"); ok {
-		// FileStorage does not support blob settings
-		if accountKind != string(storage.KindFileStorage) {
-			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
+		if !supportLevel.supportBlob {
+			return fmt.Errorf("`blob_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+		}
+		blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 
-			blobProperties := expandBlobProperties(val.([]interface{}))
+		blobProperties := expandBlobProperties(val.([]interface{}))
 
-			// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
-			// Fix issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11772
-			if v := d.Get("blob_properties.0.last_access_time_enabled").(bool); v {
-				blobProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
-					Enable: utils.Bool(v),
-				}
+		// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
+		// Fix issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11772
+		if v := d.Get("blob_properties.0.last_access_time_enabled").(bool); v {
+			blobProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
+				Enable: utils.Bool(v),
 			}
+		}
 
-			if v, ok := d.GetOk("blob_properties.0.container_delete_retention_policy"); ok {
-				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v.([]interface{}), false)
-			}
+		if v, ok := d.GetOk("blob_properties.0.container_delete_retention_policy"); ok {
+			blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v.([]interface{}), false)
+		}
 
-			if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
-				return fmt.Errorf("updating Azure Storage Account `blob_properties` %q: %+v", id.Name, err)
-			}
-		} else {
-			return fmt.Errorf("`blob_properties` aren't supported for File Storage accounts.")
+		if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
+			return fmt.Errorf("updating Azure Storage Account `blob_properties` %q: %+v", id.Name, err)
 		}
 	}
 
 	if val, ok := d.GetOk("queue_properties"); ok {
+		if !supportLevel.supportQueue {
+			return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+		}
 		storageClient := meta.(*clients.Client).Storage
 		account, err := storageClient.FindAccount(ctx, id.Name)
 		if err != nil {
@@ -1210,23 +1243,19 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if val, ok := d.GetOk("share_properties"); ok {
-		// File share is only supported for StorageV2 and FileStorage.
-		// See: https://docs.microsoft.com/en-us/azure/storage/files/storage-files-planning#management-concepts
-		if accountKind == string(storage.KindFileStorage) || accountKind == string(storage.KindStorageV2) {
-			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
+		if !supportLevel.supportShare {
+			return fmt.Errorf("`share_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+		}
+		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
-			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, expandShareProperties(val.([]interface{}))); err != nil {
-				return fmt.Errorf("updating Azure Storage Account `share_properties` %q: %+v", id.Name, err)
-			}
-		} else {
-			return fmt.Errorf("`share_properties` are only supported for `FileStorage` / `StorageV2` Storage accounts")
+		if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, expandShareProperties(val.([]interface{}))); err != nil {
+			return fmt.Errorf("updating Azure Storage Account `share_properties` %q: %+v", id.Name, err)
 		}
 	}
 
 	if val, ok := d.GetOk("static_website"); ok {
-		// static website only supported on StorageV2 and BlockBlobStorage
-		if accountKind != string(storage.KindStorageV2) && accountKind != string(storage.KindBlockBlobStorage) {
-			return fmt.Errorf("`static_website` is only supported for StorageV2 and BlockBlobStorage.")
+		if !supportLevel.supportStaticWebsite {
+			return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
 		storageClient := meta.(*clients.Client).Storage
 
@@ -1552,37 +1581,42 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	supportLevel := resolveStorageAccountServiceSupportLevel(storage.Kind(accountKind), storage.SkuTier(accountTier))
+
 	if d.HasChange("blob_properties") {
-		// FileStorage does not support blob settings
-		if accountKind != string(storage.KindFileStorage) {
-			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
-			blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
+		if !supportLevel.supportBlob {
+			return fmt.Errorf("`blob_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+		}
 
-			// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
-			// Fix issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11772
-			if d.HasChange("blob_properties.0.last_access_time_enabled") {
-				lastAccessTimeTracking := false
-				if v := d.Get("blob_properties.0.last_access_time_enabled").(bool); v {
-					lastAccessTimeTracking = true
-				}
-				blobProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
-					Enable: utils.Bool(lastAccessTimeTracking),
-				}
-			}
+		blobClient := meta.(*clients.Client).Storage.BlobServicesClient
+		blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
 
-			if d.HasChange("blob_properties.0.container_delete_retention_policy") {
-				blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}), true)
+		// last_access_time_enabled and container_delete_retention_policy are not supported in USGov
+		// Fix issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11772
+		if d.HasChange("blob_properties.0.last_access_time_enabled") {
+			lastAccessTimeTracking := false
+			if v := d.Get("blob_properties.0.last_access_time_enabled").(bool); v {
+				lastAccessTimeTracking = true
 			}
+			blobProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
+				Enable: utils.Bool(lastAccessTimeTracking),
+			}
+		}
 
-			if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
-				return fmt.Errorf("updating Azure Storage Account `blob_properties` %q: %+v", id.Name, err)
-			}
-		} else {
-			return fmt.Errorf("`blob_properties` aren't supported for File Storage accounts.")
+		if d.HasChange("blob_properties.0.container_delete_retention_policy") {
+			blobProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}), true)
+		}
+
+		if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, *blobProperties); err != nil {
+			return fmt.Errorf("updating Azure Storage Account `blob_properties` %q: %+v", id.Name, err)
 		}
 	}
 
 	if d.HasChange("queue_properties") {
+		if !supportLevel.supportQueue {
+			return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+		}
+
 		storageClient := meta.(*clients.Client).Storage
 		account, err := storageClient.FindAccount(ctx, id.Name)
 		if err != nil {
@@ -1608,24 +1642,22 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("share_properties") {
-		// File share is only supported for StorageV2 and FileStorage.
-		// See: https://docs.microsoft.com/en-us/azure/storage/files/storage-files-planning#management-concepts
-		if accountKind == string(storage.KindFileStorage) || accountKind == string(storage.KindStorageV2) {
-			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
+		if !supportLevel.supportShare {
+			return fmt.Errorf("`share_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
+		}
 
-			if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, expandShareProperties(d.Get("share_properties").([]interface{}))); err != nil {
-				return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", id.Name, err)
-			}
-		} else {
-			return fmt.Errorf("`share_properties` are only supported for `FileStorage` / `StorageV2` Storage accounts")
+		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
+
+		if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroup, id.Name, expandShareProperties(d.Get("share_properties").([]interface{}))); err != nil {
+			return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", id.Name, err)
 		}
 	}
 
 	if d.HasChange("static_website") {
-		// static website only supported on StorageV2 and BlockBlobStorage
-		if accountKind != string(storage.KindStorageV2) && accountKind != string(storage.KindBlockBlobStorage) {
-			return fmt.Errorf("`static_website` is only supported for StorageV2 and BlockBlobStorage.")
+		if !supportLevel.supportStaticWebsite {
+			return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
+
 		storageClient := meta.(*clients.Client).Storage
 
 		account, err := storageClient.FindAccount(ctx, id.Name)
@@ -1869,27 +1901,43 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.Name)
 	}
 
-	blobClient := storageClient.BlobServicesClient
+	var tier storage.SkuTier
+	if resp.Sku != nil {
+		tier = resp.Sku.Tier
+	}
+	supportLevel := resolveStorageAccountServiceSupportLevel(resp.Kind, tier)
 
-	// FileStorage does not support blob settings
-	if resp.Kind != storage.KindFileStorage {
+	if supportLevel.supportBlob {
+		blobClient := storageClient.BlobServicesClient
 		blobProps, err := blobClient.GetServiceProperties(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(blobProps.Response) {
 				return fmt.Errorf("reading blob properties for AzureRM Storage Account %q: %+v", id.Name, err)
 			}
 		}
-
 		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
 			return fmt.Errorf("setting `blob_properties `for AzureRM Storage Account %q: %+v", id.Name, err)
 		}
 	}
 
-	fileServiceClient := storageClient.FileServicesClient
+	if supportLevel.supportQueue {
+		queueClient, err := storageClient.QueuesClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("building Queues Client: %s", err)
+		}
 
-	// File share is only supported for StorageV2 and FileStorage.
-	// See: https://docs.microsoft.com/en-us/azure/storage/files/storage-files-planning#management-concepts
-	if resp.Kind == storage.KindFileStorage || resp.Kind == storage.KindStorageV2 {
+		queueProps, err := queueClient.GetServiceProperties(ctx, account.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("reading queue properties for AzureRM Storage Account %q: %+v", id.Name, err)
+		}
+
+		if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
+			return fmt.Errorf("setting `queue_properties`: %+v", err)
+		}
+	}
+
+	if supportLevel.supportShare {
+		fileServiceClient := storageClient.FileServicesClient
 		shareProps, err := fileServiceClient.GetServiceProperties(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(shareProps.Response) {
@@ -1902,35 +1950,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	// queue is only available for certain tier and kind (as specified below)
-	if resp.Sku == nil {
-		return fmt.Errorf("retrieving %s: `sku` was nil", *id)
-	}
-
-	if resp.Sku.Tier == storage.SkuTierStandard {
-		if resp.Kind == storage.KindStorage || resp.Kind == storage.KindStorageV2 {
-			queueClient, err := storageClient.QueuesClient(ctx, *account)
-			if err != nil {
-				return fmt.Errorf("building Queues Client: %s", err)
-			}
-
-			queueProps, err := queueClient.GetServiceProperties(ctx, account.ResourceGroup, id.Name)
-			if err != nil {
-				return fmt.Errorf("reading queue properties for AzureRM Storage Account %q: %+v", id.Name, err)
-			}
-
-			if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
-				return fmt.Errorf("setting `queue_properties`: %+v", err)
-			}
-		}
-	}
-
-	var staticWebsite []interface{}
-
-	// static website only supported on StorageV2 and BlockBlobStorage
-	if resp.Kind == storage.KindStorageV2 || resp.Kind == storage.KindBlockBlobStorage {
+	if supportLevel.supportStaticWebsite {
 		storageClient := meta.(*clients.Client).Storage
-
 		account, err := storageClient.FindAccount(ctx, id.Name)
 		if err != nil {
 			return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
@@ -1947,12 +1968,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("reading static website for AzureRM Storage Account %q: %+v", id.Name, err)
 			}
 		}
-
-		staticWebsite = flattenStaticWebsiteProperties(staticWebsiteProps)
-	}
-
-	if err := d.Set("static_website", staticWebsite); err != nil {
-		return fmt.Errorf("setting `static_website `for AzureRM Storage Account %q: %+v", id.Name, err)
+		staticWebsite := flattenStaticWebsiteProperties(staticWebsiteProps)
+		if err := d.Set("static_website", staticWebsite); err != nil {
+			return fmt.Errorf("setting `static_website `for AzureRM Storage Account %q: %+v", id.Name, err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
