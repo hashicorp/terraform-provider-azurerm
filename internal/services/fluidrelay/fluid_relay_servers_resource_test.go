@@ -29,14 +29,14 @@ func (f FluidRelayResource) Exists(ctx context.Context, client *clients.Client, 
 	resp, err := client.FluidRelay.ServerClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Ptr(false), nil
+			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 	if response.WasNotFound(resp.HttpResponse) {
-		return utils.Ptr(false), nil
+		return utils.Bool(false), nil
 	}
-	return utils.Ptr(true), nil
+	return utils.Bool(true), nil
 }
 
 var s = fluidrelay.Server{}
@@ -50,6 +50,8 @@ func TestAccFluidRelay_basic(t *testing.T) {
 			Config: f.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(f),
+				check.That(data.ResourceName).Key("frs_tenant_id").IsUUID(),
+				check.That(data.ResourceName).Key("orderer_endpoints.0").Exists(),
 			),
 		},
 		data.ImportStep(),
