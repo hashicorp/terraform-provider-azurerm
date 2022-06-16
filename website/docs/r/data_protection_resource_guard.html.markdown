@@ -35,35 +35,15 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Resource Guard should exist. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as defined below.
-
 * `vault_critical_operation_exclusion_list` - (Optional) A list of the critical operations which are not protected by this Resource Guard.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Guard.
-
----
-
-An `identity` block supports the following:
-
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Resource Guard. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Resource Guard.
-
-* `identity` - An `identity` block as defined below, which contains the Identity information for this Resource Guard.
-
----
-
-`identity` exports the following:
-
-* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Resource Guard.
-
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Resource Guard.
-
--> You can access the Principal ID via `${azurerm_data_protection_resource_guard.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_data_protection_resource_guard.example.identity.0.tenant_id}`
 
 ## Timeouts
 

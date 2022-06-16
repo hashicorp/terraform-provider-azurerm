@@ -52,7 +52,7 @@ func TestAccDataProtectionResourceGuard_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.complete(data, "Test1"),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -74,14 +74,14 @@ func TestAccDataProtectionResourceGuard_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data, "Test1"),
+			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data, "Test2"),
+			Config: r.update(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -148,7 +148,7 @@ resource "azurerm_data_protection_resource_guard" "import" {
 `, r.basic(data))
 }
 
-func (r DataProtectionResourceGuardResource) complete(data acceptance.TestData, tag string) string {
+func (r DataProtectionResourceGuardResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -157,9 +157,29 @@ resource "azurerm_data_protection_resource_guard" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
+  vault_critical_operation_exclusion_list = ["Microsoft.RecoveryServices/vaults/backupconfig/delete", "Microsoft.RecoveryServices/vaults/backupResourceGuardProxies/write"]
+
   tags = {
-    ENV = "%s"
+    ENV = "Test1"
   }
 }
-`, r.template(data), data.RandomInteger, tag)
+`, r.template(data), data.RandomInteger)
+}
+
+func (r DataProtectionResourceGuardResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_resource_guard" "test" {
+  name                = "acctest-dprg-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  vault_critical_operation_exclusion_list = ["Microsoft.RecoveryServices/vaults/backupResourceGuardProxies/write"]
+
+  tags = {
+    ENV = "Test2"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
