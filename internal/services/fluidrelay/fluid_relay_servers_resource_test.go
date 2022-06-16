@@ -175,6 +175,7 @@ resource "azurerm_fluid_relay_server" "test" {
 func (f FluidRelayResource) userAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_fluid_relay_server" "test" {
@@ -182,8 +183,8 @@ resource "azurerm_fluid_relay_server" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
   identity {
-	type = "UserAssigned"
-	identity_ids = [azurerm_user_assigned_identity.test.id]
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
 `, f.template(data), data.RandomInteger, data.Locations.Primary)
@@ -192,6 +193,7 @@ resource "azurerm_fluid_relay_server" "test" {
 func (f FluidRelayResource) systemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_fluid_relay_server" "test" {
@@ -199,7 +201,7 @@ resource "azurerm_fluid_relay_server" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
   identity {
-	type = "SystemAssigned"
+    type = "SystemAssigned"
   }
   tags = {
     foo = "bar"
@@ -211,6 +213,7 @@ resource "azurerm_fluid_relay_server" "test" {
 func (f FluidRelayResource) systemAndUserAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_fluid_relay_server" "test" {
@@ -218,7 +221,7 @@ resource "azurerm_fluid_relay_server" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
   identity {
-	type = "SystemAssigned"
+    type = "SystemAssigned"
   }
   tags = {
     foo = "bar"
