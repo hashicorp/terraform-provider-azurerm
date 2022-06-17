@@ -22,6 +22,9 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_log_analytics_cluster" "example" {
   name                = "example-cluster"
   resource_group_name = azurerm_resource_group.example.name
