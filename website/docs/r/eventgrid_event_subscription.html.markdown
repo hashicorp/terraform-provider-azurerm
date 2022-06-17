@@ -19,8 +19,8 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_storage_account" "default" {
-  name                     = "defaultStorageAccount"
+resource "azurerm_storage_account" "example" {
+  name                     = "exampleasa"
   resource_group_name      = azurerm_resource_group.example.name
   location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
@@ -31,18 +31,18 @@ resource "azurerm_storage_account" "default" {
   }
 }
 
-resource "azurerm_storage_queue" "default" {
-  name                 = "defaultStorageQueue"
-  storage_account_name = azurerm_storage_account.default.name
+resource "azurerm_storage_queue" "example" {
+  name                 = "example-astq"
+  storage_account_name = azurerm_storage_account.example.name
 }
 
-resource "azurerm_eventgrid_event_subscription" "default" {
-  name  = "defaultEventSubscription"
+resource "azurerm_eventgrid_event_subscription" "example" {
+  name  = "example-aees"
   scope = azurerm_resource_group.example.id
 
   storage_queue_endpoint {
-    storage_account_id = azurerm_storage_account.default.id
-    queue_name         = azurerm_storage_queue.default.name
+    storage_account_id = azurerm_storage_account.example.id
+    queue_name         = azurerm_storage_queue.example.name
   }
 }
 ```
@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **NOTE:** One of `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
+~> **NOTE:** One of `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint`, `webhook_endpoint` or `azure_function_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `delivery_identity` - (Optional) A `delivery_identity` block as defined below.
 
-* `delivery_property` - (Optional) A `delivery_property` block as defined below.
+* `delivery_property` - (Optional) One or more `delivery_property` blocks as defined below.
 
 * `dead_letter_identity` - (Optional) A `dead_letter_identity` block as defined below.
 
@@ -247,6 +247,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 EventGrid Event Subscription's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_eventgrid_event_subscription.eventSubscription1
-/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/topics/topic1/providers/Microsoft.EventGrid/eventSubscriptions/eventSubscription1
+terraform import azurerm_eventgrid_event_subscription.eventSubscription1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/topics/topic1/providers/Microsoft.EventGrid/eventSubscriptions/eventSubscription1
 ```

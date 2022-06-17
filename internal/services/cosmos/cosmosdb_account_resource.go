@@ -965,7 +965,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("analytical_storage_enabled", props.EnableAnalyticalStorage)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == documentdb.PublicNetworkAccessEnabled)
 		defaultIdentity := props.DefaultIdentity
-		if defaultIdentity == nil {
+		if defaultIdentity == nil || *defaultIdentity == "" {
 			defaultIdentity = utils.String("FirstPartyIdentity")
 		}
 		d.Set("default_identity_type", defaultIdentity)

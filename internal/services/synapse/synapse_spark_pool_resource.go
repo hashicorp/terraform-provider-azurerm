@@ -200,6 +200,7 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"2.4",
 					"3.1",
+					"3.2",
 				}, false),
 			},
 

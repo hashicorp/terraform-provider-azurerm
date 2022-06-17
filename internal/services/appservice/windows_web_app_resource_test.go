@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+const windowsPythonVersionString = "3.4.0"
+
 type WindowsWebAppResource struct{}
 
 func TestAccWindowsWebApp_basic(t *testing.T) {
@@ -607,7 +609,7 @@ func TestAccWindowsWebApp_withPython34(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.python(data, "3.4.0"),
+			Config: r.python(data, windowsPythonVersionString),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -629,7 +631,7 @@ func TestAccWindowsWebApp_withPythonUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.python(data, "3.4.0"),
+			Config: r.python(data, windowsPythonVersionString),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -987,6 +989,23 @@ func TestAccWindowsWebApp_stickySettingsUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+// Deployments
+
+func TestAccWindowsWebApp_zipDeploy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zipDeploy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("zip_deploy_file"),
 	})
 }
 
@@ -2085,7 +2104,7 @@ resource "azurerm_windows_web_app" "test" {
     }
   }
 }
-`, r.baseTemplate(data), data.RandomInteger, "v4.0", "7.4", "3.4.0", "1.8", "TOMCAT", "9.0")
+`, r.baseTemplate(data), data.RandomInteger, "v4.0", "7.4", windowsPythonVersionString, "1.8", "TOMCAT", "9.0")
 }
 
 func (r WindowsWebAppResource) withLogsHttpBlob(data acceptance.TestData) string {
@@ -2559,6 +2578,37 @@ resource "azurerm_windows_web_app" "test" {
     app_setting_names       = ["foo", "secret", "third"]
     connection_string_names = ["First", "Second", "Third"]
   }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) zipDeploy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  app_settings = {
+    WEBSITE_RUN_FROM_PACKAGE       = "1"
+    SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
+  }
+
+  site_config {
+    application_stack {
+      dotnet_version = "v6.0"
+      current_stack  = "dotnet"
+    }
+  }
+
+  zip_deploy_file = "./testdata/dotnet-zipdeploy.zip"
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }

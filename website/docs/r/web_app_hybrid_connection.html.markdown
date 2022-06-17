@@ -1,7 +1,7 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "web_app_hybrid_connection: azurerm_web_app_hybrid_connection"
+page_title: "Azure Resource Manager: azurerm_web_app_hybrid_connection"
 description: |-
   Manages a Web App Hybrid Connection.
 ---
@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_service_plan" "test" {
+resource "azurerm_service_plan" "example" {
   name                = "example-plan"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name

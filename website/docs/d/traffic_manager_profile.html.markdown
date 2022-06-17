@@ -20,7 +20,7 @@ data "azurerm_traffic_manager_profile" "example" {
 }
 
 output "traffic_routing_method" {
-  value = data.azurerm_traffic_manager_profile.traffic_routing_method
+  value = data.azurerm_traffic_manager_profile.example.traffic_routing_method
 }
 ```
 

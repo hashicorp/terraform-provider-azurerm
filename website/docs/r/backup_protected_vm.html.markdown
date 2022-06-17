@@ -36,10 +36,15 @@ resource "azurerm_backup_policy_vm" "example" {
   }
 }
 
+data "azurerm_virtual_machine" "example" {
+  name                = "production"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
 resource "azurerm_backup_protected_vm" "vm1" {
   resource_group_name = azurerm_resource_group.example.name
   recovery_vault_name = azurerm_recovery_services_vault.example.name
-  source_vm_id        = azurerm_virtual_machine.example.id
+  source_vm_id        = data.azurerm_virtual_machine.example.id
   backup_policy_id    = azurerm_backup_policy_vm.example.id
 }
 ```
@@ -53,6 +58,9 @@ The following arguments are supported:
 * `recovery_vault_name` - (Required) Specifies the name of the Recovery Services Vault to use. Changing this forces a new resource to be created.
 
 * `source_vm_id` - (Required) Specifies the ID of the VM to backup. Changing this forces a new resource to be created.
+
+~> **NOTE:** After creation, the `source_vm_id` property can be removed without forcing a new resource to be created; however, setting it to a different ID will create a new resource. 
+This allows the source vm to be deleted without having to remove the backup.
 
 * `backup_policy_id` - (Required) Specifies the id of the backup policy to use.
 
