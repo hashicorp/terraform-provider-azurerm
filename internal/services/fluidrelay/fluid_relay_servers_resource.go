@@ -41,7 +41,7 @@ func (s *ServerModel) flattenIdentity(input *identity.SystemAndUserAssignedMap) 
 	if input == nil {
 		return nil
 	}
-	config := identity.SystemOrUserAssignedMap{
+	config := identity.SystemAndUserAssignedMap{
 		Type:        input.Type,
 		PrincipalId: input.PrincipalId,
 		TenantId:    input.TenantId,
@@ -53,7 +53,7 @@ func (s *ServerModel) flattenIdentity(input *identity.SystemAndUserAssignedMap) 
 			PrincipalId: v.PrincipalId,
 		}
 	}
-	model, err := identity.FlattenSystemOrUserAssignedMapToModel(&config)
+	model, err := identity.FlattenSystemAndUserAssignedMapToModel(&config)
 	if err != nil {
 		return err
 	}
@@ -196,8 +196,6 @@ func (s Server) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 
-			meta.SetID(id)
-
 			return nil
 		},
 	}
@@ -221,7 +219,7 @@ func (s Server) Read() sdk.ResourceFunc {
 
 			model := server.Model
 
-			output := ServerModel{
+			output := &ServerModel{
 				Name:          id.FluidRelayServerName,
 				ResourceGroup: id.ResourceGroup,
 				Location:      location.Normalize(model.Location),
@@ -245,7 +243,7 @@ func (s Server) Read() sdk.ResourceFunc {
 					}
 				}
 			}
-			return meta.Encode(&output)
+			return meta.Encode(output)
 		},
 	}
 }

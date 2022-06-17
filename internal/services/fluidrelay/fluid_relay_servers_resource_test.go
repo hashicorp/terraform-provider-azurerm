@@ -221,7 +221,8 @@ resource "azurerm_fluid_relay_server" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
   identity {
-    type = "SystemAssigned"
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
   tags = {
     foo = "bar"
