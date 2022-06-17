@@ -245,7 +245,7 @@ func resourceArmResourceGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, 
 	if prop := existing.Model.Properties; prop != nil {
 		if mode := existing.Model.Properties.ResourceDiscoveryMode; mode != nil && *mode == policyinsights.ResourceDiscoveryModeReEvaluateCompliance {
 			// Remediation can only be canceld when it is in "Evaluating" status, otherwise, API might raise error (e.g. canceling a "Completed" remediation returns 400).
-			if existing.Model.Properties.ProvisioningState != nil && *existing.Model.Properties.ProvisioningState == "Evaluating" {
+			if ps := existing.Model.Properties.ProvisioningState; ps != nil && (*ps == "Evaluating" || *ps == "Accepted") {
 				log.Printf("[DEBUG] cancelling the remediation first before deleting it when `resource_discovery_mode` is set to `ReEvaluateCompliance`")
 				if _, err := client.RemediationsCancelAtResourceGroup(ctx, *id); err != nil {
 					return fmt.Errorf("cancelling %s: %+v", id.ID(), err)
