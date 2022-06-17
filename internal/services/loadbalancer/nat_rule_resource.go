@@ -73,7 +73,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"frontend_port": {
 				Type:          pluginsdk.TypeInt,
 				Optional:      true,
-				ValidateFunc:  validate.PortNumber,
+				ValidateFunc:  validate.PortNumberOrZero,
 				ConflictsWith: []string{"frontend_port_start", "frontend_port_end", "backend_address_pool_id"},
 			},
 
@@ -341,13 +341,12 @@ func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interf
 func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *network.LoadBalancer, loadBalancerId parse.LoadBalancerId) (*network.InboundNatRule, error) {
 	properties := network.InboundNatRulePropertiesFormat{
 		Protocol:       network.TransportProtocol(d.Get("protocol").(string)),
-		FrontendPort:   utils.Int32(int32(d.Get("frontend_port").(int))),
 		BackendPort:    utils.Int32(int32(d.Get("backend_port").(int))),
 		EnableTCPReset: utils.Bool(d.Get("enable_tcp_reset").(bool)),
 	}
 
 	backendAddressPoolSet, frontendPort := false, false
-	if _, ok := d.GetOk("frontend_port"); ok {
+	if port := d.Get("frontend_port"); port != "" {
 		frontendPort = true
 	}
 	if _, ok := d.GetOk("backend_address_pool_id"); ok {
