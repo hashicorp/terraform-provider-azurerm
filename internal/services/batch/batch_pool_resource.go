@@ -913,21 +913,29 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		},
 	}
 
-	if applicationLicences, err := ExpandBatchPoolApplicationLicenses(d); err == nil {
-		parameters.PoolProperties.ApplicationLicenses = applicationLicences
+	applicationLicences, err := ExpandBatchPoolApplicationLicenses(d)
+	if err != nil {
+		return fmt.Errorf(`expanding "application_licenses": %v`, err)
 	}
+	parameters.PoolProperties.ApplicationLicenses = applicationLicences
 
-	if applicationPackages, err := ExpendBatchPoolApplicationPackages(d); err == nil {
-		parameters.PoolProperties.ApplicationPackages = applicationPackages
+	applicationPackages, err := ExpendBatchPoolApplicationPackages(d)
+	if err != nil {
+		return fmt.Errorf(`expanding "application_packages": %v`, err)
 	}
+	parameters.PoolProperties.ApplicationPackages = applicationPackages
 
-	if taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d); err == nil {
-		parameters.PoolProperties.TaskSchedulingPolicy = taskSchedulingPolicy
+	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
+	if err != nil {
+		return fmt.Errorf(`expanding "task_scheduling_policy": %v`, err)
 	}
+	parameters.PoolProperties.TaskSchedulingPolicy = taskSchedulingPolicy
 
-	if userAccounts, err := ExpandBatchPoolUserAccounts(d); err == nil {
-		parameters.PoolProperties.UserAccounts = userAccounts
+	userAccounts, err := ExpandBatchPoolUserAccounts(d)
+	if err != nil {
+		return fmt.Errorf(`expanding "user_accounts": %v`, err)
 	}
+	parameters.PoolProperties.UserAccounts = userAccounts
 
 	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -939,16 +947,19 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("expanding scale settings: %+v", err)
 	}
-
 	parameters.PoolProperties.ScaleSettings = scaleSettings
 
-	if deploymentConfiguration, err := ExpandBatchPoolDeploymentConfiguration(d); err == nil {
-		parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
+	deploymentConfiguration, err := ExpandBatchPoolDeploymentConfiguration(d)
+	if err != nil {
+		return fmt.Errorf(`expanding "deployment_configuration": %v`, err)
 	}
+	parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
 
-	if mountConfiguration, err := ExpandBatchPoolMountConfigurations(d); err == nil {
-		parameters.PoolProperties.MountConfiguration = mountConfiguration
+	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
+	if err != nil {
+		return fmt.Errorf(`expanding "mount_configuration": %v`, err)
 	}
+	parameters.PoolProperties.MountConfiguration = mountConfiguration
 
 	//nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
 	//
@@ -1073,11 +1084,52 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	parameters.Identity = identity
 
+	applicationLicences, err := ExpandBatchPoolApplicationLicenses(d)
+	if err != nil {
+		return fmt.Errorf(`expanding "application_licenses": %v`, err)
+	}
+	parameters.PoolProperties.ApplicationLicenses = applicationLicences
+
+	applicationPackages, err := ExpendBatchPoolApplicationPackages(d)
+	if err != nil {
+		return fmt.Errorf(`expanding "application_packages": %v`, err)
+	}
+	parameters.PoolProperties.ApplicationPackages = applicationPackages
+
+	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
+	if err != nil {
+		return fmt.Errorf(`expanding "task_scheduling_policy": %v`, err)
+	}
+	parameters.PoolProperties.TaskSchedulingPolicy = taskSchedulingPolicy
+
+	userAccounts, err := ExpandBatchPoolUserAccounts(d)
+	if err != nil {
+		return fmt.Errorf(`expanding "user_accounts": %v`, err)
+	}
+	parameters.PoolProperties.UserAccounts = userAccounts
+
+	deploymentConfiguration, err := ExpandBatchPoolDeploymentConfiguration(d)
+	if err != nil {
+		return fmt.Errorf(`expanding "deployment_configuration": %v`, err)
+	}
+	parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
+
+	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
+	if err != nil {
+		return fmt.Errorf(`expanding "mount_configuration": %v`, err)
+	}
+	parameters.PoolProperties.MountConfiguration = mountConfiguration
+
+	networkConfiguration := d.Get("network_configuration").([]interface{})
+	parameters.PoolProperties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
+	if err != nil {
+		return fmt.Errorf("expanding `network_configuration`: %+v", err)
+	}
+
 	scaleSettings, err := expandBatchPoolScaleSettings(d)
 	if err != nil {
 		return fmt.Errorf("expanding scale settings: %+v", err)
 	}
-
 	parameters.PoolProperties.ScaleSettings = scaleSettings
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
@@ -1096,6 +1148,7 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		parameters.PoolProperties.StartTask = startTask
 	}
+
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
 	if err != nil {
@@ -1110,7 +1163,6 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	if d.HasChange("metadata") {
 		log.Printf("[DEBUG] Updating the MetaData for %s", *id)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
-
 		parameters.PoolProperties.Metadata = ExpandBatchMetaData(metaDataRaw)
 	}
 
