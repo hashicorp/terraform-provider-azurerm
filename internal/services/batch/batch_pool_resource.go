@@ -409,12 +409,12 @@ func resourceBatchPool() *pluginsdk.Resource {
 											Schema: map[string]*pluginsdk.Schema{
 												"ephemeral_os_disk_settings": {
 													Type:     pluginsdk.TypeList,
-													Optional: true,
+													Required: true,
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
 															"placement": {
 																Type:     pluginsdk.TypeString,
-																Optional: true,
+																Required: true,
 																ValidateFunc: validation.StringInSlice(
 																	[]string{
 																		string(batch.DiffDiskPlacementCacheDisk),
@@ -1258,6 +1258,19 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(&mountConfig))
 			}
 			d.Set("mount_configuration", mountConfigs)
+		}
+
+		if props.DeploymentConfiguration != nil {
+			deploymentConfigMap := make(map[string]interface{}, 0)
+			if props.DeploymentConfiguration.CloudServiceConfiguration != nil {
+				deploymentConfigMap["cloud_service_configuration"] = flattenBatchPoolCloudServiceConfiguration(props.DeploymentConfiguration.CloudServiceConfiguration)
+
+			}
+			if props.DeploymentConfiguration.VirtualMachineConfiguration != nil {
+				deploymentConfigMap["cloud_service_configuration"] = flattenBatchPoolVirtualMachineConfiguration(props.DeploymentConfiguration.VirtualMachineConfiguration)
+			}
+
+			d.Set("deployment_configuration", deploymentConfigMap)
 		}
 
 		if scaleSettings := props.ScaleSettings; scaleSettings != nil {

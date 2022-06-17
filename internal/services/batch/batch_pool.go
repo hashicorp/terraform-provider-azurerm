@@ -161,8 +161,101 @@ func flattenBatchPoolMountConfig(config *batch.MountConfiguration) map[string]in
 	return mountConfig
 }
 
-func flattenBatchPoolDeploymentConfiguration() {
+func flattenBatchPoolCloudServiceConfiguration(config *batch.CloudServiceConfiguration) interface{} {
+	result := make(map[string]interface{}, 0)
+	result["os_family"] = *config.OsFamily
+	if config.OsVersion != nil {
+		result["os_version"] = *config.OsVersion
+	}
+	return result
+}
 
+func flattenBatchPoolVirtualMachineConfiguration(config *batch.VirtualMachineConfiguration) interface{} {
+	result := make(map[string]interface{}, 0)
+	if config.ContainerConfiguration != nil {
+		result["container_configuration"] = flattenBatchPoolContainerConfiguration(config.ContainerConfiguration)
+	}
+	if config.DataDisks != nil {
+		dataDisks := make([]interface{}, 1)
+		for _, item := range *config.DataDisks {
+			dataDisk := make(map[string]interface{})
+			dataDisk["lun"] = *item.Lun
+			dataDisk["disk_size_gb"] = *item.DiskSizeGB
+			dataDisk["caching"] = string(item.Caching)
+			dataDisk["storage_account_type"] = string(item.StorageAccountType)
+			dataDisks = append(dataDisks, dataDisk)
+		}
+		result["data_disks"] = dataDisks
+	}
+	if config.DiskEncryptionConfiguration != nil {
+		diskEncryptionConfiguration := make([]interface{}, 1)
+		if config.DiskEncryptionConfiguration.Targets != nil {
+			for _, item := range *config.DiskEncryptionConfiguration.Targets {
+				target := make(map[string]interface{})
+				target["disk_encryption_target"] = string(item)
+				diskEncryptionConfiguration = append(diskEncryptionConfiguration, target)
+			}
+		}
+		result["disk_encryption_configuration"] = diskEncryptionConfiguration
+	}
+	if config.Extensions != nil {
+		extensions := make([]interface{}, 1)
+		for _, item := range *config.Extensions {
+			extension := make(map[string]interface{}, 1)
+			extension["name"] = *item.Name
+			extension["publisher"] = *item.Publisher
+			extension["type"] = *item.Type
+			if item.TypeHandlerVersion != nil {
+				extension["type_handler_version"] = *item.TypeHandlerVersion
+			}
+			if item.AutoUpgradeMinorVersion != nil {
+				extension["auto_upgrade_minor_version"] = *item.AutoUpgradeMinorVersion
+			}
+			if item.Settings != nil {
+				extension["settings"] = item.Settings
+			}
+			if item.ProtectedSettings != nil {
+				extension["protected_settings"] = item.ProtectedSettings
+			}
+			if item.ProvisionAfterExtensions != nil {
+				extension["provision_after_extensions"] = *item.ProvisionAfterExtensions
+			}
+			extensions = append(extensions, extension)
+		}
+		result["extensions"] = extensions
+	}
+	if config.ImageReference != nil {
+		result["image_reference"] = flattenBatchPoolImageReference(config.ImageReference)
+	}
+	if config.LicenseType != nil {
+		result["license_type"] = *config.LicenseType
+	}
+	if config.NodeAgentSkuID != nil {
+		result["node_agent_sku_id"] = *config.NodeAgentSkuID
+	}
+	if config.NodePlacementConfiguration != nil {
+		nodePlacementConfiguration := make([]interface{}, 1)
+		nodePlacementConfig := make(map[string]interface{})
+		nodePlacementConfig["policy"] = string(config.NodePlacementConfiguration.Policy)
+		nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
+		result["node_placement_configuration"] = nodePlacementConfiguration
+	}
+	if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil {
+		osDisk := make(map[string]interface{})
+		osDisk["ephemeral_os_disk_settings"] = map[string]interface{}{
+			"placement": string(config.OsDisk.EphemeralOSDiskSettings.Placement),
+		}
+		result["os_disk"] = osDisk
+	}
+	if config.WindowsConfiguration != nil {
+		windowsConfig := []interface{}{
+			map[string]interface{}{
+				"enable_automatic_updates": *config.WindowsConfiguration.EnableAutomaticUpdates,
+			},
+		}
+		result["windows_configuration"] = windowsConfig
+	}
+	return result
 }
 
 // flattenBatchPoolImageReference flattens the Batch pool image reference
@@ -313,7 +406,7 @@ func flattenBatchPoolIdentity(input *batch.PoolIdentity) (*[]interface{}, error)
 
 	if input != nil {
 		transform = &identity.UserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
+			Type:        identity.Type(input.Type),
 			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
 		for k, v := range input.UserAssignedIdentities {
@@ -736,7 +829,7 @@ func ExpandBatchPoolDeploymentConfiguration(d *pluginsdk.ResourceData) (*batch.D
 
 	if deploymentConfig, ok := d.GetOk("deployment_configuration"); ok {
 		//Although in schema this is a list, actually deployment_configuration has only one element
-		deploymentConfigMap := deploymentConfig.([]interface{})[0].(map[string]interface{})
+		deploymentConfigMap := deploymentConfig.(map[string]interface{})
 		cloudServiceConfig, cloudServiceErr := expandBatchPoolCloudServiceConfig(deploymentConfigMap)
 		virtualMachineConfig, virtualMachineErr := expandBatchPoolVirtualMachineConfig(deploymentConfigMap)
 		if cloudServiceErr == nil || virtualMachineErr == nil {
@@ -794,7 +887,7 @@ func expandBatchPoolVirtualMachineConfig(configMap map[string]interface{}) (*bat
 		if nodeReplacementConfig, nodeRepCfgErr := expandBatchPoolNodeReplacementConfig(vmConfigSet["node_placement_configuration"].([]interface{})); nodeRepCfgErr == nil {
 			result.NodePlacementConfiguration = nodeReplacementConfig
 		}
-		if osDisk, osDiskErr := expandBatchPoolOSDisk(vmConfigSet["os_disk"].([]interface{})); osDiskErr == nil {
+		if osDisk, osDiskErr := expandBatchPoolOSDisk(vmConfigSet["os_disk"].(map[string]interface{})); osDiskErr == nil {
 			result.OsDisk = osDisk
 		}
 		if windowsConfiguration, windowsConfigErr := expandBatchPoolWindowsConfiguration(vmConfigSet["windows_configuration"].([]interface{})); windowsConfigErr == nil {
@@ -805,11 +898,11 @@ func expandBatchPoolVirtualMachineConfig(configMap map[string]interface{}) (*bat
 	return nil, fmt.Errorf("virtual_machine_configuration either is empty or contains parsing errors")
 }
 
-func expandBatchPoolOSDisk(list []interface{}) (*batch.OSDisk, error) {
-	if list == nil || len(list) == 0 || list[0] == nil {
+func expandBatchPoolOSDisk(ref map[string]interface{}) (*batch.OSDisk, error) {
+	if ref == nil {
 		return nil, fmt.Errorf("os_disk is empty")
 	}
-	item := list[0].(map[string]interface{})["ephemeral_os_disk_settings"].(map[string]interface{})["placement"].(string)
+	item := ref["ephemeral_os_disk_settings"].(map[string]interface{})["placement"].(string)
 	result := batch.OSDisk{
 		EphemeralOSDiskSettings: &batch.DiffDiskSettings{
 			Placement: batch.DiffDiskPlacement(item),
