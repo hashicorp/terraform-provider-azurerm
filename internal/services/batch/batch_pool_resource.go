@@ -13,7 +13,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1214,6 +1213,52 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if props := resp.PoolProperties; props != nil {
 		d.Set("display_name", props.DisplayName)
 		d.Set("vm_size", props.VMSize)
+		d.Set("inter_node_communication", string(props.InterNodeCommunication))
+
+		if props.ApplicationLicenses != nil {
+			applicationLicenses := make([]interface{}, len(*props.ApplicationLicenses))
+			for _, license := range *props.ApplicationLicenses {
+				applicationLicenses = append(applicationLicenses, license)
+			}
+			d.Set("application_licenses", applicationLicenses)
+		}
+
+		if props.ApplicationPackages != nil {
+			applicationPackages := make([]interface{}, len(*props.ApplicationPackages))
+			for _, pkg := range *props.ApplicationPackages {
+				appPkg := make(map[string]interface{}, 1)
+				appPkg["id"] = *pkg.ID
+				if pkg.Version != nil {
+					appPkg["version"] = *pkg.Version
+				}
+				applicationPackages = append(applicationPackages, appPkg)
+			}
+			d.Set("application_packages", applicationPackages)
+		}
+
+		if props.TaskSchedulingPolicy != nil {
+			taskSchedulingPolicy := make([]interface{}, 1)
+			nodeFillType := make(map[string]interface{}, 1)
+			nodeFillType["node_fill_type"] = string(props.TaskSchedulingPolicy.NodeFillType)
+			taskSchedulingPolicy = append(taskSchedulingPolicy, nodeFillType)
+			d.Set("task_scheduling_policy", taskSchedulingPolicy)
+		}
+
+		if props.UserAccounts != nil {
+			userAccounts := make([]interface{}, len(*props.UserAccounts))
+			for _, userAccount := range *props.UserAccounts {
+				userAccounts = append(userAccounts, flattenBatchPoolUserAccount(&userAccount))
+			}
+			d.Set("user_accounts", userAccounts)
+		}
+
+		if props.MountConfiguration != nil {
+			mountConfigs := make([]interface{}, len(*props.MountConfiguration))
+			for _, mountConfig := range *props.MountConfiguration {
+				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(&mountConfig))
+			}
+			d.Set("mount_configuration", mountConfigs)
+		}
 
 		if scaleSettings := props.ScaleSettings; scaleSettings != nil {
 			if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
@@ -1226,20 +1271,20 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
 
-		if props.DeploymentConfiguration != nil &&
-			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
-			props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
-			imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
-
-			d.Set("storage_image_reference", flattenBatchPoolImageReference(imageReference))
-			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
-		}
-
-		if dcfg := props.DeploymentConfiguration; dcfg != nil {
-			if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
-				d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration))
-			}
-		}
+		//if props.DeploymentConfiguration != nil &&
+		//	props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
+		//	props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
+		//	imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
+		//
+		//	d.Set("storage_image_reference", flattenBatchPoolImageReference(imageReference))
+		//	d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
+		//}
+		//
+		//if dcfg := props.DeploymentConfiguration; dcfg != nil {
+		//	if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
+		//		d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration))
+		//	}
+		//}
 
 		if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
 			return fmt.Errorf("flattening `certificate`: %+v", err)
@@ -1277,59 +1322,6 @@ func resourceBatchPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 	return nil
-}
-
-func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*batch.ScaleSettings, error) {
-	scaleSettings := &batch.ScaleSettings{}
-
-	autoScaleValue, autoScaleOk := d.GetOk("auto_scale")
-	fixedScaleValue, fixedScaleOk := d.GetOk("fixed_scale")
-
-	if !autoScaleOk && !fixedScaleOk {
-		return nil, fmt.Errorf("auto_scale block or fixed_scale block need to be specified")
-	}
-
-	if autoScaleOk && fixedScaleOk {
-		return nil, fmt.Errorf("auto_scale and fixed_scale blocks cannot be specified at the same time")
-	}
-
-	if autoScaleOk {
-		autoScale := autoScaleValue.([]interface{})
-		if len(autoScale) == 0 {
-			return nil, fmt.Errorf("when scale mode is Auto, auto_scale block is required")
-		}
-
-		autoScaleSettings := autoScale[0].(map[string]interface{})
-
-		autoScaleEvaluationInterval := autoScaleSettings["evaluation_interval"].(string)
-		autoScaleFormula := autoScaleSettings["formula"].(string)
-
-		scaleSettings.AutoScale = &batch.AutoScaleSettings{
-			EvaluationInterval: &autoScaleEvaluationInterval,
-			Formula:            &autoScaleFormula,
-		}
-	} else if fixedScaleOk {
-		fixedScale := fixedScaleValue.([]interface{})
-		if len(fixedScale) == 0 {
-			return nil, fmt.Errorf("when scale mode is Fixed, fixed_scale block is required")
-		}
-
-		fixedScaleSettings := fixedScale[0].(map[string]interface{})
-
-		nodeDeallocationOption := batch.ComputeNodeDeallocationOption(fixedScaleSettings["node_deallocation_option"].(string))
-		targetDedicatedNodes := int32(fixedScaleSettings["target_dedicated_nodes"].(int))
-		targetLowPriorityNodes := int32(fixedScaleSettings["target_low_priority_nodes"].(int))
-		resizeTimeout := fixedScaleSettings["resize_timeout"].(string)
-
-		scaleSettings.FixedScale = &batch.FixedScaleSettings{
-			NodeDeallocationOption: nodeDeallocationOption,
-			ResizeTimeout:          &resizeTimeout,
-			TargetDedicatedNodes:   &targetDedicatedNodes,
-			TargetLowPriorityNodes: &targetLowPriorityNodes,
-		}
-	}
-
-	return scaleSettings, nil
 }
 
 func waitForBatchPoolPendingResizeOperation(ctx context.Context, client *batch.PoolClient, resourceGroup string, accountName string, poolName string) error {
@@ -1406,46 +1398,6 @@ func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
 	}
 
 	return nil
-}
-
-func expandBatchPoolIdentity(input []interface{}) (*batch.PoolIdentity, error) {
-	expanded, err := identity.ExpandUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	out := batch.PoolIdentity{
-		Type: batch.PoolIdentityType(string(expanded.Type)),
-	}
-	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.UserAssignedIdentities = make(map[string]*batch.UserAssignedIdentities)
-		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &batch.UserAssignedIdentities{
-				// intentionally empty
-			}
-		}
-	}
-
-	return &out, nil
-}
-
-func flattenBatchPoolIdentity(input *batch.PoolIdentity) (*[]interface{}, error) {
-	var transform *identity.UserAssignedMap
-
-	if input != nil {
-		transform = &identity.UserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
-		for k, v := range input.UserAssignedIdentities {
-			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-				ClientId:    v.ClientID,
-				PrincipalId: v.PrincipalID,
-			}
-		}
-	}
-
-	return identity.FlattenUserAssignedMap(transform)
 }
 
 func identityReference() map[string]*pluginsdk.Schema {

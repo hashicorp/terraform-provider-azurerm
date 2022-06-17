@@ -2,13 +2,13 @@ package batch
 
 import (
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"log"
 	"strconv"
 	"strings"
-
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // flattenBatchPoolAutoScaleSettings flattens the auto scale settings for a Batch pool
@@ -61,6 +61,110 @@ func flattenBatchPoolFixedScaleSettings(settings *batch.FixedScaleSettings) []in
 	return append(results, result)
 }
 
+func flattenBatchPoolUserAccount(account *batch.UserAccount) map[string]interface{} {
+	userAccount := make(map[string]interface{}, 5)
+	userAccount["name"] = *account.Name
+	userAccount["password"] = *account.Password
+	userAccount["elevation_level"] = string(account.ElevationLevel)
+	if account.LinuxUserConfiguration != nil {
+		linuxUserConfig := make(map[string]interface{}, 1)
+		if account.LinuxUserConfiguration.UID != nil {
+			linuxUserConfig["uid"] = *account.LinuxUserConfiguration.UID
+			linuxUserConfig["gid"] = *account.LinuxUserConfiguration.Gid
+		}
+		if account.LinuxUserConfiguration.SSHPrivateKey != nil {
+			linuxUserConfig["ssh_private_key"] = *account.LinuxUserConfiguration.SSHPrivateKey
+		}
+		userAccount["linux_user_configuration"] = linuxUserConfig
+	}
+	if account.WindowsUserConfiguration != nil {
+		loginMode := make(map[string]interface{}, 1)
+		loginMode["login_mode"] = string(account.WindowsUserConfiguration.LoginMode)
+		userAccount["windows_user_configuration"] = loginMode
+	}
+	return userAccount
+}
+
+func flattenBatchPoolMountConfig(config *batch.MountConfiguration) map[string]interface{} {
+	mountConfig := make(map[string]interface{})
+
+	if config.AzureBlobFileSystemConfiguration != nil {
+		azureBlobFileSysConfigList := make([]interface{}, 1)
+		azureBlobFileSysConfig := make(map[string]interface{}, 3)
+		azureBlobFileSysConfig["account_name"] = *config.AzureBlobFileSystemConfiguration.AccountName
+		azureBlobFileSysConfig["container_name"] = *config.AzureBlobFileSystemConfiguration.ContainerName
+		azureBlobFileSysConfig["relative_mount_path"] = *config.AzureBlobFileSystemConfiguration.RelativeMountPath
+
+		if config.AzureBlobFileSystemConfiguration.AccountKey != nil {
+			azureBlobFileSysConfig["account_key"] = *config.AzureBlobFileSystemConfiguration.AccountKey
+		}
+		if config.AzureBlobFileSystemConfiguration.SasKey != nil {
+			azureBlobFileSysConfig["sas_key"] = *config.AzureBlobFileSystemConfiguration.SasKey
+		}
+		if config.AzureBlobFileSystemConfiguration.IdentityReference != nil {
+			azureBlobFileSysConfig["identity_reference"] = flattenBatchPoolIdentityReference(config.AzureBlobFileSystemConfiguration.IdentityReference)
+		}
+		if config.AzureBlobFileSystemConfiguration.BlobfuseOptions != nil {
+			azureBlobFileSysConfig["blobfuse_options"] = *config.AzureBlobFileSystemConfiguration.BlobfuseOptions
+		}
+		azureBlobFileSysConfigList = append(azureBlobFileSysConfigList, azureBlobFileSysConfig)
+		mountConfig["azure_blob_file_system_configuration"] = azureBlobFileSysConfigList
+	}
+
+	if config.AzureFileShareConfiguration != nil {
+		azureFileShareConfigList := make([]interface{}, 1)
+		azureFileShareConfig := make(map[string]interface{}, 4)
+		azureFileShareConfig["account_name"] = *config.AzureFileShareConfiguration.AccountName
+		azureFileShareConfig["azure_file_url"] = *config.AzureFileShareConfiguration.AzureFileURL
+		azureFileShareConfig["account_key"] = *config.AzureFileShareConfiguration.AccountKey
+		azureFileShareConfig["relative_mount_path"] = *config.AzureFileShareConfiguration.RelativeMountPath
+
+		if config.AzureFileShareConfiguration.MountOptions != nil {
+			azureFileShareConfig["mount_options"] = *config.AzureFileShareConfiguration.MountOptions
+		}
+
+		azureFileShareConfigList = append(azureFileShareConfigList, azureFileShareConfig)
+		mountConfig["azure_file_share_configuration"] = azureFileShareConfigList
+	}
+
+	if config.CifsMountConfiguration != nil {
+		cifsMountConfigList := make([]interface{}, 1)
+		cifsMountConfig := make(map[string]interface{}, 4)
+
+		cifsMountConfig["user_name"] = *config.CifsMountConfiguration.Username
+		cifsMountConfig["password"] = *config.CifsMountConfiguration.Password
+		cifsMountConfig["source"] = *config.CifsMountConfiguration.Source
+		cifsMountConfig["relative_mount_path"] = *config.CifsMountConfiguration.RelativeMountPath
+
+		if config.CifsMountConfiguration.MountOptions != nil {
+			cifsMountConfig["mount_options"] = *config.CifsMountConfiguration.MountOptions
+		}
+
+		cifsMountConfigList = append(cifsMountConfigList, cifsMountConfig)
+		mountConfig["cifs_mount_configuration"] = cifsMountConfigList
+	}
+
+	if config.NfsMountConfiguration != nil {
+		nfsMountConfigList := make([]interface{}, 1)
+		nfsMountConfig := make(map[string]interface{}, 4)
+
+		nfsMountConfig["source"] = *config.NfsMountConfiguration.Source
+		nfsMountConfig["relative_mount_path"] = *config.NfsMountConfiguration.RelativeMountPath
+
+		if config.NfsMountConfiguration.MountOptions != nil {
+			nfsMountConfig["mount_options"] = *config.NfsMountConfiguration.MountOptions
+		}
+
+		nfsMountConfigList = append(nfsMountConfigList, nfsMountConfig)
+		mountConfig["nfs_mount_configuration"] = nfsMountConfigList
+	}
+	return mountConfig
+}
+
+func flattenBatchPoolDeploymentConfiguration() {
+
+}
+
 // flattenBatchPoolImageReference flattens the Batch pool image reference
 func flattenBatchPoolImageReference(image *batch.ImageReference) []interface{} {
 	results := make([]interface{}, 0)
@@ -104,6 +208,20 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 		commandLine = *startTask.CommandLine
 	}
 	result["command_line"] = commandLine
+
+	if startTask.ContainerSettings != nil {
+		containerSettings := make(map[string]interface{})
+		containerSettings["image_name"] = *startTask.ContainerSettings.ImageName
+		containerSettings["working_directory"] = string(startTask.ContainerSettings.WorkingDirectory)
+		if startTask.ContainerSettings.ContainerRunOptions != nil {
+			containerSettings["container_run_options"] = *startTask.ContainerSettings.ContainerRunOptions
+		}
+		if startTask.ContainerSettings.Registry != nil {
+			containerSettings["registry"] = flattenBatchPoolContainerRegistry(startTask.ContainerSettings.Registry)
+		}
+
+		result["container_settings"] = containerSettings
+	}
 
 	waitForSuccess := false
 	if startTask.WaitForSuccess != nil {
@@ -159,6 +277,9 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 			if armResourceFile.FileMode != nil {
 				resourceFile["file_mode"] = *armResourceFile.FileMode
 			}
+			if armResourceFile.IdentityReference != nil {
+				resourceFile["identity_reference"] = flattenBatchPoolIdentityReference(armResourceFile.IdentityReference)
+			}
 			resourceFiles = append(resourceFiles, resourceFile)
 		}
 	}
@@ -175,6 +296,35 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 	result["resource_file"] = resourceFiles
 
 	return append(results, result)
+}
+
+func flattenBatchPoolIdentityReference(ref *batch.ComputeNodeIdentityReference) interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{})
+
+	if ref.ResourceID != nil {
+		result["identity_id"] = ref.ResourceID
+	}
+	return append(results, result)
+}
+
+func flattenBatchPoolIdentity(input *batch.PoolIdentity) (*[]interface{}, error) {
+	var transform *identity.UserAssignedMap
+
+	if input != nil {
+		transform = &identity.UserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
+	}
+
+	return identity.FlattenUserAssignedMap(transform)
 }
 
 // flattenBatchPoolCertificateReferences flattens a Batch pool certificate reference
@@ -206,7 +356,7 @@ func flattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateR
 }
 
 // flattenBatchPoolContainerConfiguration flattens a Batch pool container configuration
-func flattenBatchPoolContainerConfiguration(d *pluginsdk.ResourceData, armContainerConfiguration *batch.ContainerConfiguration) interface{} {
+func flattenBatchPoolContainerConfiguration(armContainerConfiguration *batch.ContainerConfiguration) interface{} {
 	result := make(map[string]interface{})
 
 	if armContainerConfiguration == nil {
@@ -225,25 +375,25 @@ func flattenBatchPoolContainerConfiguration(d *pluginsdk.ResourceData, armContai
 	}
 	result["container_image_names"] = names
 
-	result["container_registries"] = flattenBatchPoolContainerRegistries(d, armContainerConfiguration.ContainerRegistries)
+	result["container_registries"] = flattenBatchPoolContainerRegistries(armContainerConfiguration.ContainerRegistries)
 
 	return []interface{}{result}
 }
 
-func flattenBatchPoolContainerRegistries(d *pluginsdk.ResourceData, armContainerRegistries *[]batch.ContainerRegistry) []interface{} {
+func flattenBatchPoolContainerRegistries(armContainerRegistries *[]batch.ContainerRegistry) []interface{} {
 	results := make([]interface{}, 0)
 
 	if armContainerRegistries == nil {
 		return results
 	}
 	for _, armContainerRegistry := range *armContainerRegistries {
-		result := flattenBatchPoolContainerRegistry(d, &armContainerRegistry)
+		result := flattenBatchPoolContainerRegistry(&armContainerRegistry)
 		results = append(results, result)
 	}
 	return results
 }
 
-func flattenBatchPoolContainerRegistry(d *pluginsdk.ResourceData, armContainerRegistry *batch.ContainerRegistry) map[string]interface{} {
+func flattenBatchPoolContainerRegistry(armContainerRegistry *batch.ContainerRegistry) map[string]interface{} {
 	result := make(map[string]interface{})
 
 	if armContainerRegistry == nil {
@@ -252,16 +402,23 @@ func flattenBatchPoolContainerRegistry(d *pluginsdk.ResourceData, armContainerRe
 	if registryServer := armContainerRegistry.RegistryServer; registryServer != nil {
 		result["registry_server"] = *registryServer
 	}
+
+	// At lease username + password / identity_reference need to be provided. If both are provided, we choose username + password here
 	if userName := armContainerRegistry.UserName; userName != nil {
-		result["user_name"] = *userName
+		result["username"] = *userName
+		result["password"] = *armContainerRegistry.Password
+	} else if identityRef := armContainerRegistry.IdentityReference; identityRef != nil {
+		result["identity_reference"] = flattenBatchPoolIdentityReference(armContainerRegistry.IdentityReference)
 	}
 
 	// If we didn't specify a registry server and user name, just return what we have now rather than trying to locate the password
-	if len(result) != 2 {
-		return result
-	}
-
-	result["password"] = findBatchPoolContainerRegistryPassword(d, result["registry_server"].(string), result["user_name"].(string))
+	// Reading sensitive data is dangerous and could be used by attackers, we only keep what we get from server.
+	// So I remove this password reading logic for now.
+	//if len(result) != 2 {
+	//	return result
+	//}
+	//
+	//result["password"] = findBatchPoolContainerRegistryPassword(d, result["registry_server"].(string), result["user_name"].(string))
 
 	return result
 }
@@ -315,9 +472,62 @@ func ExpendBatchPoolApplicationPackages(d *pluginsdk.ResourceData) (*[]batch.App
 	return nil, nil
 }
 
+func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*batch.ScaleSettings, error) {
+	scaleSettings := &batch.ScaleSettings{}
+
+	autoScaleValue, autoScaleOk := d.GetOk("auto_scale")
+	fixedScaleValue, fixedScaleOk := d.GetOk("fixed_scale")
+
+	if !autoScaleOk && !fixedScaleOk {
+		return nil, fmt.Errorf("auto_scale block or fixed_scale block need to be specified")
+	}
+
+	if autoScaleOk && fixedScaleOk {
+		return nil, fmt.Errorf("auto_scale and fixed_scale blocks cannot be specified at the same time")
+	}
+
+	if autoScaleOk {
+		autoScale := autoScaleValue.([]interface{})
+		if len(autoScale) == 0 {
+			return nil, fmt.Errorf("when scale mode is Auto, auto_scale block is required")
+		}
+
+		autoScaleSettings := autoScale[0].(map[string]interface{})
+
+		autoScaleEvaluationInterval := autoScaleSettings["evaluation_interval"].(string)
+		autoScaleFormula := autoScaleSettings["formula"].(string)
+
+		scaleSettings.AutoScale = &batch.AutoScaleSettings{
+			EvaluationInterval: &autoScaleEvaluationInterval,
+			Formula:            &autoScaleFormula,
+		}
+	} else if fixedScaleOk {
+		fixedScale := fixedScaleValue.([]interface{})
+		if len(fixedScale) == 0 {
+			return nil, fmt.Errorf("when scale mode is Fixed, fixed_scale block is required")
+		}
+
+		fixedScaleSettings := fixedScale[0].(map[string]interface{})
+
+		nodeDeallocationOption := batch.ComputeNodeDeallocationOption(fixedScaleSettings["node_deallocation_option"].(string))
+		targetDedicatedNodes := int32(fixedScaleSettings["target_dedicated_nodes"].(int))
+		targetLowPriorityNodes := int32(fixedScaleSettings["target_low_priority_nodes"].(int))
+		resizeTimeout := fixedScaleSettings["resize_timeout"].(string)
+
+		scaleSettings.FixedScale = &batch.FixedScaleSettings{
+			NodeDeallocationOption: nodeDeallocationOption,
+			ResizeTimeout:          &resizeTimeout,
+			TargetDedicatedNodes:   &targetDedicatedNodes,
+			TargetLowPriorityNodes: &targetLowPriorityNodes,
+		}
+	}
+
+	return scaleSettings, nil
+}
+
 func expendApplicationPackages(ref map[string]interface{}) (*batch.ApplicationPackageReference, error) {
 	if len(ref) == 0 {
-		return nil, fmt.Errorf("Error: application_package reference should be defined")
+		return nil, fmt.Errorf("error: application_package reference should be defined")
 	}
 
 	applicationPackage := batch.ApplicationPackageReference{
@@ -325,6 +535,27 @@ func expendApplicationPackages(ref map[string]interface{}) (*batch.ApplicationPa
 		Version: utils.String(ref["version"].(string)),
 	}
 	return &applicationPackage, nil
+}
+
+func expandBatchPoolIdentity(input []interface{}) (*batch.PoolIdentity, error) {
+	expanded, err := identity.ExpandUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	out := batch.PoolIdentity{
+		Type: batch.PoolIdentityType(string(expanded.Type)),
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*batch.UserAssignedIdentities)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &batch.UserAssignedIdentities{
+				// intentionally empty
+			}
+		}
+	}
+
+	return &out, nil
 }
 
 func ExpandBatchPoolUserAccounts(d *pluginsdk.ResourceData) (*[]batch.UserAccount, error) {
@@ -353,9 +584,8 @@ func expandBatchPoolUserAccount(ref map[string]interface{}) (batch.UserAccount, 
 	}
 
 	if linuxUserConfig, ok := ref["linux_user_configuration"]; ok {
-		linuxUserConfigList := linuxUserConfig.([]interface{})
-		if len(linuxUserConfigList) > 0 && linuxUserConfigList[0] != nil {
-			linuxUserConfigMap := linuxUserConfigList[0].(map[string]interface{})
+		if linuxUserConfig != nil {
+			linuxUserConfigMap := linuxUserConfig.(map[string]interface{})
 			var linuxUserConfig batch.LinuxUserConfiguration
 			if uid, ok := linuxUserConfigMap["uid"]; ok {
 				linuxUserConfig = batch.LinuxUserConfiguration{
@@ -371,9 +601,8 @@ func expandBatchPoolUserAccount(ref map[string]interface{}) (batch.UserAccount, 
 	}
 
 	if winUserConfig, ok := ref["windows_user_configuration"]; ok {
-		winUserConfigList := winUserConfig.([]interface{})
-		if len(winUserConfigList) > 0 && winUserConfigList[0] != nil {
-			winUserConfigMap := winUserConfigList[0].(map[string]interface{})
+		if winUserConfig != nil {
+			winUserConfigMap := winUserConfig.(map[string]interface{})
 			result.WindowsUserConfiguration = &batch.WindowsUserConfiguration{
 				LoginMode: batch.LoginMode(winUserConfigMap["login_mode"].(string)),
 			}
@@ -1196,10 +1425,17 @@ func flattenBatchPoolNetworkConfiguration(input *batch.NetworkConfiguration) []i
 					if networkSecurity.SourceAddressPrefix != nil {
 						sourceAddressPrefix = *networkSecurity.SourceAddressPrefix
 					}
+					sourcePortRanges := make([]interface{}, 0)
+					if networkSecurity.SourcePortRanges != nil {
+						for _, sourcePortRange := range *networkSecurity.SourcePortRanges {
+							sourcePortRanges = append(sourcePortRanges, sourcePortRange)
+						}
+					}
 					networkSecurities = append(networkSecurities, map[string]interface{}{
 						"access":                string(networkSecurity.Access),
 						"priority":              priority,
 						"source_address_prefix": sourceAddressPrefix,
+						"source_port_ranges":    sourcePortRanges,
 					})
 				}
 			}
