@@ -541,13 +541,13 @@ func TestAccWindowsWebApp_virtualDirectoriesUpdate(t *testing.T) {
 }
 
 // App Stacks
-func TestAccWindowsWebApp_withDotNet3(t *testing.T) {
+func TestAccWindowsWebApp_withDotNetCore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dotNetCore(data, "v3.0"),
+			Config: r.dotNetCore(data, "core3.1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

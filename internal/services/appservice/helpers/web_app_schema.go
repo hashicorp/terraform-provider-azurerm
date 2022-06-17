@@ -879,7 +879,8 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"v3.0",
+						"v2.0",
+						"core3.1",
 						"v4.0",
 						"v5.0",
 						"v6.0",
@@ -2890,6 +2891,9 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 		if len(winSiteConfig.ApplicationStack) == 1 {
 			winAppStack := winSiteConfig.ApplicationStack[0]
 			expanded.NetFrameworkVersion = utils.String(winAppStack.NetFrameworkVersion)
+			if winAppStack.CurrentStack == "dotnetcore" {
+				expanded.NetFrameworkVersion = nil
+			}
 			expanded.PhpVersion = utils.String(winAppStack.PhpVersion)
 			expanded.NodeVersion = utils.String(winAppStack.NodeVersion)
 			expanded.PythonVersion = utils.String(winAppStack.PythonVersion)
@@ -3852,6 +3856,10 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 			Count:        utils.Int32(int32(triggers.Requests[0].Count)),
 			TimeInterval: utils.String(triggers.Requests[0].Interval),
 		}
+	}
+
+	if len(triggers.SlowRequests) == 1 {
+		result.Triggers.SlowRequests = &web.SlowRequestsBasedTrigger{}
 	}
 
 	if triggers.PrivateMemoryKB != 0 {
