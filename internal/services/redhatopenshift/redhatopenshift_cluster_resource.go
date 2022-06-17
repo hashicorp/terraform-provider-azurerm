@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/redhatopenshift/mgmt/2020-04-30/redhatopenshift"
+	"github.com/Azure/azure-sdk-for-go/services/redhatopenshift/mgmt/2022-04-01/redhatopenshift"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -20,9 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var (
-	randomDomainName = GenerateRandomDomainName()
-)
+var randomDomainName = GenerateRandomDomainName()
 
 func resourceOpenShiftCluster() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -71,6 +69,11 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"enable_fips": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -136,11 +139,19 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 						},
 						"vm_size": {
 							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							ForceNew:         true,
-							Default:          redhatopenshift.StandardD8sV3,
+							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.StringIsNotEmpty,
+						},
+						"enable_encryption_at_host": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"disk_encryption_set_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
@@ -152,31 +163,40 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "worker",
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 						"vm_size": {
 							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							ForceNew:         true,
-							Default:          redhatopenshift.VMSize1StandardD4sV3,
+							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.StringIsNotEmpty,
 						},
 						"disk_size_gb": {
 							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							ForceNew:     true,
-							Default:      128,
+							Required:     true,
 							ValidateFunc: openShiftValidate.DiskSizeGB,
 						},
 						"node_count": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							ForceNew:     true,
-							Default:      3,
-							ValidateFunc: validation.IntBetween(3, 20),
+							Type:     pluginsdk.TypeInt,
+							Required: true,
 						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"enable_encryption_at_host": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"disk_encryption_set_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
@@ -186,7 +206,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 			"api_server_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				ForceNew: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -194,8 +213,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 						"visibility": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
-							Default:  redhatopenshift.Public,
+							Default:  redhatopenshift.VisibilityPublic,
 						},
 					},
 				},
@@ -209,11 +227,16 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "default",
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 						"visibility": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
-							Default:  redhatopenshift.Visibility1Public,
+							Default:  redhatopenshift.VisibilityPublic,
 						},
 					},
 				},
@@ -480,10 +503,13 @@ func flattenOpenShiftClusterProfile(profile *redhatopenshift.ClusterProfile) []i
 		clusterDomain = *profile.Domain
 	}
 
+	enableFips := profile.FipsValidatedModules == redhatopenshift.FipsValidatedModulesEnabled
+
 	return []interface{}{
 		map[string]interface{}{
 			"pull_secret": pullSecret,
 			"domain":      clusterDomain,
+			"enable_fips": enableFips,
 		},
 	}
 }
@@ -557,10 +583,20 @@ func flattenOpenShiftMasterProfile(profile *redhatopenshift.MasterProfile) []int
 		subnetId = *profile.SubnetID
 	}
 
+	enableEncryptionAtHost := profile.EncryptionAtHost == redhatopenshift.EncryptionAtHostEnabled
+
+	diskEncryptionSetId := ""
+
+	if profile.DiskEncryptionSetID != nil {
+		diskEncryptionSetId = *profile.DiskEncryptionSetID
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"vm_size":   string(profile.VMSize),
-			"subnet_id": subnetId,
+			"vm_size":                   profile.VMSize,
+			"subnet_id":                 subnetId,
+			"enable_encryption_at_host": enableEncryptionAtHost,
+			"disk_encryption_set_id":    diskEncryptionSetId,
 		},
 	}
 }
@@ -580,14 +616,20 @@ func flattenOpenShiftWorkerProfiles(profiles *[]redhatopenshift.WorkerProfile) [
 			result["disk_size_gb"] = profile.DiskSizeGB
 		}
 
-		vmSize := string(profile.VMSize)
-
-		if result["vm_size"] == nil && vmSize != "" {
-			result["vm_size"] = vmSize
+		if result["vm_size"] == nil && profile.VMSize != nil {
+			result["vm_size"] = profile.VMSize
 		}
 
 		if result["subnet_id"] == nil && profile.SubnetID != nil {
 			result["subnet_id"] = profile.SubnetID
+		}
+
+		if result["enable_encryption_at_host"] == nil {
+			result["enable_encryption_at_host"] = profile.EncryptionAtHost == redhatopenshift.EncryptionAtHostEnabled
+		}
+
+		if result["disk_encryption_set_id"] == nil && profile.DiskEncryptionSetID != nil {
+			result["disk_encryption_set_id"] = profile.DiskEncryptionSetID
 		}
 	}
 
@@ -631,8 +673,9 @@ func expandOpenshiftClusterProfile(input []interface{}, subscriptionId string) *
 
 	if len(input) == 0 {
 		return &redhatopenshift.ClusterProfile{
-			ResourceGroupID: utils.String(resourceGroupId),
-			Domain:          utils.String(randomDomainName),
+			ResourceGroupID:      utils.String(resourceGroupId),
+			Domain:               utils.String(randomDomainName),
+			FipsValidatedModules: redhatopenshift.FipsValidatedModulesDisabled,
 		}
 	}
 
@@ -645,10 +688,17 @@ func expandOpenshiftClusterProfile(input []interface{}, subscriptionId string) *
 		domain = randomDomainName
 	}
 
+	fipsValidatedModules := redhatopenshift.FipsValidatedModulesDisabled
+	enableFips := config["enable_fips"].(bool)
+	if enableFips {
+		fipsValidatedModules = redhatopenshift.FipsValidatedModulesEnabled
+	}
+
 	return &redhatopenshift.ClusterProfile{
-		ResourceGroupID: utils.String(resourceGroupId),
-		Domain:          utils.String(domain),
-		PullSecret:      utils.String(pullSecret),
+		ResourceGroupID:      utils.String(resourceGroupId),
+		Domain:               utils.String(domain),
+		PullSecret:           utils.String(pullSecret),
+		FipsValidatedModules: fipsValidatedModules,
 	}
 }
 
@@ -697,9 +747,19 @@ func expandOpenshiftMasterProfile(input []interface{}) *redhatopenshift.MasterPr
 	vmSize := config["vm_size"].(string)
 	subnetId := config["subnet_id"].(string)
 
+	encryptionAtHost := redhatopenshift.EncryptionAtHostDisabled
+	enableEncryptionAtHost := config["enable_encryption_at_host"].(bool)
+	if enableEncryptionAtHost {
+		encryptionAtHost = redhatopenshift.EncryptionAtHostEnabled
+	}
+
+	diskEncryptionSetId := config["disk_encryption_set_id"].(string)
+
 	return &redhatopenshift.MasterProfile{
-		VMSize:   redhatopenshift.VMSize(vmSize),
-		SubnetID: utils.String(subnetId),
+		VMSize:              utils.String(vmSize),
+		SubnetID:            utils.String(subnetId),
+		EncryptionAtHost:    encryptionAtHost,
+		DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 	}
 }
 
@@ -711,32 +771,28 @@ func expandOpenshiftWorkerProfiles(inputs []interface{}) *[]redhatopenshift.Work
 	profiles := make([]redhatopenshift.WorkerProfile, 0)
 	config := inputs[0].(map[string]interface{})
 
-	// Hardcoded name required by ARO interface
-	workerName := "worker"
-
+	name := config["name"].(string)
 	vmSize := config["vm_size"].(string)
-	if vmSize == "" {
-		vmSize = "Standard_D4s_v3"
-	}
-
 	diskSizeGb := int32(config["disk_size_gb"].(int))
-	if diskSizeGb == 0 {
-		diskSizeGb = 128
-	}
-
 	nodeCount := int32(config["node_count"].(int))
-	if nodeCount == 0 {
-		nodeCount = 3
-	}
-
 	subnetId := config["subnet_id"].(string)
 
+	encryptionAtHost := redhatopenshift.EncryptionAtHostDisabled
+	enableEncryptionAtHost := config["enable_encryption_at_host"].(bool)
+	if enableEncryptionAtHost {
+		encryptionAtHost = redhatopenshift.EncryptionAtHostEnabled
+	}
+
+	diskEncryptionSetId := config["disk_encryption_set_id"].(string)
+
 	profile := redhatopenshift.WorkerProfile{
-		Name:       utils.String(workerName),
-		VMSize:     redhatopenshift.VMSize1(vmSize),
-		DiskSizeGB: utils.Int32(diskSizeGb),
-		SubnetID:   utils.String(subnetId),
-		Count:      utils.Int32(nodeCount),
+		Name:                utils.String(name),
+		VMSize:              utils.String(vmSize),
+		DiskSizeGB:          utils.Int32(diskSizeGb),
+		SubnetID:            utils.String(subnetId),
+		Count:               utils.Int32(nodeCount),
+		EncryptionAtHost:    encryptionAtHost,
+		DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 	}
 
 	profiles = append(profiles, profile)
@@ -747,9 +803,10 @@ func expandOpenshiftWorkerProfiles(inputs []interface{}) *[]redhatopenshift.Work
 func expandOpenshiftApiServerProfile(input []interface{}) *redhatopenshift.APIServerProfile {
 	if len(input) == 0 {
 		return &redhatopenshift.APIServerProfile{
-			Visibility: redhatopenshift.Public,
+			Visibility: redhatopenshift.VisibilityPublic,
 		}
 	}
+
 	config := input[0].(map[string]interface{})
 
 	visibility := config["visibility"].(string)
@@ -762,17 +819,18 @@ func expandOpenshiftApiServerProfile(input []interface{}) *redhatopenshift.APISe
 func expandOpenshiftIngressProfiles(inputs []interface{}) *[]redhatopenshift.IngressProfile {
 	profiles := make([]redhatopenshift.IngressProfile, 0)
 
-	name := utils.String("default")
-	visibility := string(redhatopenshift.Visibility1Public)
+	name := "default"
+	visibility := string(redhatopenshift.VisibilityPublic)
 
 	if len(inputs) > 0 {
 		input := inputs[0].(map[string]interface{})
+		name = input["name"].(string)
 		visibility = input["visibility"].(string)
 	}
 
 	profile := redhatopenshift.IngressProfile{
-		Name:       name,
-		Visibility: redhatopenshift.Visibility1(visibility),
+		Name:       utils.String(name),
+		Visibility: redhatopenshift.Visibility(visibility),
 	}
 
 	profiles = append(profiles, profile)
