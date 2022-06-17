@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-var serverNameReg = regexp.MustCompile(`^[-\w]{1,50}$`)
+var serverNameReg = regexp.MustCompile(`^[-0-9a-zA-Z]{1,50}$`)
 
 func FluidRelayServerName(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
