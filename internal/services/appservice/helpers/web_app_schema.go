@@ -3858,10 +3858,6 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 		}
 	}
 
-	if len(triggers.SlowRequests) == 1 {
-		result.Triggers.SlowRequests = &web.SlowRequestsBasedTrigger{}
-	}
-
 	if triggers.PrivateMemoryKB != 0 {
 		result.Triggers.PrivateBytesInKB = utils.Int32(int32(triggers.PrivateMemoryKB))
 	}
