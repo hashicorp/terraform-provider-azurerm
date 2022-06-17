@@ -29,6 +29,12 @@ resource "azurerm_spring_cloud_service" "example" {
   sku_name            = "E0"
 }
 
+resource "azurerm_spring_cloud_app" "example" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  service_name        = azurerm_spring_cloud_service.example.name
+}
+
 resource "azurerm_spring_cloud_gateway" "example" {
   name                    = "default"
   spring_cloud_service_id = azurerm_spring_cloud_service.example.id

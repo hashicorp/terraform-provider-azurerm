@@ -19,7 +19,9 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_mysql_flexible_server" "example" {
-  # ...
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_mysql_flexible_server_firewall_rule" "example" {
@@ -40,7 +42,9 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_mysql_flexible_server" "example" {
-  # ...
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_mysql_flexible_server_firewall_rule" "example" {
@@ -61,7 +65,9 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_mysql_flexible_server" "example" {
-  # ...
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_mysql_flexible_server_firewall_rule" "example" {

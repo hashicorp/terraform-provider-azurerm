@@ -209,6 +209,17 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+						"public_ips": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+						"public_address_provisioning_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 						"endpoint_configuration": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,

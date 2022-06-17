@@ -21,7 +21,8 @@ resource "azurerm_policy_definition" "example" {
   name                = "only-deploy-in-westeurope"
   policy_type         = "Custom"
   mode                = "All"
-  management_group_id = azurerm_management_group.example.group_id
+  display_name        = "my-policy-definition"
+  management_group_id = azurerm_management_group.example.id
 
   policy_rule = <<POLICY_RULE
 	{
