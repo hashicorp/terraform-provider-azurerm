@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -82,6 +84,13 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 							Required: true,
 						},
 
+						"disk_encryption_set_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.DiskEncryptionSetID,
+						},
+
 						// The Service API doesn't support to update `storage_account_type`. So it has to recreate the resource for updating `storage_account_type`.
 						// However, `ForceNew` cannot be used since resource would be recreated while adding or removing `target_region`.
 						// And `CustomizeDiff` also cannot be used since it doesn't support in a `Set`.
@@ -97,6 +106,13 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"end_of_life_date": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: suppress.RFC3339Time,
+				ValidateFunc:     validation.IsRFC3339Time,
 			},
 
 			"os_disk_snapshot_id": {
@@ -118,6 +134,17 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"os_disk_snapshot_id", "managed_image_id"},
 			},
 
+			"replication_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.ReplicationModeFull),
+					string(compute.ReplicationModeShallow),
+				}, false),
+				Default: compute.ReplicationModeFull,
+			},
+
 			"exclude_from_latest": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -126,6 +153,12 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("end_of_life_date", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) != "" && new.(string) == ""
+			}),
+		),
 	}
 }
 
@@ -150,16 +183,29 @@ func resourceSharedImageVersionCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
+	targetRegions, err := expandSharedImageVersionTargetRegions(d)
+	if err != nil {
+		return err
+	}
+
 	version := compute.GalleryImageVersion{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		GalleryImageVersionProperties: &compute.GalleryImageVersionProperties{
 			PublishingProfile: &compute.GalleryImageVersionPublishingProfile{
 				ExcludeFromLatest: utils.Bool(d.Get("exclude_from_latest").(bool)),
-				TargetRegions:     expandSharedImageVersionTargetRegions(d),
+				ReplicationMode:   compute.ReplicationMode(d.Get("replication_mode").(string)),
+				TargetRegions:     targetRegions,
 			},
 			StorageProfile: &compute.GalleryImageVersionStorageProfile{},
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("end_of_life_date"); ok {
+		endOfLifeDate, _ := time.Parse(time.RFC3339, v.(string))
+		version.GalleryImageVersionProperties.PublishingProfile.EndOfLifeDate = &date.Time{
+			Time: endOfLifeDate,
+		}
 	}
 
 	if v, ok := d.GetOk("managed_image_id"); ok {
@@ -221,7 +267,17 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if props := resp.GalleryImageVersionProperties; props != nil {
 		if profile := props.PublishingProfile; profile != nil {
+			if v := profile.EndOfLifeDate; v != nil {
+				d.Set("end_of_life_date", profile.EndOfLifeDate.Format(time.RFC3339))
+			}
+
 			d.Set("exclude_from_latest", profile.ExcludeFromLatest)
+
+			replicationMode := string(compute.ReplicationModeFull)
+			if profile.ReplicationMode != "" {
+				replicationMode = string(profile.ReplicationMode)
+			}
+			d.Set("replication_mode", replicationMode)
 
 			if err := d.Set("target_region", flattenSharedImageVersionTargetRegions(profile.TargetRegions)); err != nil {
 				return fmt.Errorf("setting `target_region`: %+v", err)
@@ -300,7 +356,7 @@ func sharedImageVersionDeleteStateRefreshFunc(ctx context.Context, client *compu
 	}
 }
 
-func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) *[]compute.TargetRegion {
+func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) (*[]compute.TargetRegion, error) {
 	vs := d.Get("target_region").(*pluginsdk.Set)
 	results := make([]compute.TargetRegion, 0)
 
@@ -310,16 +366,30 @@ func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) *[]compute
 		name := input["name"].(string)
 		regionalReplicaCount := input["regional_replica_count"].(int)
 		storageAccountType := input["storage_account_type"].(string)
+		diskEncryptionSetId := input["disk_encryption_set_id"].(string)
 
 		output := compute.TargetRegion{
 			Name:                 utils.String(name),
 			RegionalReplicaCount: utils.Int32(int32(regionalReplicaCount)),
 			StorageAccountType:   compute.StorageAccountType(storageAccountType),
 		}
+
+		if diskEncryptionSetId != "" {
+			if d.Get("replication_mode").(string) == string(compute.ReplicationModeShallow) {
+				return nil, fmt.Errorf("`disk_encryption_set_id` cannot be used when `replication_mode` is `Shallow`")
+			}
+
+			output.Encryption = &compute.EncryptionImages{
+				OsDiskImage: &compute.OSDiskImageEncryption{
+					DiskEncryptionSetID: utils.String(diskEncryptionSetId),
+				},
+			}
+		}
+
 		results = append(results, output)
 	}
 
-	return &results
+	return &results, nil
 }
 
 func flattenSharedImageVersionTargetRegions(input *[]compute.TargetRegion) []interface{} {
@@ -338,6 +408,12 @@ func flattenSharedImageVersionTargetRegions(input *[]compute.TargetRegion) []int
 			}
 
 			output["storage_account_type"] = string(v.StorageAccountType)
+
+			diskEncryptionSetId := ""
+			if v.Encryption != nil && v.Encryption.OsDiskImage != nil && v.Encryption.OsDiskImage.DiskEncryptionSetID != nil {
+				diskEncryptionSetId = *v.Encryption.OsDiskImage.DiskEncryptionSetID
+			}
+			output["disk_encryption_set_id"] = diskEncryptionSetId
 
 			results = append(results, output)
 		}
