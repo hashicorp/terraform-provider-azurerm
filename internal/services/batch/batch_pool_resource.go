@@ -1213,6 +1213,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if props := resp.PoolProperties; props != nil {
 		d.Set("display_name", props.DisplayName)
 		d.Set("vm_size", props.VMSize)
+		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
 		d.Set("inter_node_communication", string(props.InterNodeCommunication))
 
 		if props.ApplicationLicenses != nil {
@@ -1281,8 +1282,6 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("flattening `fixed_scale `: %+v", err)
 			}
 		}
-
-		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
 
 		//if props.DeploymentConfiguration != nil &&
 		//	props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
