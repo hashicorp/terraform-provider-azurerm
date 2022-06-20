@@ -36,8 +36,8 @@ func ParseProviders2RemediationID(input string) (*Providers2RemediationId, error
 	var ok bool
 	id := Providers2RemediationId{}
 
-	if v, constFound := parsed.Parsed["managementGroupsNamespace"]; true {
-		if !constFound {
+	if v, ok := parsed.Parsed["managementGroupsNamespace"]; true {
+		if !ok {
 			return nil, fmt.Errorf("the segment 'managementGroupsNamespace' was not found in the resource id %q", input)
 		}
 
@@ -71,8 +71,8 @@ func ParseProviders2RemediationIDInsensitively(input string) (*Providers2Remedia
 	var ok bool
 	id := Providers2RemediationId{}
 
-	if v, constFound := parsed.Parsed["managementGroupsNamespace"]; true {
-		if !constFound {
+	if v, ok := parsed.Parsed["managementGroupsNamespace"]; true {
+		if !ok {
 			return nil, fmt.Errorf("the segment 'managementGroupsNamespace' was not found in the resource id %q", input)
 		}
 

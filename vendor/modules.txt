@@ -73,7 +73,6 @@ github.com/Azure/azure-sdk-for-go/services/preview/hardwaresecuritymodules/mgmt/
 github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights
 github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights
 github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement
-github.com/Azure/azure-sdk-for-go/services/preview/policyinsights/mgmt/2019-10-01-preview/policyinsights
 github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal
 github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs
 github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy
@@ -209,6 +208,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/identity
 github.com/hashicorp/go-azure-helpers/resourcemanager/location
 github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups
 github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids
+github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata
 github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/resourceproviders
