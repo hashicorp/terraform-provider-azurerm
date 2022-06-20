@@ -409,7 +409,7 @@ A `site_config` block exports the following:
 
 * `use_32_bit_worker` - Does the Linux Web App use a 32-bit worker process?
 
-* `vnet_route_all_enabled` - Does all outbound traffic have Virtual Network Security Groups and User Defined Routes applied?
+* `vnet_route_all_enabled` - Are all outbound traffic to NAT Gateways, Network Security Groups and User Defined Routes applied?
 
 * `websockets_enabled` - Are Web Sockets enabled?
 

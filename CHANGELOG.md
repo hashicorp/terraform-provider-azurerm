@@ -1,5 +1,13 @@
 ## 3.11.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source**: `azurerm_policy_assignment` [GH-16527]
+
+ENHANCEMENTS:
+
+* batch: updating to use API Version `2022-01-01` [GH-17219]
+
 BUG FIXES:
 
 * `azurerm_shared_image_*` - Fix validation for `gallery_name` [GH-17201]

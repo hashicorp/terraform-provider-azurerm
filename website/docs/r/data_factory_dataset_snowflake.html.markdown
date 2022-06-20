@@ -32,8 +32,8 @@ resource "azurerm_data_factory_linked_service_snowflake" "example" {
 
 resource "azurerm_data_factory_dataset_snowflake" "example" {
   name                = "example"
-  data_factory_id     = azurerm_data_factory.test.id
-  linked_service_name = azurerm_data_factory_linked_service_snowflake.test.name
+  data_factory_id     = azurerm_data_factory.example.id
+  linked_service_name = azurerm_data_factory_linked_service_snowflake.example.name
 
   schema_name = "foo_schema"
   table_name  = "foo_table"
