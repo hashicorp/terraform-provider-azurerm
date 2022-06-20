@@ -97,7 +97,6 @@ func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
 }
 
 func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	//client := meta.(*clients.Client).Policy.RemediationsClient
 	client := meta.(*clients.Client).Policy.PolicyInsightsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -106,16 +105,10 @@ func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resour
 	if err != nil {
 		return err
 	}
-	//id := parse.NewResourcePolicyRemediationId(d.Get("management_group_id").(string), d.Get("name").(string))
 	id := policyinsights2.NewProviders2RemediationID(policyinsights2.ManagementGroupsNamespaceTypeMicrosoftPointManagement,
 		managementID.Name,
 		d.Get("name").(string),
 	)
-
-	//managementGroupId, err := policyinsights2.ParseProviders2RemediationID(id.ResourceId)
-	//if err != nil {
-	//	return err
-	//}
 
 	if d.IsNewResource() {
 		existing, err := client.RemediationsGetAtManagementGroup(ctx, id)
