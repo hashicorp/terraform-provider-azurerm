@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	policyPreview "github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	policyinsights2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/sdk/2021-10-01/policyinsights"
 )
 
 type Client struct {
@@ -14,6 +15,7 @@ type Client struct {
 	ExemptionsClient                    *policyPreview.ExemptionsClient
 	SetDefinitionsClient                *policy.SetDefinitionsClient
 	RemediationsClient                  *policyinsights.RemediationsClient
+	PolicyInsightsClient                *policyinsights2.PolicyInsightsClient
 	GuestConfigurationAssignmentsClient *guestconfiguration.AssignmentsClient
 }
 
@@ -33,6 +35,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	remediationsClient := policyinsights.NewRemediationsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&remediationsClient.Client, o.ResourceManagerAuthorizer)
 
+	policyInsightsClient := policyinsights2.NewPolicyInsightsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&policyInsightsClient.Client, o.ResourceManagerAuthorizer)
+
 	guestConfigurationAssignmentsClient := guestconfiguration.NewAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&guestConfigurationAssignmentsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -42,6 +47,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ExemptionsClient:                    &exemptionsClient,
 		SetDefinitionsClient:                &setDefinitionsClient,
 		RemediationsClient:                  &remediationsClient,
+		PolicyInsightsClient:                &policyInsightsClient,
 		GuestConfigurationAssignmentsClient: &guestConfigurationAssignmentsClient,
 	}
 }
