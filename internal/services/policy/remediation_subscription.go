@@ -126,10 +126,8 @@ func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 			PolicyDefinitionReferenceId: utils.String(d.Get("policy_definition_id").(string)),
 		},
 	}
-	if v := d.Get("resource_discovery_mode").(string); v != "" {
-		mode := policyinsights.ResourceDiscoveryMode(v)
-		parameters.Properties.ResourceDiscoveryMode = &mode
-	}
+	mode := policyinsights.ResourceDiscoveryMode(d.Get("resource_discovery_mode").(string))
+	parameters.Properties.ResourceDiscoveryMode = &mode
 
 	if _, err = client.RemediationsCreateOrUpdateAtSubscription(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
@@ -202,31 +200,14 @@ func resourceArmSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if prop := existing.Model.Properties; prop != nil {
-		if mode := existing.Model.Properties.ResourceDiscoveryMode; mode != nil && *mode == policyinsights.ResourceDiscoveryModeReEvaluateCompliance {
-			// Remediation can only be canceld when it is in "Evaluating" status, otherwise, API might raise error (e.g. canceling a "Completed" remediation returns 400).
-			if existing.Model.Properties.ProvisioningState != nil && *existing.Model.Properties.ProvisioningState == "Evaluating" {
-				log.Printf("[DEBUG] cancelling the remediation first before deleting it when `resource_discovery_mode` is set to `ReEvaluateCompliance`")
-				if _, err := client.RemediationsCancelAtSubscription(ctx, *id); err != nil {
-					return fmt.Errorf("cancelling %s: %+v", id.ID(), err)
-				}
-
-				log.Printf("[DEBUG] waiting for the %s to be canceled", id.ID())
-				stateConf := &pluginsdk.StateChangeConf{
-					Pending: []string{"Cancelling"},
-					Target: []string{
-						"Succeeded", "Canceled", "Failed",
-					},
-					Refresh:    subscriptionPolicyRemediationCancellationRefreshFunc(ctx, client, *id),
-					MinTimeout: 10 * time.Second,
-					Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
-				}
-
-				if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-					return fmt.Errorf("waiting for %s to be canceled: %+v", id.ID(), err)
-				}
-			}
-		}
+	if err := waitRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
+		func() error {
+			_, err := client.RemediationsCancelAtSubscription(ctx, *id)
+			return err
+		},
+		subscriptionPolicyRemediationCancellationRefreshFunc(ctx, client, *id),
+	); err != nil {
+		return err
 	}
 
 	_, err = client.RemediationsDeleteAtSubscription(ctx, *id)

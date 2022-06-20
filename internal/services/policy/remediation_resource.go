@@ -115,7 +115,6 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	parameters := policyinsights.Remediation{
-		Name: utils.String(id.RemediationName),
 		Properties: &policyinsights.RemediationProperties{
 			Filters: &policyinsights.RemediationFilters{
 				Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
@@ -124,10 +123,8 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 			PolicyDefinitionReferenceId: utils.String(d.Get("policy_definition_id").(string)),
 		},
 	}
-	if v := d.Get("resource_discovery_mode").(string); v != "" {
-		mode := policyinsights.ResourceDiscoveryMode(v)
-		parameters.Properties.ResourceDiscoveryMode = &mode
-	}
+	mode := policyinsights.ResourceDiscoveryMode(d.Get("resource_discovery_mode").(string))
+	parameters.Properties.ResourceDiscoveryMode = &mode
 
 	if _, err := client.RemediationsCreateOrUpdateAtResource(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
@@ -139,15 +136,15 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 }
 
 func resourceArmResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	pCli := meta.(*clients.Client).Policy.PolicyInsightsClient
+	client := meta.(*clients.Client).Policy.PolicyInsightsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := policyinsights.ParseScopedRemediationID(d.Id())
 	if err != nil {
-		return fmt.Errorf("reading Scoped Remediation ID: %+v", err)
+		return fmt.Errorf("parsing Policy Scoped Remediation ID: %+v", err)
 	}
-	resp, err := pCli.RemediationsGetAtResource(ctx, *id)
+	resp, err := client.RemediationsGetAtResource(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", id.ID())
@@ -185,7 +182,7 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 
 	id, err := policyinsights.ParseScopedRemediationID(d.Id())
 	if err != nil {
-		return fmt.Errorf("reading Scoped Remediation ID: %+v", err)
+		return fmt.Errorf("parsing Policy Scoped Remediation ID: %+v", err)
 	}
 
 	// we have to cancel the remediation first before deleting it when the resource_discovery_mode is set to ReEvaluateCompliance
@@ -198,32 +195,17 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if prop := existing.Model.Properties; prop != nil {
-
-		if mode := existing.Model.Properties.ResourceDiscoveryMode; mode != nil && *mode == policyinsights.ResourceDiscoveryModeReEvaluateCompliance {
-			// Remediation can only be canceld when it is in "Evaluating" status, otherwise, API might raise error (e.g. canceling a "Completed" remediation returns 400).
-			if state := prop.ProvisioningState; state != nil && *state == "Evaluating" {
-				log.Printf("[DEBUG] cancelling the remediation first before deleting it when `resource_discovery_mode` is set to `ReEvaluateCompliance`")
-				if _, err := client.RemediationsCancelAtResource(ctx, *id); err != nil {
-					return fmt.Errorf("cancelling %s: %+v", id.ID(), err)
-				}
-
-				log.Printf("[DEBUG] waiting for the %s to be canceled", id.ID())
-				stateConf := &pluginsdk.StateChangeConf{
-					Pending: []string{"Cancelling"},
-					Target: []string{
-						"Succeeded", "Canceled", "Failed",
-					},
-					Refresh:    resourcePolicyRemediationCancellationRefreshFunc(ctx, client, *id),
-					MinTimeout: 10 * time.Second,
-					Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
-				}
-
-				if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-					return fmt.Errorf("waiting for %s to be canceled: %+v", id.ID(), err)
-				}
-			}
-		}
+	if err := waitRemediationToDelete(ctx,
+		existing.Model.Properties,
+		id.ID(),
+		d.Timeout(pluginsdk.TimeoutDelete),
+		func() error {
+			_, err := client.RemediationsCancelAtResource(ctx, *id)
+			return err
+		},
+		resourcePolicyRemediationCancellationRefreshFunc(ctx, client, *id),
+	); err != nil {
+		return err
 	}
 
 	_, err = client.RemediationsDeleteAtResource(ctx, *id)
@@ -246,4 +228,42 @@ func resourcePolicyRemediationCancellationRefreshFunc(ctx context.Context, clien
 		}
 		return resp, *resp.Model.Properties.ProvisioningState, nil
 	}
+}
+
+// waitRemediationToDelete waits for the remediation to a status that allow to delete
+func waitRemediationToDelete(ctx context.Context,
+	prop *policyinsights.RemediationProperties,
+	id string,
+	timeout time.Duration,
+	cancelFunc func() error,
+	refresh pluginsdk.StateRefreshFunc) error {
+
+	if prop == nil {
+		return nil
+	}
+	if mode := prop.ResourceDiscoveryMode; mode != nil && *mode == policyinsights.ResourceDiscoveryModeReEvaluateCompliance {
+		// Remediation can only be canceld when it is in "Evaluating" or "Accepted" status, otherwise, API might raise error (e.g. canceling a "Completed" remediation returns 400).
+		if state := prop.ProvisioningState; state != nil && (*state == "Evaluating" || *state == "Accepted") {
+			log.Printf("[DEBUG] cancelling the remediation first before deleting it when `resource_discovery_mode` is set to `ReEvaluateCompliance`")
+			if err := cancelFunc(); err != nil {
+				return fmt.Errorf("cancelling %s: %+v", id, err)
+			}
+
+			log.Printf("[DEBUG] waiting for the %s to be canceled", id)
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{"Cancelling"},
+				Target: []string{
+					"Succeeded", "Canceled", "Failed",
+				},
+				Refresh:    refresh,
+				MinTimeout: 10 * time.Second,
+				Timeout:    timeout,
+			}
+
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to be canceled: %+v", id, err)
+			}
+		}
+	}
+	return nil
 }
