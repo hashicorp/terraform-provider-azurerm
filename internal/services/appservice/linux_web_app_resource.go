@@ -38,6 +38,7 @@ type LinuxWebAppModel struct {
 	ClientCertMode                string                     `tfschema:"client_certificate_mode"`
 	Enabled                       bool                       `tfschema:"enabled"`
 	HttpsOnly                     bool                       `tfschema:"https_only"`
+	VirtualNetworkSubnetID        string                     `tfschema:"virtual_network_subnet_id"`
 	KeyVaultReferenceIdentityID   string                     `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig       `tfschema:"logs"`
 	SiteConfig                    []helpers.SiteConfigLinux  `tfschema:"site_config"`
@@ -126,6 +127,12 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
+		},
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -301,15 +308,20 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				Identity: expandedIdentity,
 				Tags:     tags.FromTypedObject(webApp.Tags),
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:          utils.String(webApp.ServicePlanId),
-					Enabled:               utils.Bool(webApp.Enabled),
-					HTTPSOnly:             utils.Bool(webApp.HttpsOnly),
-					SiteConfig:            siteConfig,
-					ClientAffinityEnabled: utils.Bool(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
-					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
+					ServerFarmID:           utils.String(webApp.ServicePlanId),
+					Enabled:                utils.Bool(webApp.Enabled),
+					HTTPSOnly:              utils.Bool(webApp.HttpsOnly),
+					SiteConfig:             siteConfig,
+					ClientAffinityEnabled:  utils.Bool(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:      utils.Bool(webApp.ClientCertEnabled),
+					ClientCertMode:         web.ClientCertMode(webApp.ClientCertMode),
 				},
 			}
+
+			if webApp.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(webApp.VirtualNetworkSubnetID)
+			}
+
 
 			if webApp.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webApp.KeyVaultReferenceIdentityID)
@@ -490,6 +502,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 				Enabled:                     utils.NormaliseNilableBool(props.Enabled),
 				HttpsOnly:                   utils.NormaliseNilableBool(props.HTTPSOnly),
+				VirtualNetworkSubnetID:      utils.NormalizeNilableString(webApp.VirtualNetworkSubnetID),
 				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                        tags.ToTypedObject(webApp.Tags),
 			}
