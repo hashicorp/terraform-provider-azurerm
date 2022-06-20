@@ -124,7 +124,6 @@ func resourceArmResourceGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resource
 		return err
 	}
 
-	//id := parse.NewResourceGroupPolicyRemediationID(resourceGroupId.SubscriptionId, resourceGroupId.ResourceGroup, d.Get("name").(string))
 	id := policyinsights.NewProviderRemediationID(resourceGroupId.SubscriptionId, resourceGroupId.ResourceGroup, d.Get("name").(string))
 
 	if d.IsNewResource() {

@@ -22,8 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//var _ = sdk.CreatedByTypeKey
-
 func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmResourcePolicyRemediationCreateUpdate,
@@ -116,7 +114,6 @@ func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
 }
 
 func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	//client := meta.(*clients.Client).Policy.RemediationsClient
 	client := meta.(*clients.Client).Policy.PolicyInsightsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,7 +170,6 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 }
 
 func resourceArmResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	//client := meta.(*clients.Client).Policy.RemediationsClient
 	pCli := meta.(*clients.Client).Policy.PolicyInsightsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -182,7 +178,6 @@ func resourceArmResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta in
 	if err != nil {
 		return fmt.Errorf("reading Scoped Remediation ID: %+v", err)
 	}
-	//resp, err := client.GetAtResource(ctx, id.ResourceId, id.Name)
 	resp, err := pCli.RemediationsGetAtResource(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -223,11 +218,6 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 	client := meta.(*clients.Client).Policy.PolicyInsightsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	//id, err := parse.ResourcePolicyRemediationID(d.Id())
-	//if err != nil {
-	//	return err
-	//}
 
 	id, err := policyinsights.ParseScopedRemediationID(d.Id())
 	if err != nil {

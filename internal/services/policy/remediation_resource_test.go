@@ -122,7 +122,7 @@ resource "azurerm_resource_policy_remediation" "test" {
   resource_discovery_mode = "ReEvaluateCompliance"
   failure_percentage      = 0.5
   parallel_deployments    = 3
-  resource_count 	      = 3
+  resource_count          = 3
 }
 `, r.template(data), data.RandomString)
 }
