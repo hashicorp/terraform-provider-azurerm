@@ -10,7 +10,9 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_mysql_flexible_server` - generate the correct terraform resource ID [GH-17301]
 * `azurerm_shared_image_*` - Fix validation for `gallery_name` [GH-17201]
+
 
 ## 3.10.0 (June 09, 2022)
 
@@ -20,7 +22,6 @@ FEATURES:
 * **New Resource**: `azurerm_capacity_reservation_group` ([#16464](https://github.com/hashicorp/terraform-provider-azurerm/issues/16464))
 * **New Resource**: `azurerm_capacity_reservation` ([#16464](https://github.com/hashicorp/terraform-provider-azurerm/issues/16464))
 * **New Resource**: `azurerm_cdn_frontdoor_rule_set` ([#17094](https://github.com/hashicorp/terraform-provider-azurerm/issues/17094))
-
 
 ENHANCEMENTS:
 
