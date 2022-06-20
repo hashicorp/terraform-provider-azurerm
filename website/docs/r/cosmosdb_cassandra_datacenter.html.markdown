@@ -96,6 +96,8 @@ The following arguments are supported:
 
 * `disk_sku` - (Optional) The Disk SKU that is used for this Cassandra Datacenter. Defaults to `P30`.
 
+* `managed_disk_customer_key_uri` - (Optional) The key URI of the customer key to use for the encryption of the Managed Disk.
+
 * `sku_name` - (Optional) Determines the selected sku. Defaults to Standard_DS14_v2. 
 
 * `disk_count` - (Optional) Determines the number of p30 disks that are attached to each node. Defaults to `4`.

@@ -85,6 +85,12 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"managed_disk_customer_key_uri": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: keyVaultValidate.NestedItemId,
+			},
+
 			"node_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -148,6 +154,10 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 		body.Properties.Base64EncodedCassandraYamlFragment = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("managed_disk_customer_key_uri"); ok {
+		body.Properties.ManagedDiskCustomerKeyURI = utils.String(v.(string))
+	}
+
 	future, err := client.CreateUpdate(ctx, id.ResourceGroup, id.CassandraClusterName, id.DataCenterName, body)
 	if err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
@@ -191,6 +201,7 @@ func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("location", location.NormalizeNilable(props.DataCenterLocation))
 			d.Set("backup_storage_customer_key_uri", props.BackupStorageCustomerKeyURI)
 			d.Set("base64_encoded_yaml_fragment", props.Base64EncodedCassandraYamlFragment)
+			d.Set("managed_disk_customer_key_uri", props.ManagedDiskCustomerKeyURI)
 			d.Set("node_count", props.NodeCount)
 			d.Set("disk_count", int(*props.DiskCapacity))
 			d.Set("disk_sku", props.DiskSku)
@@ -226,6 +237,10 @@ func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if v, ok := d.GetOk("base64_encoded_yaml_fragment"); ok {
 		body.Properties.Base64EncodedCassandraYamlFragment = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("managed_disk_customer_key_uri"); ok {
+		body.Properties.ManagedDiskCustomerKeyURI = utils.String(v.(string))
 	}
 
 	future, err := client.CreateUpdate(ctx, id.ResourceGroup, id.CassandraClusterName, id.DataCenterName, body)

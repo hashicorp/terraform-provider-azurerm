@@ -167,6 +167,7 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
   availability_zones_enabled      = false
   disk_sku                        = "P30"
   backup_storage_customer_key_uri = azurerm_key_vault_key.test.id
+  managed_disk_customer_key_uri   = azurerm_key_vault_key.test.id
   base64_encoded_yaml_fragment    = "Y29tcGFjdGlvbl90aHJvdWdocHV0X21iX3Blcl9zZWM6IDMyCmNvbXBhY3Rpb25fbGFyZ2VfcGFydGl0aW9uX3dhcm5pbmdfdGhyZXNob2xkX21iOiAxMDA="
 
   depends_on = [
@@ -277,6 +278,7 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
   sku_name                        = "Standard_DS14_v2"
   availability_zones_enabled      = false
   backup_storage_customer_key_uri = azurerm_key_vault_key.test2.id
+  managed_disk_customer_key_uri   = azurerm_key_vault_key.test2.id
   base64_encoded_yaml_fragment    = "Z29tcGFjdGlvbl90aHJvdWdocHV0X21iX3Blcl9zZWM6IDMyCmNvbXBhY3Rpb25fbGFyZ2VfcGFydGl0aW9uX3dhcm5pbmdfdGhyZXNob2xkX21iOiAxMDA="
 
   depends_on = [
