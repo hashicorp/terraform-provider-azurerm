@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strings"
 	"time"
@@ -84,13 +83,11 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			//TODO not able to determine support application licenses
 			"application_licenses": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
+				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
@@ -159,6 +156,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 			"deployment_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"cloud_service_configuration": {
@@ -183,6 +181,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 						"virtual_machine_configuration": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"container_configuration": {
@@ -196,17 +195,25 @@ func resourceBatchPool() *pluginsdk.Resource {
 													Type:         pluginsdk.TypeString,
 													Optional:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
-													AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+													AtLeastOneOf: []string{
+														"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.type",
+														"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.container_image_names",
+														"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.container_registries",
+													},
 												},
 												"container_image_names": {
-													Type:     pluginsdk.TypeSet,
+													Type:     pluginsdk.TypeList,
 													Optional: true,
 													ForceNew: true,
 													Elem: &pluginsdk.Schema{
 														Type:         pluginsdk.TypeString,
 														ValidateFunc: validation.StringIsNotEmpty,
 													},
-													AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+													AtLeastOneOf: []string{
+														"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.type",
+														"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.container_image_names",
+														"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.container_registries",
+													},
 												},
 												"container_registries": {
 													Type:       pluginsdk.TypeList,
@@ -216,7 +223,11 @@ func resourceBatchPool() *pluginsdk.Resource {
 													Elem: &pluginsdk.Resource{
 														Schema: containerRegistry(),
 													},
-													AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+													AtLeastOneOf: []string{
+														"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.type",
+														"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.container_image_names",
+														"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.container_registries",
+													},
 												},
 											},
 										},
@@ -316,9 +327,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 												"provision_after_extensions": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
-													Elem: &schema.Schema{
+													Elem: &pluginsdk.Schema{
 														Type:         pluginsdk.TypeString,
-														Optional:     true,
 														ValidateFunc: validation.StringIsNotEmpty,
 													},
 												},
@@ -337,7 +347,13 @@ func resourceBatchPool() *pluginsdk.Resource {
 													Optional:     true,
 													ForceNew:     true,
 													ValidateFunc: azure.ValidateResourceID,
-													AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+													AtLeastOneOf: []string{
+														"deployment_configuration.0.virtual_machine_configuration.0.image_reference.id",
+														"deployment_configuration.0.virtual_machine_configuration.0.image_reference.publisher",
+														"deployment_configuration.0.virtual_machine_configuration.0.image_reference.offer",
+														"deployment_configuration.0.virtual_machine_configuration.0.image_reference.sku",
+														"deployment_configuration.0.virtual_machine_configuration.0.image_reference.version",
+													},
 												},
 
 												"publisher": {
@@ -345,7 +361,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 													Optional:     true,
 													ForceNew:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
-													AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+													AtLeastOneOf: []string{"deployment_configuration.0.virtual_machine_configuration.0.image_reference.id", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.publisher", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.offer", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.sku", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.version"},
 												},
 
 												"offer": {
@@ -353,7 +369,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 													Optional:     true,
 													ForceNew:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
-													AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+													AtLeastOneOf: []string{"deployment_configuration.0.virtual_machine_configuration.0.image_reference.id", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.publisher", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.offer", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.sku", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.version"},
 												},
 
 												"sku": {
@@ -362,7 +378,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 													ForceNew:         true,
 													DiffSuppressFunc: suppress.CaseDifference,
 													ValidateFunc:     validation.StringIsNotEmpty,
-													AtLeastOneOf:     []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+													AtLeastOneOf:     []string{"deployment_configuration.0.virtual_machine_configuration.0.image_reference.id", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.publisher", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.offer", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.sku", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.version"},
 												},
 
 												"version": {
@@ -370,7 +386,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 													Optional:     true,
 													ForceNew:     true,
 													ValidateFunc: validation.StringIsNotEmpty,
-													AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+													AtLeastOneOf: []string{"deployment_configuration.0.virtual_machine_configuration.0.image_reference.id", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.publisher", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.offer", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.sku", "deployment_configuration.0.virtual_machine_configuration.0.image_reference.version"},
 												},
 											},
 										},
@@ -512,6 +528,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 						"azure_blob_file_system_configuration": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"account_name": {
@@ -532,22 +549,22 @@ func resourceBatchPool() *pluginsdk.Resource {
 									"account_key": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ExactlyOneOf: []string{"account_key", "sas_key", "identity_reference"},
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"sas_key": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ExactlyOneOf: []string{"account_key", "sas_key", "identity_reference"},
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"identity_reference": {
-										Type:         pluginsdk.TypeList,
-										Optional:     true,
-										ExactlyOneOf: []string{"account_key", "sas_key", "identity_reference"},
-										Elem:         identityReference(),
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: identityReference(),
+										},
 									},
 									"blobfuse_options": {
 										Type:         pluginsdk.TypeString,
@@ -664,7 +681,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						//TODO test whether this is forcenew
 						"dynamic_vnet_assignment_scope": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
@@ -676,13 +692,12 @@ func resourceBatchPool() *pluginsdk.Resource {
 							}, false),
 						},
 						"public_ips": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Optional: true,
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
-							Set: pluginsdk.HashString,
 						},
 						"public_address_provisioning_type": {
 							Type:     pluginsdk.TypeString,
@@ -760,9 +775,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
 													ForceNew: true,
-													Elem: &schema.Schema{
+													Elem: &pluginsdk.Schema{
 														Type:         pluginsdk.TypeString,
-														Optional:     true,
 														ValidateFunc: validation.StringIsNotEmpty,
 													},
 												},
@@ -841,14 +855,12 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"uid": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										RequiredWith: []string{"gid"},
+										Type:     pluginsdk.TypeInt,
+										Optional: true,
 									},
 									"gid": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										RequiredWith: []string{"uid"},
+										Type:     pluginsdk.TypeInt,
+										Optional: true,
 									},
 									"ssh_private_key": {
 										Type:      pluginsdk.TypeString,
@@ -879,6 +891,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 			},
 			"identity": commonschema.UserAssignedIdentityOptional(),
 		},
+		// CustomizeDiff:
 	}
 }
 
@@ -1428,15 +1441,12 @@ func containerRegistry() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			RequiredWith: []string{"password"},
-			AtLeastOneOf: []string{"username", "identity_reference"},
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"password": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			RequiredWith: []string{"username"},
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -1448,11 +1458,12 @@ func containerRegistry() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"identity_reference": {
-			Type:         pluginsdk.TypeList,
-			Optional:     true,
-			ForceNew:     true,
-			AtLeastOneOf: []string{"username", "identity_reference"},
-			Elem:         identityReference(),
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Resource{
+				Schema: identityReference(),
+			},
 		},
 	}
 }
@@ -1469,7 +1480,7 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
-				Schema: map[string]*schema.Schema{
+				Schema: map[string]*pluginsdk.Schema{
 					"container_run_options": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -1589,7 +1600,9 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 					"identity_reference": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem:     identityReference(),
+						Elem: &pluginsdk.Resource{
+							Schema: identityReference(),
+						},
 					},
 					"storage_container_url": {
 						Type:     pluginsdk.TypeString,

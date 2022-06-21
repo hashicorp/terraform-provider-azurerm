@@ -88,10 +88,9 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 			},
 			"application_licenses": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
 				},
 			},
 			"application_packages": {
@@ -146,8 +145,11 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 													Computed: true,
 												},
 												"container_image_names": {
-													Type:     pluginsdk.TypeSet,
+													Type:     pluginsdk.TypeList,
 													Computed: true,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
+													},
 												},
 												"container_registries": {
 													Type:     pluginsdk.TypeList,
@@ -231,9 +233,8 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 												"provision_after_extensions": {
 													Type:     pluginsdk.TypeList,
 													Computed: true,
-													Elem: &schema.Schema{
-														Type:     pluginsdk.TypeString,
-														Computed: true,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
 													},
 												},
 											},
@@ -366,6 +367,9 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 									"identity_reference": {
 										Type:     pluginsdk.TypeList,
 										Computed: true,
+										Elem: &pluginsdk.Resource{
+											Schema: identityReference(),
+										},
 									},
 									"blobfuse_options": {
 										Type:     pluginsdk.TypeString,
@@ -475,8 +479,11 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"public_ips": {
-							Type:     pluginsdk.TypeSet,
+							Type:     pluginsdk.TypeList,
 							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
 						},
 						"public_address_provisioning_type": {
 							Type:     pluginsdk.TypeString,
@@ -523,6 +530,9 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 												"source_port_ranges": {
 													Type:     pluginsdk.TypeList,
 													Computed: true,
+													Elem: &pluginsdk.Schema{
+														Type: pluginsdk.TypeString,
+													},
 												},
 											},
 										},
@@ -739,7 +749,9 @@ func batchPoolDataContainerRegistry() map[string]*pluginsdk.Schema {
 		"identity_reference": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
-			Elem:     batchPoolDataIdentityReference(),
+			Elem: &pluginsdk.Resource{
+				Schema: batchPoolDataIdentityReference(),
+			},
 		},
 	}
 }
@@ -765,7 +777,8 @@ func batchPoolDataStartTaskDSSchema() map[string]*pluginsdk.Schema {
 						Computed: true,
 					},
 					"registry": {
-						Type: pluginsdk.TypeList,
+						Type:     pluginsdk.TypeList,
+						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: batchPoolDataContainerRegistry(),
 						},
