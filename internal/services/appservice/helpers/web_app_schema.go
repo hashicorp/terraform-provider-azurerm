@@ -2656,6 +2656,7 @@ func applicationLogSchema() *pluginsdk.Schema {
 						string(web.LogLevelInformation),
 						string(web.LogLevelVerbose),
 						string(web.LogLevelWarning),
+						string(web.LogLevelOff),
 					}, false),
 				},
 
@@ -3431,7 +3432,7 @@ func FlattenLogsConfig(logsConfig web.SiteLogsConfig) []LogsConfig {
 		appLogs := *props.ApplicationLogs
 		applicationLog := ApplicationLog{}
 
-		if appLogs.FileSystem != nil && appLogs.FileSystem.Level != web.LogLevelOff {
+		if appLogs.FileSystem != nil {
 			applicationLog.FileSystemLevel = string(appLogs.FileSystem.Level)
 			if appLogs.AzureBlobStorage != nil && appLogs.AzureBlobStorage.Level != web.LogLevelOff {
 				blobStorage := AzureBlobStorage{
