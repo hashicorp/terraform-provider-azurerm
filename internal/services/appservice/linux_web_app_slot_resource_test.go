@@ -913,6 +913,56 @@ func (r LinuxWebAppSlotResource) Exists(ctx context.Context, client *clients.Cli
 	return utils.Bool(true), nil
 }
 
+// Network tests
+
+func vNetIntegration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vnetIntegration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+        check.That(data.ResourceName).Key("virtual_network_subnet_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func vNetIntegrationUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+        check.That(data.ResourceName).Key("virtual_network_subnet_id").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+    {
+			Config: r.vnetIntegration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+        check.That(data.ResourceName).Key("virtual_network_subnet_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+    {
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+        check.That(data.ResourceName).Key("virtual_network_subnet_id").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+  })
+}
+
 // Configs
 
 func (r LinuxWebAppSlotResource) basic(data acceptance.TestData) string {
@@ -2123,3 +2173,39 @@ resource "azurerm_linux_web_app" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
+
+
+func (r LinuxWebAppResource) vnetIntegration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+resource "azurerm_virtual_network" "vnet" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+resource "azurerm_subnet" "subnet" {
+  name                 = "subnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.1.0/24"]
+  
+  delegation {
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+resource "azurerm_linux_web_app_slot" "test" {
+  name                      = "acctestWA-%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  service_plan_id           = azurerm_service_plan.test.id
+  virtual_network_subnet_id = azurerm_subnet.subnet.id
+}
+`, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
+} 
