@@ -890,6 +890,56 @@ func TestAccLinuxWebAppSlot_zipDeploy(t *testing.T) {
 	})
 }
 
+// Network tests
+
+func TestAccLinuxWebAppSlot_vnetIntegration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vnetIntegrationWebAppSlot(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebAppSlot_vnetIntegrationUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vnetIntegrationWebAppSlot(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Exists
 
 func (r LinuxWebAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -911,56 +961,6 @@ func (r LinuxWebAppSlotResource) Exists(ctx context.Context, client *clients.Cli
 	}
 
 	return utils.Bool(true), nil
-}
-
-// Network tests
-
-func vNetIntegrationWebAppSlot(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.vnetIntegrationWebAppSlot(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-        check.That(data.ResourceName).Key("virtual_network_subnet_id").Exists(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func vNetIntegrationUpdateWebAppSlot(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-        check.That(data.ResourceName).Key("virtual_network_subnet_id").DoesNotExist(),
-			),
-		},
-		data.ImportStep(),
-    {
-			Config: r.vnetIntegrationWebAppSlot(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-        check.That(data.ResourceName).Key("virtual_network_subnet_id").Exists(),
-			),
-		},
-		data.ImportStep(),
-    {
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-        check.That(data.ResourceName).Key("virtual_network_subnet_id").DoesNotExist(),
-			),
-		},
-		data.ImportStep(),
-  })
 }
 
 // Configs
@@ -2174,8 +2174,7 @@ resource "azurerm_linux_web_app" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-
-func (r LinuxWebAppResource) vnetIntegrationWebAppSlot(data acceptance.TestData) string {
+func (r LinuxWebAppSlotResource) vnetIntegrationWebAppSlot(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2208,4 +2207,4 @@ resource "azurerm_linux_web_app_slot" "test" {
   virtual_network_subnet_id = azurerm_subnet.test.id
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
-} 
+}
