@@ -368,7 +368,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeList,
 										Computed: true,
 										Elem: &pluginsdk.Resource{
-											Schema: identityReference(),
+											Schema: batchPoolDataIdentityReference(),
 										},
 									},
 									"blobfuse_options": {

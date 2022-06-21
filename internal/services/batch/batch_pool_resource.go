@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"strings"
 	"time"
@@ -25,7 +26,7 @@ import (
 )
 
 func resourceBatchPool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	result := &pluginsdk.Resource{
 		Create: resourceBatchPoolCreate,
 		Read:   resourceBatchPoolRead,
 		Update: resourceBatchPoolUpdate,
@@ -216,10 +217,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 													},
 												},
 												"container_registries": {
-													Type:       pluginsdk.TypeList,
-													Optional:   true,
-													ForceNew:   true,
-													ConfigMode: pluginsdk.SchemaConfigModeAttr,
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													ForceNew: true,
+													// ConfigMode: pluginsdk.SchemaConfigModeAttr,
 													Elem: &pluginsdk.Resource{
 														Schema: containerRegistry(),
 													},
@@ -561,7 +562,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 									"identity_reference": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										MaxItems: 1,
 										Elem: &pluginsdk.Resource{
 											Schema: identityReference(),
 										},
@@ -893,6 +893,119 @@ func resourceBatchPool() *pluginsdk.Resource {
 		},
 		// CustomizeDiff:
 	}
+	if !features.FourPointOhBeta() {
+		result.Schema["container_configuration"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"type": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+					},
+					"container_image_names": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						ForceNew: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+					},
+					"container_registries": {
+						Type:       pluginsdk.TypeList,
+						Optional:   true,
+						ForceNew:   true,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"registry_server": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"user_name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"password": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									Sensitive:    true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+						AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
+					},
+				},
+			},
+		}
+		result.Schema["storage_image_reference"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: azure.ValidateResourceID,
+						AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+					},
+
+					"publisher": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+					},
+
+					"offer": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+					},
+
+					"sku": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						ForceNew:         true,
+						DiffSuppressFunc: suppress.CaseDifference,
+						ValidateFunc:     validation.StringIsNotEmpty,
+						AtLeastOneOf:     []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+					},
+
+					"version": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"storage_image_reference.0.id", "storage_image_reference.0.publisher", "storage_image_reference.0.offer", "storage_image_reference.0.sku", "storage_image_reference.0.version"},
+					},
+				},
+			}}
+		result.Schema["node_agent_sku_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		}
+	}
+	return result
 }
 
 func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -963,23 +1076,37 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	deploymentConfiguration, err := ExpandBatchPoolDeploymentConfiguration(d)
 	if err != nil {
+		if !features.FourPointOhBeta() {
+			nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
+
+			storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
+			imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet)
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
+				VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
+					NodeAgentSkuID:         &nodeAgentSkuID,
+					ImageReference:         imageReference,
+					ContainerConfiguration: containerConfiguration,
+				},
+			}
+		}
+
 		return fmt.Errorf(`expanding "deployment_configuration": %v`, err)
+	} else {
+		parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
 	}
 	parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
 
 	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
-	if err != nil {
-		return fmt.Errorf(`expanding "mount_configuration": %v`, err)
-	}
 	parameters.PoolProperties.MountConfiguration = mountConfiguration
-
-	//nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
-	//
-	//storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
-	//imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet)
-	//if err != nil {
-	//	return fmt.Errorf("creating %s: %+v", id, err)
-	//}
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
 		startTaskList := startTaskValue.([]interface{})
@@ -997,19 +1124,6 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		parameters.PoolProperties.StartTask = startTask
 	}
-
-	//containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{}))
-	//if err != nil {
-	//	return fmt.Errorf("creating %s: %+v", id, err)
-	//}
-
-	//parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
-	//	VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
-	//		NodeAgentSkuID:         &nodeAgentSkuID,
-	//		ImageReference:         imageReference,
-	//		ContainerConfiguration: containerConfiguration,
-	//	},
-	//}
 
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
@@ -1122,9 +1236,33 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	deploymentConfiguration, err := ExpandBatchPoolDeploymentConfiguration(d)
 	if err != nil {
+		if !features.FourPointOhBeta() {
+			nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
+
+			storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
+			imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet)
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
+				VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
+					NodeAgentSkuID:         &nodeAgentSkuID,
+					ImageReference:         imageReference,
+					ContainerConfiguration: containerConfiguration,
+				},
+			}
+		}
+
 		return fmt.Errorf(`expanding "deployment_configuration": %v`, err)
+	} else {
+		parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
 	}
-	parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
 
 	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
 	if err != nil {
@@ -1295,19 +1433,20 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("flattening `fixed_scale `: %+v", err)
 			}
 		}
-
-		//if props.DeploymentConfiguration != nil &&
-		//	props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
-		//	props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
-		//	imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
+		//if !features.FourPointOhBeta() {
+		//	if props.DeploymentConfiguration != nil &&
+		//		props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
+		//		props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
+		//		imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
 		//
-		//	d.Set("storage_image_reference", flattenBatchPoolImageReference(imageReference))
-		//	d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
-		//}
+		//		d.Set("storage_image_reference", flattenBatchPoolImageReference(imageReference))
+		//		d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
+		//	}
 		//
-		//if dcfg := props.DeploymentConfiguration; dcfg != nil {
-		//	if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
-		//		d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration))
+		//	if dcfg := props.DeploymentConfiguration; dcfg != nil {
+		//		if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
+		//			d.Set("container_configuration", flattenBatchPoolContainerConfiguration(vmcfg.ContainerConfiguration))
+		//		}
 		//	}
 		//}
 
@@ -1460,7 +1599,6 @@ func containerRegistry() map[string]*pluginsdk.Schema {
 		"identity_reference": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: identityReference(),
 			},
