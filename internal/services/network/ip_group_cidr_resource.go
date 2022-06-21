@@ -58,7 +58,7 @@ func resourceIpGroupCidrCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	defer cancel()
 
 	cidr := d.Get("cidr").(string)
-	cidrName := strings.Replace(cidr, "/", "_", -1)
+	cidrName := strings.ReplaceAll(cidr, "/", "_")
 	ipGroupId, err := parse.IpGroupID(d.Get("ip_group_id").(string))
 	if err != nil {
 		return err
@@ -81,8 +81,8 @@ func resourceIpGroupCidrCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	existingIpAddresses := *existing.IPAddresses
-	ipAddresses := append(existingIpAddresses, cidr)
+	ipAddresses := *existing.IPAddresses
+	ipAddresses = append(ipAddresses, cidr)
 
 	params := network.IPGroup{
 		Name:     &ipGroupId.Name,
@@ -117,7 +117,7 @@ func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 	ipGroupId := parse.NewIpGroupID(id.SubscriptionId, id.ResourceGroup, id.IpGroupName)
-	cidr := strings.Replace(id.CidrName, "_", "/", -1)
+	cidr := strings.ReplaceAll(id.CidrName, "_", "/")
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.IpGroupName, "")
 	if err != nil {
@@ -157,8 +157,8 @@ func resourceIpGroupCidrDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	existingIpAddresses := *existing.IPAddresses
-	ipAddresses := utils.RemoveFromStringArray(existingIpAddresses, cidr)
+	ipAddresses := *existing.IPAddresses
+	ipAddresses = utils.RemoveFromStringArray(ipAddresses, cidr)
 
 	params := network.IPGroup{
 		Name:     &ipGroupId.Name,

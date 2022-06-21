@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_ip_group_cidr
 
-Manages a IP Group CIDR records.
+Manages IP Group CIDR records.
 
 ~> Warning Do not use this resource at the same time as the `cidrs` property of the
 `azurerm_ip_group` resource for the same IP Group. Doing so will cause a conflict and
@@ -61,7 +61,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 ## Import
 
 IP Group CIDRs can be imported using the `resource id` of the IP Group and
-the CIDR value (`/` have to be replaced by `_`), e.g.
+the CIDR value (`/` characters have to be replaced by `_`), e.g.
 
 ```shell
 terraform import azurerm_ip_group_cidr.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.Network/ipGroups/test-ipgroup/cidrs/10.1.0.0_24
