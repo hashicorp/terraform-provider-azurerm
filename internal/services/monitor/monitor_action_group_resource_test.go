@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -831,7 +832,8 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 func (MonitorActionGroupResource) eventHubReceiver(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -869,6 +871,47 @@ resource "azurerm_monitor_action_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acceptanceTestEventHubNamespace-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  capacity            = 1
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acceptanceTestEventHub"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 1
+  message_retention   = 1
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+
+  event_hub_receiver {
+    name                    = "eventhub-test-action"
+	event_hub_name          = azurerm_eventhub.test.name
+	event_hub_namespace     = azurerm_eventhub.test.namespace_name
+    use_common_alert_schema = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+
 }
 
 func (MonitorActionGroupResource) complete(data acceptance.TestData) string {
@@ -983,7 +1026,8 @@ resource "azurerm_monitor_action_group" "test" {
 
   event_hub_receiver {
     name                    = "eventhub-test-action"
-    event_hub_id            = azurerm_eventhub.test.id
+	event_hub_name          = azurerm_eventhub.test.name
+	event_hub_namespace     = azurerm_eventhub.test.namespace_name
     use_common_alert_schema = false
   }
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	eventHubParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/parse"
 	eventHubValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
@@ -23,7 +24,7 @@ import (
 )
 
 func resourceMonitorActionGroup() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceMonitorActionGroupCreateUpdate,
 		Read:   resourceMonitorActionGroupRead,
 		Update: resourceMonitorActionGroupCreateUpdate,
@@ -373,37 +374,101 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 				},
 			},
 
-			"event_hub_receiver": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"event_hub_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: eventHubValidation.EventhubID,
-						},
-						"tenant_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-						"use_common_alert_schema": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-					},
-				},
-			},
 			"tags": tags.Schema(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["event_hub_receiver"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"event_hub_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: eventHubValidation.EventhubID,
+						Deprecated:   "This property is deprecated and will be removed in version 4.0 of the provider, please use 'event_hub_name' and 'event_hub_namespace' instead.",
+					},
+					"event_hub_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: eventHubValidation.ValidateEventHubName(),
+					},
+					"event_hub_namespace": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: eventHubValidation.ValidateEventHubNamespaceName(),
+					},
+					"tenant_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+					"use_common_alert_schema": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+					"subscription_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+				},
+			},
+		}
+	} else {
+		resource.Schema["event_hub_receiver"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"event_hub_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: eventHubValidation.ValidateEventHubName(),
+					},
+					"event_hub_namespace": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: eventHubValidation.ValidateEventHubNamespaceName(),
+					},
+					"tenant_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+					"use_common_alert_schema": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+					"subscription_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+				},
+			},
+		}
+	}
+	return resource
 }
 
 func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -443,7 +508,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	armRoleReceiversRaw := d.Get("arm_role_receiver").([]interface{})
 	eventHubReceiversRaw := d.Get("event_hub_receiver").([]interface{})
 
-	expandedEventHubReceiver, err := expandMonitorActionGroupEventHubReceiver(tenantId, eventHubReceiversRaw)
+	expandedEventHubReceiver, err := expandMonitorActionGroupEventHubReceiver(tenantId, subscriptionId, eventHubReceiversRaw)
 	if err != nil {
 		return err
 	}
@@ -730,20 +795,29 @@ func expandMonitorActionGroupRoleReceiver(v []interface{}) *[]insights.ArmRoleRe
 	return &receivers
 }
 
-func expandMonitorActionGroupEventHubReceiver(tenantId string, v []interface{}) (*[]insights.EventHubReceiver, error) {
+func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId string, v []interface{}) (*[]insights.EventHubReceiver, error) {
 	receivers := make([]insights.EventHubReceiver, 0)
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
 
-		eventHubId, err := eventHubParser.EventhubID(*utils.String(val["event_hub_id"].(string)))
-		if err != nil {
-			return nil, err
+		eventHubNameSpace, eventHubName := val["event_hub_namespace"].(string), val["event_hub_name"].(string)
+		if !features.FourPointOhBeta() {
+			if val["event_hub_id"].(string) != "" {
+				eventHubId, err := eventHubParser.EventhubID(*utils.String(val["event_hub_id"].(string)))
+				if err != nil {
+					return nil, err
+				}
+				eventHubNameSpace, eventHubName = eventHubId.NamespaceName, eventHubId.Name
+			}
+			if eventHubNameSpace == "" || eventHubName == "" {
+				return nil, fmt.Errorf("in event_hub_receiver, either event_hub_id or (event_hub_namespace, event_hub_name) must be set")
+			}
 		}
 
 		receiver := insights.EventHubReceiver{
+			EventHubNameSpace:    utils.String(eventHubNameSpace),
+			EventHubName:         utils.String(eventHubName),
 			Name:                 utils.String(val["name"].(string)),
-			EventHubNameSpace:    &eventHubId.NamespaceName,
-			EventHubName:         &eventHubId.Name,
 			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
 		}
 		if v := val["tenant_id"].(string); v != "" {
@@ -751,7 +825,11 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, v []interface{}) 
 		} else {
 			receiver.TenantID = utils.String(tenantId)
 		}
-		receiver.SubscriptionID = &eventHubId.SubscriptionId
+		if v := val["subscription_id"].(string); v != "" {
+			receiver.SubscriptionID = utils.String(v)
+		} else {
+			receiver.SubscriptionID = utils.String(subscriptionId)
+		}
 		receivers = append(receivers, receiver)
 	}
 	return &receivers, nil
@@ -1023,11 +1101,13 @@ func flattenMonitorActionGroupEventHubReceiver(resourceGroup string, receivers *
 				val["name"] = *receiver.Name
 			}
 			if receiver.EventHubNameSpace != nil && receiver.EventHubName != nil && receiver.SubscriptionID != nil {
-				event_hub_namespace := *receiver.EventHubNameSpace
-				event_hub_name := *receiver.EventHubName
-				subscription_id := *receiver.SubscriptionID
-
-				val["event_hub_id"] = eventHubParser.NewEventhubID(subscription_id, resourceGroup, event_hub_namespace, event_hub_name).ID()
+				eventHubNamespace := *receiver.EventHubNameSpace
+				eventHubName := *receiver.EventHubName
+				subscriptionId := *receiver.SubscriptionID
+				if !features.FourPointOhBeta() {
+					val["event_hub_id"] = eventHubParser.NewEventhubID(subscriptionId, resourceGroup, eventHubNamespace, eventHubName).ID()
+				}
+				val["subscription_id"], val["event_hub_namespace"], val["event_hub_name"] = subscriptionId, eventHubNamespace, eventHubName
 			}
 			if receiver.UseCommonAlertSchema != nil {
 				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
