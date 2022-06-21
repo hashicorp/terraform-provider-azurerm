@@ -323,7 +323,7 @@ An `identity` block exports the following:
 
 * `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Kubernetes Cluster.
 
--> **NOTE:** Currently only support 1 User Assigned Identity.
+-> **NOTE:** Currently only one User Assigned Identity is supported.
 
 ---
 
