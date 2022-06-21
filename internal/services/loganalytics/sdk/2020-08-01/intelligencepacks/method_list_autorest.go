@@ -1,0 +1,64 @@
+package intelligencepacks
+
+import (
+	"context"
+	"fmt"
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
+	"net/http"
+)
+
+type ListOperationResponse struct {
+	HttpResponse *http.Response
+	Model        *[]IntelligencePack
+}
+
+// List ...
+func (c IntelligencePacksClient) List(ctx context.Context, id WorkspaceId) (result ListOperationResponse, err error) {
+	req, err := c.preparerForList(ctx, id)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "intelligencepacks.IntelligencePacksClient", "List", nil, "Failure preparing request")
+		return
+	}
+
+	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "intelligencepacks.IntelligencePacksClient", "List", result.HttpResponse, "Failure sending request")
+		return
+	}
+
+	result, err = c.responderForList(result.HttpResponse)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "intelligencepacks.IntelligencePacksClient", "List", result.HttpResponse, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// preparerForList prepares the List request.
+func (c IntelligencePacksClient) preparerForList(ctx context.Context, id WorkspaceId) (*http.Request, error) {
+	queryParameters := map[string]interface{}{
+		"api-version": defaultApiVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsGet(),
+		autorest.WithBaseURL(c.baseUri),
+		autorest.WithPath(fmt.Sprintf("%s/intelligencePacks", id.ID())),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// responderForList handles the response to the List request. The method always
+// closes the http.Response Body.
+func (c IntelligencePacksClient) responderForList(resp *http.Response) (result ListOperationResponse, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result.Model),
+		autorest.ByClosing())
+	result.HttpResponse = resp
+	return
+}

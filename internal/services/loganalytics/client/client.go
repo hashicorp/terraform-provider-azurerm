@@ -4,6 +4,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/sdk/2020-08-01/workspaces"
 )
 
 type Client struct {
@@ -16,7 +17,7 @@ type Client struct {
 	SharedKeysClient           *operationalinsights.SharedKeysClient
 	SolutionsClient            *operationsmanagement.SolutionsClient
 	StorageInsightsClient      *operationalinsights.StorageInsightConfigsClient
-	WorkspacesClient           *operationalinsights.WorkspacesClient
+	WorkspacesClient           *workspaces.WorkspacesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -29,7 +30,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	DataSourcesClient := operationalinsights.NewDataSourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DataSourcesClient.Client, o.ResourceManagerAuthorizer)
 
-	WorkspacesClient := operationalinsights.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	WorkspacesClient := workspaces.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
 
 	SavedSearchesClient := operationalinsights.NewSavedSearchesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
