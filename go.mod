@@ -1,5 +1,7 @@
 module github.com/hashicorp/terraform-provider-azurerm
 
+replace github.com/hashicorp/go-azure-sdk => /home/wuxu/azure/go-azure-sdk
+
 require (
 	github.com/Azure/azure-sdk-for-go v64.1.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.27
@@ -91,5 +93,6 @@ require (
 	google.golang.org/grpc v1.39.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 )
+
 
 go 1.18
