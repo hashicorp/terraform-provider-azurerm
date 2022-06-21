@@ -292,17 +292,17 @@ The `target_disk_encryption` block supports:
 
 The `disk_encryption_key` block supports:
 
-* `secret_url` - (Required) The URL to the Key Vault Secret used as the Disk Encryption Key that the Managed Disk will be associated with. This can be found as `id` on the `azurerm_key_vault_secret` resource.
+* `secret_url` - (Required) The URL to the Key Vault Secret used as the Disk Encryption Key that the Managed Disk will be associated with. This can be found as `id` on the `azurerm_key_vault_secret` resource. Changing this forces a new resource to be created.
 
-* `vault_id` - (Required) The ID of the Key Vault. This can be found as `id` on the `azurerm_key_vault` resource.
+* `vault_id` - (Required) The ID of the Key Vault. This can be found as `id` on the `azurerm_key_vault` resource. Changing this forces a new resource to be created.
 
 ---
 
 The `key_encryption_key` block supports:
 
-* `key_url` - (Required) The URL to the Key Vault Key used as the Key Encryption Key that the Managed Disk will be associated with. This can be found as `id` on the `azurerm_key_vault_key` resource.
+* `key_url` - (Required) The URL to the Key Vault Key used as the Key Encryption Key that the Managed Disk will be associated with. This can be found as `id` on the `azurerm_key_vault_key` resource. Changing this forces a new resource to be created.
 
-* `vault_id` - (Required) The ID of the Key Vault. This can be found as `id` on the `azurerm_key_vault` resource.
+* `vault_id` - (Required) The ID of the Key Vault. This can be found as `id` on the `azurerm_key_vault` resource. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
