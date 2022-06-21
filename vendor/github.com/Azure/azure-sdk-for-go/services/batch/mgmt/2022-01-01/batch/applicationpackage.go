@@ -15,7 +15,7 @@ import (
 	"net/http"
 )
 
-// ApplicationPackageClient is the client for the ApplicationPackage methods of the Batch service.
+// ApplicationPackageClient is the batch Client
 type ApplicationPackageClient struct {
 	BaseClient
 }
@@ -101,7 +101,7 @@ func (client ApplicationPackageClient) ActivatePreparer(ctx context.Context, res
 		"versionName":       autorest.Encode("path", versionName),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -202,7 +202,7 @@ func (client ApplicationPackageClient) CreatePreparer(ctx context.Context, resou
 		"versionName":       autorest.Encode("path", versionName),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -303,7 +303,7 @@ func (client ApplicationPackageClient) DeletePreparer(ctx context.Context, resou
 		"versionName":       autorest.Encode("path", versionName),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -398,7 +398,7 @@ func (client ApplicationPackageClient) GetPreparer(ctx context.Context, resource
 		"versionName":       autorest.Encode("path", versionName),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -494,7 +494,7 @@ func (client ApplicationPackageClient) ListPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

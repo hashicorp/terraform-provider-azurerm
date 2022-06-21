@@ -178,6 +178,10 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 		return err
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("retrieving Backup Policy VM %q (Vault Name %q /Resource Group %q): ID was nil or empty", policyName, vaultName, resourceGroup)
+	}
+
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1)
 	d.SetId(id)
 
