@@ -1040,31 +1040,31 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	applicationLicences, err := ExpandBatchPoolApplicationLicenses(d)
 	if err != nil {
-		log.Printf(`[Debug]expanding "application_licenses": %v`, err)
+		log.Printf(`[DEBUG] expanding "application_licenses": %v`, err)
 	}
 	parameters.PoolProperties.ApplicationLicenses = applicationLicences
 
 	applicationPackages, err := ExpendBatchPoolApplicationPackages(d)
 	if err != nil {
-		log.Printf(`[Debug]expanding "application_packages": %v`, err)
+		log.Printf(`[DEBUG] expanding "application_packages": %v`, err)
 	}
 	parameters.PoolProperties.ApplicationPackages = applicationPackages
 
 	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
 	if err != nil {
-		log.Printf(`[Debug]expanding "task_scheduling_policy": %v`, err)
+		log.Printf(`[DEBUG] expanding "task_scheduling_policy": %v`, err)
 	}
 	parameters.PoolProperties.TaskSchedulingPolicy = taskSchedulingPolicy
 
 	userAccounts, err := ExpandBatchPoolUserAccounts(d)
 	if err != nil {
-		log.Printf(`[Debug]expanding "user_accounts": %v`, err)
+		log.Printf(`[DEBUG] expanding "user_accounts": %v`, err)
 	}
 	parameters.PoolProperties.UserAccounts = userAccounts
 
 	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
-		log.Printf(`[Debug]expanding "identity": %v`, err)
+		log.Printf(`[DEBUG] expanding "identity": %v`, err)
 	}
 	parameters.Identity = identity
 
@@ -1099,7 +1099,7 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 
-		log.Printf(`[Debug]expanding "deployment_configuration": %v`, err)
+		log.Printf(`[DEBUG] expanding "deployment_configuration": %v`, err)
 	} else {
 		parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
 	}
@@ -1206,31 +1206,31 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	identity, err := expandBatchPoolIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
-		log.Printf(`[Debug]expanding "identity": %v`, err)
+		log.Printf(`[DEBUG] expanding "identity": %v`, err)
 	}
 	parameters.Identity = identity
 
 	applicationLicences, err := ExpandBatchPoolApplicationLicenses(d)
 	if err != nil {
-		log.Printf(`[Debug]expanding "application_licenses": %v`, err)
+		log.Printf(`[DEBUG] expanding "application_licenses": %v`, err)
 	}
 	parameters.PoolProperties.ApplicationLicenses = applicationLicences
 
 	applicationPackages, err := ExpendBatchPoolApplicationPackages(d)
 	if err != nil {
-		log.Printf(`[Debug]expanding "application_packages": %v`, err)
+		log.Printf(`[DEBUG] expanding "application_packages": %v`, err)
 	}
 	parameters.PoolProperties.ApplicationPackages = applicationPackages
 
 	taskSchedulingPolicy, err := ExpandBatchPoolTaskSchedulingPolicy(d)
 	if err != nil {
-		log.Printf(`[Debug]expanding "task_scheduling_policy": %v`, err)
+		log.Printf(`[DEBUG] expanding "task_scheduling_policy": %v`, err)
 	}
 	parameters.PoolProperties.TaskSchedulingPolicy = taskSchedulingPolicy
 
 	userAccounts, err := ExpandBatchPoolUserAccounts(d)
 	if err != nil {
-		log.Printf(`[Debug]expanding "user_accounts": %v`, err)
+		log.Printf(`[DEBUG] expanding "user_accounts": %v`, err)
 	}
 	parameters.PoolProperties.UserAccounts = userAccounts
 
@@ -1259,26 +1259,26 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 
-		log.Printf(`[Debug]expanding "deployment_configuration": %v`, err)
+		log.Printf(`[DEBUG] expanding "deployment_configuration": %v`, err)
 	} else {
 		parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
 	}
 
 	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
 	if err != nil {
-		log.Printf(`[Debug]expanding "mount_configuration": %v`, err)
+		log.Printf(`[DEBUG] expanding "mount_configuration": %v`, err)
 	}
 	parameters.PoolProperties.MountConfiguration = mountConfiguration
 
 	networkConfiguration := d.Get("network_configuration").([]interface{})
 	parameters.PoolProperties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
 	if err != nil {
-		log.Printf("[Debug]expanding `network_configuration`: %+v", err)
+		log.Printf("[DEBUG] expanding `network_configuration`: %+v", err)
 	}
 
 	scaleSettings, err := expandBatchPoolScaleSettings(d)
 	if err != nil {
-		log.Printf("[Debug]expanding scale settings: %+v", err)
+		log.Printf("[DEBUG] expanding scale settings: %+v", err)
 	}
 	parameters.PoolProperties.ScaleSettings = scaleSettings
 
@@ -1302,7 +1302,7 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
 	if err != nil {
-		log.Printf("[Debug]expanding `certificate`: %+v", err)
+		log.Printf("[DEBUG] expanding `certificate`: %+v", err)
 	}
 	parameters.PoolProperties.Certificates = certificateReferences
 
