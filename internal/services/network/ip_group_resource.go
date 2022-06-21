@@ -47,8 +47,10 @@ func resourceIpGroup() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"cidrs": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Type:       pluginsdk.TypeSet,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Optional:   true,
+				Computed:   true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
