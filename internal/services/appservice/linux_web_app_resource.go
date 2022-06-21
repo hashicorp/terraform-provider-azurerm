@@ -308,20 +308,19 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				Identity: expandedIdentity,
 				Tags:     tags.FromTypedObject(webApp.Tags),
 				SiteProperties: &web.SiteProperties{
-					ServerFarmID:           utils.String(webApp.ServicePlanId),
-					Enabled:                utils.Bool(webApp.Enabled),
-					HTTPSOnly:              utils.Bool(webApp.HttpsOnly),
-					SiteConfig:             siteConfig,
-					ClientAffinityEnabled:  utils.Bool(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:      utils.Bool(webApp.ClientCertEnabled),
-					ClientCertMode:         web.ClientCertMode(webApp.ClientCertMode),
+					ServerFarmID:          utils.String(webApp.ServicePlanId),
+					Enabled:               utils.Bool(webApp.Enabled),
+					HTTPSOnly:             utils.Bool(webApp.HttpsOnly),
+					SiteConfig:            siteConfig,
+					ClientAffinityEnabled: utils.Bool(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
+					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
 				},
 			}
 
 			if webApp.VirtualNetworkSubnetID != "" {
 				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(webApp.VirtualNetworkSubnetID)
 			}
-
 
 			if webApp.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webApp.KeyVaultReferenceIdentityID)
