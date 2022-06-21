@@ -192,7 +192,6 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Type:       pluginsdk.TypeList,
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Optional:   true,
-							ForceNew:   true,
 							MaxItems:   1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -206,12 +205,14 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 												"secret_url": {
 													Type:         pluginsdk.TypeString,
 													Required:     true,
+													ForceNew:     true,
 													ValidateFunc: keyVaultValidate.NestedItemId,
 												},
 
 												"vault_id": {
 													Type:         pluginsdk.TypeString,
 													Required:     true,
+													ForceNew:     true,
 													ValidateFunc: keyVaultValidate.VaultID,
 												},
 											},
@@ -227,12 +228,14 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 												"key_url": {
 													Type:         pluginsdk.TypeString,
 													Required:     true,
+													ForceNew:     true,
 													ValidateFunc: keyVaultValidate.NestedItemId,
 												},
 
 												"vault_id": {
 													Type:         pluginsdk.TypeString,
 													Required:     true,
+													ForceNew:     true,
 													ValidateFunc: keyVaultValidate.VaultID,
 												},
 											},
