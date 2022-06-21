@@ -16,7 +16,7 @@ import (
 
 type LoadTestResource struct{}
 
-func TestLoadTest_basic(t *testing.T) {
+func TestAccLoadTest_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_load_test", "test")
 	r := LoadTestResource{}
 
@@ -31,7 +31,57 @@ func TestLoadTest_basic(t *testing.T) {
 	})
 }
 
-// Exists func
+func TestAccLoadTest_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_load_test", "test")
+	r := LoadTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccLoadTest_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_load_test", "test")
+	r := LoadTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLoadTest_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_load_test", "test")
+	r := LoadTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 func (r LoadTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := loadtests.ParseLoadTestID(state.ID)
@@ -52,9 +102,34 @@ func (r LoadTestResource) Exists(ctx context.Context, client *clients.Client, st
 	return utils.Bool(true), nil
 }
 
-// Configs
-
 func (r LoadTestResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_load_test" "test" {
+  name                = "acctestALT-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, r.template(data), data.RandomInteger)
+}
+func (r LoadTestResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_load_test" "import" {
+  name                = azurerm_load_test.test.name
+  location            = azurerm_load_test.test.location
+  resource_group_name = azurerm_load_test.test.resource_group_name
+}
+`, r.basic(data))
+}
+
+func (r LoadTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -70,10 +145,10 @@ resource "azurerm_load_test" "test" {
     Environment = "loadtest"
   }
 }
-`, r.baseTemplate(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (LoadTestResource) baseTemplate(data acceptance.TestData) string {
+func (LoadTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {

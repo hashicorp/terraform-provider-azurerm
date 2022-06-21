@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -14,15 +14,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	logAnalytiscValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -325,31 +322,6 @@ func expandFirewallPolicyTransportSecurity(input []interface{}) *network.Firewal
 }
 
 func expandFirewallPolicyIdentity(input []interface{}) (*network.ManagedServiceIdentity, error) {
-	if !features.ThreePointOhBeta() {
-		if len(input) == 0 {
-			return nil, nil
-		}
-
-		v := input[0].(map[string]interface{})
-
-		var identityIDSet []interface{}
-		if identityIds, exists := v["user_assigned_identity_ids"]; exists {
-			identityIDSet = identityIds.(*pluginsdk.Set).List()
-		}
-
-		userAssignedIdentities := make(map[string]*network.ManagedServiceIdentityUserAssignedIdentitiesValue)
-		for _, id := range identityIDSet {
-			userAssignedIdentities[id.(string)] = &network.ManagedServiceIdentityUserAssignedIdentitiesValue{}
-		}
-
-		return &network.ManagedServiceIdentity{
-			Type:                   network.ResourceIdentityType(v["type"].(string)),
-			PrincipalID:            utils.String(v["principal_id"].(string)),
-			TenantID:               utils.String(v["tenant_id"].(string)),
-			UserAssignedIdentities: userAssignedIdentities,
-		}, nil
-	}
-
 	expanded, err := identity.ExpandUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -438,14 +410,11 @@ func flattenFirewallPolicyDNSSetting(input *network.DNSSettings) []interface{} {
 		proxyEnabled = *input.EnableProxy
 	}
 
-	out := map[string]interface{}{
-		"servers":       utils.FlattenStringSlice(input.Servers),
-		"proxy_enabled": proxyEnabled,
-	}
-	if !features.ThreePointOhBeta() {
-		out["network_rule_fqdn_enabled"] = false
-	}
-	return []interface{}{out}
+	return []interface{}{
+		map[string]interface{}{
+			"servers":       utils.FlattenStringSlice(input.Servers),
+			"proxy_enabled": proxyEnabled,
+		}}
 }
 
 func flattenFirewallPolicyIntrusionDetection(input *network.FirewallPolicyIntrusionDetection) []interface{} {
@@ -552,37 +521,6 @@ func flattenFirewallPolicyTransportSecurity(input *network.FirewallPolicyTranspo
 }
 
 func flattenFirewallPolicyIdentity(input *network.ManagedServiceIdentity) (*[]interface{}, error) {
-	if !features.ThreePointOhBeta() {
-		if input == nil {
-			return &[]interface{}{}, nil
-		}
-
-		principalID := ""
-		if input.PrincipalID != nil {
-			principalID = *input.PrincipalID
-		}
-
-		tenantID := ""
-		if input.TenantID != nil {
-			tenantID = *input.TenantID
-		}
-
-		userAssignedIdentities := make([]string, 0)
-
-		for id := range input.UserAssignedIdentities {
-			userAssignedIdentities = append(userAssignedIdentities, id)
-		}
-
-		return &[]interface{}{
-			map[string]interface{}{
-				"type":                       string(input.Type),
-				"principal_id":               principalID,
-				"tenant_id":                  tenantID,
-				"user_assigned_identity_ids": userAssignedIdentities,
-			},
-		}, nil
-	}
-
 	var transition *identity.UserAssignedMap
 
 	if input != nil {
@@ -659,7 +597,7 @@ func flattenFirewallPolicyLogAnalyticsResources(input *network.FirewallPolicyLog
 }
 
 func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -677,6 +615,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(network.FirewallPolicySkuTierPremium),
 				string(network.FirewallPolicySkuTierStandard),
+				string(network.FirewallPolicySkuTierBasic),
 			}, false),
 		},
 
@@ -809,8 +748,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 										string(network.FirewallPolicyIntrusionDetectionProtocolANY),
 										string(network.FirewallPolicyIntrusionDetectionProtocolTCP),
 										string(network.FirewallPolicyIntrusionDetectionProtocolUDP),
-									}, !features.ThreePointOhBeta()),
-									DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+									}, false),
 								},
 								"source_addresses": {
 									Type:     pluginsdk.TypeSet,
@@ -854,48 +792,8 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"identity": func() *schema.Schema {
-			// TODO: document that Principal ID and Tenant ID will be going away and user_assigned_identity_ids -> identity_ids
-			if !features.ThreePointOhBeta() {
-				return &schema.Schema{
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"type": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ForceNew: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(network.ResourceIdentityTypeNone),
-									string(network.ResourceIdentityTypeUserAssigned),
-								}, false),
-							},
-							"principal_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"tenant_id": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"user_assigned_identity_ids": {
-								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								MinItems: 1,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: msiValidate.UserAssignedIdentityID,
-								},
-							},
-						},
-					},
-				}
-			}
+		"identity": commonschema.UserAssignedIdentityOptional(),
 
-			return commonschema.UserAssignedIdentityOptional()
-		}(),
 		"tls_certificate": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -992,16 +890,4 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.SchemaEnforceLowerCaseKeys(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		s := schema["dns"].Elem.(*pluginsdk.Resource)
-		s.Schema["network_rule_fqdn_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This property has been deprecated as the service team has removed it from all API versions and is no longer supported by Azure. It will be removed in v3.0 of the provider.",
-		}
-	}
-
-	return schema
 }

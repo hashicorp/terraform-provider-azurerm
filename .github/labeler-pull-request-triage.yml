@@ -77,9 +77,6 @@ service/custom-resource-provider:
 service/data-factory:
   - internal/services/datafactory/**/*
 
-service/data-lake:
-  - internal/services/datalake/**/*
-
 service/data-protection:
   - internal/services/dataprotection/**/*
 
@@ -110,6 +107,9 @@ service/dns:
 
 service/domain-services:
   - internal/services/domainservices/**/*
+
+service/elastic:
+  - internal/services/elastic/**/*
 
 service/event-grid:
   - internal/services/eventgrid/**/*

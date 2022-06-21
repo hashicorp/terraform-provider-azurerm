@@ -15,6 +15,10 @@ Manages an Azure Subscription Policy Remediation.
 ```hcl
 data "azurerm_subscription" "example" {}
 
+data "azurerm_policy_definition" "example" {
+  display_name = "Allowed resource types"
+}
+
 resource "azurerm_subscription_policy_assignment" "example" {
   name                 = "exampleAssignment"
   subscription_id      = data.azurerm_subscription.example.id
@@ -27,7 +31,7 @@ resource "azurerm_subscription_policy_assignment" "example" {
 }
 
 resource "azurerm_subscription_policy_remediation" "example" {
-  name                 = "exampleRemediation"
+  name                 = "example"
   subscription_id      = data.azurerm_subscription.example.id
   policy_assignment_id = azurerm_subscription_policy_assignment.example.id
 }
@@ -43,7 +47,7 @@ The following arguments are supported:
 
 * `policy_assignment_id` - (Required) The ID of the Policy Assignment that should be remediated.
 
-* `policy_definition_reference_id` - (Optional) The unique ID for the policy definition within the policy set definition that should be remediated. Required when the policy assignment being remediated assigns a policy set definition.
+* `policy_definition_id` - (Optional) The unique ID for the policy definition within the policy set definition that should be remediated. Required when the policy assignment being remediated assigns a policy set definition.
 
 * `location_filters` - (Optional) A list of the resource locations that will be remediated.
 

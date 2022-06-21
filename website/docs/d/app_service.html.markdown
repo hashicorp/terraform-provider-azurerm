@@ -10,6 +10,8 @@ description: |-
 
 Use this data source to access information about an existing App Service.
 
+!> **Note:** The `azurerm_app_service` data source is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_linux_web_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/linux_web_app) and [`azurerm_windows_web_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/windows_web_app) data sources instead.
+
 ## Example Usage
 
 ```hcl
@@ -132,7 +134,7 @@ A `site_config` block exports the following:
 
 * `default_documents` - The ordering of default documents to load, if an address isn't specified.
 
-* `dotnet_framework_version` - The version of the .net framework's CLR used in this App Service.
+* `dotnet_framework_version` - The version of the .NET framework's CLR used in this App Service.
 
 * `http2_enabled` - Is HTTP2 Enabled on this App Service?
 

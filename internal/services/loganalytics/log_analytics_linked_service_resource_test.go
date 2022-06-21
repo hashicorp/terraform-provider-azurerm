@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -57,25 +56,6 @@ func TestAccLogAnalyticsLinkedService_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-// CLEANUP: Remove in 3.0
-func TestAccLogAnalyticsLinkedService_legacy(t *testing.T) {
-	if features.ThreePointOhBeta() {
-		t.Skip("This test does not apply on 3.0 or later")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
-	r := LogAnalyticsLinkedServiceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.legacy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -150,20 +130,6 @@ resource "azurerm_log_analytics_linked_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_log_analytics_workspace.test.id
   read_access_id      = azurerm_automation_account.test.id
-}
-`, r.template(data))
-}
-
-// CLEANUP: Remove in 3.0
-func (r LogAnalyticsLinkedServiceResource) legacy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_linked_service" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = azurerm_log_analytics_workspace.test.name
-  linked_service_name = "automation"
-  resource_id         = azurerm_automation_account.test.id
 }
 `, r.template(data))
 }

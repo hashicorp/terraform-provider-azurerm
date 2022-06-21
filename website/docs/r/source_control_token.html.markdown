@@ -12,8 +12,6 @@ Manages an App Service Source Control Token.
 
 ~> **NOTE:** This resource can only manage the token for the user currently running Terraform. Managing tokens for another user is not supported by the service. 
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -50,8 +48,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-App Service Source Github Tokens can be imported using the `resource id`, e.g.
+App Service Source GitHub Tokens can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_github_token.example /providers/Microsoft.Web/sourcecontrols/GitHub
+terraform import azurerm_source_control_token.example /providers/Microsoft.Web/sourceControls/GitHub
 ```

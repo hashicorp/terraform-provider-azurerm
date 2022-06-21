@@ -7,11 +7,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	validateNetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,9 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// the only allowed value at this time
-var namespaceNetworkRuleSetName = "default"
-
 func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceServiceBusNamespaceNetworkRuleSetCreateUpdate,
@@ -33,8 +29,13 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 		Delete: resourceServiceBusNamespaceNetworkRuleSetDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.NamespaceNetworkRuleSetID(id)
+			_, err := parse.NamespaceID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.NamespaceNetworkRuleSetV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -49,21 +50,13 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 }
 
 func resourceServicebusNamespaceNetworkRuleSetSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		//lintignore: S013
 		"namespace_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     features.ThreePointOhBeta(),
-			Optional:     !features.ThreePointOhBeta(),
-			Computed:     !features.ThreePointOhBeta(),
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.NamespaceID,
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"namespace_name", "resource_group_name"}
-				}
-				return []string{}
-			}(),
 		},
 
 		"default_action": {
@@ -118,57 +111,30 @@ func resourceServicebusNamespaceNetworkRuleSetSchema() map[string]*pluginsdk.Sch
 			},
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		s["namespace_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ValidateFunc:  validate.NamespaceName,
-			Deprecated:    `Deprecated in favor of "namespace_id"`,
-			ConflictsWith: []string{"namespace_id"},
-		}
-
-		s["resource_group_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ValidateFunc:  resourcegroups.ValidateName,
-			Deprecated:    `Deprecated in favor of "namespace_id"`,
-			ConflictsWith: []string{"namespace_id"},
-		}
-	}
-	return s
 }
 
 func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	var resourceId parse.NamespaceNetworkRuleSetId
-	if namespaceIdLit := d.Get("namespace_id").(string); namespaceIdLit != "" {
-		namespaceId, _ := parse.NamespaceID(namespaceIdLit)
-		resourceId = parse.NewNamespaceNetworkRuleSetID(namespaceId.SubscriptionId, namespaceId.ResourceGroup, namespaceId.Name, namespaceNetworkRuleSetName)
-	} else if !features.ThreePointOhBeta() {
-		resourceId = parse.NewNamespaceNetworkRuleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), namespaceNetworkRuleSetName)
+	id, err := parse.NamespaceID(d.Get("namespace_id").(string))
+	if err != nil {
+		return err
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.GetNetworkRuleSet(ctx, resourceId.ResourceGroup, resourceId.NamespaceName)
+		existing, err := client.GetNetworkRuleSet(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for the presence of existing %s: %+v", resourceId, err)
+				return fmt.Errorf("checking for the presence of existing %s: %+v", id, err)
 			}
 		}
 
 		// This resource is unique to the corresponding service bus namespace.
 		// It will be created automatically along with the namespace, therefore we check whether this resource is identical to a "deleted" one
 		if !CheckNetworkRuleNullified(existing) {
-			return tf.ImportAsExistsError("azurerm_servicebus_namespace_network_rule_set", resourceId.ID())
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace_network_rule_set", id.ID())
 		}
 	}
 
@@ -182,7 +148,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 
 	// API doesn't accept "Deny" to be set for "default_action" if no "ip_rules" or "network_rules" is defined and returns no error message to the user
 	if defaultAction == servicebus.DefaultActionDeny && vnetRule == nil && ipRule == nil {
-		return fmt.Errorf(" The default action of %s can only be set to `Allow` if no `ip_rules` or `network_rules` is set", resourceId)
+		return fmt.Errorf(" The default action of %s can only be set to `Allow` if no `ip_rules` or `network_rules` is set", id)
 	}
 
 	parameters := servicebus.NetworkRuleSet{
@@ -195,11 +161,11 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *pluginsdk.Resource
 		},
 	}
 
-	if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
+	if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
+	d.SetId(id.ID())
 	return resourceServiceBusNamespaceNetworkRuleSetRead(d, meta)
 }
 
@@ -208,27 +174,22 @@ func resourceServiceBusNamespaceNetworkRuleSetRead(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NamespaceNetworkRuleSetID(d.Id())
+	id, err := parse.NamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetNetworkRuleSet(ctx, id.ResourceGroup, id.NamespaceName)
+	resp, err := client.GetNetworkRuleSet(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Service Bus Namespace Network Rule Set %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed to read Service Bus Namespace Network Rule Set %q (Namespace %q / Resource Group %q): %+v", id.NetworkrulesetName, id.NamespaceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if !features.ThreePointOhBeta() {
-		d.Set("namespace_name", id.NamespaceName)
-		d.Set("resource_group_name", id.ResourceGroup)
-	}
-	d.Set("namespace_id", parse.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName).ID())
-
+	d.Set("namespace_id", id.ID())
 	if props := resp.NetworkRuleSetProperties; props != nil {
 		d.Set("default_action", string(props.DefaultAction))
 		d.Set("trusted_services_allowed", props.TrustedServiceAccessEnabled)
@@ -251,7 +212,7 @@ func resourceServiceBusNamespaceNetworkRuleSetDelete(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NamespaceNetworkRuleSetID(d.Id())
+	id, err := parse.NamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -265,8 +226,8 @@ func resourceServiceBusNamespaceNetworkRuleSetDelete(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, id.ResourceGroup, id.NamespaceName, parameters); err != nil {
-		return fmt.Errorf("failed to delete Service Bus Namespace Network Rule Set %q (Namespace %q / Resource Group %q): %+v", id.NetworkrulesetName, id.NamespaceName, id.ResourceGroup, err)
+	if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

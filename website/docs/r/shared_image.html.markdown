@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description of this Shared Image.
 
-* `eula` - (Optional) The End User Licence Agreement for the Shared Image.
+* `eula` - (Optional) The End User Licence Agreement for the Shared Image. Changing this forces a new resource to be created.
 
 * `specialized` - (Optional) Specifies that the Operating System used inside this Image has not been Generalized (for example, `sysprep` on Windows has not been run). Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -81,6 +81,8 @@ The following arguments are supported:
 * `release_note_uri` - (Optional) The URI containing the Release Notes associated with this Shared Image.
 
 * `trusted_launch_enabled` - (Optional) Specifies if Trusted Launch has to be enabled for the Virtual Machine created from the Shared Image. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `accelerated_network_support_enabled` - (Optional) Specifies if the Shared Image supports Accelerated Network. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Shared Image.
 

@@ -3,6 +3,7 @@ package datafactory_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -75,6 +76,27 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_sas_uri_with_key_vault_sas_
 			),
 		},
 		data.ImportStep("sas_uri"),
+	})
+}
+
+func TestAccDataFactoryLinkedServiceAzureBlobStorage_service_endpoint_with_service_principal_linked_key_vault_key(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
+	r := LinkedServiceAzureBlobStorageResource{}
+
+	tenantID := os.Getenv("ARM_TENANT_ID")
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.service_endpoint_with_service_principal_linked_key_vault_key(data, tenantID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_principal_id").Exists(),
+				check.That(data.ResourceName).Key("tenant_id").Exists(),
+				check.That(data.ResourceName).Key("service_principal_linked_key_vault_key.0.linked_service_name").HasValue("linkkv"),
+				check.That(data.ResourceName).Key("service_principal_linked_key_vault_key.0.secret_name").HasValue("secret"),
+			),
+		},
+		data.ImportStep("service_endpoint"),
 	})
 }
 
@@ -266,6 +288,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   data_factory_id      = azurerm_data_factory.test.id
   service_endpoint     = azurerm_storage_account.test.primary_blob_endpoint
   use_managed_identity = true
+  storage_kind         = "StorageV2"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -348,4 +371,55 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceAzureBlobStorageResource) service_endpoint_with_service_principal_linked_key_vault_key(data acceptance.TestData, tenantID string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctkv%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_data_factory_linked_service_key_vault" "test" {
+  name            = "linkkv"
+  data_factory_id = azurerm_data_factory.test.id
+  key_vault_id    = azurerm_key_vault.test.id
+}
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name                 = "acctestBlobStorage"
+  data_factory_id      = azurerm_data_factory.test.id
+  service_endpoint     = "https://storageaccountname.blob.core.windows.net"
+  service_principal_id = data.azurerm_client_config.current.client_id
+  tenant_id            = "%s"
+  service_principal_linked_key_vault_key {
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "secret"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID)
 }

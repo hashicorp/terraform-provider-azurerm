@@ -33,23 +33,6 @@ func TestAccMariaDbServer_basicTenTwo(t *testing.T) {
 	})
 }
 
-func TestAccMariaDbServer_basicTenTwoDeprecated(t *testing.T) { // remove in v3.0
-	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
-	r := MariaDbServerResource{}
-	version := "10.2"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data, version),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("version").HasValue(version),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
 func TestAccMariaDbServer_basicTenThree(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	r := MariaDbServerResource{}
@@ -135,59 +118,6 @@ func TestAccMariaDbServer_update(t *testing.T) {
 		data.ImportStep("administrator_login_password"), // not returned as sensitive
 		{
 			Config: r.basic(data, version),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
-func TestAccMariaDbServer_completeDeprecatedMigrate(t *testing.T) { // remove in v3.0
-	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
-	r := MariaDbServerResource{}
-	version := "10.3"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.completeDeprecated(data, version),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-		{
-			Config: r.complete(data, version),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-	})
-}
-
-func TestAccMariaDbServer_updateDeprecated(t *testing.T) { // remove in v3.0
-	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
-	r := MariaDbServerResource{}
-	version := "10.2"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecated(data, version),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-		{
-			Config: r.completeDeprecated(data, version),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"), // not returned as sensitive
-		{
-			Config: r.basicDeprecated(data, version),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -308,35 +238,6 @@ resource "azurerm_mariadb_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func (MariaDbServerResource) basicDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mariadb_server" "test" {
-  name                = "acctestmariadbsvr-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "B_Gen5_2"
-  version             = "%s"
-
-  storage_profile {
-    storage_mb = 51200
-  }
-
-  administrator_login          = "acctestun"
-  administrator_login_password = "H@Sh1CoR3!"
-  ssl_enforcement_enabled      = true
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
-}
-
 func (MariaDbServerResource) complete(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -367,39 +268,6 @@ resource "azurerm_mariadb_server" "test" {
   tags = {
     environment = "test"
   }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
-}
-
-func (MariaDbServerResource) completeDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mariadb_server" "test" {
-  name                = "acctestmariadbsvr-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "B_Gen5_2"
-  version             = "%s"
-
-  storage_profile {
-    auto_grow             = "Enabled"
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-    storage_mb            = 51200
-  }
-
-  administrator_login          = "acctestun"
-  administrator_login_password = "H@Sh1CoR3!"
-  create_mode                  = "Default"
-  ssl_enforcement_enabled      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }

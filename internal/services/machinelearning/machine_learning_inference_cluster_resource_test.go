@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -148,7 +146,7 @@ func TestAccInferenceCluster_identity(t *testing.T) {
 }
 
 func (r InferenceClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	inferenceClusterClient := client.MachineLearning.MachineLearningComputeClient
+	inferenceClusterClient := client.MachineLearning.ComputeClient
 	id, err := parse.InferenceClusterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -349,32 +347,6 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 
 func (r InferenceClusterResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	template := r.templateDevTest(data)
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_machine_learning_inference_cluster" "test" {
-  name                          = "AIC-%d"
-  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  location                      = azurerm_resource_group.test.location
-  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
-  cluster_purpose               = "DevTest"
-  identity {
-    type = "SystemAssigned,UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id,
-    ]
-  }
-}
-`, template, data.RandomInteger, data.RandomIntOfLength(8))
-	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -466,7 +438,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[7]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -559,7 +531,7 @@ resource "azurerm_subnet" "test" {
   resource_group_name                            = azurerm_resource_group.test.name
   virtual_network_name                           = azurerm_virtual_network.test.name
   enforce_private_link_endpoint_network_policies = true
-  address_prefix                                 = "10.1.0.0/24"
+  address_prefixes                               = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {

@@ -19,9 +19,10 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_policy_definition" "example" {
-  name        = "only-deploy-in-westeurope"
-  policy_type = "Custom"
-  mode        = "All"
+  name         = "only-deploy-in-westeurope"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "my-policy-definition"
 
   policy_rule = <<POLICY_RULE
 	{
@@ -94,7 +95,7 @@ A `identity` block supports the following:
 
 * `type` - (Optional) The Type of Managed Identity which should be added to this Policy Definition. Possible values are `SystemAssigned` and `UserAssigned`.
 
-* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Policy Definition.
+* `identity_ids` - (Optional) A list of User Managed Identity IDs which should be assigned to the Policy Definition.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned`.
 

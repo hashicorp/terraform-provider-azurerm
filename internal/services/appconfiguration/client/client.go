@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/1.0/appconfiguration"
@@ -25,7 +27,10 @@ func (c Client) DataPlaneClient(ctx context.Context, configurationStoreId string
 	// TODO: caching all of this
 	appConfig, err := c.ConfigurationStoresClient.Get(ctx, *appConfigId)
 	if err != nil {
-		// TODO: if not found etc
+		if response.WasNotFound(appConfig.HttpResponse) {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 

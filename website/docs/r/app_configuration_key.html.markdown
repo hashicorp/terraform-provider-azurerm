@@ -16,15 +16,15 @@ Manages an Azure App Configuration Key.
 ## Example Usage of `kv` type
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_app_configuration" "appconf" {
   name                = "appConf1"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 
 data "azurerm_client_config" "current" {}
@@ -49,15 +49,15 @@ resource "azurerm_app_configuration_key" "test" {
 
 ## Example Usage of `vault` type
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_app_configuration" "appconf" {
   name                = "appConf1"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 
 data "azurerm_client_config" "current" {}
@@ -106,7 +106,7 @@ resource "azurerm_app_configuration_key" "test" {
   key                    = "key1"
   type                   = "vault"
   label                  = "label1"
-  vault_key_reference    = azurerm_key_vault_secret.kvs.id
+  vault_key_reference    = azurerm_key_vault_secret.kvs.versionless_id
 
   depends_on = [
     azurerm_role_assignment.appconf_dataowner
@@ -130,9 +130,11 @@ The following arguments are supported:
 
 * `locked` - (Optional) Should this App Configuration Key be Locked to prevent changes?
 
-* `type` - (Optional) The type of the App Configuration Key. It can either be `kv` (simple [key/value](https://docs.microsoft.com/en-us/azure/azure-app-configuration/concept-key-value)) or `vault` (where the value is a reference to a [Key Vault Secret](https://azure.microsoft.com/en-gb/services/key-vault/). 
+* `type` - (Optional) The type of the App Configuration Key. It can either be `kv` (simple [key/value](https://docs.microsoft.com/azure/azure-app-configuration/concept-key-value)) or `vault` (where the value is a reference to a [Key Vault Secret](https://azure.microsoft.com/en-gb/services/key-vault/). 
 
 * `vault_key_reference` - (Optional) The ID of the vault secret this App Configuration Key refers to, when `type` is set to `vault`.
+
+~> **NOTE:** When setting the `vault_key_reference` using the `id` will pin the value to specific version of the secret, to reference latest secret value use `versionless_id`
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

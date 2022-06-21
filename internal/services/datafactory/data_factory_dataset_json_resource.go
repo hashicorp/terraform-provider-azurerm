@@ -108,6 +108,11 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_container_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"path": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -262,7 +267,6 @@ func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	description := d.Get("description").(string)
-	// TODO
 	jsonTableset := datafactory.JSONDataset{
 		JSONDatasetTypeProperties: &jsonDatasetProperties,
 		LinkedServiceName:         linkedService,

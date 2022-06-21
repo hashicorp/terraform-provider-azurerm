@@ -16,13 +16,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -30,7 +28,7 @@ import (
 
 func resourceKeyVaultCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		// TODO: support Updating once we have more information about what can be updated
+		// TODO: support Updating additional properties once we have more information about what can be updated
 		Create: resourceKeyVaultCertificateCreate,
 		Read:   resourceKeyVaultCertificateRead,
 		Delete: resourceKeyVaultCertificateDelete,
@@ -164,8 +162,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 											string(keyvault.RSA),
 											string(keyvault.RSAHSM),
 											string(keyvault.Oct),
-										}, !features.ThreePointOhBeta()),
-										DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+										}, false),
 									},
 									"reuse_key": {
 										Type:     pluginsdk.TypeBool,
@@ -254,7 +251,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										},
 									},
 									"key_usage": {
-										Type:     pluginsdk.TypeList,
+										Type:     pluginsdk.TypeSet,
 										Required: true,
 										ForceNew: true,
 										Elem: &pluginsdk.Schema{
@@ -849,7 +846,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 		extendedKeyUsage := utils.ExpandStringSlice(ekus)
 
 		keyUsage := make([]keyvault.KeyUsageType, 0)
-		keys := cert["key_usage"].([]interface{})
+		keys := cert["key_usage"].(*pluginsdk.Set).List()
 		for _, key := range keys {
 			keyUsage = append(keyUsage, keyvault.KeyUsageType(key.(string)))
 		}

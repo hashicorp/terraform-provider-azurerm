@@ -1,10 +1,9 @@
 package schemaz
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -82,7 +81,7 @@ func SchemaApiManagementUserDataSourceName() *pluginsdk.Schema {
 }
 
 func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
-	out := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -108,16 +107,6 @@ func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
 			},
 		},
 	}
-	if !features.ThreePointOhBeta() {
-		s := out.Elem.(*pluginsdk.Resource)
-		s.Schema["sample"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "Deprecated in favour of `example`",
-		}
-	}
-	return out
 }
 
 func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apimanagement.RepresentationContract, error) {
@@ -140,12 +129,6 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 		if vs["example"] != nil {
 			examplesRaw := vs["example"].([]interface{})
 			examples = ExpandApiManagementOperationParameterExampleContract(examplesRaw)
-		} else if !features.ThreePointOhBeta() && vs["sample"] != nil {
-			defaultExample := map[string]interface{}{
-				"name":  "default",
-				"value": vs["sample"],
-			}
-			examples = ExpandApiManagementOperationParameterExampleContract([]interface{}{defaultExample})
 		}
 
 		output := apimanagement.RepresentationContract{
@@ -159,7 +142,7 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 		if contentTypeIsFormData {
 			output.FormParameters = formParameters
 		} else if len(*formParameters) > 0 {
-			return nil, fmt.Errorf("`form_parameter` cannot be specified for form data content types (multipart/form-data, application/x-www-form-urlencoded)")
+			return nil, fmt.Errorf("`form_parameter` can only be specified for form data content types (multipart/form-data, application/x-www-form-urlencoded)")
 		}
 
 		// Representation schemaId can only be specified for non form data content types (multipart/form-data, application/x-www-form-urlencoded).
@@ -180,9 +163,9 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 	return &outputs, nil
 }
 
-func FlattenApiManagementOperationRepresentation(input *[]apimanagement.RepresentationContract) []interface{} {
+func FlattenApiManagementOperationRepresentation(input *[]apimanagement.RepresentationContract) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	outputs := make([]interface{}, 0)
@@ -197,11 +180,11 @@ func FlattenApiManagementOperationRepresentation(input *[]apimanagement.Represen
 		output["form_parameter"] = FlattenApiManagementOperationParameterContract(v.FormParameters)
 
 		if v.Examples != nil {
-			output["example"] = FlattenApiManagementOperationParameterExampleContract(v.Examples)
-
-			if features.ThreePointOhBeta() && v.Examples["default"] != nil && v.Examples["default"].Value != nil {
-				output["sample"] = v.Examples["default"].Value.(string)
+			example, err := FlattenApiManagementOperationParameterExampleContract(v.Examples)
+			if err != nil {
+				return nil, err
 			}
+			output["example"] = example
 		}
 
 		if v.SchemaID != nil {
@@ -215,7 +198,7 @@ func FlattenApiManagementOperationRepresentation(input *[]apimanagement.Represen
 		outputs = append(outputs, output)
 	}
 
-	return outputs
+	return outputs, nil
 }
 
 func SchemaApiManagementOperationParameterContract() *pluginsdk.Schema {
@@ -336,7 +319,6 @@ func SchemaApiManagementOperationParameterExampleContract() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: !features.ThreePointOhBeta(),
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -355,8 +337,9 @@ func SchemaApiManagementOperationParameterExampleContract() *pluginsdk.Schema {
 				},
 
 				"value": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:             pluginsdk.TypeString,
+					Optional:         true,
+					DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 				},
 
 				"external_value": {
@@ -392,7 +375,12 @@ func ExpandApiManagementOperationParameterExampleContract(input []interface{}) m
 		}
 
 		if vs["value"] != nil {
-			outputs[name].Value = utils.String(vs["value"].(string))
+			var js interface{}
+			if json.Unmarshal([]byte(vs["value"].(string)), &js) == nil {
+				outputs[name].Value = js
+			} else {
+				outputs[name].Value = utils.String(vs["value"].(string))
+			}
 		}
 
 		if vs["external_value"] != nil {
@@ -403,9 +391,9 @@ func ExpandApiManagementOperationParameterExampleContract(input []interface{}) m
 	return outputs
 }
 
-func FlattenApiManagementOperationParameterExampleContract(input map[string]*apimanagement.ParameterExampleContract) []interface{} {
+func FlattenApiManagementOperationParameterExampleContract(input map[string]*apimanagement.ParameterExampleContract) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	outputs := make([]interface{}, 0)
@@ -422,8 +410,15 @@ func FlattenApiManagementOperationParameterExampleContract(input map[string]*api
 			output["description"] = *v.Description
 		}
 
+		// value can be any type, may be a primitive value or an object
+		// https://github.com/Azure/azure-sdk-for-go/blob/main/services/apimanagement/mgmt/2021-08-01/apimanagement/models.go#L10236
 		if v.Value != nil {
-			output["value"] = v.Value.(string)
+			value, err := convert2Json(v.Value)
+			if err != nil {
+				return nil, err
+			}
+
+			output["value"] = value
 		}
 
 		if v.ExternalValue != nil {
@@ -433,7 +428,7 @@ func FlattenApiManagementOperationParameterExampleContract(input map[string]*api
 		outputs = append(outputs, output)
 	}
 
-	return outputs
+	return outputs, nil
 }
 
 // CopyCertificateAndPassword copies any certificate and password attributes
@@ -451,4 +446,18 @@ func CopyCertificateAndPassword(vals []interface{}, hostName string, output map[
 			break
 		}
 	}
+}
+
+func convert2Json(rawVal interface{}) (string, error) {
+	value := ""
+	if val, ok := rawVal.(string); ok {
+		value = val
+	} else {
+		val, err := json.Marshal(rawVal)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal `representations.examples.value` to json: %+v", err)
+		}
+		value = string(val)
+	}
+	return value, nil
 }
