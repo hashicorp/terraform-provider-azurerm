@@ -915,13 +915,13 @@ func (r LinuxWebAppSlotResource) Exists(ctx context.Context, client *clients.Cli
 
 // Network tests
 
-func vNetIntegration(t *testing.T) {
+func vNetIntegrationWebAppSlot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vnetIntegration(data),
+			Config: r.vnetIntegrationWebAppSlot(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
         check.That(data.ResourceName).Key("virtual_network_subnet_id").Exists(),
@@ -931,7 +931,7 @@ func vNetIntegration(t *testing.T) {
 	})
 }
 
-func vNetIntegrationUpdate(t *testing.T) {
+func vNetIntegrationUpdateWebAppSlot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppResource{}
 
@@ -945,7 +945,7 @@ func vNetIntegrationUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
     {
-			Config: r.vnetIntegration(data),
+			Config: r.vnetIntegrationWebAppSlot(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
         check.That(data.ResourceName).Key("virtual_network_subnet_id").Exists(),
@@ -2175,22 +2175,22 @@ resource "azurerm_linux_web_app" "test" {
 }
 
 
-func (r LinuxWebAppResource) vnetIntegration(data acceptance.TestData) string {
+func (r LinuxWebAppResource) vnetIntegrationWebAppSlot(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 %s
-resource "azurerm_virtual_network" "vnet" {
+resource "azurerm_virtual_network" "test" {
   name                = "vnet-%d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-resource "azurerm_subnet" "subnet" {
+resource "azurerm_subnet" "test" {
   name                 = "subnet"
   resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
   
   delegation {
@@ -2205,7 +2205,7 @@ resource "azurerm_linux_web_app_slot" "test" {
   location                  = azurerm_resource_group.test.location
   resource_group_name       = azurerm_resource_group.test.name
   service_plan_id           = azurerm_service_plan.test.id
-  virtual_network_subnet_id = azurerm_subnet.subnet.id
+  virtual_network_subnet_id = azurerm_subnet.test.id
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
 } 
