@@ -905,8 +905,8 @@ resource "azurerm_monitor_action_group" "test" {
 
   event_hub_receiver {
     name                    = "eventhub-test-action"
-	event_hub_name          = azurerm_eventhub.test.name
-	event_hub_namespace     = azurerm_eventhub.test.namespace_name
+    event_hub_name          = azurerm_eventhub.test.name
+    event_hub_namespace     = azurerm_eventhub.test.namespace_name
     use_common_alert_schema = false
   }
 }
@@ -1026,8 +1026,8 @@ resource "azurerm_monitor_action_group" "test" {
 
   event_hub_receiver {
     name                    = "eventhub-test-action"
-	event_hub_name          = azurerm_eventhub.test.name
-	event_hub_namespace     = azurerm_eventhub.test.namespace_name
+    event_hub_name          = azurerm_eventhub.test.name
+    event_hub_namespace     = azurerm_eventhub.test.namespace_name
     use_common_alert_schema = false
   }
 }
@@ -1120,6 +1120,7 @@ resource "azurerm_eventhub" "test" {
   partition_count     = 1
   message_retention   = 1
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }

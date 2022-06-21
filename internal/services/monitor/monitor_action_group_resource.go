@@ -802,7 +802,7 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId st
 
 		eventHubNameSpace, eventHubName := val["event_hub_namespace"].(string), val["event_hub_name"].(string)
 		if !features.FourPointOhBeta() {
-			if val["event_hub_id"].(string) != "" {
+			if val["event_hub_id"].(string) != ""  {
 				eventHubId, err := eventHubParser.EventhubID(*utils.String(val["event_hub_id"].(string)))
 				if err != nil {
 					return nil, err
