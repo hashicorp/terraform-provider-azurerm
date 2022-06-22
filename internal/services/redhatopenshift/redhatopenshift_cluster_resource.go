@@ -163,12 +163,6 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Default:      "worker",
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
 						"vm_size": {
 							Type:             pluginsdk.TypeString,
 							Required:         true,
@@ -213,7 +207,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 						"visibility": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  redhatopenshift.VisibilityPublic,
+							Default:  string(redhatopenshift.VisibilityPublic),
 						},
 					},
 				},
@@ -227,16 +221,10 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Default:      "default",
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
 						"visibility": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  redhatopenshift.VisibilityPublic,
+							Default:  string(redhatopenshift.VisibilityPublic),
 						},
 					},
 				},
@@ -771,7 +759,7 @@ func expandOpenshiftWorkerProfiles(inputs []interface{}) *[]redhatopenshift.Work
 	profiles := make([]redhatopenshift.WorkerProfile, 0)
 	config := inputs[0].(map[string]interface{})
 
-	name := config["name"].(string)
+	name := "worker"
 	vmSize := config["vm_size"].(string)
 	diskSizeGb := int32(config["disk_size_gb"].(int))
 	nodeCount := int32(config["node_count"].(int))
@@ -824,7 +812,6 @@ func expandOpenshiftIngressProfiles(inputs []interface{}) *[]redhatopenshift.Ing
 
 	if len(inputs) > 0 {
 		input := inputs[0].(map[string]interface{})
-		name = input["name"].(string)
 		visibility = input["visibility"].(string)
 	}
 
