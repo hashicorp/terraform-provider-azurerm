@@ -500,8 +500,10 @@ func flattenBatchPoolContainerRegistry(armContainerRegistry *batch.ContainerRegi
 
 	// At lease username + password / identity_reference need to be provided. If both are provided, we choose username + password here
 	if userName := armContainerRegistry.UserName; userName != nil {
-		result["username"] = *userName
-		result["password"] = *armContainerRegistry.Password
+		result["user_name"] = *userName
+		if armContainerRegistry.Password != nil {
+			result["password"] = *armContainerRegistry.Password
+		}
 	} else if identityRef := armContainerRegistry.IdentityReference; identityRef != nil {
 		result["identity_reference"] = flattenBatchPoolIdentityReference(armContainerRegistry.IdentityReference)
 	}
@@ -1118,18 +1120,19 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*batch.Contai
 		return nil, fmt.Errorf("Error: container registry reference should be defined")
 	}
 
-	containerRegistry := batch.ContainerRegistry{
+	containerRegistryRef := batch.ContainerRegistry{
 		RegistryServer: utils.String(ref["registry_server"].(string)),
 		UserName:       utils.String(ref["user_name"].(string)),
 		Password:       utils.String(ref["password"].(string)),
 	}
-	if idRef, err := expandBatchPoolIdentityReference(ref["identity_reference"].(map[string]interface{})); err == nil {
-		containerRegistry.IdentityReference = idRef
-	} else {
-		return nil, err
+	if ref["identity_reference"] != nil {
+		if idRef, err := expandBatchPoolIdentityReference(ref["identity_reference"].(map[string]interface{})); err == nil {
+			containerRegistryRef.IdentityReference = idRef
+		} else {
+			return nil, err
+		}
 	}
-
-	return &containerRegistry, nil
+	return &containerRegistryRef, nil
 }
 
 func expandBatchPoolIdentityReference(ref map[string]interface{}) (*batch.ComputeNodeIdentityReference, error) {

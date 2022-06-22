@@ -1582,7 +1582,7 @@ func identityReference() map[string]*pluginsdk.Schema {
 
 func containerRegistry() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"username": {
+		"user_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
