@@ -1,11 +1,9 @@
 package validate
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
-
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/sdk/2022-04-01/resourceguards"
 )
 
 func ResourceGuardID(input interface{}, key string) (warnings []string, errors []error) {
@@ -15,7 +13,7 @@ func ResourceGuardID(input interface{}, key string) (warnings []string, errors [
 		return
 	}
 
-	if _, err := parse.ResourceGuardID(v); err != nil {
+	if _, err := resourceguards.ParseResourceGuardID(v); err != nil {
 		errors = append(errors, err)
 	}
 
