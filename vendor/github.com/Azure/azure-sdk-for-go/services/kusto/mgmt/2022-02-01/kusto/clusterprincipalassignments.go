@@ -15,34 +15,33 @@ import (
 	"net/http"
 )
 
-// DatabasePrincipalAssignmentsClient is the the Azure Kusto management API provides a RESTful set of web services that
+// ClusterPrincipalAssignmentsClient is the the Azure Kusto management API provides a RESTful set of web services that
 // interact with Azure Kusto services to manage your clusters and databases. The API enables you to create, update, and
 // delete clusters and databases.
-type DatabasePrincipalAssignmentsClient struct {
+type ClusterPrincipalAssignmentsClient struct {
 	BaseClient
 }
 
-// NewDatabasePrincipalAssignmentsClient creates an instance of the DatabasePrincipalAssignmentsClient client.
-func NewDatabasePrincipalAssignmentsClient(subscriptionID string) DatabasePrincipalAssignmentsClient {
-	return NewDatabasePrincipalAssignmentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewClusterPrincipalAssignmentsClient creates an instance of the ClusterPrincipalAssignmentsClient client.
+func NewClusterPrincipalAssignmentsClient(subscriptionID string) ClusterPrincipalAssignmentsClient {
+	return NewClusterPrincipalAssignmentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDatabasePrincipalAssignmentsClientWithBaseURI creates an instance of the DatabasePrincipalAssignmentsClient
-// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
-// (sovereign clouds, Azure stack).
-func NewDatabasePrincipalAssignmentsClientWithBaseURI(baseURI string, subscriptionID string) DatabasePrincipalAssignmentsClient {
-	return DatabasePrincipalAssignmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewClusterPrincipalAssignmentsClientWithBaseURI creates an instance of the ClusterPrincipalAssignmentsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
+func NewClusterPrincipalAssignmentsClientWithBaseURI(baseURI string, subscriptionID string) ClusterPrincipalAssignmentsClient {
+	return ClusterPrincipalAssignmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CheckNameAvailability checks that the database principal assignment is valid and is not already in use.
+// CheckNameAvailability checks that the principal assignment name is valid and is not already in use.
 // Parameters:
 // resourceGroupName - the name of the resource group containing the Kusto cluster.
 // clusterName - the name of the Kusto cluster.
-// databaseName - the name of the database in the Kusto cluster.
-// principalAssignmentName - the name of the resource.
-func (client DatabasePrincipalAssignmentsClient) CheckNameAvailability(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, principalAssignmentName DatabasePrincipalAssignmentCheckNameRequest) (result CheckNameResult, err error) {
+// principalAssignmentName - the name of the principal assignment.
+func (client ClusterPrincipalAssignmentsClient) CheckNameAvailability(ctx context.Context, resourceGroupName string, clusterName string, principalAssignmentName ClusterPrincipalAssignmentCheckNameRequest) (result CheckNameResult, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasePrincipalAssignmentsClient.CheckNameAvailability")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClusterPrincipalAssignmentsClient.CheckNameAvailability")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -55,25 +54,25 @@ func (client DatabasePrincipalAssignmentsClient) CheckNameAvailability(ctx conte
 		{TargetValue: principalAssignmentName,
 			Constraints: []validation.Constraint{{Target: "principalAssignmentName.Name", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "principalAssignmentName.Type", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("kusto.DatabasePrincipalAssignmentsClient", "CheckNameAvailability", err.Error())
+		return result, validation.NewError("kusto.ClusterPrincipalAssignmentsClient", "CheckNameAvailability", err.Error())
 	}
 
-	req, err := client.CheckNameAvailabilityPreparer(ctx, resourceGroupName, clusterName, databaseName, principalAssignmentName)
+	req, err := client.CheckNameAvailabilityPreparer(ctx, resourceGroupName, clusterName, principalAssignmentName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "CheckNameAvailability", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "CheckNameAvailability", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.CheckNameAvailabilitySender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "CheckNameAvailability", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "CheckNameAvailability", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "CheckNameAvailability", resp, "Failure responding to request")
 		return
 	}
 
@@ -81,15 +80,14 @@ func (client DatabasePrincipalAssignmentsClient) CheckNameAvailability(ctx conte
 }
 
 // CheckNameAvailabilityPreparer prepares the CheckNameAvailability request.
-func (client DatabasePrincipalAssignmentsClient) CheckNameAvailabilityPreparer(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, principalAssignmentName DatabasePrincipalAssignmentCheckNameRequest) (*http.Request, error) {
+func (client ClusterPrincipalAssignmentsClient) CheckNameAvailabilityPreparer(ctx context.Context, resourceGroupName string, clusterName string, principalAssignmentName ClusterPrincipalAssignmentCheckNameRequest) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"clusterName":       autorest.Encode("path", clusterName),
-		"databaseName":      autorest.Encode("path", databaseName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-27"
+	const APIVersion = "2022-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -98,7 +96,7 @@ func (client DatabasePrincipalAssignmentsClient) CheckNameAvailabilityPreparer(c
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/databases/{databaseName}/checkPrincipalAssignmentNameAvailability", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/checkPrincipalAssignmentNameAvailability", pathParameters),
 		autorest.WithJSON(principalAssignmentName),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -106,13 +104,13 @@ func (client DatabasePrincipalAssignmentsClient) CheckNameAvailabilityPreparer(c
 
 // CheckNameAvailabilitySender sends the CheckNameAvailability request. The method will close the
 // http.Response Body if it receives an error.
-func (client DatabasePrincipalAssignmentsClient) CheckNameAvailabilitySender(req *http.Request) (*http.Response, error) {
+func (client ClusterPrincipalAssignmentsClient) CheckNameAvailabilitySender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CheckNameAvailabilityResponder handles the response to the CheckNameAvailability request. The method always
 // closes the http.Response Body.
-func (client DatabasePrincipalAssignmentsClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameResult, err error) {
+func (client ClusterPrincipalAssignmentsClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -122,16 +120,15 @@ func (client DatabasePrincipalAssignmentsClient) CheckNameAvailabilityResponder(
 	return
 }
 
-// CreateOrUpdate creates a Kusto cluster database principalAssignment.
+// CreateOrUpdate create a Kusto cluster principalAssignment.
 // Parameters:
 // resourceGroupName - the name of the resource group containing the Kusto cluster.
 // clusterName - the name of the Kusto cluster.
-// databaseName - the name of the database in the Kusto cluster.
 // principalAssignmentName - the name of the Kusto principalAssignment.
-// parameters - the Kusto principalAssignments parameters supplied for the operation.
-func (client DatabasePrincipalAssignmentsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, principalAssignmentName string, parameters DatabasePrincipalAssignment) (result DatabasePrincipalAssignmentsCreateOrUpdateFuture, err error) {
+// parameters - the Kusto cluster principalAssignment's parameters supplied for the operation.
+func (client ClusterPrincipalAssignmentsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, clusterName string, principalAssignmentName string, parameters ClusterPrincipalAssignment) (result ClusterPrincipalAssignmentsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasePrincipalAssignmentsClient.CreateOrUpdate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClusterPrincipalAssignmentsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -142,20 +139,20 @@ func (client DatabasePrincipalAssignmentsClient) CreateOrUpdate(ctx context.Cont
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.DatabasePrincipalProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "parameters.DatabasePrincipalProperties.PrincipalID", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewError("kusto.DatabasePrincipalAssignmentsClient", "CreateOrUpdate", err.Error())
+			Constraints: []validation.Constraint{{Target: "parameters.ClusterPrincipalProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "parameters.ClusterPrincipalProperties.PrincipalID", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+		return result, validation.NewError("kusto.ClusterPrincipalAssignmentsClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, clusterName, databaseName, principalAssignmentName, parameters)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, clusterName, principalAssignmentName, parameters)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -163,16 +160,15 @@ func (client DatabasePrincipalAssignmentsClient) CreateOrUpdate(ctx context.Cont
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client DatabasePrincipalAssignmentsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, principalAssignmentName string, parameters DatabasePrincipalAssignment) (*http.Request, error) {
+func (client ClusterPrincipalAssignmentsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, clusterName string, principalAssignmentName string, parameters ClusterPrincipalAssignment) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"clusterName":             autorest.Encode("path", clusterName),
-		"databaseName":            autorest.Encode("path", databaseName),
 		"principalAssignmentName": autorest.Encode("path", principalAssignmentName),
 		"resourceGroupName":       autorest.Encode("path", resourceGroupName),
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-27"
+	const APIVersion = "2022-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -181,7 +177,7 @@ func (client DatabasePrincipalAssignmentsClient) CreateOrUpdatePreparer(ctx cont
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/databases/{databaseName}/principalAssignments/{principalAssignmentName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/principalAssignments/{principalAssignmentName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -189,7 +185,7 @@ func (client DatabasePrincipalAssignmentsClient) CreateOrUpdatePreparer(ctx cont
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client DatabasePrincipalAssignmentsClient) CreateOrUpdateSender(req *http.Request) (future DatabasePrincipalAssignmentsCreateOrUpdateFuture, err error) {
+func (client ClusterPrincipalAssignmentsClient) CreateOrUpdateSender(req *http.Request) (future ClusterPrincipalAssignmentsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -205,7 +201,7 @@ func (client DatabasePrincipalAssignmentsClient) CreateOrUpdateSender(req *http.
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client DatabasePrincipalAssignmentsClient) CreateOrUpdateResponder(resp *http.Response) (result DatabasePrincipalAssignment, err error) {
+func (client ClusterPrincipalAssignmentsClient) CreateOrUpdateResponder(resp *http.Response) (result ClusterPrincipalAssignment, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
@@ -215,15 +211,14 @@ func (client DatabasePrincipalAssignmentsClient) CreateOrUpdateResponder(resp *h
 	return
 }
 
-// Delete deletes a Kusto principalAssignment.
+// Delete deletes a Kusto cluster principalAssignment.
 // Parameters:
 // resourceGroupName - the name of the resource group containing the Kusto cluster.
 // clusterName - the name of the Kusto cluster.
-// databaseName - the name of the database in the Kusto cluster.
 // principalAssignmentName - the name of the Kusto principalAssignment.
-func (client DatabasePrincipalAssignmentsClient) Delete(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, principalAssignmentName string) (result DatabasePrincipalAssignmentsDeleteFuture, err error) {
+func (client ClusterPrincipalAssignmentsClient) Delete(ctx context.Context, resourceGroupName string, clusterName string, principalAssignmentName string) (result ClusterPrincipalAssignmentsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasePrincipalAssignmentsClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClusterPrincipalAssignmentsClient.Delete")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -232,15 +227,15 @@ func (client DatabasePrincipalAssignmentsClient) Delete(ctx context.Context, res
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.DeletePreparer(ctx, resourceGroupName, clusterName, databaseName, principalAssignmentName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, clusterName, principalAssignmentName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -248,16 +243,15 @@ func (client DatabasePrincipalAssignmentsClient) Delete(ctx context.Context, res
 }
 
 // DeletePreparer prepares the Delete request.
-func (client DatabasePrincipalAssignmentsClient) DeletePreparer(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, principalAssignmentName string) (*http.Request, error) {
+func (client ClusterPrincipalAssignmentsClient) DeletePreparer(ctx context.Context, resourceGroupName string, clusterName string, principalAssignmentName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"clusterName":             autorest.Encode("path", clusterName),
-		"databaseName":            autorest.Encode("path", databaseName),
 		"principalAssignmentName": autorest.Encode("path", principalAssignmentName),
 		"resourceGroupName":       autorest.Encode("path", resourceGroupName),
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-27"
+	const APIVersion = "2022-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -265,14 +259,14 @@ func (client DatabasePrincipalAssignmentsClient) DeletePreparer(ctx context.Cont
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/databases/{databaseName}/principalAssignments/{principalAssignmentName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/principalAssignments/{principalAssignmentName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client DatabasePrincipalAssignmentsClient) DeleteSender(req *http.Request) (future DatabasePrincipalAssignmentsDeleteFuture, err error) {
+func (client ClusterPrincipalAssignmentsClient) DeleteSender(req *http.Request) (future ClusterPrincipalAssignmentsDeleteFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -288,7 +282,7 @@ func (client DatabasePrincipalAssignmentsClient) DeleteSender(req *http.Request)
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client DatabasePrincipalAssignmentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client ClusterPrincipalAssignmentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
@@ -297,15 +291,14 @@ func (client DatabasePrincipalAssignmentsClient) DeleteResponder(resp *http.Resp
 	return
 }
 
-// Get gets a Kusto cluster database principalAssignment.
+// Get gets a Kusto cluster principalAssignment.
 // Parameters:
 // resourceGroupName - the name of the resource group containing the Kusto cluster.
 // clusterName - the name of the Kusto cluster.
-// databaseName - the name of the database in the Kusto cluster.
 // principalAssignmentName - the name of the Kusto principalAssignment.
-func (client DatabasePrincipalAssignmentsClient) Get(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, principalAssignmentName string) (result DatabasePrincipalAssignment, err error) {
+func (client ClusterPrincipalAssignmentsClient) Get(ctx context.Context, resourceGroupName string, clusterName string, principalAssignmentName string) (result ClusterPrincipalAssignment, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasePrincipalAssignmentsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClusterPrincipalAssignmentsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -314,22 +307,22 @@ func (client DatabasePrincipalAssignmentsClient) Get(ctx context.Context, resour
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, resourceGroupName, clusterName, databaseName, principalAssignmentName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, clusterName, principalAssignmentName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -337,16 +330,15 @@ func (client DatabasePrincipalAssignmentsClient) Get(ctx context.Context, resour
 }
 
 // GetPreparer prepares the Get request.
-func (client DatabasePrincipalAssignmentsClient) GetPreparer(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, principalAssignmentName string) (*http.Request, error) {
+func (client ClusterPrincipalAssignmentsClient) GetPreparer(ctx context.Context, resourceGroupName string, clusterName string, principalAssignmentName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"clusterName":             autorest.Encode("path", clusterName),
-		"databaseName":            autorest.Encode("path", databaseName),
 		"principalAssignmentName": autorest.Encode("path", principalAssignmentName),
 		"resourceGroupName":       autorest.Encode("path", resourceGroupName),
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-27"
+	const APIVersion = "2022-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -354,20 +346,20 @@ func (client DatabasePrincipalAssignmentsClient) GetPreparer(ctx context.Context
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/databases/{databaseName}/principalAssignments/{principalAssignmentName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/principalAssignments/{principalAssignmentName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client DatabasePrincipalAssignmentsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client ClusterPrincipalAssignmentsClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client DatabasePrincipalAssignmentsClient) GetResponder(resp *http.Response) (result DatabasePrincipalAssignment, err error) {
+func (client ClusterPrincipalAssignmentsClient) GetResponder(resp *http.Response) (result ClusterPrincipalAssignment, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -377,14 +369,13 @@ func (client DatabasePrincipalAssignmentsClient) GetResponder(resp *http.Respons
 	return
 }
 
-// List lists all Kusto cluster database principalAssignments.
+// List lists all Kusto cluster principalAssignments.
 // Parameters:
 // resourceGroupName - the name of the resource group containing the Kusto cluster.
 // clusterName - the name of the Kusto cluster.
-// databaseName - the name of the database in the Kusto cluster.
-func (client DatabasePrincipalAssignmentsClient) List(ctx context.Context, resourceGroupName string, clusterName string, databaseName string) (result DatabasePrincipalAssignmentListResult, err error) {
+func (client ClusterPrincipalAssignmentsClient) List(ctx context.Context, resourceGroupName string, clusterName string) (result ClusterPrincipalAssignmentListResult, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasePrincipalAssignmentsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClusterPrincipalAssignmentsClient.List")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -393,22 +384,22 @@ func (client DatabasePrincipalAssignmentsClient) List(ctx context.Context, resou
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListPreparer(ctx, resourceGroupName, clusterName, databaseName)
+	req, err := client.ListPreparer(ctx, resourceGroupName, clusterName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DatabasePrincipalAssignmentsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "List", resp, "Failure responding to request")
 		return
 	}
 
@@ -416,15 +407,14 @@ func (client DatabasePrincipalAssignmentsClient) List(ctx context.Context, resou
 }
 
 // ListPreparer prepares the List request.
-func (client DatabasePrincipalAssignmentsClient) ListPreparer(ctx context.Context, resourceGroupName string, clusterName string, databaseName string) (*http.Request, error) {
+func (client ClusterPrincipalAssignmentsClient) ListPreparer(ctx context.Context, resourceGroupName string, clusterName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"clusterName":       autorest.Encode("path", clusterName),
-		"databaseName":      autorest.Encode("path", databaseName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-27"
+	const APIVersion = "2022-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -432,20 +422,20 @@ func (client DatabasePrincipalAssignmentsClient) ListPreparer(ctx context.Contex
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/databases/{databaseName}/principalAssignments", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/principalAssignments", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client DatabasePrincipalAssignmentsClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client ClusterPrincipalAssignmentsClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client DatabasePrincipalAssignmentsClient) ListResponder(resp *http.Response) (result DatabasePrincipalAssignmentListResult, err error) {
+func (client ClusterPrincipalAssignmentsClient) ListResponder(resp *http.Response) (result ClusterPrincipalAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
