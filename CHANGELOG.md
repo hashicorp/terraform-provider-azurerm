@@ -19,8 +19,8 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_mysql_flexible_server` - generate the correct terraform resource ID [GH-17301]
+* `azurerm_shared_image` - the `privacy_statement_uri`, `publisher`, `offer` and `sku` fields are now ForceNew [GH-17289]
 * `azurerm_shared_image_*` - Fix validation for `gallery_name` [GH-17201]
-
 
 ## 3.10.0 (June 09, 2022)
 
