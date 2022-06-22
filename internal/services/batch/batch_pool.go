@@ -44,7 +44,9 @@ func flattenBatchPoolFixedScaleSettings(settings *batch.FixedScaleSettings) []in
 
 	result := make(map[string]interface{})
 
-	result["node_deallocation_option"] = settings.NodeDeallocationOption
+	if settings.NodeDeallocationOption != "" {
+		result["node_deallocation_option"] = settings.NodeDeallocationOption
+	}
 
 	if settings.TargetDedicatedNodes != nil {
 		result["target_dedicated_nodes"] = *settings.TargetDedicatedNodes
@@ -817,8 +819,10 @@ func ExpandBatchPoolTaskSchedulingPolicy(d *pluginsdk.ResourceData) (*batch.Task
 
 	if taskSchedulingPolicyString, ok := d.GetOk("task_scheduling_policy"); ok {
 		taskSchedulingPolicy := taskSchedulingPolicyString.([]interface{})
-		item := taskSchedulingPolicy[0].(map[string]interface{})
-		result.NodeFillType = batch.ComputeNodeFillType(item["node_fill_type"].(string))
+		if taskSchedulingPolicy != nil && len(taskSchedulingPolicy) > 0 {
+			item := taskSchedulingPolicy[0].(map[string]interface{})
+			result.NodeFillType = batch.ComputeNodeFillType(item["node_fill_type"].(string))
+		}
 		return &result, nil
 	}
 	return nil, fmt.Errorf("task_scheduling_policy either is empty or contains parsing errors")
