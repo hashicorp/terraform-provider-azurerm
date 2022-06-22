@@ -1076,36 +1076,32 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	parameters.PoolProperties.ScaleSettings = scaleSettings
 
-	deploymentConfiguration, err := ExpandBatchPoolDeploymentConfiguration(d)
-	if err != nil {
-		if !features.FourPointOhBeta() {
-			nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
+	if !features.FourPointOhBeta() {
+		nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
 
-			storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
-			imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet)
-			if err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{}))
-			if err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
-				VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
-					NodeAgentSkuID:         &nodeAgentSkuID,
-					ImageReference:         imageReference,
-					ContainerConfiguration: containerConfiguration,
-				},
-			}
+		storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
+		imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet)
+		if err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
-		log.Printf(`[DEBUG] expanding "deployment_configuration": %v`, err)
-	} else {
-		parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
-	}
+		containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
 
+		parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
+			VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
+				NodeAgentSkuID:         &nodeAgentSkuID,
+				ImageReference:         imageReference,
+				ContainerConfiguration: containerConfiguration,
+			},
+		}
+	} else {
+		if deploymentConfiguration, deploymentErr := ExpandBatchPoolDeploymentConfiguration(d); deploymentErr == nil {
+			parameters.PoolProperties.DeploymentConfiguration = deploymentConfiguration
+		}
+	}
 	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
 	parameters.PoolProperties.MountConfiguration = mountConfiguration
 
