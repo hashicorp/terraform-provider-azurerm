@@ -224,6 +224,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/communication/2020-08-20/comm
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/notificationhubs
+github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard
+github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/managedapis
 # github.com/hashicorp/go-checkpoint v0.5.0
