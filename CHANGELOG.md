@@ -1,11 +1,26 @@
 ## 3.11.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source**: `azurerm_management_group_template_deployment` [GH-14524]
+* **New Data Source**: `azurerm_policy_assignment` [GH-16527]
+* **New Data Source**: `azurerm_resource_group_template_deployment` [GH-14524]
+* **New Data Source**: `azurerm_subscription_template_deployment` [GH-14524]
+* **New Data Source**: `azurerm_tenant_template_deployment` [GH-14524]
+
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20220622.1090000` of `github.com/hashicorp/go-azure-sdk` [GH-17339]
 * batch: updating to use API Version `2022-01-01` [GH-17219]
+* confidentialledger: updating to use API Version `2022-05-13` [GH-17146]
+* desktopvirtualization: refactoring to use `hashicorp/go-azure-sdk` [GH-17340]
+* Data Source: `azurerm_managed_disk` - exporting `disk_access_id` [GH-17270]
+* Data Source: `azurerm_managed_disk` - exporting `network_access_policy` [GH-17270]
 
 BUG FIXES:
 
+* Data Source: `azurerm_mysql_flexible_server` - generate the correct terraform resource ID [GH-17301]
+* `azurerm_shared_image` - the `privacy_statement_uri`, `publisher`, `offer` and `sku` fields are now ForceNew [GH-17289]
 * `azurerm_shared_image_*` - Fix validation for `gallery_name` [GH-17201]
 
 ## 3.10.0 (June 09, 2022)
@@ -16,7 +31,6 @@ FEATURES:
 * **New Resource**: `azurerm_capacity_reservation_group` ([#16464](https://github.com/hashicorp/terraform-provider-azurerm/issues/16464))
 * **New Resource**: `azurerm_capacity_reservation` ([#16464](https://github.com/hashicorp/terraform-provider-azurerm/issues/16464))
 * **New Resource**: `azurerm_cdn_frontdoor_rule_set` ([#17094](https://github.com/hashicorp/terraform-provider-azurerm/issues/17094))
-
 
 ENHANCEMENTS:
 

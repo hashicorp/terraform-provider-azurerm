@@ -28,7 +28,7 @@ resource "azurerm_application_insights" "example" {
 resource "azurerm_monitor_action_group" "example" {
   name                = "example-action-group"
   resource_group_name = azurerm_resource_group.example.name
-  short_name          = "exampleactiongroup"
+  short_name          = "example"
 }
 
 resource "azurerm_monitor_smart_detector_alert_rule" "example" {
@@ -40,7 +40,7 @@ resource "azurerm_monitor_smart_detector_alert_rule" "example" {
   detector_type       = "FailureAnomaliesDetector"
 
   action_group {
-    ids = [azurerm_monitor_action_group.test.id]
+    ids = [azurerm_monitor_action_group.example.id]
   }
 }
 ```
