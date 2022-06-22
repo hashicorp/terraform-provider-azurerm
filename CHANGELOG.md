@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * batch: updating to use API Version `2022-01-01` [GH-17219]
+* confidentialledger: updating to use API Version `2022-05-13` [GH-17146]
 
 BUG FIXES:
 
