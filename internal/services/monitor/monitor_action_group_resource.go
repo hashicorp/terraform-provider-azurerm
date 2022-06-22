@@ -800,17 +800,16 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId st
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
 
-		eventHubNameSpace, eventHubName := val["event_hub_namespace"].(string), val["event_hub_name"].(string)
+		eventHubNameSpace, eventHubName, subId := val["event_hub_namespace"].(string), val["event_hub_name"].(string), val["subscription_id"].(string)
 		if !features.FourPointOhBeta() {
-			if val["event_hub_id"].(string) != "" {
+			if eventHubNameSpace == "" && eventHubName == "" && subId == "" && val["event_hub_id"].(string) != "" {
 				eventHubId, err := eventHubParser.EventhubID(*utils.String(val["event_hub_id"].(string)))
 				if err != nil {
 					return nil, err
 				}
-				eventHubNameSpace, eventHubName = eventHubId.NamespaceName, eventHubId.Name
-			}
-			if eventHubNameSpace == "" || eventHubName == "" {
-				return nil, fmt.Errorf("in event_hub_receiver, either event_hub_id or (event_hub_namespace, event_hub_name) must be set")
+				eventHubNameSpace, eventHubName, subId = eventHubId.NamespaceName, eventHubId.Name, eventHubId.SubscriptionId
+			} else if val["event_hub_id"].(string) != "" || eventHubNameSpace == "" || eventHubName == "" {
+				return nil, fmt.Errorf("in event_hub_receiver, exactly one of event_hub_id or (event_hub_namespace, event_hub_name) must be set")
 			}
 		}
 
@@ -825,8 +824,8 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId st
 		} else {
 			receiver.TenantID = utils.String(tenantId)
 		}
-		if v := val["subscription_id"].(string); v != "" {
-			receiver.SubscriptionID = utils.String(v)
+		if subId != "" {
+			receiver.SubscriptionID = utils.String(subId)
 		} else {
 			receiver.SubscriptionID = utils.String(subscriptionId)
 		}

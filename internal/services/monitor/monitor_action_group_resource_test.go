@@ -245,7 +245,7 @@ func TestAccMonitorActionGroup_eventHubReceiver(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.eventHubReceiver(data),
+			Config: r.eventHubReceiver(data, !features.FourPointOhBeta()),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -377,7 +377,14 @@ func TestAccMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.eventHubReceiver(data),
+			Config: r.eventHubReceiver(data, !features.FourPointOhBeta()),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.eventHubReceiver(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -831,8 +838,8 @@ resource "azurerm_monitor_action_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (MonitorActionGroupResource) eventHubReceiver(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
+func (MonitorActionGroupResource) eventHubReceiver(data acceptance.TestData, notFourPointOhBeta bool) string {
+	if notFourPointOhBeta {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -911,7 +918,6 @@ resource "azurerm_monitor_action_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-
 }
 
 func (MonitorActionGroupResource) complete(data acceptance.TestData) string {
