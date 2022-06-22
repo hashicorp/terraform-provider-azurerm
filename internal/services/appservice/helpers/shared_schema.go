@@ -1553,6 +1553,7 @@ func StickySettingsSchema() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					AtLeastOneOf: []string{
 						"sticky_settings.0.app_setting_names",
@@ -1566,6 +1567,7 @@ func StickySettingsSchema() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					AtLeastOneOf: []string{
 						"sticky_settings.0.app_setting_names",

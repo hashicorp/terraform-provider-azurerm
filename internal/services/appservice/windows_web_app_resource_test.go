@@ -920,9 +920,9 @@ func TestAccWindowsWebApp_stickySettings(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
-				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
@@ -949,9 +949,9 @@ func TestAccWindowsWebApp_stickySettingsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
-				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
@@ -973,9 +973,9 @@ func TestAccWindowsWebApp_stickySettingsUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
-				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
 		},
@@ -2460,9 +2460,10 @@ resource "azurerm_windows_web_app" "test" {
   site_config {}
 
   app_settings = {
-    foo    = "bar"
-    secret = "sauce"
-    third  = "degree"
+    foo                                     = "bar"
+    secret                                  = "sauce"
+    third                                   = "degree"
+    "Special chars: !@#$%%^&*()_+-=' \";/?" = "Supported by the Azure portal"
   }
 
   connection_string {
@@ -2483,9 +2484,15 @@ resource "azurerm_windows_web_app" "test" {
     type  = "PostgreSQL"
   }
 
+  connection_string {
+    name  = "Special chars: !@#$%%^&*()_+-=' \";/?"
+    value = "characters-supported-by-the-Azure-portal"
+    type  = "Custom"
+  }
+
   sticky_settings {
-    app_setting_names       = ["foo", "secret"]
-    connection_string_names = ["First", "Third"]
+    app_setting_names       = ["foo", "secret", "Special chars: !@#$%%^&*()_+-=' \";/?"]
+    connection_string_names = ["First", "Third", "Special chars: !@#$%%^&*()_+-=' \";/?"]
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)
