@@ -1,7 +1,6 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2021-09-03-preview/desktopvirtualization"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/application"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/applicationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/desktop"
@@ -17,12 +16,9 @@ type Client struct {
 	ApplicationsClient      *application.ApplicationClient
 	DesktopsClient          *desktop.DesktopClient
 	HostPoolsClient         *hostpool.HostPoolClient
-
-	OperationsClient *desktopvirtualization.OperationsClient
-
-	SessionHostsClient *sessionhost.SessionHostClient
-	ScalingPlansClient *scalingplan.ScalingPlanClient
-	WorkspacesClient   *workspace.WorkspaceClient
+	SessionHostsClient      *sessionhost.SessionHostClient
+	ScalingPlansClient      *scalingplan.ScalingPlanClient
+	WorkspacesClient        *workspace.WorkspaceClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -38,9 +34,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	hostPoolsClient := hostpool.NewHostPoolClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&hostPoolsClient.Client, o.ResourceManagerAuthorizer)
 
-	operationsClient := desktopvirtualization.NewOperationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&operationsClient.Client, o.ResourceManagerAuthorizer)
-
 	sessionHostsClient := sessionhost.NewSessionHostClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&sessionHostsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -55,7 +48,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		ApplicationsClient:      &applicationsClient,
 		DesktopsClient:          &desktopsClient,
 		HostPoolsClient:         &hostPoolsClient,
-		OperationsClient:        &operationsClient,
 		SessionHostsClient:      &sessionHostsClient,
 		ScalingPlansClient:      &scalingPlansClient,
 		WorkspacesClient:        &workspacesClient,
