@@ -81,18 +81,18 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *plugins
 	locks.ByName(applicationGroupId.ApplicationGroupName, applicationGroupType)
 	defer locks.UnlockByName(applicationGroupId.ApplicationGroupName, applicationGroupType)
 
-	workspace, err := client.Get(ctx, *workspaceId)
+	existing, err := client.Get(ctx, *workspaceId)
 	if err != nil {
-		if response.WasNotFound(workspace.HttpResponse) {
+		if response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("%s was not found", *workspaceId)
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", *workspaceId, err)
 	}
-	if workspace.Model == nil {
+	if existing.Model == nil {
 		return fmt.Errorf("retrieving %s: model was nil", *workspaceId)
 	}
-	model := *workspace.Model
+	model := *existing.Model
 
 	applicationGroupAssociations := []string{}
 	if props := model.Properties; props != nil && props.ApplicationGroupReferences != nil {
@@ -105,9 +105,12 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *plugins
 	}
 	applicationGroupAssociations = append(applicationGroupAssociations, applicationGroupIdStr)
 
-	model.Properties.ApplicationGroupReferences = &applicationGroupAssociations
-
-	if _, err = client.CreateOrUpdate(ctx, *workspaceId, model); err != nil {
+	payload := workspace.WorkspacePatch{
+		Properties: &workspace.WorkspacePatchProperties{
+			ApplicationGroupReferences: &applicationGroupAssociations,
+		},
+	}
+	if _, err = client.Update(ctx, *workspaceId, payload); err != nil {
 		return fmt.Errorf("creating association between %s and %s: %+v", *workspaceId, *applicationGroupId, err)
 	}
 
@@ -168,18 +171,18 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *plugins
 	locks.ByName(id.ApplicationGroup.ApplicationGroupName, applicationGroupType)
 	defer locks.UnlockByName(id.ApplicationGroup.ApplicationGroupName, applicationGroupType)
 
-	workspace, err := client.Get(ctx, id.Workspace)
+	existing, err := client.Get(ctx, id.Workspace)
 	if err != nil {
-		if response.WasNotFound(workspace.HttpResponse) {
+		if response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("%s was not found", id.Workspace)
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", id.Workspace, err)
 	}
-	if workspace.Model == nil {
+	if existing.Model == nil {
 		return fmt.Errorf("retrieving %s: model was nil", id.Workspace)
 	}
-	model := *workspace.Model
+	model := *existing.Model
 
 	applicationGroupReferences := []string{}
 	applicationGroupId := id.ApplicationGroup.ID()
@@ -193,9 +196,12 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *plugins
 		}
 	}
 
-	model.Properties.ApplicationGroupReferences = &applicationGroupReferences
-
-	if _, err = client.CreateOrUpdate(ctx, id.Workspace, model); err != nil {
+	payload := workspace.WorkspacePatch{
+		Properties: &workspace.WorkspacePatchProperties{
+			ApplicationGroupReferences: &applicationGroupReferences,
+		},
+	}
+	if _, err = client.Update(ctx, id.Workspace, payload); err != nil {
 		return fmt.Errorf("removing association between %s and %s: %+v", id.Workspace, id.ApplicationGroup, err)
 	}
 
