@@ -33,7 +33,7 @@ func NewAgentPoolsClientWithBaseURI(baseURI string, subscriptionID string) Agent
 
 // CreateOrUpdate sends the create or update request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // agentPoolName - the name of the agent pool.
 // parameters - the agent pool to create or update.
@@ -49,8 +49,11 @@ func (client AgentPoolsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -89,7 +92,7 @@ func (client AgentPoolsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -134,10 +137,12 @@ func (client AgentPoolsClient) CreateOrUpdateResponder(resp *http.Response) (res
 
 // Delete sends the delete request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // agentPoolName - the name of the agent pool.
-func (client AgentPoolsClient) Delete(ctx context.Context, resourceGroupName string, resourceName string, agentPoolName string) (result AgentPoolsDeleteFuture, err error) {
+// ignorePodDisruptionBudget - ignore-pod-disruption-budget=true to delete those pods on a node without
+// considering Pod Disruption Budget
+func (client AgentPoolsClient) Delete(ctx context.Context, resourceGroupName string, resourceName string, agentPoolName string, ignorePodDisruptionBudget *bool) (result AgentPoolsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AgentPoolsClient.Delete")
 		defer func() {
@@ -149,8 +154,11 @@ func (client AgentPoolsClient) Delete(ctx context.Context, resourceGroupName str
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -158,7 +166,7 @@ func (client AgentPoolsClient) Delete(ctx context.Context, resourceGroupName str
 		return result, validation.NewError("containerservice.AgentPoolsClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceName, agentPoolName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceName, agentPoolName, ignorePodDisruptionBudget)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "Delete", nil, "Failure preparing request")
 		return
@@ -174,7 +182,7 @@ func (client AgentPoolsClient) Delete(ctx context.Context, resourceGroupName str
 }
 
 // DeletePreparer prepares the Delete request.
-func (client AgentPoolsClient) DeletePreparer(ctx context.Context, resourceGroupName string, resourceName string, agentPoolName string) (*http.Request, error) {
+func (client AgentPoolsClient) DeletePreparer(ctx context.Context, resourceGroupName string, resourceName string, agentPoolName string, ignorePodDisruptionBudget *bool) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"agentPoolName":     autorest.Encode("path", agentPoolName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -182,9 +190,12 @@ func (client AgentPoolsClient) DeletePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if ignorePodDisruptionBudget != nil {
+		queryParameters["ignore-pod-disruption-budget"] = autorest.Encode("query", *ignorePodDisruptionBudget)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -224,7 +235,7 @@ func (client AgentPoolsClient) DeleteResponder(resp *http.Response) (result auto
 
 // Get sends the get request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // agentPoolName - the name of the agent pool.
 func (client AgentPoolsClient) Get(ctx context.Context, resourceGroupName string, resourceName string, agentPoolName string) (result AgentPool, err error) {
@@ -239,8 +250,11 @@ func (client AgentPoolsClient) Get(ctx context.Context, resourceGroupName string
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -279,7 +293,7 @@ func (client AgentPoolsClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -314,7 +328,7 @@ func (client AgentPoolsClient) GetResponder(resp *http.Response) (result AgentPo
 // versions](https://docs.microsoft.com/azure/aks/supported-kubernetes-versions) for more details about the version
 // lifecycle.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 func (client AgentPoolsClient) GetAvailableAgentPoolVersions(ctx context.Context, resourceGroupName string, resourceName string) (result AgentPoolAvailableVersions, err error) {
 	if tracing.IsEnabled() {
@@ -328,8 +342,11 @@ func (client AgentPoolsClient) GetAvailableAgentPoolVersions(ctx context.Context
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -367,7 +384,7 @@ func (client AgentPoolsClient) GetAvailableAgentPoolVersionsPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -400,7 +417,7 @@ func (client AgentPoolsClient) GetAvailableAgentPoolVersionsResponder(resp *http
 
 // GetUpgradeProfile sends the get upgrade profile request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // agentPoolName - the name of the agent pool.
 func (client AgentPoolsClient) GetUpgradeProfile(ctx context.Context, resourceGroupName string, resourceName string, agentPoolName string) (result AgentPoolUpgradeProfile, err error) {
@@ -415,8 +432,11 @@ func (client AgentPoolsClient) GetUpgradeProfile(ctx context.Context, resourceGr
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -455,7 +475,7 @@ func (client AgentPoolsClient) GetUpgradeProfilePreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -488,7 +508,7 @@ func (client AgentPoolsClient) GetUpgradeProfileResponder(resp *http.Response) (
 
 // List sends the list request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 func (client AgentPoolsClient) List(ctx context.Context, resourceGroupName string, resourceName string) (result AgentPoolListResultPage, err error) {
 	if tracing.IsEnabled() {
@@ -502,8 +522,11 @@ func (client AgentPoolsClient) List(ctx context.Context, resourceGroupName strin
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -546,7 +569,7 @@ func (client AgentPoolsClient) ListPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -618,7 +641,7 @@ func (client AgentPoolsClient) ListComplete(ctx context.Context, resourceGroupNa
 // to the nodes. AKS provides one new image per week with the latest updates. For more details on node image versions,
 // see: https://docs.microsoft.com/azure/aks/node-image-upgrade
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // agentPoolName - the name of the agent pool.
 func (client AgentPoolsClient) UpgradeNodeImageVersion(ctx context.Context, resourceGroupName string, resourceName string, agentPoolName string) (result AgentPoolsUpgradeNodeImageVersionFuture, err error) {
@@ -633,8 +656,11 @@ func (client AgentPoolsClient) UpgradeNodeImageVersion(ctx context.Context, reso
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -666,7 +692,7 @@ func (client AgentPoolsClient) UpgradeNodeImageVersionPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

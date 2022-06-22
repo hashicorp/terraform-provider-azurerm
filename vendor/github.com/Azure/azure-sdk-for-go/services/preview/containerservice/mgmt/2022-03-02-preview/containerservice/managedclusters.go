@@ -33,7 +33,7 @@ func NewManagedClustersClientWithBaseURI(baseURI string, subscriptionID string) 
 
 // CreateOrUpdate sends the create or update request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // parameters - the managed cluster to create or update.
 func (client ManagedClustersClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, resourceName string, parameters ManagedCluster) (result ManagedClustersCreateOrUpdateFuture, err error) {
@@ -48,8 +48,11 @@ func (client ManagedClustersClient) CreateOrUpdate(ctx context.Context, resource
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -135,7 +138,7 @@ func (client ManagedClustersClient) CreateOrUpdatePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -180,9 +183,11 @@ func (client ManagedClustersClient) CreateOrUpdateResponder(resp *http.Response)
 
 // Delete sends the delete request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
-func (client ManagedClustersClient) Delete(ctx context.Context, resourceGroupName string, resourceName string) (result ManagedClustersDeleteFuture, err error) {
+// ignorePodDisruptionBudget - ignore-pod-disruption-budget=true to delete those pods on a node without
+// considering Pod Disruption Budget
+func (client ManagedClustersClient) Delete(ctx context.Context, resourceGroupName string, resourceName string, ignorePodDisruptionBudget *bool) (result ManagedClustersDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.Delete")
 		defer func() {
@@ -194,8 +199,11 @@ func (client ManagedClustersClient) Delete(ctx context.Context, resourceGroupNam
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -203,7 +211,7 @@ func (client ManagedClustersClient) Delete(ctx context.Context, resourceGroupNam
 		return result, validation.NewError("containerservice.ManagedClustersClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceName, ignorePodDisruptionBudget)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "Delete", nil, "Failure preparing request")
 		return
@@ -219,16 +227,19 @@ func (client ManagedClustersClient) Delete(ctx context.Context, resourceGroupNam
 }
 
 // DeletePreparer prepares the Delete request.
-func (client ManagedClustersClient) DeletePreparer(ctx context.Context, resourceGroupName string, resourceName string) (*http.Request, error) {
+func (client ManagedClustersClient) DeletePreparer(ctx context.Context, resourceGroupName string, resourceName string, ignorePodDisruptionBudget *bool) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"resourceName":      autorest.Encode("path", resourceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if ignorePodDisruptionBudget != nil {
+		queryParameters["ignore-pod-disruption-budget"] = autorest.Encode("query", *ignorePodDisruptionBudget)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -268,7 +279,7 @@ func (client ManagedClustersClient) DeleteResponder(resp *http.Response) (result
 
 // Get sends the get request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 func (client ManagedClustersClient) Get(ctx context.Context, resourceGroupName string, resourceName string) (result ManagedCluster, err error) {
 	if tracing.IsEnabled() {
@@ -282,8 +293,11 @@ func (client ManagedClustersClient) Get(ctx context.Context, resourceGroupName s
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -321,7 +335,7 @@ func (client ManagedClustersClient) GetPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -356,7 +370,7 @@ func (client ManagedClustersClient) GetResponder(resp *http.Response) (result Ma
 // [ListClusterUserCredentials](https://docs.microsoft.com/rest/api/aks/managedclusters/listclusterusercredentials) or
 // [ListClusterAdminCredentials](https://docs.microsoft.com/rest/api/aks/managedclusters/listclusteradmincredentials) .
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // roleName - the name of the role for managed cluster accessProfile resource.
 func (client ManagedClustersClient) GetAccessProfile(ctx context.Context, resourceGroupName string, resourceName string, roleName string) (result ManagedClusterAccessProfile, err error) {
@@ -371,8 +385,11 @@ func (client ManagedClustersClient) GetAccessProfile(ctx context.Context, resour
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -411,7 +428,7 @@ func (client ManagedClustersClient) GetAccessProfilePreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -444,7 +461,7 @@ func (client ManagedClustersClient) GetAccessProfileResponder(resp *http.Respons
 
 // GetCommandResult sends the get command result request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // commandID - id of the command.
 func (client ManagedClustersClient) GetCommandResult(ctx context.Context, resourceGroupName string, resourceName string, commandID string) (result RunCommandResult, err error) {
@@ -459,8 +476,11 @@ func (client ManagedClustersClient) GetCommandResult(ctx context.Context, resour
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -499,7 +519,7 @@ func (client ManagedClustersClient) GetCommandResultPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -532,7 +552,7 @@ func (client ManagedClustersClient) GetCommandResultResponder(resp *http.Respons
 
 // GetOSOptions sends the get os options request.
 // Parameters:
-// location - the name of a supported Azure region.
+// location - the name of Azure region.
 // resourceType - the resource type for which the OS options needs to be returned
 func (client ManagedClustersClient) GetOSOptions(ctx context.Context, location string, resourceType string) (result OSOptionProfile, err error) {
 	if tracing.IsEnabled() {
@@ -545,6 +565,14 @@ func (client ManagedClustersClient) GetOSOptions(ctx context.Context, location s
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: location,
+			Constraints: []validation.Constraint{{Target: "location", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("containerservice.ManagedClustersClient", "GetOSOptions", err.Error())
+	}
+
 	req, err := client.GetOSOptionsPreparer(ctx, location, resourceType)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "GetOSOptions", nil, "Failure preparing request")
@@ -574,7 +602,7 @@ func (client ManagedClustersClient) GetOSOptionsPreparer(ctx context.Context, lo
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -610,7 +638,7 @@ func (client ManagedClustersClient) GetOSOptionsResponder(resp *http.Response) (
 
 // GetUpgradeProfile sends the get upgrade profile request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 func (client ManagedClustersClient) GetUpgradeProfile(ctx context.Context, resourceGroupName string, resourceName string) (result ManagedClusterUpgradeProfile, err error) {
 	if tracing.IsEnabled() {
@@ -624,8 +652,11 @@ func (client ManagedClustersClient) GetUpgradeProfile(ctx context.Context, resou
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -663,7 +694,7 @@ func (client ManagedClustersClient) GetUpgradeProfilePreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -706,6 +737,12 @@ func (client ManagedClustersClient) List(ctx context.Context) (result ManagedClu
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("containerservice.ManagedClustersClient", "List", err.Error())
+	}
+
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
@@ -739,7 +776,7 @@ func (client ManagedClustersClient) ListPreparer(ctx context.Context) (*http.Req
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -809,7 +846,7 @@ func (client ManagedClustersClient) ListComplete(ctx context.Context) (result Ma
 
 // ListByResourceGroup sends the list by resource group request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 func (client ManagedClustersClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result ManagedClusterListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.ListByResourceGroup")
@@ -822,8 +859,11 @@ func (client ManagedClustersClient) ListByResourceGroup(ctx context.Context, res
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("containerservice.ManagedClustersClient", "ListByResourceGroup", err.Error())
 	}
 
@@ -861,7 +901,7 @@ func (client ManagedClustersClient) ListByResourceGroupPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -931,13 +971,10 @@ func (client ManagedClustersClient) ListByResourceGroupComplete(ctx context.Cont
 
 // ListClusterAdminCredentials sends the list cluster admin credentials request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // serverFqdn - server fqdn type for credentials to be returned
-// formatParameter - only apply to AAD clusters, specifies the format of returned kubeconfig. Format 'azure'
-// will return azure auth-provider kubeconfig; format 'exec' will return exec format kubeconfig, which requires
-// kubelogin binary in the path.
-func (client ManagedClustersClient) ListClusterAdminCredentials(ctx context.Context, resourceGroupName string, resourceName string, serverFqdn string, formatParameter Format) (result CredentialResults, err error) {
+func (client ManagedClustersClient) ListClusterAdminCredentials(ctx context.Context, resourceGroupName string, resourceName string, serverFqdn string) (result CredentialResults, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.ListClusterAdminCredentials")
 		defer func() {
@@ -949,8 +986,11 @@ func (client ManagedClustersClient) ListClusterAdminCredentials(ctx context.Cont
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -958,7 +998,7 @@ func (client ManagedClustersClient) ListClusterAdminCredentials(ctx context.Cont
 		return result, validation.NewError("containerservice.ManagedClustersClient", "ListClusterAdminCredentials", err.Error())
 	}
 
-	req, err := client.ListClusterAdminCredentialsPreparer(ctx, resourceGroupName, resourceName, serverFqdn, formatParameter)
+	req, err := client.ListClusterAdminCredentialsPreparer(ctx, resourceGroupName, resourceName, serverFqdn)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "ListClusterAdminCredentials", nil, "Failure preparing request")
 		return
@@ -981,22 +1021,19 @@ func (client ManagedClustersClient) ListClusterAdminCredentials(ctx context.Cont
 }
 
 // ListClusterAdminCredentialsPreparer prepares the ListClusterAdminCredentials request.
-func (client ManagedClustersClient) ListClusterAdminCredentialsPreparer(ctx context.Context, resourceGroupName string, resourceName string, serverFqdn string, formatParameter Format) (*http.Request, error) {
+func (client ManagedClustersClient) ListClusterAdminCredentialsPreparer(ctx context.Context, resourceGroupName string, resourceName string, serverFqdn string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"resourceName":      autorest.Encode("path", resourceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 	if len(serverFqdn) > 0 {
 		queryParameters["server-fqdn"] = autorest.Encode("query", serverFqdn)
-	}
-	if len(string(formatParameter)) > 0 {
-		queryParameters["format"] = autorest.Encode("query", formatParameter)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -1027,7 +1064,7 @@ func (client ManagedClustersClient) ListClusterAdminCredentialsResponder(resp *h
 
 // ListClusterMonitoringUserCredentials sends the list cluster monitoring user credentials request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // serverFqdn - server fqdn type for credentials to be returned
 func (client ManagedClustersClient) ListClusterMonitoringUserCredentials(ctx context.Context, resourceGroupName string, resourceName string, serverFqdn string) (result CredentialResults, err error) {
@@ -1042,8 +1079,11 @@ func (client ManagedClustersClient) ListClusterMonitoringUserCredentials(ctx con
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1081,7 +1121,7 @@ func (client ManagedClustersClient) ListClusterMonitoringUserCredentialsPreparer
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1117,10 +1157,13 @@ func (client ManagedClustersClient) ListClusterMonitoringUserCredentialsResponde
 
 // ListClusterUserCredentials sends the list cluster user credentials request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // serverFqdn - server fqdn type for credentials to be returned
-func (client ManagedClustersClient) ListClusterUserCredentials(ctx context.Context, resourceGroupName string, resourceName string, serverFqdn string) (result CredentialResults, err error) {
+// formatParameter - only apply to AAD clusters, specifies the format of returned kubeconfig. Format 'azure'
+// will return azure auth-provider kubeconfig; format 'exec' will return exec format kubeconfig, which requires
+// kubelogin binary in the path.
+func (client ManagedClustersClient) ListClusterUserCredentials(ctx context.Context, resourceGroupName string, resourceName string, serverFqdn string, formatParameter Format) (result CredentialResults, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.ListClusterUserCredentials")
 		defer func() {
@@ -1132,8 +1175,11 @@ func (client ManagedClustersClient) ListClusterUserCredentials(ctx context.Conte
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1141,7 +1187,7 @@ func (client ManagedClustersClient) ListClusterUserCredentials(ctx context.Conte
 		return result, validation.NewError("containerservice.ManagedClustersClient", "ListClusterUserCredentials", err.Error())
 	}
 
-	req, err := client.ListClusterUserCredentialsPreparer(ctx, resourceGroupName, resourceName, serverFqdn)
+	req, err := client.ListClusterUserCredentialsPreparer(ctx, resourceGroupName, resourceName, serverFqdn, formatParameter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "ListClusterUserCredentials", nil, "Failure preparing request")
 		return
@@ -1164,19 +1210,22 @@ func (client ManagedClustersClient) ListClusterUserCredentials(ctx context.Conte
 }
 
 // ListClusterUserCredentialsPreparer prepares the ListClusterUserCredentials request.
-func (client ManagedClustersClient) ListClusterUserCredentialsPreparer(ctx context.Context, resourceGroupName string, resourceName string, serverFqdn string) (*http.Request, error) {
+func (client ManagedClustersClient) ListClusterUserCredentialsPreparer(ctx context.Context, resourceGroupName string, resourceName string, serverFqdn string, formatParameter Format) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"resourceName":      autorest.Encode("path", resourceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 	if len(serverFqdn) > 0 {
 		queryParameters["server-fqdn"] = autorest.Encode("query", serverFqdn)
+	}
+	if len(string(formatParameter)) > 0 {
+		queryParameters["format"] = autorest.Encode("query", formatParameter)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -1208,7 +1257,7 @@ func (client ManagedClustersClient) ListClusterUserCredentialsResponder(resp *ht
 // ListOutboundNetworkDependenciesEndpoints gets a list of egress endpoints (network endpoints of all outbound
 // dependencies) in the specified managed cluster. The operation returns properties of each egress endpoint.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 func (client ManagedClustersClient) ListOutboundNetworkDependenciesEndpoints(ctx context.Context, resourceGroupName string, resourceName string) (result OutboundEnvironmentEndpointCollectionPage, err error) {
 	if tracing.IsEnabled() {
@@ -1222,8 +1271,11 @@ func (client ManagedClustersClient) ListOutboundNetworkDependenciesEndpoints(ctx
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1266,7 +1318,7 @@ func (client ManagedClustersClient) ListOutboundNetworkDependenciesEndpointsPrep
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1336,7 +1388,7 @@ func (client ManagedClustersClient) ListOutboundNetworkDependenciesEndpointsComp
 
 // ResetAADProfile sends the reset aad profile request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // parameters - the AAD profile to set on the Managed Cluster
 func (client ManagedClustersClient) ResetAADProfile(ctx context.Context, resourceGroupName string, resourceName string, parameters ManagedClusterAADProfile) (result ManagedClustersResetAADProfileFuture, err error) {
@@ -1351,8 +1403,11 @@ func (client ManagedClustersClient) ResetAADProfile(ctx context.Context, resourc
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1383,7 +1438,7 @@ func (client ManagedClustersClient) ResetAADProfilePreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1427,7 +1482,7 @@ func (client ManagedClustersClient) ResetAADProfileResponder(resp *http.Response
 
 // ResetServicePrincipalProfile this action cannot be performed on a cluster that is not using a service principal
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // parameters - the service principal profile to set on the managed cluster.
 func (client ManagedClustersClient) ResetServicePrincipalProfile(ctx context.Context, resourceGroupName string, resourceName string, parameters ManagedClusterServicePrincipalProfile) (result ManagedClustersResetServicePrincipalProfileFuture, err error) {
@@ -1442,8 +1497,11 @@ func (client ManagedClustersClient) ResetServicePrincipalProfile(ctx context.Con
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1476,7 +1534,7 @@ func (client ManagedClustersClient) ResetServicePrincipalProfilePreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1521,7 +1579,7 @@ func (client ManagedClustersClient) ResetServicePrincipalProfileResponder(resp *
 // RotateClusterCertificates see [Certificate rotation](https://docs.microsoft.com/azure/aks/certificate-rotation) for
 // more details about rotating managed cluster certificates.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 func (client ManagedClustersClient) RotateClusterCertificates(ctx context.Context, resourceGroupName string, resourceName string) (result ManagedClustersRotateClusterCertificatesFuture, err error) {
 	if tracing.IsEnabled() {
@@ -1535,8 +1593,11 @@ func (client ManagedClustersClient) RotateClusterCertificates(ctx context.Contex
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1567,7 +1628,7 @@ func (client ManagedClustersClient) RotateClusterCertificatesPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1607,10 +1668,101 @@ func (client ManagedClustersClient) RotateClusterCertificatesResponder(resp *htt
 	return
 }
 
+// RotateServiceAccountSigningKeys sends the rotate service account signing keys request.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceName - the name of the managed cluster resource.
+func (client ManagedClustersClient) RotateServiceAccountSigningKeys(ctx context.Context, resourceGroupName string, resourceName string) (result ManagedClustersRotateServiceAccountSigningKeysFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.RotateServiceAccountSigningKeys")
+		defer func() {
+			sc := -1
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceName,
+			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("containerservice.ManagedClustersClient", "RotateServiceAccountSigningKeys", err.Error())
+	}
+
+	req, err := client.RotateServiceAccountSigningKeysPreparer(ctx, resourceGroupName, resourceName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "RotateServiceAccountSigningKeys", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.RotateServiceAccountSigningKeysSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "RotateServiceAccountSigningKeys", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// RotateServiceAccountSigningKeysPreparer prepares the RotateServiceAccountSigningKeys request.
+func (client ManagedClustersClient) RotateServiceAccountSigningKeysPreparer(ctx context.Context, resourceGroupName string, resourceName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"resourceName":      autorest.Encode("path", resourceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2022-03-02-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}/rotateServiceAccountSigningKeys", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RotateServiceAccountSigningKeysSender sends the RotateServiceAccountSigningKeys request. The method will close the
+// http.Response Body if it receives an error.
+func (client ManagedClustersClient) RotateServiceAccountSigningKeysSender(req *http.Request) (future ManagedClustersRotateServiceAccountSigningKeysFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
+}
+
+// RotateServiceAccountSigningKeysResponder handles the response to the RotateServiceAccountSigningKeys request. The method always
+// closes the http.Response Body.
+func (client ManagedClustersClient) RotateServiceAccountSigningKeysResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // RunCommand AKS will create a pod to run the command. This is primarily useful for private clusters. For more
 // information see [AKS Run Command](https://docs.microsoft.com/azure/aks/private-clusters#aks-run-command-preview).
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // requestPayload - the run command request
 func (client ManagedClustersClient) RunCommand(ctx context.Context, resourceGroupName string, resourceName string, requestPayload RunCommandRequest) (result ManagedClustersRunCommandFuture, err error) {
@@ -1625,8 +1777,11 @@ func (client ManagedClustersClient) RunCommand(ctx context.Context, resourceGrou
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1659,7 +1814,7 @@ func (client ManagedClustersClient) RunCommandPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1705,7 +1860,7 @@ func (client ManagedClustersClient) RunCommandResponder(resp *http.Response) (re
 // Start see [starting a cluster](https://docs.microsoft.com/azure/aks/start-stop-cluster) for more details about
 // starting a cluster.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 func (client ManagedClustersClient) Start(ctx context.Context, resourceGroupName string, resourceName string) (result ManagedClustersStartFuture, err error) {
 	if tracing.IsEnabled() {
@@ -1719,8 +1874,11 @@ func (client ManagedClustersClient) Start(ctx context.Context, resourceGroupName
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1751,7 +1909,7 @@ func (client ManagedClustersClient) StartPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1796,7 +1954,7 @@ func (client ManagedClustersClient) StartResponder(resp *http.Response) (result 
 // charges while it is stopped. See [stopping a cluster](https://docs.microsoft.com/azure/aks/start-stop-cluster) for
 // more details about stopping a cluster.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 func (client ManagedClustersClient) Stop(ctx context.Context, resourceGroupName string, resourceName string) (result ManagedClustersStopFuture, err error) {
 	if tracing.IsEnabled() {
@@ -1810,8 +1968,11 @@ func (client ManagedClustersClient) Stop(ctx context.Context, resourceGroupName 
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1842,7 +2003,7 @@ func (client ManagedClustersClient) StopPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1884,7 +2045,7 @@ func (client ManagedClustersClient) StopResponder(resp *http.Response) (result a
 
 // UpdateTags sends the update tags request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // parameters - parameters supplied to the Update Managed Cluster Tags operation.
 func (client ManagedClustersClient) UpdateTags(ctx context.Context, resourceGroupName string, resourceName string, parameters TagsObject) (result ManagedClustersUpdateTagsFuture, err error) {
@@ -1899,8 +2060,11 @@ func (client ManagedClustersClient) UpdateTags(ctx context.Context, resourceGrou
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1931,7 +2095,7 @@ func (client ManagedClustersClient) UpdateTagsPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

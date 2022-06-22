@@ -34,7 +34,7 @@ func NewMaintenanceConfigurationsClientWithBaseURI(baseURI string, subscriptionI
 
 // CreateOrUpdate sends the create or update request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // configName - the name of the maintenance configuration.
 // parameters - the maintenance configuration to create or update.
@@ -50,8 +50,11 @@ func (client MaintenanceConfigurationsClient) CreateOrUpdate(ctx context.Context
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -90,7 +93,7 @@ func (client MaintenanceConfigurationsClient) CreateOrUpdatePreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -126,7 +129,7 @@ func (client MaintenanceConfigurationsClient) CreateOrUpdateResponder(resp *http
 
 // Delete sends the delete request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // configName - the name of the maintenance configuration.
 func (client MaintenanceConfigurationsClient) Delete(ctx context.Context, resourceGroupName string, resourceName string, configName string) (result autorest.Response, err error) {
@@ -141,8 +144,11 @@ func (client MaintenanceConfigurationsClient) Delete(ctx context.Context, resour
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -181,7 +187,7 @@ func (client MaintenanceConfigurationsClient) DeletePreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -213,7 +219,7 @@ func (client MaintenanceConfigurationsClient) DeleteResponder(resp *http.Respons
 
 // Get sends the get request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 // configName - the name of the maintenance configuration.
 func (client MaintenanceConfigurationsClient) Get(ctx context.Context, resourceGroupName string, resourceName string, configName string) (result MaintenanceConfiguration, err error) {
@@ -228,8 +234,11 @@ func (client MaintenanceConfigurationsClient) Get(ctx context.Context, resourceG
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -268,7 +277,7 @@ func (client MaintenanceConfigurationsClient) GetPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -301,7 +310,7 @@ func (client MaintenanceConfigurationsClient) GetResponder(resp *http.Response) 
 
 // ListByManagedCluster sends the list by managed cluster request.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the managed cluster resource.
 func (client MaintenanceConfigurationsClient) ListByManagedCluster(ctx context.Context, resourceGroupName string, resourceName string) (result MaintenanceConfigurationListResultPage, err error) {
 	if tracing.IsEnabled() {
@@ -315,8 +324,11 @@ func (client MaintenanceConfigurationsClient) ListByManagedCluster(ctx context.C
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -359,7 +371,7 @@ func (client MaintenanceConfigurationsClient) ListByManagedClusterPreparer(ctx c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-01-02-preview"
+	const APIVersion = "2022-03-02-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
