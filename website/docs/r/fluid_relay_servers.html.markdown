@@ -1,5 +1,5 @@
 ---
-subcategory: "Fluid Relay Service"
+subcategory: "Fluid Relay"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_fluid_relay_server"
 description: |-
