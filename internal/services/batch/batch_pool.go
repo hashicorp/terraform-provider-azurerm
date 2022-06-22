@@ -64,12 +64,12 @@ func flattenBatchPoolFixedScaleSettings(settings *batch.FixedScaleSettings) []in
 }
 
 func flattenBatchPoolUserAccount(account *batch.UserAccount) map[string]interface{} {
-	userAccount := make(map[string]interface{}, 5)
+	userAccount := make(map[string]interface{})
 	userAccount["name"] = *account.Name
 	userAccount["password"] = *account.Password
 	userAccount["elevation_level"] = string(account.ElevationLevel)
 	if account.LinuxUserConfiguration != nil {
-		linuxUserConfig := make(map[string]interface{}, 1)
+		linuxUserConfig := make(map[string]interface{})
 		if account.LinuxUserConfiguration.UID != nil {
 			linuxUserConfig["uid"] = *account.LinuxUserConfiguration.UID
 			linuxUserConfig["gid"] = *account.LinuxUserConfiguration.Gid
@@ -80,7 +80,7 @@ func flattenBatchPoolUserAccount(account *batch.UserAccount) map[string]interfac
 		userAccount["linux_user_configuration"] = linuxUserConfig
 	}
 	if account.WindowsUserConfiguration != nil {
-		loginMode := make(map[string]interface{}, 1)
+		loginMode := make(map[string]interface{})
 		loginMode["login_mode"] = string(account.WindowsUserConfiguration.LoginMode)
 		userAccount["windows_user_configuration"] = loginMode
 	}
@@ -91,8 +91,8 @@ func flattenBatchPoolMountConfig(config *batch.MountConfiguration) map[string]in
 	mountConfig := make(map[string]interface{})
 
 	if config.AzureBlobFileSystemConfiguration != nil {
-		azureBlobFileSysConfigList := make([]interface{}, 1)
-		azureBlobFileSysConfig := make(map[string]interface{}, 3)
+		azureBlobFileSysConfigList := make([]interface{}, 0)
+		azureBlobFileSysConfig := make(map[string]interface{})
 		azureBlobFileSysConfig["account_name"] = *config.AzureBlobFileSystemConfiguration.AccountName
 		azureBlobFileSysConfig["container_name"] = *config.AzureBlobFileSystemConfiguration.ContainerName
 		azureBlobFileSysConfig["relative_mount_path"] = *config.AzureBlobFileSystemConfiguration.RelativeMountPath
@@ -114,8 +114,8 @@ func flattenBatchPoolMountConfig(config *batch.MountConfiguration) map[string]in
 	}
 
 	if config.AzureFileShareConfiguration != nil {
-		azureFileShareConfigList := make([]interface{}, 1)
-		azureFileShareConfig := make(map[string]interface{}, 4)
+		azureFileShareConfigList := make([]interface{}, 0)
+		azureFileShareConfig := make(map[string]interface{})
 		azureFileShareConfig["account_name"] = *config.AzureFileShareConfiguration.AccountName
 		azureFileShareConfig["azure_file_url"] = *config.AzureFileShareConfiguration.AzureFileURL
 		azureFileShareConfig["account_key"] = *config.AzureFileShareConfiguration.AccountKey
@@ -130,8 +130,8 @@ func flattenBatchPoolMountConfig(config *batch.MountConfiguration) map[string]in
 	}
 
 	if config.CifsMountConfiguration != nil {
-		cifsMountConfigList := make([]interface{}, 1)
-		cifsMountConfig := make(map[string]interface{}, 4)
+		cifsMountConfigList := make([]interface{}, 0)
+		cifsMountConfig := make(map[string]interface{})
 
 		cifsMountConfig["user_name"] = *config.CifsMountConfiguration.Username
 		cifsMountConfig["password"] = *config.CifsMountConfiguration.Password
@@ -147,8 +147,8 @@ func flattenBatchPoolMountConfig(config *batch.MountConfiguration) map[string]in
 	}
 
 	if config.NfsMountConfiguration != nil {
-		nfsMountConfigList := make([]interface{}, 1)
-		nfsMountConfig := make(map[string]interface{}, 4)
+		nfsMountConfigList := make([]interface{}, 0)
+		nfsMountConfig := make(map[string]interface{})
 
 		nfsMountConfig["source"] = *config.NfsMountConfiguration.Source
 		nfsMountConfig["relative_mount_path"] = *config.NfsMountConfiguration.RelativeMountPath
@@ -178,7 +178,7 @@ func flattenBatchPoolVirtualMachineConfiguration(config *batch.VirtualMachineCon
 		result["container_configuration"] = flattenBatchPoolContainerConfiguration(config.ContainerConfiguration)
 	}
 	if config.DataDisks != nil {
-		dataDisks := make([]interface{}, 1)
+		dataDisks := make([]interface{}, 0)
 		for _, item := range *config.DataDisks {
 			dataDisk := make(map[string]interface{})
 			dataDisk["lun"] = *item.Lun
@@ -190,7 +190,7 @@ func flattenBatchPoolVirtualMachineConfiguration(config *batch.VirtualMachineCon
 		result["data_disks"] = dataDisks
 	}
 	if config.DiskEncryptionConfiguration != nil {
-		diskEncryptionConfiguration := make([]interface{}, 1)
+		diskEncryptionConfiguration := make([]interface{}, 0)
 		if config.DiskEncryptionConfiguration.Targets != nil {
 			for _, item := range *config.DiskEncryptionConfiguration.Targets {
 				target := make(map[string]interface{})
@@ -201,9 +201,9 @@ func flattenBatchPoolVirtualMachineConfiguration(config *batch.VirtualMachineCon
 		result["disk_encryption_configuration"] = diskEncryptionConfiguration
 	}
 	if config.Extensions != nil {
-		extensions := make([]interface{}, 1)
+		extensions := make([]interface{}, 0)
 		for _, item := range *config.Extensions {
-			extension := make(map[string]interface{}, 1)
+			extension := make(map[string]interface{})
 			extension["name"] = *item.Name
 			extension["publisher"] = *item.Publisher
 			extension["type"] = *item.Type
@@ -236,7 +236,7 @@ func flattenBatchPoolVirtualMachineConfiguration(config *batch.VirtualMachineCon
 		result["node_agent_sku_id"] = *config.NodeAgentSkuID
 	}
 	if config.NodePlacementConfiguration != nil {
-		nodePlacementConfiguration := make([]interface{}, 1)
+		nodePlacementConfiguration := make([]interface{}, 0)
 		nodePlacementConfig := make(map[string]interface{})
 		nodePlacementConfig["policy"] = string(config.NodePlacementConfiguration.Policy)
 		nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)

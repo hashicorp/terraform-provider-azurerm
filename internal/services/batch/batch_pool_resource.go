@@ -168,7 +168,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 						"node_deallocation_option": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(batch.ComputeNodeDeallocationOptionRequeue),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(batch.ComputeNodeDeallocationOptionRequeue),
 								string(batch.ComputeNodeDeallocationOptionRetainedData),
@@ -492,13 +491,13 @@ func resourceBatchPool() *pluginsdk.Resource {
 			"task_scheduling_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MaxItems: 1,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"node_fill_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(batch.ComputeNodeFillTypeSpread),
+							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(batch.ComputeNodeFillTypeSpread),
 								string(batch.ComputeNodeFillTypePack),
@@ -1370,7 +1369,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("inter_node_communication", string(props.InterNodeCommunication))
 
 		if props.ApplicationLicenses != nil {
-			applicationLicenses := make([]interface{}, len(*props.ApplicationLicenses))
+			applicationLicenses := make([]interface{}, 0)
 			for _, license := range *props.ApplicationLicenses {
 				applicationLicenses = append(applicationLicenses, license)
 			}
@@ -1378,9 +1377,9 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if props.ApplicationPackages != nil {
-			applicationPackages := make([]interface{}, len(*props.ApplicationPackages))
+			applicationPackages := make([]interface{}, 0)
 			for _, pkg := range *props.ApplicationPackages {
-				appPkg := make(map[string]interface{}, 1)
+				appPkg := make(map[string]interface{})
 				appPkg["id"] = *pkg.ID
 				if pkg.Version != nil {
 					appPkg["version"] = *pkg.Version
@@ -1391,15 +1390,15 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if props.TaskSchedulingPolicy != nil && props.TaskSchedulingPolicy.NodeFillType != "" {
-			taskSchedulingPolicy := make([]interface{}, 1)
-			nodeFillType := make(map[string]interface{}, 1)
+			taskSchedulingPolicy := make([]interface{}, 0)
+			nodeFillType := make(map[string]interface{})
 			nodeFillType["node_fill_type"] = string(props.TaskSchedulingPolicy.NodeFillType)
 			taskSchedulingPolicy = append(taskSchedulingPolicy, nodeFillType)
 			d.Set("task_scheduling_policy", taskSchedulingPolicy)
 		}
 
 		if props.UserAccounts != nil {
-			userAccounts := make([]interface{}, len(*props.UserAccounts))
+			userAccounts := make([]interface{}, 0)
 			for _, userAccount := range *props.UserAccounts {
 				userAccounts = append(userAccounts, flattenBatchPoolUserAccount(&userAccount))
 			}
@@ -1407,7 +1406,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if props.MountConfiguration != nil {
-			mountConfigs := make([]interface{}, len(*props.MountConfiguration))
+			mountConfigs := make([]interface{}, 0)
 			for _, mountConfig := range *props.MountConfiguration {
 				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(&mountConfig))
 			}
