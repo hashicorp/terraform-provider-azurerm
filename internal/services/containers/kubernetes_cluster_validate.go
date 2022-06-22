@@ -272,8 +272,10 @@ func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client,
 				continue
 			}
 
-			supportedVersions = append(supportedVersions, *version.KubernetesVersion)
-			if *version.KubernetesVersion == desiredNodePoolVersion {
+			v := *version.KubernetesVersion
+			supportedVersions = append(supportedVersions, v)
+			// alias versions (major.minor) are also fine as the latest supported GA patch version is chosen automatically in this case
+			if v == desiredNodePoolVersion || v[:strings.LastIndex(v, ".")] == desiredNodePoolVersion {
 				versionExists = true
 			}
 		}
