@@ -2,7 +2,11 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_management_group_template_deployment` [GH-14524]
 * **New Data Source**: `azurerm_policy_assignment` [GH-16527]
+* **New Data Source**: `azurerm_resource_group_template_deployment` [GH-14524]
+* **New Data Source**: `azurerm_subscription_template_deployment` [GH-14524]
+* **New Data Source**: `azurerm_tenant_template_deployment` [GH-14524]
 
 ENHANCEMENTS:
 
