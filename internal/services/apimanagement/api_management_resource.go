@@ -682,8 +682,12 @@ func resourceApiManagementServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 				},
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, params); err != nil {
+			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, params)
+			if err != nil {
 				return fmt.Errorf("recovering %s: %+v", id, err)
+			}
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for recovery of %q: %+v", id, err)
 			}
 
 			// Wait for the ProvisioningState to become "Succeeded" before attempting to update
@@ -1255,11 +1259,6 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 		if config.HostName != nil {
 			output["host_name"] = *config.HostName
-		}
-
-		// There'll always be a default custom domain with hostName "apim_name.azure-api.net" and Type "Proxy", which should be ignored
-		if *config.HostName == strings.ToLower(name)+"."+apimHostNameSuffix && config.Type == apimanagement.HostnameTypeProxy {
-			continue
 		}
 
 		if config.NegotiateClientCertificate != nil {

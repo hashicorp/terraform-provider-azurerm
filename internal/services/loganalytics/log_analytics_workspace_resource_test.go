@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsWorkspaceResource struct{}
+type LogAnalyticsWorkspaceResource struct {
+	DoNotRunFreeTierTest bool
+}
 
 func TestAccLogAnalyticsWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
@@ -65,7 +67,8 @@ func TestAccLogAnalyticsWorkspace_complete(t *testing.T) {
 
 func TestAccLogAnalyticsWorkspace_freeTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
-	r := LogAnalyticsWorkspaceResource{}
+	r := LogAnalyticsWorkspaceResource{DoNotRunFreeTierTest: true}
+	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,6 +85,12 @@ func TestAccLogAnalyticsWorkspace_freeTier(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func (r LogAnalyticsWorkspaceResource) preCheck(t *testing.T) {
+	if r.DoNotRunFreeTierTest {
+		t.Skipf("`TestAccLogAnalyticsWorkspace_freeTier` due to subscription pricing tier configuration (e.g. Pricing tier doesn't match the subscription's billing model.)")
+	}
 }
 
 func (LogAnalyticsWorkspaceResource) freeTierWithTags(data acceptance.TestData) string {

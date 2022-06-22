@@ -364,6 +364,8 @@ resource "azurerm_virtual_machine" "testsource" {
   network_interface_ids = [azurerm_network_interface.testsource.id]
   vm_size               = "Standard_D1_v2"
 
+  delete_os_disk_on_termination = true
+
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
@@ -440,6 +442,8 @@ resource "azurerm_virtual_machine" "testsource" {
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.testsource.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -577,6 +581,8 @@ resource "azurerm_virtual_machine" "testdestination" {
   network_interface_ids = [azurerm_network_interface.testdestination.id]
   vm_size               = "Standard_D1_v2"
 
+  delete_os_disk_on_termination = true
+
   storage_image_reference {
     id = azurerm_image.testdestination.id
   }
@@ -640,6 +646,8 @@ resource "azurerm_virtual_machine" "testdestination" {
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.testdestination.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     id = azurerm_image.testdestination.id

@@ -69,9 +69,15 @@ resource "azurerm_key_vault_access_policy" "example-disk" {
   object_id = azurerm_disk_encryption_set.example.identity.0.principal_id
 
   key_permissions = [
+    "Create",
+    "Delete",
     "Get",
-    "WrapKey",
-    "UnwrapKey"
+    "Purge",
+    "Recover",
+    "Update",
+    "List",
+    "Decrypt",
+    "Sign"
   ]
 }
 
@@ -82,9 +88,15 @@ resource "azurerm_key_vault_access_policy" "example-user" {
   object_id = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "get",
-    "create",
-    "delete"
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
+    "List",
+    "Decrypt",
+    "Sign"
   ]
 }
 
@@ -106,7 +118,7 @@ The following arguments are supported:
 
 * `auto_key_rotation_enabled` - (Optional) Boolean flag to specify whether Azure Disk Encryption Set automatically rotates encryption Key to latest version. Defaults to `false`.
 
-* `encryption_type` - (Optional) The type of key used to encrypt the data of the disk. Possible values are `EncryptionAtRestWithCustomerKey` and `EncryptionAtRestWithPlatformAndCustomerKeys`. Defaults to `EncryptionAtRestWithCustomerKey`.
+* `encryption_type` - (Optional) The type of key used to encrypt the data of the disk. Possible values are `EncryptionAtRestWithCustomerKey`, `EncryptionAtRestWithPlatformAndCustomerKeys` and `ConfidentialVmEncryptedWithCustomerKey`. Defaults to `EncryptionAtRestWithCustomerKey`.
 
 * `identity` - (Required) An `identity` block as defined below.
 

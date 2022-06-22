@@ -40,11 +40,15 @@ resource "azurerm_synapse_workspace" "example" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.example.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_synapse_firewall_rule" "example" {
   name                 = "AllowAll"
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  synapse_workspace_id = azurerm_synapse_workspace.example.id
   start_ip_address     = "0.0.0.0"
   end_ip_address       = "255.255.255.255"
 }

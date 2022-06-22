@@ -185,27 +185,42 @@ func TestAccStorageShare_largeQuota(t *testing.T) {
 	})
 }
 
-func TestAccStorageShare_accessTier(t *testing.T) {
+func TestAccStorageShare_accessTierStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.accessTier(data, "Cool"),
+			Config: r.accessTierStandard(data, "Cool"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.accessTier(data, "Hot"),
+			Config: r.accessTierStandard(data, "Hot"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.accessTier(data, "TransactionOptimized"),
+			Config: r.accessTierStandard(data, "TransactionOptimized"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_accessTierPremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.accessTierPremium(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -515,7 +530,7 @@ resource "azurerm_storage_share" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func (r StorageShareResource) accessTier(data acceptance.TestData, tier string) string {
+func (r StorageShareResource) accessTierStandard(data acceptance.TestData, tier string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -543,6 +558,36 @@ resource "azurerm_storage_share" "test" {
   access_tier          = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, tier)
+}
+
+func (r StorageShareResource) accessTierPremium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+  account_kind             = "FileStorage"
+}
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 100
+  enabled_protocol     = "SMB"
+  access_tier          = "Premium"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (r StorageShareResource) protocol(data acceptance.TestData, protocol string) string {

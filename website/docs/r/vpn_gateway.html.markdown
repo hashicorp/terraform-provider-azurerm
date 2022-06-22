@@ -61,6 +61,8 @@ The following arguments are supported:
 
 ---
 
+* `bgp_route_translation_for_nat_enabled` - (Optional) Is BGP route translation for NAT on this VPN Gateway enabled? Defaults to `false`.
+
 * `bgp_settings` - (Optional) A `bgp_settings` block as defined below.
 
 * `routing_preference` - (Optional) Azure routing preference lets you to choose how your traffic routes between Azure and the internet. You can choose to route traffic either via the Microsoft network (default value, `Microsoft Network`), or via the ISP network (public internet, set to `Internet`). More context of the configuration can be found in the

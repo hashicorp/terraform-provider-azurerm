@@ -37,7 +37,6 @@ resource "azurerm_redis_cache" "example" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    maxclients         = 256
     maxmemory_reserved = 2
     maxmemory_delta    = 2
     maxmemory_policy   = "allkeys-lru"

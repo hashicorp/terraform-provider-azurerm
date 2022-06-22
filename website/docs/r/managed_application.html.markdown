@@ -29,7 +29,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_managed_application_definition" "example" {
-  name                = "example-managedapplicationdefinition"
+  name                = "examplemanagedapplicationdefinition"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   lock_level          = "ReadOnly"

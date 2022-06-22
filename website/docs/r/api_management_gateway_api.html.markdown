@@ -27,7 +27,7 @@ data "azurerm_api_management_api" "example" {
 
 data "azurerm_api_management_gateway" "example" {
   name              = "example-gateway"
-  api_management_id = azurerm_api_management.example.id
+  api_management_id = data.azurerm_api_management.example.id
 }
 
 resource "azurerm_api_management_gateway_api" "example" {
