@@ -218,19 +218,6 @@ func resourceNotificationHubNamespaceDelete(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	// the future returned from the Delete method is broken 50% of the time - let's poll ourselves for now
-	// Related Bug: https://github.com/Azure/azure-sdk-for-go/issues/2254
-	//log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
-	//stateConf := &pluginsdk.StateChangeConf{
-	//	Pending: []string{"200", "202"},
-	//	Target:  []string{"404"},
-	//	Refresh: notificationHubNamespaceDeleteStateRefreshFunc(ctx, client, *id),
-	//	Timeout: d.Timeout(pluginsdk.TimeoutDelete),
-	//}
-	//if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-	//	return fmt.Errorf("waiting for %s to be deleted: %s", *id, err)
-	//}
-
 	return nil
 }
 
@@ -248,28 +235,3 @@ func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client *names
 		return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
 	}
 }
-
-//func notificationHubNamespaceDeleteStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
-//	return func() (interface{}, string, error) {
-//		resp, err := client.Get(ctx, id)
-//		if err != nil {
-//			if !response.WasNotFound(resp.HttpResponse) {
-//				return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
-//			}
-//		}
-//
-//		// Note: this exists as the Delete API only seems to work some of the time
-//		// in this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attepmpt
-//		// Upstream Bug: https://github.com/Azure/azure-sdk-for-go/issues/2254
-//		future, err := client.Delete(ctx, id)
-//		if err != nil {
-//			log.Printf("re-issuing deletion request for %s: %+v", id, err)
-//		}
-//
-//		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-//			log.Printf("waiting for re-issue deletion request for %s: %+v", id, err)
-//		}
-//
-//		return res, strconv.Itoa(res.StatusCode), nil
-//	}
-//}
