@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/redhatopenshift/mgmt/2020-04-30/redhatopenshift"
+	"github.com/Azure/azure-sdk-for-go/services/redhatopenshift/mgmt/2022-04-01/redhatopenshift"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type OpenShiftClusterResource struct {
-}
+type OpenShiftClusterResource struct{}
 
 var (
 	clientId     = os.Getenv("ARM_CLIENT_ID")
@@ -46,12 +45,12 @@ func TestAccOpenShiftCluster_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("master_profile.0.vm_size").HasValue(string(redhatopenshift.StandardD8sV3)),
-				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue(string(redhatopenshift.VMSize1StandardD4sV3)),
+				check.That(data.ResourceName).Key("master_profile.0.vm_size").HasValue("Standard_D8s_v3"),
+				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
 				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
 				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
-				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.Public)),
-				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.Visibility1Public)),
+				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
+				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
 			),
 		},
 	})
@@ -66,12 +65,12 @@ func TestAccOpenShiftCluster_private(t *testing.T) {
 			Config: r.private(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("master_profile.0.vm_size").HasValue(string(redhatopenshift.StandardD8sV3)),
-				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue(string(redhatopenshift.VMSize1StandardD4sV3)),
+				check.That(data.ResourceName).Key("master_profile.0.vm_size").HasValue("Standard_D8s_v3"),
+				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
 				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
 				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
-				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.Private)),
-				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.Visibility1Private)),
+				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPrivate)),
+				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPrivate)),
 			),
 		},
 	})
@@ -86,12 +85,12 @@ func TestAccOpenShiftCluster_customDomain(t *testing.T) {
 			Config: r.customDomain(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("master_profile.0.vm_size").HasValue(string(redhatopenshift.StandardD8sV3)),
-				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue(string(redhatopenshift.VMSize1StandardD4sV3)),
+				check.That(data.ResourceName).Key("master_profile.0.vm_size").HasValue("Standard_D8s_v3"),
+				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
 				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
 				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
-				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.Public)),
-				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.Visibility1Public)),
+				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
+				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
 				check.That(data.ResourceName).Key("cluster_profile.0.domain").HasValue("foo.example.com"),
 			),
 		},
@@ -102,6 +101,9 @@ func (OpenShiftClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
+}
+
+provider "azuread" {
 }
 
 resource "azurerm_resource_group" "test" {
@@ -117,12 +119,13 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "master_subnet" {
-  name                                          = "master-subnet-%d"
-  resource_group_name                           = azurerm_resource_group.test.name
-  virtual_network_name                          = azurerm_virtual_network.test.name
-  address_prefixes                              = ["10.0.0.0/23"]
-  service_endpoints                             = ["Microsoft.ContainerRegistry"]
-  enforce_private_link_service_network_policies = true
+  name                                           = "master-subnet-%d"
+  resource_group_name                            = azurerm_resource_group.test.name
+  virtual_network_name                           = azurerm_virtual_network.test.name
+  address_prefixes                               = ["10.0.0.0/23"]
+  service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  enforce_private_link_service_network_policies  = true
+	enforce_private_link_endpoint_network_policies = true	
 }
 
 resource "azurerm_subnet" "worker_subnet" {
@@ -130,7 +133,7 @@ resource "azurerm_subnet" "worker_subnet" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/23"]
-  service_endpoints    = ["Microsoft.ContainerRegistry"]
+  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
 }
 
 resource "azurerm_redhatopenshift_cluster" "test" {
@@ -139,11 +142,15 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   master_profile {
+		vm_size 	= "Standard_D8s_v3"
     subnet_id = azurerm_subnet.master_subnet.id
   }
 
   worker_profile {
-    subnet_id = azurerm_subnet.worker_subnet.id
+    vm_size 		 = "Standard_D4s_v3"
+		disk_size_gb = 128
+		node_count 	 = 3
+		subnet_id 	 = azurerm_subnet.worker_subnet.id
   }
 
   service_principal {
@@ -173,12 +180,13 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "master_subnet" {
-  name                                          = "master-subnet-%d"
-  resource_group_name                           = azurerm_resource_group.test.name
-  virtual_network_name                          = azurerm_virtual_network.test.name
-  address_prefixes                              = ["10.0.0.0/23"]
-  service_endpoints                             = ["Microsoft.ContainerRegistry"]
-  enforce_private_link_service_network_policies = true
+  name                                           = "master-subnet-%d"
+  resource_group_name                            = azurerm_resource_group.test.name
+  virtual_network_name                           = azurerm_virtual_network.test.name
+  address_prefixes                               = ["10.0.0.0/23"]
+  service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  enforce_private_link_service_network_policies  = true
+	enforce_private_link_endpoint_network_policies = true	
 }
 
 resource "azurerm_subnet" "worker_subnet" {
@@ -186,20 +194,24 @@ resource "azurerm_subnet" "worker_subnet" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/23"]
-  service_endpoints    = ["Microsoft.ContainerRegistry"]
+  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
 }
 
 resource "azurerm_redhatopenshift_cluster" "test" {
   name                = "acctestaro%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  master_profile {
+ 	
+	master_profile {
+		vm_size 	= "Standard_D8s_v3"
     subnet_id = azurerm_subnet.master_subnet.id
   }
 
   worker_profile {
-    subnet_id = azurerm_subnet.worker_subnet.id
+    vm_size 		 = "Standard_D4s_v3"
+		disk_size_gb = 128
+		node_count 	 = 3
+		subnet_id 	 = azurerm_subnet.worker_subnet.id
   }
 
   api_server_profile {
@@ -237,12 +249,13 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "master_subnet" {
-  name                                          = "master-subnet-%d"
-  resource_group_name                           = azurerm_resource_group.test.name
-  virtual_network_name                          = azurerm_virtual_network.test.name
-  address_prefixes                              = ["10.0.0.0/23"]
-  service_endpoints                             = ["Microsoft.ContainerRegistry"]
-  enforce_private_link_service_network_policies = true
+  name                                           = "master-subnet-%d"
+  resource_group_name                            = azurerm_resource_group.test.name
+  virtual_network_name                           = azurerm_virtual_network.test.name
+  address_prefixes                               = ["10.0.0.0/23"]
+  service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+	enforce_private_link_service_network_policies  = true
+	enforce_private_link_endpoint_network_policies = true	
 }
 
 resource "azurerm_subnet" "worker_subnet" {
@@ -250,7 +263,7 @@ resource "azurerm_subnet" "worker_subnet" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/23"]
-  service_endpoints    = ["Microsoft.ContainerRegistry"]
+  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
 }
 
 resource "azurerm_redhatopenshift_cluster" "test" {
@@ -259,11 +272,15 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   master_profile {
+		vm_size 	= "Standard_D8s_v3"
     subnet_id = azurerm_subnet.master_subnet.id
   }
 
   worker_profile {
-    subnet_id = azurerm_subnet.worker_subnet.id
+    vm_size 		 = "Standard_D4s_v3"
+		disk_size_gb = 128
+		node_count 	 = 3
+		subnet_id 	 = azurerm_subnet.worker_subnet.id
   }
 
   cluster_profile {
