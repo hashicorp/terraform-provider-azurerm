@@ -221,6 +221,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/ten
 github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2020-06-01/configurationstores
 github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attestationproviders
+github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2021-04-30/cognitiveservicesaccounts
 # github.com/hashicorp/go-checkpoint v0.5.0
 ## explicit
 github.com/hashicorp/go-checkpoint
