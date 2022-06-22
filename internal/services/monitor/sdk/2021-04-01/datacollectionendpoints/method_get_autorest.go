@@ -1,4 +1,4 @@
-package datacollectionrules
+package datacollectionendpoints
 
 import (
 	"context"
@@ -13,26 +13,26 @@ import (
 
 type GetOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *DataCollectionRuleResource
+	Model        *DataCollectionEndpointResource
 }
 
 // Get ...
-func (c DataCollectionRulesClient) Get(ctx context.Context, id DataCollectionRuleId) (result GetOperationResponse, err error) {
+func (c DataCollectionEndpointsClient) Get(ctx context.Context, id DataCollectionEndpointId) (result GetOperationResponse, err error) {
 	req, err := c.preparerForGet(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "datacollectionendpoints.DataCollectionEndpointsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "Get", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datacollectionendpoints.DataCollectionEndpointsClient", "Get", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForGet(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "Get", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "datacollectionendpoints.DataCollectionEndpointsClient", "Get", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -40,7 +40,7 @@ func (c DataCollectionRulesClient) Get(ctx context.Context, id DataCollectionRul
 }
 
 // preparerForGet prepares the Get request.
-func (c DataCollectionRulesClient) preparerForGet(ctx context.Context, id DataCollectionRuleId) (*http.Request, error) {
+func (c DataCollectionEndpointsClient) preparerForGet(ctx context.Context, id DataCollectionEndpointId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -56,7 +56,7 @@ func (c DataCollectionRulesClient) preparerForGet(ctx context.Context, id DataCo
 
 // responderForGet handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (c DataCollectionRulesClient) responderForGet(resp *http.Response) (result GetOperationResponse, err error) {
+func (c DataCollectionEndpointsClient) responderForGet(resp *http.Response) (result GetOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

@@ -1,4 +1,4 @@
-package datacollectionrules
+package datacollectionendpoints
 
 import (
 	"context"
@@ -16,14 +16,14 @@ import (
 
 type ListByResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *[]DataCollectionRuleResource
+	Model        *[]DataCollectionEndpointResource
 
 	nextLink     *string
 	nextPageFunc func(ctx context.Context, nextLink string) (ListByResourceGroupOperationResponse, error)
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []DataCollectionRuleResource
+	Items []DataCollectionEndpointResource
 }
 
 func (r ListByResourceGroupOperationResponse) HasMore() bool {
@@ -39,35 +39,35 @@ func (r ListByResourceGroupOperationResponse) LoadMore(ctx context.Context) (res
 }
 
 // ListByResourceGroup ...
-func (c DataCollectionRulesClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (resp ListByResourceGroupOperationResponse, err error) {
+func (c DataCollectionEndpointsClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (resp ListByResourceGroupOperationResponse, err error) {
 	req, err := c.preparerForListByResourceGroup(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "ListByResourceGroup", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "datacollectionendpoints.DataCollectionEndpointsClient", "ListByResourceGroup", nil, "Failure preparing request")
 		return
 	}
 
 	resp.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "ListByResourceGroup", resp.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datacollectionendpoints.DataCollectionEndpointsClient", "ListByResourceGroup", resp.HttpResponse, "Failure sending request")
 		return
 	}
 
 	resp, err = c.responderForListByResourceGroup(resp.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "ListByResourceGroup", resp.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "datacollectionendpoints.DataCollectionEndpointsClient", "ListByResourceGroup", resp.HttpResponse, "Failure responding to request")
 		return
 	}
 	return
 }
 
 // ListByResourceGroupComplete retrieves all of the results into a single object
-func (c DataCollectionRulesClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
-	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, DataCollectionRuleResourceOperationPredicate{})
+func (c DataCollectionEndpointsClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
+	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, DataCollectionEndpointResourceOperationPredicate{})
 }
 
 // ListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c DataCollectionRulesClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate DataCollectionRuleResourceOperationPredicate) (resp ListByResourceGroupCompleteResult, err error) {
-	items := make([]DataCollectionRuleResource, 0)
+func (c DataCollectionEndpointsClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate DataCollectionEndpointResourceOperationPredicate) (resp ListByResourceGroupCompleteResult, err error) {
+	items := make([]DataCollectionEndpointResource, 0)
 
 	page, err := c.ListByResourceGroup(ctx, id)
 	if err != nil {
@@ -105,7 +105,7 @@ func (c DataCollectionRulesClient) ListByResourceGroupCompleteMatchingPredicate(
 }
 
 // preparerForListByResourceGroup prepares the ListByResourceGroup request.
-func (c DataCollectionRulesClient) preparerForListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
+func (c DataCollectionEndpointsClient) preparerForListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -114,13 +114,13 @@ func (c DataCollectionRulesClient) preparerForListByResourceGroup(ctx context.Co
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.Insights/dataCollectionRules", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.Insights/dataCollectionEndpoints", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // preparerForListByResourceGroupWithNextLink prepares the ListByResourceGroup request with the given nextLink token.
-func (c DataCollectionRulesClient) preparerForListByResourceGroupWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
+func (c DataCollectionEndpointsClient) preparerForListByResourceGroupWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
 	uri, err := url.Parse(nextLink)
 	if err != nil {
 		return nil, fmt.Errorf("parsing nextLink %q: %+v", nextLink, err)
@@ -146,10 +146,10 @@ func (c DataCollectionRulesClient) preparerForListByResourceGroupWithNextLink(ct
 
 // responderForListByResourceGroup handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
-func (c DataCollectionRulesClient) responderForListByResourceGroup(resp *http.Response) (result ListByResourceGroupOperationResponse, err error) {
+func (c DataCollectionEndpointsClient) responderForListByResourceGroup(resp *http.Response) (result ListByResourceGroupOperationResponse, err error) {
 	type page struct {
-		Values   []DataCollectionRuleResource `json:"value"`
-		NextLink *string                      `json:"nextLink"`
+		Values   []DataCollectionEndpointResource `json:"value"`
+		NextLink *string                          `json:"nextLink"`
 	}
 	var respObj page
 	err = autorest.Respond(
@@ -164,19 +164,19 @@ func (c DataCollectionRulesClient) responderForListByResourceGroup(resp *http.Re
 		result.nextPageFunc = func(ctx context.Context, nextLink string) (result ListByResourceGroupOperationResponse, err error) {
 			req, err := c.preparerForListByResourceGroupWithNextLink(ctx, nextLink)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "ListByResourceGroup", nil, "Failure preparing request")
+				err = autorest.NewErrorWithError(err, "datacollectionendpoints.DataCollectionEndpointsClient", "ListByResourceGroup", nil, "Failure preparing request")
 				return
 			}
 
 			result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "ListByResourceGroup", result.HttpResponse, "Failure sending request")
+				err = autorest.NewErrorWithError(err, "datacollectionendpoints.DataCollectionEndpointsClient", "ListByResourceGroup", result.HttpResponse, "Failure sending request")
 				return
 			}
 
 			result, err = c.responderForListByResourceGroup(result.HttpResponse)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "ListByResourceGroup", result.HttpResponse, "Failure responding to request")
+				err = autorest.NewErrorWithError(err, "datacollectionendpoints.DataCollectionEndpointsClient", "ListByResourceGroup", result.HttpResponse, "Failure responding to request")
 				return
 			}
 

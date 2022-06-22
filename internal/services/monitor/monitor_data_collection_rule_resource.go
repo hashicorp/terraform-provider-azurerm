@@ -523,6 +523,9 @@ func (r DataCollectionRuleResource) Update() sdk.ResourceFunc {
 				existing.Properties.Destinations = expandDataCollectionRuleDestinations(state.Destinations)
 			}
 
+			// otherwise Service will return an error: "The resource definition is invalid."
+			existing.SystemData = nil
+
 			if _, err := client.Create(ctx, *id, *existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}

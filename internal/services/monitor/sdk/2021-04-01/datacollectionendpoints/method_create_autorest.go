@@ -1,4 +1,4 @@
-package datacollectionrules
+package datacollectionendpoints
 
 import (
 	"context"
@@ -13,26 +13,26 @@ import (
 
 type CreateOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *DataCollectionRuleResource
+	Model        *DataCollectionEndpointResource
 }
 
 // Create ...
-func (c DataCollectionRulesClient) Create(ctx context.Context, id DataCollectionRuleId, input DataCollectionRuleResource) (result CreateOperationResponse, err error) {
+func (c DataCollectionEndpointsClient) Create(ctx context.Context, id DataCollectionEndpointId, input DataCollectionEndpointResource) (result CreateOperationResponse, err error) {
 	req, err := c.preparerForCreate(ctx, id, input)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "Create", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "datacollectionendpoints.DataCollectionEndpointsClient", "Create", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "Create", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "datacollectionendpoints.DataCollectionEndpointsClient", "Create", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForCreate(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datacollectionrules.DataCollectionRulesClient", "Create", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "datacollectionendpoints.DataCollectionEndpointsClient", "Create", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -40,7 +40,7 @@ func (c DataCollectionRulesClient) Create(ctx context.Context, id DataCollection
 }
 
 // preparerForCreate prepares the Create request.
-func (c DataCollectionRulesClient) preparerForCreate(ctx context.Context, id DataCollectionRuleId, input DataCollectionRuleResource) (*http.Request, error) {
+func (c DataCollectionEndpointsClient) preparerForCreate(ctx context.Context, id DataCollectionEndpointId, input DataCollectionEndpointResource) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -57,7 +57,7 @@ func (c DataCollectionRulesClient) preparerForCreate(ctx context.Context, id Dat
 
 // responderForCreate handles the response to the Create request. The method always
 // closes the http.Response Body.
-func (c DataCollectionRulesClient) responderForCreate(resp *http.Response) (result CreateOperationResponse, err error) {
+func (c DataCollectionEndpointsClient) responderForCreate(resp *http.Response) (result CreateOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusCreated, http.StatusOK),
