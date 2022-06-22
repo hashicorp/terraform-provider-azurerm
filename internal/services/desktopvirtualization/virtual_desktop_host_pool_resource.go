@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var hostpoolResourceType = "azurerm_virtual_desktop_host_pool"
+var hostPoolResourceType = "azurerm_virtual_desktop_host_pool"
 
 func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -196,8 +196,8 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	locks.ByName(id.Name, hostpoolResourceType)
-	defer locks.UnlockByName(id.Name, hostpoolResourceType)
+	locks.ByName(id.Name, hostPoolResourceType)
+	defer locks.UnlockByName(id.Name, hostPoolResourceType)
 
 	update := &desktopvirtualization.HostPoolPatch{}
 
@@ -297,8 +297,8 @@ func resourceVirtualDesktopHostPoolDelete(d *pluginsdk.ResourceData, meta interf
 
 	id, err := parse.HostPoolID(d.Id())
 
-	locks.ByName(id.Name, hostpoolResourceType)
-	defer locks.UnlockByName(id.Name, hostpoolResourceType)
+	locks.ByName(id.Name, hostPoolResourceType)
+	defer locks.UnlockByName(id.Name, hostPoolResourceType)
 
 	if err != nil {
 		return err
