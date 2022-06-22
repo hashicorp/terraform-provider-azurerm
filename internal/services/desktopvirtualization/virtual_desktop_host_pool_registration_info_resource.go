@@ -6,12 +6,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2021-09-03-preview/desktopvirtualization"
-	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -33,6 +32,7 @@ func resourceVirtualDesktopHostPoolRegistrationInfo() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			// TODO: we should refactor this to use the Host Pool ID instead, meaning we can remove this Virtual ID
 			_, err := parse.HostPoolRegistrationInfoID(id)
 			return err
 		}),
@@ -44,7 +44,7 @@ func resourceVirtualDesktopHostPoolRegistrationInfo() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.HostPoolID,
+				ValidateFunc: hostpool.ValidateHostPoolID,
 			},
 
 			"expiration_date": {
@@ -77,37 +77,36 @@ func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.Res
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	hostpoolId, err := parse.HostPoolID(d.Get("hostpool_id").(string))
+	hostPoolId, err := hostpool.ParseHostPoolID(d.Get("hostpool_id").(string))
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(hostpoolId.Name, hostpoolResourceType)
-	defer locks.UnlockByName(hostpoolId.Name, hostpoolResourceType)
+	locks.ByName(hostPoolId.HostPoolName, hostPoolResourceType)
+	defer locks.UnlockByName(hostPoolId.HostPoolName, hostPoolResourceType)
 
 	// This is a virtual resource so the last segment is hardcoded
-	id := parse.NewHostPoolRegistrationInfoID(hostpoolId.SubscriptionId, hostpoolId.ResourceGroup, hostpoolId.Name, "default")
+	id := parse.NewHostPoolRegistrationInfoID(hostPoolId.SubscriptionId, hostPoolId.ResourceGroupName, hostPoolId.HostPoolName, "default")
 
-	hostpool, err := client.Get(ctx, id.ResourceGroup, id.HostPoolName)
+	existing, err := client.Get(ctx, *hostPoolId)
 	if err != nil {
-		if utils.ResponseWasNotFound(hostpool.Response) {
-			return fmt.Errorf("%s could not be found: %s", hostpoolId, err)
+		if response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("%s could not be found: %s", hostPoolId, err)
 		}
-		return fmt.Errorf("reading %s: %s", hostpoolId, err)
+		return fmt.Errorf("reading %s: %s", hostPoolId, err)
 	}
 
-	hostpoolPatch := &desktopvirtualization.HostPoolPatch{}
-	hostpoolPatch.HostPoolPatchProperties = &desktopvirtualization.HostPoolPatchProperties{}
-	hostpoolPatch.HostPoolPatchProperties.RegistrationInfo = &desktopvirtualization.RegistrationInfoPatch{}
-
-	expdt, _ := date.ParseTime(time.RFC3339, d.Get("expiration_date").(string))
-	hostpoolPatch.HostPoolPatchProperties.RegistrationInfo.ExpirationTime = &date.Time{
-		Time: expdt,
+	tokenOperation := hostpool.RegistrationTokenOperationUpdate
+	payload := hostpool.HostPoolPatch{
+		Properties: &hostpool.HostPoolPatchProperties{
+			RegistrationInfo: &hostpool.RegistrationInfoPatch{
+				ExpirationTime:             utils.String(d.Get("expiration_date").(string)),
+				RegistrationTokenOperation: &tokenOperation,
+			},
+		},
 	}
-	hostpoolPatch.HostPoolPatchProperties.RegistrationInfo.RegistrationTokenOperation = desktopvirtualization.RegistrationTokenOperationUpdate
-
-	if _, err := client.Update(ctx, id.ResourceGroup, id.HostPoolName, hostpoolPatch); err != nil {
-		return fmt.Errorf("Creating Virtual Desktop Host Pool Registration Info %q (Resource Group %q): %+v", id.HostPoolName, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, *hostPoolId, payload); err != nil {
+		return fmt.Errorf("updating registration token for %s: %+v", hostPoolId, err)
 	}
 
 	d.SetId(id.ID())
@@ -125,26 +124,27 @@ func resourceVirtualDesktopHostPoolRegistrationInfoRead(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	resp, err := client.RetrieveRegistrationToken(ctx, id.ResourceGroup, id.HostPoolName)
+	hostPoolId := hostpool.NewHostPoolID(id.SubscriptionId, id.ResourceGroup, id.HostPoolName)
+	resp, err := client.RetrieveRegistrationToken(ctx, hostPoolId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Virtual Desktop Host Pool %q was not found in Resource Group %q - removing from state!", id.HostPoolName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] Registration Token was not found for %s - removing from state!", hostPoolId)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.HostPoolName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Registration Token for %s: %+v", hostPoolId, err)
 	}
 
-	if resp.ExpirationTime == nil || resp.Token == nil {
+	if resp.Model == nil || resp.Model.ExpirationTime == nil || resp.Model.Token == nil {
 		log.Printf("HostPool is missing registration info - marking as gone")
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("hostpool_id", parse.NewHostPoolID(id.SubscriptionId, id.ResourceGroup, id.HostPoolName).ID())
-	d.Set("expiration_date", resp.ExpirationTime.Format(time.RFC3339))
-	d.Set("token", resp.Token)
+	d.Set("hostpool_id", hostPoolId.ID())
+	d.Set("expiration_date", resp.Model.ExpirationTime)
+	d.Set("token", resp.Model.Token)
 
 	return nil
 }
@@ -159,44 +159,48 @@ func resourceVirtualDesktopHostPoolRegistrationInfoDelete(d *pluginsdk.ResourceD
 		return err
 	}
 
-	hostpoolId := parse.NewHostPoolID(id.SubscriptionId, id.ResourceGroup, id.HostPoolName)
+	hostPoolId := hostpool.NewHostPoolID(id.SubscriptionId, id.ResourceGroup, id.HostPoolName)
 
-	locks.ByName(hostpoolId.Name, hostpoolResourceType)
-	defer locks.UnlockByName(hostpoolId.Name, hostpoolResourceType)
+	locks.ByName(hostPoolId.HostPoolName, hostPoolResourceType)
+	defer locks.UnlockByName(hostPoolId.HostPoolName, hostPoolResourceType)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.HostPoolName)
+	resp, err := client.Get(ctx, hostPoolId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Virtual Desktop Host Pool %q was not found in Resource Group %q - removing from state!", id.HostPoolName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", hostPoolId)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.HostPoolName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", hostPoolId, err)
 	}
 
-	regInfo, err := client.RetrieveRegistrationToken(ctx, id.ResourceGroup, id.HostPoolName)
+	regInfo, err := client.RetrieveRegistrationToken(ctx, hostPoolId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Virtual Desktop Host Pool %q Registration Info was not found in Resource Group %q - removing from state!", id.HostPoolName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.HostPoolName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Registration Token for %s: %+v", hostPoolId, err)
 	}
-	if regInfo.ExpirationTime == nil {
-		log.Printf("[INFO] RegistrationInfo for %s was nil, registrationInfo already deleted - removing %s from state", hostpoolId.ID(), id)
+	if regInfo.Model == nil || regInfo.Model.ExpirationTime == nil {
+		log.Printf("[INFO] RegistrationInfo for %s was nil, registrationInfo already deleted - removing from state", hostPoolId)
 		return nil
 	}
 
-	hostpoolPatch := &desktopvirtualization.HostPoolPatch{}
-	hostpoolPatch.HostPoolPatchProperties = &desktopvirtualization.HostPoolPatchProperties{}
-	hostpoolPatch.HostPoolPatchProperties.RegistrationInfo = &desktopvirtualization.RegistrationInfoPatch{}
-	hostpoolPatch.HostPoolPatchProperties.RegistrationInfo.RegistrationTokenOperation = desktopvirtualization.RegistrationTokenOperationDelete
+	tokenOperation := hostpool.RegistrationTokenOperationDelete
+	payload := hostpool.HostPoolPatch{
+		Properties: &hostpool.HostPoolPatchProperties{
+			RegistrationInfo: &hostpool.RegistrationInfoPatch{
+				RegistrationTokenOperation: &tokenOperation,
+			},
+		},
+	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.HostPoolName, hostpoolPatch); err != nil {
-		return fmt.Errorf("deleting Virtual Desktop Host Pool Registration Info %q (Resource Group %q): %+v", id.HostPoolName, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, hostPoolId, payload); err != nil {
+		return fmt.Errorf("removing Registration Token from %s: %+v", hostPoolId, err)
 	}
 
 	return nil
