@@ -241,6 +241,7 @@ resource "azurerm_express_route_circuit_peering" "import" {
   peer_asn                      = azurerm_express_route_circuit_peering.test.peer_asn
   primary_peer_address_prefix   = azurerm_express_route_circuit_peering.test.primary_peer_address_prefix
   secondary_peer_address_prefix = azurerm_express_route_circuit_peering.test.secondary_peer_address_prefix
+  ipv4_enabled                  = azurerm_express_route_circuit_peering.test.ipv4_enabled
   vlan_id                       = azurerm_express_route_circuit_peering.test.vlan_id
 }
 `, r.privatePeering(data))
