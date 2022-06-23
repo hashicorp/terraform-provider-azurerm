@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * desktopvirtualization: refactoring to use `hashicorp/go-azure-sdk` [GH-17340]
 * Data Source: `azurerm_managed_disk` - exporting `disk_access_id` [GH-17270]
 * Data Source: `azurerm_managed_disk` - exporting `network_access_policy` [GH-17270]
+* Data Source: `azurerm_storage_account` - add support for `identity` [GH-17215]
 
 BUG FIXES:
 
