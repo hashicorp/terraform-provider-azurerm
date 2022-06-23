@@ -894,7 +894,7 @@ func TestAccLinuxWebAppSlot_zipDeploy(t *testing.T) {
 
 func TestAccLinuxWebAppSlot_vNetIntegration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppResource{}
+	r := LinuxWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -910,7 +910,7 @@ func TestAccLinuxWebAppSlot_vNetIntegration(t *testing.T) {
 
 func TestAccLinuxWebAppSlot_vNetIntegrationUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppResource{}
+	r := LinuxWebAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -2195,17 +2195,16 @@ resource "azurerm_subnet" "test" {
   delegation {
 	name = "delegation"
     service_delegation {
-      name    = "Microsoft.Web/serverFarms
+      name    = "Microsoft.Web/serverFarms"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                      = "acctestWA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  service_plan_id           = azurerm_service_plan.test.id
+  name           = "acctestWAS-%[2]d"
+  app_service_id = azurerm_linux_web_app.test.id
+  virtual_network_subnet_id = azurerm_subnet.test.id
 
   site_config {}
 }
@@ -2237,17 +2236,15 @@ resource "azurerm_subnet" "test" {
 	name = "delegation"
 
     service_delegation {
-      name    = "Microsoft.Web/serverFarms
+      name    = "Microsoft.Web/serverFarms"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name                      = "acctestWA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  service_plan_id           = azurerm_service_plan.test.id
+  name           			= "acctestWAS-%[2]d"
+  app_service_id 			= azurerm_linux_web_app.test.id
   virtual_network_subnet_id = azurerm_subnet.test.id
 
   site_config {}
