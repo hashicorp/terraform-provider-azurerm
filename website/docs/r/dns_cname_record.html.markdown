@@ -69,17 +69,11 @@ resource "azurerm_dns_cname_record" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the DNS CNAME Record.
-
 * `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
-
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
-
-* `TTL` - (Required) The Time To Live (TTL) of the DNS record in seconds.
-
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 * `record` - (Required) The target of the CNAME.
-
-* `target_resource_id` - (Optional) The Azure resource id of the target object. Conflicts with `records`
-
+* `target_resource_id` - (Optional) The Azure resource id of the target object. Conflicts with `record`.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ~> **Note:** either `record` OR `target_resource_id` must be specified, but not both.
@@ -91,18 +85,16 @@ The following attributes are exported:
 * `id` - The DNS CName Record ID.
 * `fqdn` - The FQDN of the DNS CName Record.
 
-~> Note: The FQDN of the DNS CNAME Record which has a full-stop at the end is by design. Please see the documentation for more information.
+~> **Note:** The FQDN of the DNS CNAME Record which has a full-stop at the end is by design. Please see the documentation for more information.
 
 ## Timeouts
 
-
-
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the DNS CName Record.
-* `update` - (Defaults to 30 minutes) Used when updating the DNS CName Record.
-* `read` - (Defaults to 5 minutes) Used when retrieving the DNS CName Record.
-* `delete` - (Defaults to 30 minutes) Used when deleting the DNS CName Record.
+* `create` - (Defaults to 30 minutes) Used when creating the DNS CNAME Record.
+* `update` - (Defaults to 30 minutes) Used when updating the DNS CNAME Record.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DNS CNAME Record.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DNS CNAME Record.
 
 ## Import
 

@@ -34,11 +34,10 @@ in your subscription that matches `name` will be returned.
 ## Attributes Reference
 
 * `id` - The ID of the DNS Zone.
-
 * `max_number_of_record_sets` - Maximum number of Records in the zone.
 * `number_of_record_sets` - The number of records already in the zone.
 * `name_servers` - A list of values that make up the NS record for the zone.
-* `tags` - A mapping of tags to assign to the EventHub Namespace.
+* `tags` - A mapping of tags assigned to the DNS Zone.
 
 ## Timeouts
 

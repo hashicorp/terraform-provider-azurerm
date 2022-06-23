@@ -69,17 +69,11 @@ resource "azurerm_dns_a_record" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the DNS A Record.
-
 * `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
-
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
-
-* `TTL` - (Required) The Time To Live (TTL) of the DNS record in seconds.
-
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 * `records` - (Optional) List of IPv4 Addresses. Conflicts with `target_resource_id`.
-
-* `target_resource_id` - (Optional) The Azure resource id of the target object. Conflicts with `records`
-
+* `target_resource_id` - (Optional) The Azure resource id of the target object. Conflicts with `records`.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ~> **Note:** either `records` OR `target_resource_id` must be specified, but not both.
@@ -94,8 +88,6 @@ The following attributes are exported:
 ~> **Note:** The FQDN of the DNS A Record which has a full-stop at the end is by design. Please [see the documentation](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) for more information.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
