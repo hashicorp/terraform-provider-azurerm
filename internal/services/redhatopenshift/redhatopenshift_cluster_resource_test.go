@@ -145,7 +145,7 @@ resource "azurerm_subnet" "master_subnet" {
   address_prefixes                               = ["10.0.0.0/23"]
   service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
   enforce_private_link_service_network_policies  = true
-	enforce_private_link_endpoint_network_policies = true	
+  enforce_private_link_endpoint_network_policies = true
 }
 
 resource "azurerm_subnet" "worker_subnet" {
@@ -162,15 +162,15 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   master_profile {
-		vm_size 	= "Standard_D8s_v3"
+    vm_size   = "Standard_D8s_v3"
     subnet_id = azurerm_subnet.master_subnet.id
   }
 
   worker_profile {
-    vm_size 		 = "Standard_D4s_v3"
-		disk_size_gb = 128
-		node_count 	 = 3
-		subnet_id 	 = azurerm_subnet.worker_subnet.id
+    vm_size      = "Standard_D4s_v3"
+    disk_size_gb = 128
+    node_count   = 3
+    subnet_id    = azurerm_subnet.worker_subnet.id
   }
 
   service_principal {
@@ -208,7 +208,7 @@ resource "azurerm_subnet" "master_subnet" {
   address_prefixes                               = ["10.0.0.0/23"]
   service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
   enforce_private_link_service_network_policies  = true
-	enforce_private_link_endpoint_network_policies = true	
+  enforce_private_link_endpoint_network_policies = true
 }
 
 resource "azurerm_subnet" "worker_subnet" {
@@ -223,17 +223,17 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   name                = "acctestaro%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
- 	
-	master_profile {
-		vm_size 	= "Standard_D8s_v3"
+
+  master_profile {
+    vm_size   = "Standard_D8s_v3"
     subnet_id = azurerm_subnet.master_subnet.id
   }
 
   worker_profile {
-    vm_size 		 = "Standard_D4s_v3"
-		disk_size_gb = 128
-		node_count 	 = 3
-		subnet_id 	 = azurerm_subnet.worker_subnet.id
+    vm_size      = "Standard_D4s_v3"
+    disk_size_gb = 128
+    node_count   = 3
+    subnet_id    = azurerm_subnet.worker_subnet.id
   }
 
   api_server_profile {
@@ -278,8 +278,8 @@ resource "azurerm_subnet" "master_subnet" {
   virtual_network_name                           = azurerm_virtual_network.test.name
   address_prefixes                               = ["10.0.0.0/23"]
   service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
-	enforce_private_link_service_network_policies  = true
-	enforce_private_link_endpoint_network_policies = true	
+  enforce_private_link_service_network_policies  = true
+  enforce_private_link_endpoint_network_policies = true
 }
 
 resource "azurerm_subnet" "worker_subnet" {
@@ -296,15 +296,15 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   master_profile {
-		vm_size 	= "Standard_D8s_v3"
+    vm_size   = "Standard_D8s_v3"
     subnet_id = azurerm_subnet.master_subnet.id
   }
 
   worker_profile {
-    vm_size 		 = "Standard_D4s_v3"
-		disk_size_gb = 128
-		node_count 	 = 3
-		subnet_id 	 = azurerm_subnet.worker_subnet.id
+    vm_size      = "Standard_D4s_v3"
+    disk_size_gb = 128
+    node_count   = 3
+    subnet_id    = azurerm_subnet.worker_subnet.id
   }
 
   cluster_profile {
@@ -346,7 +346,7 @@ resource "azurerm_subnet" "master_subnet" {
   address_prefixes                               = ["10.0.0.0/23"]
   service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
   enforce_private_link_service_network_policies  = true
-	enforce_private_link_endpoint_network_policies = true	
+  enforce_private_link_endpoint_network_policies = true
 }
 
 resource "azurerm_subnet" "worker_subnet" {
@@ -361,21 +361,21 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   name                = "acctestaro%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
- 	
-	cluster_profile {
-		enable_fips = true
-	}
 
-	master_profile {
-		vm_size 	= "Standard_D8s_v3"
+  cluster_profile {
+    enable_fips = true
+  }
+
+  master_profile {
+    vm_size   = "Standard_D8s_v3"
     subnet_id = azurerm_subnet.master_subnet.id
   }
 
   worker_profile {
-    vm_size 		 = "Standard_D4s_v3"
-		disk_size_gb = 128
-		node_count 	 = 3
-		subnet_id 	 = azurerm_subnet.worker_subnet.id
+    vm_size      = "Standard_D4s_v3"
+    disk_size_gb = 128
+    node_count   = 3
+    subnet_id    = azurerm_subnet.worker_subnet.id
   }
 
   service_principal {
