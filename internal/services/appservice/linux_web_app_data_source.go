@@ -48,7 +48,7 @@ type LinuxWebAppDataSourceModel struct {
 	PossibleOutboundIPAddresses   string                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                   `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential   `tfschema:"site_credential"`
-	VirtualNetworkSubnetID        string                     `tfschema:"virtual_network_subnet_id`
+	VirtualNetworkSubnetID        string                     `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.DataSource = LinuxWebAppDataSource{}
