@@ -2191,9 +2191,9 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
-  
+
   delegation {
-	name = "delegation"
+    name = "delegation"
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
@@ -2202,8 +2202,8 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name           = "acctestWAS-%[2]d"
-  app_service_id = azurerm_linux_web_app.test.id
+  name                      = "acctestWAS-%[2]d"
+  app_service_id            = azurerm_linux_web_app.test.id
   virtual_network_subnet_id = azurerm_subnet.test.id
 
   site_config {}
@@ -2231,9 +2231,9 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
-  
+
   delegation {
-	name = "delegation"
+    name = "delegation"
 
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
@@ -2243,8 +2243,8 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_linux_web_app_slot" "test" {
-  name           			= "acctestWAS-%[2]d"
-  app_service_id 			= azurerm_linux_web_app.test.id
+  name                      = "acctestWAS-%[2]d"
+  app_service_id            = azurerm_linux_web_app.test.id
   virtual_network_subnet_id = azurerm_subnet.test.id
 
   site_config {}
