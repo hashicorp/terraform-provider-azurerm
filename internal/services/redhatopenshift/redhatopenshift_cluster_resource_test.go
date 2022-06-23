@@ -103,8 +103,7 @@ provider "azurerm" {
   features {}
 }
 
-provider "azuread" {
-}
+provider "azuread" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aro-%d"
@@ -166,6 +165,8 @@ func (OpenShiftClusterResource) private(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
+
+provider "azuread" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aro-%d"
@@ -235,6 +236,8 @@ func (OpenShiftClusterResource) customDomain(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
+
+provider "azuread" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aro-%d"
