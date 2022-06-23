@@ -1196,24 +1196,6 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 
 	startTaskCmdLine := startTaskValue["command_line"].(string)
 
-	var containerSettings batch.TaskContainerSettings
-	if startTaskValue["container_settings"] != nil && len(startTaskValue["container_settings"].([]interface{})) > 0 {
-		containerSettingsList := startTaskValue["container_settings"].([]map[string]interface{})
-
-		if len(containerSettingsList) > 0 && containerSettingsList[0] != nil {
-			settingMap := containerSettingsList[0]
-			containerSettings.ImageName = utils.String(settingMap["image_name"].(string))
-			if containerRunOptions, ok := settingMap["container_run_options"]; ok {
-				containerSettings.ContainerRunOptions = utils.String(containerRunOptions.(string))
-			}
-			if containerRegistry, err := expandBatchPoolContainerRegistry(settingMap["registry"].(map[string]interface{})); err == nil {
-				containerSettings.Registry = containerRegistry
-			}
-			if workingDir, ok := settingMap["working_directory"]; ok {
-				containerSettings.WorkingDirectory = batch.ContainerWorkingDirectory(workingDir.(string))
-			}
-		}
-	}
 	maxTaskRetryCount := int32(1)
 
 	if v := startTaskValue["task_retry_maximum"].(int); v > 0 {
@@ -1304,7 +1286,6 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 
 	startTask := &batch.StartTask{
 		CommandLine:       &startTaskCmdLine,
-		ContainerSettings: &containerSettings,
 		MaxTaskRetryCount: &maxTaskRetryCount,
 		WaitForSuccess:    &waitForSuccess,
 		UserIdentity:      &userIdentity,
@@ -1313,6 +1294,26 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 
 	if v := startTaskValue["common_environment_properties"].(map[string]interface{}); len(v) > 0 {
 		startTask.EnvironmentSettings = expandCommonEnvironmentProperties(v)
+	}
+
+	if startTaskValue["container_settings"] != nil && len(startTaskValue["container_settings"].([]interface{})) > 0 {
+		var containerSettings batch.TaskContainerSettings
+		containerSettingsList := startTaskValue["container_settings"].([]map[string]interface{})
+
+		if len(containerSettingsList) > 0 && containerSettingsList[0] != nil {
+			settingMap := containerSettingsList[0]
+			containerSettings.ImageName = utils.String(settingMap["image_name"].(string))
+			if containerRunOptions, ok := settingMap["container_run_options"]; ok {
+				containerSettings.ContainerRunOptions = utils.String(containerRunOptions.(string))
+			}
+			if containerRegistry, err := expandBatchPoolContainerRegistry(settingMap["registry"].(map[string]interface{})); err == nil {
+				containerSettings.Registry = containerRegistry
+			}
+			if workingDir, ok := settingMap["working_directory"]; ok {
+				containerSettings.WorkingDirectory = batch.ContainerWorkingDirectory(workingDir.(string))
+			}
+		}
+		startTask.ContainerSettings = &containerSettings
 	}
 
 	return startTask, nil
