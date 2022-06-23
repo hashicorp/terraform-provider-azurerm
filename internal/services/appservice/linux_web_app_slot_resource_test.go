@@ -892,13 +892,13 @@ func TestAccLinuxWebAppSlot_zipDeploy(t *testing.T) {
 
 // Network tests
 
-func TestAccLinuxWebAppSlot_vnetIntegration(t *testing.T) {
+func TestAccLinuxWebAppSlot_vNetIntegration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vnetIntegrationWebApp_withSubnetId(data),
+			Config: r.vNetIntegrationWebApp_withSubnetId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_subnet_id").Exists(),
@@ -908,27 +908,27 @@ func TestAccLinuxWebAppSlot_vnetIntegration(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebAppSlot_vnetIntegrationUpdate(t *testing.T) {
+func TestAccLinuxWebAppSlot_vNetIntegrationUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vnetIntegrationWebApp_basic(data),
+			Config: r.vNetIntegrationWebApp_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.vnetIntegrationWebApp_withSubnetId(data),
+			Config: r.vNetIntegrationWebApp_withSubnetId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.vnetIntegrationWebApp_basic(data),
+			Config: r.vNetIntegrationWebApp_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2171,7 +2171,7 @@ resource "azurerm_linux_web_app" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LinuxWebAppSlotResource) vnetIntegrationWebApp_basic(data acceptance.TestData) string {
+func (r LinuxWebAppSlotResource) vNetIntegrationWebApp_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2212,7 +2212,7 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r LinuxWebAppSlotResource) vnetIntegrationWebApp_withSubnetId(data acceptance.TestData) string {
+func (r LinuxWebAppSlotResource) vNetIntegrationWebApp_withSubnetId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
