@@ -1272,11 +1272,15 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *web.SiteCo
 
 	var appStack []ApplicationStackLinuxFunctionApp
 	if functionAppSlotSiteConfig.LinuxFxVersion != nil {
-		decoded, err := DecodeFunctionAppLinuxFxVersion(*functionAppSlotSiteConfig.LinuxFxVersion)
-		if err != nil {
-			return nil, fmt.Errorf("flattening site config: %s", err)
+		if *functionAppSlotSiteConfig.LinuxFxVersion != "" {
+			decoded, err := DecodeFunctionAppLinuxFxVersion(*functionAppSlotSiteConfig.LinuxFxVersion)
+			if err != nil {
+				return nil, fmt.Errorf("flattening site config: %s", err)
+			}
+			appStack = decoded
+		} else {
+			appStack = append(appStack, ApplicationStackLinuxFunctionApp{CustomHandler: true})
 		}
-		appStack = decoded
 	}
 	result.ApplicationStack = appStack
 
