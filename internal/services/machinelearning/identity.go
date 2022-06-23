@@ -1,24 +1,24 @@
 package machinelearning
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/sdk/2021-07-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func expandIdentity(input []interface{}) (*machinelearningservices.Identity, error) {
+func expandIdentity(input []interface{}) (*machinelearningcomputes.Identity, error) {
 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	out := machinelearningservices.Identity{
-		Type: machinelearningservices.ResourceIdentityType(string(expanded.Type)),
+	out := machinelearningcomputes.Identity{
+		Type: utils.ToPtr(expanded.Type),
 	}
 
 	// work around the Swagger defining `SystemAssigned,UserAssigned` rather than `SystemAssigned, UserAssigned`
 	if expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.Type = machinelearningservices.ResourceIdentityTypeSystemAssignedUserAssigned
+		out.Type = utils.ToPtr(machinelearningcomputes.ResourceIdentityTypeSystemAssignedUserAssigned)
 	}
 
 	// 'Failed to perform resource identity operation. Status: 'BadRequest'. Response:
@@ -27,49 +27,45 @@ func expandIdentity(input []interface{}) (*machinelearningservices.Identity, err
 	// }}
 	// Upstream issue: https://github.com/Azure/azure-rest-api-specs/issues/17650
 	if len(expanded.IdentityIds) > 0 {
-		userAssignedIdentities := make(map[string]*machinelearningservices.UserAssignedIdentity)
+		userAssignedIdentities := make(map[string]machinelearningcomputes.UserAssignedIdentity)
 		for id := range expanded.IdentityIds {
-			userAssignedIdentities[id] = &machinelearningservices.UserAssignedIdentity{}
+			userAssignedIdentities[id] = machinelearningcomputes.UserAssignedIdentity{}
 		}
-		out.UserAssignedIdentities = userAssignedIdentities
+		out.UserAssignedIdentities = &userAssignedIdentities
 	}
 
 	return &out, nil
 }
 
-func flattenIdentity(input *machinelearningservices.Identity) (*[]interface{}, error) {
+func flattenIdentity(input *machinelearningcomputes.Identity) (*[]interface{}, error) {
 	var config *identity.SystemAndUserAssignedMap
 
 	if input != nil {
 		config = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
+			Type:        input.Type,
 			IdentityIds: nil,
 		}
 
 		// work around the Swagger defining `SystemAssigned,UserAssigned` rather than `SystemAssigned, UserAssigned`
-		if input.Type == machinelearningservices.ResourceIdentityTypeSystemAssignedUserAssigned {
+		if *input.Type == machinelearningcomputes.ResourceIdentityTypeSystemAssignedUserAssigned {
 			config.Type = identity.TypeSystemAssignedUserAssigned
 		}
 
-		if input.PrincipalID != nil {
-			config.PrincipalId = *input.PrincipalID
+		if input.PrincipalId != nil {
+			config.PrincipalId = *input.PrincipalId
 		}
-		if input.TenantID != nil {
-			config.TenantId = *input.TenantID
+		if input.TenantId != nil {
+			config.TenantId = *input.TenantId
 		}
 		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
-		for k, v := range input.UserAssignedIdentities {
-			if v == nil {
-				continue
-			}
-
+		for k, v := range *input.UserAssignedIdentities {
 			details := identity.UserAssignedIdentityDetails{}
 
-			if v.ClientID != nil {
-				details.ClientId = utils.String(*v.ClientID)
+			if v.ClientId != nil {
+				details.ClientId = utils.String(*v.ClientId)
 			}
-			if v.PrincipalID != nil {
-				details.PrincipalId = utils.String(*v.PrincipalID)
+			if v.PrincipalId != nil {
+				details.PrincipalId = utils.String(*v.PrincipalId)
 			}
 
 			identityIds[k] = details

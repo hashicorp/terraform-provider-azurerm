@@ -23,3 +23,7 @@ func Float(input float64) *float64 {
 func String(input string) *string {
 	return &input
 }
+
+func ToPtr[E any](e E) *E {
+	return &e
+}
