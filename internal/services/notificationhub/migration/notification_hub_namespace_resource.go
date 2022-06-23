@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -66,7 +66,7 @@ func (NotificationHubNamespaceResourceV0ToV1) Schema() map[string]*pluginsdk.Sch
 func (NotificationHubNamespaceResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldIdRaw := rawState["id"].(string)
-		oldId, err := parse.NamespaceIDInsensitively(oldIdRaw)
+		oldId, err := namespaces.ParseNamespaceIDInsensitively(oldIdRaw)
 		if err != nil {
 			return rawState, fmt.Errorf("parsing ID %q to upgrade: %+v", oldIdRaw, err)
 		}
