@@ -97,6 +97,27 @@ func TestAccOpenShiftCluster_customDomain(t *testing.T) {
 	})
 }
 
+func TestAccOpenShiftCluster_basicWithFipsEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redhatopenshift_cluster", "test")
+	r := OpenShiftClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithFipsEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cluster_profile.0.enable_fips").HasValue("true"),
+				check.That(data.ResourceName).Key("master_profile.0.vm_size").HasValue("Standard_D8s_v3"),
+				check.That(data.ResourceName).Key("worker_profile.0.vm_size").HasValue("Standard_D4s_v3"),
+				check.That(data.ResourceName).Key("worker_profile.0.disk_size_gb").HasValue("128"),
+				check.That(data.ResourceName).Key("worker_profile.0.node_count").HasValue("3"),
+				check.That(data.ResourceName).Key("api_server_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
+				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue(string(redhatopenshift.VisibilityPublic)),
+			),
+		},
+	})
+}
+
 func (OpenShiftClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -288,6 +309,73 @@ resource "azurerm_redhatopenshift_cluster" "test" {
 
   cluster_profile {
     domain = "foo.example.com"
+  }
+
+  service_principal {
+    client_id     = %q
+    client_secret = %q
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+}
+
+func (OpenShiftClusterResource) basicWithFipsEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aro-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/22"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "master_subnet" {
+  name                                           = "master-subnet-%d"
+  resource_group_name                            = azurerm_resource_group.test.name
+  virtual_network_name                           = azurerm_virtual_network.test.name
+  address_prefixes                               = ["10.0.0.0/23"]
+  service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  enforce_private_link_service_network_policies  = true
+	enforce_private_link_endpoint_network_policies = true	
+}
+
+resource "azurerm_subnet" "worker_subnet" {
+  name                 = "worker-subnet-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/23"]
+  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+}
+
+resource "azurerm_redhatopenshift_cluster" "test" {
+  name                = "acctestaro%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+ 	
+	cluster_profile {
+		enable_fips = true
+	}
+
+	master_profile {
+		vm_size 	= "Standard_D8s_v3"
+    subnet_id = azurerm_subnet.master_subnet.id
+  }
+
+  worker_profile {
+    vm_size 		 = "Standard_D4s_v3"
+		disk_size_gb = 128
+		node_count 	 = 3
+		subnet_id 	 = azurerm_subnet.worker_subnet.id
   }
 
   service_principal {
