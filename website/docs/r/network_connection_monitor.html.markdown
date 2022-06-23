@@ -97,14 +97,13 @@ resource "azurerm_log_analytics_workspace" "example" {
   name                = "example-Workspace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  sku                 = "pergb2018"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_network_connection_monitor" "example" {
-  name                 = "example-Monitor"
-  network_watcher_name = azurerm_network_watcher.example.name
-  resource_group_name  = azurerm_resource_group.example.name
-  location             = azurerm_network_watcher.example.location
+  name               = "example-Monitor"
+  network_watcher_id = azurerm_network_watcher.example.id
+  location           = azurerm_network_watcher.example.location
 
   endpoint {
     name               = "source"
@@ -140,7 +139,6 @@ resource "azurerm_network_connection_monitor" "example" {
     destination_endpoints    = ["destination"]
     source_endpoints         = ["source"]
     test_configuration_names = ["tcpName"]
-    disable                  = false
   }
 
   notes = "examplenote"

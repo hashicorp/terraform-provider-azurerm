@@ -27,6 +27,8 @@ resource "azurerm_postgresql_server" "example" {
   version                      = "9.6"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+  sku_name                     = "GP_Gen5_2"
+  ssl_enforcement_enabled      = true
 }
 
 resource "azurerm_postgresql_active_directory_administrator" "example" {

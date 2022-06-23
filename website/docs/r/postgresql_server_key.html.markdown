@@ -36,7 +36,7 @@ resource "azurerm_key_vault_access_policy" "server" {
   object_id    = azurerm_postgresql_server.example.identity.0.principal_id
 
   key_permissions    = ["Get", "UnwrapKey", "WrapKey"]
-  secret_permissions = ["get"]
+  secret_permissions = ["Get"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
