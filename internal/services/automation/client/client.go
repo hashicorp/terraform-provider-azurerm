@@ -2,11 +2,13 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	AccountClient               *automation.AccountClient
+	AccountPandoraClient        *automationaccount.AutomationAccountClient
 	AgentRegistrationInfoClient *automation.AgentRegistrationInformationClient
 	CertificateClient           *automation.CertificateClient
 	ConnectionClient            *automation.ConnectionClient
@@ -26,6 +28,9 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	accountClient := automation.NewAccountClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&accountClient.Client, o.ResourceManagerAuthorizer)
+
+	accountPandoraClietn := automationaccount.NewAutomationAccountClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&accountPandoraClietn.Client, o.ResourceManagerAuthorizer)
 
 	agentRegistrationInfoClient := automation.NewAgentRegistrationInformationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&agentRegistrationInfoClient.Client, o.ResourceManagerAuthorizer)
@@ -71,6 +76,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		AccountClient:               &accountClient,
+		AccountPandoraClient:        &accountPandoraClietn,
 		AgentRegistrationInfoClient: &agentRegistrationInfoClient,
 		CertificateClient:           &certificateClient,
 		ConnectionClient:            &connectionClient,
