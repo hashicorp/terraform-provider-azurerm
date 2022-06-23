@@ -5,10 +5,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -30,7 +30,7 @@ func resourcePortalTenantConfiguration() *pluginsdk.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.PortalTenantConfigurationID(id)
+			_, err := tenantconfiguration.ParseConfigurationID(id)
 			return err
 		}),
 
@@ -48,28 +48,28 @@ func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPortalTenantConfigurationID("default")
+	id := tenantconfiguration.NewConfigurationID("default")
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx)
+		existing, err := client.TenantConfigurationsGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_portal_tenant_configuration", id.ID())
 		}
 	}
 
-	parameters := portal.Configuration{
-		ConfigurationProperties: &portal.ConfigurationProperties{
+	parameters := tenantconfiguration.Configuration{
+		Properties: &tenantconfiguration.ConfigurationProperties{
 			EnforcePrivateMarkdownStorage: utils.Bool(d.Get("private_markdown_storage_enforced").(bool)),
 		},
 	}
 
-	if _, err := client.Create(ctx, parameters); err != nil {
+	if _, err := client.TenantConfigurationsCreate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -83,14 +83,14 @@ func resourcePortalTenantConfigurationRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PortalTenantConfigurationID(d.Id())
+	id, err := tenantconfiguration.ParseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx)
+	resp, err := client.TenantConfigurationsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -98,8 +98,10 @@ func resourcePortalTenantConfigurationRead(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if props := resp.ConfigurationProperties; props != nil {
-		d.Set("private_markdown_storage_enforced", props.EnforcePrivateMarkdownStorage)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("private_markdown_storage_enforced", props.EnforcePrivateMarkdownStorage)
+		}
 	}
 
 	return nil
@@ -110,12 +112,12 @@ func resourcePortalTenantConfigurationDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PortalTenantConfigurationID(d.Id())
+	id, err := tenantconfiguration.ParseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx); err != nil {
+	if _, err := client.TenantConfigurationsDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
