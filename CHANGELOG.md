@@ -10,7 +10,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20220622.1090000` of `github.com/hashicorp/go-azure-sdk` [GH-17339]
+* dependencies: updating to `v0.20220623.1064317` of `github.com/hashicorp/go-azure-sdk` [GH-17348]
 * batch: updating to use API Version `2022-01-01` [GH-17219]
 * confidentialledger: updating to use API Version `2022-05-13` [GH-17146]
 * desktopvirtualization: refactoring to use `hashicorp/go-azure-sdk` [GH-17340]
