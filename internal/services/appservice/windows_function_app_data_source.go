@@ -257,6 +257,20 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			functionApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
 
+			if v := props.OutboundIPAddresses; v != nil {
+				functionApp.OutboundIPAddresses = *v
+				functionApp.OutboundIPAddressList = strings.Split(*v, ",")
+			}
+
+			if v := props.PossibleOutboundIPAddresses; v != nil {
+				functionApp.PossibleOutboundIPAddresses = *v
+				functionApp.PossibleOutboundIPAddressList = strings.Split(*v, ",")
+			}
+
+			if v := props.DefaultHostName; v != nil {
+				functionApp.DefaultHostname = *v
+			}
+
 			appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)

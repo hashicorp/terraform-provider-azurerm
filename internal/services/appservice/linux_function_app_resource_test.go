@@ -1176,6 +1176,30 @@ func TestAccLinuxFunctionApp_basicPlanBackupShouldError(t *testing.T) {
 	})
 }
 
+// Outputs
+
+func TestAccLinuxFunctionApp_basicOutputs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	ipListRegex := regexp.MustCompile(`(([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})(,){0,1})+`)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("outbound_ip_addresses").MatchesRegex(ipListRegex),
+				check.That(data.ResourceName).Key("outbound_ip_address_list.#").Exists(),
+				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").MatchesRegex(ipListRegex),
+				check.That(data.ResourceName).Key("possible_outbound_ip_address_list.#").Exists(),
+				check.That(data.ResourceName).Key("default_hostname").MatchesRegex(regexp.MustCompile(`(.)+`)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Configs
 
 func (r LinuxFunctionAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
