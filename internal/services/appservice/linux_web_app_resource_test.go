@@ -1094,7 +1094,7 @@ func TestAccLinuxWebApp_vNetIntegration(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vnetIntegrationWebApp_withSubnetId(data),
+			Config: r.vNetIntegrationWebApp_withSubnetId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1109,21 +1109,21 @@ func TestAccLinuxWebApp_vNetIntegrationUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vnetIntegrationWebApp_basic(data),
+			Config: r.vNetIntegrationWebApp_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.vnetIntegrationWebApp_withSubnetId(data),
+			Config: r.vNetIntegrationWebApp_withSubnetId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.vnetIntegrationWebApp_basic(data),
+			Config: r.vNetIntegrationWebApp_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2796,7 +2796,7 @@ data "azurerm_storage_account_sas" "test" {
 `, r.standardPlanTemplate(data), data.RandomInteger, data.RandomString)
 }
 
-func (r LinuxWebAppResource) vnetIntegrationWebApp_basic(data acceptance.TestData) string {
+func (r LinuxWebAppResource) vNetIntegrationWebApp_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2838,7 +2838,7 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r LinuxWebAppResource) vnetIntegrationWebApp_withSubnetId(data acceptance.TestData) string {
+func (r LinuxWebAppResource) vNetIntegrationWebApp_withSubnetId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
