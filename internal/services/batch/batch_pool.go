@@ -1468,14 +1468,23 @@ func expandPoolNetworkSecurityGroupRule(list []interface{}) []batch.NetworkSecur
 		priority := int32(groupRuleMap["priority"].(int))
 		sourceAddressPrefix := groupRuleMap["source_address_prefix"].(string)
 		access := batch.NetworkSecurityGroupRuleAccess(groupRuleMap["access"].(string))
-		portRanges := groupRuleMap["source_port_ranges"].([]string)
 
-		networkSecurityGroupRule = append(networkSecurityGroupRule, batch.NetworkSecurityGroupRule{
+		networkSecurityGroupRuleObject := batch.NetworkSecurityGroupRule{
 			Priority:            &priority,
 			SourceAddressPrefix: &sourceAddressPrefix,
 			Access:              access,
-			SourcePortRanges:    &portRanges,
-		})
+		}
+
+		portRanges := groupRuleMap["source_port_ranges"].([]interface{})
+		if len(portRanges) > 0 {
+			portRangesResult := make([]string, 0)
+			for _, v := range portRanges {
+				portRangesResult = append(portRangesResult, v.(string))
+			}
+			networkSecurityGroupRuleObject.SourcePortRanges = &portRangesResult
+		}
+
+		networkSecurityGroupRule = append(networkSecurityGroupRule, networkSecurityGroupRuleObject)
 	}
 
 	return networkSecurityGroupRule

@@ -376,19 +376,19 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ForceNew: true,
-							Default:  string(batch.DynamicVNetAssignmentScopeNone),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(batch.DynamicVNetAssignmentScopeNone),
 								string(batch.DynamicVNetAssignmentScopeJob),
 							}, false),
 						},
 						"public_ips": {
-							Type:     pluginsdk.TypeList,
+							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
+							Set: pluginsdk.HashString,
 						},
 						"public_address_provisioning_type": {
 							Type:     pluginsdk.TypeString,
@@ -465,9 +465,11 @@ func resourceBatchPool() *pluginsdk.Resource {
 												"source_port_ranges": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
+													Computed: true,
 													ForceNew: true,
 													Elem: &pluginsdk.Schema{
 														Type:         pluginsdk.TypeString,
+														Default:      "*",
 														ValidateFunc: validation.StringIsNotEmpty,
 													},
 												},
