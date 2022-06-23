@@ -1094,10 +1094,9 @@ func TestAccLinuxWebApp_vNetIntegration(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vnetIntegrationWebApp_basic(data),
+			Config: r.vnetIntegrationWebApp_withSubnetId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("virtual_network_subnet_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -2812,15 +2811,17 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_subnet" "subnet" {
+resource "azurerm_subnet" "test" {
   name                 = "subnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
   
   delegation {
+    name = "delegation"
+
     service_delegation {
-      name    = "Microsoft.Web/serverFarms
+      name    = "Microsoft.Web/serverFarms"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
@@ -2852,15 +2853,17 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_subnet" "subnet" {
+resource "azurerm_subnet" "test" {
   name                 = "subnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
   
   delegation {
+    name = "delegation"
+
     service_delegation {
-      name    = "Microsoft.Web/serverFarms
+      name    = "Microsoft.Web/serverFarms"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
