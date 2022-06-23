@@ -62,8 +62,6 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
--> **Note:** At this time, Azure Spring Cloud Service is supported in `East US`, `East US 2`, `Central US`, `South Central US`, `North Central US`, `West US`, `West US 2`, `West US 3`, `West Europe`, `North Europe`, `UK South`, `Southeast Asia`, `Australia East`, `Canada Central`, `UAE North`, `Central India`, `Korea Central`, `East Asia`, `South Africa North`, `Brazil South`, and `France Central`.
-
 * `build_agent_pool_size` - (Optional) Specifies the size for this Spring Cloud Service's default build agent pool. Possible values are `S1`, `S2`, `S3`, `S4` and `S5`.
 
 * `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0`, `S0` and `E0`. Defaults to `S0`.
