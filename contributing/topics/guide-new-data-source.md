@@ -13,7 +13,7 @@ This guide covers adding a new Data Source to a Service Package, see [adding a N
 
 At this point in time the AzureRM Provider supports both Typed and Untyped Data Sources - more information can be found [in the High Level Overview](high-level-overview.md).
 
-This guide covers adding a new Typed Data Source, which makes uses the Typed SDK within this repository, which requires the following steps:
+This guide covers adding a new Typed Data Source, which makes use of the Typed SDK within this repository and requires the following steps:
 
 1. Ensure all the dependencies are installed (see [Building the Provider](building-the-provider.md)).
 2. Add an SDK Client (if required).
@@ -113,7 +113,7 @@ These types can then be used in the Data Source we're creating below, but [see t
 
 Since we're creating a Data Source for a Resource Group, which is a part of the Resources API - we'll want to create an empty Go file within the Service Package for Resources, which is located at `./internal/services/resources`.
 
-In this case, this'd be a file called `resource_group_example_data_source.go`, which we'll start out with the following:
+In this case, this would be a file called `resource_group_example_data_source.go`, which we'll start out with the following:
 
 > **Note:** We'd normally name this file `resource_group_data_source.go` - but there's an existing Data Source for Resource Groups, so we're appending `example` to the name throughout this guide. 
 
