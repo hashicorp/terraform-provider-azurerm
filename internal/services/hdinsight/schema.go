@@ -642,15 +642,6 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 	}
 }
 
-type DiskEncryptionProperties struct {
-	EncryptionAlgorithm string `tfschema:"encryption_algorithm"`
-	EncryptionAtHost    bool   `tfschema:"encryption_at_host"`
-	KeyName             string `tfschema:"key_name"`
-	KeyVersion          string `tfschema:"key_version"`
-	MsiResourceId       string `tfschema:"msi_resource_id"`
-	VaultUri            string `tfschema:"vault_uri"`
-}
-
 func SchemaHDInsightsDiskEncryptionProperties() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
