@@ -274,7 +274,7 @@ resource "azurerm_application_insights_workbook" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r ApplicationInsightsWorkbookResource) update(data acceptance.TestData) string {
@@ -349,5 +349,5 @@ resource "azurerm_application_insights_workbook" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, data.RandomString)
 }
