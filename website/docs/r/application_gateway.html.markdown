@@ -109,7 +109,6 @@ resource "azurerm_application_gateway" "network" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
-    priority                   = 10
   }
 }
 ```
@@ -432,9 +431,10 @@ A `request_routing_rule` block supports the following:
 
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
-* `priority` - (Required) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
+* `priority` - (Required)  Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority. Only valid for v2 SKUs.
 
-~> **NOTE:** The `priority` field is mandatory with AzureRM release 3.6.0 and later. 
+-> **NOTE - v1 SKUs** The `priority` field must not be specified. It is not supported in v1 SKUs.
+~> **NOTE - v2 SKUs** The `priority` field is mandatory with AzureRM release 3.6.0 and later on [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/multiple-site-overview#request-routing-rules-evaluation-order).
 
 ---
 
