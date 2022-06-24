@@ -1,4 +1,4 @@
-package insights
+package applicationinsights
 
 import (
 	"context"
@@ -7,6 +7,9 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 )
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type WorkbooksCreateOrUpdateOperationResponse struct {
 	HttpResponse *http.Response
@@ -38,22 +41,22 @@ func (o WorkbooksCreateOrUpdateOperationOptions) toQueryString() map[string]inte
 }
 
 // WorkbooksCreateOrUpdate ...
-func (c InsightsClient) WorkbooksCreateOrUpdate(ctx context.Context, id WorkbookId, input Workbook, options WorkbooksCreateOrUpdateOperationOptions) (result WorkbooksCreateOrUpdateOperationResponse, err error) {
+func (c ApplicationInsightsClient) WorkbooksCreateOrUpdate(ctx context.Context, id WorkbookId, input Workbook, options WorkbooksCreateOrUpdateOperationOptions) (result WorkbooksCreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForWorkbooksCreateOrUpdate(ctx, id, input, options)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksCreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksCreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksCreateOrUpdate", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksCreateOrUpdate", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForWorkbooksCreateOrUpdate(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksCreateOrUpdate", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksCreateOrUpdate", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -61,7 +64,7 @@ func (c InsightsClient) WorkbooksCreateOrUpdate(ctx context.Context, id Workbook
 }
 
 // preparerForWorkbooksCreateOrUpdate prepares the WorkbooksCreateOrUpdate request.
-func (c InsightsClient) preparerForWorkbooksCreateOrUpdate(ctx context.Context, id WorkbookId, input Workbook, options WorkbooksCreateOrUpdateOperationOptions) (*http.Request, error) {
+func (c ApplicationInsightsClient) preparerForWorkbooksCreateOrUpdate(ctx context.Context, id WorkbookId, input Workbook, options WorkbooksCreateOrUpdateOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -83,7 +86,7 @@ func (c InsightsClient) preparerForWorkbooksCreateOrUpdate(ctx context.Context, 
 
 // responderForWorkbooksCreateOrUpdate handles the response to the WorkbooksCreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (c InsightsClient) responderForWorkbooksCreateOrUpdate(resp *http.Response) (result WorkbooksCreateOrUpdateOperationResponse, err error) {
+func (c ApplicationInsightsClient) responderForWorkbooksCreateOrUpdate(resp *http.Response) (result WorkbooksCreateOrUpdateOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusCreated, http.StatusOK),

@@ -1,4 +1,4 @@
-package insights
+package applicationinsights
 
 import "fmt"
 
@@ -8,5 +8,5 @@ import "fmt"
 const defaultApiVersion = "2022-04-01"
 
 func userAgent() string {
-	return fmt.Sprintf("hashicorp/go-azure-sdk/insights/%s", defaultApiVersion)
+	return fmt.Sprintf("hashicorp/go-azure-sdk/applicationinsights/%s", defaultApiVersion)
 }

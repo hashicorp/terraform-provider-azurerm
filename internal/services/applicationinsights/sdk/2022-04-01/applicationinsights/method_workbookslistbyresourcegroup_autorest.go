@@ -1,4 +1,4 @@
-package insights
+package applicationinsights
 
 import (
 	"context"
@@ -10,6 +10,9 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type WorkbooksListByResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
@@ -75,34 +78,34 @@ func (o WorkbooksListByResourceGroupOperationOptions) toQueryString() map[string
 }
 
 // WorkbooksListByResourceGroup ...
-func (c InsightsClient) WorkbooksListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options WorkbooksListByResourceGroupOperationOptions) (resp WorkbooksListByResourceGroupOperationResponse, err error) {
+func (c ApplicationInsightsClient) WorkbooksListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options WorkbooksListByResourceGroupOperationOptions) (resp WorkbooksListByResourceGroupOperationResponse, err error) {
 	req, err := c.preparerForWorkbooksListByResourceGroup(ctx, id, options)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksListByResourceGroup", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksListByResourceGroup", nil, "Failure preparing request")
 		return
 	}
 
 	resp.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksListByResourceGroup", resp.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksListByResourceGroup", resp.HttpResponse, "Failure sending request")
 		return
 	}
 
 	resp, err = c.responderForWorkbooksListByResourceGroup(resp.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksListByResourceGroup", resp.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksListByResourceGroup", resp.HttpResponse, "Failure responding to request")
 		return
 	}
 	return
 }
 
 // WorkbooksListByResourceGroupComplete retrieves all of the results into a single object
-func (c InsightsClient) WorkbooksListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId, options WorkbooksListByResourceGroupOperationOptions) (WorkbooksListByResourceGroupCompleteResult, error) {
+func (c ApplicationInsightsClient) WorkbooksListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId, options WorkbooksListByResourceGroupOperationOptions) (WorkbooksListByResourceGroupCompleteResult, error) {
 	return c.WorkbooksListByResourceGroupCompleteMatchingPredicate(ctx, id, options, WorkbookOperationPredicate{})
 }
 
 // WorkbooksListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c InsightsClient) WorkbooksListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, options WorkbooksListByResourceGroupOperationOptions, predicate WorkbookOperationPredicate) (resp WorkbooksListByResourceGroupCompleteResult, err error) {
+func (c ApplicationInsightsClient) WorkbooksListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, options WorkbooksListByResourceGroupOperationOptions, predicate WorkbookOperationPredicate) (resp WorkbooksListByResourceGroupCompleteResult, err error) {
 	items := make([]Workbook, 0)
 
 	page, err := c.WorkbooksListByResourceGroup(ctx, id, options)
@@ -141,7 +144,7 @@ func (c InsightsClient) WorkbooksListByResourceGroupCompleteMatchingPredicate(ct
 }
 
 // preparerForWorkbooksListByResourceGroup prepares the WorkbooksListByResourceGroup request.
-func (c InsightsClient) preparerForWorkbooksListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options WorkbooksListByResourceGroupOperationOptions) (*http.Request, error) {
+func (c ApplicationInsightsClient) preparerForWorkbooksListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options WorkbooksListByResourceGroupOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -161,7 +164,7 @@ func (c InsightsClient) preparerForWorkbooksListByResourceGroup(ctx context.Cont
 }
 
 // preparerForWorkbooksListByResourceGroupWithNextLink prepares the WorkbooksListByResourceGroup request with the given nextLink token.
-func (c InsightsClient) preparerForWorkbooksListByResourceGroupWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
+func (c ApplicationInsightsClient) preparerForWorkbooksListByResourceGroupWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
 	uri, err := url.Parse(nextLink)
 	if err != nil {
 		return nil, fmt.Errorf("parsing nextLink %q: %+v", nextLink, err)
@@ -187,7 +190,7 @@ func (c InsightsClient) preparerForWorkbooksListByResourceGroupWithNextLink(ctx 
 
 // responderForWorkbooksListByResourceGroup handles the response to the WorkbooksListByResourceGroup request. The method always
 // closes the http.Response Body.
-func (c InsightsClient) responderForWorkbooksListByResourceGroup(resp *http.Response) (result WorkbooksListByResourceGroupOperationResponse, err error) {
+func (c ApplicationInsightsClient) responderForWorkbooksListByResourceGroup(resp *http.Response) (result WorkbooksListByResourceGroupOperationResponse, err error) {
 	type page struct {
 		Values   []Workbook `json:"value"`
 		NextLink *string    `json:"nextLink"`
@@ -205,19 +208,19 @@ func (c InsightsClient) responderForWorkbooksListByResourceGroup(resp *http.Resp
 		result.nextPageFunc = func(ctx context.Context, nextLink string) (result WorkbooksListByResourceGroupOperationResponse, err error) {
 			req, err := c.preparerForWorkbooksListByResourceGroupWithNextLink(ctx, nextLink)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksListByResourceGroup", nil, "Failure preparing request")
+				err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksListByResourceGroup", nil, "Failure preparing request")
 				return
 			}
 
 			result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksListByResourceGroup", result.HttpResponse, "Failure sending request")
+				err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksListByResourceGroup", result.HttpResponse, "Failure sending request")
 				return
 			}
 
 			result, err = c.responderForWorkbooksListByResourceGroup(result.HttpResponse)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksListByResourceGroup", result.HttpResponse, "Failure responding to request")
+				err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksListByResourceGroup", result.HttpResponse, "Failure responding to request")
 				return
 			}
 

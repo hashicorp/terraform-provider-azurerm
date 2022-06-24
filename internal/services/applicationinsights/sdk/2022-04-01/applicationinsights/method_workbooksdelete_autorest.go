@@ -1,4 +1,4 @@
-package insights
+package applicationinsights
 
 import (
 	"context"
@@ -8,27 +8,30 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 type WorkbooksDeleteOperationResponse struct {
 	HttpResponse *http.Response
 }
 
 // WorkbooksDelete ...
-func (c InsightsClient) WorkbooksDelete(ctx context.Context, id WorkbookId) (result WorkbooksDeleteOperationResponse, err error) {
+func (c ApplicationInsightsClient) WorkbooksDelete(ctx context.Context, id WorkbookId) (result WorkbooksDeleteOperationResponse, err error) {
 	req, err := c.preparerForWorkbooksDelete(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksDelete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksDelete", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksDelete", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksDelete", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForWorkbooksDelete(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksDelete", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksDelete", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -36,7 +39,7 @@ func (c InsightsClient) WorkbooksDelete(ctx context.Context, id WorkbookId) (res
 }
 
 // preparerForWorkbooksDelete prepares the WorkbooksDelete request.
-func (c InsightsClient) preparerForWorkbooksDelete(ctx context.Context, id WorkbookId) (*http.Request, error) {
+func (c ApplicationInsightsClient) preparerForWorkbooksDelete(ctx context.Context, id WorkbookId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -52,7 +55,7 @@ func (c InsightsClient) preparerForWorkbooksDelete(ctx context.Context, id Workb
 
 // responderForWorkbooksDelete handles the response to the WorkbooksDelete request. The method always
 // closes the http.Response Body.
-func (c InsightsClient) responderForWorkbooksDelete(resp *http.Response) (result WorkbooksDeleteOperationResponse, err error) {
+func (c ApplicationInsightsClient) responderForWorkbooksDelete(resp *http.Response) (result WorkbooksDeleteOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),

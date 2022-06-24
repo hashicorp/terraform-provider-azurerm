@@ -1,4 +1,4 @@
-package insights
+package applicationinsights
 
 import (
 	"context"
@@ -10,6 +10,9 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type WorkbooksListBySubscriptionOperationResponse struct {
 	HttpResponse *http.Response
@@ -70,34 +73,34 @@ func (o WorkbooksListBySubscriptionOperationOptions) toQueryString() map[string]
 }
 
 // WorkbooksListBySubscription ...
-func (c InsightsClient) WorkbooksListBySubscription(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions) (resp WorkbooksListBySubscriptionOperationResponse, err error) {
+func (c ApplicationInsightsClient) WorkbooksListBySubscription(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions) (resp WorkbooksListBySubscriptionOperationResponse, err error) {
 	req, err := c.preparerForWorkbooksListBySubscription(ctx, id, options)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksListBySubscription", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksListBySubscription", nil, "Failure preparing request")
 		return
 	}
 
 	resp.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksListBySubscription", resp.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksListBySubscription", resp.HttpResponse, "Failure sending request")
 		return
 	}
 
 	resp, err = c.responderForWorkbooksListBySubscription(resp.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksListBySubscription", resp.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksListBySubscription", resp.HttpResponse, "Failure responding to request")
 		return
 	}
 	return
 }
 
 // WorkbooksListBySubscriptionComplete retrieves all of the results into a single object
-func (c InsightsClient) WorkbooksListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions) (WorkbooksListBySubscriptionCompleteResult, error) {
+func (c ApplicationInsightsClient) WorkbooksListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions) (WorkbooksListBySubscriptionCompleteResult, error) {
 	return c.WorkbooksListBySubscriptionCompleteMatchingPredicate(ctx, id, options, WorkbookOperationPredicate{})
 }
 
 // WorkbooksListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c InsightsClient) WorkbooksListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions, predicate WorkbookOperationPredicate) (resp WorkbooksListBySubscriptionCompleteResult, err error) {
+func (c ApplicationInsightsClient) WorkbooksListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions, predicate WorkbookOperationPredicate) (resp WorkbooksListBySubscriptionCompleteResult, err error) {
 	items := make([]Workbook, 0)
 
 	page, err := c.WorkbooksListBySubscription(ctx, id, options)
@@ -136,7 +139,7 @@ func (c InsightsClient) WorkbooksListBySubscriptionCompleteMatchingPredicate(ctx
 }
 
 // preparerForWorkbooksListBySubscription prepares the WorkbooksListBySubscription request.
-func (c InsightsClient) preparerForWorkbooksListBySubscription(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions) (*http.Request, error) {
+func (c ApplicationInsightsClient) preparerForWorkbooksListBySubscription(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -156,7 +159,7 @@ func (c InsightsClient) preparerForWorkbooksListBySubscription(ctx context.Conte
 }
 
 // preparerForWorkbooksListBySubscriptionWithNextLink prepares the WorkbooksListBySubscription request with the given nextLink token.
-func (c InsightsClient) preparerForWorkbooksListBySubscriptionWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
+func (c ApplicationInsightsClient) preparerForWorkbooksListBySubscriptionWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
 	uri, err := url.Parse(nextLink)
 	if err != nil {
 		return nil, fmt.Errorf("parsing nextLink %q: %+v", nextLink, err)
@@ -182,7 +185,7 @@ func (c InsightsClient) preparerForWorkbooksListBySubscriptionWithNextLink(ctx c
 
 // responderForWorkbooksListBySubscription handles the response to the WorkbooksListBySubscription request. The method always
 // closes the http.Response Body.
-func (c InsightsClient) responderForWorkbooksListBySubscription(resp *http.Response) (result WorkbooksListBySubscriptionOperationResponse, err error) {
+func (c ApplicationInsightsClient) responderForWorkbooksListBySubscription(resp *http.Response) (result WorkbooksListBySubscriptionOperationResponse, err error) {
 	type page struct {
 		Values   []Workbook `json:"value"`
 		NextLink *string    `json:"nextLink"`
@@ -200,19 +203,19 @@ func (c InsightsClient) responderForWorkbooksListBySubscription(resp *http.Respo
 		result.nextPageFunc = func(ctx context.Context, nextLink string) (result WorkbooksListBySubscriptionOperationResponse, err error) {
 			req, err := c.preparerForWorkbooksListBySubscriptionWithNextLink(ctx, nextLink)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksListBySubscription", nil, "Failure preparing request")
+				err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksListBySubscription", nil, "Failure preparing request")
 				return
 			}
 
 			result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksListBySubscription", result.HttpResponse, "Failure sending request")
+				err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksListBySubscription", result.HttpResponse, "Failure sending request")
 				return
 			}
 
 			result, err = c.responderForWorkbooksListBySubscription(result.HttpResponse)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksListBySubscription", result.HttpResponse, "Failure responding to request")
+				err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksListBySubscription", result.HttpResponse, "Failure responding to request")
 				return
 			}
 

@@ -1,4 +1,4 @@
-package insights
+package applicationinsights
 
 import (
 	"context"
@@ -7,6 +7,9 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 )
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type WorkbooksGetOperationResponse struct {
 	HttpResponse *http.Response
@@ -38,22 +41,22 @@ func (o WorkbooksGetOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // WorkbooksGet ...
-func (c InsightsClient) WorkbooksGet(ctx context.Context, id WorkbookId, options WorkbooksGetOperationOptions) (result WorkbooksGetOperationResponse, err error) {
+func (c ApplicationInsightsClient) WorkbooksGet(ctx context.Context, id WorkbookId, options WorkbooksGetOperationOptions) (result WorkbooksGetOperationResponse, err error) {
 	req, err := c.preparerForWorkbooksGet(ctx, id, options)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksGet", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksGet", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksGet", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksGet", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForWorkbooksGet(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksGet", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksGet", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -61,7 +64,7 @@ func (c InsightsClient) WorkbooksGet(ctx context.Context, id WorkbookId, options
 }
 
 // preparerForWorkbooksGet prepares the WorkbooksGet request.
-func (c InsightsClient) preparerForWorkbooksGet(ctx context.Context, id WorkbookId, options WorkbooksGetOperationOptions) (*http.Request, error) {
+func (c ApplicationInsightsClient) preparerForWorkbooksGet(ctx context.Context, id WorkbookId, options WorkbooksGetOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -82,7 +85,7 @@ func (c InsightsClient) preparerForWorkbooksGet(ctx context.Context, id Workbook
 
 // responderForWorkbooksGet handles the response to the WorkbooksGet request. The method always
 // closes the http.Response Body.
-func (c InsightsClient) responderForWorkbooksGet(resp *http.Response) (result WorkbooksGetOperationResponse, err error) {
+func (c ApplicationInsightsClient) responderForWorkbooksGet(resp *http.Response) (result WorkbooksGetOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

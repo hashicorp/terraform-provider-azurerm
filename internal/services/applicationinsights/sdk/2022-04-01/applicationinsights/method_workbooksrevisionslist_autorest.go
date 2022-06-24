@@ -1,4 +1,4 @@
-package insights
+package applicationinsights
 
 import (
 	"context"
@@ -9,6 +9,9 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 )
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type WorkbooksRevisionsListOperationResponse struct {
 	HttpResponse *http.Response
@@ -35,34 +38,34 @@ func (r WorkbooksRevisionsListOperationResponse) LoadMore(ctx context.Context) (
 }
 
 // WorkbooksRevisionsList ...
-func (c InsightsClient) WorkbooksRevisionsList(ctx context.Context, id WorkbookId) (resp WorkbooksRevisionsListOperationResponse, err error) {
+func (c ApplicationInsightsClient) WorkbooksRevisionsList(ctx context.Context, id WorkbookId) (resp WorkbooksRevisionsListOperationResponse, err error) {
 	req, err := c.preparerForWorkbooksRevisionsList(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksRevisionsList", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksRevisionsList", nil, "Failure preparing request")
 		return
 	}
 
 	resp.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksRevisionsList", resp.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksRevisionsList", resp.HttpResponse, "Failure sending request")
 		return
 	}
 
 	resp, err = c.responderForWorkbooksRevisionsList(resp.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksRevisionsList", resp.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksRevisionsList", resp.HttpResponse, "Failure responding to request")
 		return
 	}
 	return
 }
 
 // WorkbooksRevisionsListComplete retrieves all of the results into a single object
-func (c InsightsClient) WorkbooksRevisionsListComplete(ctx context.Context, id WorkbookId) (WorkbooksRevisionsListCompleteResult, error) {
+func (c ApplicationInsightsClient) WorkbooksRevisionsListComplete(ctx context.Context, id WorkbookId) (WorkbooksRevisionsListCompleteResult, error) {
 	return c.WorkbooksRevisionsListCompleteMatchingPredicate(ctx, id, WorkbookOperationPredicate{})
 }
 
 // WorkbooksRevisionsListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c InsightsClient) WorkbooksRevisionsListCompleteMatchingPredicate(ctx context.Context, id WorkbookId, predicate WorkbookOperationPredicate) (resp WorkbooksRevisionsListCompleteResult, err error) {
+func (c ApplicationInsightsClient) WorkbooksRevisionsListCompleteMatchingPredicate(ctx context.Context, id WorkbookId, predicate WorkbookOperationPredicate) (resp WorkbooksRevisionsListCompleteResult, err error) {
 	items := make([]Workbook, 0)
 
 	page, err := c.WorkbooksRevisionsList(ctx, id)
@@ -101,7 +104,7 @@ func (c InsightsClient) WorkbooksRevisionsListCompleteMatchingPredicate(ctx cont
 }
 
 // preparerForWorkbooksRevisionsList prepares the WorkbooksRevisionsList request.
-func (c InsightsClient) preparerForWorkbooksRevisionsList(ctx context.Context, id WorkbookId) (*http.Request, error) {
+func (c ApplicationInsightsClient) preparerForWorkbooksRevisionsList(ctx context.Context, id WorkbookId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -116,7 +119,7 @@ func (c InsightsClient) preparerForWorkbooksRevisionsList(ctx context.Context, i
 }
 
 // preparerForWorkbooksRevisionsListWithNextLink prepares the WorkbooksRevisionsList request with the given nextLink token.
-func (c InsightsClient) preparerForWorkbooksRevisionsListWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
+func (c ApplicationInsightsClient) preparerForWorkbooksRevisionsListWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
 	uri, err := url.Parse(nextLink)
 	if err != nil {
 		return nil, fmt.Errorf("parsing nextLink %q: %+v", nextLink, err)
@@ -142,7 +145,7 @@ func (c InsightsClient) preparerForWorkbooksRevisionsListWithNextLink(ctx contex
 
 // responderForWorkbooksRevisionsList handles the response to the WorkbooksRevisionsList request. The method always
 // closes the http.Response Body.
-func (c InsightsClient) responderForWorkbooksRevisionsList(resp *http.Response) (result WorkbooksRevisionsListOperationResponse, err error) {
+func (c ApplicationInsightsClient) responderForWorkbooksRevisionsList(resp *http.Response) (result WorkbooksRevisionsListOperationResponse, err error) {
 	type page struct {
 		Values   []Workbook `json:"value"`
 		NextLink *string    `json:"nextLink"`
@@ -160,19 +163,19 @@ func (c InsightsClient) responderForWorkbooksRevisionsList(resp *http.Response) 
 		result.nextPageFunc = func(ctx context.Context, nextLink string) (result WorkbooksRevisionsListOperationResponse, err error) {
 			req, err := c.preparerForWorkbooksRevisionsListWithNextLink(ctx, nextLink)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksRevisionsList", nil, "Failure preparing request")
+				err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksRevisionsList", nil, "Failure preparing request")
 				return
 			}
 
 			result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksRevisionsList", result.HttpResponse, "Failure sending request")
+				err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksRevisionsList", result.HttpResponse, "Failure sending request")
 				return
 			}
 
 			result, err = c.responderForWorkbooksRevisionsList(result.HttpResponse)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "insights.InsightsClient", "WorkbooksRevisionsList", result.HttpResponse, "Failure responding to request")
+				err = autorest.NewErrorWithError(err, "applicationinsights.ApplicationInsightsClient", "WorkbooksRevisionsList", result.HttpResponse, "Failure responding to request")
 				return
 			}
 

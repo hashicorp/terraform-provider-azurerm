@@ -1,7 +1,8 @@
-package insights
+package applicationinsights
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -15,7 +16,7 @@ type Workbook struct {
 	Location   *string                                  `json:"location,omitempty"`
 	Name       *string                                  `json:"name,omitempty"`
 	Properties *WorkbookProperties                      `json:"properties,omitempty"`
-	SystemData *SystemData                              `json:"systemData,omitempty"`
+	SystemData *systemdata.SystemData                   `json:"systemData,omitempty"`
 	Tags       *map[string]string                       `json:"tags,omitempty"`
 	Type       *string                                  `json:"type,omitempty"`
 }

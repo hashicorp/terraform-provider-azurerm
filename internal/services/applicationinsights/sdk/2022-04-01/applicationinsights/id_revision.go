@@ -1,4 +1,4 @@
-package insights
+package applicationinsights
 
 import (
 	"fmt"

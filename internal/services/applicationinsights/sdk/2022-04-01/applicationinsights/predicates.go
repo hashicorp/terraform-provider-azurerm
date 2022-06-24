@@ -1,4 +1,4 @@
-package insights
+package applicationinsights
 
 type WorkbookOperationPredicate struct {
 	Etag     *string

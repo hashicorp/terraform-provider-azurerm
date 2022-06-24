@@ -113,6 +113,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		aadb2c.Registration{},
 		apimanagement.Registration{},
 		appconfiguration.Registration{},
+		applicationinsights.Registration{},
 		appservice.Registration{},
 		batch.Registration{},
 		bot.Registration{},

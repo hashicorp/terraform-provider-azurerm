@@ -1,4 +1,4 @@
-package monitor_test
+package applicationinsights_test
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	workbook "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/sdk/2022-04-01/insights"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/sdk/2022-04-01/applicationinsights"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorWorkbookResource struct{}
+type ApplicationInsightsWorkbookResource struct{}
 
-func TestAccMonitorWorkbook_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_workbook", "test")
-	r := MonitorWorkbookResource{}
+func TestAccApplicationInsightsWorkbook_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
+	r := ApplicationInsightsWorkbookResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -32,9 +32,9 @@ func TestAccMonitorWorkbook_basic(t *testing.T) {
 	})
 }
 
-func TestAccMonitorWorkbook_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_workbook", "test")
-	r := MonitorWorkbookResource{}
+func TestAccApplicationInsightsWorkbook_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
+	r := ApplicationInsightsWorkbookResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -46,9 +46,9 @@ func TestAccMonitorWorkbook_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccMonitorWorkbook_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_workbook", "test")
-	r := MonitorWorkbookResource{}
+func TestAccApplicationInsightsWorkbook_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
+	r := ApplicationInsightsWorkbookResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -60,9 +60,9 @@ func TestAccMonitorWorkbook_complete(t *testing.T) {
 	})
 }
 
-func TestAccMonitorWorkbook_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_workbook", "test")
-	r := MonitorWorkbookResource{}
+func TestAccApplicationInsightsWorkbook_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
+	r := ApplicationInsightsWorkbookResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -82,8 +82,8 @@ func TestAccMonitorWorkbook_update(t *testing.T) {
 }
 
 func TestAccMonitorWorkbook_hiddenTitleInTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_workbook", "test")
-	r := MonitorWorkbookResource{}
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
+	r := ApplicationInsightsWorkbookResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.hiddenTitleInTags(data),
@@ -92,25 +92,24 @@ func TestAccMonitorWorkbook_hiddenTitleInTags(t *testing.T) {
 	})
 }
 
-func (r MonitorWorkbookResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := workbook.ParseWorkbookID(state.ID)
+func (r ApplicationInsightsWorkbookResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := applicationinsights.ParseWorkbookID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client := clients.Monitor.WorkbookClient
-	resp, err := client.WorkbooksGet(ctx, *id, workbook.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
+	client := clients.AppInsights.ApplicationInsightsClient
+	resp, err := client.WorkbooksGet(ctx, *id, applicationinsights.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r MonitorWorkbookResource) template(data acceptance.TestData) string {
+func (r ApplicationInsightsWorkbookResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -123,17 +122,16 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r MonitorWorkbookResource) basic(data acceptance.TestData) string {
+func (r ApplicationInsightsWorkbookResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+				%s
 
-resource "azurerm_monitor_workbook" "test" {
-  name                = "bE1ad266-d329-4454-b693-8287e4d3b35d"
+resource "azurerm_application_insights_workbook" "test" {
+  name                = "be1ad266-d329-4454-b693-8287e4d3b35d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   display_name        = "acctest-amw-%d"
-  source_id           = azurerm_resource_group.test.id
   serialized_data = jsonencode({
     "version" = "Notebook/1.0",
     "items" = [
@@ -154,17 +152,16 @@ resource "azurerm_monitor_workbook" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r MonitorWorkbookResource) hiddenTitleInTags(data acceptance.TestData) string {
+func (r ApplicationInsightsWorkbookResource) hiddenTitleInTags(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_monitor_workbook" "test" {
-  name                = "bE1ad266-d329-4454-b693-8287e4d3b35d"
+resource "azurerm_application_insights_workbook" "test" {
+  name                = "be1ad266-d329-4454-b693-8287e4d3b35d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   display_name        = "acctest-amw-%d"
-  source_id           = azurerm_resource_group.test.id
   serialized_data = jsonencode({
     "version" = "Notebook/1.0",
     "items" = [
@@ -188,27 +185,27 @@ resource "azurerm_monitor_workbook" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r MonitorWorkbookResource) requiresImport(data acceptance.TestData) string {
+func (r ApplicationInsightsWorkbookResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
 
-resource "azurerm_monitor_workbook" "import" {
-  name                = azurerm_monitor_workbook.test.name
-  resource_group_name = azurerm_monitor_workbook.test.resource_group_name
-  location            = azurerm_monitor_workbook.test.location
-  category            = azurerm_monitor_workbook.test.category
-  display_name        = azurerm_monitor_workbook.test.display_name
-  source_id           = azurerm_monitor_workbook.test.source_id
-  serialized_data     = azurerm_monitor_workbook.test.serialized_data
+resource "azurerm_application_insights_workbook" "import" {
+  name                = azurerm_application_insights_workbook.test.name
+  resource_group_name = azurerm_application_insights_workbook.test.resource_group_name
+  location            = azurerm_application_insights_workbook.test.location
+  category            = azurerm_application_insights_workbook.test.category
+  display_name        = azurerm_application_insights_workbook.test.display_name
+  source_id           = azurerm_application_insights_workbook.test.source_id
+  serialized_data     = azurerm_application_insights_workbook.test.serialized_data
 }
 `, config)
 }
 
-func (r MonitorWorkbookResource) complete(data acceptance.TestData) string {
+func (r ApplicationInsightsWorkbookResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+			%s
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%d"
@@ -236,15 +233,15 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
-resource "azurerm_monitor_workbook" "test" {
+resource "azurerm_application_insights_workbook" "test" {
   name                = "0f498fab-2989-4395-b084-fc092d83a6b1"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   display_name        = "acctest-amw-1"
-  source_id           = azurerm_resource_group.test.id
+  source_id           = lower(azurerm_resource_group.test.id)
   category            = "workbook1"
   description         = "description1"
-  storage_uri         = azurerm_storage_container.test.resource_manager_id
+  storage_container_id         = azurerm_storage_container.test.resource_manager_id
 
   identity {
     type = "UserAssigned"
@@ -277,13 +274,13 @@ resource "azurerm_monitor_workbook" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, template, data.RandomInteger, data.RandomString)
+`, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r MonitorWorkbookResource) update(data acceptance.TestData) string {
+func (r ApplicationInsightsWorkbookResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+			%s
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%d"
@@ -311,15 +308,15 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
-resource "azurerm_monitor_workbook" "test" {
+resource "azurerm_application_insights_workbook" "test" {
   name                = "0f498fab-2989-4395-b084-fc092d83a6b1"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   display_name        = "acctest-amw-2"
-  source_id           = azurerm_resource_group.test.id
+  source_id           = "azure monitor"
   category            = "workbook2"
   description         = "description2"
-  storage_uri         = azurerm_storage_container.test.resource_manager_id
+  storage_container_id         = azurerm_storage_container.test.resource_manager_id
 
   identity {
     type = "UserAssigned"
@@ -352,5 +349,5 @@ resource "azurerm_monitor_workbook" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, template, data.RandomInteger, data.RandomString)
+`, template, data.RandomInteger, data.Locations.Primary)
 }
