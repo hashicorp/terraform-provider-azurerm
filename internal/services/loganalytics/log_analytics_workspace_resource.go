@@ -307,8 +307,8 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			skuName := ""
 			if sku := props.Sku; sku != nil {
 				for _, v := range workspaces.PossibleValuesForWorkspaceSkuNameEnum() {
-					if strings.EqualFold(string(v), string(sku.Name)) {
-						skuName = string(v)
+					if strings.EqualFold(v, string(sku.Name)) {
+						skuName = v
 					}
 				}
 

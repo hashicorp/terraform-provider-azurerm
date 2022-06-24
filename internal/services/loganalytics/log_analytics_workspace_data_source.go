@@ -2,7 +2,6 @@ package loganalytics
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"log"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/sdk/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceLogAnalyticsWorkspace() *pluginsdk.Resource {
