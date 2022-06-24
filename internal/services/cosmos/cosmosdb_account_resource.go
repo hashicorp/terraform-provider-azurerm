@@ -571,6 +571,12 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"secondary_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -1114,6 +1120,8 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 			connStrings[i] = *v.ConnectionString
 			if *v.Description == "Primary SQL Connection String" {
 				d.Set("primary_connection_string", *v.ConnectionString)
+			} else if *v.Description == "Secondary SQL Connection String" {
+				d.Set("secondary_connection_string", *v.ConnectionString)
 			}
 		}
 	}
