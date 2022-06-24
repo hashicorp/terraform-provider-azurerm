@@ -6,10 +6,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
@@ -57,6 +59,50 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"encryption": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"user_identity_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
+						"key_source": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice(
+								automationaccount.PossibleValuesForEncryptionKeySourceType(),
+								false,
+							),
+						},
+						"key_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"key_version": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"key_vault_uri": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"disable_local_auth": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
 
 			"tags": tags.Schema(),
 
@@ -111,8 +157,16 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 				Name: automationaccount.SkuNameEnum(d.Get("sku_name").(string)),
 			},
 			PublicNetworkAccess: utils.Bool(d.Get("public_network_access_enabled").(bool)),
+			DisableLocalAuth:    utils.Bool(d.Get("disable_local_auth").(bool)),
 		},
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
+	}
+	if encryption := d.Get("encryption").([]interface{}); len(encryption) > 0 {
+		enc, err := expandEncryption(encryption[0].(map[string]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `encryption`: %v", err)
+		}
+		parameters.Properties.Encryption = enc
 	}
 	// for create account do not set identity property (even TypeNone is not allowed), or api will response error
 	if identityVal.Type != identity.TypeNone {
@@ -149,9 +203,18 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 				Name: automationaccount.SkuNameEnum(d.Get("sku_name").(string)),
 			},
 			PublicNetworkAccess: utils.Bool(d.Get("public_network_access_enabled").(bool)),
+			DisableLocalAuth:    utils.Bool(d.Get("disable_local_auth").(bool)),
 		},
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Identity: identity,
+	}
+
+	if encryption := d.Get("encryption").([]interface{}); len(encryption) > 0 {
+		enc, err := expandEncryption(encryption[0].(map[string]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `encryption`: %v", err)
+		}
+		parameters.Properties.Encryption = enc
 	}
 
 	if tagsVal := expandTags(d.Get("tags").(map[string]interface{})); tagsVal != nil {
@@ -217,6 +280,16 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	d.Set("sku_name", skuName)
 
+	if prop.DisableLocalAuth != nil {
+		d.Set("disable_local_auth", *prop.DisableLocalAuth)
+	}
+
+	if encryption, err := flattenEncryption(prop.Encryption); err != nil {
+		return fmt.Errorf("flattening `encryption`: %+v", err)
+	} else if encryption != nil {
+		d.Set("encryption", encryption)
+	}
+
 	d.Set("dsc_server_endpoint", keysResp.Endpoint)
 	if keys := keysResp.Keys; keys != nil {
 		d.Set("dsc_primary_access_key", keys.Primary)
@@ -257,4 +330,63 @@ func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	return nil
+}
+
+func expandEncryption(encMap map[string]interface{}) (*automationaccount.EncryptionProperties, error) {
+	var id interface{}
+	id, ok := encMap["user_identity_id"].(string)
+	if !ok {
+		return nil, fmt.Errorf("read encryption user identity id error")
+	}
+	prop := &automationaccount.EncryptionProperties{
+		Identity: &automationaccount.EncryptionPropertiesIdentity{
+			UserAssignedIdentity: &id,
+		},
+	}
+	if val, ok := encMap["key_source"].(string); ok && val != "" {
+		prop.KeySource = (*automationaccount.EncryptionKeySourceType)(&val)
+	}
+	var keyProp automationaccount.KeyVaultProperties
+	var hasKeyProp bool
+	if val, ok := encMap["key_name"].(string); ok && val != "" {
+		keyProp.KeyName = &val
+		hasKeyProp = true
+	}
+	if val, ok := encMap["key_version"].(string); ok && val != "" {
+		keyProp.KeyVersion = &val
+		hasKeyProp = true
+	}
+	if val, ok := encMap["key_vault_uri"].(string); ok && val != "" {
+		keyProp.KeyvaultUri = &val
+		hasKeyProp = true
+	}
+	if hasKeyProp {
+		prop.KeyVaultProperties = &keyProp
+	}
+	return prop, nil
+}
+
+func flattenEncryption(encryption *automationaccount.EncryptionProperties) (res []interface{}, err error) {
+	if encryption == nil {
+		return
+	}
+	item := map[string]interface{}{}
+	if encryption.KeySource != nil {
+		item["key_source"] = (string)(*encryption.KeySource)
+	}
+	if encryption.Identity != nil && encryption.Identity.UserAssignedIdentity != nil {
+		item["user_identity_id"] = (*encryption.Identity.UserAssignedIdentity).(string)
+	}
+	if keyProp := encryption.KeyVaultProperties; keyProp != nil {
+		if keyProp.KeyName != nil {
+			item["key_name"] = *keyProp.KeyName
+		}
+		if keyProp.KeyVersion != nil {
+			item["key_version"] = *keyProp.KeyVersion
+		}
+		if keyProp.KeyName != nil {
+			item["key_vault_uri"] = *keyProp.KeyvaultUri
+		}
+	}
+	return []interface{}{item}, nil
 }

@@ -44,11 +44,15 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU of the account - only `Basic` is supported at this time.
 
+* `disable_local_auth` - (Optional) Whether requests using non-AAD authentication are blocked.
+
 ---
 
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `encryption` - (Optional) An `encryption` block as defined below.
 
 ---
 
@@ -59,6 +63,20 @@ An `identity` block supports the following:
 * `identity_ids` - (Optional) The ID of the User Assigned Identity which should be assigned to this Automation Account.
 
 -> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+--
+
+An `encryption` block supports the following:
+
+* `user_identity_id` - (Optional) The user identity used for CMK. It will be an ARM resource id.
+
+* `key_source` - (Optional) The source of the encryption key. Possible values are `Microsoft.Keyvault` and `Microsoft.Storage`.
+
+* `key_name` - (Optional) The name of the key used to encrypt data.
+
+* `key_version` - (Optional) The version of the key used to encrypt data.
+
+* `key_vault_uri` - (Optional) The URI of the Key Vault key used to encrypt data.
 
 ---
 
