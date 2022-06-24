@@ -434,7 +434,8 @@ A `request_routing_rule` block supports the following:
 * `priority` - (Required)  Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority. Only valid for v2 SKUs.
 
 -> **NOTE - v1 SKUs** The `priority` field must not be specified. It is not supported in v1 SKUs.
-~> **NOTE - v2 SKUs** The `priority` field is mandatory with AzureRM release 3.6.0 and later on [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/multiple-site-overview#request-routing-rules-evaluation-order).
+
+~> **NOTE - v2 SKUs** The `priority` field is [mandatory](https://docs.microsoft.com/en-us/azure/application-gateway/multiple-site-overview#request-routing-rules-evaluation-order) with AzureRM release 3.6.0 and later.
 
 ---
 
