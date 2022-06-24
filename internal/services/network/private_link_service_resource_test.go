@@ -716,7 +716,7 @@ resource "azurerm_private_link_service" "test" {
   resource_group_name            = azurerm_resource_group.test.name
   auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
   visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
-  fqdns                          = ["a.a.a.a.a"]
+  fqdns                          = ["foo.com", "bar.com"]
 
   nat_ip_configuration {
     name                       = "primaryIpConfiguration-%d"
