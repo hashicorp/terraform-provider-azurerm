@@ -297,9 +297,7 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("name", id.WorkspaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	if model := resp.Model; model != nil {
-		if location := model.Location; location != "" {
-			d.Set("location", azure.NormalizeLocation(location))
-		}
+		d.Set("location", azure.NormalizeLocation(model.Location))
 
 		if props := model.Properties; props != nil {
 			d.Set("internet_ingestion_enabled", *props.PublicNetworkAccessForIngestion == workspaces.PublicNetworkAccessTypeEnabled)
@@ -320,17 +318,17 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 			d.Set("sku", skuName)
 
-			d.Set("retention_in_days", props.RetentionInDays)
 			d.Set("force_cmk_for_query", props.ForceCmkForQuery)
-		}
+			d.Set("retention_in_days", props.RetentionInDays)
 
-		if model.Properties != nil && model.Properties.Sku != nil && strings.EqualFold(string(model.Properties.Sku.Name), string(workspaces.WorkspaceSkuNameEnumFree)) {
-			// Special case for "Free" tier
-			d.Set("daily_quota_gb", utils.Float(0.5))
-		} else if model.Properties != nil && model.Properties.WorkspaceCapping != nil {
-			d.Set("daily_quota_gb", model.Properties.WorkspaceCapping.DailyQuotaGb)
-		} else {
-			d.Set("daily_quota_gb", utils.Float(-1))
+			if props.Sku != nil && strings.EqualFold(string(props.Sku.Name), string(workspaces.WorkspaceSkuNameEnumFree)) {
+				// Special case for "Free" tier
+				d.Set("daily_quota_gb", utils.Float(0.5))
+			} else if workspaceCapping := props.WorkspaceCapping; workspaceCapping != nil {
+				d.Set("daily_quota_gb", props.WorkspaceCapping.DailyQuotaGb)
+			} else {
+				d.Set("daily_quota_gb", utils.Float(-1))
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

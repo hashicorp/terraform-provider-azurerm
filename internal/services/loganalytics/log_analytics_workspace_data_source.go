@@ -2,6 +2,7 @@ package loganalytics
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"log"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/sdk/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceLogAnalyticsWorkspace() *pluginsdk.Resource {
@@ -105,12 +105,12 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 				d.Set("sku", sku.Name)
 			}
 			d.Set("retention_in_days", props.RetentionInDays)
-		}
 
-		if model.Properties != nil && model.Properties.WorkspaceCapping != nil {
-			d.Set("daily_quota_gb", model.Properties.WorkspaceCapping.DailyQuotaGb)
-		} else {
-			d.Set("daily_quota_gb", utils.Float(-1))
+			if workspaceCapping := props.WorkspaceCapping; workspaceCapping != nil {
+				d.Set("daily_quota_gb", workspaceCapping.DailyQuotaGb)
+			} else {
+				d.Set("daily_quota_gb", utils.Float(-1))
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
