@@ -43,7 +43,7 @@ resource "azurerm_application_insights_workbook" "example" {
   tags = {
     ENV = "Test"
   }
- }
+}
 ```
 
 ## Arguments Reference

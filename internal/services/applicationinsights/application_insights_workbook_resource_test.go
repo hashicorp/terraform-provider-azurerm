@@ -234,14 +234,14 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_application_insights_workbook" "test" {
-  name                = "0f498fab-2989-4395-b084-fc092d83a6b1"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  display_name        = "acctest-amw-1"
-  source_id           = lower(azurerm_resource_group.test.id)
-  category            = "workbook1"
-  description         = "description1"
-  storage_container_id         = azurerm_storage_container.test.resource_manager_id
+  name                 = "0f498fab-2989-4395-b084-fc092d83a6b1"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  display_name         = "acctest-amw-1"
+  source_id            = lower(azurerm_resource_group.test.id)
+  category             = "workbook1"
+  description          = "description1"
+  storage_container_id = azurerm_storage_container.test.resource_manager_id
 
   identity {
     type = "UserAssigned"
@@ -309,14 +309,14 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_application_insights_workbook" "test" {
-  name                = "0f498fab-2989-4395-b084-fc092d83a6b1"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  display_name        = "acctest-amw-2"
-  source_id           = "azure monitor"
-  category            = "workbook2"
-  description         = "description2"
-  storage_container_id         = azurerm_storage_container.test.resource_manager_id
+  name                 = "0f498fab-2989-4395-b084-fc092d83a6b1"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  display_name         = "acctest-amw-2"
+  source_id            = "azure monitor"
+  category             = "workbook2"
+  description          = "description2"
+  storage_container_id = azurerm_storage_container.test.resource_manager_id
 
   identity {
     type = "UserAssigned"
