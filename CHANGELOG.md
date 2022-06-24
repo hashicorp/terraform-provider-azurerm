@@ -1,3 +1,11 @@
+## 3.12.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_linux_web_app` - Fix `auto_heal` `slow_request` support [GH-17296]
+* `azurerm_windows_web_app` - Fix `auto_heal` `slow_request` support [GH-17296]
+
+
 ## 3.11.0 (June 23, 2022)
 
 FEATURES:
