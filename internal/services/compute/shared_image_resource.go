@@ -108,14 +108,17 @@ func resourceSharedImage() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"publisher": {
 							Type:     pluginsdk.TypeString,
+							ForceNew: true,
 							Required: true,
 						},
 						"offer": {
 							Type:     pluginsdk.TypeString,
+							ForceNew: true,
 							Required: true,
 						},
 						"sku": {
 							Type:     pluginsdk.TypeString,
+							ForceNew: true,
 							Required: true,
 						},
 					},
@@ -163,6 +166,7 @@ func resourceSharedImage() *pluginsdk.Resource {
 
 			"privacy_statement_uri": {
 				Type:     pluginsdk.TypeString,
+				ForceNew: true,
 				Optional: true,
 			},
 

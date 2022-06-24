@@ -125,6 +125,48 @@ func TestAccSharedImage_withAcceleratedNetworkSupportEnabled(t *testing.T) {
 	})
 }
 
+func TestAccSharedImage_description(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
+	r := SharedImageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.description(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.descriptionUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSharedImage_releaseNoteURI(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
+	r := SharedImageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.releaseNoteURI(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.releaseNoteURIUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSharedImage_disallowedDiskTypes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
@@ -239,25 +281,21 @@ func (SharedImageResource) basic(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[2]d"
   location = "%[1]s"
 }
-
 resource "azurerm_shared_image_gallery" "test" {
   name                = "acctestsig%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-
 resource "azurerm_shared_image" "test" {
   name                = "acctestimg%[2]d"
   gallery_name        = azurerm_shared_image_gallery.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   os_type             = "Linux"
-
   identifier {
     publisher = "AccTesPublisher%[2]d"
     offer     = "AccTesOffer%[2]d"
@@ -476,6 +514,142 @@ resource "azurerm_shared_image" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (SharedImageResource) description(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%[2]d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+  description         = "image description"
+
+  identifier {
+    publisher = "AccTesPublisher%[2]d"
+    offer     = "AccTesOffer%[2]d"
+    sku       = "AccTesSku%[2]d"
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
+}
+
+func (SharedImageResource) descriptionUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%[2]d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+  description         = "image description updated"
+
+  identifier {
+    publisher = "AccTesPublisher%[2]d"
+    offer     = "AccTesOffer%[2]d"
+    sku       = "AccTesSku%[2]d"
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
+}
+
+func (SharedImageResource) releaseNoteURI(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%[2]d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+  release_note_uri    = "https://test.com/changelog.md"
+
+  identifier {
+    publisher = "AccTesPublisher%[2]d"
+    offer     = "AccTesOffer%[2]d"
+    sku       = "AccTesSku%[2]d"
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
+}
+
+func (SharedImageResource) releaseNoteURIUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%[2]d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+  release_note_uri    = "https://test.com/changelog2.md"
+
+  identifier {
+    publisher = "AccTesPublisher%[2]d"
+    offer     = "AccTesOffer%[2]d"
+    sku       = "AccTesSku%[2]d"
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
 }
 
 func (SharedImageResource) basicWithDisallowedDiskTypes(data acceptance.TestData) string {

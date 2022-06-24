@@ -395,8 +395,6 @@ A `site_config` block supports the following:
 
 * `app_service_logs` - (Optional) An `app_service_logs` block as defined above.
 
-* `auto_swap_slot_name` - (Optional) The Linux Function App Slot Name to automatically swap to when deployment to that slot is successfully completed.
-
 * `container_registry_managed_identity_client_id` - (Optional) The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.
 
 * `container_registry_use_managed_identity` - (Optional) Should connections for Azure Container Registry use Managed Identity.
