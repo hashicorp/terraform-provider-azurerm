@@ -2134,6 +2134,7 @@ func checkAccCosmosDBAccount_basic(data acceptance.TestData, consistency documen
 		check.That(data.ResourceName).Key("secondary_key").Exists(),
 		check.That(data.ResourceName).Key("primary_readonly_key").Exists(),
 		check.That(data.ResourceName).Key("secondary_readonly_key").Exists(),
+		check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 	)
 }
 
