@@ -172,10 +172,10 @@ func flattenBatchPoolCloudServiceConfiguration(config *batch.CloudServiceConfigu
 	return result
 }
 
-func flattenBatchPoolVirtualMachineConfiguration(config *batch.VirtualMachineConfiguration) interface{} {
+func flattenBatchPoolVirtualMachineConfiguration(oldConfig *pluginsdk.ResourceData, config *batch.VirtualMachineConfiguration) interface{} {
 	result := make(map[string]interface{}, 0)
 	if config.ContainerConfiguration != nil {
-		result["container_configuration"] = flattenBatchPoolContainerConfiguration(config.ContainerConfiguration)
+		result["container_configuration"] = flattenBatchPoolContainerConfiguration(oldConfig, config.ContainerConfiguration)
 	}
 	if config.DataDisks != nil {
 		dataDisks := make([]interface{}, 0)
@@ -289,7 +289,7 @@ func flattenBatchPoolImageReference(image *batch.ImageReference) []interface{} {
 }
 
 // flattenBatchPoolStartTask flattens a Batch pool start task
-func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
+func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *batch.StartTask) []interface{} {
 	results := make([]interface{}, 0)
 
 	if startTask == nil {
@@ -312,7 +312,7 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 			containerSettings["container_run_options"] = *startTask.ContainerSettings.ContainerRunOptions
 		}
 		if startTask.ContainerSettings.Registry != nil {
-			containerSettings["registry"] = flattenBatchPoolContainerRegistry(startTask.ContainerSettings.Registry)
+			containerSettings["registry"] = flattenBatchPoolContainerRegistry(oldConfig, startTask.ContainerSettings.Registry)
 		}
 
 		result["container_settings"] = containerSettings
@@ -451,7 +451,7 @@ func flattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateR
 }
 
 // flattenBatchPoolContainerConfiguration flattens a Batch pool container configuration
-func flattenBatchPoolContainerConfiguration(armContainerConfiguration *batch.ContainerConfiguration) interface{} {
+func flattenBatchPoolContainerConfiguration(oldConfig *pluginsdk.ResourceData, armContainerConfiguration *batch.ContainerConfiguration) interface{} {
 	result := make(map[string]interface{})
 
 	if armContainerConfiguration == nil {
@@ -470,25 +470,25 @@ func flattenBatchPoolContainerConfiguration(armContainerConfiguration *batch.Con
 	}
 	result["container_image_names"] = names
 
-	result["container_registries"] = flattenBatchPoolContainerRegistries(armContainerConfiguration.ContainerRegistries)
+	result["container_registries"] = flattenBatchPoolContainerRegistries(oldConfig, armContainerConfiguration.ContainerRegistries)
 
 	return []interface{}{result}
 }
 
-func flattenBatchPoolContainerRegistries(armContainerRegistries *[]batch.ContainerRegistry) []interface{} {
+func flattenBatchPoolContainerRegistries(oldConfig *pluginsdk.ResourceData, armContainerRegistries *[]batch.ContainerRegistry) []interface{} {
 	results := make([]interface{}, 0)
 
 	if armContainerRegistries == nil {
 		return results
 	}
 	for _, armContainerRegistry := range *armContainerRegistries {
-		result := flattenBatchPoolContainerRegistry(&armContainerRegistry)
+		result := flattenBatchPoolContainerRegistry(oldConfig, &armContainerRegistry)
 		results = append(results, result)
 	}
 	return results
 }
 
-func flattenBatchPoolContainerRegistry(armContainerRegistry *batch.ContainerRegistry) map[string]interface{} {
+func flattenBatchPoolContainerRegistry(oldConfig *pluginsdk.ResourceData, armContainerRegistry *batch.ContainerRegistry) map[string]interface{} {
 	result := make(map[string]interface{})
 
 	if armContainerRegistry == nil {
@@ -501,21 +501,16 @@ func flattenBatchPoolContainerRegistry(armContainerRegistry *batch.ContainerRegi
 	// At lease username + password / identity_reference need to be provided. If both are provided, we choose username + password here
 	if userName := armContainerRegistry.UserName; userName != nil {
 		result["user_name"] = *userName
-		if armContainerRegistry.Password != nil {
-			result["password"] = *armContainerRegistry.Password
-		}
 	} else if identityRef := armContainerRegistry.IdentityReference; identityRef != nil {
 		result["identity_reference"] = flattenBatchPoolIdentityReference(armContainerRegistry.IdentityReference)
 	}
 
 	// If we didn't specify a registry server and user name, just return what we have now rather than trying to locate the password
-	// Reading sensitive data is dangerous and could be used by attackers, we only keep what we get from server.
-	// So I remove this password reading logic for now.
-	//if len(result) != 2 {
-	//	return result
-	//}
-	//
-	//result["password"] = findBatchPoolContainerRegistryPassword(d, result["registry_server"].(string), result["user_name"].(string))
+	if v, ok := result["identity_reference"]; ok && len(v.([]interface{})) > 0 {
+		return result
+	}
+
+	result["password"] = findBatchPoolContainerRegistryPassword(oldConfig, result["registry_server"].(string), result["user_name"].(string))
 
 	return result
 }

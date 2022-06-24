@@ -1431,7 +1431,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			if dcfg := props.DeploymentConfiguration; dcfg != nil {
 				if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
-					d.Set("container_configuration", flattenBatchPoolContainerConfiguration(vmcfg.ContainerConfiguration))
+					d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration))
 				}
 			}
 		} else {
@@ -1444,7 +1444,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				}
 				if props.DeploymentConfiguration.VirtualMachineConfiguration != nil {
 					deploymentConfigMap["virtual_machine_configuration"] = []interface{}{
-						flattenBatchPoolVirtualMachineConfiguration(props.DeploymentConfiguration.VirtualMachineConfiguration),
+						flattenBatchPoolVirtualMachineConfiguration(d, props.DeploymentConfiguration.VirtualMachineConfiguration),
 					}
 				}
 				deploymentConfigList := []interface{}{
@@ -1458,7 +1458,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("flattening `certificate`: %+v", err)
 		}
 
-		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))
+		d.Set("start_task", flattenBatchPoolStartTask(d, props.StartTask))
 		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
 		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {

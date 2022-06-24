@@ -955,7 +955,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 			}
 			if props.DeploymentConfiguration.VirtualMachineConfiguration != nil {
-				deploymentConfigMap["cloud_service_configuration"] = flattenBatchPoolVirtualMachineConfiguration(props.DeploymentConfiguration.VirtualMachineConfiguration)
+				deploymentConfigMap["cloud_service_configuration"] = flattenBatchPoolVirtualMachineConfiguration(d, props.DeploymentConfiguration.VirtualMachineConfiguration)
 			}
 
 			d.Set("deployment_configuration", deploymentConfigMap)
@@ -990,7 +990,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("setting `certificate`: %v", err)
 		}
 
-		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))
+		d.Set("start_task", flattenBatchPoolStartTask(d, props.StartTask))
 		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
 		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {

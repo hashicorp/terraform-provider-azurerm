@@ -348,7 +348,7 @@ func TestAccBatchPool_container(t *testing.T) {
 				check.That(data.ResourceName).Key("container_configuration.0.container_registries.#").HasValue("1"),
 				check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.registry_server").HasValue("myContainerRegistry.azurecr.io"),
 				check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.user_name").HasValue("myUserName"),
-				// check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.password").HasValue("myPassword"),
+				check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.password").HasValue("myPassword"),
 			),
 		},
 		data.ImportStep(
