@@ -361,7 +361,9 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 			AutoPatchingSettings:       expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
 			KeyVaultCredentialSettings: expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
 			ServerConfigurationsManagementSettings: &sqlvirtualmachines.ServerConfigurationsManagementSettings{
-				AdditionalFeaturesServerConfigurations: &sqlvirtualmachines.AdditionalFeaturesServerConfigurations{IsRServicesEnabled: utils.Bool(d.Get("r_services_enabled").(bool))},
+				AdditionalFeaturesServerConfigurations: &sqlvirtualmachines.AdditionalFeaturesServerConfigurations{
+					IsRServicesEnabled: utils.Bool(d.Get("r_services_enabled").(bool)),
+				},
 				SqlConnectivityUpdateSettings: &sqlvirtualmachines.SqlConnectivityUpdateSettings{
 					ConnectivityType:      &connectivityType,
 					Port:                  utils.Int64(int64(d.Get("sql_connectivity_port").(int))),
