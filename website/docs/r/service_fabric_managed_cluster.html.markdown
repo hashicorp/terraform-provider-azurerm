@@ -26,6 +26,19 @@ resource "azurerm_service_fabric_managed_cluster" "example" {
     probe_request_path = "/test"
     protocol           = "tcp"
   }
+
+  network_security_rules {
+    access                       = "allow"
+    protocol                     = "tcp"
+    destination_address_prefixes = ["172.16.0.0/20", "8.8.8.8"]
+    destination_port_ranges      = ["80", "443", "8080", "8190"]
+    direction                    = "outbound"
+    name                         = "test1"
+    priority                     = 1000
+    source_address_prefixes      = ["10.0.0.0/8", "192.168.0.0/16"]
+    source_port_ranges           = ["10000-40000"]
+  }
+
   client_connection_port = 12345
 
   node_type {
@@ -72,6 +85,8 @@ The following arguments are supported:
 * `dns_name` - (Optional) Hostname for the cluster. If unset the cluster's name will be used..
 
 * `dns_service_enabled` - (Optional) If true, DNS service is enabled.
+
+* `network_security_rules` - (Optional) One or more `network_security_rules` blocks as defined below.
 
 * `node_type` - (Optional) One or more `node_type` blocks as defined below.
 
@@ -182,6 +197,30 @@ A `node_type` block supports the following:
 * `stateless` - (Optional) If set to true, only stateless workloads can run on this node type.
 
 * `vm_secrets` - (Optional) One or more `vm_secrets` blocks as defined below.
+
+---
+
+A `network_security_rules` block supports the following:
+
+* `access` - (Required) Specifies whether network traffic is allowed or denied. Possible values are `allow` and `deny`.
+
+* `destination_address_prefixes` - (Required) List of destination address prefixes.
+
+* `destination_port_ranges` - (Required) List of destination ports or port ranges.
+
+* `direction` - (Required) The direction specifies if rule will be evaluated on incoming or outgoing traffic. Possible values are `inbound` and `outbound`.
+
+* `name` - (Required) The name of the security rule.
+
+* `priority` - (Required) Specifies the priority of the rule. The value can be between 1000 and 3000. The priority number must be unique for each rule in the collection. The lower the priority number, the higher the priority of the rule.
+
+* `protocol` - (Required) Network protocol this rule applies to. Possible values include `ah`, `esp`, `http`, `https`, `icmp` ,`tcp` or `udp`.
+
+* `source_address_prefixes` - (Required) List of source address prefixes.
+
+* `source_port_ranges` - (Required) List of source ports or port ranges.
+
+* `description` - (Optional) A description for this rule.
 
 ---
 

@@ -35,6 +35,19 @@ type LBRule struct {
 	Protocol         managedcluster.Protocol      `tfschema:"protocol"`
 }
 
+type NSRule struct {
+	Access                     managedcluster.Access      `tfschema:"access"`
+	Description                string                     `tfschema:"description"`
+	DestinationAddressPrefixes []string                   `tfschema:"destination_address_prefixes"`
+	DestinationPortRanges      []string                   `tfschema:"destination_port_ranges"`
+	Direction                  managedcluster.Direction   `tfschema:"direction"`
+	Name                       string                     `tfschema:"name"`
+	Priority                   int64                      `tfschema:"priority"`
+	Protocol                   managedcluster.NsgProtocol `tfschema:"protocol"`
+	SourceAddressPrefixes      []string                   `tfschema:"source_address_prefixes"`
+	SourcePortRanges           []string                   `tfschema:"source_port_ranges"`
+}
+
 type ThumbprintAuth struct {
 	CertificateType CertType `tfschema:"type"`
 	CommonName      string   `tfschema:"common_name"`
@@ -115,6 +128,7 @@ type ClusterResourceModel struct {
 	Authentication       []Authentication                     `tfschema:"authentication"`
 	CustomFabricSettings []CustomFabricSetting                `tfschema:"custom_fabric_setting"`
 	LBRules              []LBRule                             `tfschema:"lb_rule"`
+	NSRules              []NSRule                             `tfschema:"network_security_rules"`
 	NodeTypes            []NodeType                           `tfschema:"node_type"`
 	Sku                  managedcluster.SkuName               `tfschema:"sku"`
 	Tags                 map[string]interface{}               `tfschema:"tags"`
@@ -202,6 +216,9 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntBetween(1500, 65535),
 		},
 		"lb_rule": lbRulesSchema(),
+
+		"network_security_rules": nsRulesSchema(),
+
 		"sku": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -617,6 +634,47 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
+			for _, nsi := range rd.Get("network_security_rules").([]interface{}) {
+				ns := nsi.(map[string]interface{})
+				access := ns["access"].(string)
+				name := ns["name"].(string)
+				protocol := ns["protocol"].(string)
+				direction := ns["direction"].(string)
+				priority := ns["priority"].(int)
+				sourcePortRanges := ns["source_port_ranges"].(*pluginsdk.Set).List()
+				destinationPortRanges := ns["destination_port_ranges"].(*pluginsdk.Set).List()
+				sourceAddressPrefixes := ns["source_address_prefixes"].(*pluginsdk.Set).List()
+				destinationAddressPrefixes := ns["destination_address_prefixes"].(*pluginsdk.Set).List()
+
+				if access == "" {
+					return fmt.Errorf("missing required argument, the access of network_security_rules cannot be null or empty")
+				}
+				if name == "" {
+					return fmt.Errorf("missing required argument, the name of network_security_rules cannot be null or empty")
+				}
+				if protocol == "" {
+					return fmt.Errorf("missing required argument, the protocol of network_security_rules cannot be null or empty")
+				}
+				if direction == "" {
+					return fmt.Errorf("missing required argument, the direction of network_security_rules cannot be null or empty")
+				}
+				if priority == 0 {
+					return fmt.Errorf("the priority of network_security_rules should be at least 1000 and no more than 3000")
+				}
+				if len(sourcePortRanges) == 0 {
+					return fmt.Errorf("missing required argument,the source_port_ranges of network_security_rules must be specified")
+				}
+				if len(destinationPortRanges) == 0 {
+					return fmt.Errorf("missing required argument,the destination_port_ranges of network_security_rules must be specified")
+				}
+				if len(sourceAddressPrefixes) == 0 {
+					return fmt.Errorf("missing required argument,the source_address_prefixes of network_security_rules must be specified")
+				}
+				if len(destinationAddressPrefixes) == 0 {
+					return fmt.Errorf("missing required argument,the destination_address_prefixes of network_security_rules must be specified")
+				}
+			}
+
 			o, n := rd.GetChange("node_type")
 			oi := o.([]interface{})
 			ni := n.([]interface{})
@@ -736,6 +794,24 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 				ProbeProtocol:    rule.ProbeProtocol,
 				ProbeRequestPath: utils.NormalizeNilableString(rule.ProbeRequestPath),
 				Protocol:         rule.Protocol,
+			}
+		}
+	}
+
+	if nsRules := properties.NetworkSecurityRules; nsRules != nil {
+		model.NSRules = make([]NSRule, len(*nsRules))
+		for idx, rule := range *nsRules {
+			model.NSRules[idx] = NSRule{
+				Access:                     rule.Access,
+				Description:                utils.NormalizeNilableString(rule.Description),
+				DestinationAddressPrefixes: *rule.DestinationAddressPrefixes,
+				DestinationPortRanges:      *rule.DestinationPortRanges,
+				Direction:                  rule.Direction,
+				Name:                       rule.Name,
+				Priority:                   rule.Priority,
+				Protocol:                   rule.Protocol,
+				SourceAddressPrefixes:      *rule.SourceAddressPrefixes,
+				SourcePortRanges:           *rule.SourcePortRanges,
 			}
 		}
 	}
@@ -893,6 +969,9 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 
 	out.HTTPGatewayConnectionPort = &model.HTTPGatewayPort
 
+	fePortStr := ""
+	var frontendPort int64
+	var sgProto managedcluster.NsgProtocol
 	if rules := model.LBRules; len(rules) > 0 {
 		lbRules := make([]managedcluster.LoadBalancingRule, len(rules))
 		nsRules := make([]managedcluster.NetworkSecurityRule, len(rules))
@@ -906,27 +985,53 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 				Protocol:         rule.Protocol,
 			}
 
-			fePortStr := strconv.FormatInt(rule.FrontendPort, 10)
-			var sgProto managedcluster.NsgProtocol
+			fePortStr = strconv.FormatInt(rule.FrontendPort, 10)
 			switch rule.Protocol {
 			case managedcluster.ProtocolTcp:
 				sgProto = managedcluster.NsgProtocolTcp
 			case managedcluster.ProtocolUdp:
 				sgProto = managedcluster.NsgProtocolUdp
 			}
-			nsRules[idx] = managedcluster.NetworkSecurityRule{
-				Access:                     managedcluster.AccessAllow,
-				SourceAddressPrefixes:      &[]string{"0.0.0.0/0"},
-				SourcePortRanges:           &[]string{"1-65535"},
-				DestinationPortRanges:      &[]string{fePortStr},
-				DestinationAddressPrefixes: &[]string{"0.0.0.0/0"},
-				Direction:                  managedcluster.DirectionInbound,
-				Name:                       fmt.Sprintf("rule%d-allow-fe", rule.FrontendPort),
-				Priority:                   1000 + int64(idx),
-				Protocol:                   sgProto,
+			frontendPort = rule.FrontendPort
+
+			if ns := model.NSRules; len(ns) == 0 {
+				nsRules[idx] = managedcluster.NetworkSecurityRule{
+					Access:                     managedcluster.AccessAllow,
+					SourceAddressPrefixes:      &[]string{"0.0.0.0/0"},
+					SourcePortRanges:           &[]string{"1-65535"},
+					DestinationPortRanges:      &[]string{fePortStr},
+					DestinationAddressPrefixes: &[]string{"0.0.0.0/0"},
+					Direction:                  managedcluster.DirectionInbound,
+					Name:                       fmt.Sprintf("rule%d-allow-fe", frontendPort),
+					Priority:                   1000 + int64(idx),
+					Protocol:                   sgProto,
+				}
 			}
 		}
+
 		out.LoadBalancingRules = &lbRules
+		if ns := model.NSRules; len(ns) == 0 {
+			out.NetworkSecurityRules = &nsRules
+		}
+	}
+
+	if rules := model.NSRules; len(rules) > 0 {
+		nsRules := make([]managedcluster.NetworkSecurityRule, len(rules))
+
+		for idx, rule := range rules {
+			nsRules[idx] = managedcluster.NetworkSecurityRule{
+				Access:                     rule.Access,
+				SourceAddressPrefixes:      &rule.SourceAddressPrefixes,
+				SourcePortRanges:           &rule.SourcePortRanges,
+				DestinationPortRanges:      &rule.DestinationPortRanges,
+				DestinationAddressPrefixes: &rule.DestinationAddressPrefixes,
+				Direction:                  rule.Direction,
+				Name:                       rule.Name,
+				Priority:                   rule.Priority,
+				Protocol:                   rule.Protocol,
+				Description:                utils.String(rule.Description),
+			}
+		}
 		out.NetworkSecurityRules = &nsRules
 	}
 	return out
@@ -1233,6 +1338,98 @@ func lbRulesSchema() *pluginsdk.Schema {
 						string(managedcluster.ProtocolTcp),
 						string(managedcluster.ProtocolUdp),
 					}, false),
+				},
+			},
+		},
+	}
+}
+
+func nsRulesSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"access": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(managedcluster.AccessAllow),
+						string(managedcluster.AccessDeny),
+					}, false),
+				},
+				"destination_address_prefixes": {
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					Computed: true,
+					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+					Set:      pluginsdk.HashString,
+				},
+				"destination_port_ranges": {
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					Computed: true,
+					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+					Set:      pluginsdk.HashString,
+				},
+				"direction": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(managedcluster.DirectionInbound),
+						string(managedcluster.DirectionOutbound),
+					}, false),
+				},
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"priority": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(1000, 3000),
+				},
+				"protocol": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(managedcluster.NsgProtocolAh),
+						string(managedcluster.NsgProtocolEsp),
+						string(managedcluster.NsgProtocolHTTP),
+						string(managedcluster.NsgProtocolHTTPS),
+						string(managedcluster.NsgProtocolIcmp),
+						string(managedcluster.NsgProtocolTcp),
+						string(managedcluster.NsgProtocolUdp),
+					}, false),
+				},
+
+				"source_port_ranges": {
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					Computed: true,
+					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+					Set:      pluginsdk.HashString,
+				},
+				"description": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"source_address_prefixes": {
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					Computed: true,
+					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+					Set:      pluginsdk.HashString,
 				},
 			},
 		},

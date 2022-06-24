@@ -64,6 +64,22 @@ func TestAccServiceFabricManagedCluster_multipleLBRules(t *testing.T) {
 	})
 }
 
+func TestAccServiceFabricManagedCluster_nsRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
+	r := ClusterResource{}
+	nodeTypeData1 := r.nodeType("test1", true, 130)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nsRules(data, nodeTypeData1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
+		},
+		data.ImportStep("password"),
+	})
+}
+
 func TestAccServiceFabricManagedCluster_importError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
 
@@ -195,6 +211,66 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
     probe_protocol     = "http"
     protocol           = "tcp"
     probe_request_path = "/"
+  }
+
+  %[4]s
+
+  tags = {
+    Test = "value"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
+}
+
+func (r ClusterResource) nsRules(data acceptance.TestData, nodeTypeData string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-sfmc-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_service_fabric_managed_cluster" "test" {
+  name                = "testacc-sfmc-%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  username            = "testUser"
+  password            = "NotV3ryS3cur3P@$$w0rd"
+  dns_service_enabled = true
+
+  client_connection_port = 12345
+  http_gateway_port      = 23456
+
+  lb_rule {
+    backend_port       = 8000
+    frontend_port      = 443
+    probe_protocol     = "http"
+    protocol           = "tcp"
+    probe_request_path = "/"
+  }
+
+  lb_rule {
+    backend_port       = 8001
+    frontend_port      = 1443
+    probe_protocol     = "http"
+    protocol           = "tcp"
+    probe_request_path = "/"
+  }
+
+  network_security_rules {
+    access                       = "allow"
+    protocol                     = "tcp"
+    destination_address_prefixes = ["172.16.0.0/20", "8.8.8.8"]
+    destination_port_ranges      = ["80", "443", "8080", "8190"]
+    direction                    = "outbound"
+    name                         = "test1"
+    priority                     = 1000
+    source_address_prefixes      = ["10.0.0.0/8", "192.168.0.0/16"]
+    source_port_ranges           = ["10000-40000"]
   }
 
   %[4]s
