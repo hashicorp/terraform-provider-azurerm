@@ -81,7 +81,7 @@ func TestAccApplicationInsightsWorkbook_update(t *testing.T) {
 	})
 }
 
-func TestAccMonitorWorkbook_hiddenTitleInTags(t *testing.T) {
+func TestAccApplicationInsightsWorkbook_hiddenTitleInTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
 	r := ApplicationInsightsWorkbookResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
