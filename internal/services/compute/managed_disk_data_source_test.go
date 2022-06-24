@@ -52,6 +52,21 @@ func TestAccDataSourceManagedDisk_basic_withUltraSSD(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceManagedDisk_diskAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_managed_disk", "test")
+	r := ManagedDiskDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.diskAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("network_access_policy").HasValue("AllowPrivate"),
+				check.That(data.ResourceName).Key("disk_access_id").Exists(),
+			),
+		},
+	})
+}
+
 func (ManagedDiskDataSource) basic(data acceptance.TestData, name string, resourceGroupName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -116,4 +131,40 @@ data "azurerm_managed_disk" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, resourceGroupName, data.Locations.Primary, name)
+}
+
+func (ManagedDiskDataSource) diskAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_disk_access" "test" {
+  name                = "accda%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                  = "acctestd-%[2]d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  storage_account_type  = "Standard_LRS"
+  create_option         = "Empty"
+  disk_size_gb          = "4"
+  zone                  = "1"
+  network_access_policy = "AllowPrivate"
+  disk_access_id        = azurerm_disk_access.test.id
+}
+
+data "azurerm_managed_disk" "test" {
+  name                = azurerm_managed_disk.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.Locations.Primary, data.RandomInteger)
 }
