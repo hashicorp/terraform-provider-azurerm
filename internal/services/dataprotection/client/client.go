@@ -1,9 +1,9 @@
 package client
 
 import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/resourceguards"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/legacysdk/dataprotection"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/sdk/2022-04-01/resourceguards"
 )
 
 type Client struct {
