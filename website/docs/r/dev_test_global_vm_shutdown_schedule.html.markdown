@@ -61,9 +61,9 @@ resource "azurerm_linux_virtual_machine" "example" {
   }
 
   os_disk {
-    name              = "myosdisk-%d"
-    caching           = "ReadWrite"
-    managed_disk_type = "Standard_LRS"
+    name                 = "myosdisk-example"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
   admin_username                  = "testadmin"
@@ -72,7 +72,7 @@ resource "azurerm_linux_virtual_machine" "example" {
 }
 
 resource "azurerm_dev_test_global_vm_shutdown_schedule" "example" {
-  virtual_machine_id = azurerm_virtual_machine.example.id
+  virtual_machine_id = azurerm_linux_virtual_machine.example.id
   location           = azurerm_resource_group.example.location
   enabled            = true
 
