@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/sdk/2022-04-01/applicationinsights"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/applicationinsights"
 )
 
 func WorkbookID(input interface{}, key string) (warnings []string, errors []error) {
