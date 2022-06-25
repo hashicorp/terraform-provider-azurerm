@@ -2821,7 +2821,7 @@ resource "azurerm_application_gateway" "test" {
     rule_type          = "PathBasedRouting"
     url_path_map_name  = local.url_path_map_name
     http_listener_name = local.listener_name
-    priority                   = 10
+    priority           = 10
   }
 
   url_path_map {
@@ -5905,7 +5905,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name          = local.listener_name
     redirect_configuration_name = local.redirect_configuration_name
     rewrite_rule_set_name       = local.rewrite_rule_set_name
-    priority                   = 10
+    priority                    = 10
   }
 
   rewrite_rule_set {
@@ -6028,7 +6028,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name          = local.listener_name
     redirect_configuration_name = local.redirect_configuration_name
     rewrite_rule_set_name       = local.rewrite_rule_set_name
-    priority                   = 10
+    priority                    = 10
   }
 
   rewrite_rule_set {
