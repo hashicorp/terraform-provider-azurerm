@@ -6,12 +6,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -57,7 +56,7 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.TrafficManagerProfileID,
+				ValidateFunc: profiles.ValidateTrafficManagerProfileID,
 			},
 
 			"target": {
@@ -151,12 +150,12 @@ func resourceExternalEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.TrafficManagerProfileID(d.Get("profile_id").(string))
+	profileId, err := profiles.ParseTrafficManagerProfileID(d.Get("profile_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing `profile_id`: %+v", err)
 	}
 
-	id := endpoints.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.Name, endpoints.EndpointTypeExternalEndpoints, d.Get("name").(string))
+	id := endpoints.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, endpoints.EndpointTypeExternalEndpoints, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -232,7 +231,7 @@ func resourceExternalEndpointRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", id.EndpointName)
-	d.Set("profile_id", parse.NewTrafficManagerProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
+	d.Set("profile_id", profiles.NewTrafficManagerProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
