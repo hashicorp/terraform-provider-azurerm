@@ -6,8 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	//"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/applicationinsights"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/applicationinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
