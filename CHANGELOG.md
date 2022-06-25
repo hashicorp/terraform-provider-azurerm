@@ -1,3 +1,15 @@
+## 3.12.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_linux_function_app` - Fix validation for `app_setting_names` and `connection_string_names` for the `sticky_settings` block [GH-17209]
+* `azurerm_linux_web_app` - Fix `auto_heal` `slow_request` support [GH-17296]
+* `azurerm_linux_web_app` - Fix validation for `app_setting_names` and `connection_string_names` for the `sticky_settings` block [GH-17209]
+* `azurerm_windows_function_app` - Fix validation for `app_setting_names` and `connection_string_names` for the `sticky_settings` block [GH-17209]
+* `azurerm_windows_web_app` - Fix `auto_heal` `slow_request` support [GH-17296]
+* `azurerm_windows_web_app` - Fix validation for `app_setting_names` and `connection_string_names` for the `sticky_settings` block [GH-17209]
+
+
 ## 3.11.0 (June 23, 2022)
 
 FEATURES:
