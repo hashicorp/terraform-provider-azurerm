@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `target_region` - (Required) One or more `target_region` blocks as documented below.
 
-* `end_of_life_date` - (Optional) The end of life date of the Image Version.
+* `end_of_life_date` - (Optional) The end of life date in RFC3339 format of the Image Version.
 
 * `exclude_from_latest` - (Optional) Should this Image Version be excluded from the `latest` filter? If set to `true` this Image Version won't be returned for the `latest` version. Defaults to `false`.
 
