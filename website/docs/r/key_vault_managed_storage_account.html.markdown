@@ -13,7 +13,7 @@ Manages a Key Vault Managed Storage Account.
 ## Example Usage
 
 ```hcl
-data "azurerm_client_config" "example" {}
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
@@ -26,38 +26,6 @@ resource "azurerm_storage_account" "example" {
   location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-}
-
-data "azurerm_storage_account_sas" "example" {
-  connection_string = azurerm_storage_account.example.primary_connection_string
-  https_only        = true
-
-  resource_types {
-    service   = true
-    container = false
-    object    = false
-  }
-
-  services {
-    blob  = true
-    queue = false
-    table = false
-    file  = false
-  }
-
-  start  = "2021-04-30T00:00:00Z"
-  expiry = "2023-04-30T00:00:00Z"
-
-  permissions {
-    read    = true
-    write   = true
-    delete  = false
-    list    = false
-    add     = true
-    create  = true
-    update  = false
-    process = false
-  }
 }
 
 resource "azurerm_key_vault" "example" {
@@ -95,14 +63,19 @@ resource "azurerm_key_vault_managed_storage_account" "example" {
   storage_account_id           = azurerm_storage_account.example.id
   storage_account_key          = "key1"
   regenerate_key_automatically = false
+  regeneration_period          = "P1D"
 }
 ```
 
 ## Example Usage (automatically regenerate Storage Account access key)
 
 ```hcl
-data "azurerm_client_config" "example" {}
+data "azurerm_client_config" "current" {}
 
+data "azuread_service_principal" "test" {
+  # display_name = "Azure Key Vault"
+  application_id = "cfa8b339-82a2-471a-a3c9-0fc0be7a4093"
+}
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -114,38 +87,6 @@ resource "azurerm_storage_account" "example" {
   location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-}
-
-data "azurerm_storage_account_sas" "example" {
-  connection_string = azurerm_storage_account.example.primary_connection_string
-  https_only        = true
-
-  resource_types {
-    service   = true
-    container = false
-    object    = false
-  }
-
-  services {
-    blob  = true
-    queue = false
-    table = false
-    file  = false
-  }
-
-  start  = "2021-04-30T00:00:00Z"
-  expiry = "2023-04-30T00:00:00Z"
-
-  permissions {
-    read    = true
-    write   = true
-    delete  = false
-    list    = false
-    add     = true
-    create  = true
-    update  = false
-    process = false
-  }
 }
 
 resource "azurerm_key_vault" "example" {
@@ -180,7 +121,7 @@ resource "azurerm_key_vault" "example" {
 resource "azurerm_role_assignment" "example" {
   scope                = azurerm_storage_account.example.id
   role_definition_name = "Storage Account Key Operator Service Role"
-  principal_id         = "727055f9-0386-4ccb-bcf1-9237237ee102"
+  principal_id         = data.azuread_service_principal.test.id
 }
 
 resource "azurerm_key_vault_managed_storage_account" "example" {
@@ -190,6 +131,10 @@ resource "azurerm_key_vault_managed_storage_account" "example" {
   storage_account_key          = "key1"
   regenerate_key_automatically = true
   regeneration_period          = "P1D"
+
+  depends_on = [
+    azurerm_role_assignment.example,
+  ]
 }
 ```
 
