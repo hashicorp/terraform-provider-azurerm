@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `disallowed_disk_types` - (Optional) One or more Disk Types disallowed for the Image. Possible values include `Standard_LRS` and `Premium_LRS`.
 
-* `end_of_life_date` - (Optional) The end of life date of the Image.
+* `end_of_life_date` - (Optional) The end of life date in RFC3339 format of the Image.
 
 * `eula` - (Optional) The End User Licence Agreement for the Shared Image. Changing this forces a new resource to be created.
 
