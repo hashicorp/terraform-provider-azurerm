@@ -7,7 +7,6 @@ import (
 )
 
 type Client struct {
-	//AccountClient               *automation.AccountClient
 	AccountClient               *automationaccount.AutomationAccountClient
 	AgentRegistrationInfoClient *automation.AgentRegistrationInformationClient
 	CertificateClient           *automation.CertificateClient
