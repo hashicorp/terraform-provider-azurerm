@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * trafficmanager: refactoring to use `hashicorp/go-azure-sdk` [GH-17383]
 * videoanalyzer: refactoring to use `hashicorp/go-azure-sdk` [GH-17382]
 * vmware: refactoring to use `hashicorp/go-azure-sdk` [GH-17381]
+* `azurerm_data_factory` - added support for the `purview_id` property [GH-17001]
 
 BUG FIXES:
 
