@@ -1761,17 +1761,29 @@ resource "azurerm_capacity_reservation_group" "test" {
   name                = "acctest-ccrg-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  zones               = ["1", "2"]
 }
 
 resource "azurerm_capacity_reservation" "test" {
   name                          = "acctest-ccr-%[1]d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-  zone                          = "2"
+
   sku {
-    name     = "Standard_F2"
+    name     = "Standard_D2s_v3"
     capacity = 2
   }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_resource_group.test.id
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  role_definition_name = "Contributor"
+  count                = 0
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -1782,12 +1794,15 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name                          = "default"
     node_count                    = 1
-    vm_size                       = "Standard_DS2_v2"
-    capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+    vm_size                       = "Standard_D2s_v3"
+    capacity_reservation_group_id = azurerm_capacity_reservation.test.capacity_reservation_group_id
   }
+
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
   maintenance_window {
     allowed {
       day   = "Monday"

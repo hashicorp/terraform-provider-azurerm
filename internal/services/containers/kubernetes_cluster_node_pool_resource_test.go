@@ -1148,17 +1148,29 @@ resource "azurerm_capacity_reservation_group" "test" {
   name                = "acctest-ccrg-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  zones               = ["1", "2"]
 }
 
 resource "azurerm_capacity_reservation" "test" {
   name                          = "acctest-ccr-%[1]d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-  zone                          = "2"
+
   sku {
-    name     = "Standard_F2"
+    name     = "Standard_D2s_v3"
     capacity = 2
   }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_resource_group.test.id
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  role_definition_name = "Contributor"
+  count                = 0
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -1167,13 +1179,17 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[1]d"
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name                          = "default"
+    node_count                    = 1
+    vm_size                       = "Standard_D2s_v3"
+    capacity_reservation_group_id = azurerm_capacity_reservation.test.capacity_reservation_group_id
   }
+
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
   maintenance_window {
     allowed {
       day   = "Monday"
@@ -1185,17 +1201,12 @@ resource "azurerm_kubernetes_cluster" "test" {
     azurerm_capacity_reservation.test
   ]
 }
-
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                          = "internal"
   kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
-  vm_size                       = "Standard_DS2_v2"
+  vm_size                       = "Standard_D2s_v3"
   node_count                    = 1
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-
-  tags = {
-    environment = "Staging"
-  }
+  capacity_reservation_group_id = azurerm_capacity_reservation.test.capacity_reservation_group_id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
