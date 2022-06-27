@@ -1803,15 +1803,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  maintenance_window {
-    allowed {
-      day   = "Monday"
-      hours = [1, 2]
-    }
-  }
-
   depends_on = [
-    azurerm_capacity_reservation.test
+    azurerm_capacity_reservation.test,
+    azurerm_role_assignment.test
   ]
 }
 `, data.RandomInteger, data.Locations.Primary)
