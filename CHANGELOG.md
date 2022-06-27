@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * vmware: refactoring to use `hashicorp/go-azure-sdk` [GH-17381]
 * `azurerm_bot_service_azure_bot` - support new bot type with the `microsoft_app_msi_id`, `microsoft_app_tenant_id`,  and `microsoft_app_type` properties [GH-17077]
 * `azurerm_data_factory` - added support for the `purview_id` property [GH-17001]
+* `azurerm_digital_twins_instance` - support for the `identity` block [GH-17076]
 * `azurerm_private_link_service` - add support for `fqdns` [GH-17366]
 * `azurerm_shared_image_version` - add support for `Premium_LRS` to`storage_account_type` [GH-17390]
 
