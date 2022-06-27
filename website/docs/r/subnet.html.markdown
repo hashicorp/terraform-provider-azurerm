@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `address_prefixes` - (Required) The address prefixes to use for the subnet.
 
+-> **NOTE:** Currently only a single address prefix can be set as the [Multiple Subnet Address Prefixes Feature](https://github.com/Azure/azure-cli/issues/18194#issuecomment-880484269) is not yet in public preview or general availability.
+
 ---
 
 * `delegation` - (Optional) One or more `delegation` blocks as defined below.

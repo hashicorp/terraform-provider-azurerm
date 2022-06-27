@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"time"
@@ -182,7 +182,7 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 		if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
 			return nil, "", fmt.Errorf("failed to read Zip Deployment status: %s", resp.Status)
 		}
-		respBody, err := ioutil.ReadAll(resp.Body)
+		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, "", fmt.Errorf("reading status response body for Zip Deploy")
 		}
