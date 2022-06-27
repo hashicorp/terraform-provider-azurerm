@@ -1,5 +1,9 @@
 ## 3.12.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* trafficmanager: refactoring to use `hashicorp/go-azure-sdk` [GH-17383]
+
 BUG FIXES:
 
 * `azurerm_application_gateway` - prevent crash when `waf_configuration` block is removed [GH-17241]
