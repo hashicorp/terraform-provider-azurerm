@@ -383,14 +383,26 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
+  name     = "acctestRG-df-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_purview_account" "test" {
+  name                = "acctestacc%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestDF%d"
+  name                = "acctestDF%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  purview_id          = azurerm_purview_account.test.id
+
   vsts_configuration {
     account_name    = "test account name"
     branch_name     = "test branch name"
@@ -404,7 +416,7 @@ resource "azurerm_data_factory" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (DataFactoryResource) tagsUpdated(data acceptance.TestData) string {
