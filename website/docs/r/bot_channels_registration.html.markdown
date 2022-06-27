@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `icon_url` - (Optional) The icon URL to visually identify the Bot Channels Registration.
 
-* `is_streaming_endpoint_enabled` - (Optional) Is the streaming endpoint enabled for the Bot Channels Registration. Defaults to `false`.
+* `streaming_endpoint_enabled` - (Optional) Is the streaming endpoint enabled for the Bot Channels Registration. Defaults to `false`.
 
 * `isolated_network_enabled` - (Optional) Is the Bot Channels Registration in an isolated network?
 
