@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * videoanalyzer: refactoring to use `hashicorp/go-azure-sdk` [GH-17382]
 * vmware: refactoring to use `hashicorp/go-azure-sdk` [GH-17381]
 * `azurerm_data_factory` - added support for the `purview_id` property [GH-17001]
+* `azurerm_private_link_service ` - add support for `fqdns` [GH-17366]
 * `azurerm_shared_image_version` - add support for `Premium_LRS` to`storage_account_type` [GH-17390]
 
 BUG FIXES:
