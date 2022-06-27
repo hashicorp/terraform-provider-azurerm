@@ -1780,10 +1780,9 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_resource_group.test.id
+  scope                = azurerm_capacity_reservation_group.test.id
   principal_id         = azurerm_user_assigned_identity.test.principal_id
-  role_definition_name = "Contributor"
-  count                = 0
+  role_definition_name = "Owner"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
