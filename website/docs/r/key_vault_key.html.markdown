@@ -34,14 +34,14 @@ resource "azurerm_key_vault" "example" {
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
-      "create",
-      "get",
-      "purge",
-      "recover"
+      "Create",
+      "Get",
+      "Purge",
+      "Recover"
     ]
 
     secret_permissions = [
-      "set",
+      "Set",
     ]
   }
 }
