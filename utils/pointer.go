@@ -45,19 +45,6 @@ type BasicType interface {
 	Number | ~bool | ~string
 }
 
-// Val2Ptr generic function to get the value of a pointer
-func Val2Ptr[T BasicType](input T) *T {
-	return &input
-}
-
-// Ptr2ValOrNil generic function to get the value of a pointer, for default value return nil
-func RealVal2Ptr[T BasicType](input T) (t *T) {
-	if input == *new(T) {
-		return nil
-	}
-	return Val2Ptr(input)
-}
-
 // Ptr2Val generic function to get the value of a pointer
 func Ptr2Val[T BasicType](input *T) (t T) {
 	if input != nil {

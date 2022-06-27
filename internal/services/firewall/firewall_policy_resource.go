@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	//"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/sdk/2022-01-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	logAnalytiscValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -26,6 +27,8 @@ import (
 )
 
 const azureFirewallPolicyResourceName = "azurerm_firewall_policy"
+
+var _ network.ConfigurationPolicyGroupsClient
 
 func resourceFirewallPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -77,13 +80,13 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 	props := network.FirewallPolicy{
 		FirewallPolicyPropertiesFormat: &network.FirewallPolicyPropertiesFormat{
-			ThreatIntelMode:       network.AzureFirewallThreatIntelMode(d.Get("threat_intelligence_mode").(string)),
-			ThreatIntelWhitelist:  expandFirewallPolicyThreatIntelWhitelist(d.Get("threat_intelligence_allowlist").([]interface{})),
-			DNSSettings:           expandFirewallPolicyDNSSetting(d.Get("dns").([]interface{})),
-			IntrusionDetection:    expandFirewallPolicyIntrusionDetection(d.Get("intrusion_detection").([]interface{})),
-			TransportSecurity:     expandFirewallPolicyTransportSecurity(d.Get("tls_certificate").([]interface{})),
-			Insights:              expandFirewallPolicyInsights(d.Get("insights").([]interface{})),
-			ExplicitProxySettings: expandFirewallPolicyExplicitProxySetting(d.Get("explicit_proxy_setting").([]interface{})),
+			ThreatIntelMode:      network.AzureFirewallThreatIntelMode(d.Get("threat_intelligence_mode").(string)),
+			ThreatIntelWhitelist: expandFirewallPolicyThreatIntelWhitelist(d.Get("threat_intelligence_allowlist").([]interface{})),
+			DNSSettings:          expandFirewallPolicyDNSSetting(d.Get("dns").([]interface{})),
+			IntrusionDetection:   expandFirewallPolicyIntrusionDetection(d.Get("intrusion_detection").([]interface{})),
+			TransportSecurity:    expandFirewallPolicyTransportSecurity(d.Get("tls_certificate").([]interface{})),
+			Insights:             expandFirewallPolicyInsights(d.Get("insights").([]interface{})),
+			ExplicitProxy:        expandFirewallPolicyExplicitProxy(d.Get("explicit_proxy").([]interface{})),
 		},
 		Identity: expandedIdentity,
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
@@ -101,7 +104,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if v, ok := d.GetOk("allow_sql_redirect"); ok {
 		props.FirewallPolicyPropertiesFormat.SQL = &network.FirewallPolicySQL{
-			AllowSQLRedirect: utils.Val2Ptr(v.(bool)),
+			AllowSQLRedirect: utils.Bool(v.(bool)),
 		}
 	}
 
@@ -205,13 +208,13 @@ func resourceFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("insights", flattenFirewallPolicyInsights(prop.Insights)); err != nil {
 			return fmt.Errorf(`setting "insights": %+v`, err)
 		}
-		proxySettings := flattenFirewallPolicyExplicitProxySetting(prop.ExplicitProxySettings)
-		if err := d.Set("explicit_proxy_setting", proxySettings); err != nil {
-			return fmt.Errorf("setting `explicit_proxy_setting`: %+v", err)
+		proxySettings := flattenFirewallPolicyExplicitProxy(prop.ExplicitProxy)
+		if err := d.Set("explicit_proxy", proxySettings); err != nil {
+			return fmt.Errorf("setting `explicit_proxy`: %+v", err)
 		}
 
 		if prop.SQL != nil && prop.SQL.AllowSQLRedirect != nil {
-			if err := d.Set("allow_sql_redirect", utils.Ptr2Val(prop.SQL.AllowSQLRedirect)); err != nil {
+			if err := d.Set("allow_sql_redirect", prop.SQL.AllowSQLRedirect); err != nil {
 				return fmt.Errorf("setting `allow_sql_redirect`: %+v", err)
 			}
 		}
@@ -388,17 +391,17 @@ func getRawInterface(input []interface{}) (raw map[string]interface{}) {
 	return input[0].(map[string]interface{})
 }
 
-func expandFirewallPolicyExplicitProxySetting(input []interface{}) *network.ExplicitProxySettings {
+func expandFirewallPolicyExplicitProxy(input []interface{}) *network.ExplicitProxy {
 	raw := getRawInterface(input)
 	if raw == nil {
 		return nil
 	}
-	output := &network.ExplicitProxySettings{
-		EnableExplicitProxy: utils.Val2Ptr(raw["enabled"].(bool)),
-		HTTPPort:            utils.RealVal2Ptr(int32(raw["http_port"].(int))),
-		HTTPSPort:           utils.RealVal2Ptr(int32(raw["https_port"].(int))),
-		PacFilePort:         utils.RealVal2Ptr(int32(raw["pac_file_port"].(int))),
-		PacFile:             utils.RealVal2Ptr(raw["pac_file"].(string)),
+	output := &network.ExplicitProxy{
+		EnableExplicitProxy: utils.Bool(raw["enabled"].(bool)),
+		HTTPPort:            utils.Int32(int32(raw["http_port"].(int))),
+		HTTPSPort:           utils.Int32(int32(raw["https_port"].(int))),
+		PacFilePort:         utils.Int32(int32(raw["pac_file_port"].(int))),
+		PacFile:             utils.String(raw["pac_file"].(string)),
 	}
 
 	return output
@@ -607,16 +610,16 @@ func flattenFirewallPolicyInsights(input *network.FirewallPolicyInsights) []inte
 	}
 }
 
-func flattenFirewallPolicyExplicitProxySetting(input *network.ExplicitProxySettings) (result []interface{}) {
+func flattenFirewallPolicyExplicitProxy(input *network.ExplicitProxy) (result []interface{}) {
 	if input == nil {
 		return
 	}
 	output := map[string]interface{}{
-		"enabled":       utils.Ptr2Val(input.EnableExplicitProxy),
-		"http_port":     utils.Ptr2Val(input.HTTPPort),
-		"https_port":    utils.Ptr2Val(input.HTTPSPort),
-		"pac_file_port": utils.Ptr2Val(input.PacFilePort),
-		"pac_file":      utils.Ptr2Val(input.PacFile),
+		"enabled":       input.EnableExplicitProxy,
+		"http_port":     input.HTTPPort,
+		"https_port":    input.HTTPSPort,
+		"pac_file_port": input.PacFilePort,
+		"pac_file":      input.PacFile,
 	}
 	return []interface{}{output}
 }
@@ -905,7 +908,8 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		"explicit_proxy_setting": {
+
+		"explicit_proxy": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -934,6 +938,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
 		"allow_sql_redirect": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
