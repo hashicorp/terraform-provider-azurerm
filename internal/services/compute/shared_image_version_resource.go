@@ -90,6 +90,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(compute.StorageAccountTypePremiumLRS),
 								string(compute.StorageAccountTypeStandardLRS),
 								string(compute.StorageAccountTypeStandardZRS),
 							}, false),
