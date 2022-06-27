@@ -590,10 +590,11 @@ func resourceBatchPool() *pluginsdk.Resource {
 	}
 	if !features.FourPointOhBeta() {
 		result.Schema["container_configuration"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MinItems: 1,
-			MaxItems: 1,
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			MinItems:   1,
+			MaxItems:   1,
+			Deprecated: "`container_configuration` will be removed in favour of the property `deployment_configuration.virtual_machine_configuration.container_configuration` in version 4.0 of the AzureRM Provider.",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
@@ -646,10 +647,11 @@ func resourceBatchPool() *pluginsdk.Resource {
 			},
 		}
 		result.Schema["storage_image_reference"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			ForceNew:   true,
+			MaxItems:   1,
+			Deprecated: "`storage_image_reference` will be removed in favour of the property `deployment_configuration.virtual_machine_configuration.image_reference` in version 4.0 of the AzureRM Provider.",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -695,9 +697,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 				},
 			}}
 		result.Schema["node_agent_sku_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			ForceNew:   true,
+			Deprecated: "`node_agent_sku_id` will be removed in favour of the property `deployment_configuration.virtual_machine_configuration.node_agent_sku_id` in version 4.0 of the AzureRM Provider.",
 		}
 	} else {
 		result.Schema["deployment_configuration"] = &pluginsdk.Schema{
