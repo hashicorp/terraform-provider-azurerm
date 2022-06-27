@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `azurerm_digital_twins_instance` - support for the `identity` block [GH-17076]
 * `azurerm_private_link_service` - add support for `fqdns` [GH-17366]
 * `azurerm_shared_image_version` - add support for `Premium_LRS` to`storage_account_type` [GH-17390]
+* `azurerm_vpn_site` - support for the `o365_policy` block [GH-16820]
 
 BUG FIXES:
 
