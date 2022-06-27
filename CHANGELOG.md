@@ -1,5 +1,9 @@
 ## 3.12.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_active_directory_domain_service_trust` [GH-17045]
+
 ENHANCEMENTS:
 
 * appservice: replacing usages of `ioutil` with `io` [GH-17392]
