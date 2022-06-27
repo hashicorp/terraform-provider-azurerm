@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * appservice: replacing usages of `ioutil` with `io` [GH-17392]
+* servicefabricmanaged: refactoring to use `hashicorp/go-azure-sdk` [GH-17384]
 * trafficmanager: refactoring to use `hashicorp/go-azure-sdk` [GH-17383]
 * videoanalyzer: refactoring to use `hashicorp/go-azure-sdk` [GH-17382]
 * vmware: refactoring to use `hashicorp/go-azure-sdk` [GH-17381]
