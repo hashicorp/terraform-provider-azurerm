@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	purviewValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -188,6 +189,12 @@ func resourceDataFactory() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"purview_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: purviewValidate.AccountID,
+			},
+
 			"customer_managed_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -246,6 +253,12 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if purviewId, ok := d.GetOk("purview_id"); ok {
+		dataFactory.FactoryProperties.PurviewConfiguration = &datafactory.PurviewConfiguration{
+			PurviewResourceID: utils.String(purviewId.(string)),
+		}
 	}
 
 	if keyVaultKeyID, ok := d.GetOk("customer_managed_key_id"); ok {
@@ -389,6 +402,10 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	// This variable isn't returned from the API if it hasn't been passed in first but we know the default is `true`
 	if resp.PublicNetworkAccess != "" {
 		d.Set("public_network_enabled", resp.PublicNetworkAccess == datafactory.PublicNetworkAccessEnabled)
+	}
+
+	if resp.PurviewConfiguration != nil {
+		d.Set("purview_id", resp.PurviewConfiguration.PurviewResourceID)
 	}
 
 	managedVirtualNetworkEnabled := false
