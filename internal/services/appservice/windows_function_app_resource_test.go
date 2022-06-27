@@ -1839,6 +1839,8 @@ resource "azurerm_windows_function_app" "test" {
       powershell_core_version = "7"
     }
 
+    elastic_instance_minimum = 5
+
     default_documents = [
       "first.html",
       "second.jsp",
