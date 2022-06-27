@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * appservice: replacing usages of `ioutil` with `io` [GH-17392]
 * trafficmanager: refactoring to use `hashicorp/go-azure-sdk` [GH-17383]
+* vmware: refactoring to use `hashicorp/go-azure-sdk` [GH-17381]
 
 BUG FIXES:
 
