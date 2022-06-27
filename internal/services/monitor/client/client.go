@@ -6,8 +6,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	newActionGroupClient "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
+	newAlertsManagementClient "github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertsmanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	newAlertsManagementClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/sdk/2021-08-08/alertsmanagement"
 )
 
 type Client struct {

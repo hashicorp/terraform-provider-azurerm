@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertsmanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/sdk/2021-08-08/alertsmanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -102,37 +102,16 @@ func resourceMonitorAlertProcessingRule() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"alert_context": schemaAlertProcessingRuleCondition(
-							[]string{
-								string(alertsmanagement.OperatorEquals),
-								string(alertsmanagement.OperatorNotEquals),
-								string(alertsmanagement.OperatorContains),
-								string(alertsmanagement.OperatorDoesNotContain),
-							}, nil,
+							alertsmanagement.PossibleValuesForOperator(), nil,
 						),
 						"alert_rule_id": schemaAlertProcessingRuleCondition(
-							[]string{
-								string(alertsmanagement.OperatorEquals),
-								string(alertsmanagement.OperatorNotEquals),
-								string(alertsmanagement.OperatorContains),
-								string(alertsmanagement.OperatorDoesNotContain),
-							}, nil,
+							alertsmanagement.PossibleValuesForOperator(), nil,
 						),
 						"alert_rule_name": schemaAlertProcessingRuleCondition(
-							[]string{
-								string(alertsmanagement.OperatorEquals),
-								string(alertsmanagement.OperatorNotEquals),
-								string(alertsmanagement.OperatorContains),
-								string(alertsmanagement.OperatorDoesNotContain),
-							}, nil,
+							alertsmanagement.PossibleValuesForOperator(), nil,
 						),
 						"description": schemaAlertProcessingRuleCondition(
-							[]string{
-								string(alertsmanagement.OperatorEquals),
-								string(alertsmanagement.OperatorNotEquals),
-								string(alertsmanagement.OperatorContains),
-								string(alertsmanagement.OperatorDoesNotContain),
-							},
-							nil,
+							alertsmanagement.PossibleValuesForOperator(), nil,
 						),
 						"monitor_condition": schemaAlertProcessingRuleCondition(
 							[]string{
@@ -200,20 +179,10 @@ func resourceMonitorAlertProcessingRule() *pluginsdk.Resource {
 							},
 						),
 						"target_resource": schemaAlertProcessingRuleCondition(
-							[]string{
-								string(alertsmanagement.OperatorEquals),
-								string(alertsmanagement.OperatorNotEquals),
-								string(alertsmanagement.OperatorContains),
-								string(alertsmanagement.OperatorDoesNotContain),
-							}, nil,
+							alertsmanagement.PossibleValuesForOperator(), nil,
 						),
 						"target_resource_group": schemaAlertProcessingRuleCondition(
-							[]string{
-								string(alertsmanagement.OperatorEquals),
-								string(alertsmanagement.OperatorNotEquals),
-								string(alertsmanagement.OperatorContains),
-								string(alertsmanagement.OperatorDoesNotContain),
-							}, nil,
+							alertsmanagement.PossibleValuesForOperator(), nil,
 						),
 						"target_resource_type": schemaAlertProcessingRuleCondition(
 							[]string{
@@ -488,6 +457,7 @@ func resourceMonitorAlertProcessingRuleUpdate(d *pluginsdk.ResourceData, meta in
 		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
+	model.SystemData = nil
 	if _, err := client.AlertProcessingRulesCreateOrUpdate(ctx, *id, *model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
