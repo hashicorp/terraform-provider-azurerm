@@ -89,20 +89,20 @@ func testAccBotChannelsRegistration_complete(t *testing.T) {
 	})
 }
 
-func testAccBotChannelsRegistration_isStreamingEndpointEnabled(t *testing.T) {
+func testAccBotChannelsRegistration_streamingEndpointEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 	r := BotChannelsRegistrationResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.isStreamingEndpointEnabled(data, true),
+			Config: r.streamingEndpointEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("developer_app_insights_api_key"),
 		{
-			Config: r.isStreamingEndpointEnabled(data, false),
+			Config: r.streamingEndpointEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -851,7 +851,7 @@ resource "azurerm_bot_channels_registration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
-func (BotChannelsRegistrationResource) isStreamingEndpointEnabled(data acceptance.TestData, isStreamingEndpointEnabled bool) string {
+func (BotChannelsRegistrationResource) streamingEndpointEnabled(data acceptance.TestData, streamingEndpointEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -878,5 +878,5 @@ resource "azurerm_bot_channels_registration" "test" {
   microsoft_app_id           = data.azurerm_client_config.current.client_id
   streaming_endpoint_enabled = %t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, isStreamingEndpointEnabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, streamingEndpointEnabled)
 }
