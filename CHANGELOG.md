@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource**: `azurerm_active_directory_domain_service_trust` [GH-17045]
+* **New Resource**: `azurerm_spring_cloud_api_portal_custom_domain` [GH-16966]
 
 ENHANCEMENTS:
 
