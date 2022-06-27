@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `hyper_v_generation` - (Optional) The generation of HyperV that the Virtual Machine used to create the Shared Image is based on. Possible values are `V1` and `V2`. Defaults to `V1`. Changing this forces a new resource to be created.
 
-* `privacy_statement_uri` - (Optional) The URI containing the Privacy Statement associated with this Shared Image.
+* `privacy_statement_uri` - (Optional) The URI containing the Privacy Statement associated with this Shared Image. Changing this forces a new resource to be created.
 
 * `release_note_uri` - (Optional) The URI containing the Release Notes associated with this Shared Image.
 
@@ -90,11 +90,11 @@ The following arguments are supported:
 
 A `identifier` block supports the following:
 
-* `offer` - (Required) The Offer Name for this Shared Image.
+* `offer` - (Required) The Offer Name for this Shared Image. Changing this forces a new resource to be created.
 
-* `publisher` - (Required) The Publisher Name for this Gallery Image.
+* `publisher` - (Required) The Publisher Name for this Gallery Image. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The Name of the SKU for this Gallery Image.
+* `sku` - (Required) The Name of the SKU for this Gallery Image. Changing this forces a new resource to be created.
 
 ---
 

@@ -83,6 +83,7 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 					"Synapse Contributor",
 					"Synapse Credential User",
 					"Synapse Linked Data Manager",
+					"Synapse Monitoring Operator",
 					"Synapse SQL Administrator",
 					"Synapse User",
 				}, false),

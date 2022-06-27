@@ -14,7 +14,7 @@ Manages an Azure Stack HCI Cluster.
 
 ```hcl
 data "azuread_application" "example" {
-  name = "example-app"
+  display_name = "Allowed resource types"
 }
 
 data "azurerm_client_config" "current" {}

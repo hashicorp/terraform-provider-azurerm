@@ -68,6 +68,11 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"network_features": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"storage_quota_in_gb": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -140,6 +145,7 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", props.ServiceLevel)
 		d.Set("subnet_id", props.SubnetID)
+		d.Set("network_features", props.NetworkFeatures)
 
 		protocolTypes := make([]string, 0)
 		if prtclTypes := props.ProtocolTypes; prtclTypes != nil {

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -77,17 +77,17 @@ func testAccPortalTenantConfiguration_update(t *testing.T) {
 }
 
 func (r PortalTenantConfigurationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PortalTenantConfigurationID(state.ID)
+	id, err := tenantconfiguration.ParseConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Portal.TenantConfigurationsClient.Get(ctx)
+	resp, err := client.Portal.TenantConfigurationsClient.TenantConfigurationsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.ConfigurationProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r PortalTenantConfigurationResource) basic(enforcePrivateMarkdownStorage bool) string {

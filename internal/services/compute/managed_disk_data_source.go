@@ -35,6 +35,11 @@ func dataSourceManagedDisk() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"disk_access_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"disk_encryption_set_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -56,6 +61,11 @@ func dataSourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"image_reference_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"network_access_policy": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -135,6 +145,13 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("storage_account_id", creationData.StorageAccountID)
 		}
 
+		diskAccessId := ""
+		if props.DiskAccessID != nil {
+			diskAccessId = *props.DiskAccessID
+		}
+		d.Set("disk_access_id", diskAccessId)
+
+		d.Set("network_access_policy", string(props.NetworkAccessPolicy))
 		d.Set("disk_size_gb", props.DiskSizeGB)
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
