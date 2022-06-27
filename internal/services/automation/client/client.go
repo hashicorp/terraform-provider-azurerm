@@ -7,8 +7,8 @@ import (
 )
 
 type Client struct {
-	AccountClient               *automation.AccountClient
-	AccountPandoraClient        *automationaccount.AutomationAccountClient
+	//AccountClient               *automation.AccountClient
+	AccountClient               *automationaccount.AutomationAccountClient
 	AgentRegistrationInfoClient *automation.AgentRegistrationInformationClient
 	CertificateClient           *automation.CertificateClient
 	ConnectionClient            *automation.ConnectionClient
@@ -26,11 +26,8 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	accountClient := automation.NewAccountClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	accountClient := automationaccount.NewAutomationAccountClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&accountClient.Client, o.ResourceManagerAuthorizer)
-
-	accountPandoraClietn := automationaccount.NewAutomationAccountClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&accountPandoraClietn.Client, o.ResourceManagerAuthorizer)
 
 	agentRegistrationInfoClient := automation.NewAgentRegistrationInformationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&agentRegistrationInfoClient.Client, o.ResourceManagerAuthorizer)
@@ -76,7 +73,6 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		AccountClient:               &accountClient,
-		AccountPandoraClient:        &accountPandoraClietn,
 		AgentRegistrationInfoClient: &agentRegistrationInfoClient,
 		CertificateClient:           &certificateClient,
 		ConnectionClient:            &connectionClient,

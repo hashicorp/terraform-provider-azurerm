@@ -84,7 +84,7 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 }
 
 func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountPandoraClient
+	client := meta.(*clients.Client).Automation.AccountClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -118,7 +118,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 	if identityVal.Type != identity.TypeNone {
 		parameters.Identity = identityVal
 	}
-	if tagsVal := tags.ExpandPandora(d.Get("tags").(map[string]interface{})); tagsVal != nil {
+	if tagsVal := expandTags(d.Get("tags").(map[string]interface{})); tagsVal != nil {
 		parameters.Tags = &tagsVal
 	}
 
@@ -131,7 +131,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountPandoraClient
+	client := meta.(*clients.Client).Automation.AccountClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -154,7 +154,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Identity: identity,
 	}
 
-	if tagsVal := tags.ExpandPandora(d.Get("tags").(map[string]interface{})); tagsVal != nil {
+	if tagsVal := expandTags(d.Get("tags").(map[string]interface{})); tagsVal != nil {
 		parameters.Tags = &tagsVal
 	}
 
@@ -166,7 +166,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountPandoraClient
+	client := meta.(*clients.Client).Automation.AccountClient
 	registrationClient := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,6 +203,9 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.Set("location", location.NormalizeNilable(resp.Model.Location))
 	publicNetworkAccessEnabled := true
+	if resp.Model == nil || resp.Model.Properties == nil {
+		return fmt.Errorf("retrieving Automation Account got empty Model")
+	}
 	prop := resp.Model.Properties
 	if prop.PublicNetworkAccess != nil {
 		publicNetworkAccessEnabled = *prop.PublicNetworkAccess
@@ -229,13 +232,13 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if resp.Model.Tags != nil {
-		return tags.FlattenAndSetPandora(d, *resp.Model.Tags)
+		return flattenAndSetTags(d, *resp.Model.Tags)
 	}
 	return nil
 }
 
 func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountPandoraClient
+	client := meta.(*clients.Client).Automation.AccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

@@ -29,23 +29,3 @@ func FlattenAndSet(d *pluginsdk.ResourceData, tagMap map[string]*string) error {
 
 	return nil
 }
-
-func FlattenPandora(tagMap map[string]string) map[string]interface{} {
-	// If tagsMap is nil, len(tagsMap) will be 0.
-	output := make(map[string]interface{}, len(tagMap))
-
-	for i, v := range tagMap {
-		output[i] = v
-	}
-
-	return output
-}
-
-func FlattenAndSetPandora(d *pluginsdk.ResourceData, tagMap map[string]string) error {
-	flattened := FlattenPandora(tagMap)
-	if err := d.Set("tags", flattened); err != nil {
-		return fmt.Errorf("setting `tags`: %s", err)
-	}
-
-	return nil
-}
