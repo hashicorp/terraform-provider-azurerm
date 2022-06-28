@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/hostpool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -139,6 +139,52 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 				Default: string(hostpool.PreferredAppGroupTypeDesktop),
 			},
 
+			"scheduled_agent_updates_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"scheduled_agent_updates_time_zone": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "UTC",
+			},
+
+			"scheduled_agent_updates_use_session_host_timezone": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
+			"agent_updates_schedule": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 2,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"day_of_week": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(hostpool.DayOfWeekMonday),
+								string(hostpool.DayOfWeekTuesday),
+								string(hostpool.DayOfWeekWednesday),
+								string(hostpool.DayOfWeekThursday),
+								string(hostpool.DayOfWeekFriday),
+								string(hostpool.DayOfWeekSaturday),
+								string(hostpool.DayOfWeekSunday),
+							}, false),
+						},
+
+						"hour_of_day": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 23),
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -179,6 +225,23 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 			PreferredAppGroupType:         hostpool.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
 		},
 	}
+	updateScheduleEnabled := false
+	updateScheduleEnabled = d.Get("scheduled_agent_updates_enabled").(bool)
+	useSessionHostLocalTime := d.Get("scheduled_agent_updates_use_session_host_timezone").(bool)
+	updateTimeZone := ""
+	if !useSessionHostLocalTime { // Based on the priority used in the Azure Portal, if Session Host time is selected, this overrides the explicit TimeZone setting
+		updateTimeZone = d.Get("scheduled_agent_updates_timezone").(string)
+	}
+
+	if updateScheduleEnabled {
+		scheduleType := hostpool.SessionHostComponentUpdateType(hostpool.SessionHostComponentUpdateTypeScheduled)
+		payload.Properties.AgentUpdate = &hostpool.AgentUpdateProperties{
+			Type:                      &scheduleType,
+			UseSessionHostLocalTime:   &useSessionHostLocalTime,
+			MaintenanceWindowTimeZone: &updateTimeZone,
+			MaintenanceWindows:        expandAgentUpdateSchedule(d.Get("agent_updates_schedule").([]interface{})),
+		}
+	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -207,7 +270,7 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "maximum_sessions_allowed", "preferred_app_group_type", "start_vm_on_connect", "validate_environment") {
+	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "maximum_sessions_allowed", "preferred_app_group_type", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates_enabled", "scheduled_agent_updates_time_zone", "scheduled_agent_updates_use_session_host_timezone", "agent_updates_schedule") {
 		payload.Properties = &hostpool.HostPoolPatchProperties{}
 
 		if d.HasChange("custom_rdp_properties") {
@@ -238,6 +301,40 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		if d.HasChange("validate_environment") {
 			payload.Properties.ValidationEnvironment = utils.Bool(d.Get("validate_environment").(bool))
 		}
+
+		if d.HasChanges("scheduled_agent_updates_enabled", "scheduled_agent_updates_time_zone", "scheduled_agent_updates_use_session_host_timezone", "agent_updates_schedule") {
+			payload.Properties.AgentUpdate = &hostpool.AgentUpdatePatchProperties{}
+
+			if d.HasChange("scheduled_agent_updates_enabled") {
+				updatesEnabled := false
+				updatesEnabled = d.Get("scheduled_agent_updates_enabled").(bool)
+				updatesScheduled := hostpool.SessionHostComponentUpdateType(hostpool.SessionHostComponentUpdateTypeScheduled)
+				updatesDefault := hostpool.SessionHostComponentUpdateType(hostpool.SessionHostComponentUpdateTypeDefault)
+				if updatesEnabled {
+					payload.Properties.AgentUpdate.Type = &updatesScheduled
+				} else {
+					payload.Properties.AgentUpdate.Type = &updatesDefault
+				}
+			}
+
+			if d.HasChanges("scheduled_agent_updates_time_zone", "scheduled_agent_updates_use_session_host_timezone") {
+				useSessionHostTZ := false
+				useSessionHostTZ = d.Get("scheduled_agent_updates_use_session_host_timezone").(bool)
+				agentUpdateTZ := ""
+				payload.Properties.AgentUpdate.UseSessionHostLocalTime = &useSessionHostTZ
+				if useSessionHostTZ {
+					payload.Properties.AgentUpdate.MaintenanceWindowTimeZone = &agentUpdateTZ
+				} else {
+					agentUpdateTZ = d.Get("scheduled_agent_updates_time_zone").(string)
+					payload.Properties.AgentUpdate.MaintenanceWindowTimeZone = &agentUpdateTZ
+				}
+			}
+
+			if d.HasChange("agent_updates_schedule") {
+				payload.Properties.AgentUpdate.MaintenanceWindows = expandAgentUpdateSchedulePatch(d.Get("agent_updates_schedule").([]interface{}))
+			}
+		}
+
 	}
 
 	if _, err := client.Update(ctx, *id, payload); err != nil {
@@ -297,6 +394,18 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("start_vm_on_connect", props.StartVMOnConnect)
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)
+
+		agentUpdates := model.Properties.AgentUpdate
+
+		if *agentUpdates.Type == hostpool.SessionHostComponentUpdateTypeDefault {
+			d.Set("scheduled_agent_updates_enabled", true)
+		} else {
+			d.Set("scheduled_agent_updates_enabled", false)
+		}
+
+		d.Set("scheduled_agent_updates_time_zone", agentUpdates.MaintenanceWindowTimeZone)
+		d.Set("scheduled_agent_updates_use_session_host_timezone", agentUpdates.UseSessionHostLocalTime)
+		d.Set("agent_updates_schedule", flattenAgentUpdateSchedule(agentUpdates.MaintenanceWindows))
 	}
 
 	return nil
@@ -323,4 +432,79 @@ func resourceVirtualDesktopHostPoolDelete(d *pluginsdk.ResourceData, meta interf
 	}
 
 	return nil
+}
+
+func expandAgentUpdateSchedule(input []interface{}) *[]hostpool.MaintenanceWindowProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	results := make([]hostpool.MaintenanceWindowProperties, 0)
+	for _, item := range input {
+		if item == nil {
+			continue
+		}
+
+		v := item.(map[string]interface{})
+		//dayOfWeekRaw := v["day_of_week"].(string)
+		dayOfWeek := hostpool.DayOfWeek(v["day_of_week"].(string))
+
+		hourOfDay := v["hour_of_day"].(int64)
+
+		results = append(results, hostpool.MaintenanceWindowProperties{
+			DayOfWeek: &dayOfWeek,
+			Hour:      utils.Int64(hourOfDay),
+		})
+	}
+
+	return &results
+}
+
+func expandAgentUpdateSchedulePatch(input []interface{}) *[]hostpool.MaintenanceWindowPatchProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	results := make([]hostpool.MaintenanceWindowPatchProperties, 0)
+	for _, item := range input {
+		if item == nil {
+			continue
+		}
+
+		v := item.(map[string]interface{})
+		//dayOfWeekRaw := v["day_of_week"].(string)
+		dayOfWeek := hostpool.DayOfWeek(v["day_of_week"].(string))
+
+		hourOfDay := v["hour_of_day"].(int64)
+
+		results = append(results, hostpool.MaintenanceWindowPatchProperties{
+			DayOfWeek: &dayOfWeek,
+			Hour:      utils.Int64(hourOfDay),
+		})
+	}
+
+	return &results
+}
+
+func flattenAgentUpdateSchedule(input *[]hostpool.MaintenanceWindowProperties) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		dayOfWeek := ""
+		if item.DayOfWeek != nil {
+			dayOfWeek = *utils.String(string(*item.DayOfWeek))
+		}
+		hourOfDay := utils.Int64(0)
+		if item.Hour != nil {
+			hourOfDay = utils.Int64(*item.Hour)
+		}
+		results = append(results, map[string]interface{}{
+			"day_of_week":          dayOfWeek,
+			"scaling_plan_enabled": hourOfDay,
+		})
+	}
+	return results
 }
