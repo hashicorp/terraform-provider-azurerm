@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/purview/mgmt/2021-07-01/purview"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -15,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,7 +29,7 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 		Delete: resourcePurviewAccountDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AccountID(id)
+			_, err := account.ParseAccountID(id)
 			return err
 		}),
 
@@ -190,35 +188,6 @@ func resourcePurviewAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	return nil
-}
-
-func expandIdentity(input []interface{}) (*purview.Identity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
-	if err != nil {
-		return nil, err
-	}
-
-	return &purview.Identity{
-		Type: purview.Type(string(expanded.Type)),
-	}, nil
-}
-
-func flattenIdentity(input *purview.Identity) interface{} {
-	var transition *identity.SystemAssigned
-
-	if input != nil {
-		transition = &identity.SystemAssigned{
-			Type: identity.Type(string(input.Type)),
-		}
-		if input.PrincipalID != nil {
-			transition.PrincipalId = *input.PrincipalID
-		}
-		if input.TenantID != nil {
-			transition.TenantId = *input.TenantID
-		}
-	}
-
-	return identity.FlattenSystemAssigned(transition)
 }
 
 func flattenPurviewAccountManagedResources(managedResources *account.ManagedResources) interface{} {
