@@ -10,11 +10,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/managedcluster"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/nodetype"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/sdk/2021-05-01/managedcluster"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/sdk/2021-05-01/nodetype"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabricmanaged/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -312,7 +311,7 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			deleteResponses := make([]nodetype.DeleteResponse, 0)
+			deleteResponses := make([]nodetype.DeleteOperationResponse, 0)
 			// Delete the old nodetypes
 			for _, nt := range toDelete {
 				resp, err := nodeTypeClient.Delete(ctx, nodetype.NewNodeTypeID(subscriptionId, model.ResourceGroup, model.Name, nt))
@@ -342,7 +341,7 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			// Send all Create NodeType requests, and store all responses to a list.
-			nodeTypeResponses := make([]nodetype.CreateOrUpdateResponse, len(model.NodeTypes))
+			nodeTypeResponses := make([]nodetype.CreateOrUpdateOperationResponse, len(model.NodeTypes))
 			for idx, nt := range model.NodeTypes {
 				nodeTypeProperties, err := expandNodeTypeProperties(&nt)
 				if err != nil {
@@ -494,7 +493,7 @@ func (k ClusterResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			deleteResponses := make([]nodetype.DeleteResponse, 0)
+			deleteResponses := make([]nodetype.DeleteOperationResponse, 0)
 			// Delete the old nodetypes
 			for _, nt := range toDelete {
 				resp, err := nodeTypeClient.Delete(ctx, nodetype.NewNodeTypeID(subscriptionId, model.ResourceGroup, model.Name, nt))
@@ -524,7 +523,7 @@ func (k ClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			// Send all Create NodeType requests, and store all responses to a list.
-			nodeTypeResponses := make([]nodetype.CreateOrUpdateResponse, len(model.NodeTypes))
+			nodeTypeResponses := make([]nodetype.CreateOrUpdateOperationResponse, len(model.NodeTypes))
 			for idx, nt := range model.NodeTypes {
 				nodeTypeProperties, err := expandNodeTypeProperties(&nt)
 				if err != nil {
@@ -646,7 +645,7 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 }
 
 func (k ClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ServiceFabricManagedClusterID
+	return managedcluster.ValidateManagedClusterID
 }
 
 func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterResourceModel {

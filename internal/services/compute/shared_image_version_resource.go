@@ -66,7 +66,9 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"target_region": {
-				Type:     pluginsdk.TypeSet,
+				// This needs to be a `TypeList` due to the `StateFunc` on the nested property `name`
+				// See: https://github.com/hashicorp/terraform-plugin-sdk/issues/160
+				Type:     pluginsdk.TypeList,
 				Required: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -90,6 +92,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(compute.StorageAccountTypePremiumLRS),
 								string(compute.StorageAccountTypeStandardLRS),
 								string(compute.StorageAccountTypeStandardZRS),
 							}, false),
@@ -301,10 +304,10 @@ func sharedImageVersionDeleteStateRefreshFunc(ctx context.Context, client *compu
 }
 
 func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) *[]compute.TargetRegion {
-	vs := d.Get("target_region").(*pluginsdk.Set)
+	vs := d.Get("target_region").([]interface{})
 	results := make([]compute.TargetRegion, 0)
 
-	for _, v := range vs.List() {
+	for _, v := range vs {
 		input := v.(map[string]interface{})
 
 		name := input["name"].(string)
