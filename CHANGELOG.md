@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 * appservice: replacing usages of `ioutil` with `io` [GH-17392]
 * containerservice: updated to use version `2022-03-02-preview` [GH-17084]
+* relay: refactoring to use `hashicorp/go-azure-sdk` [GH-17385]
 * servicefabricmanaged: refactoring to use `hashicorp/go-azure-sdk` [GH-17384]
 * trafficmanager: refactoring to use `hashicorp/go-azure-sdk` [GH-17383]
 * videoanalyzer: refactoring to use `hashicorp/go-azure-sdk` [GH-17382]
