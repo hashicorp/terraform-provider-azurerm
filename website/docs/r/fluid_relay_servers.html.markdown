@@ -61,11 +61,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `orderer_endpoints` - An array of the Fluid Relay Orderer endpoints.
 
-* `principal_id` - The Principal ID of the Fluid Relay Server.
-
-* `storage_endpoints` - An array of the Fluid Relay storage endpoints.
-
-* `tenant_id` - The tenant ID of the Fluid Relay Server.
+* `storage_endpoints` - An array of storage endpoints for this Fluid Relay Server.
 
 ---
 

@@ -18,12 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type UserAssignedIdentity struct {
-	IdentityID  string `tfschema:"identity_id"`
-	ClientID    string `tfschema:"client_id"`
-	PrincipalID string `tfschema:"principal_id"`
-}
-
 type ServerModel struct {
 	Name             string                                     `tfschema:"name"`
 	ResourceGroup    string                                     `tfschema:"resource_group_name"`
@@ -32,8 +26,6 @@ type ServerModel struct {
 	FrsTenantId      string                                     `tfschema:"frs_tenant_id"`
 	OrdererEndpoints []string                                   `tfschema:"orderer_endpoints"`
 	StorageEndpoints []string                                   `tfschema:"storage_endpoints"`
-	TenantID         string                                     `tfschema:"tenant_id"`
-	PrincipalID      string                                     `tfschema:"principal_id"`
 	Identity         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 }
 
@@ -99,14 +91,6 @@ func (s Server) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-		},
-		"principal_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"tenant_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
 		},
 	}
 }
