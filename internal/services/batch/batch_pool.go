@@ -312,10 +312,15 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *bat
 			containerSettings["container_run_options"] = *startTask.ContainerSettings.ContainerRunOptions
 		}
 		if startTask.ContainerSettings.Registry != nil {
-			containerSettings["registry"] = flattenBatchPoolContainerRegistry(oldConfig, startTask.ContainerSettings.Registry)
+			tmpReg := flattenBatchPoolContainerRegistry(oldConfig, startTask.ContainerSettings.Registry)
+			containerSettings["registry"] = []interface{}{
+				tmpReg,
+			}
 		}
 
-		result["container_settings"] = containerSettings
+		result["container_settings"] = []interface{}{
+			containerSettings,
+		}
 	}
 
 	waitForSuccess := false
@@ -1120,8 +1125,8 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*batch.Contai
 		UserName:       utils.String(ref["user_name"].(string)),
 		Password:       utils.String(ref["password"].(string)),
 	}
-	if ref["identity_reference"] != nil {
-		if idRef, err := expandBatchPoolIdentityReference(ref["identity_reference"].(map[string]interface{})); err == nil {
+	if ref["identity_reference"] != nil && len(ref["identity_reference"].([]interface{})) > 0 {
+		if idRef, err := expandBatchPoolIdentityReference(ref["identity_reference"].([]interface{})[0].(map[string]interface{})); err == nil {
 			containerRegistryRef.IdentityReference = idRef
 		} else {
 			return nil, err
@@ -1293,16 +1298,19 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 
 	if startTaskValue["container_settings"] != nil && len(startTaskValue["container_settings"].([]interface{})) > 0 {
 		var containerSettings batch.TaskContainerSettings
-		containerSettingsList := startTaskValue["container_settings"].([]map[string]interface{})
+		containerSettingsList := startTaskValue["container_settings"].([]interface{})
 
 		if len(containerSettingsList) > 0 && containerSettingsList[0] != nil {
-			settingMap := containerSettingsList[0]
+			settingMap := containerSettingsList[0].(map[string]interface{})
 			containerSettings.ImageName = utils.String(settingMap["image_name"].(string))
 			if containerRunOptions, ok := settingMap["container_run_options"]; ok {
 				containerSettings.ContainerRunOptions = utils.String(containerRunOptions.(string))
 			}
-			if containerRegistry, err := expandBatchPoolContainerRegistry(settingMap["registry"].(map[string]interface{})); err == nil {
-				containerSettings.Registry = containerRegistry
+			if settingMap["registry"].([]interface{})[0] != nil {
+				containerRegMap := settingMap["registry"].([]interface{})[0].(map[string]interface{})
+				if containerRegistryRef, err := expandBatchPoolContainerRegistry(containerRegMap); err == nil {
+					containerSettings.Registry = containerRegistryRef
+				}
 			}
 			if workingDir, ok := settingMap["working_directory"]; ok {
 				containerSettings.WorkingDirectory = batch.ContainerWorkingDirectory(workingDir.(string))
