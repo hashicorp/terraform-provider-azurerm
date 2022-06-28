@@ -8,6 +8,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * appservice: replacing usages of `ioutil` with `io` [GH-17392]
+* containerservice: updated to use version `2022-03-02-preview` [GH-17084]
 * servicefabricmanaged: refactoring to use `hashicorp/go-azure-sdk` [GH-17384]
 * trafficmanager: refactoring to use `hashicorp/go-azure-sdk` [GH-17383]
 * videoanalyzer: refactoring to use `hashicorp/go-azure-sdk` [GH-17382]
@@ -16,6 +17,7 @@ ENHANCEMENTS:
 * `azurerm_bot_channels_registration` - support for the `streaming_endpoint_enabled` property [GH-17369]
 * `azurerm_data_factory` - added support for the `purview_id` property [GH-17001]
 * `azurerm_digital_twins_instance` - support for the `identity` block [GH-17076]
+* `azurerm_kubernetes_cluster` - added support for version aliases [GH-17084]
 * `azurerm_private_link_service` - add support for `fqdns` [GH-17366]
 * `azurerm_shared_image_version` - add support for `Premium_LRS` to`storage_account_type` [GH-17390]
 * `azurerm_vpn_site` - support for the `o365_policy` block [GH-16820]
