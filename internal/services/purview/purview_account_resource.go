@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -67,7 +67,7 @@ func resourcePurviewAccountCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	purviewAccount := account.Account{
 		Properties: &account.AccountProperties{},
 		Location:   utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		Tags:       expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
@@ -154,7 +154,7 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 		}
 
-		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}
@@ -295,6 +295,6 @@ func resourcePurviewSchema() map[string]*pluginsdk.Schema {
 			Sensitive: true,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
