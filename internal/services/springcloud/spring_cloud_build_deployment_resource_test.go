@@ -156,7 +156,6 @@ func (r SpringCloudBuildDeploymentResource) complete(data acceptance.TestData) s
 resource "azurerm_spring_cloud_build_deployment" "test" {
   name                = "acctest-scjd%s"
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
-  active              = true
   build_result_id     = "<default>"
   instance_count      = 2
 

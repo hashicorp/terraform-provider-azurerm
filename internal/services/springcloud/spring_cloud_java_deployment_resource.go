@@ -78,7 +78,6 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 			Capacity: utils.Int32(int32(d.Get("instance_count").(int))),
 		},
 		Properties: &appplatform.DeploymentResourceProperties{
-			Active: utils.Bool(d.Get("active").(bool)),
 			Source: appplatform.JarUploadedUserSourceInfo{
 				RuntimeVersion: utils.String(d.Get("runtime_version").(string)),
 				JvmOptions:     utils.String(d.Get("jvm_options").(string)),
@@ -108,7 +107,6 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 
 func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
-	appsClient := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -176,21 +174,6 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
-	if !d.IsNewResource() && d.HasChange("active") {
-		parameter := appplatform.ActiveDeploymentCollection{ActiveDeploymentNames: &[]string{}}
-		if d.Get("active").(bool) {
-			parameter = appplatform.ActiveDeploymentCollection{ActiveDeploymentNames: &[]string{id.DeploymentName}}
-		}
-		future, err := appsClient.SetActiveDeployments(ctx, id.ResourceGroup, id.SpringName, id.AppName, parameter)
-		if err != nil {
-			return fmt.Errorf("setting active deployment %q: %+v", id, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for setting active deployment %q: %+v", id, err)
-		}
-	}
-
 	return resourceSpringCloudJavaDeploymentRead(d, meta)
 }
 
@@ -220,7 +203,6 @@ func resourceSpringCloudJavaDeploymentRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("instance_count", resp.Sku.Capacity)
 	}
 	if resp.Properties != nil {
-		d.Set("active", resp.Properties.Active)
 		if settings := resp.Properties.DeploymentSettings; settings != nil {
 			d.Set("environment_variables", flattenSpringCloudDeploymentEnvironmentVariables(settings.EnvironmentVariables))
 			if err := d.Set("quota", flattenSpringCloudDeploymentResourceRequests(settings.ResourceRequests)); err != nil {
@@ -340,11 +322,6 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.SpringCloudAppID,
-		},
-
-		"active": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
 		},
 
 		"environment_variables": {

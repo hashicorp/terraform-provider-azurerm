@@ -62,11 +62,6 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"active": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
 			"addon_json": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -162,7 +157,6 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 
 func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
-	appsClient := meta.(*clients.Client).AppPlatform.AppsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -200,21 +194,6 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	if !d.IsNewResource() && d.HasChange("active") {
-		parameter := appplatform.ActiveDeploymentCollection{ActiveDeploymentNames: &[]string{}}
-		if d.Get("active").(bool) {
-			parameter = appplatform.ActiveDeploymentCollection{ActiveDeploymentNames: &[]string{id.DeploymentName}}
-		}
-		future, err := appsClient.SetActiveDeployments(ctx, appId.ResourceGroup, appId.SpringName, appId.AppName, parameter)
-		if err != nil {
-			return fmt.Errorf("setting active deployment %q: %+v", id, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for setting active deployment %q: %+v", id, err)
-		}
-	}
-
 	deployment := appplatform.DeploymentResource{
 		Sku: &appplatform.Sku{
 			Name:     service.Sku.Name,
@@ -222,7 +201,6 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 			Capacity: utils.Int32(int32(d.Get("instance_count").(int))),
 		},
 		Properties: &appplatform.DeploymentResourceProperties{
-			Active: utils.Bool(d.Get("active").(bool)),
 			Source: appplatform.CustomContainerUserSourceInfo{
 				CustomContainer: &appplatform.CustomContainer{
 					Server:            utils.String(d.Get("server").(string)),
@@ -280,7 +258,6 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 		d.Set("instance_count", resp.Sku.Capacity)
 	}
 	if resp.Properties != nil {
-		d.Set("active", resp.Properties.Active)
 		if settings := resp.Properties.DeploymentSettings; settings != nil {
 			d.Set("environment_variables", flattenSpringCloudDeploymentEnvironmentVariables(settings.EnvironmentVariables))
 			if err := d.Set("quota", flattenSpringCloudDeploymentResourceRequests(settings.ResourceRequests)); err != nil {

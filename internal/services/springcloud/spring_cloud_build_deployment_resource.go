@@ -56,11 +56,6 @@ func resourceSpringCloudBuildDeployment() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"active": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
 			"addon_json": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
@@ -130,7 +125,6 @@ func resourceSpringCloudBuildDeployment() *pluginsdk.Resource {
 
 func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
-	appsClient := meta.(*clients.Client).AppPlatform.AppsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -168,21 +162,6 @@ func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	if !d.IsNewResource() && d.HasChange("active") {
-		parameter := appplatform.ActiveDeploymentCollection{ActiveDeploymentNames: &[]string{}}
-		if d.Get("active").(bool) {
-			parameter = appplatform.ActiveDeploymentCollection{ActiveDeploymentNames: &[]string{id.DeploymentName}}
-		}
-		future, err := appsClient.SetActiveDeployments(ctx, appId.ResourceGroup, appId.SpringName, appId.AppName, parameter)
-		if err != nil {
-			return fmt.Errorf("setting active deployment %q: %+v", id, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for setting active deployment %q: %+v", id, err)
-		}
-	}
-
 	deployment := appplatform.DeploymentResource{
 		Sku: &appplatform.Sku{
 			Name:     service.Sku.Name,
@@ -190,7 +169,6 @@ func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, m
 			Capacity: utils.Int32(int32(d.Get("instance_count").(int))),
 		},
 		Properties: &appplatform.DeploymentResourceProperties{
-			Active: utils.Bool(d.Get("active").(bool)),
 			Source: appplatform.BuildResultUserSourceInfo{
 				BuildResultID: utils.String(d.Get("build_result_id").(string)),
 			},
@@ -242,7 +220,6 @@ func resourceSpringCloudBuildDeploymentRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("instance_count", resp.Sku.Capacity)
 	}
 	if resp.Properties != nil {
-		d.Set("active", resp.Properties.Active)
 		if settings := resp.Properties.DeploymentSettings; settings != nil {
 			d.Set("environment_variables", flattenSpringCloudDeploymentEnvironmentVariables(settings.EnvironmentVariables))
 			if err := d.Set("quota", flattenSpringCloudDeploymentResourceRequests(settings.ResourceRequests)); err != nil {

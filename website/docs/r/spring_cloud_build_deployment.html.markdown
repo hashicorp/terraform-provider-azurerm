@@ -63,7 +63,6 @@ The following arguments are supported:
 * `build_result_id` - (Required) The ID of the Spring Cloud Build Result.
 
 ---
-* `active` - (Optional) should the Deployment be active?
 
 * `addon_json` - (Optional) A JSON object that contains the addon configurations of the Spring Cloud Build Deployment.
 
