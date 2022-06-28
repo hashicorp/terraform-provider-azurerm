@@ -20,9 +20,9 @@ import (
 
 func resourceSpatialAnchorsAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSpatialAnchorsAccountCreateUpdate,
+		Create: resourceSpatialAnchorsAccountCreate,
 		Read:   resourceSpatialAnchorsAccountRead,
-		Update: resourceSpatialAnchorsAccountCreateUpdate,
+		Update: resourceSpatialAnchorsAccountUpdate,
 		Delete: resourceSpatialAnchorsAccountDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := resource.ParseSpatialAnchorsAccountID(id)
@@ -66,24 +66,22 @@ func resourceSpatialAnchorsAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpatialAnchorsAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpatialAnchorsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MixedReality.SpatialAnchorsAccountClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := resource.NewSpatialAnchorsAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.SpatialAnchorsAccountsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.SpatialAnchorsAccountsGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_spatial_anchors_account", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_spatial_anchors_account", id.ID())
 	}
 
 	account := resource.SpatialAnchorsAccount{
@@ -92,7 +90,7 @@ func resourceSpatialAnchorsAccountCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if _, err := client.SpatialAnchorsAccountsCreate(ctx, id, account); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -136,6 +134,29 @@ func resourceSpatialAnchorsAccountRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func resourceSpatialAnchorsAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MixedReality.SpatialAnchorsAccountClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := resource.ParseSpatialAnchorsAccountID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	account := resource.SpatialAnchorsAccount{
+		Location: location.Normalize(d.Get("location").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if _, err := client.SpatialAnchorsAccountsUpdate(ctx, *id, account); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceSpatialAnchorsAccountRead(d, meta)
 }
 
 func resourceSpatialAnchorsAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
