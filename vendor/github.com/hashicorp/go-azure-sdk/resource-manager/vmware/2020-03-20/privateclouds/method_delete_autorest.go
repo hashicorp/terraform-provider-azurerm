@@ -72,6 +72,7 @@ func (c PrivateCloudsClient) senderForDelete(ctx context.Context, req *http.Requ
 	if err != nil {
 		return
 	}
+
 	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
 	return
 }

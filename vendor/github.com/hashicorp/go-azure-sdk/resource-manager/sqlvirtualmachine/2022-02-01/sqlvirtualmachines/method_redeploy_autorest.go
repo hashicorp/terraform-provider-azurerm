@@ -72,6 +72,7 @@ func (c SqlVirtualMachinesClient) senderForRedeploy(ctx context.Context, req *ht
 	if err != nil {
 		return
 	}
+
 	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
 	return
 }
