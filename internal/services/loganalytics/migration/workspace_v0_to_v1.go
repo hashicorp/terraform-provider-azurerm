@@ -51,7 +51,7 @@ func workspaceSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"force_cmk_for_query": {
+		"cmk_for_query_forced": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},

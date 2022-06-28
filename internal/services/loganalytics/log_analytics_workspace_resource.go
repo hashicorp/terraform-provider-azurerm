@@ -61,7 +61,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"force_cmk_for_query": {
+			"cmk_for_query_forced": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -239,7 +239,7 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	if v, ok := d.GetOkExists("force_cmk_for_query"); ok {
+	if v, ok := d.GetOkExists("cmk_for_query_forced"); ok {
 		parameters.Properties.ForceCmkForQuery = utils.Bool(v.(bool))
 	}
 
@@ -318,7 +318,7 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 			d.Set("sku", skuName)
 
-			d.Set("force_cmk_for_query", props.ForceCmkForQuery)
+			d.Set("cmk_for_query_forced", props.ForceCmkForQuery)
 			d.Set("retention_in_days", props.RetentionInDays)
 
 			if props.Sku != nil && strings.EqualFold(string(props.Sku.Name), string(workspaces.WorkspaceSkuNameEnumFree)) {

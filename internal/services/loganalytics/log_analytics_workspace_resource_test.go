@@ -254,20 +254,20 @@ func TestAccLogAnalyticsWorkspace_negativeOne(t *testing.T) {
 	})
 }
 
-func TestAccLogAnalyticsWorkspace_forceCmkForQuery(t *testing.T) {
+func TestAccLogAnalyticsWorkspace_cmkForQueryForced(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 	r := LogAnalyticsWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.forceCmkForQuery(data, true),
+			Config: r.cmkForQueryForced(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.forceCmkForQuery(data, false),
+			Config: r.cmkForQueryForced(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -573,7 +573,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capacityReservation)
 }
 
-func (LogAnalyticsWorkspaceResource) forceCmkForQuery(data acceptance.TestData, forceCmkForQuery bool) string {
+func (LogAnalyticsWorkspaceResource) cmkForQueryForced(data acceptance.TestData, cmkForQueryForced bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -585,12 +585,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-  force_cmk_for_query = %t
+  name                 = "acctestLAW-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  sku                  = "PerGB2018"
+  retention_in_days    = 30
+  cmk_for_query_forced = %t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, forceCmkForQuery)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, cmkForQueryForced)
 }
