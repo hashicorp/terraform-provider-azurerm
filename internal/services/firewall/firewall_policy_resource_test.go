@@ -529,6 +529,7 @@ func (FirewallPolicyResource) proxySettingConfig() string {
     enabled  = true
     http_port= 8087
     https_port= 8088
+    enable_pac_file = true
     pac_file_port= 8089
     pac_file= "https://tinawstorage.file.core.windows.net/?sv=2020-02-10&ss=bfqt&srt=sco&sp=rwdlacuptfx&se=2021-06-04T07:01:12Z&st=2021-06-03T23:01:12Z&sip=68.65.171.11&spr=https&sig=Plsa0RRVpGbY0IETZZOT6znOHcSro71LLTTbzquYPgs%%3D"
   }

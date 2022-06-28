@@ -403,6 +403,9 @@ func expandFirewallPolicyExplicitProxy(input []interface{}) *network.ExplicitPro
 		PacFilePort:         utils.Int32(int32(raw["pac_file_port"].(int))),
 		PacFile:             utils.String(raw["pac_file"].(string)),
 	}
+	if val, ok := raw["enable_pac_file"]; ok {
+		output.EnablePacFile = utils.Bool(val.(bool))
+	}
 
 	return output
 }
@@ -615,11 +618,12 @@ func flattenFirewallPolicyExplicitProxy(input *network.ExplicitProxy) (result []
 		return
 	}
 	output := map[string]interface{}{
-		"enabled":       input.EnableExplicitProxy,
-		"http_port":     input.HTTPPort,
-		"https_port":    input.HTTPSPort,
-		"pac_file_port": input.PacFilePort,
-		"pac_file":      input.PacFile,
+		"enabled":         input.EnableExplicitProxy,
+		"http_port":       input.HTTPPort,
+		"https_port":      input.HTTPSPort,
+		"enable_pac_file": input.EnablePacFile,
+		"pac_file_port":   input.PacFilePort,
+		"pac_file":        input.PacFile,
 	}
 	return []interface{}{output}
 }
@@ -925,6 +929,10 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 					},
 					"https_port": {
 						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+					"enable_pac_file": {
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
 					"pac_file_port": {
