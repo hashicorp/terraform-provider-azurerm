@@ -108,6 +108,7 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 
 func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
+	appsClient := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -166,10 +167,6 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	if d.HasChange("active") {
-		existing.Properties.Active = utils.Bool(d.Get("active").(bool))
-	}
-
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName, existing)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
@@ -177,6 +174,21 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for update of %s: %+v", id, err)
+	}
+
+	if !d.IsNewResource() && d.HasChange("active") {
+		parameter := appplatform.ActiveDeploymentCollection{ActiveDeploymentNames: &[]string{}}
+		if d.Get("active").(bool) {
+			parameter = appplatform.ActiveDeploymentCollection{ActiveDeploymentNames: &[]string{id.DeploymentName}}
+		}
+		future, err := appsClient.SetActiveDeployments(ctx, id.ResourceGroup, id.SpringName, id.AppName, parameter)
+		if err != nil {
+			return fmt.Errorf("setting active deployment %q: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for setting active deployment %q: %+v", id, err)
+		}
 	}
 
 	return resourceSpringCloudJavaDeploymentRead(d, meta)
@@ -333,7 +345,6 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 		"active": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
 		},
 
 		"environment_variables": {
