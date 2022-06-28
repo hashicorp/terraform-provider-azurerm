@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-01-02-preview/containerservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 
 // AccessProfile profile for enabling a user to access a managed cluster.
 type AccessProfile struct {
@@ -578,6 +578,34 @@ type AgentPoolUpgradeSettings struct {
 	MaxSurge *string `json:"maxSurge,omitempty"`
 }
 
+// AzureEntityResource the resource model definition for an Azure Resource Manager resource with an etag.
+type AzureEntityResource struct {
+	// Etag - READ-ONLY; Resource Etag.
+	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureEntityResource.
+func (aer AzureEntityResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// AzureKeyVaultKms azure Key Vault key management service settings for the security profile.
+type AzureKeyVaultKms struct {
+	// Enabled - Whether to enable Azure Key Vault key management service. The default is false.
+	Enabled *bool `json:"enabled,omitempty"`
+	// KeyID - Identifier of Azure Key Vault key. See [key identifier format](https://docs.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details. When Azure Key Vault key management service is enabled, this field is required and must be a valid key identifier. When Azure Key Vault key management service is disabled, leave the field empty.
+	KeyID *string `json:"keyId,omitempty"`
+}
+
 // CloudError an error response from the Container service.
 type CloudError struct {
 	// Error - Details about the error.
@@ -1008,16 +1036,18 @@ type ManagedCluster struct {
 	Identity *ManagedClusterIdentity `json:"identity,omitempty"`
 	// ManagedClusterProperties - Properties of a managed cluster.
 	*ManagedClusterProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type
-	Type *string `json:"type,omitempty"`
-	// Location - Resource location
-	Location *string `json:"location,omitempty"`
-	// Tags - Resource tags
+	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedCluster.
@@ -1035,11 +1065,11 @@ func (mc ManagedCluster) MarshalJSON() ([]byte, error) {
 	if mc.ManagedClusterProperties != nil {
 		objectMap["properties"] = mc.ManagedClusterProperties
 	}
-	if mc.Location != nil {
-		objectMap["location"] = mc.Location
-	}
 	if mc.Tags != nil {
 		objectMap["tags"] = mc.Tags
+	}
+	if mc.Location != nil {
+		objectMap["location"] = mc.Location
 	}
 	return json.Marshal(objectMap)
 }
@@ -1089,6 +1119,24 @@ func (mc *ManagedCluster) UnmarshalJSON(body []byte) error {
 				}
 				mc.ManagedClusterProperties = &managedClusterProperties
 			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				mc.Tags = tags
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				mc.Location = &location
+			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -1116,23 +1164,14 @@ func (mc *ManagedCluster) UnmarshalJSON(body []byte) error {
 				}
 				mc.Type = &typeVar
 			}
-		case "location":
+		case "systemData":
 			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
 				if err != nil {
 					return err
 				}
-				mc.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				mc.Tags = tags
+				mc.SystemData = &systemData
 			}
 		}
 	}
@@ -1164,16 +1203,18 @@ type ManagedClusterAccessProfile struct {
 	autorest.Response `json:"-"`
 	// AccessProfile - AccessProfile of a managed cluster.
 	*AccessProfile `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type
-	Type *string `json:"type,omitempty"`
-	// Location - Resource location
-	Location *string `json:"location,omitempty"`
-	// Tags - Resource tags
+	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterAccessProfile.
@@ -1182,11 +1223,11 @@ func (mcap ManagedClusterAccessProfile) MarshalJSON() ([]byte, error) {
 	if mcap.AccessProfile != nil {
 		objectMap["properties"] = mcap.AccessProfile
 	}
-	if mcap.Location != nil {
-		objectMap["location"] = mcap.Location
-	}
 	if mcap.Tags != nil {
 		objectMap["tags"] = mcap.Tags
+	}
+	if mcap.Location != nil {
+		objectMap["location"] = mcap.Location
 	}
 	return json.Marshal(objectMap)
 }
@@ -1208,6 +1249,24 @@ func (mcap *ManagedClusterAccessProfile) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				mcap.AccessProfile = &accessProfile
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				mcap.Tags = tags
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				mcap.Location = &location
 			}
 		case "id":
 			if v != nil {
@@ -1236,23 +1295,14 @@ func (mcap *ManagedClusterAccessProfile) UnmarshalJSON(body []byte) error {
 				}
 				mcap.Type = &typeVar
 			}
-		case "location":
+		case "systemData":
 			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
 				if err != nil {
 					return err
 				}
-				mcap.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				mcap.Tags = tags
+				mcap.SystemData = &systemData
 			}
 		}
 	}
@@ -1331,8 +1381,10 @@ type ManagedClusterAgentPoolProfile struct {
 	Type AgentPoolType `json:"type,omitempty"`
 	// Mode - Possible values include: 'AgentPoolModeSystem', 'AgentPoolModeUser'
 	Mode AgentPoolMode `json:"mode,omitempty"`
-	// OrchestratorVersion - As a best practice, you should upgrade all node pools in an AKS cluster to the same Kubernetes version. The node pool version must have the same major version as the control plane. The node pool minor version must be within two minor versions of the control plane version. The node pool version cannot be greater than the control plane version. For more information see [upgrading a node pool](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#upgrade-a-node-pool).
+	// OrchestratorVersion - Both patch version <major.minor.patch> and <major.minor> are supported. When <major.minor> is specified, the latest supported patch version is chosen automatically. Updating the agent pool with the same <major.minor> once it has been created will not trigger an upgrade, even if a newer patch version is available. As a best practice, you should upgrade all node pools in an AKS cluster to the same Kubernetes version. The node pool version must have the same major version as the control plane. The node pool minor version must be within two minor versions of the control plane version. The node pool version cannot be greater than the control plane version. For more information see [upgrading a node pool](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#upgrade-a-node-pool).
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
+	// CurrentOrchestratorVersion - If orchestratorVersion was a fully specified version <major.minor.patch>, this field will be exactly equal to it. If orchestratorVersion was <major.minor>, this field will contain the full <major.minor.patch> version being used.
+	CurrentOrchestratorVersion *string `json:"currentOrchestratorVersion,omitempty"`
 	// NodeImageVersion - READ-ONLY; The version of node image
 	NodeImageVersion *string `json:"nodeImageVersion,omitempty"`
 	// UpgradeSettings - Settings for upgrading the agentpool
@@ -1444,6 +1496,9 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	if mcapp.OrchestratorVersion != nil {
 		objectMap["orchestratorVersion"] = mcapp.OrchestratorVersion
 	}
+	if mcapp.CurrentOrchestratorVersion != nil {
+		objectMap["currentOrchestratorVersion"] = mcapp.CurrentOrchestratorVersion
+	}
 	if mcapp.UpgradeSettings != nil {
 		objectMap["upgradeSettings"] = mcapp.UpgradeSettings
 	}
@@ -1547,8 +1602,10 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	Type AgentPoolType `json:"type,omitempty"`
 	// Mode - Possible values include: 'AgentPoolModeSystem', 'AgentPoolModeUser'
 	Mode AgentPoolMode `json:"mode,omitempty"`
-	// OrchestratorVersion - As a best practice, you should upgrade all node pools in an AKS cluster to the same Kubernetes version. The node pool version must have the same major version as the control plane. The node pool minor version must be within two minor versions of the control plane version. The node pool version cannot be greater than the control plane version. For more information see [upgrading a node pool](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#upgrade-a-node-pool).
+	// OrchestratorVersion - Both patch version <major.minor.patch> and <major.minor> are supported. When <major.minor> is specified, the latest supported patch version is chosen automatically. Updating the agent pool with the same <major.minor> once it has been created will not trigger an upgrade, even if a newer patch version is available. As a best practice, you should upgrade all node pools in an AKS cluster to the same Kubernetes version. The node pool version must have the same major version as the control plane. The node pool minor version must be within two minor versions of the control plane version. The node pool version cannot be greater than the control plane version. For more information see [upgrading a node pool](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#upgrade-a-node-pool).
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
+	// CurrentOrchestratorVersion - If orchestratorVersion was a fully specified version <major.minor.patch>, this field will be exactly equal to it. If orchestratorVersion was <major.minor>, this field will contain the full <major.minor.patch> version being used.
+	CurrentOrchestratorVersion *string `json:"currentOrchestratorVersion,omitempty"`
 	// NodeImageVersion - READ-ONLY; The version of node image
 	NodeImageVersion *string `json:"nodeImageVersion,omitempty"`
 	// UpgradeSettings - Settings for upgrading the agentpool
@@ -1657,6 +1714,9 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	if mcappp.OrchestratorVersion != nil {
 		objectMap["orchestratorVersion"] = mcappp.OrchestratorVersion
 	}
+	if mcappp.CurrentOrchestratorVersion != nil {
+		objectMap["currentOrchestratorVersion"] = mcappp.CurrentOrchestratorVersion
+	}
 	if mcappp.UpgradeSettings != nil {
 		objectMap["upgradeSettings"] = mcappp.UpgradeSettings
 	}
@@ -1751,8 +1811,28 @@ type ManagedClusterHTTPProxyConfig struct {
 	HTTPSProxy *string `json:"httpsProxy,omitempty"`
 	// NoProxy - The endpoints that should not go through proxy.
 	NoProxy *[]string `json:"noProxy,omitempty"`
+	// EffectiveNoProxy - READ-ONLY; A read-only list of all endpoints for which traffic should not be sent to the proxy. This list is a superset of noProxy and values injected by AKS.
+	EffectiveNoProxy *[]string `json:"effectiveNoProxy,omitempty"`
 	// TrustedCa - Alternative CA cert to use for connecting to proxy servers.
 	TrustedCa *string `json:"trustedCa,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedClusterHTTPProxyConfig.
+func (mchpc ManagedClusterHTTPProxyConfig) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mchpc.HTTPProxy != nil {
+		objectMap["httpProxy"] = mchpc.HTTPProxy
+	}
+	if mchpc.HTTPSProxy != nil {
+		objectMap["httpsProxy"] = mchpc.HTTPSProxy
+	}
+	if mchpc.NoProxy != nil {
+		objectMap["noProxy"] = mchpc.NoProxy
+	}
+	if mchpc.TrustedCa != nil {
+		objectMap["trustedCa"] = mchpc.TrustedCa
+	}
+	return json.Marshal(objectMap)
 }
 
 // ManagedClusterIdentity identity for the managed cluster.
@@ -1791,6 +1871,20 @@ type ManagedClusterIdentityUserAssignedIdentitiesValue struct {
 func (mciAiv ManagedClusterIdentityUserAssignedIdentitiesValue) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
+}
+
+// ManagedClusterIngressProfile ingress profile for the container service cluster.
+type ManagedClusterIngressProfile struct {
+	// WebAppRouting - Web App Routing settings for the ingress profile.
+	WebAppRouting *ManagedClusterIngressProfileWebAppRouting `json:"webAppRouting,omitempty"`
+}
+
+// ManagedClusterIngressProfileWebAppRouting web App Routing settings for the ingress profile.
+type ManagedClusterIngressProfileWebAppRouting struct {
+	// Enabled - Whether to enable Web App Routing.
+	Enabled *bool `json:"enabled,omitempty"`
+	// DNSZoneResourceID - Resource ID of the DNS Zone to be associated with the web app. Used only when Web App Routing is enabled.
+	DNSZoneResourceID *string `json:"dnsZoneResourceId,omitempty"`
 }
 
 // ManagedClusterListResult the response from the List Managed Clusters operation.
@@ -2161,6 +2255,8 @@ type ManagedClusterProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// PowerState - READ-ONLY; The Power State of the cluster.
 	PowerState *PowerState `json:"powerState,omitempty"`
+	// CreationData - CreationData to be used to specify the source Snapshot ID if the cluster will be created/upgraded using a snapshot.
+	CreationData *CreationData `json:"creationData,omitempty"`
 	// MaxAgentPools - READ-ONLY; The max number of agent pools for the managed cluster.
 	MaxAgentPools *int32 `json:"maxAgentPools,omitempty"`
 	// KubernetesVersion - When you upgrade a supported AKS cluster, Kubernetes minor versions cannot be skipped. All upgrades must be performed sequentially by major version number. For example, upgrades between 1.14.x -> 1.15.x or 1.15.x -> 1.16.x are allowed, however 1.14.x -> 1.16.x is not allowed. See [upgrading an AKS cluster](https://docs.microsoft.com/azure/aks/upgrade-cluster) for more details.
@@ -2221,6 +2317,8 @@ type ManagedClusterProperties struct {
 	HTTPProxyConfig *ManagedClusterHTTPProxyConfig `json:"httpProxyConfig,omitempty"`
 	// SecurityProfile - Security profile for the managed cluster.
 	SecurityProfile *ManagedClusterSecurityProfile `json:"securityProfile,omitempty"`
+	// IngressProfile - Ingress profile for the managed cluster.
+	IngressProfile *ManagedClusterIngressProfile `json:"ingressProfile,omitempty"`
 	// PublicNetworkAccess - Allow or deny public network access for AKS. Possible values include: 'PublicNetworkAccessEnabled', 'PublicNetworkAccessDisabled'
 	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
@@ -2228,6 +2326,9 @@ type ManagedClusterProperties struct {
 // MarshalJSON is the custom marshaler for ManagedClusterProperties.
 func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if mcp.CreationData != nil {
+		objectMap["creationData"] = mcp.CreationData
+	}
 	if mcp.KubernetesVersion != nil {
 		objectMap["kubernetesVersion"] = mcp.KubernetesVersion
 	}
@@ -2303,6 +2404,9 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	if mcp.SecurityProfile != nil {
 		objectMap["securityProfile"] = mcp.SecurityProfile
 	}
+	if mcp.IngressProfile != nil {
+		objectMap["ingressProfile"] = mcp.IngressProfile
+	}
 	if mcp.PublicNetworkAccess != "" {
 		objectMap["publicNetworkAccess"] = mcp.PublicNetworkAccess
 	}
@@ -2346,6 +2450,19 @@ type ManagedClusterPropertiesAutoScalerProfile struct {
 	SkipNodesWithLocalStorage *string `json:"skip-nodes-with-local-storage,omitempty"`
 	// SkipNodesWithSystemPods - The default is true.
 	SkipNodesWithSystemPods *string `json:"skip-nodes-with-system-pods,omitempty"`
+}
+
+// ManagedClusterPropertiesForSnapshot managed cluster properties for snapshot, these properties are read
+// only.
+type ManagedClusterPropertiesForSnapshot struct {
+	// KubernetesVersion - The current kubernetes version.
+	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
+	// Sku - The current managed cluster sku.
+	Sku *ManagedClusterSKU `json:"sku,omitempty"`
+	// EnableRbac - Whether the cluster has enabled Kubernetes Role-Based Access Control or not.
+	EnableRbac *bool `json:"enableRbac,omitempty"`
+	// NetworkProfile - The current network profile.
+	NetworkProfile *NetworkProfileForSnapshot `json:"networkProfile,omitempty"`
 }
 
 // ManagedClustersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -2432,6 +2549,10 @@ func (future *ManagedClustersDeleteFuture) result(client ManagedClustersClient) 
 type ManagedClusterSecurityProfile struct {
 	// AzureDefender - Azure Defender settings for the security profile.
 	AzureDefender *ManagedClusterSecurityProfileAzureDefender `json:"azureDefender,omitempty"`
+	// AzureKeyVaultKms - Azure Key Vault [key management service](https://kubernetes.io/docs/tasks/administer-cluster/kms-provider/) settings for the security profile.
+	AzureKeyVaultKms *AzureKeyVaultKms `json:"azureKeyVaultKms,omitempty"`
+	// WorkloadIdentity - [Workload Identity](https://azure.github.io/azure-workload-identity/docs/) settings for the security profile.
+	WorkloadIdentity *ManagedClusterSecurityProfileWorkloadIdentity `json:"workloadIdentity,omitempty"`
 }
 
 // ManagedClusterSecurityProfileAzureDefender azure Defender settings for the security profile.
@@ -2440,6 +2561,12 @@ type ManagedClusterSecurityProfileAzureDefender struct {
 	Enabled *bool `json:"enabled,omitempty"`
 	// LogAnalyticsWorkspaceResourceID - Resource ID of the Log Analytics workspace to be associated with Azure Defender.  When Azure Defender is enabled, this field is required and must be a valid workspace resource ID. When Azure Defender is disabled, leave the field empty.
 	LogAnalyticsWorkspaceResourceID *string `json:"logAnalyticsWorkspaceResourceId,omitempty"`
+}
+
+// ManagedClusterSecurityProfileWorkloadIdentity workload Identity settings for the security profile.
+type ManagedClusterSecurityProfileWorkloadIdentity struct {
+	// Enabled - Whether to enable Workload Identity
+	Enabled *bool `json:"enabled,omitempty"`
 }
 
 // ManagedClusterServicePrincipalProfile information about a service principal identity for the cluster to
@@ -2457,6 +2584,297 @@ type ManagedClusterSKU struct {
 	Name ManagedClusterSKUName `json:"name,omitempty"`
 	// Tier - If not specified, the default is 'Free'. See [uptime SLA](https://docs.microsoft.com/azure/aks/uptime-sla) for more details. Possible values include: 'ManagedClusterSKUTierPaid', 'ManagedClusterSKUTierFree'
 	Tier ManagedClusterSKUTier `json:"tier,omitempty"`
+}
+
+// ManagedClusterSnapshot a managed cluster snapshot resource.
+type ManagedClusterSnapshot struct {
+	autorest.Response `json:"-"`
+	// ManagedClusterSnapshotProperties - Properties of a managed cluster snapshot.
+	*ManagedClusterSnapshotProperties `json:"properties,omitempty"`
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedClusterSnapshot.
+func (mcs ManagedClusterSnapshot) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mcs.ManagedClusterSnapshotProperties != nil {
+		objectMap["properties"] = mcs.ManagedClusterSnapshotProperties
+	}
+	if mcs.Tags != nil {
+		objectMap["tags"] = mcs.Tags
+	}
+	if mcs.Location != nil {
+		objectMap["location"] = mcs.Location
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ManagedClusterSnapshot struct.
+func (mcs *ManagedClusterSnapshot) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var managedClusterSnapshotProperties ManagedClusterSnapshotProperties
+				err = json.Unmarshal(*v, &managedClusterSnapshotProperties)
+				if err != nil {
+					return err
+				}
+				mcs.ManagedClusterSnapshotProperties = &managedClusterSnapshotProperties
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				mcs.Tags = tags
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				mcs.Location = &location
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mcs.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mcs.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mcs.Type = &typeVar
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				mcs.SystemData = &systemData
+			}
+		}
+	}
+
+	return nil
+}
+
+// ManagedClusterSnapshotListResult the response from the List Managed Cluster Snapshots operation.
+type ManagedClusterSnapshotListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The list of managed cluster snapshots.
+	Value *[]ManagedClusterSnapshot `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URL to get the next set of managed cluster snapshot results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedClusterSnapshotListResult.
+func (mcslr ManagedClusterSnapshotListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mcslr.Value != nil {
+		objectMap["value"] = mcslr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// ManagedClusterSnapshotListResultIterator provides access to a complete listing of ManagedClusterSnapshot
+// values.
+type ManagedClusterSnapshotListResultIterator struct {
+	i    int
+	page ManagedClusterSnapshotListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ManagedClusterSnapshotListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClusterSnapshotListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ManagedClusterSnapshotListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ManagedClusterSnapshotListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ManagedClusterSnapshotListResultIterator) Response() ManagedClusterSnapshotListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ManagedClusterSnapshotListResultIterator) Value() ManagedClusterSnapshot {
+	if !iter.page.NotDone() {
+		return ManagedClusterSnapshot{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ManagedClusterSnapshotListResultIterator type.
+func NewManagedClusterSnapshotListResultIterator(page ManagedClusterSnapshotListResultPage) ManagedClusterSnapshotListResultIterator {
+	return ManagedClusterSnapshotListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (mcslr ManagedClusterSnapshotListResult) IsEmpty() bool {
+	return mcslr.Value == nil || len(*mcslr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (mcslr ManagedClusterSnapshotListResult) hasNextLink() bool {
+	return mcslr.NextLink != nil && len(*mcslr.NextLink) != 0
+}
+
+// managedClusterSnapshotListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (mcslr ManagedClusterSnapshotListResult) managedClusterSnapshotListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !mcslr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(mcslr.NextLink)))
+}
+
+// ManagedClusterSnapshotListResultPage contains a page of ManagedClusterSnapshot values.
+type ManagedClusterSnapshotListResultPage struct {
+	fn    func(context.Context, ManagedClusterSnapshotListResult) (ManagedClusterSnapshotListResult, error)
+	mcslr ManagedClusterSnapshotListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ManagedClusterSnapshotListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClusterSnapshotListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.mcslr)
+		if err != nil {
+			return err
+		}
+		page.mcslr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ManagedClusterSnapshotListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ManagedClusterSnapshotListResultPage) NotDone() bool {
+	return !page.mcslr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ManagedClusterSnapshotListResultPage) Response() ManagedClusterSnapshotListResult {
+	return page.mcslr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ManagedClusterSnapshotListResultPage) Values() []ManagedClusterSnapshot {
+	if page.mcslr.IsEmpty() {
+		return nil
+	}
+	return *page.mcslr.Value
+}
+
+// Creates a new instance of the ManagedClusterSnapshotListResultPage type.
+func NewManagedClusterSnapshotListResultPage(cur ManagedClusterSnapshotListResult, getNextPage func(context.Context, ManagedClusterSnapshotListResult) (ManagedClusterSnapshotListResult, error)) ManagedClusterSnapshotListResultPage {
+	return ManagedClusterSnapshotListResultPage{
+		fn:    getNextPage,
+		mcslr: cur,
+	}
+}
+
+// ManagedClusterSnapshotProperties properties for a managed cluster snapshot.
+type ManagedClusterSnapshotProperties struct {
+	// CreationData - CreationData to be used to specify the source resource ID to create this snapshot.
+	CreationData *CreationData `json:"creationData,omitempty"`
+	// SnapshotType - Possible values include: 'SnapshotTypeNodePool', 'SnapshotTypeManagedCluster'
+	SnapshotType SnapshotType `json:"snapshotType,omitempty"`
+	// ManagedClusterPropertiesReadOnly - What the properties will be showed when getting managed cluster snapshot. Those properties are read-only.
+	ManagedClusterPropertiesReadOnly *ManagedClusterPropertiesForSnapshot `json:"managedClusterPropertiesReadOnly,omitempty"`
 }
 
 // ManagedClustersResetAADProfileFuture an abstraction for monitoring and retrieving the results of a
@@ -2564,6 +2982,43 @@ func (future *ManagedClustersRotateClusterCertificatesFuture) result(client Mana
 	if !done {
 		ar.Response = future.Response()
 		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersRotateClusterCertificatesFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// ManagedClustersRotateServiceAccountSigningKeysFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type ManagedClustersRotateServiceAccountSigningKeysFuture struct {
+	azure.FutureAPI
+	// Result returns the result of the asynchronous operation.
+	// If the operation has not completed it will return an error.
+	Result func(ManagedClustersClient) (autorest.Response, error)
+}
+
+// UnmarshalJSON is the custom unmarshaller for CreateFuture.
+func (future *ManagedClustersRotateServiceAccountSigningKeysFuture) UnmarshalJSON(body []byte) error {
+	var azFuture azure.Future
+	if err := json.Unmarshal(body, &azFuture); err != nil {
+		return err
+	}
+	future.FutureAPI = &azFuture
+	future.Result = future.result
+	return nil
+}
+
+// result is the default implementation for ManagedClustersRotateServiceAccountSigningKeysFuture.Result.
+func (future *ManagedClustersRotateServiceAccountSigningKeysFuture) result(client ManagedClustersClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersRotateServiceAccountSigningKeysFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		ar.Response = future.Response()
+		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersRotateServiceAccountSigningKeysFuture")
 		return
 	}
 	ar.Response = future.Response()
@@ -2685,6 +3140,36 @@ func (future *ManagedClustersStopFuture) result(client ManagedClustersClient) (a
 	}
 	ar.Response = future.Response()
 	return
+}
+
+// ManagedClusterStorageProfile storage profile for the container service cluster.
+type ManagedClusterStorageProfile struct {
+	// DiskCSIDriver - AzureDisk CSI Driver settings for the storage profile.
+	DiskCSIDriver *ManagedClusterStorageProfileDiskCSIDriver `json:"diskCSIDriver,omitempty"`
+	// FileCSIDriver - AzureFile CSI Driver settings for the storage profile.
+	FileCSIDriver *ManagedClusterStorageProfileFileCSIDriver `json:"fileCSIDriver,omitempty"`
+	// SnapshotController - Snapshot Controller settings for the storage profile.
+	SnapshotController *ManagedClusterStorageProfileSnapshotController `json:"snapshotController,omitempty"`
+}
+
+// ManagedClusterStorageProfileDiskCSIDriver azureDisk CSI Driver settings for the storage profile.
+type ManagedClusterStorageProfileDiskCSIDriver struct {
+	// Enabled - Whether to enable AzureDisk CSI Driver. The default value is true.
+	Enabled *bool `json:"enabled,omitempty"`
+	// Version - The version of AzureDisk CSI Driver. The default value is v1.
+	Version *string `json:"version,omitempty"`
+}
+
+// ManagedClusterStorageProfileFileCSIDriver azureFile CSI Driver settings for the storage profile.
+type ManagedClusterStorageProfileFileCSIDriver struct {
+	// Enabled - Whether to enable AzureFile CSI Driver. The default value is true.
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+// ManagedClusterStorageProfileSnapshotController snapshot Controller settings for the storage profile.
+type ManagedClusterStorageProfileSnapshotController struct {
+	// Enabled - Whether to enable Snapshot Controller. The default value is true.
+	Enabled *bool `json:"enabled,omitempty"`
 }
 
 // ManagedClustersUpdateTagsFuture an abstraction for monitoring and retrieving the results of a
@@ -2902,6 +3387,18 @@ type NetworkProfile struct {
 	ServiceCidrs *[]string `json:"serviceCidrs,omitempty"`
 	// IPFamilies - IP families are used to determine single-stack or dual-stack clusters. For single-stack, the expected value is IPv4. For dual-stack, the expected values are IPv4 and IPv6.
 	IPFamilies *[]IPFamily `json:"ipFamilies,omitempty"`
+}
+
+// NetworkProfileForSnapshot network profile for managed cluster snapshot, these properties are read only.
+type NetworkProfileForSnapshot struct {
+	// NetworkPlugin - networkPlugin for managed cluster snapshot. Possible values include: 'NetworkPluginAzure', 'NetworkPluginKubenet', 'NetworkPluginNone'
+	NetworkPlugin NetworkPlugin `json:"networkPlugin,omitempty"`
+	// NetworkPolicy - networkPolicy for managed cluster snapshot. Possible values include: 'NetworkPolicyCalico', 'NetworkPolicyAzure'
+	NetworkPolicy NetworkPolicy `json:"networkPolicy,omitempty"`
+	// NetworkMode - networkMode for managed cluster snapshot. Possible values include: 'NetworkModeTransparent', 'NetworkModeBridge'
+	NetworkMode NetworkMode `json:"networkMode,omitempty"`
+	// LoadBalancerSku - loadBalancerSku for managed cluster snapshot. Possible values include: 'LoadBalancerSkuStandard', 'LoadBalancerSkuBasic'
+	LoadBalancerSku LoadBalancerSku `json:"loadBalancerSku,omitempty"`
 }
 
 // OperationListResult the List Operation response.
@@ -3464,29 +3961,40 @@ type PrivateLinkServiceConnectionState struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// Resource the Resource model definition.
-type Resource struct {
-	// ID - READ-ONLY; Resource Id
+// ProxyResource the resource model definition for a Azure Resource Manager proxy resource. It will not
+// have tags and a location
+type ProxyResource struct {
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
-	// Location - Resource location
-	Location *string `json:"location,omitempty"`
-	// Tags - Resource tags
-	Tags map[string]*string `json:"tags"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// Resource common fields that are returned in the response for all Azure Resource Manager resources
+type Resource struct {
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if r.Location != nil {
-		objectMap["location"] = r.Location
-	}
-	if r.Tags != nil {
-		objectMap["tags"] = r.Tags
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -3560,20 +4068,20 @@ func (rcr *RunCommandResult) UnmarshalJSON(body []byte) error {
 // Snapshot a node pool snapshot resource.
 type Snapshot struct {
 	autorest.Response `json:"-"`
-	// SystemData - READ-ONLY; The system metadata relating to this snapshot.
-	SystemData *SystemData `json:"systemData,omitempty"`
 	// SnapshotProperties - Properties of a snapshot.
 	*SnapshotProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type
-	Type *string `json:"type,omitempty"`
-	// Location - Resource location
-	Location *string `json:"location,omitempty"`
-	// Tags - Resource tags
+	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Snapshot.
@@ -3582,11 +4090,11 @@ func (s Snapshot) MarshalJSON() ([]byte, error) {
 	if s.SnapshotProperties != nil {
 		objectMap["properties"] = s.SnapshotProperties
 	}
-	if s.Location != nil {
-		objectMap["location"] = s.Location
-	}
 	if s.Tags != nil {
 		objectMap["tags"] = s.Tags
+	}
+	if s.Location != nil {
+		objectMap["location"] = s.Location
 	}
 	return json.Marshal(objectMap)
 }
@@ -3600,15 +4108,6 @@ func (s *Snapshot) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
-		case "systemData":
-			if v != nil {
-				var systemData SystemData
-				err = json.Unmarshal(*v, &systemData)
-				if err != nil {
-					return err
-				}
-				s.SystemData = &systemData
-			}
 		case "properties":
 			if v != nil {
 				var snapshotProperties SnapshotProperties
@@ -3617,6 +4116,24 @@ func (s *Snapshot) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				s.SnapshotProperties = &snapshotProperties
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				s.Tags = tags
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				s.Location = &location
 			}
 		case "id":
 			if v != nil {
@@ -3645,23 +4162,14 @@ func (s *Snapshot) UnmarshalJSON(body []byte) error {
 				}
 				s.Type = &typeVar
 			}
-		case "location":
+		case "systemData":
 			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
 				if err != nil {
 					return err
 				}
-				s.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				s.Tags = tags
+				s.SystemData = &systemData
 			}
 		}
 	}
@@ -3841,7 +4349,7 @@ func NewSnapshotListResultPage(cur SnapshotListResult, getNextPage func(context.
 type SnapshotProperties struct {
 	// CreationData - CreationData to be used to specify the source agent pool resource ID to create this snapshot.
 	CreationData *CreationData `json:"creationData,omitempty"`
-	// SnapshotType - Possible values include: 'SnapshotTypeNodePool'
+	// SnapshotType - Possible values include: 'SnapshotTypeNodePool', 'SnapshotTypeManagedCluster'
 	SnapshotType SnapshotType `json:"snapshotType,omitempty"`
 	// KubernetesVersion - READ-ONLY; The version of Kubernetes.
 	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
@@ -3963,13 +4471,13 @@ type SystemData struct {
 	CreatedBy *string `json:"createdBy,omitempty"`
 	// CreatedByType - The type of identity that created the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
 	CreatedByType CreatedByType `json:"createdByType,omitempty"`
-	// CreatedAt - The UTC timestamp of resource creation.
+	// CreatedAt - The timestamp of resource creation (UTC).
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
 	// LastModifiedBy - The identity that last modified the resource.
 	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
 	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'CreatedByTypeUser', 'CreatedByTypeApplication', 'CreatedByTypeManagedIdentity', 'CreatedByTypeKey'
 	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
-	// LastModifiedAt - The type of identity that last modified the resource.
+	// LastModifiedAt - The timestamp of resource last modification (UTC)
 	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
 }
 
@@ -4002,6 +4510,35 @@ type TimeSpan struct {
 	Start *date.Time `json:"start,omitempty"`
 	// End - The end of a time span
 	End *date.Time `json:"end,omitempty"`
+}
+
+// TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource
+// which has 'tags' and a 'location'
+type TrackedResource struct {
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TrackedResource.
+func (tr TrackedResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tr.Tags != nil {
+		objectMap["tags"] = tr.Tags
+	}
+	if tr.Location != nil {
+		objectMap["location"] = tr.Location
+	}
+	return json.Marshal(objectMap)
 }
 
 // UserAssignedIdentity details about a user assigned identity.
