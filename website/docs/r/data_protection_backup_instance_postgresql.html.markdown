@@ -80,14 +80,14 @@ resource "azurerm_key_vault" "example" {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
 
-    key_permissions = ["create", "get"]
+    key_permissions = ["Create", "Get"]
 
     secret_permissions = [
-      "set",
-      "get",
-      "delete",
-      "purge",
-      "recover"
+      "Set",
+      "Get",
+      "Delete",
+      "Purge",
+      "Recover"
     ]
   }
 
@@ -95,14 +95,14 @@ resource "azurerm_key_vault" "example" {
     tenant_id = azurerm_data_protection_backup_vault.example.identity.0.tenant_id
     object_id = azurerm_data_protection_backup_vault.example.identity.0.principal_id
 
-    key_permissions = ["create", "get"]
+    key_permissions = ["Create", "Get"]
 
     secret_permissions = [
-      "set",
-      "get",
-      "delete",
-      "purge",
-      "recover"
+      "Set",
+      "Get",
+      "Delete",
+      "Purge",
+      "Recover"
     ]
   }
 }

@@ -83,7 +83,7 @@ The `target_region` block supports the following:
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set to encrypt the Image Version in the target region. Changing this forces a new resource to be created.
 
-* `storage_account_type` - (Optional) The storage account type for the image version. Possible values are `Standard_LRS` and `Standard_ZRS`. Defaults to `Standard_LRS`. You can store all of your image version replicas in Zone Redundant Storage by specifying `Standard_ZRS`.
+* `storage_account_type` - (Optional) The storage account type for the image version. Possible values are `Standard_LRS`, `Premium_LRS` and `Standard_ZRS`. Defaults to `Standard_LRS`. You can store all of your image version replicas in Zone Redundant Storage by specifying `Standard_ZRS`.
 
 ## Attributes Reference
 
