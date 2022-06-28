@@ -13,6 +13,7 @@ type SessionHostProperties struct {
 	AgentVersion                  *string                         `json:"agentVersion,omitempty"`
 	AllowNewSession               *bool                           `json:"allowNewSession,omitempty"`
 	AssignedUser                  *string                         `json:"assignedUser,omitempty"`
+	FriendlyName                  *string                         `json:"friendlyName,omitempty"`
 	LastHeartBeat                 *string                         `json:"lastHeartBeat,omitempty"`
 	LastUpdateTime                *string                         `json:"lastUpdateTime,omitempty"`
 	ObjectId                      *string                         `json:"objectId,omitempty"`
