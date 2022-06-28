@@ -58,6 +58,23 @@ func TestAccFluidRelay_basic(t *testing.T) {
 	})
 }
 
+func TestAccFluidRelay_storageBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, s.ResourceType(), "test")
+	f := FluidRelayResource{}
+
+	data.ResourceTest(t, f, []acceptance.TestStep{
+		{
+			Config: f.storageBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(f),
+				check.That(data.ResourceName).Key("frs_tenant_id").IsUUID(),
+				check.That(data.ResourceName).Key("orderer_endpoints.0").Exists(),
+			),
+		},
+		// data.ImportStep("storage_sku"),
+	})
+}
+
 func TestAccFluidRelay_ami(t *testing.T) {
 	data := acceptance.BuildTestData(t, s.ResourceType(), "test")
 	f := FluidRelayResource{}
@@ -147,13 +164,20 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-fluidrelay-%[1]d"
   location = "%[2]s"
 }
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (f FluidRelayResource) templateWithIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%[1]s
 
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestRG-userAssignedIdentity-%[1]d"
+  name                = "acctestRG-userAssignedIdentity-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, f.template(data), data.RandomInteger)
 }
 
 func (f FluidRelayResource) basic(data acceptance.TestData) string {
@@ -172,6 +196,24 @@ resource "azurerm_fluid_relay_server" "test" {
 `, f.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
+// basic storage sku only work with east asia and south-ease-asia
+func (f FluidRelayResource) storageBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%[1]s
+
+resource "azurerm_fluid_relay_server" "test" {
+  name                = "acctestRG-fuildRelayServer-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "SouthEastAsia"
+  storage_sku = "basic"
+  tags = {
+    foo = "bar"
+  }
+}
+`, f.template(data), data.RandomInteger)
+}
+
 func (f FluidRelayResource) userAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -187,7 +229,7 @@ resource "azurerm_fluid_relay_server" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, f.template(data), data.RandomInteger, data.Locations.Primary)
+`, f.templateWithIdentity(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (f FluidRelayResource) systemAssigned(data acceptance.TestData) string {
@@ -207,13 +249,11 @@ resource "azurerm_fluid_relay_server" "test" {
     foo = "bar"
   }
 }
-`, f.template(data), data.RandomInteger, data.Locations.Primary)
+`, f.templateWithIdentity(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (f FluidRelayResource) systemAndUserAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 
 
 %[1]s
@@ -230,7 +270,7 @@ resource "azurerm_fluid_relay_server" "test" {
     foo = "bar"
   }
 }
-`, f.template(data), data.RandomInteger, data.Locations.Primary)
+`, f.templateWithIdentity(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (f FluidRelayResource) requiresImport(data acceptance.TestData) string {

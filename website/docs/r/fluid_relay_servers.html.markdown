@@ -43,6 +43,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `storage_sku` - (Optional) Sku of the storage associated with the resource, Possible values are `standard` and `basic`.
+
 ---
 
 An `identity` block supports the following:

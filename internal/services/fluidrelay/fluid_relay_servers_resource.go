@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -22,10 +23,11 @@ type ServerModel struct {
 	Name             string                                     `tfschema:"name"`
 	ResourceGroup    string                                     `tfschema:"resource_group_name"`
 	Location         string                                     `tfschema:"location"`
-	Tags             map[string]string                          `tfschema:"tags"`
+	StorageSKU       string                                     `tfschema:"storage_sku"`
 	FrsTenantId      string                                     `tfschema:"frs_tenant_id"`
 	OrdererEndpoints []string                                   `tfschema:"orderer_endpoints"`
 	StorageEndpoints []string                                   `tfschema:"storage_endpoints"`
+	Tags             map[string]string                          `tfschema:"tags"`
 	Identity         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 }
 
@@ -69,6 +71,12 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 		"location":            commonschema.Location(),
 		"tags":                commonschema.Tags(),
 		"identity":            commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"storage_sku": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(fluidrelayservers.PossibleValuesForStorageSKU(), false),
+		},
 	}
 }
 
@@ -139,6 +147,9 @@ func (s Server) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding user identities: %+v", err)
 			}
 
+			if model.StorageSKU != "" {
+				serverReq.Properties.Storagesku = (*fluidrelayservers.StorageSKU)(&model.StorageSKU)
+			}
 			_, err = client.CreateOrUpdate(ctx, id, serverReq)
 			if err != nil {
 				return fmt.Errorf("creating %v err: %+v", id, err)
