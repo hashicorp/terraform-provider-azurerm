@@ -73,6 +73,8 @@ func (c AppsClient) senderForUpdate(ctx context.Context, req *http.Request) (fut
 	if err != nil {
 		return
 	}
+
 	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
+
 	return
 }

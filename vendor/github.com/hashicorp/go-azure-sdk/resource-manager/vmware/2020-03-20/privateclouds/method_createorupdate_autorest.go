@@ -73,6 +73,8 @@ func (c PrivateCloudsClient) senderForCreateOrUpdate(ctx context.Context, req *h
 	if err != nil {
 		return
 	}
+
 	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
+
 	return
 }
