@@ -71,7 +71,7 @@ func TestAccFluidRelay_storageBasic(t *testing.T) {
 				check.That(data.ResourceName).Key("orderer_endpoints.0").Exists(),
 			),
 		},
-		// data.ImportStep("storage_sku"),
+		data.ImportStep("storage_sku"),
 	})
 }
 
@@ -200,13 +200,14 @@ resource "azurerm_fluid_relay_server" "test" {
 func (f FluidRelayResource) storageBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_fluid_relay_server" "test" {
   name                = "acctestRG-fuildRelayServer-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "SouthEastAsia"
-  storage_sku = "basic"
+  storage_sku         = "basic"
   tags = {
     foo = "bar"
   }

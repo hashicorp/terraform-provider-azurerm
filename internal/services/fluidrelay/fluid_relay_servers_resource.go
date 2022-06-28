@@ -237,6 +237,9 @@ func (s Server) Read() sdk.ResourceFunc {
 					}
 				}
 			}
+			if val, ok := meta.ResourceData.GetOk("storage_sku"); ok {
+				output.StorageSKU = val.(string)
+			}
 			return meta.Encode(output)
 		},
 	}
