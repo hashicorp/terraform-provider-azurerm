@@ -6,11 +6,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/virtualnetworklinks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -69,7 +70,7 @@ func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/10933
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -96,7 +97,7 @@ func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceD
 
 	parameters := virtualnetworklinks.VirtualNetworkLink{
 		Location: utils.String("global"),
-		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &virtualnetworklinks.VirtualNetworkLinkProperties{
 			VirtualNetwork: &virtualnetworklinks.SubResource{
 				Id: utils.String(d.Get("virtual_network_id").(string)),
@@ -149,7 +150,7 @@ func resourcePrivateDnsZoneVirtualNetworkLinkRead(d *pluginsdk.ResourceData, met
 				d.Set("virtual_network_id", network.Id)
 			}
 		}
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil
