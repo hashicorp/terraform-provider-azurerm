@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	//"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -27,8 +26,6 @@ import (
 )
 
 const azureFirewallPolicyResourceName = "azurerm_firewall_policy"
-
-var _ network.ConfigurationPolicyGroupsClient
 
 func resourceFirewallPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -383,16 +380,11 @@ func expandFirewallPolicyInsights(input []interface{}) *network.FirewallPolicyIn
 	return output
 }
 
-// extract process of []interfaces to map[string]interface{}
-func getRawInterface(input []interface{}) (raw map[string]interface{}) {
+func expandFirewallPolicyExplicitProxy(input []interface{}) *network.ExplicitProxy {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	return input[0].(map[string]interface{})
-}
-
-func expandFirewallPolicyExplicitProxy(input []interface{}) *network.ExplicitProxy {
-	raw := getRawInterface(input)
+	raw := input[0].(map[string]interface{})
 	if raw == nil {
 		return nil
 	}
