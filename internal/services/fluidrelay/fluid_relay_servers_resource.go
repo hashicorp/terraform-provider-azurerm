@@ -191,8 +191,7 @@ func (s Server) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding user identities: %+v", err)
 				}
 			}
-			_, err = client.Update(ctx, *id, upd)
-			if err != nil {
+			if _, err = client.Update(ctx, *id, upd); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 
