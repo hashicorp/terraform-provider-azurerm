@@ -89,13 +89,13 @@ func TestAccSynapseIntegrationRuntimeAzure_update(t *testing.T) {
 	})
 }
 
-func TestAccSynapseIntegrationRuntimeAzure_location(t *testing.T) {
+func TestAccSynapseIntegrationRuntimeAzure_autoResolve(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_azure", "test")
 	r := IntegrationRuntimeAzureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.location(data),
+			Config: r.autoResolve(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -127,7 +127,7 @@ resource "azurerm_synapse_integration_runtime_azure" "test" {
 `, r.template(data))
 }
 
-func (r IntegrationRuntimeAzureResource) location(data acceptance.TestData) string {
+func (r IntegrationRuntimeAzureResource) autoResolve(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
