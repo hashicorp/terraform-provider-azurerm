@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * containerservice: updated to use version `2022-03-02-preview` [GH-17084]
 * redisenterprise: refactoring to use `hashicorp/go-azure-sdk` [GH-17387]
 * relay: refactoring to use `hashicorp/go-azure-sdk` [GH-17385]
+* search: refactoring to use `hashicorp/go-azure-sdk` [GH-17386]
 * servicefabricmanaged: refactoring to use `hashicorp/go-azure-sdk` [GH-17384]
 * trafficmanager: refactoring to use `hashicorp/go-azure-sdk` [GH-17383]
 * videoanalyzer: refactoring to use `hashicorp/go-azure-sdk` [GH-17382]
