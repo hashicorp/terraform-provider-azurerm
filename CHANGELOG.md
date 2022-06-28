@@ -17,11 +17,12 @@ ENHANCEMENTS:
 * vmware: refactoring to use `hashicorp/go-azure-sdk` [GH-17381]
 * `azurerm_bot_service_azure_bot` - support new bot type with the `microsoft_app_msi_id`, `microsoft_app_tenant_id`,  and `microsoft_app_type` properties [GH-17077]
 * `azurerm_bot_channels_registration` - support for the `streaming_endpoint_enabled` property [GH-17369]
-* `azurerm_data_factory` - added support for the `purview_id` property [GH-17001]
+* `azurerm_data_factory` - support for the `purview_id` property [GH-17001]
 * `azurerm_digital_twins_instance` - support for the `identity` block [GH-17076]
-* `azurerm_kubernetes_cluster` - added support for version aliases [GH-17084]
-* `azurerm_private_link_service` - add support for `fqdns` [GH-17366]
-* `azurerm_shared_image_version` - add support for `Premium_LRS` to`storage_account_type` [GH-17390]
+* `azurerm_kubernetes_cluster` - support for version aliases [GH-17084]
+* `azurerm_private_link_service` - support for the `fqdns` property [GH-17366]
+* `azurerm_shared_image_version` - support for `Premium_LRS` to`storage_account_type` [GH-17390]
+* `azurerm_shared_image_version` - support for the `disk_encryption_set_id`, `end_of_life_date`, and `replication_mode` properties [GH-17295]
 * `azurerm_vpn_site` - support for the `o365_policy` block [GH-16820]
 
 BUG FIXES:
