@@ -20,6 +20,8 @@ ENHANCEMENTS:
 * `azurerm_data_factory` - support for the `purview_id` property [GH-17001]
 * `azurerm_digital_twins_instance` - support for the `identity` block [GH-17076]
 * `azurerm_kubernetes_cluster` - support for version aliases [GH-17084]
+* `azurerm_linux_web_app` - support for the `virtual_network_subnet_id` property [GH-17354]
+* `azurerm_linux_web_app_slot` - support for the `virtual_network_subnet_id` property [GH-17354]
 * `azurerm_private_link_service` - support for the `fqdns` property [GH-17366]
 * `azurerm_shared_image_version` - support for `Premium_LRS` to`storage_account_type` [GH-17390]
 * `azurerm_shared_image_version` - support for the `disk_encryption_set_id`, `end_of_life_date`, and `replication_mode` properties [GH-17295]
