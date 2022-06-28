@@ -59,6 +59,10 @@ The following arguments are supported:
 
 * `tls_certificate` - (Optional) A `tls_certificate` block as defined below.
 
+* `explicit_proxy` - (Optional) A `explicit_proxy` block as defined below.
+
+* `allow_sql_redirect` - (Optional) Whether SQL Redirect traffic filtering is enabled. Turning on the flag requires no rule using port 11000-11999.
+
 ---
 
 A `dns` block supports the following:
@@ -148,6 +152,22 @@ A `traffic_bypass` block supports the following:
 * `source_addresses` - (Optional) Specifies a list of source addresses that shall be bypassed by intrusion detection.
 
 * `source_ip_groups` - (Optional) Specifies a list of source IP groups that shall be bypassed by intrusion detection.
+
+---
+
+A `explicit_proxy` block supports the following:
+
+* `enabled` (Optional) Whether the explicit proxy is enabled for this Firewall Policy.
+
+* `http_port` (Optional) The port number for explicit http protocol.
+
+* `https_port` (Optional) The port number for explicit proxy https protocol.
+
+* `enable_pac_file` (Optional) Whether the pac file port and url need to be provided.
+
+* `pac_file_port` (Optional) Specifies a port number for firewall to serve PAC file.
+
+* `pac_file` (Optional) Specifies a SAS URL for PAC file.
 
 ## Attributes Reference
 
