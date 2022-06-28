@@ -1,4 +1,4 @@
-package privateendpointconnections
+package services
 
 import (
 	"context"
@@ -8,9 +8,12 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 type GetOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *PrivateEndpointConnection
+	Model        *SearchService
 }
 
 type GetOperationOptions struct {
@@ -38,22 +41,22 @@ func (o GetOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // Get ...
-func (c PrivateEndpointConnectionsClient) Get(ctx context.Context, id PrivateEndpointConnectionId, options GetOperationOptions) (result GetOperationResponse, err error) {
+func (c ServicesClient) Get(ctx context.Context, id SearchServiceId, options GetOperationOptions) (result GetOperationResponse, err error) {
 	req, err := c.preparerForGet(ctx, id, options)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privateendpointconnections.PrivateEndpointConnectionsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "services.ServicesClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privateendpointconnections.PrivateEndpointConnectionsClient", "Get", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "services.ServicesClient", "Get", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForGet(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privateendpointconnections.PrivateEndpointConnectionsClient", "Get", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "services.ServicesClient", "Get", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -61,7 +64,7 @@ func (c PrivateEndpointConnectionsClient) Get(ctx context.Context, id PrivateEnd
 }
 
 // preparerForGet prepares the Get request.
-func (c PrivateEndpointConnectionsClient) preparerForGet(ctx context.Context, id PrivateEndpointConnectionId, options GetOperationOptions) (*http.Request, error) {
+func (c ServicesClient) preparerForGet(ctx context.Context, id SearchServiceId, options GetOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -82,7 +85,7 @@ func (c PrivateEndpointConnectionsClient) preparerForGet(ctx context.Context, id
 
 // responderForGet handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (c PrivateEndpointConnectionsClient) responderForGet(resp *http.Response) (result GetOperationResponse, err error) {
+func (c ServicesClient) responderForGet(resp *http.Response) (result GetOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

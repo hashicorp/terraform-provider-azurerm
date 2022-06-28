@@ -1,4 +1,4 @@
-package privatelinkresources
+package adminkeys
 
 import (
 	"fmt"
@@ -7,34 +7,36 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = SearchServiceId{}
+var _ resourceids.ResourceId = KeyKindId{}
 
-// SearchServiceId is a struct representing the Resource ID for a Search Service
-type SearchServiceId struct {
+// KeyKindId is a struct representing the Resource ID for a Key Kind
+type KeyKindId struct {
 	SubscriptionId    string
 	ResourceGroupName string
 	SearchServiceName string
+	KeyKind           AdminKeyKind
 }
 
-// NewSearchServiceID returns a new SearchServiceId struct
-func NewSearchServiceID(subscriptionId string, resourceGroupName string, searchServiceName string) SearchServiceId {
-	return SearchServiceId{
+// NewKeyKindID returns a new KeyKindId struct
+func NewKeyKindID(subscriptionId string, resourceGroupName string, searchServiceName string, keyKind AdminKeyKind) KeyKindId {
+	return KeyKindId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
 		SearchServiceName: searchServiceName,
+		KeyKind:           keyKind,
 	}
 }
 
-// ParseSearchServiceID parses 'input' into a SearchServiceId
-func ParseSearchServiceID(input string) (*SearchServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SearchServiceId{})
+// ParseKeyKindID parses 'input' into a KeyKindId
+func ParseKeyKindID(input string) (*KeyKindId, error) {
+	parser := resourceids.NewParserFromResourceIdType(KeyKindId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := SearchServiceId{}
+	id := KeyKindId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -48,20 +50,32 @@ func ParseSearchServiceID(input string) (*SearchServiceId, error) {
 		return nil, fmt.Errorf("the segment 'searchServiceName' was not found in the resource id %q", input)
 	}
 
+	if v, ok := parsed.Parsed["keyKind"]; true {
+		if !ok {
+			return nil, fmt.Errorf("the segment 'keyKind' was not found in the resource id %q", input)
+		}
+
+		keyKind, err := parseAdminKeyKind(v)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q: %+v", v, err)
+		}
+		id.KeyKind = *keyKind
+	}
+
 	return &id, nil
 }
 
-// ParseSearchServiceIDInsensitively parses 'input' case-insensitively into a SearchServiceId
+// ParseKeyKindIDInsensitively parses 'input' case-insensitively into a KeyKindId
 // note: this method should only be used for API response data and not user input
-func ParseSearchServiceIDInsensitively(input string) (*SearchServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SearchServiceId{})
+func ParseKeyKindIDInsensitively(input string) (*KeyKindId, error) {
+	parser := resourceids.NewParserFromResourceIdType(KeyKindId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	var ok bool
-	id := SearchServiceId{}
+	id := KeyKindId{}
 
 	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
 		return nil, fmt.Errorf("the segment 'subscriptionId' was not found in the resource id %q", input)
@@ -75,32 +89,44 @@ func ParseSearchServiceIDInsensitively(input string) (*SearchServiceId, error) {
 		return nil, fmt.Errorf("the segment 'searchServiceName' was not found in the resource id %q", input)
 	}
 
+	if v, ok := parsed.Parsed["keyKind"]; true {
+		if !ok {
+			return nil, fmt.Errorf("the segment 'keyKind' was not found in the resource id %q", input)
+		}
+
+		keyKind, err := parseAdminKeyKind(v)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q: %+v", v, err)
+		}
+		id.KeyKind = *keyKind
+	}
+
 	return &id, nil
 }
 
-// ValidateSearchServiceID checks that 'input' can be parsed as a Search Service ID
-func ValidateSearchServiceID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidateKeyKindID checks that 'input' can be parsed as a Key Kind ID
+func ValidateKeyKindID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := ParseSearchServiceID(v); err != nil {
+	if _, err := ParseKeyKindID(v); err != nil {
 		errors = append(errors, err)
 	}
 
 	return
 }
 
-// ID returns the formatted Search Service ID
-func (id SearchServiceId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Search/searchServices/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.SearchServiceName)
+// ID returns the formatted Key Kind ID
+func (id KeyKindId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Search/searchServices/%s/regenerateAdminKey/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.SearchServiceName, string(id.KeyKind))
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Search Service ID
-func (id SearchServiceId) Segments() []resourceids.Segment {
+// Segments returns a slice of Resource ID Segments which comprise this Key Kind ID
+func (id KeyKindId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
@@ -110,15 +136,18 @@ func (id SearchServiceId) Segments() []resourceids.Segment {
 		resourceids.ResourceProviderSegment("staticMicrosoftSearch", "Microsoft.Search", "Microsoft.Search"),
 		resourceids.StaticSegment("staticSearchServices", "searchServices", "searchServices"),
 		resourceids.UserSpecifiedSegment("searchServiceName", "searchServiceValue"),
+		resourceids.StaticSegment("staticRegenerateAdminKey", "regenerateAdminKey", "regenerateAdminKey"),
+		resourceids.ConstantSegment("keyKind", PossibleValuesForAdminKeyKind(), "primary"),
 	}
 }
 
-// String returns a human-readable description of this Search Service ID
-func (id SearchServiceId) String() string {
+// String returns a human-readable description of this Key Kind ID
+func (id KeyKindId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Search Service Name: %q", id.SearchServiceName),
+		fmt.Sprintf("Key Kind: %q", string(id.KeyKind)),
 	}
-	return fmt.Sprintf("Search Service (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Key Kind (%s)", strings.Join(components, "\n"))
 }

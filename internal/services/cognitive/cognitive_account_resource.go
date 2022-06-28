@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2021-04-30/cognitiveservicesaccounts"
+	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/sdk/2020-03-13/services"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -233,7 +233,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			"custom_question_answering_search_service_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: services.ValidateSearchServiceID,
+				ValidateFunc: search.ValidateSearchServiceID,
 			},
 
 			"storage": {

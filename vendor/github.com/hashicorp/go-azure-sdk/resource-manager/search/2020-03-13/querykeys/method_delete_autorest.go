@@ -1,4 +1,4 @@
-package privateendpointconnections
+package querykeys
 
 import (
 	"context"
@@ -8,9 +8,11 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 type DeleteOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *PrivateEndpointConnection
 }
 
 type DeleteOperationOptions struct {
@@ -38,22 +40,22 @@ func (o DeleteOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // Delete ...
-func (c PrivateEndpointConnectionsClient) Delete(ctx context.Context, id PrivateEndpointConnectionId, options DeleteOperationOptions) (result DeleteOperationResponse, err error) {
+func (c QueryKeysClient) Delete(ctx context.Context, id DeleteQueryKeyId, options DeleteOperationOptions) (result DeleteOperationResponse, err error) {
 	req, err := c.preparerForDelete(ctx, id, options)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privateendpointconnections.PrivateEndpointConnectionsClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "querykeys.QueryKeysClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privateendpointconnections.PrivateEndpointConnectionsClient", "Delete", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "querykeys.QueryKeysClient", "Delete", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForDelete(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privateendpointconnections.PrivateEndpointConnectionsClient", "Delete", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "querykeys.QueryKeysClient", "Delete", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -61,7 +63,7 @@ func (c PrivateEndpointConnectionsClient) Delete(ctx context.Context, id Private
 }
 
 // preparerForDelete prepares the Delete request.
-func (c PrivateEndpointConnectionsClient) preparerForDelete(ctx context.Context, id PrivateEndpointConnectionId, options DeleteOperationOptions) (*http.Request, error) {
+func (c QueryKeysClient) preparerForDelete(ctx context.Context, id DeleteQueryKeyId, options DeleteOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -82,11 +84,10 @@ func (c PrivateEndpointConnectionsClient) preparerForDelete(ctx context.Context,
 
 // responderForDelete handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (c PrivateEndpointConnectionsClient) responderForDelete(resp *http.Response) (result DeleteOperationResponse, err error) {
+func (c QueryKeysClient) responderForDelete(resp *http.Response) (result DeleteOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result.Model),
+		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
 		autorest.ByClosing())
 	result.HttpResponse = resp
 	return

@@ -1,4 +1,4 @@
-package querykeys
+package services
 
 import (
 	"context"
@@ -7,6 +7,9 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 )
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DeleteOperationResponse struct {
 	HttpResponse *http.Response
@@ -37,22 +40,22 @@ func (o DeleteOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // Delete ...
-func (c QueryKeysClient) Delete(ctx context.Context, id DeleteQueryKeyId, options DeleteOperationOptions) (result DeleteOperationResponse, err error) {
+func (c ServicesClient) Delete(ctx context.Context, id SearchServiceId, options DeleteOperationOptions) (result DeleteOperationResponse, err error) {
 	req, err := c.preparerForDelete(ctx, id, options)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "querykeys.QueryKeysClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "services.ServicesClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "querykeys.QueryKeysClient", "Delete", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "services.ServicesClient", "Delete", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForDelete(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "querykeys.QueryKeysClient", "Delete", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "services.ServicesClient", "Delete", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -60,7 +63,7 @@ func (c QueryKeysClient) Delete(ctx context.Context, id DeleteQueryKeyId, option
 }
 
 // preparerForDelete prepares the Delete request.
-func (c QueryKeysClient) preparerForDelete(ctx context.Context, id DeleteQueryKeyId, options DeleteOperationOptions) (*http.Request, error) {
+func (c ServicesClient) preparerForDelete(ctx context.Context, id SearchServiceId, options DeleteOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -81,7 +84,7 @@ func (c QueryKeysClient) preparerForDelete(ctx context.Context, id DeleteQueryKe
 
 // responderForDelete handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (c QueryKeysClient) responderForDelete(resp *http.Response) (result DeleteOperationResponse, err error) {
+func (c ServicesClient) responderForDelete(resp *http.Response) (result DeleteOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
