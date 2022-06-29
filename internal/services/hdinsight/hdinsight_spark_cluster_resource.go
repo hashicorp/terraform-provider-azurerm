@@ -233,8 +233,7 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption_properties"); ok {
-		diskEncryptionProperties := ExpandHDInsightDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
-		params.Properties.DiskEncryptionProperties = diskEncryptionProperties
+		params.Properties.DiskEncryptionProperties = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("security_profile"); ok {
@@ -359,8 +358,10 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
 		}
 
-		if err = d.Set("disk_encryption_properties", FlattenHDInsightDiskEncryptionProperties(*props.DiskEncryptionProperties)); err != nil {
-			return fmt.Errorf("failed setting `disk_encryption_properties`: %+v", err)
+		if props.DiskEncryptionProperties != nil {
+			if err := d.Set("disk_encryption_properties", FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)); err != nil {
+				return fmt.Errorf("flattening setting `disk_encryption_properties`: %+v", err)
+			}
 		}
 
 		if props.NetworkProperties != nil {

@@ -233,8 +233,7 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption_properties"); ok {
-		diskEncryptionProperties := ExpandHDInsightDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
-		params.Properties.DiskEncryptionProperties = diskEncryptionProperties
+		params.Properties.DiskEncryptionProperties = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, params)
@@ -342,8 +341,10 @@ func resourceHDInsightHBaseClusterRead(d *pluginsdk.ResourceData, meta interface
 			}
 		}
 
-		if err = d.Set("disk_encryption_properties", FlattenHDInsightDiskEncryptionProperties(*props.DiskEncryptionProperties)); err != nil {
-			return fmt.Errorf("failed setting `disk_encryption_properties`: %+v", err)
+		if props.DiskEncryptionProperties != nil {
+			if err := d.Set("disk_encryption_properties", FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)); err != nil {
+				return fmt.Errorf("flattening `disk_encryption_properties`: %+v", err)
+			}
 		}
 
 		hbaseRoles := hdInsightRoleDefinition{

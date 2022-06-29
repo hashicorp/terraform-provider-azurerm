@@ -690,7 +690,7 @@ func SchemaHDInsightsDiskEncryptionProperties() *pluginsdk.Schema {
 	}
 }
 
-func ExpandHDInsightDiskEncryptionProperties(input []interface{}) *hdinsight.DiskEncryptionProperties {
+func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) *hdinsight.DiskEncryptionProperties {
 	v := input[0].(map[string]interface{})
 
 	encryptionAlgorithm := v["encryption_algorithm"].(string)
@@ -710,7 +710,7 @@ func ExpandHDInsightDiskEncryptionProperties(input []interface{}) *hdinsight.Dis
 	}
 }
 
-func FlattenHDInsightDiskEncryptionProperties(input hdinsight.DiskEncryptionProperties) []interface{} {
+func FlattenHDInsightsDiskEncryptionProperties(input hdinsight.DiskEncryptionProperties) []interface{} {
 	var encryptionAlgorithm string
 	var encryptionAtHost bool
 	var keyName string
