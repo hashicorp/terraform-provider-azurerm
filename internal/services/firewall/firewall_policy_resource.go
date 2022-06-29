@@ -3,6 +3,7 @@ package firewall
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
@@ -488,7 +489,7 @@ func flattenFirewallPolicyIntrusionDetection(input *network.FirewallPolicyIntrus
 			trafficBypass = append(trafficBypass, map[string]interface{}{
 				"name":                  name,
 				"description":           description,
-				"protocol":              string(bypass.Protocol),
+				"protocol":              strings.ToUpper(string(bypass.Protocol)),
 				"source_addresses":      sourceAddresses,
 				"destination_addresses": destinationAddresses,
 				"destination_ports":     destinationPorts,
