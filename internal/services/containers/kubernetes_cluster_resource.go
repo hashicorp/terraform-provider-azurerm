@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-01-02-preview/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -1723,12 +1723,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("private_fqdn", props.PrivateFQDN)
 		d.Set("portal_fqdn", props.AzurePortalFQDN)
 		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
-		// CurrentKubernetesVersion contains the actual version the Managed Cluster is running after upgrading
-		// KubernetesVersion now seems to contain the initial version the cluster was created with
 		d.Set("kubernetes_version", props.KubernetesVersion)
-		if v := props.CurrentKubernetesVersion; v != nil {
-			d.Set("kubernetes_version", v)
-		}
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 		d.Set("local_account_disabled", props.DisableLocalAccounts)
@@ -1911,7 +1906,9 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName)
+	ignorePodDisruptionBudget := true
+
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName, &ignorePodDisruptionBudget)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

@@ -57,6 +57,8 @@ The following arguments are supported:
 
 * `target_region` - (Required) One or more `target_region` blocks as documented below.
 
+* `end_of_life_date` - (Optional) The end of life date in RFC3339 format of the Image Version.
+
 * `exclude_from_latest` - (Optional) Should this Image Version be excluded from the `latest` filter? If set to `true` this Image Version won't be returned for the `latest` version. Defaults to `false`.
 
 * `managed_image_id` - (Optional) The ID of the Managed Image or Virtual Machine ID which should be used for this Shared Image Version. Changing this forces a new resource to be created.
@@ -66,6 +68,8 @@ The following arguments are supported:
 * `os_disk_snapshot_id` - (Optional) The ID of the OS disk snapshot which should be used for this Shared Image Version. Changing this forces a new resource to be created.
 
 -> **NOTE:** You must specify exact one of `managed_image_id` and `os_disk_snapshot_id`.
+
+* `replication_mode` - (Optional)  Mode to be used for replication. Possible values are `Full` and `Shallow`. Defaults to `Full`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A collection of tags which should be applied to this resource.
 
@@ -77,7 +81,9 @@ The `target_region` block supports the following:
 
 * `regional_replica_count` - (Required) The number of replicas of the Image Version to be created per region.
 
-* `storage_account_type` - (Optional) The storage account type for the image version. Possible values are `Standard_LRS` and `Standard_ZRS`. Defaults to `Standard_LRS`. You can store all of your image version replicas in Zone Redundant Storage by specifying `Standard_ZRS`.
+* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set to encrypt the Image Version in the target region. Changing this forces a new resource to be created.
+
+* `storage_account_type` - (Optional) The storage account type for the image version. Possible values are `Standard_LRS`, `Premium_LRS` and `Standard_ZRS`. Defaults to `Standard_LRS`. You can store all of your image version replicas in Zone Redundant Storage by specifying `Standard_ZRS`.
 
 ## Attributes Reference
 

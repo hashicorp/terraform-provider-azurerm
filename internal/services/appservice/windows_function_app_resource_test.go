@@ -453,6 +453,7 @@ func TestAccWindowsFunctionApp_elasticPremiumComplete(t *testing.T) {
 			Config: r.elasticComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("5"),
 			),
 		},
 		data.ImportStep(),
@@ -1845,6 +1846,8 @@ resource "azurerm_windows_function_app" "test" {
     application_stack {
       powershell_core_version = "7"
     }
+
+    elastic_instance_minimum = 5
 
     default_documents = [
       "first.html",
