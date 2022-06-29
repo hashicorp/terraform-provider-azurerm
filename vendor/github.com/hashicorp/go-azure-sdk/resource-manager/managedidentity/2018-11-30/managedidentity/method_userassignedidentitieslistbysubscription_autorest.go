@@ -8,25 +8,29 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
-type UserAssignedIdentitiesListBySubscriptionResponse struct {
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type UserAssignedIdentitiesListBySubscriptionOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *[]Identity
 
 	nextLink     *string
-	nextPageFunc func(ctx context.Context, nextLink string) (UserAssignedIdentitiesListBySubscriptionResponse, error)
+	nextPageFunc func(ctx context.Context, nextLink string) (UserAssignedIdentitiesListBySubscriptionOperationResponse, error)
 }
 
 type UserAssignedIdentitiesListBySubscriptionCompleteResult struct {
 	Items []Identity
 }
 
-func (r UserAssignedIdentitiesListBySubscriptionResponse) HasMore() bool {
+func (r UserAssignedIdentitiesListBySubscriptionOperationResponse) HasMore() bool {
 	return r.nextLink != nil
 }
 
-func (r UserAssignedIdentitiesListBySubscriptionResponse) LoadMore(ctx context.Context) (resp UserAssignedIdentitiesListBySubscriptionResponse, err error) {
+func (r UserAssignedIdentitiesListBySubscriptionOperationResponse) LoadMore(ctx context.Context) (resp UserAssignedIdentitiesListBySubscriptionOperationResponse, err error) {
 	if !r.HasMore() {
 		err = fmt.Errorf("no more pages returned")
 		return
@@ -35,7 +39,7 @@ func (r UserAssignedIdentitiesListBySubscriptionResponse) LoadMore(ctx context.C
 }
 
 // UserAssignedIdentitiesListBySubscription ...
-func (c ManagedIdentityClient) UserAssignedIdentitiesListBySubscription(ctx context.Context, id SubscriptionId) (resp UserAssignedIdentitiesListBySubscriptionResponse, err error) {
+func (c ManagedIdentityClient) UserAssignedIdentitiesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (resp UserAssignedIdentitiesListBySubscriptionOperationResponse, err error) {
 	req, err := c.preparerForUserAssignedIdentitiesListBySubscription(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedidentity.ManagedIdentityClient", "UserAssignedIdentitiesListBySubscription", nil, "Failure preparing request")
@@ -57,12 +61,12 @@ func (c ManagedIdentityClient) UserAssignedIdentitiesListBySubscription(ctx cont
 }
 
 // UserAssignedIdentitiesListBySubscriptionComplete retrieves all of the results into a single object
-func (c ManagedIdentityClient) UserAssignedIdentitiesListBySubscriptionComplete(ctx context.Context, id SubscriptionId) (UserAssignedIdentitiesListBySubscriptionCompleteResult, error) {
-	return c.UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate(ctx, id, IdentityPredicate{})
+func (c ManagedIdentityClient) UserAssignedIdentitiesListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (UserAssignedIdentitiesListBySubscriptionCompleteResult, error) {
+	return c.UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate(ctx, id, IdentityOperationPredicate{})
 }
 
 // UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ManagedIdentityClient) UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id SubscriptionId, predicate IdentityPredicate) (resp UserAssignedIdentitiesListBySubscriptionCompleteResult, err error) {
+func (c ManagedIdentityClient) UserAssignedIdentitiesListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate IdentityOperationPredicate) (resp UserAssignedIdentitiesListBySubscriptionCompleteResult, err error) {
 	items := make([]Identity, 0)
 
 	page, err := c.UserAssignedIdentitiesListBySubscription(ctx, id)
@@ -101,7 +105,7 @@ func (c ManagedIdentityClient) UserAssignedIdentitiesListBySubscriptionCompleteM
 }
 
 // preparerForUserAssignedIdentitiesListBySubscription prepares the UserAssignedIdentitiesListBySubscription request.
-func (c ManagedIdentityClient) preparerForUserAssignedIdentitiesListBySubscription(ctx context.Context, id SubscriptionId) (*http.Request, error) {
+func (c ManagedIdentityClient) preparerForUserAssignedIdentitiesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -142,7 +146,7 @@ func (c ManagedIdentityClient) preparerForUserAssignedIdentitiesListBySubscripti
 
 // responderForUserAssignedIdentitiesListBySubscription handles the response to the UserAssignedIdentitiesListBySubscription request. The method always
 // closes the http.Response Body.
-func (c ManagedIdentityClient) responderForUserAssignedIdentitiesListBySubscription(resp *http.Response) (result UserAssignedIdentitiesListBySubscriptionResponse, err error) {
+func (c ManagedIdentityClient) responderForUserAssignedIdentitiesListBySubscription(resp *http.Response) (result UserAssignedIdentitiesListBySubscriptionOperationResponse, err error) {
 	type page struct {
 		Values   []Identity `json:"value"`
 		NextLink *string    `json:"nextLink"`
@@ -157,7 +161,7 @@ func (c ManagedIdentityClient) responderForUserAssignedIdentitiesListBySubscript
 	result.Model = &respObj.Values
 	result.nextLink = respObj.NextLink
 	if respObj.NextLink != nil {
-		result.nextPageFunc = func(ctx context.Context, nextLink string) (result UserAssignedIdentitiesListBySubscriptionResponse, err error) {
+		result.nextPageFunc = func(ctx context.Context, nextLink string) (result UserAssignedIdentitiesListBySubscriptionOperationResponse, err error) {
 			req, err := c.preparerForUserAssignedIdentitiesListBySubscriptionWithNextLink(ctx, nextLink)
 			if err != nil {
 				err = autorest.NewErrorWithError(err, "managedidentity.ManagedIdentityClient", "UserAssignedIdentitiesListBySubscription", nil, "Failure preparing request")
