@@ -3,6 +3,7 @@ package datadog_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -179,21 +180,21 @@ func (r DatadogMonitorResource) basic(data acceptance.TestData) string {
 resource "azurerm_datadog_monitor" "test" {
   name                = "acctest-datadog-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "EAST US 2 EUAP"
+  location            = "WEST US 2"
   datadog_organization {
-    api_key         = "XXX"
-    application_key = "XXX"
+    api_key         = %s
+    application_key = %s
   }
   user {
-    name  = "Vidhi Kothari"
-    email = "vidhi.kothari@microsoft.com"
+    name  = "Test Datadog"
+    email = "abc@xyz.com"
   }
   sku_name = "Linked"
   identity {
     type = "SystemAssigned"
   }
 }
-`, r.template(data), data.RandomInteger%100)
+`, r.template(data), data.RandomInteger%100, os.Getenv("ARM_TEST_DATADOG_API_KEY"), os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY"))
 }
 
 func (r DatadogMonitorResource) update(data acceptance.TestData) string {
@@ -209,14 +210,14 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_datadog_monitor" "test" {
   name                = "acctest-datadog-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "EAST US 2 EUAP"
+  location            = "WEST US 2""
   datadog_organization {
-    api_key         = "XXX"
-    application_key = "XXX"
+    api_key         = %s
+    application_key = %s
   }
   user {
-    name  = "Vidhi Kothari"
-    email = "vidhi.kothari@microsoft.com"
+    name  = "Test Datadog"
+    email = "abc@xyz.com"
   }
   sku_name = "Linked"
   identity {
@@ -227,7 +228,7 @@ resource "azurerm_datadog_monitor" "test" {
     ENV = "Test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger%100)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger%100, os.Getenv("ARM_TEST_DATADOG_API_KEY"), os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY"))
 }
 
 func (r DatadogMonitorResource) requiresImport(data acceptance.TestData) string {
@@ -238,19 +239,19 @@ resource "azurerm_datadog_monitor" "import" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_datadog_monitor.test.location
   datadog_organization {
-    api_key         = "XXX"
-    application_key = "XXX"
+    api_key         = %s
+    application_key = %s
   }
   user {
-    name  = "Vidhi Kothari"
-    email = "vidhi.kothari@microsoft.com"
+    name  = "Test Datadog"
+    email = "abc@xyz.com"
   }
   sku_name = "Linked"
   identity {
     type = "SystemAssigned"
   }
 }
-`, r.basic(data))
+`, r.basic(data), os.Getenv("ARM_TEST_DATADOG_API_KEY"), os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY"))
 }
 
 func (r DatadogMonitorResource) complete(data acceptance.TestData) string {
@@ -261,8 +262,8 @@ resource "azurerm_datadog_monitor" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   datadog_organization {
-    api_key           = "XXX"
-    application_key   = "XXX"
+    api_key           = %s
+    application_key   = %s
     enterprise_app_id = ""
     linking_auth_code = ""
     linking_client_id = ""
@@ -273,8 +274,8 @@ resource "azurerm_datadog_monitor" "test" {
   }
   sku_name = "Linked"
   user {
-    name         = "Vidhi Kothari"
-    email        = "vidhi.kothari@microsoft.com"
+    name  = "Test Datadog"
+    email = "abc@xyz.com"
     phone_number = ""
   }
   monitoring_enabled = true
@@ -282,5 +283,5 @@ resource "azurerm_datadog_monitor" "test" {
     ENV = "Test"
   }
 }
-`, r.template(data), data.RandomInteger%100)
+`, r.template(data), data.RandomInteger%100, os.Getenv("ARM_TEST_DATADOG_API_KEY"), os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY"))
 }

@@ -55,8 +55,6 @@ The following arguments are supported:
 
 * `datadog_organization` - (Required) A `datadog_organization` block as defined below.
 
----
-
 * `monitoring_enabled` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Possible values are "true" and "false" is allowed.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the datadog Monitor.
@@ -118,13 +116,13 @@ An `identity` block exports the following:
 
 ## Role Assignment
 
-To enable metrics flow, perform role assignment on the identity created above. `Monitoring reader` role is required.
+To enable metrics flow, perform role assignment on the identity created above. `Monitoring reader(43d0d8ad-25c7-4714-9337-8ba259a9fe05)` role is required .
 
 ### Role assignment on the monitor created
 ```hcl
 resource "azurerm_role_assignment" "example" {
   scope              = data.azurerm_subscription.primary.id
-  role_definition_id = "/subscriptions/5a611eed-e33a-44e8-92b1-3f6bf835905e/providers/Microsoft.Authorization/roleDefinitions/43d0d8ad-25c7-4714-9337-8ba259a9fe05"
+  role_definition_id = "/subscriptions/XXXX-XXXX-XXXX/providers/Microsoft.Authorization/roleDefinitions/43d0d8ad-25c7-4714-9337-8ba259a9fe05"
   principal_id       = azurerm_datadog_monitor.example.identity.0.principal_id
 }
 ```

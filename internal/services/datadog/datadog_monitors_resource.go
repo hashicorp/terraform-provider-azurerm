@@ -255,8 +255,9 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("marketplace_subscription_status", props.MarketplaceSubscriptionStatus)
 	}
 	skuName := ""
-	if resp.Sku != nil {
+	if resp.Sku.Name != nil {
 		skuName = *resp.Sku.Name
+		// Below check is present to distinguish between resources billed by Microsoft and Datadog.
 		if skuName == "Datadog_Billed_Orgs_Monthly" {
 			skuName = "Linked"
 		}
@@ -327,7 +328,7 @@ func expandMonitorIdentityProperties(input []interface{}) *datadog.IdentityPrope
 }
 
 func expandMonitorOrganizationProperties(input []interface{}) *datadog.OrganizationProperties {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
@@ -342,7 +343,7 @@ func expandMonitorOrganizationProperties(input []interface{}) *datadog.Organizat
 }
 
 func expandMonitorUserInfo(input []interface{}) *datadog.UserInfo {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
