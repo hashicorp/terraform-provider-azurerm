@@ -179,9 +179,10 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"cpu": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Default:      "1",
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "1",
+							// There are additional options when the service team allow them
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -189,17 +190,8 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "2Gi",
-							ValidateFunc: validation.StringInSlice([]string{
-								"512Mi",
-								"1Gi",
-								"2Gi",
-								"3Gi",
-								"4Gi",
-								"5Gi",
-								"6Gi",
-								"7Gi",
-								"8Gi",
-							}, false),
+							// There are additional options when the service team allow them
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},

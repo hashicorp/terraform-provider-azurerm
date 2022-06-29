@@ -112,16 +112,18 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"cpu": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							// There are additional options when the service team allow them
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"memory": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true,
+							// There are additional options when the service team allow them
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
