@@ -59,6 +59,10 @@ The following attributes are exported:
 
 * `public_key_openssh` - The OpenSSH encoded public key of this Key Vault Key.
 
+* `resource_id` - The Azure control plane ID of the Key Vault Key.
+
+* `resource_versionless_id` - The Azure control plane Base ID of the Key Vault Key.
+
 * `tags` - A mapping of tags assigned to this Key Vault Key.
 
 * `version` - The current version of the Key Vault Key.

@@ -42,6 +42,8 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Key Vault Secret ID.
+* `resource_id` - The Azure control plane ID of the Key Vault Secret.
+* `resource_versionless_id` - The Azure control plane Base ID of the Key Vault Secret.
 * `value` - The value of the Key Vault Secret.
 * `version` - The current version of the Key Vault Secret.
 * `content_type` - The content type for the Key Vault Secret.

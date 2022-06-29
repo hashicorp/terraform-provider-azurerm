@@ -90,6 +90,8 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Key Vault Key ID.
+* `resource_id` - The Azure control plane ID of the Key Vault Key.
+* `resource_versionless_id` - The Azure control plane Base ID of the Key Vault Key.
 * `version` - The current version of the Key Vault Key.
 * `versionless_id` - The Base ID of the Key Vault Key.
 * `n` - The RSA modulus of this Key Vault Key.

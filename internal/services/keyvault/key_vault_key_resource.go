@@ -179,6 +179,16 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"resource_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"resource_versionless_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -491,6 +501,9 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 	}
+
+	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name, id.Version).ID())
+	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name).ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
