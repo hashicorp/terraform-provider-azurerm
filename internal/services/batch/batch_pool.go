@@ -543,9 +543,13 @@ func findBatchPoolContainerRegistryPassword(d *pluginsdk.ResourceData, armServer
 
 func ExpandBatchPoolApplicationLicenses(d *pluginsdk.ResourceData) (*[]string, error) {
 	if applicationLicensesList, ok := d.GetOk("application_licenses"); ok {
-		applicationLicenses := applicationLicensesList.([]string)
+		applicationLicenses := applicationLicensesList.([]interface{})
 		if len(applicationLicenses) > 0 {
-			return &applicationLicenses, nil
+			var result []string
+			for _, applicationLicense := range applicationLicenses {
+				result = append(result, applicationLicense.(string))
+			}
+			return &result, nil
 		}
 	}
 	return nil, fmt.Errorf("application_license either is empty or contains parsing errors")
@@ -727,26 +731,26 @@ func ExpandBatchPoolMountConfigurations(d *pluginsdk.ResourceData) (*[]batch.Mou
 
 func expandBatchPoolMountConfiguration(ref map[string]interface{}) (batch.MountConfiguration, error) {
 	var result batch.MountConfiguration
-	if azureBlobFileSystemConfiguration, err := expandBatchPoolAzureBlobFileSystemConfiguration(ref["azure_blob_file_system_configuration"].([]map[string]interface{})); err == nil {
+	if azureBlobFileSystemConfiguration, err := expandBatchPoolAzureBlobFileSystemConfiguration(ref["azure_blob_file_system_configuration"].([]interface{})); err == nil {
 		result.AzureBlobFileSystemConfiguration = azureBlobFileSystemConfiguration
 	}
-	if azureFileShareConfiguration, err := expandBatchPoolAzureFileShareConfiguration(ref["azure_blob_file_system_configuration"].([]map[string]interface{})); err == nil {
+	if azureFileShareConfiguration, err := expandBatchPoolAzureFileShareConfiguration(ref["azure_file_share_configuration"].([]interface{})); err == nil {
 		result.AzureFileShareConfiguration = azureFileShareConfiguration
 	}
-	if cifsMountConfiguration, err := expandBatchPoolCIFSMountConfiguration(ref["cifs_mount_configuration"].([]map[string]interface{})); err == nil {
+	if cifsMountConfiguration, err := expandBatchPoolCIFSMountConfiguration(ref["cifs_mount_configuration"].([]interface{})); err == nil {
 		result.CifsMountConfiguration = cifsMountConfiguration
 	}
-	if nfsMountConfiguration, err := expandBatchPoolNFSMountConfiguration(ref["nfs_mount_configuration"].([]map[string]interface{})); err == nil {
+	if nfsMountConfiguration, err := expandBatchPoolNFSMountConfiguration(ref["nfs_mount_configuration"].([]interface{})); err == nil {
 		result.NfsMountConfiguration = nfsMountConfiguration
 	}
 	return result, nil
 }
 
-func expandBatchPoolAzureBlobFileSystemConfiguration(list []map[string]interface{}) (*batch.AzureBlobFileSystemConfiguration, interface{}) {
+func expandBatchPoolAzureBlobFileSystemConfiguration(list []interface{}) (*batch.AzureBlobFileSystemConfiguration, interface{}) {
 	if list == nil || len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("azure_blob_file_system_configuration is empty")
 	}
-	configMap := list[0]
+	configMap := list[0].(map[string]interface{})
 	result := batch.AzureBlobFileSystemConfiguration{
 		AccountName:       utils.String(configMap["account_name"].(string)),
 		ContainerName:     utils.String(configMap["container_name"].(string)),
@@ -767,11 +771,11 @@ func expandBatchPoolAzureBlobFileSystemConfiguration(list []map[string]interface
 	return &result, nil
 }
 
-func expandBatchPoolAzureFileShareConfiguration(list []map[string]interface{}) (*batch.AzureFileShareConfiguration, interface{}) {
+func expandBatchPoolAzureFileShareConfiguration(list []interface{}) (*batch.AzureFileShareConfiguration, interface{}) {
 	if list == nil || len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("azure_file_share_configuration is empty")
 	}
-	configMap := list[0]
+	configMap := list[0].(map[string]interface{})
 	result := batch.AzureFileShareConfiguration{
 		AccountName:       utils.String(configMap["account_name"].(string)),
 		AccountKey:        utils.String(configMap["account_key"].(string)),
@@ -784,11 +788,11 @@ func expandBatchPoolAzureFileShareConfiguration(list []map[string]interface{}) (
 	return &result, nil
 }
 
-func expandBatchPoolCIFSMountConfiguration(list []map[string]interface{}) (*batch.CIFSMountConfiguration, interface{}) {
+func expandBatchPoolCIFSMountConfiguration(list []interface{}) (*batch.CIFSMountConfiguration, interface{}) {
 	if list == nil || len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("cifs_mount_configuration is empty")
 	}
-	configMap := list[0]
+	configMap := list[0].(map[string]interface{})
 	result := batch.CIFSMountConfiguration{
 		Username:          utils.String(configMap["user_name"].(string)),
 		Source:            utils.String(configMap["source"].(string)),
@@ -801,11 +805,11 @@ func expandBatchPoolCIFSMountConfiguration(list []map[string]interface{}) (*batc
 	return &result, nil
 }
 
-func expandBatchPoolNFSMountConfiguration(list []map[string]interface{}) (*batch.NFSMountConfiguration, interface{}) {
+func expandBatchPoolNFSMountConfiguration(list []interface{}) (*batch.NFSMountConfiguration, interface{}) {
 	if list == nil || len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("nfs_mount_configuration is empty")
 	}
-	configMap := list[0]
+	configMap := list[0].(map[string]interface{})
 	result := batch.NFSMountConfiguration{
 		Source:            utils.String(configMap["source"].(string)),
 		RelativeMountPath: utils.String(configMap["relative_mount_path"].(string)),

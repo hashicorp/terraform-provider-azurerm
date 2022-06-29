@@ -443,7 +443,7 @@ func TestAccBatchPool_customImage(t *testing.T) {
 	})
 }
 
-func TestAccBatchPool_frontEndPortRanges(t *testing.T) {
+func TestAccBatchPool_networkConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
@@ -465,6 +465,10 @@ func TestAccBatchPool_frontEndPortRanges(t *testing.T) {
 				check.That(data.ResourceName).Key("network_configuration.#").HasValue("1"),
 				check.That(data.ResourceName).Key("network_configuration.0.subnet_id").Exists(),
 				check.That(data.ResourceName).Key("network_configuration.0.public_ips.#").HasValue("1"),
+				// skip this check due to service REST API bug.
+				// check.That(data.ResourceName).Key("network_configuration.0.dynamic_vnet_assignment_scope").HasValue("job"),
+				check.That(data.ResourceName).Key("network_configuration.0.endpoint_configuration.0.network_security_group_rules.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network_configuration.0.endpoint_configuration.0.network_security_group_rules.0.source_port_ranges.0").HasValue("*"),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation"),
@@ -493,17 +497,19 @@ func TestAccBatchPool_fixedScaleUpdate(t *testing.T) {
 	})
 }
 
-func TestAccBatchPool_application(t *testing.T) {
+func TestAccBatchPool_additionalSimpleProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.application_complete(data),
+			Config: r.additional_simple_properties(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("application_licenses.#").HasValue("1"),
-				check.That(data.ResourceName).Key("application_licenses.0.version").HasValue("testversion1"),
+				//check.That(data.ResourceName).Key("application_licenses.#").HasValue("2"),
+				//check.That(data.ResourceName).Key("application_licenses.0").HasValue("app-license0"),
+				check.That(data.ResourceName).Key("inter_node_communication").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("task_scheduling_policy.0.node_fill_type").HasValue("Pack"),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation"),
@@ -525,6 +531,23 @@ func TestAccBatchPool_vnetSecurity(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_mountConfiguration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.mountConfiguration(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_configuration.0.azure_blob_file_system_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mount_configuration.0.azure_blob_file_system_configuration.0.relative_mount_path").HasValue("/mnt/"),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+	})
+}
+
 func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PoolID(state.ID)
 	if err != nil {
@@ -539,7 +562,7 @@ func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, 
 	return utils.Bool(resp.PoolProperties != nil), nil
 }
 
-func (BatchPoolResource) application_complete(data acceptance.TestData) string {
+func (BatchPoolResource) additional_simple_properties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -550,20 +573,28 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+# resource "azurerm_storage_account" "test" {
+#  name                     = "testsabatch%s"
+#  resource_group_name      = azurerm_resource_group.test.name
+#  location                 = azurerm_resource_group.test.location
+#  account_tier             = "Standard"
+#  account_replication_type = "LRS"
+# }
+
 resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+# storage_account_id  = azurerm_storage_account.test.id
   public_network_access_enabled = false
 }
 
-resource "azurerm_batch_application" "test" {
-  name                = "acctestbatchapp-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_batch_account.test.name
-  default_version     = "testversion1"
-  display_name        = "terraformtestapp"
-}
+# resource "azurerm_batch_application" "test" {
+# name                = "acctestbatchapp-%d"
+# resource_group_name = azurerm_resource_group.test.name
+# account_name        = azurerm_batch_account.test.name
+# display_name        = "terraformtestapp"
+# }
 
 resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
@@ -572,12 +603,13 @@ resource "azurerm_batch_pool" "test" {
   node_agent_sku_id   = "batch.node.ubuntu 18.04"
   vm_size             = "Standard_A1"
 
-  application_packages = [
-    {
-      id = azurerm_batch_application.test.id
-      version = azurerm_batch_application.test.default_version
-    }
-  ]
+  # application_licenses = ["app-license0", "app-license1"]
+
+  inter_node_communication = "Disabled"
+
+  task_scheduling_policy {
+    node_fill_type = "Pack"
+  }
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -590,7 +622,7 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomString)
 }
 
 func (BatchPoolResource) fixedScale_complete(data acceptance.TestData) string {
@@ -1736,6 +1768,7 @@ resource "azurerm_batch_pool" "test" {
     public_address_provisioning_type = "UserManaged"
     public_ips                       = [azurerm_public_ip.test.id]
     subnet_id                        = azurerm_subnet.test.id
+    # dynamic_vnet_assignment_scope    = "job"
 
     endpoint_configuration {
       name                = "SSH"
@@ -1747,6 +1780,7 @@ resource "azurerm_batch_pool" "test" {
         access                = "Deny"
         priority              = 1001
         source_address_prefix = "*"
+        source_port_ranges    = ["*"]
       }
     }
   }
@@ -1754,7 +1788,7 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (t BatchPoolResource) vnet(data acceptance.TestData) string {
+func (BatchPoolResource) vnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1819,6 +1853,67 @@ resource "azurerm_batch_pool" "test" {
     subnet_id = azurerm_subnet.testsubnet.id
     # protential bug dynamic_vnet_assignment_scope = "none"
     public_address_provisioning_type = "BatchManaged"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) mountConfiguration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accbatchsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "accbatchsc%s"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "blob"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  vm_size             = "Standard_A1"
+
+  mount_configuration {
+    azure_blob_file_system_configuration {
+      account_name = azurerm_storage_account.test.name
+      container_name = azurerm_storage_container.test.name
+      account_key = azurerm_storage_account.test.primary_access_key
+      relative_mount_path = "/mnt/"
+    }
+  }
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-lts"
+    version   = "latest"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
