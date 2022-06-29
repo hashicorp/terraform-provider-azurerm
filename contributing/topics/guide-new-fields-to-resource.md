@@ -26,7 +26,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 		
 		"location": commonschema.Location(),
 		
-		"public_netowrk_access_enabled": {
+		"public_network_access_enabled": {
 			Type: pluginsdk.TypeBool,
 			Optional: true,
         }       

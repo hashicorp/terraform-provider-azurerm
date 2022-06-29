@@ -74,7 +74,7 @@ func TestAccDataSourceSomeResource_basic(t *testing.T) {
 
 ## Docs
 
-* Lastly, don't forget to update the docs where the property ordering is determined alpahbetically.
+* Lastly, don't forget to update the docs where the property ordering is determined alphabetically.
 
 
 be sure to link to our-recommendations-for-sending-a-pr, reference-acceptance-testing and reference-terraform-design-choices.md
