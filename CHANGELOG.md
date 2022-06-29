@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20220628.1190740` of `github.com/hashicorp/go-azure-sdk` [GH-17399]
 * appservice: replacing usages of `ioutil` with `io` [GH-17392]
 * containerservice: updated to use version `2022-03-02-preview` [GH-17084]
+* purview: refactoring to use `hashicorp/go-azure-sdk` [GH-17419]
 * redisenterprise: refactoring to use `hashicorp/go-azure-sdk` [GH-17387]
 * relay: refactoring to use `hashicorp/go-azure-sdk` [GH-17385]
 * search: refactoring to use `hashicorp/go-azure-sdk` [GH-17386]
