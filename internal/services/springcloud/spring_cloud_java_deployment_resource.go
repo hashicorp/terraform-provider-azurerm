@@ -356,7 +356,7 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						Computed: true,
-						// There are additional options when the service team allow them
+						// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
@@ -365,7 +365,7 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						Computed: true,
-						// There are additional options when the service team allow them
+						// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},

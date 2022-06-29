@@ -182,7 +182,7 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "1",
-							// There are additional options when the service team allow them
+							// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -190,7 +190,7 @@ func resourceSpringCloudGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "2Gi",
-							// There are additional options when the service team allow them
+							// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
