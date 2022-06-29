@@ -21,6 +21,7 @@ type ApplicationInsightsWorkbookTemplateModel struct {
 	ResourceGroupName string                         `tfschema:"resource_group_name"`
 	Author            string                         `tfschema:"author"`
 	Galleries         []WorkbookTemplateGalleryModel `tfschema:"galleries"`
+	Localized         string                         `tfschema:"localized"`
 	Location          string                         `tfschema:"location"`
 	Priority          int64                          `tfschema:"priority"`
 	Tags              map[string]string              `tfschema:"tags"`
@@ -118,6 +119,12 @@ func (r ApplicationInsightsWorkbookTemplateResource) Arguments() map[string]*plu
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"localized": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"priority": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
@@ -165,11 +172,21 @@ func (r ApplicationInsightsWorkbookTemplateResource) Create() sdk.ResourceFunc {
 					Priority:     &model.Priority,
 					TemplateData: templateDataValue,
 				},
+
 				Tags: &model.Tags,
 			}
 
 			if model.Author != "" {
 				properties.Properties.Author = &model.Author
+			}
+
+			if model.Localized != "" {
+				var localizedValue map[string][]applicationinsights.WorkbookTemplateLocalizedGallery
+				if err := json.Unmarshal([]byte(model.Localized), &localizedValue); err != nil {
+					return err
+				}
+
+				properties.Properties.Localized = &localizedValue
 			}
 
 			galleriesValue, err := expandWorkbookTemplateGalleryModel(model.Galleries)
@@ -246,6 +263,15 @@ func (r ApplicationInsightsWorkbookTemplateResource) Update() sdk.ResourceFunc {
 				properties.Properties.TemplateData = templateDataValue
 			}
 
+			if metadata.ResourceData.HasChange("localized") {
+				var localizedValue map[string][]applicationinsights.WorkbookTemplateLocalizedGallery
+				if err := json.Unmarshal([]byte(model.Localized), &localizedValue); err != nil {
+					return err
+				}
+
+				properties.Properties.Localized = &localizedValue
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
 			}
@@ -307,7 +333,6 @@ func (r ApplicationInsightsWorkbookTemplateResource) Read() sdk.ResourceFunc {
 				}
 
 				if properties.TemplateData != nil {
-
 					templateDataValue, err := json.Marshal(properties.TemplateData)
 					if err != nil {
 						return err
@@ -315,7 +340,17 @@ func (r ApplicationInsightsWorkbookTemplateResource) Read() sdk.ResourceFunc {
 
 					state.TemplateData = string(templateDataValue)
 				}
+
+				if properties.Localized != nil {
+					localizedValue, err := json.Marshal(properties.Localized)
+					if err != nil {
+						return err
+					}
+
+					state.Localized = string(localizedValue)
+				}
 			}
+
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}

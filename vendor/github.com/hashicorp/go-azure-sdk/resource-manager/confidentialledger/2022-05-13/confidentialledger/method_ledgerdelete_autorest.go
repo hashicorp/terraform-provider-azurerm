@@ -7,7 +7,6 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/polling"
 )
 
@@ -75,10 +74,5 @@ func (c ConfidentialLedgerClient) senderForLedgerDelete(ctx context.Context, req
 	}
 
 	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
-
-	if !response.WasNotFound(future.Poller.HttpResponse) {
-		return future, err
-	}
-
 	return
 }

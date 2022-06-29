@@ -75,6 +75,5 @@ func (c TenantsClient) senderForCreate(ctx context.Context, req *http.Request) (
 	}
 
 	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
-
 	return
 }

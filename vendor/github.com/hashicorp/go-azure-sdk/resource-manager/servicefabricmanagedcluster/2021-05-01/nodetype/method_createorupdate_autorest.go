@@ -75,6 +75,5 @@ func (c NodeTypeClient) senderForCreateOrUpdate(ctx context.Context, req *http.R
 	}
 
 	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
-
 	return
 }

@@ -75,6 +75,5 @@ func (c ConfigurationStoresClient) senderForCreate(ctx context.Context, req *htt
 	}
 
 	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
-
 	return
 }

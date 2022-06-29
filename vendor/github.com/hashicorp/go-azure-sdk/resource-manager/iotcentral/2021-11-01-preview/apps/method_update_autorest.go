@@ -75,6 +75,5 @@ func (c AppsClient) senderForUpdate(ctx context.Context, req *http.Request) (fut
 	}
 
 	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
-
 	return
 }

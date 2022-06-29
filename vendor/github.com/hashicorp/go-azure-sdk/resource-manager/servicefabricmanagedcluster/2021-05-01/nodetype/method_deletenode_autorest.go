@@ -75,6 +75,5 @@ func (c NodeTypeClient) senderForDeleteNode(ctx context.Context, req *http.Reque
 	}
 
 	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
-
 	return
 }
