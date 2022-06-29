@@ -86,6 +86,16 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"resource_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"resource_versionless_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaWithMax(15),
 		},
 	}
@@ -357,6 +367,9 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("expiration_date", time.Time(*v).Format(time.RFC3339))
 		}
 	}
+
+	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name, id.Version).ID())
+	d.Set("resource_versionless_id", parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name).ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

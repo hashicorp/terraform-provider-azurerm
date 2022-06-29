@@ -50,6 +50,7 @@ type LinuxWebAppSlotModel struct {
 	PossibleOutboundIPAddresses   string                              `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                            `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential            `tfschema:"site_credential"`
+	VirtualNetworkSubnetID        string                              `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppSlotResource{}
@@ -129,6 +130,12 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
+		},
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -277,6 +284,10 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:     utils.Bool(webAppSlot.ClientCertEnabled),
 					ClientCertMode:        web.ClientCertMode(webAppSlot.ClientCertMode),
 				},
+			}
+
+			if webAppSlot.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(webAppSlot.VirtualNetworkSubnetID)
 			}
 
 			if webAppSlot.KeyVaultReferenceIdentityID != "" {
@@ -441,6 +452,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				Enabled:                     utils.NormaliseNilableBool(props.Enabled),
 				HttpsOnly:                   utils.NormaliseNilableBool(props.HTTPSOnly),
 				Tags:                        tags.ToTypedObject(webApp.Tags),
+				VirtualNetworkSubnetID:      utils.NormalizeNilableString(webApp.VirtualNetworkSubnetID),
 			}
 
 			var healthCheckCount *int
