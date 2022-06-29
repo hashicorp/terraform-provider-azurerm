@@ -37,8 +37,8 @@ func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		// TODO: these can become case-sensitive with a state migration
 		Schema: map[string]*pluginsdk.Schema{
+			// TODO: these can become case-sensitive with a state migration
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -47,12 +47,16 @@ func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
+			// TODO: in 4.0 switch this to `private_dns_zone_id`
 			"private_dns_zone_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/10933
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"virtual_network_id": {
 				Type:         pluginsdk.TypeString,
@@ -66,9 +70,6 @@ func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 				Optional: true,
 				Default:  false,
 			},
-
-			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/10933
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"tags": commonschema.Tags(),
 		},

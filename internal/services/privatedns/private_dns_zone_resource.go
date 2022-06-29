@@ -45,6 +45,9 @@ func resourcePrivateDnsZone() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			// TODO: this can become case-sensitive with a state migration
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+
 			"number_of_record_sets": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -64,8 +67,6 @@ func resourcePrivateDnsZone() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"soa_record": {
 				Type:     pluginsdk.TypeList,

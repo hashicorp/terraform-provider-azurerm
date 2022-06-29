@@ -51,6 +51,8 @@ func resourcePrivateDnsTxtRecord() *pluginsdk.Resource {
 				ValidateFunc: validate.LowerCasedString,
 			},
 
+			// TODO: in 4.0 make `name` case sensitive and replace `resource_group_name` and `zone_name` with `private_zone_id`
+
 			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
