@@ -8,13 +8,16 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type UpdateResponse struct {
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type UpdateOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *LoadTestResource
 }
 
 // Update ...
-func (c LoadTestsClient) Update(ctx context.Context, id LoadTestId, input LoadTestResourcePatchRequestBody) (result UpdateResponse, err error) {
+func (c LoadTestsClient) Update(ctx context.Context, id LoadTestId, input LoadTestResourcePatchRequestBody) (result UpdateOperationResponse, err error) {
 	req, err := c.preparerForUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "loadtests.LoadTestsClient", "Update", nil, "Failure preparing request")
@@ -54,7 +57,7 @@ func (c LoadTestsClient) preparerForUpdate(ctx context.Context, id LoadTestId, i
 
 // responderForUpdate handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (c LoadTestsClient) responderForUpdate(resp *http.Response) (result UpdateResponse, err error) {
+func (c LoadTestsClient) responderForUpdate(resp *http.Response) (result UpdateOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

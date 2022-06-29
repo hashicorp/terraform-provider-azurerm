@@ -1,13 +1,13 @@
 package loadtests
 
-type LoadTestResourcePredicate struct {
+type LoadTestResourceOperationPredicate struct {
 	Id       *string
 	Location *string
 	Name     *string
 	Type     *string
 }
 
-func (p LoadTestResourcePredicate) Matches(input LoadTestResource) bool {
+func (p LoadTestResourceOperationPredicate) Matches(input LoadTestResource) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false

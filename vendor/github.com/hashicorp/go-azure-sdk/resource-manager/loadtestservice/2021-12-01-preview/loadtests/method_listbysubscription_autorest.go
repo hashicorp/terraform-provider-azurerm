@@ -8,25 +8,29 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
-type ListBySubscriptionResponse struct {
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type ListBySubscriptionOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *[]LoadTestResource
 
 	nextLink     *string
-	nextPageFunc func(ctx context.Context, nextLink string) (ListBySubscriptionResponse, error)
+	nextPageFunc func(ctx context.Context, nextLink string) (ListBySubscriptionOperationResponse, error)
 }
 
 type ListBySubscriptionCompleteResult struct {
 	Items []LoadTestResource
 }
 
-func (r ListBySubscriptionResponse) HasMore() bool {
+func (r ListBySubscriptionOperationResponse) HasMore() bool {
 	return r.nextLink != nil
 }
 
-func (r ListBySubscriptionResponse) LoadMore(ctx context.Context) (resp ListBySubscriptionResponse, err error) {
+func (r ListBySubscriptionOperationResponse) LoadMore(ctx context.Context) (resp ListBySubscriptionOperationResponse, err error) {
 	if !r.HasMore() {
 		err = fmt.Errorf("no more pages returned")
 		return
@@ -35,7 +39,7 @@ func (r ListBySubscriptionResponse) LoadMore(ctx context.Context) (resp ListBySu
 }
 
 // ListBySubscription ...
-func (c LoadTestsClient) ListBySubscription(ctx context.Context, id SubscriptionId) (resp ListBySubscriptionResponse, err error) {
+func (c LoadTestsClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId) (resp ListBySubscriptionOperationResponse, err error) {
 	req, err := c.preparerForListBySubscription(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "loadtests.LoadTestsClient", "ListBySubscription", nil, "Failure preparing request")
@@ -57,12 +61,12 @@ func (c LoadTestsClient) ListBySubscription(ctx context.Context, id Subscription
 }
 
 // ListBySubscriptionComplete retrieves all of the results into a single object
-func (c LoadTestsClient) ListBySubscriptionComplete(ctx context.Context, id SubscriptionId) (ListBySubscriptionCompleteResult, error) {
-	return c.ListBySubscriptionCompleteMatchingPredicate(ctx, id, LoadTestResourcePredicate{})
+func (c LoadTestsClient) ListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (ListBySubscriptionCompleteResult, error) {
+	return c.ListBySubscriptionCompleteMatchingPredicate(ctx, id, LoadTestResourceOperationPredicate{})
 }
 
 // ListBySubscriptionCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c LoadTestsClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id SubscriptionId, predicate LoadTestResourcePredicate) (resp ListBySubscriptionCompleteResult, err error) {
+func (c LoadTestsClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate LoadTestResourceOperationPredicate) (resp ListBySubscriptionCompleteResult, err error) {
 	items := make([]LoadTestResource, 0)
 
 	page, err := c.ListBySubscription(ctx, id)
@@ -101,7 +105,7 @@ func (c LoadTestsClient) ListBySubscriptionCompleteMatchingPredicate(ctx context
 }
 
 // preparerForListBySubscription prepares the ListBySubscription request.
-func (c LoadTestsClient) preparerForListBySubscription(ctx context.Context, id SubscriptionId) (*http.Request, error) {
+func (c LoadTestsClient) preparerForListBySubscription(ctx context.Context, id commonids.SubscriptionId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -142,7 +146,7 @@ func (c LoadTestsClient) preparerForListBySubscriptionWithNextLink(ctx context.C
 
 // responderForListBySubscription handles the response to the ListBySubscription request. The method always
 // closes the http.Response Body.
-func (c LoadTestsClient) responderForListBySubscription(resp *http.Response) (result ListBySubscriptionResponse, err error) {
+func (c LoadTestsClient) responderForListBySubscription(resp *http.Response) (result ListBySubscriptionOperationResponse, err error) {
 	type page struct {
 		Values   []LoadTestResource `json:"value"`
 		NextLink *string            `json:"nextLink"`
@@ -157,7 +161,7 @@ func (c LoadTestsClient) responderForListBySubscription(resp *http.Response) (re
 	result.Model = &respObj.Values
 	result.nextLink = respObj.NextLink
 	if respObj.NextLink != nil {
-		result.nextPageFunc = func(ctx context.Context, nextLink string) (result ListBySubscriptionResponse, err error) {
+		result.nextPageFunc = func(ctx context.Context, nextLink string) (result ListBySubscriptionOperationResponse, err error) {
 			req, err := c.preparerForListBySubscriptionWithNextLink(ctx, nextLink)
 			if err != nil {
 				err = autorest.NewErrorWithError(err, "loadtests.LoadTestsClient", "ListBySubscription", nil, "Failure preparing request")
