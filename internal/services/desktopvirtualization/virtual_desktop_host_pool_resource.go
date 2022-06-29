@@ -152,7 +152,7 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 			},
 
 			"scheduled_agent_updates_use_session_host_timezone": {
-				Type:     pluginsdk.TypeString,
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 
