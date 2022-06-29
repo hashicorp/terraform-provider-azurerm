@@ -16,9 +16,10 @@ function checkForAzCoreUsages {
     echo "the Azure SDK for Go - or another Azure SDK library."
     echo ""
     echo "Rather than importing an SDK which has a reliance on the Track2"
-    echo "libraries, please use the Azure SDK for Go Track1 SDK at this time"
-    echo "or reach out to the Terraform Azure Provider Team if a Track1"
-    echo "SDK isn't available and we can add one in the interim."
+    echo "libraries, please use either github.com/hashicorp/go-azure-sdk"
+    echo "(please open an issue on that repository if you need a"
+    echo "Service/API Version which isn't supported) - or the 'Track1'"
+    echo "Azure SDK for Go."
     exit 1
   fi
 }
@@ -39,9 +40,10 @@ function checkForAzIdentityUsages {
     echo "the Azure SDK for Go - or another Azure SDK library."
     echo ""
     echo "Rather than importing an SDK which has a reliance on the Track2"
-    echo "libraries, please use the Azure SDK for Go Track1 SDK at this time"
-    echo "or reach out to the Terraform Azure Provider Team if a Track1"
-    echo "SDK isn't available and we can add one in the interim."
+    echo "libraries, please use either github.com/hashicorp/go-azure-sdk"
+    echo "(please open an issue on that repository if you need a"
+    echo "Service/API Version which isn't supported) - or the 'Track1'"
+    echo "Azure SDK for Go."
     exit 1
   fi
 }

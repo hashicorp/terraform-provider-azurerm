@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/sdk/2018-11-30/managedidentity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -49,7 +49,7 @@ func dataSourceArmUserAssignedIdentity() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -80,7 +80,7 @@ func dataSourceArmUserAssignedIdentityRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("tenant_id", props.TenantId)
 		}
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}

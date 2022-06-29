@@ -208,6 +208,37 @@ func TestAccKubernetesCluster_upgradeCustomNodePoolBeforeControlPlaneFails(t *te
 	})
 }
 
+func TestAccKubernetesCluster_upgradeControlPlaneAndAllPoolsTogetherVersionAlias(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	nodePoolName := "azurerm_kubernetes_cluster_node_pool.test"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// all on the older version
+			Config: r.upgradeVersionsConfig(data, olderKubernetesVersionAlias, olderKubernetesVersionAlias, olderKubernetesVersionAlias),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersionAlias),
+				check.That(data.ResourceName).Key("default_node_pool.0.orchestrator_version").HasValue(olderKubernetesVersionAlias),
+				check.That(nodePoolName).Key("orchestrator_version").HasValue(olderKubernetesVersionAlias),
+			),
+		},
+		data.ImportStep(),
+		{
+			// upgrade control plane, default and custom node pools
+			Config: r.upgradeVersionsConfig(data, currentKubernetesVersionAlias, currentKubernetesVersionAlias, currentKubernetesVersionAlias),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(currentKubernetesVersionAlias),
+				check.That(data.ResourceName).Key("default_node_pool.0.orchestrator_version").HasValue(currentKubernetesVersionAlias),
+				check.That(nodePoolName).Key("orchestrator_version").HasValue(currentKubernetesVersionAlias),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
