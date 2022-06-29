@@ -4,7 +4,7 @@ FEATURES:
 
 * **New Resource**: `azurerm_data_protection_resource_guard` [GH-17325]
 * **New Resource**: `azurerm_active_directory_domain_service_trust` [GH-17045]
-* **New Resource**: `azurerm_spring_cloud_api_portal_custom
+* **New Resource**: `azurerm_spring_cloud_api_portal_custom`
 
 ENHANCEMENTS:
 
@@ -18,10 +18,14 @@ ENHANCEMENTS:
 * trafficmanager: refactoring to use `hashicorp/go-azure-sdk` [GH-17383]
 * videoanalyzer: refactoring to use `hashicorp/go-azure-sdk` [GH-17382]
 * vmware: refactoring to use `hashicorp/go-azure-sdk` [GH-17381]
+* Data Source: `azurerm_key_vault_key` - outputting `resource_id` and `resource_versionless_id` [GH-17424]
+* Data Source: `azurerm_key_vault_secret` - outputting `resource_id` and `resource_versionless_id` [GH-17424]
 * `azurerm_bot_service_azure_bot` - support new bot type with the `microsoft_app_msi_id`, `microsoft_app_tenant_id`,  and `microsoft_app_type` properties [GH-17077]
 * `azurerm_bot_channels_registration` - support for the `streaming_endpoint_enabled` property [GH-17369]
 * `azurerm_data_factory` - support for the `purview_id` property [GH-17001]
 * `azurerm_digital_twins_instance` - support for the `identity` block [GH-17076]
+* `azurerm_key_vault_key` - outputting `resource_id` and `resource_versionless_id` [GH-17424]
+* `azurerm_key_vault_secret` - outputting `resource_id` and `resource_versionless_id` [GH-17424]
 * `azurerm_kubernetes_cluster` - support for version aliases [GH-17084]
 * `azurerm_linux_web_app` - support for the `virtual_network_subnet_id` property [GH-17354]
 * `azurerm_linux_web_app_slot` - support for the `virtual_network_subnet_id` property [GH-17354]
