@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -115,7 +116,7 @@ func resourcePrivateDnsZone() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(0, 2147483647),
 						},
 
-						"tags": tags.Schema(),
+						"tags": commonschema.Tags(),
 
 						"fqdn": {
 							Type:     pluginsdk.TypeString,
@@ -141,7 +142,7 @@ func resourcePrivateDnsZone() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -169,7 +170,7 @@ func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	parameters := privatezones.PrivateZone{
 		Location: utils.String("global"),
-		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	options := privatezones.CreateOrUpdateOperationOptions{
@@ -187,7 +188,7 @@ func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		rsParameters := recordsets.RecordSet{
 			Properties: &recordsets.RecordSetProperties{
 				Ttl:       utils.Int64(int64(soaRecordRaw["ttl"].(int))),
-				Metadata:  expandTags(soaRecordRaw["tags"].(map[string]interface{})),
+				Metadata:  tags.Expand(soaRecordRaw["tags"].(map[string]interface{})),
 				SoaRecord: soaRecord,
 			},
 		}
@@ -250,7 +251,7 @@ func resourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("max_number_of_virtual_network_links_with_registration", props.MaxNumberOfVirtualNetworkLinksWithRegistration)
 		}
 
-		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}
@@ -303,7 +304,7 @@ func flattenPrivateDNSZoneSOARecord(input *recordsets.RecordSet) []interface{} {
 
 	metaData := make(map[string]interface{})
 	if input.Properties.Metadata != nil {
-		metaData = tags.Flatten(flattenTags(input.Properties.Metadata))
+		metaData = tags.Flatten(input.Properties.Metadata)
 	}
 
 	fqdn := ""
