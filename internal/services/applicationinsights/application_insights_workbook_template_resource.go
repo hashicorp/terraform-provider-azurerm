@@ -28,8 +28,8 @@ type ApplicationInsightsWorkbookTemplateModel struct {
 }
 
 type WorkbookTemplateGalleryModel struct {
-	Category     string `tfschema:"category"`
 	Name         string `tfschema:"name"`
+	Category     string `tfschema:"category"`
 	Order        int64  `tfschema:"order"`
 	ResourceType string `tfschema:"resource_type"`
 	Type         string `tfschema:"type"`
@@ -62,57 +62,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Arguments() map[string]*plu
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"author": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"galleries": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"category": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"order": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-					},
-
-					"resource_type": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"type": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
-		},
-
 		"location": commonschema.Location(),
-
-		"priority": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-		},
-
-		"tags": commonschema.Tags(),
 
 		"template_data": {
 			Type:             pluginsdk.TypeString,
@@ -120,6 +70,61 @@ func (r ApplicationInsightsWorkbookTemplateResource) Arguments() map[string]*plu
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
+
+		"galleries": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"category": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"order": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						Default:  0,
+					},
+
+					"resource_type": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						Default:      "Azure Monitor",
+					},
+
+					"type": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						Default:      "workbook",
+					},
+				},
+			},
+		},
+
+		"author": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"priority": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Default:  0,
+		},
+
+		"tags": commonschema.Tags(),
 	}
 }
 
