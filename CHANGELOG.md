@@ -33,6 +33,7 @@ ENHANCEMENTS:
 * `azurerm_private_link_service` - support for the `fqdns` property [GH-17366]
 * `azurerm_shared_image_version` - support for `Premium_LRS` to`storage_account_type` [GH-17390]
 * `azurerm_shared_image_version` - support for the `disk_encryption_set_id`, `end_of_life_date`, and `replication_mode` properties [GH-17295]
+* `azurerm_static_site_custom_domain` - make `validation_type` optional [GH-15849]
 * `azurerm_vpn_site` - support for the `o365_policy` block [GH-16820]
 
 BUG FIXES:
