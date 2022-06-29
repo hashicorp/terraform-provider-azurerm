@@ -10,6 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/polling"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 type DeleteOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
@@ -98,6 +101,7 @@ func (c PrivateZonesClient) senderForDelete(ctx context.Context, req *http.Reque
 	if err != nil {
 		return
 	}
+
 	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
 	return
 }

@@ -1,4 +1,4 @@
-package privatezones
+package virtualnetworklinks
 
 import (
 	"context"
@@ -9,6 +9,9 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/polling"
 )
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CreateOrUpdateOperationResponse struct {
 	Poller       polling.LongRunningPoller
@@ -45,16 +48,16 @@ func (o CreateOrUpdateOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // CreateOrUpdate ...
-func (c PrivateZonesClient) CreateOrUpdate(ctx context.Context, id PrivateDnsZoneId, input PrivateZone, options CreateOrUpdateOperationOptions) (result CreateOrUpdateOperationResponse, err error) {
+func (c VirtualNetworkLinksClient) CreateOrUpdate(ctx context.Context, id VirtualNetworkLinkId, input VirtualNetworkLink, options CreateOrUpdateOperationOptions) (result CreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForCreateOrUpdate(ctx, id, input, options)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatezones.PrivateZonesClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "virtualnetworklinks.VirtualNetworkLinksClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = c.senderForCreateOrUpdate(ctx, req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatezones.PrivateZonesClient", "CreateOrUpdate", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "virtualnetworklinks.VirtualNetworkLinksClient", "CreateOrUpdate", result.HttpResponse, "Failure sending request")
 		return
 	}
 
@@ -62,7 +65,7 @@ func (c PrivateZonesClient) CreateOrUpdate(ctx context.Context, id PrivateDnsZon
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c PrivateZonesClient) CreateOrUpdateThenPoll(ctx context.Context, id PrivateDnsZoneId, input PrivateZone, options CreateOrUpdateOperationOptions) error {
+func (c VirtualNetworkLinksClient) CreateOrUpdateThenPoll(ctx context.Context, id VirtualNetworkLinkId, input VirtualNetworkLink, options CreateOrUpdateOperationOptions) error {
 	result, err := c.CreateOrUpdate(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
@@ -76,7 +79,7 @@ func (c PrivateZonesClient) CreateOrUpdateThenPoll(ctx context.Context, id Priva
 }
 
 // preparerForCreateOrUpdate prepares the CreateOrUpdate request.
-func (c PrivateZonesClient) preparerForCreateOrUpdate(ctx context.Context, id PrivateDnsZoneId, input PrivateZone, options CreateOrUpdateOperationOptions) (*http.Request, error) {
+func (c VirtualNetworkLinksClient) preparerForCreateOrUpdate(ctx context.Context, id VirtualNetworkLinkId, input VirtualNetworkLink, options CreateOrUpdateOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -98,12 +101,13 @@ func (c PrivateZonesClient) preparerForCreateOrUpdate(ctx context.Context, id Pr
 
 // senderForCreateOrUpdate sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (c PrivateZonesClient) senderForCreateOrUpdate(ctx context.Context, req *http.Request) (future CreateOrUpdateOperationResponse, err error) {
+func (c VirtualNetworkLinksClient) senderForCreateOrUpdate(ctx context.Context, req *http.Request) (future CreateOrUpdateOperationResponse, err error) {
 	var resp *http.Response
 	resp, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
 		return
 	}
+
 	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
 	return
 }

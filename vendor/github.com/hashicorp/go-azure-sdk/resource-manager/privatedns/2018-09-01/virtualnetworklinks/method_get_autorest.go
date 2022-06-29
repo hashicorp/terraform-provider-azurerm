@@ -1,4 +1,4 @@
-package privatezones
+package virtualnetworklinks
 
 import (
 	"context"
@@ -8,28 +8,31 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 type GetOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *PrivateZone
+	Model        *VirtualNetworkLink
 }
 
 // Get ...
-func (c PrivateZonesClient) Get(ctx context.Context, id PrivateDnsZoneId) (result GetOperationResponse, err error) {
+func (c VirtualNetworkLinksClient) Get(ctx context.Context, id VirtualNetworkLinkId) (result GetOperationResponse, err error) {
 	req, err := c.preparerForGet(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatezones.PrivateZonesClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "virtualnetworklinks.VirtualNetworkLinksClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatezones.PrivateZonesClient", "Get", result.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "virtualnetworklinks.VirtualNetworkLinksClient", "Get", result.HttpResponse, "Failure sending request")
 		return
 	}
 
 	result, err = c.responderForGet(result.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatezones.PrivateZonesClient", "Get", result.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "virtualnetworklinks.VirtualNetworkLinksClient", "Get", result.HttpResponse, "Failure responding to request")
 		return
 	}
 
@@ -37,7 +40,7 @@ func (c PrivateZonesClient) Get(ctx context.Context, id PrivateDnsZoneId) (resul
 }
 
 // preparerForGet prepares the Get request.
-func (c PrivateZonesClient) preparerForGet(ctx context.Context, id PrivateDnsZoneId) (*http.Request, error) {
+func (c VirtualNetworkLinksClient) preparerForGet(ctx context.Context, id VirtualNetworkLinkId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -53,7 +56,7 @@ func (c PrivateZonesClient) preparerForGet(ctx context.Context, id PrivateDnsZon
 
 // responderForGet handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (c PrivateZonesClient) responderForGet(resp *http.Response) (result GetOperationResponse, err error) {
+func (c VirtualNetworkLinksClient) responderForGet(resp *http.Response) (result GetOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

@@ -1,4 +1,4 @@
-package privatezones
+package recordsets
 
 import (
 	"context"
@@ -8,19 +8,21 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ListOperationResponse struct {
 	HttpResponse *http.Response
-	Model        *[]PrivateZone
+	Model        *[]RecordSet
 
 	nextLink     *string
 	nextPageFunc func(ctx context.Context, nextLink string) (ListOperationResponse, error)
 }
 
 type ListCompleteResult struct {
-	Items []PrivateZone
+	Items []RecordSet
 }
 
 func (r ListOperationResponse) HasMore() bool {
@@ -36,7 +38,8 @@ func (r ListOperationResponse) LoadMore(ctx context.Context) (resp ListOperation
 }
 
 type ListOperationOptions struct {
-	Top *int64
+	Recordsetnamesuffix *string
+	Top                 *int64
 }
 
 func DefaultListOperationOptions() ListOperationOptions {
@@ -52,6 +55,10 @@ func (o ListOperationOptions) toHeaders() map[string]interface{} {
 func (o ListOperationOptions) toQueryString() map[string]interface{} {
 	out := make(map[string]interface{})
 
+	if o.Recordsetnamesuffix != nil {
+		out["$recordsetnamesuffix"] = *o.Recordsetnamesuffix
+	}
+
 	if o.Top != nil {
 		out["$top"] = *o.Top
 	}
@@ -60,35 +67,35 @@ func (o ListOperationOptions) toQueryString() map[string]interface{} {
 }
 
 // List ...
-func (c PrivateZonesClient) List(ctx context.Context, id commonids.SubscriptionId, options ListOperationOptions) (resp ListOperationResponse, err error) {
+func (c RecordSetsClient) List(ctx context.Context, id PrivateDnsZoneId, options ListOperationOptions) (resp ListOperationResponse, err error) {
 	req, err := c.preparerForList(ctx, id, options)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatezones.PrivateZonesClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "recordsets.RecordSetsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatezones.PrivateZonesClient", "List", resp.HttpResponse, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "recordsets.RecordSetsClient", "List", resp.HttpResponse, "Failure sending request")
 		return
 	}
 
 	resp, err = c.responderForList(resp.HttpResponse)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "privatezones.PrivateZonesClient", "List", resp.HttpResponse, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "recordsets.RecordSetsClient", "List", resp.HttpResponse, "Failure responding to request")
 		return
 	}
 	return
 }
 
 // ListComplete retrieves all of the results into a single object
-func (c PrivateZonesClient) ListComplete(ctx context.Context, id commonids.SubscriptionId, options ListOperationOptions) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, options, PrivateZoneOperationPredicate{})
+func (c RecordSetsClient) ListComplete(ctx context.Context, id PrivateDnsZoneId, options ListOperationOptions) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, options, RecordSetOperationPredicate{})
 }
 
 // ListCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c PrivateZonesClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options ListOperationOptions, predicate PrivateZoneOperationPredicate) (resp ListCompleteResult, err error) {
-	items := make([]PrivateZone, 0)
+func (c RecordSetsClient) ListCompleteMatchingPredicate(ctx context.Context, id PrivateDnsZoneId, options ListOperationOptions, predicate RecordSetOperationPredicate) (resp ListCompleteResult, err error) {
+	items := make([]RecordSet, 0)
 
 	page, err := c.List(ctx, id, options)
 	if err != nil {
@@ -126,7 +133,7 @@ func (c PrivateZonesClient) ListCompleteMatchingPredicate(ctx context.Context, i
 }
 
 // preparerForList prepares the List request.
-func (c PrivateZonesClient) preparerForList(ctx context.Context, id commonids.SubscriptionId, options ListOperationOptions) (*http.Request, error) {
+func (c RecordSetsClient) preparerForList(ctx context.Context, id PrivateDnsZoneId, options ListOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -140,13 +147,13 @@ func (c PrivateZonesClient) preparerForList(ctx context.Context, id commonids.Su
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
 		autorest.WithHeaders(options.toHeaders()),
-		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.Network/privateDnsZones", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/aLL", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // preparerForListWithNextLink prepares the List request with the given nextLink token.
-func (c PrivateZonesClient) preparerForListWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
+func (c RecordSetsClient) preparerForListWithNextLink(ctx context.Context, nextLink string) (*http.Request, error) {
 	uri, err := url.Parse(nextLink)
 	if err != nil {
 		return nil, fmt.Errorf("parsing nextLink %q: %+v", nextLink, err)
@@ -172,10 +179,10 @@ func (c PrivateZonesClient) preparerForListWithNextLink(ctx context.Context, nex
 
 // responderForList handles the response to the List request. The method always
 // closes the http.Response Body.
-func (c PrivateZonesClient) responderForList(resp *http.Response) (result ListOperationResponse, err error) {
+func (c RecordSetsClient) responderForList(resp *http.Response) (result ListOperationResponse, err error) {
 	type page struct {
-		Values   []PrivateZone `json:"value"`
-		NextLink *string       `json:"nextLink"`
+		Values   []RecordSet `json:"value"`
+		NextLink *string     `json:"nextLink"`
 	}
 	var respObj page
 	err = autorest.Respond(
@@ -190,19 +197,19 @@ func (c PrivateZonesClient) responderForList(resp *http.Response) (result ListOp
 		result.nextPageFunc = func(ctx context.Context, nextLink string) (result ListOperationResponse, err error) {
 			req, err := c.preparerForListWithNextLink(ctx, nextLink)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "privatezones.PrivateZonesClient", "List", nil, "Failure preparing request")
+				err = autorest.NewErrorWithError(err, "recordsets.RecordSetsClient", "List", nil, "Failure preparing request")
 				return
 			}
 
 			result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "privatezones.PrivateZonesClient", "List", result.HttpResponse, "Failure sending request")
+				err = autorest.NewErrorWithError(err, "recordsets.RecordSetsClient", "List", result.HttpResponse, "Failure sending request")
 				return
 			}
 
 			result, err = c.responderForList(result.HttpResponse)
 			if err != nil {
-				err = autorest.NewErrorWithError(err, "privatezones.PrivateZonesClient", "List", result.HttpResponse, "Failure responding to request")
+				err = autorest.NewErrorWithError(err, "recordsets.RecordSetsClient", "List", result.HttpResponse, "Failure responding to request")
 				return
 			}
 
