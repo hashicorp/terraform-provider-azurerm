@@ -2,19 +2,19 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/applicationinsights"
+	workbook "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/applicationinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/azuresdkhacks"
 )
 
 type Client struct {
-	AnalyticsItemsClient      *insights.AnalyticsItemsClient
-	APIKeysClient             *insights.APIKeysClient
-	ComponentsClient          *insights.ComponentsClient
-	WebTestsClient            *azuresdkhacks.WebTestsClient
-	BillingClient             *insights.ComponentCurrentBillingFeaturesClient
-	SmartDetectionRuleClient  *insights.ProactiveDetectionConfigurationsClient
-	ApplicationInsightsClient *applicationinsights.ApplicationInsightsClient
+	AnalyticsItemsClient     *insights.AnalyticsItemsClient
+	APIKeysClient            *insights.APIKeysClient
+	ComponentsClient         *insights.ComponentsClient
+	WebTestsClient           *azuresdkhacks.WebTestsClient
+	BillingClient            *insights.ComponentCurrentBillingFeaturesClient
+	SmartDetectionRuleClient *insights.ProactiveDetectionConfigurationsClient
+	WorkbookClient           *workbook.ApplicationInsightsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -37,16 +37,16 @@ func NewClient(o *common.ClientOptions) *Client {
 	smartDetectionRuleClient := insights.NewProactiveDetectionConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&smartDetectionRuleClient.Client, o.ResourceManagerAuthorizer)
 
-	applicationInsightsClient := applicationinsights.NewApplicationInsightsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&applicationInsightsClient.Client, o.ResourceManagerAuthorizer)
+	workbookClient := workbook.NewApplicationInsightsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&workbookClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AnalyticsItemsClient:      &analyticsItemsClient,
-		APIKeysClient:             &apiKeysClient,
-		ComponentsClient:          &componentsClient,
-		WebTestsClient:            &webTestsWorkaroundClient,
-		BillingClient:             &billingClient,
-		SmartDetectionRuleClient:  &smartDetectionRuleClient,
-		ApplicationInsightsClient: &applicationInsightsClient,
+		AnalyticsItemsClient:     &analyticsItemsClient,
+		APIKeysClient:            &apiKeysClient,
+		ComponentsClient:         &componentsClient,
+		WebTestsClient:           &webTestsWorkaroundClient,
+		BillingClient:            &billingClient,
+		SmartDetectionRuleClient: &smartDetectionRuleClient,
+		WorkbookClient:           &workbookClient,
 	}
 }

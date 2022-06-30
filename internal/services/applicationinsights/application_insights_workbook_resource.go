@@ -43,7 +43,7 @@ func (r ApplicationInsightsWorkbookResource) ModelObject() interface{} {
 }
 
 func (r ApplicationInsightsWorkbookResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.WorkbookID
+	return applicationinsights.ValidateWorkbookID
 }
 
 func (r ApplicationInsightsWorkbookResource) Arguments() map[string]*pluginsdk.Schema {
@@ -131,7 +131,7 @@ func (r ApplicationInsightsWorkbookResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.AppInsights.ApplicationInsightsClient
+			client := metadata.Client.AppInsights.WorkbookClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := applicationinsights.NewWorkbookID(subscriptionId, model.ResourceGroupName, model.Name)
 			existing, err := client.WorkbooksGet(ctx, id, applicationinsights.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
@@ -185,7 +185,7 @@ func (r ApplicationInsightsWorkbookResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppInsights.ApplicationInsightsClient
+			client := metadata.Client.AppInsights.WorkbookClient
 
 			id, err := applicationinsights.ParseWorkbookID(metadata.ResourceData.Id())
 			if err != nil {
@@ -240,7 +240,7 @@ func (r ApplicationInsightsWorkbookResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppInsights.ApplicationInsightsClient
+			client := metadata.Client.AppInsights.WorkbookClient
 
 			id, err := applicationinsights.ParseWorkbookID(metadata.ResourceData.Id())
 			if err != nil {
@@ -314,7 +314,7 @@ func (r ApplicationInsightsWorkbookResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppInsights.ApplicationInsightsClient
+			client := metadata.Client.AppInsights.WorkbookClient
 
 			id, err := applicationinsights.ParseWorkbookID(metadata.ResourceData.Id())
 			if err != nil {

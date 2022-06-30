@@ -3,23 +3,7 @@ package validate
 import (
 	"fmt"
 	"strings"
-
-	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/applicationinsights"
 )
-
-func WorkbookID(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
-	}
-
-	if _, err := applicationinsights.ParseWorkbookID(v); err != nil {
-		errors = append(errors, err)
-	}
-
-	return
-}
 
 func StringDoesNotContainUpperCaseLetter(input interface{}, k string) (warnings []string, errors []error) {
 	v, ok := input.(string)

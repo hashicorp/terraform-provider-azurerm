@@ -97,7 +97,7 @@ func (r ApplicationInsightsWorkbookResource) Exists(ctx context.Context, clients
 		return nil, err
 	}
 
-	client := clients.AppInsights.ApplicationInsightsClient
+	client := clients.AppInsights.WorkbookClient
 	resp, err := client.WorkbooksGet(ctx, *id, applicationinsights.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
