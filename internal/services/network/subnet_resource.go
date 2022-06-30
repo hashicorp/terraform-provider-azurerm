@@ -247,13 +247,13 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	// 'privateEndpointNetworkPolicies'   : false(enabled)
 	// 'privateLinkServiceNetworkPolicies': false(enabled)
 	//
-	// the above appears to be backwards, but unfortunatly due to the
+	// the above appears to be backwards, but unfortunately due to the
 	// existing name the values are reveresed(e.g. false == enabled, true == disabled)
 	properties.PrivateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(network.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled)
 	properties.PrivateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(network.VirtualNetworkPrivateLinkServiceNetworkPoliciesEnabled)
 
 	// NOTE: (WodansSon) - If the values are in the config file we need to know which
-	// one as the value assignemnts are exactly opposite for each of the fields
+	// one as the value assignments are exactly opposite for each of the fields
 	if enforcePrivateEndpointNetworkPoliciesExists {
 		properties.PrivateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandEnforceSubnetPrivateLinkNetworkPolicy(enforcePrivateEndpointNetworkPoliciesRaw.(bool)))
 	} else if privateEndpointNetworkPoliciesExists {
