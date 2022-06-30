@@ -88,7 +88,7 @@ func (client ScriptsClient) CheckNameAvailabilityPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-27"
+	const APIVersion = "2022-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -139,15 +139,6 @@ func (client ScriptsClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.ScriptProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "parameters.ScriptProperties.ScriptURL", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "parameters.ScriptProperties.ScriptURLSasToken", Name: validation.Null, Rule: true, Chain: nil},
-				}}}}}); err != nil {
-		return result, validation.NewError("kusto.ScriptsClient", "CreateOrUpdate", err.Error())
-	}
-
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, clusterName, databaseName, scriptName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "kusto.ScriptsClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -173,7 +164,7 @@ func (client ScriptsClient) CreateOrUpdatePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-27"
+	const APIVersion = "2022-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -259,7 +250,7 @@ func (client ScriptsClient) DeletePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-27"
+	const APIVersion = "2022-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -348,7 +339,7 @@ func (client ScriptsClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-27"
+	const APIVersion = "2022-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -426,7 +417,7 @@ func (client ScriptsClient) ListByDatabasePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-27"
+	const APIVersion = "2022-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -500,7 +491,7 @@ func (client ScriptsClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-08-27"
+	const APIVersion = "2022-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

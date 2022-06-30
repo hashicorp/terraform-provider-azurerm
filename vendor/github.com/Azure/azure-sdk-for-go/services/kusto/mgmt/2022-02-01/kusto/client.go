@@ -1,4 +1,4 @@
-// Package kusto implements the Azure ARM Kusto service API version 2021-08-27.
+// Package kusto implements the Azure ARM Kusto service API version 2022-02-01.
 //
 // The Azure Kusto management API provides a RESTful set of web services that interact with Azure Kusto services to
 // manage your clusters and databases. The API enables you to create, update, and delete clusters and databases.
