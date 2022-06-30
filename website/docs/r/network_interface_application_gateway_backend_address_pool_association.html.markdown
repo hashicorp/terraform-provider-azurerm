@@ -105,28 +105,11 @@ resource "azurerm_application_gateway" "network" {
   request_routing_rule {
     name                       = local.request_routing_rule_name
     rule_type                  = "Basic"
+    priority                   = 25
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
   }
-}
-
-resource "azurerm_network_interface" "example" {
-  name                = "example-nic"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = azurerm_subnet.frontend.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_network_interface_application_gateway_backend_address_pool_association" "example" {
-  network_interface_id    = azurerm_network_interface.example.id
-  ip_configuration_name   = "testconfiguration1"
-  backend_address_pool_id = tolist(azurerm_application_gateway.network.backend_address_pool).0.id
 }
 ```
 
