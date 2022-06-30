@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * containerservice: updated to use version `2022-03-02-preview` [GH-17084]
 * elastic: refactoring to use `hashicorp/go-azure-sdk` [GH-17431]
 * loadtest: refactoring to use `hashicorp/go-azure-sdk` [GH-17432]
+* maps: refactoring to use `hashicorp/go-azure-sdk` [GH-17434]
 * mixedreality: switching to use `hashicorp/go-azure-sdk` [GH-17417]
 * msi: refactoring to use `hashicorp/go-azure-sdk` [GH-17430]
 * purview: refactoring to use `hashicorp/go-azure-sdk` [GH-17419]
