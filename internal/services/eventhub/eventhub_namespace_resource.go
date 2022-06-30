@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	legacyIdentity "github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -677,19 +676,6 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 		"ip_rule":                        ipBlocks,
 		"trusted_service_access_enabled": ruleset.Model.Properties.TrustedServiceAccessEnabled,
 	}}
-}
-
-func flattenEventHubIdentity(input *legacyIdentity.SystemUserAssignedIdentityMap) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	legacyConfig := input.ToExpandedConfig()
-	return identity.FlattenSystemAssigned(&identity.SystemAssigned{
-		Type:        identity.Type(string(legacyConfig.Type)),
-		PrincipalId: legacyConfig.PrincipalId,
-		TenantId:    legacyConfig.TenantId,
-	})
 }
 
 // The resource id of subnet_id that's being returned by API is always lower case &
