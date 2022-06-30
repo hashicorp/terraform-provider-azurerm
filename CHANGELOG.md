@@ -2,8 +2,8 @@
 
 FEATURES:
 
-* **New Resource**: `azurerm_data_protection_resource_guard` [GH-17325]
 * **New Resource**: `azurerm_active_directory_domain_service_trust` [GH-17045]
+* **New Resource**: `azurerm_data_protection_resource_guard` [GH-17325]
 * **New Resource**: `azurerm_spring_cloud_api_portal_custom_domain` [GH-16966]
 
 ENHANCEMENTS:
@@ -11,6 +11,12 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20220628.1190740` of `github.com/hashicorp/go-azure-sdk` [GH-17399]
 * appservice: replacing usages of `ioutil` with `io` [GH-17392]
 * containerservice: updated to use version `2022-03-02-preview` [GH-17084]
+* elastic: refactoring to use `hashicorp/go-azure-sdk` [GH-17431]
+* loadtest: refactoring to use `hashicorp/go-azure-sdk` [GH-17432]
+* maps: refactoring to use `hashicorp/go-azure-sdk` [GH-17434]
+* mixedreality: switching to use `hashicorp/go-azure-sdk` [GH-17417]
+* msi: refactoring to use `hashicorp/go-azure-sdk` [GH-17430]
+* powerbi: refactoring to use `hashicorp/go-azure-sdk` [GH-17435]
 * purview: refactoring to use `hashicorp/go-azure-sdk` [GH-17419]
 * redisenterprise: refactoring to use `hashicorp/go-azure-sdk` [GH-17387]
 * relay: refactoring to use `hashicorp/go-azure-sdk` [GH-17385]
@@ -21,6 +27,7 @@ ENHANCEMENTS:
 * vmware: refactoring to use `hashicorp/go-azure-sdk` [GH-17381]
 * Data Source: `azurerm_key_vault_key` - outputting `resource_id` and `resource_versionless_id` [GH-17424]
 * Data Source: `azurerm_key_vault_secret` - outputting `resource_id` and `resource_versionless_id` [GH-17424]
+* Data Source: `azurerm_spatial_anchors_account` - exposing `tags` [GH-17417]
 * `azurerm_bot_service_azure_bot` - support new bot type with the `microsoft_app_msi_id`, `microsoft_app_tenant_id`,  and `microsoft_app_type` properties [GH-17077]
 * `azurerm_bot_channels_registration` - support for the `streaming_endpoint_enabled` property [GH-17369]
 * `azurerm_data_factory` - support for the `purview_id` property [GH-17001]
