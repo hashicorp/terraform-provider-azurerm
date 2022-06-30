@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * maps: refactoring to use `hashicorp/go-azure-sdk` [GH-17434]
 * mixedreality: switching to use `hashicorp/go-azure-sdk` [GH-17417]
 * msi: refactoring to use `hashicorp/go-azure-sdk` [GH-17430]
+* powerbi: refactoring to use `hashicorp/go-azure-sdk` [GH-17435]
 * purview: refactoring to use `hashicorp/go-azure-sdk` [GH-17419]
 * redisenterprise: refactoring to use `hashicorp/go-azure-sdk` [GH-17387]
 * relay: refactoring to use `hashicorp/go-azure-sdk` [GH-17385]
