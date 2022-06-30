@@ -19,13 +19,19 @@ type RoleAssignmentId struct {
 }
 
 func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resourceScope, managementGroup, name, tenantId string, isSubLevel bool) (*RoleAssignmentId, error) {
-	if subscriptionId == "" && resourceGroup == "" && managementGroup == "" {
-		return nil, fmt.Errorf("one of subscriptionId, resourceGroup, or managementGroup must be provided")
+	if subscriptionId == "" && resourceGroup == "" && managementGroup == "" && !isSubLevel {
+		return nil, fmt.Errorf("one of subscriptionId, resourceGroup, managementGroup or isSubscriptionLevel must be provided")
 	}
 
 	if managementGroup != "" {
-		if subscriptionId != "" || resourceGroup != "" {
-			return nil, fmt.Errorf("cannot provide subscriptionId or resourceGroup when managementGroup is provided")
+		if subscriptionId != "" || resourceGroup != "" || isSubLevel {
+			return nil, fmt.Errorf("cannot provide subscriptionId, resourceGroup or isSubscriptionLevel when managementGroup is provided")
+		}
+	}
+
+	if isSubLevel {
+		if subscriptionId != "" || resourceGroup != "" || managementGroup != "" {
+			return nil, fmt.Errorf("cannot provide subscriptionId, resourceGroup or managementGroup when isSubscriptionLevel is provided")
 		}
 	}
 
