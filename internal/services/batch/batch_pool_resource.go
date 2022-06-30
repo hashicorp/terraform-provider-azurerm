@@ -1409,7 +1409,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if props.MountConfiguration != nil {
 			mountConfigs := make([]interface{}, 0)
 			for _, mountConfig := range *props.MountConfiguration {
-				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(&mountConfig))
+				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(d, &mountConfig))
 			}
 			d.Set("mount_configuration", mountConfigs)
 		}

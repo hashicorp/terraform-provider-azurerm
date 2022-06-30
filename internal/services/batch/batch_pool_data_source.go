@@ -943,7 +943,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if props.MountConfiguration != nil {
 			mountConfigs := make([]interface{}, len(*props.MountConfiguration))
 			for _, mountConfig := range *props.MountConfiguration {
-				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(&mountConfig))
+				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(nil, &mountConfig))
 			}
 			d.Set("mount_configuration", mountConfigs)
 		}
