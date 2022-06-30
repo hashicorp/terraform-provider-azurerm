@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-10-01/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -298,8 +298,13 @@ func resourceNetAppSnapshotPolicyUpdate(d *pluginsdk.ResourceData, meta interfac
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.Update(ctx, parameters, resourceGroup, accountName, name); err != nil {
+	future, err := client.Update(ctx, parameters, resourceGroup, accountName, name)
+	if err != nil {
 		return fmt.Errorf("updating NetApp SnapshotPolicy %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return resourceNetAppSnapshotPolicyRead(d, meta)
@@ -361,11 +366,15 @@ func resourceNetAppSnapshotPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	// Deleting snapshot policy and waiting for it fo fully complete the operation
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
+	if err != nil {
 		return fmt.Errorf("deleting NetApp Snapshot Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for NetApp SnapshotPolicy Provisioning Service %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
+	}
 	if err := waitForSnapshotPolicyDeletion(ctx, client, *id, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
 		return err
 	}

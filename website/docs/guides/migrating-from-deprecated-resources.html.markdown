@@ -111,7 +111,7 @@ $ terraform import [resourcename].[identifier] [resourceid]
 For example:
 
 ```shell
-$ terraform import azurerm_app_service_plan.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/serverfarms/instance1
+$ terraform import azurerm_service_plan.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/serverfarms/instance1
 azurerm_monitor_autoscale_setting.test: Importing from ID "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/serverfarms/instance1"...
 azurerm_monitor_autoscale_setting.test: Import prepared!
   Prepared azurerm_monitor_autoscale_setting for import

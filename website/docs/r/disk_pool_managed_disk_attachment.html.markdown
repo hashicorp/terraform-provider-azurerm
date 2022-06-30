@@ -65,7 +65,7 @@ resource "azurerm_managed_disk" "example" {
   storage_account_type = "Premium_LRS"
   disk_size_gb         = 4
   max_shares           = 2
-  zones                = ["1"]
+  zone                 = "1"
 }
 
 data "azuread_service_principal" "example" {

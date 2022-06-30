@@ -40,6 +40,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall"
@@ -119,6 +120,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		containers.Registration{},
 		costmanagement.Registration{},
 		disks.Registration{},
+		domainservices.Registration{},
 		eventhub.Registration{},
 		keyvault.Registration{},
 		loadbalancer.Registration{},
@@ -171,6 +173,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			digitaltwins.Registration{},
 			dns.Registration{},
 			domainservices.Registration{},
+			elastic.Registration{},
 			eventgrid.Registration{},
 			eventhub.Registration{},
 			firewall.Registration{},

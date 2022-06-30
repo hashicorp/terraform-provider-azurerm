@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_stream_analytics_reference_input_mssql
 
-Manages a Stream Analytics Reference Input from MS SQL. Reference data (also known as a lookup table) is a finite data set that is static or slowly changing in nature, used to perform a lookup or to correlate with your data stream. Learn more [here](https://docs.microsoft.com/en-us/azure/stream-analytics/stream-analytics-use-reference-data#azure-sql-database).
+Manages a Stream Analytics Reference Input from MS SQL. Reference data (also known as a lookup table) is a finite data set that is static or slowly changing in nature, used to perform a lookup or to correlate with your data stream. Learn more [here](https://docs.microsoft.com/azure/stream-analytics/stream-analytics-use-reference-data#azure-sql-database).
 
 ## Example Usage
 
@@ -39,8 +39,8 @@ resource "azurerm_mssql_database" "example" {
 
 resource "azurerm_stream_analytics_reference_input_mssql" "example" {
   name                      = "example-reference-input"
-  resource_group_name       = azurerm_stream_analytics_job.example.resource_group_name
-  stream_analytics_job_name = azurerm_stream_analytics_job.example.name
+  resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
+  stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
   server                    = azurerm_mssql_server.example.fully_qualified_domain_name
   database                  = azurerm_mssql_database.example.name
   username                  = "exampleuser"

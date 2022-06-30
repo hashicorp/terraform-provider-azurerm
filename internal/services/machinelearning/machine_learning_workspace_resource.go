@@ -170,11 +170,10 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			},
 
 			"sku_name": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Default:          string(Basic),
-				ValidateFunc:     validation.StringInSlice([]string{string(Basic)}, false),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(Basic),
+				ValidateFunc: validation.StringInSlice([]string{string(Basic)}, false),
 			},
 
 			"discovery_url": {

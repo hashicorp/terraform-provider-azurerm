@@ -213,6 +213,7 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 					DiffSuppressFunc: suppress.CaseDifference,
 					ValidateFunc:     validate.DiskEncryptionSetID,
+					ConflictsWith:    []string{"os_disk.0.secure_vm_disk_encryption_set_id"},
 				},
 
 				"disk_size_gb": {
@@ -227,6 +228,24 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					ForceNew: true,
 					Computed: true,
+				},
+
+				"secure_vm_disk_encryption_set_id": {
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ForceNew:      true,
+					ValidateFunc:  validate.DiskEncryptionSetID,
+					ConflictsWith: []string{"os_disk.0.disk_encryption_set_id"},
+				},
+
+				"security_encryption_type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.SecurityEncryptionTypesVMGuestStateOnly),
+						string(compute.SecurityEncryptionTypesDiskWithVMGuestState),
+					}, false),
 				},
 
 				"write_accelerator_enabled": {
@@ -255,6 +274,21 @@ func expandVirtualMachineOSDisk(input []interface{}, osType compute.OperatingSys
 		// an image of the machine (e.g. an Image/Shared Image Gallery)
 		CreateOption: compute.DiskCreateOptionTypesFromImage,
 		OsType:       osType,
+	}
+
+	securityEncryptionType := raw["security_encryption_type"].(string)
+	if securityEncryptionType != "" {
+		disk.ManagedDisk.SecurityProfile = &compute.VMDiskSecurityProfile{
+			SecurityEncryptionType: compute.SecurityEncryptionTypes(securityEncryptionType),
+		}
+	}
+	if secureVMDiskEncryptionId := raw["secure_vm_disk_encryption_set_id"].(string); secureVMDiskEncryptionId != "" {
+		if compute.SecurityEncryptionTypesDiskWithVMGuestState != compute.SecurityEncryptionTypes(securityEncryptionType) {
+			return nil, fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`")
+		}
+		disk.ManagedDisk.SecurityProfile.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+			ID: utils.String(secureVMDiskEncryptionId),
+		}
 	}
 
 	if osDiskSize := raw["disk_size_gb"].(int); osDiskSize > 0 {
@@ -317,6 +351,8 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 
 	diskEncryptionSetId := ""
 	storageAccountType := ""
+	secureVMDiskEncryptionSetId := ""
+	securityEncryptionType := ""
 
 	if input.ManagedDisk != nil {
 		storageAccountType = string(input.ManagedDisk.StorageAccountType)
@@ -356,6 +392,13 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 				}
 			}
 		}
+
+		if securityProfile := input.ManagedDisk.SecurityProfile; securityProfile != nil {
+			securityEncryptionType = string(securityProfile.SecurityEncryptionType)
+			if securityProfile.DiskEncryptionSet != nil && securityProfile.DiskEncryptionSet.ID != nil {
+				secureVMDiskEncryptionSetId = *securityProfile.DiskEncryptionSet.ID
+			}
+		}
 	}
 
 	writeAcceleratorEnabled := false
@@ -364,13 +407,15 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"caching":                   string(input.Caching),
-			"disk_size_gb":              diskSizeGb,
-			"diff_disk_settings":        diffDiskSettings,
-			"disk_encryption_set_id":    diskEncryptionSetId,
-			"name":                      name,
-			"storage_account_type":      storageAccountType,
-			"write_accelerator_enabled": writeAcceleratorEnabled,
+			"caching":                          string(input.Caching),
+			"disk_size_gb":                     diskSizeGb,
+			"diff_disk_settings":               diffDiskSettings,
+			"disk_encryption_set_id":           diskEncryptionSetId,
+			"name":                             name,
+			"storage_account_type":             storageAccountType,
+			"secure_vm_disk_encryption_set_id": secureVMDiskEncryptionSetId,
+			"security_encryption_type":         securityEncryptionType,
+			"write_accelerator_enabled":        writeAcceleratorEnabled,
 		},
 	}, nil
 }

@@ -45,7 +45,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `storage_account_name` - The backend storage account name used by this Function App.
 
-* `app_settings` - A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
+* `app_settings` - A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
 * `auth_settings` - A `auth_settings` block as defined below.
 
@@ -63,7 +63,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `enabled` - Is the Function App enabled?
 
-* `force_disable_content_share` - Are the settings for linking the Function App to storage suppressed?
+* `content_share_force_disabled` - Are the settings for linking the Function App to storage suppressed?
 
 * `functions_extension_version` - The runtime version associated with the Function App.
 
@@ -409,7 +409,7 @@ A `site_config` block exports the following:
 
 * `use_32_bit_worker` - Does the Linux Web App use a 32-bit worker process?
 
-* `vnet_route_all_enabled` - Does all outbound traffic have Virtual Network Security Groups and User Defined Routes applied?
+* `vnet_route_all_enabled` - Are all outbound traffic to NAT Gateways, Network Security Groups and User Defined Routes applied?
 
 * `websockets_enabled` - Are Web Sockets enabled?
 

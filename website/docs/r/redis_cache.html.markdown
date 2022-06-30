@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `enable_non_ssl_port` - (Optional) Enable the non-SSL port (6379) - disabled by default.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `minimum_tls_version` - (Optional) The minimum TLS version.  Defaults to `1.0`.
 
 * `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below.
@@ -87,7 +89,17 @@ The following arguments are supported:
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Redis Cache should be located. Changing this forces a new Redis Cache to be created.
 
--> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+-> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](https://aka.ms/azenroll).
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Batch Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -197,8 +209,8 @@ A `redis_configuration` block exports the following:
 * `maxclients` - Returns the max number of connected clients at the same time.
 
 ## Relevant Links
- - [Azure Cache for Redis planning](https://docs.microsoft.com/en-us/azure/azure-cache-for-redis/cache-planning-faq)
- - [Redis: Available Configuration Settings](http://redis.io/topics/config)
+ - [Azure Cache for Redis planning](https://docs.microsoft.com/azure/azure-cache-for-redis/cache-planning-faq)
+ - [Redis: Available Configuration Settings](https://redis.io/topics/config)
 
 ## Timeouts
 

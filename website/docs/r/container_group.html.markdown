@@ -24,7 +24,7 @@ resource "azurerm_container_group" "example" {
   name                = "example-continst"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  ip_address_type     = "public"
+  ip_address_type     = "Public"
   dns_name_label      = "aci-label"
   os_type             = "Linux"
 
@@ -106,7 +106,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Container Group. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the container group has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
+~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the container group has been created. See [documentation](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview) for more information.
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Container Group.
 
@@ -143,6 +143,12 @@ A `container` block supports:
 * `gpu` - (Optional) A `gpu` block as defined below. Changing this forces a new resource to be created.
 
 ~> **Note:** Gpu resources are currently only supported in Linux containers.
+
+* `cpu_limit` - (Optional) The upper limit of the number of CPU cores of the containers.
+
+* `memory_limit` - (Optional) The the upper limit of the memory of the containers in GB.
+
+* `gpu_limit` - (Optional) A `gpu_limit` block as defined below.
 
 * `ports` - (Optional) A set of public ports for the container. Changing this forces a new resource to be created. Set as documented in the `ports` block below.
 
@@ -213,6 +219,14 @@ A `gpu` block supports:
 * `count` - (Required) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`. Changing this forces a new resource to be created.
 
 * `sku` - (Required) The SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
+
+---
+
+A `gpu_limit` block supports:
+
+* `count` - (Optional) The upper limit of the number of GPUs which should be assigned to this container.
+
+* `sku` - (Optional) The allowed SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`.
 
 ---
 

@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/sdk/2018-11-30/managedidentity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -54,7 +55,7 @@ func resourceArmUserAssignedIdentity() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"principal_id": {
 				Type:     pluginsdk.TypeString,
@@ -102,7 +103,7 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *pluginsdk.ResourceData, meta
 	identity := managedidentity.Identity{
 		Name:     utils.String(resourceId.ResourceName),
 		Location: location,
-		Tags:     expandTags(t),
+		Tags:     tags.Expand(t),
 	}
 
 	if _, err := client.UserAssignedIdentitiesCreateOrUpdate(ctx, resourceId, identity); err != nil {
@@ -144,7 +145,7 @@ func resourceArmUserAssignedIdentityRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("tenant_id", props.TenantId)
 		}
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}

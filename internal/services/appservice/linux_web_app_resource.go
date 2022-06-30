@@ -38,11 +38,13 @@ type LinuxWebAppModel struct {
 	ClientCertMode                string                     `tfschema:"client_certificate_mode"`
 	Enabled                       bool                       `tfschema:"enabled"`
 	HttpsOnly                     bool                       `tfschema:"https_only"`
+	VirtualNetworkSubnetID        string                     `tfschema:"virtual_network_subnet_id"`
 	KeyVaultReferenceIdentityID   string                     `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig       `tfschema:"logs"`
 	SiteConfig                    []helpers.SiteConfigLinux  `tfschema:"site_config"`
 	StorageAccounts               []helpers.StorageAccount   `tfschema:"storage_account"`
 	ConnectionStrings             []helpers.ConnectionString `tfschema:"connection_string"`
+	ZipDeployFile                 string                     `tfschema:"zip_deploy_file"`
 	Tags                          map[string]string          `tfschema:"tags"`
 	CustomDomainVerificationId    string                     `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string                     `tfschema:"default_hostname"`
@@ -127,6 +129,12 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"key_vault_reference_identity_id": {
@@ -143,6 +151,14 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"sticky_settings": helpers.StickySettingsSchema(),
 
 		"storage_account": helpers.StorageAccountSchema(),
+
+		"zip_deploy_file": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` on the App in `app_settings`.",
+		},
 
 		"tags": tags.Schema(),
 	}
@@ -302,6 +318,10 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			if webApp.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(webApp.VirtualNetworkSubnetID)
+			}
+
 			if webApp.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webApp.KeyVaultReferenceIdentityID)
 			}
@@ -375,6 +395,12 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			if connectionStrings.Properties != nil {
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStrings); err != nil {
 					return fmt.Errorf("setting Connection Strings for Linux %s: %+v", id, err)
+				}
+			}
+
+			if webApp.ZipDeployFile != "" {
+				if err = helpers.GetCredentialsAndPublish(ctx, client, id.ResourceGroup, id.SiteName, webApp.ZipDeployFile); err != nil {
+					return err
 				}
 			}
 
@@ -475,6 +501,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 				Enabled:                     utils.NormaliseNilableBool(props.Enabled),
 				HttpsOnly:                   utils.NormaliseNilableBool(props.HTTPSOnly),
+				VirtualNetworkSubnetID:      utils.NormalizeNilableString(webApp.VirtualNetworkSubnetID),
 				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                        tags.ToTypedObject(webApp.Tags),
 			}
@@ -505,6 +532,11 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
 			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
+
+			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
+			if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
+				state.ZipDeployFile = deployFile
+			}
 
 			if err := metadata.Encode(&state); err != nil {
 				return fmt.Errorf("encoding: %+v", err)
@@ -702,6 +734,12 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
 					return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("zip_deploy_file") || metadata.ResourceData.HasChange("zip_deploy_file") {
+				if err = helpers.GetCredentialsAndPublish(ctx, client, id.ResourceGroup, id.SiteName, state.ZipDeployFile); err != nil {
+					return err
 				}
 			}
 

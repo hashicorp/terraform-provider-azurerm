@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `sku` - (Optional) Specifies the SKU of the Log Analytics Workspace. Possible values are `Free`, `PerNode`, `Premium`, `Standard`, `Standalone`, `Unlimited`, `CapacityReservation`, and `PerGB2018` (new SKU as of `2018-04-03`). Defaults to `PerGB2018`.
 
-~> **NOTE:** A new pricing model took effect on `2018-04-03`, which requires the SKU `PerGB2018`. If you're provisioned resources before this date you have the option of remaining with the previous Pricing SKU and using the other SKUs defined above. More information about [the Pricing SKUs is available at the following URI](http://aka.ms/PricingTierWarning).
+~> **NOTE:** A new pricing model took effect on `2018-04-03`, which requires the SKU `PerGB2018`. If you're provisioned resources before this date you have the option of remaining with the previous Pricing SKU and using the other SKUs defined above. More information about [the Pricing SKUs is available at the following URI](https://aka.ms/PricingTierWarning).
 
 ~> **NOTE:** The `Free` SKU has a default `daily_quota_gb` value of `0.5` (GB).
 
@@ -49,9 +49,9 @@ The following arguments are supported:
 
 ~> **NOTE:** When `sku` is set to `Free` this field should not be set and has a default value of `0.5`. 
 
-* `internet_ingestion_enabled ` - (Optional) Should the Log Analytics Workflow support ingestion over the Public Internet? Defaults to `true`.
+* `internet_ingestion_enabled ` - (Optional) Should the Log Analytics Workspace support ingestion over the Public Internet? Defaults to `true`.
 
-* `internet_query_enabled` - (Optional) Should the Log Analytics Workflow support querying over the Public Internet? Defaults to `true`.
+* `internet_query_enabled` - (Optional) Should the Log Analytics Workspace support querying over the Public Internet? Defaults to `true`.
 
 * `reservation_capacity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace.  Must be in increments of 100  between 100 and 5000.
 
@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-~> **NOTE:** If a `azurerm_log_analytics_workspace` is connected to a `azurerm_log_analytics_cluster` via a `azurerm_log_analytics_linked_service` it will not be able to be modified until link between the workspace and the cluster has been broken by deleting the `azurerm_log_analytics_linked_service` resource.
+~> **NOTE:** If a `azurerm_log_analytics_workspace` is connected to a `azurerm_log_analytics_cluster` via a `azurerm_log_analytics_linked_service` you will not be able to modify the workspaces `sku` field until the link between the workspace and the cluster has been broken by deleting the `azurerm_log_analytics_linked_service` resource. All other fields are modifiable while the workspace is linked to a cluster. 
 
 ## Attributes Reference
 

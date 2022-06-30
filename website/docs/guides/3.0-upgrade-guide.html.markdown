@@ -160,7 +160,7 @@ The default value is `true` for each of the above feature flags, and they can be
 
 ## Switching to MSAL
 
-Authentication to APIs such as Resource Manager was previously performed using the ADAL library which yielded legacy v1 authentication tokens. In version 3.0 of the provider we've moved to use [v2 tokens](https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens#v10-and-v20). In practice this change will not yield any noticeable behavioral differences.
+Authentication to APIs such as Resource Manager was previously performed using the ADAL library which yielded legacy v1 authentication tokens. In version 3.0 of the provider we've moved to use [v2 tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#v10-and-v20). In practice this change will not yield any noticeable behavioral differences.
 
 ## Behavioural updates
 
@@ -671,31 +671,31 @@ The field `customer_managed_key_identity_id` must be supplied if `customer_manag
 
 ## Resource: `azurerm_data_lake_analytics_account`
 
-Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
 
 ## Resource: `azurerm_data_lake_analytics_firewall_rule`
 
-Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
 
 ### Resource `azurerm_data_lake_store_file`
 
-Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
 
 ### Resource `azurerm_data_lake_store_firewall_rule`
 
-Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
 
 ### Resource `azurerm_data_lake_store`
 
-Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
 
 ### Resource `azurerm_data_lake_store_virtual_network_rule`
 
-Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
 
 ## Resource: `azurerm_data_share_dataset_data_lake_gen1`
 
-Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
+Azure Data Lake Storage (Gen1) is deprecated and will be retired on 2024-02-29 - as new Data Lake Storage (Gen1) Accounts can no longer be provisioned - this resource is deprecated and will be removed in v3.0 of the Azure Provider. Support for DataLake Storage (Gen2) is available in the 'azurerm_storage_data_lake_gen2_filesystem' resource and Microsoft's migration documentation can be found here: https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-migrate-gen1-to-gen2.
 
 ### Resource: `azurerm_devspace_controller`
 
@@ -825,11 +825,11 @@ The field `security_group_name` will become Required.
 
 ### Resource: `azurerm_hdinsight_ml_services_cluster`
 
-The `azurerm_hdinsight_ml_services_cluster` resource will be removed since MLServices will not be supported in HDInsight 4.0 ([more information can be found here](https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions)).
+The `azurerm_hdinsight_ml_services_cluster` resource will be removed since MLServices will not be supported in HDInsight 4.0 ([more information can be found here](https://docs.microsoft.com/azure/hdinsight/hdinsight-component-versioning#available-versions)).
 
 ### Resource: `azurerm_hdinsight_rserver_cluster`
 
-The `azurerm_hdinsight_rserver_cluster` resource will be removed since R Server will not be supported in HDInsight 4.0 ([more information can be found here](https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions)).
+The `azurerm_hdinsight_rserver_cluster` resource will be removed since R Server will not be supported in HDInsight 4.0 ([more information can be found here](https://docs.microsoft.com/azure/hdinsight/hdinsight-component-versioning#available-versions)).
 
 ### Resource: `azurerm_hdinsight_spark_cluster`
 
@@ -843,7 +843,7 @@ The deprecated field `zookeeper_worker.min_instance_count` will be removed since
 
 ### Resource: `azurerm_hdinsight_storm_cluster`
 
-The `azurerm_hdinsight_storm_cluster` resource will be removed since Apache Storm will not be supported in HDInsight 4.0 ([more information can be found here](https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions)).
+The `azurerm_hdinsight_storm_cluster` resource will be removed since Apache Storm will not be supported in HDInsight 4.0 ([more information can be found here](https://docs.microsoft.com/azure/hdinsight/hdinsight-component-versioning#available-versions)).
 
 ### Resource: `azurerm_hpc_cache`
 
@@ -1029,7 +1029,7 @@ The field `zones` has been renamed `zone` (as this only accepts a single value) 
 
 ### Resource: `azurerm_machine_learning`
 
-The field `sku_name` no longer accepts the value `Enterprise` ([more information on this here](https://docs.microsoft.com/en-us/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition)).
+The field `sku_name` no longer accepts the value `Enterprise` ([more information on this here](https://docs.microsoft.com/azure/machine-learning/concept-workspace#what-happened-to-enterprise-edition)).
 
 ### Resource `azurerm_machine_learning_compute_cluster`
 

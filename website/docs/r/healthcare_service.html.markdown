@@ -13,6 +13,9 @@ Manages a Healthcare Service.
 ## Example Usage
 
 ```hcl
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_healthcare_service" "example" {
   name                = "uniquefhirname"
   resource_group_name = "sample-resource-group"
@@ -20,7 +23,7 @@ resource "azurerm_healthcare_service" "example" {
   kind                = "fhir-R4"
   cosmosdb_throughput = "2000"
 
-  access_policy_object_ids = ["xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"]
+  access_policy_object_ids = data.azurerm_client_config.current.object_id
 
   tags = {
     "environment" = "testenv"
@@ -58,7 +61,7 @@ The following arguments are supported:
 * `cosmosdb_throughput` - (Optional) The provisioned throughput for the backing database. Range of `400`-`10000`. Defaults to `400`.
 * `cosmosdb_key_vault_key_versionless_id` - (Optional) A versionless Key Vault Key ID for CMK encryption of the backing database. Changing this forces a new resource to be created.
 
-~> **Please Note** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
+~> **Please Note** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
 
 * `cors_configuration` - (Optional) A `cors_configuration` block as defined below.
 * `public_network_access_enabled` - (Optional) Whether public network access is enabled or disabled for this service instance.
