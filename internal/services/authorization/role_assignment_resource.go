@@ -55,6 +55,9 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.Any(
+					validation.StringInSlice([]string{
+						"/providers/Microsoft.Subscription",
+					}, false),
 					billingValidate.EnrollmentID,
 					commonids.ValidateManagementGroupID,
 					commonids.ValidateSubscriptionID,
