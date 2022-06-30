@@ -1,7 +1,3 @@
-# Recommendations for opening a Pull Request
-
-TODO: branch which isn't `main` etc.
-
 # Opening a PR
 
 Firstly all contributions are welcome!
