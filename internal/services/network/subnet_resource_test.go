@@ -155,6 +155,65 @@ func TestAccSubnet_delegation(t *testing.T) {
 	})
 }
 
+func TestAccSubnet_privateLinkEndpointNetworkPoliciesEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateLinkEndpointNetworkPoliciesEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.privateLinkEndpointNetworkPoliciesEnabled(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.privateLinkEndpointNetworkPoliciesEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubnet_privateLinkServiceNetworkPoliciesEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateLinkServiceNetworkPoliciesEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.privateLinkServiceNetworkPoliciesEnabled(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.privateLinkServiceNetworkPoliciesEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// TODO 4.0: Remove test
 func TestAccSubnet_enforcePrivateLinkEndpointNetworkPolicies(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
@@ -184,6 +243,7 @@ func TestAccSubnet_enforcePrivateLinkEndpointNetworkPolicies(t *testing.T) {
 	})
 }
 
+// TODO 4.0: Remove test
 func TestAccSubnet_enforcePrivateLinkServiceNetworkPolicies(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
@@ -294,6 +354,26 @@ func TestAccSubnet_updateAddressPrefix(t *testing.T) {
 			Config: r.updatedAddressPrefix(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// TODO 4.0: Remove test case and add a test for the new fields
+func TestAccSubnet_enforcePrivateLinkEndpointNetworkPoliciesValidateDefaultValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.enforcePrivateLinkEndpointNetworkPoliciesDefaults(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
+				check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
+				check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -481,6 +561,37 @@ resource "azurerm_subnet" "test" {
 `, r.template(data))
 }
 
+func (r SubnetResource) privateLinkEndpointNetworkPoliciesEnabled(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  private_endpoint_network_policies_enabled = %t
+}
+`, r.template(data), enabled)
+}
+
+func (r SubnetResource) privateLinkServiceNetworkPoliciesEnabled(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  private_link_service_network_policies_enabled = %t
+}
+`, r.template(data), enabled)
+}
+
+// TODO 4.0: Remove test
 func (r SubnetResource) enforcePrivateLinkEndpointNetworkPolicies(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -496,6 +607,7 @@ resource "azurerm_subnet" "test" {
 `, r.template(data), enabled)
 }
 
+// TODO 4.0: Remove test
 func (r SubnetResource) enforcePrivateLinkServiceNetworkPolicies(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -509,6 +621,20 @@ resource "azurerm_subnet" "test" {
   enforce_private_link_service_network_policies = %t
 }
 `, r.template(data), enabled)
+}
+
+// TODO 4.0: Remove test and add a configuration for the new fields
+func (r SubnetResource) enforcePrivateLinkEndpointNetworkPoliciesDefaults(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+`, r.template(data))
 }
 
 func (SubnetResource) basic_addressPrefixes(data acceptance.TestData) string {
