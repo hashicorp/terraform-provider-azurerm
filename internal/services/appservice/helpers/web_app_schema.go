@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 	"time"
@@ -867,6 +868,7 @@ type ApplicationStackWindows struct {
 }
 
 // Version information for the below validations was taken in part from - https://github.com/Azure/app-service-linux-docs/tree/master/Runtime_Support
+// There is no 3.0 version of .netFramework, setting the property to this value causing app to be broke.
 func windowsApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -878,13 +880,24 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"v2.0",
-						"core3.1",
-						"v4.0",
-						"v5.0",
-						"v6.0",
-					}, false),
+					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+						if !features.FourPointOh() {
+							return validation.StringInSlice([]string{
+								"v2.0",
+								"v3.0",
+								"core3.1",
+								"v4.0",
+								"v5.0",
+								"v6.0"}, false)
+						}
+						return validation.StringInSlice([]string{
+							"v2.0",
+							"core3.1",
+							"v4.0",
+							"v5.0",
+							"v6.0",
+						}, false)
+					}(),
 					AtLeastOneOf: []string{
 						"site_config.0.application_stack.0.docker_container_name",
 						"site_config.0.application_stack.0.dotnet_version",
