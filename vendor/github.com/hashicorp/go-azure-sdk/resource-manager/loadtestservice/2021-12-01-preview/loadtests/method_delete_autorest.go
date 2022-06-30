@@ -10,13 +10,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/polling"
 )
 
-type DeleteResponse struct {
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type DeleteOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
 }
 
 // Delete ...
-func (c LoadTestsClient) Delete(ctx context.Context, id LoadTestId) (result DeleteResponse, err error) {
+func (c LoadTestsClient) Delete(ctx context.Context, id LoadTestId) (result DeleteOperationResponse, err error) {
 	req, err := c.preparerForDelete(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "loadtests.LoadTestsClient", "Delete", nil, "Failure preparing request")
@@ -53,6 +56,7 @@ func (c LoadTestsClient) preparerForDelete(ctx context.Context, id LoadTestId) (
 	}
 
 	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsDelete(),
 		autorest.WithBaseURL(c.baseUri),
 		autorest.WithPath(id.ID()),
@@ -62,12 +66,13 @@ func (c LoadTestsClient) preparerForDelete(ctx context.Context, id LoadTestId) (
 
 // senderForDelete sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (c LoadTestsClient) senderForDelete(ctx context.Context, req *http.Request) (future DeleteResponse, err error) {
+func (c LoadTestsClient) senderForDelete(ctx context.Context, req *http.Request) (future DeleteOperationResponse, err error) {
 	var resp *http.Response
 	resp, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
 	if err != nil {
 		return
 	}
+
 	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
 	return
 }

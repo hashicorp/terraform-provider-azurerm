@@ -8,13 +8,16 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type GetResponse struct {
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type GetOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *LoadTestResource
 }
 
 // Get ...
-func (c LoadTestsClient) Get(ctx context.Context, id LoadTestId) (result GetResponse, err error) {
+func (c LoadTestsClient) Get(ctx context.Context, id LoadTestId) (result GetOperationResponse, err error) {
 	req, err := c.preparerForGet(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "loadtests.LoadTestsClient", "Get", nil, "Failure preparing request")
@@ -53,7 +56,7 @@ func (c LoadTestsClient) preparerForGet(ctx context.Context, id LoadTestId) (*ht
 
 // responderForGet handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (c LoadTestsClient) responderForGet(resp *http.Response) (result GetResponse, err error) {
+func (c LoadTestsClient) responderForGet(resp *http.Response) (result GetOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

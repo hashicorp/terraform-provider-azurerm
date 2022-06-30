@@ -8,25 +8,29 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
-type ListByResourceGroupResponse struct {
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type ListByResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *[]LoadTestResource
 
 	nextLink     *string
-	nextPageFunc func(ctx context.Context, nextLink string) (ListByResourceGroupResponse, error)
+	nextPageFunc func(ctx context.Context, nextLink string) (ListByResourceGroupOperationResponse, error)
 }
 
 type ListByResourceGroupCompleteResult struct {
 	Items []LoadTestResource
 }
 
-func (r ListByResourceGroupResponse) HasMore() bool {
+func (r ListByResourceGroupOperationResponse) HasMore() bool {
 	return r.nextLink != nil
 }
 
-func (r ListByResourceGroupResponse) LoadMore(ctx context.Context) (resp ListByResourceGroupResponse, err error) {
+func (r ListByResourceGroupOperationResponse) LoadMore(ctx context.Context) (resp ListByResourceGroupOperationResponse, err error) {
 	if !r.HasMore() {
 		err = fmt.Errorf("no more pages returned")
 		return
@@ -35,7 +39,7 @@ func (r ListByResourceGroupResponse) LoadMore(ctx context.Context) (resp ListByR
 }
 
 // ListByResourceGroup ...
-func (c LoadTestsClient) ListByResourceGroup(ctx context.Context, id ResourceGroupId) (resp ListByResourceGroupResponse, err error) {
+func (c LoadTestsClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (resp ListByResourceGroupOperationResponse, err error) {
 	req, err := c.preparerForListByResourceGroup(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "loadtests.LoadTestsClient", "ListByResourceGroup", nil, "Failure preparing request")
@@ -57,12 +61,12 @@ func (c LoadTestsClient) ListByResourceGroup(ctx context.Context, id ResourceGro
 }
 
 // ListByResourceGroupComplete retrieves all of the results into a single object
-func (c LoadTestsClient) ListByResourceGroupComplete(ctx context.Context, id ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
-	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, LoadTestResourcePredicate{})
+func (c LoadTestsClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
+	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, LoadTestResourceOperationPredicate{})
 }
 
 // ListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c LoadTestsClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id ResourceGroupId, predicate LoadTestResourcePredicate) (resp ListByResourceGroupCompleteResult, err error) {
+func (c LoadTestsClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate LoadTestResourceOperationPredicate) (resp ListByResourceGroupCompleteResult, err error) {
 	items := make([]LoadTestResource, 0)
 
 	page, err := c.ListByResourceGroup(ctx, id)
@@ -101,7 +105,7 @@ func (c LoadTestsClient) ListByResourceGroupCompleteMatchingPredicate(ctx contex
 }
 
 // preparerForListByResourceGroup prepares the ListByResourceGroup request.
-func (c LoadTestsClient) preparerForListByResourceGroup(ctx context.Context, id ResourceGroupId) (*http.Request, error) {
+func (c LoadTestsClient) preparerForListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -142,7 +146,7 @@ func (c LoadTestsClient) preparerForListByResourceGroupWithNextLink(ctx context.
 
 // responderForListByResourceGroup handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
-func (c LoadTestsClient) responderForListByResourceGroup(resp *http.Response) (result ListByResourceGroupResponse, err error) {
+func (c LoadTestsClient) responderForListByResourceGroup(resp *http.Response) (result ListByResourceGroupOperationResponse, err error) {
 	type page struct {
 		Values   []LoadTestResource `json:"value"`
 		NextLink *string            `json:"nextLink"`
@@ -157,7 +161,7 @@ func (c LoadTestsClient) responderForListByResourceGroup(resp *http.Response) (r
 	result.Model = &respObj.Values
 	result.nextLink = respObj.NextLink
 	if respObj.NextLink != nil {
-		result.nextPageFunc = func(ctx context.Context, nextLink string) (result ListByResourceGroupResponse, err error) {
+		result.nextPageFunc = func(ctx context.Context, nextLink string) (result ListByResourceGroupOperationResponse, err error) {
 			req, err := c.preparerForListByResourceGroupWithNextLink(ctx, nextLink)
 			if err != nil {
 				err = autorest.NewErrorWithError(err, "loadtests.LoadTestsClient", "ListByResourceGroup", nil, "Failure preparing request")

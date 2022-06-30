@@ -8,13 +8,16 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type CreateOrUpdateResponse struct {
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type CreateOrUpdateOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *LoadTestResource
 }
 
 // CreateOrUpdate ...
-func (c LoadTestsClient) CreateOrUpdate(ctx context.Context, id LoadTestId, input LoadTestResource) (result CreateOrUpdateResponse, err error) {
+func (c LoadTestsClient) CreateOrUpdate(ctx context.Context, id LoadTestId, input LoadTestResource) (result CreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "loadtests.LoadTestsClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -54,7 +57,7 @@ func (c LoadTestsClient) preparerForCreateOrUpdate(ctx context.Context, id LoadT
 
 // responderForCreateOrUpdate handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (c LoadTestsClient) responderForCreateOrUpdate(resp *http.Response) (result CreateOrUpdateResponse, err error) {
+func (c LoadTestsClient) responderForCreateOrUpdate(resp *http.Response) (result CreateOrUpdateOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
