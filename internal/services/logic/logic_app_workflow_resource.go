@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
-	msiParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -881,7 +881,7 @@ func flattenLogicAppWorkflowIdentity(input *logic.ManagedServiceIdentity) (*[]in
 	if input != nil {
 		identityIds := map[string]identity.UserAssignedIdentityDetails{}
 		for id := range input.UserAssignedIdentities {
-			parsedId, err := msiParser.UserAssignedIdentityIDInsensitively(id)
+			parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(id)
 			if err != nil {
 				return nil, err
 			}
