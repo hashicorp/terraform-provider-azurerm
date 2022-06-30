@@ -59,11 +59,11 @@ output "id" {
 
 * `disk_access_id` - The ID of the disk access resource for using private endpoints on disks.
 
-* `encryption` - A `encryption` block as defined below.
+* `encryption_settings` - A `encryption_settings` block as defined below.
 
 ---
 
-The `encryption` block supports:
+The `encryption_settings` block supports:
 
 * `disk_encryption_key` - A `disk_encryption_key` block as defined above.
 
