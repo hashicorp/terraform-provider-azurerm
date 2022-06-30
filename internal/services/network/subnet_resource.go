@@ -239,18 +239,18 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	privateLinkServiceNetworkPoliciesRaw, privateLinkServiceNetworkPoliciesExists := d.GetOk("private_link_service_network_policies_enabled")
 
 	// TODO 4.0: (WodansSon) - set the default values in the schema as follows:
-	// 'privateEndpointNetworkPolicies'   : false(disabled)
-	// 'privateLinkServiceNetworkPolicies': true(enabled)
+	// 'private_endpoint_network_policies_enabled'    : false(disabled)
+	// 'private_link_service_network_policies_enabled': true(enabled)
 	//
 	// However, until 4.0 is released we need to continue using the
 	// existing default values to avoid a breaking change which are as follows:
-	// 'privateEndpointNetworkPolicies'   : false(enabled)
-	// 'privateLinkServiceNetworkPolicies': false(enabled)
+	// 'enforce_private_link_endpoint_network_policies': false(enabled)
+	// 'enforce_private_link_service_network_policies' : false(enabled)
 	//
 	// the above appears to be backwards, but unfortunately due to the
 	// existing name the values are reveresed(e.g. false == enabled, true == disabled)
-	properties.PrivateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(network.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled)
-	properties.PrivateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(network.VirtualNetworkPrivateLinkServiceNetworkPoliciesEnabled)
+	properties.PrivateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled
+	properties.PrivateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPoliciesEnabled
 
 	// NOTE: (WodansSon) - If the values are in the config file we need to know which
 	// one as the value assignments are exactly opposite for each of the fields
