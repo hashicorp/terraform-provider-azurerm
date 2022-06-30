@@ -375,7 +375,11 @@ resource "azurerm_machine_learning_inference_cluster" "test" {
 func (r InferenceClusterResource) template(data acceptance.TestData, vmSize string, nodeCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -467,7 +471,11 @@ resource "azurerm_kubernetes_cluster" "test" {
 func (r InferenceClusterResource) privateTemplate(data acceptance.TestData, vmSize string, nodeCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -530,7 +538,7 @@ resource "azurerm_subnet" "test" {
   name                                           = "acctestsubnet%[7]d"
   resource_group_name                            = azurerm_resource_group.test.name
   virtual_network_name                           = azurerm_virtual_network.test.name
-  enforce_private_link_endpoint_network_policies = true
+  enforce_private_link_endpoint_network_policies = false
   address_prefixes                               = ["10.1.0.0/24"]
 }
 
