@@ -1,13 +1,13 @@
 package managedidentity
 
-type IdentityPredicate struct {
+type IdentityOperationPredicate struct {
 	Id       *string
 	Location *string
 	Name     *string
 	Type     *string
 }
 
-func (p IdentityPredicate) Matches(input Identity) bool {
+func (p IdentityOperationPredicate) Matches(input Identity) bool {
 
 	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
 		return false

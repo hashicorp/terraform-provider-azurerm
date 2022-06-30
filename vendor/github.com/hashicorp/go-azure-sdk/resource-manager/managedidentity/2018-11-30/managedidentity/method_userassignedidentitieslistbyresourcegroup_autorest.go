@@ -8,25 +8,29 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
-type UserAssignedIdentitiesListByResourceGroupResponse struct {
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type UserAssignedIdentitiesListByResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *[]Identity
 
 	nextLink     *string
-	nextPageFunc func(ctx context.Context, nextLink string) (UserAssignedIdentitiesListByResourceGroupResponse, error)
+	nextPageFunc func(ctx context.Context, nextLink string) (UserAssignedIdentitiesListByResourceGroupOperationResponse, error)
 }
 
 type UserAssignedIdentitiesListByResourceGroupCompleteResult struct {
 	Items []Identity
 }
 
-func (r UserAssignedIdentitiesListByResourceGroupResponse) HasMore() bool {
+func (r UserAssignedIdentitiesListByResourceGroupOperationResponse) HasMore() bool {
 	return r.nextLink != nil
 }
 
-func (r UserAssignedIdentitiesListByResourceGroupResponse) LoadMore(ctx context.Context) (resp UserAssignedIdentitiesListByResourceGroupResponse, err error) {
+func (r UserAssignedIdentitiesListByResourceGroupOperationResponse) LoadMore(ctx context.Context) (resp UserAssignedIdentitiesListByResourceGroupOperationResponse, err error) {
 	if !r.HasMore() {
 		err = fmt.Errorf("no more pages returned")
 		return
@@ -35,7 +39,7 @@ func (r UserAssignedIdentitiesListByResourceGroupResponse) LoadMore(ctx context.
 }
 
 // UserAssignedIdentitiesListByResourceGroup ...
-func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroup(ctx context.Context, id ResourceGroupId) (resp UserAssignedIdentitiesListByResourceGroupResponse, err error) {
+func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (resp UserAssignedIdentitiesListByResourceGroupOperationResponse, err error) {
 	req, err := c.preparerForUserAssignedIdentitiesListByResourceGroup(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedidentity.ManagedIdentityClient", "UserAssignedIdentitiesListByResourceGroup", nil, "Failure preparing request")
@@ -57,12 +61,12 @@ func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroup(ctx con
 }
 
 // UserAssignedIdentitiesListByResourceGroupComplete retrieves all of the results into a single object
-func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroupComplete(ctx context.Context, id ResourceGroupId) (UserAssignedIdentitiesListByResourceGroupCompleteResult, error) {
-	return c.UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate(ctx, id, IdentityPredicate{})
+func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (UserAssignedIdentitiesListByResourceGroupCompleteResult, error) {
+	return c.UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate(ctx, id, IdentityOperationPredicate{})
 }
 
 // UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate retrieves all of the results and then applied the predicate
-func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id ResourceGroupId, predicate IdentityPredicate) (resp UserAssignedIdentitiesListByResourceGroupCompleteResult, err error) {
+func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate IdentityOperationPredicate) (resp UserAssignedIdentitiesListByResourceGroupCompleteResult, err error) {
 	items := make([]Identity, 0)
 
 	page, err := c.UserAssignedIdentitiesListByResourceGroup(ctx, id)
@@ -101,7 +105,7 @@ func (c ManagedIdentityClient) UserAssignedIdentitiesListByResourceGroupComplete
 }
 
 // preparerForUserAssignedIdentitiesListByResourceGroup prepares the UserAssignedIdentitiesListByResourceGroup request.
-func (c ManagedIdentityClient) preparerForUserAssignedIdentitiesListByResourceGroup(ctx context.Context, id ResourceGroupId) (*http.Request, error) {
+func (c ManagedIdentityClient) preparerForUserAssignedIdentitiesListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -142,7 +146,7 @@ func (c ManagedIdentityClient) preparerForUserAssignedIdentitiesListByResourceGr
 
 // responderForUserAssignedIdentitiesListByResourceGroup handles the response to the UserAssignedIdentitiesListByResourceGroup request. The method always
 // closes the http.Response Body.
-func (c ManagedIdentityClient) responderForUserAssignedIdentitiesListByResourceGroup(resp *http.Response) (result UserAssignedIdentitiesListByResourceGroupResponse, err error) {
+func (c ManagedIdentityClient) responderForUserAssignedIdentitiesListByResourceGroup(resp *http.Response) (result UserAssignedIdentitiesListByResourceGroupOperationResponse, err error) {
 	type page struct {
 		Values   []Identity `json:"value"`
 		NextLink *string    `json:"nextLink"`
@@ -157,7 +161,7 @@ func (c ManagedIdentityClient) responderForUserAssignedIdentitiesListByResourceG
 	result.Model = &respObj.Values
 	result.nextLink = respObj.NextLink
 	if respObj.NextLink != nil {
-		result.nextPageFunc = func(ctx context.Context, nextLink string) (result UserAssignedIdentitiesListByResourceGroupResponse, err error) {
+		result.nextPageFunc = func(ctx context.Context, nextLink string) (result UserAssignedIdentitiesListByResourceGroupOperationResponse, err error) {
 			req, err := c.preparerForUserAssignedIdentitiesListByResourceGroupWithNextLink(ctx, nextLink)
 			if err != nil {
 				err = autorest.NewErrorWithError(err, "managedidentity.ManagedIdentityClient", "UserAssignedIdentitiesListByResourceGroup", nil, "Failure preparing request")

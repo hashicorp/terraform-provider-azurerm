@@ -7,15 +7,19 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
-type SystemAssignedIdentitiesGetByScopeResponse struct {
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type SystemAssignedIdentitiesGetByScopeOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *SystemAssignedIdentity
 }
 
 // SystemAssignedIdentitiesGetByScope ...
-func (c ManagedIdentityClient) SystemAssignedIdentitiesGetByScope(ctx context.Context, id ScopeId) (result SystemAssignedIdentitiesGetByScopeResponse, err error) {
+func (c ManagedIdentityClient) SystemAssignedIdentitiesGetByScope(ctx context.Context, id commonids.ScopeId) (result SystemAssignedIdentitiesGetByScopeOperationResponse, err error) {
 	req, err := c.preparerForSystemAssignedIdentitiesGetByScope(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedidentity.ManagedIdentityClient", "SystemAssignedIdentitiesGetByScope", nil, "Failure preparing request")
@@ -38,7 +42,7 @@ func (c ManagedIdentityClient) SystemAssignedIdentitiesGetByScope(ctx context.Co
 }
 
 // preparerForSystemAssignedIdentitiesGetByScope prepares the SystemAssignedIdentitiesGetByScope request.
-func (c ManagedIdentityClient) preparerForSystemAssignedIdentitiesGetByScope(ctx context.Context, id ScopeId) (*http.Request, error) {
+func (c ManagedIdentityClient) preparerForSystemAssignedIdentitiesGetByScope(ctx context.Context, id commonids.ScopeId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -54,7 +58,7 @@ func (c ManagedIdentityClient) preparerForSystemAssignedIdentitiesGetByScope(ctx
 
 // responderForSystemAssignedIdentitiesGetByScope handles the response to the SystemAssignedIdentitiesGetByScope request. The method always
 // closes the http.Response Body.
-func (c ManagedIdentityClient) responderForSystemAssignedIdentitiesGetByScope(resp *http.Response) (result SystemAssignedIdentitiesGetByScopeResponse, err error) {
+func (c ManagedIdentityClient) responderForSystemAssignedIdentitiesGetByScope(resp *http.Response) (result SystemAssignedIdentitiesGetByScopeOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
