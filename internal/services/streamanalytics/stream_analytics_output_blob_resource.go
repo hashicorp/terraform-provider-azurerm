@@ -156,6 +156,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 				BlobOutputDataSourceProperties: &streamanalytics.BlobOutputDataSourceProperties{
 					StorageAccounts: &[]streamanalytics.StorageAccount{
 						{
+							AccountKey:  getStorageAccountKey(d.Get("storage_account_key").(string)),
 							AccountName: utils.String(storageAccountName),
 						},
 					},
@@ -168,14 +169,6 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 			},
 			Serialization: serialization,
 		},
-	}
-
-	if v, ok := d.GetOk("storage_account_key"); ok {
-		blobOutputDataSource, ok := props.Datasource.AsBlobOutputDataSource()
-		if !ok {
-			return fmt.Errorf("converting Output Data Source to a Blob Output: %+v", id)
-		}
-		(*blobOutputDataSource.StorageAccounts)[0].AccountKey = utils.String(v.(string))
 	}
 
 	if batchMaxWaitTime, ok := d.GetOk("batch_max_wait_time"); ok {
@@ -274,4 +267,12 @@ func resourceStreamAnalyticsOutputBlobDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	return nil
+}
+
+func getStorageAccountKey(input string) *string {
+	if input == "" {
+		return nil
+	}
+
+	return utils.String(input)
 }

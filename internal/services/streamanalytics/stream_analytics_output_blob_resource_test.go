@@ -129,7 +129,7 @@ func TestAccStreamAnalyticsOutputBlob_authenticationMode(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("storage_account_key"),
 	})
 }
 
