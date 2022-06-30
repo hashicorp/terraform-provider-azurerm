@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-pre
 ```go
 client := tenantconfiguration.NewTenantConfigurationClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -31,6 +28,7 @@ ctx := context.TODO()
 payload := tenantconfiguration.Configuration{
 	// ...
 }
+
 
 read, err := client.TenantConfigurationsCreate(ctx, payload)
 if err != nil {
@@ -47,6 +45,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 
+
 read, err := client.TenantConfigurationsDelete(ctx)
 if err != nil {
 	// handle the error
@@ -62,6 +61,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 
+
 read, err := client.TenantConfigurationsGet(ctx)
 if err != nil {
 	// handle the error
@@ -76,6 +76,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
+
 
 read, err := client.TenantConfigurationsList(ctx)
 if err != nil {

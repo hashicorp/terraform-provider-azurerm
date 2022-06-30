@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017
 ```go
 client := servers.NewServersClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := servers.NewLocationID("12345678-1234-9876-4563-123456789012", "locationVal
 payload := servers.CheckServerNameAvailabilityParameters{
 	// ...
 }
+
 
 read, err := client.CheckNameAvailability(ctx, id, payload)
 if err != nil {
@@ -53,11 +51,8 @@ payload := servers.AnalysisServicesServer{
 	// ...
 }
 
-future, err := client.Create(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -68,11 +63,8 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
-future, err := client.Delete(ctx, id)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
@@ -83,6 +75,7 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+
 read, err := client.DissociateGateway(ctx, id)
 if err != nil {
 	// handle the error
@@ -98,6 +91,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+
 read, err := client.GetDetails(ctx, id)
 if err != nil {
 	// handle the error
@@ -113,6 +107,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := servers.NewSubscriptionID()
+
 read, err := client.List(ctx, id)
 if err != nil {
 	// handle the error
@@ -128,6 +123,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := servers.NewResourceGroupID()
+
 read, err := client.ListByResourceGroup(ctx, id)
 if err != nil {
 	// handle the error
@@ -143,6 +139,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+
 read, err := client.ListGatewayStatus(ctx, id)
 if err != nil {
 	// handle the error
@@ -158,6 +155,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+
 read, err := client.ListSkusForExisting(ctx, id)
 if err != nil {
 	// handle the error
@@ -173,11 +171,8 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
-future, err := client.Resume(ctx, id)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.ResumeThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
@@ -188,11 +183,8 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := servers.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
-future, err := client.Suspend(ctx, id)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.SuspendThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
@@ -208,11 +200,8 @@ payload := servers.AnalysisServicesServerUpdateParameters{
 	// ...
 }
 
-future, err := client.Update(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
