@@ -70,7 +70,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"enable_fips": {
+						"fips_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -143,7 +143,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.StringIsNotEmpty,
 						},
-						"enable_encryption_at_host": {
+						"encryption_at_host_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -183,7 +183,7 @@ func resourceOpenShiftCluster() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
-						"enable_encryption_at_host": {
+						"encryption_at_host_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -491,13 +491,13 @@ func flattenOpenShiftClusterProfile(profile *redhatopenshift.ClusterProfile) []i
 		clusterDomain = *profile.Domain
 	}
 
-	enableFips := profile.FipsValidatedModules == redhatopenshift.FipsValidatedModulesEnabled
+	fipsEnabled := profile.FipsValidatedModules == redhatopenshift.FipsValidatedModulesEnabled
 
 	return []interface{}{
 		map[string]interface{}{
-			"pull_secret": pullSecret,
-			"domain":      clusterDomain,
-			"enable_fips": enableFips,
+			"pull_secret":  pullSecret,
+			"domain":       clusterDomain,
+			"fips_enabled": fipsEnabled,
 		},
 	}
 }
@@ -571,7 +571,7 @@ func flattenOpenShiftMasterProfile(profile *redhatopenshift.MasterProfile) []int
 		subnetId = *profile.SubnetID
 	}
 
-	enableEncryptionAtHost := profile.EncryptionAtHost == redhatopenshift.EncryptionAtHostEnabled
+	encryptionAtHostEnabled := profile.EncryptionAtHost == redhatopenshift.EncryptionAtHostEnabled
 
 	diskEncryptionSetId := ""
 
@@ -581,10 +581,10 @@ func flattenOpenShiftMasterProfile(profile *redhatopenshift.MasterProfile) []int
 
 	return []interface{}{
 		map[string]interface{}{
-			"vm_size":                   profile.VMSize,
-			"subnet_id":                 subnetId,
-			"enable_encryption_at_host": enableEncryptionAtHost,
-			"disk_encryption_set_id":    diskEncryptionSetId,
+			"vm_size":                    profile.VMSize,
+			"subnet_id":                  subnetId,
+			"encryption_at_host_enabled": encryptionAtHostEnabled,
+			"disk_encryption_set_id":     diskEncryptionSetId,
 		},
 	}
 }
@@ -612,8 +612,8 @@ func flattenOpenShiftWorkerProfiles(profiles *[]redhatopenshift.WorkerProfile) [
 			result["subnet_id"] = profile.SubnetID
 		}
 
-		if result["enable_encryption_at_host"] == nil {
-			result["enable_encryption_at_host"] = profile.EncryptionAtHost == redhatopenshift.EncryptionAtHostEnabled
+		if result["encryption_at_host_enabled"] == nil {
+			result["encryption_at_host_enabled"] = profile.EncryptionAtHost == redhatopenshift.EncryptionAtHostEnabled
 		}
 
 		if result["disk_encryption_set_id"] == nil && profile.DiskEncryptionSetID != nil {
@@ -677,8 +677,8 @@ func expandOpenshiftClusterProfile(input []interface{}, subscriptionId string) *
 	}
 
 	fipsValidatedModules := redhatopenshift.FipsValidatedModulesDisabled
-	enableFips := config["enable_fips"].(bool)
-	if enableFips {
+	fipsEnabled := config["fips_enabled"].(bool)
+	if fipsEnabled {
 		fipsValidatedModules = redhatopenshift.FipsValidatedModulesEnabled
 	}
 
@@ -736,7 +736,7 @@ func expandOpenshiftMasterProfile(input []interface{}) *redhatopenshift.MasterPr
 	subnetId := config["subnet_id"].(string)
 
 	encryptionAtHost := redhatopenshift.EncryptionAtHostDisabled
-	enableEncryptionAtHost := config["enable_encryption_at_host"].(bool)
+	enableEncryptionAtHost := config["encryption_at_host_enabled"].(bool)
 	if enableEncryptionAtHost {
 		encryptionAtHost = redhatopenshift.EncryptionAtHostEnabled
 	}
@@ -766,7 +766,7 @@ func expandOpenshiftWorkerProfiles(inputs []interface{}) *[]redhatopenshift.Work
 	subnetId := config["subnet_id"].(string)
 
 	encryptionAtHost := redhatopenshift.EncryptionAtHostDisabled
-	enableEncryptionAtHost := config["enable_encryption_at_host"].(bool)
+	enableEncryptionAtHost := config["encryption_at_host_enabled"].(bool)
 	if enableEncryptionAtHost {
 		encryptionAtHost = redhatopenshift.EncryptionAtHostEnabled
 	}

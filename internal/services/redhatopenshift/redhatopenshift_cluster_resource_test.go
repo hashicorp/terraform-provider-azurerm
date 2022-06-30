@@ -141,13 +141,13 @@ func TestAccOpenShiftCluster_encryptionAtHost(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).
-					Key("master_profile.0.enable_encryption_at_host").
+					Key("master_profile.0.encryption_at_host_enabled").
 					HasValue("true"),
 				check.That(data.ResourceName).
 					Key("master_profile.0.disk_encryption_set_id").
 					IsSet(),
 				check.That(data.ResourceName).
-					Key("worker_profile.0.enable_encryption_at_host").
+					Key("worker_profile.0.encryption_at_host_enabled").
 					HasValue("true"),
 				check.That(data.ResourceName).
 					Key("worker_profile.0.disk_encryption_set_id").
@@ -166,7 +166,9 @@ func TestAccOpenShiftCluster_basicWithFipsEnabled(t *testing.T) {
 			Config: r.basicWithFipsEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cluster_profile.0.enable_fips").HasValue("true"),
+				check.That(data.ResourceName).
+					Key("cluster_profile.0.fips_enabled").
+					HasValue("true"),
 				check.That(data.ResourceName).
 					Key("master_profile.0.vm_size").
 					HasValue("Standard_D8s_v3"),
@@ -431,7 +433,7 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    enable_fips = true
+    fips_enabled = true
   }
 
   master_profile {
@@ -457,13 +459,13 @@ resource "azurerm_redhatopenshift_cluster" "test" {
 func (OpenShiftClusterResource) encryptionAtHost(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {
-		key_vault {
+  features {
+    key_vault {
       recover_soft_deleted_key_vaults    = false
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
     }
-	}
+  }
 }
 
 provider "azuread" {}
@@ -539,8 +541,8 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
     "wrapKey",
   ]
-	
-	depends_on = [
+
+  depends_on = [
     azurerm_key_vault_access_policy.service-principal
   ]
 }
@@ -559,13 +561,13 @@ resource "azurerm_disk_encryption_set" "test" {
 resource "azurerm_key_vault_access_policy" "disk-encryption" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_disk_encryption_set.test.identity.0.tenant_id
-  object_id    = azurerm_disk_encryption_set.test.identity.0.principal_id 
+  object_id    = azurerm_disk_encryption_set.test.identity.0.principal_id
 
-	key_permissions = [
+  key_permissions = [
     "Get",
     "WrapKey",
-		"UnwrapKey"
-  ]	
+    "UnwrapKey"
+  ]
 }
 
 resource "azurerm_redhatopenshift_cluster" "test" {
@@ -574,27 +576,27 @@ resource "azurerm_redhatopenshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   master_profile {
-    vm_size   						 		= "Standard_D8s_v3"
-    subnet_id 						 		= azurerm_subnet.master_subnet.id
-		enable_encryption_at_host = true
-		disk_encryption_set_id 		= azurerm_disk_encryption_set.test.id
+    vm_size                    = "Standard_D8s_v3"
+    subnet_id                  = azurerm_subnet.master_subnet.id
+    encryption_at_host_enabled = true
+    disk_encryption_set_id     = azurerm_disk_encryption_set.test.id
   }
 
   worker_profile {
-    vm_size     	 						= "Standard_D4s_v3"
-    disk_size_gb 							= 128
-    node_count   							= 3
-    subnet_id    							= azurerm_subnet.worker_subnet.id
-		enable_encryption_at_host = true
-		disk_encryption_set_id 		= azurerm_disk_encryption_set.test.id
+    vm_size                    = "Standard_D4s_v3"
+    disk_size_gb               = 128
+    node_count                 = 3
+    subnet_id                  = azurerm_subnet.worker_subnet.id
+    encryption_at_host_enabled = true
+    disk_encryption_set_id     = azurerm_disk_encryption_set.test.id
   }
 
   service_principal {
     client_id     = %q
     client_secret = %q
   }
-	
-	depends_on = [
+
+  depends_on = [
     azurerm_key_vault_access_policy.disk-encryption
   ]
 }
