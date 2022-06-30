@@ -287,16 +287,14 @@ func TestAccExampleResource_update(t *testing.T) {
         r := ExampleResourceTest{}
 
         data.ResourceTest(t, r, []acceptance.TestStep{
-            {
-				// first provision the resource
+            {   // first provision the resource
                 Config: r.basic(data),
                 Check: acceptance.ComposeTestCheckFunc(
                     check.That(data.ResourceName).ExistsInAzure(r),
                 ),
             },
             data.ImportStep(),
-            {
-				// then perform the update
+            {   // then perform the update
                 Config: r.complete(data),
                 Check: acceptance.ComposeTestCheckFunc(
                     check.That(data.ResourceName).ExistsInAzure(r),
@@ -317,24 +315,21 @@ func TestAccExampleResource_someSetting(t *testing.T) {
     r := ExampleResourceTest{}
     
     data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            // first provision the resource
+        {   // first provision the resource
             Config: r.someSetting(data, true),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
             ),
         },
         data.ImportStep(),
-        {
-        // then perform the update to disable this setting
-        Config: r.someSetting(data, false),
+        {   // then perform the update to disable this setting
+            Config: r.someSetting(data, false),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
             ),
         },
         data.ImportStep(),
-        {
-            // finally, check we can re-enable this once it's been disabled
+        {   // finally, check we can re-enable this once it's been disabled
             Config: r.someSetting(data, true),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),

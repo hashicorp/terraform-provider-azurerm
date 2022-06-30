@@ -29,14 +29,6 @@ Generally new features and fixes will only be added to the most recent major ver
 
 Due to the high touch nature of provider development and the extensive regression testing required to ensure stability, maintaining multiple versions of the provider is not sustainable at this time. An exception to this could be a discovered security vulnerability for which backporting may be the most reasonable course of action. These will be reviewed on a case by case basis.
 
-### What makes a good Issue?
-
-TODO.
-
-### What makes a good Pull Request?
-
-TODO.
-
 ### What do the different GitHub labels mean?
 
 As a general rule the different Azure Services are represented as `service/{serviceName}` - for other labels we're working through adding descriptions which [can be found on the GitHub Labels page for this repository](https://github.com/hashicorp/terraform-provider-azurerm/labels).

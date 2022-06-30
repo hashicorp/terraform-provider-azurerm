@@ -5,9 +5,7 @@ This guide covers adding a new Resource to a Service Package, see [adding a New 
 ### Related Topics
 
 * [Acceptance Testing](reference-acceptance-testing.md)
-* [How to find the relevant SDK Client](reference-finding-an-sdk-client.md)
-* [Our Recommendations for opening a Pull Request](our-recommendations-for-opening-a-pr.md)
-* [Terraform Data Source/Resource Design Choices](reference-terraform-design-choices.md)
+* [Our Recommendations for opening a Pull Request](guide-opening-a-pr.md)
 
 ### Stages
 
@@ -35,7 +33,7 @@ See [Building the Provider](building-the-provider.md).
 
 This section covers how to add and configure the SDK Client.
 
-Determining which SDK Client you should be using is a little complicated unfortunately, [this guide covers how to find the relevant SDK Client](reference-finding-an-sdk-client.md), in this case the SDK Client we want to use is: `github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources`.
+Determining which SDK Client you should be using is a little complicated unfortunately.
 
 The Client for the Service Package can be found in `./internal/services/{name}/client/client.go` - and we can add an instance of the SDK Client we want to use (here `resources.GroupsClient`) and configure it (adding credentials etc):
 
@@ -250,7 +248,7 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 		// the Func returns a function which looks up the state of the Resource Group and sets it into the state
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             client := metadata.Client.Resource.GroupsClient
-			
+
 			// parse the Resource Group ID from the `id` field
             id, err := parse.ResourceGroupID(metadata.ResourceData.Id())
 			if err != nil {
@@ -278,10 +276,10 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 			
 			// the Location and Tags fields are a little different - and we have a couple of normalization
 			// functions for these.
-			// 
+
 			// whilst this may seem like a weird thing to call out in an example, because these two fields
 			// are present on the majority of resources, we hope it explains why they're a little different
-			// 
+
 			// in this case the Location can be returned in various different forms, for example
 			// "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
 			// lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
@@ -539,7 +537,7 @@ func (ResourceGroupExampleResource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 ```
 
-At this point in time this Resource is now code-complete - there's an optional extension to make this cleaner [by using a Typed Model](guide-typed-model.md), however this isn't necessary.
+At this point in time this Resource is now code-complete - there's an optional extension to make this cleaner by using a Typed Model, however this isn't necessary.
 
 ### Step 5: Register the new Resource
 
@@ -853,8 +851,6 @@ terraform import azurerm_resource_group_example.example /subscriptions/00000000-
 
 > **Note:** In the example above you'll need to replace each `[]` with a backtick "`" - as otherwise this gets rendered incorrectly, unfortunately.
 
-More [information on writing documentation can be found in this guide](reference-documentation.md).
-
 ### Step 9: Send the Pull Request
 
-See [our recommendations for opening a Pull Request](our-recommendations-for-opening-a-pr.md).
+See [our recommendations for opening a Pull Request](guide-opening-a-pr.md).

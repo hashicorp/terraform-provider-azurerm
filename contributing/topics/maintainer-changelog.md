@@ -1,6 +1,6 @@
 # Maintainer Specific: Updating the Changelog
 
-> **Note:** When sending a Pull Request you should not include a changelog entry as a part of the Pull Request - this is to avoid conflicts.
+> **Note:** When sending a Pull Request you should not include a changelog entry as a part of the Pull Request - this is to avoid conflicts. Contributors should not be concerned with updating the changelog as that is something only maintainers will do during merge.
 
 When a PR is merged it may or may not be included in the changelog. While most PRs deserve a changelog entry not every change should be included in the changelog as some have no user facing impact. Some examples of PRs that should not be included are:
 

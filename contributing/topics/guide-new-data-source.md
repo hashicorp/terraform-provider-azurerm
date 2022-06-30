@@ -5,9 +5,7 @@ This guide covers adding a new Data Source to a Service Package, see [adding a N
 ### Related Topics
 
 * [Acceptance Testing](reference-acceptance-testing.md)
-* [How to find the relevant SDK Client](reference-finding-an-sdk-client.md)
-* [Our Recommendations for opening a Pull Request](our-recommendations-for-opening-a-pr.md)
-* [Terraform Data Source/Resource Design Choices](reference-terraform-design-choices.md)
+* [Our Recommendations for opening a Pull Request](guide-opening-a-pr.md)
 
 ### Stages
 
@@ -37,7 +35,7 @@ If you're creating a new Data Source for a Resource that's already created by Te
 
 However if the SDK Client you need to use isn't already configured in the Provider, we'll cover how to add and configure the SDK Client.
 
-Determining which SDK Client you should be using is a little complicated unfortunately, [this guide covers how to find the relevant SDK Client](reference-finding-an-sdk-client.md), in this case the SDK Client we want to use is: `github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources`.
+Determining which SDK Client you should be using is a little complicated unfortunately, in this case the SDK Client we want to use is: `github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources`.
 
 The Client for the Service Package can be found in `./internal/services/{name}/client/client.go` - and we can add an instance of the SDK Client we want to use (here `resources.GroupsClient`) and configure it (adding credentials etc): 
 
@@ -190,6 +188,7 @@ Next up, let's implement the Read function - which retrieves the information abo
 ```go
 func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		
 		// the Timeout is how long Terraform should wait for this function to run before returning an error
 		// whilst 5 minutes may initially seem excessive, we set this as a default to account for rate
 		// limiting - but having this here means that users can override this in their config as necessary
@@ -229,10 +228,10 @@ func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 			// whilst traditionally we would do this via `metadata.ResourceData.Set("foo", "somevalue")
 			// the Location and Tags fields are a little different - and we have a couple of normalization
 			// functions for these.
-			// 
+			
 			// whilst this may seem like a weird thing to call out in an example, because these two fields
 			// are present on the majority of resources, we hope it explains why they're a little different
-			// 
+			 
 			// in this case the Location can be returned in various different forms, for example
 			// "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
 			// lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
@@ -300,6 +299,7 @@ func (d ResourceGroupExampleDataSource) ResourceType() string {
 
 func (d ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		
 		// the Timeout is how long Terraform should wait for this function to run before returning an error
 		// whilst 5 minutes may initially seem excessive, we set this as a default to account for rate
 		// limiting - but having this here means that users can override this in their config as necessary
@@ -319,6 +319,7 @@ func (d ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 			// then retrieve the Resource Group by it's Name
 			resp, err := client.Get(ctx, name)
 			if err != nil {
+				
 				// if the Resource Group doesn't exist (e.g. we get a 404 Not Found)
 				// since this is a Data Source we must return an error if it's Not Found
 				if utils.ResponseWasNotFound(read.Response) {
@@ -339,10 +340,10 @@ func (d ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 			// whilst traditionally we would do this via `metadata.ResourceData.Set("foo", "somevalue")
 			// the Location and Tags fields are a little different - and we have a couple of normalization
 			// functions for these.
-			//
+
 			// whilst this may seem like a weird thing to call out in an example, because these two fields
 			// are present on the majority of resources, we hope it explains why they're a little different
-			//
+
 			// in this case the Location can be returned in various different forms, for example
 			// "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
 			// lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
@@ -355,7 +356,7 @@ func (d ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 }
 ```
 
-At this point in time this Data Source is now code-complete - there's an optional extension to make this cleaner [by using a Typed Model](guide-typed-model.md), however this isn't necessary.
+At this point in time this Data Source is now code-complete - there's an optional extension to make this cleaner by using a Typed Model, however this isn't necessary.
 
 ### Step 5: Register the new Data Source
 
@@ -594,8 +595,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 > **Note:** In the example above you'll need to replace each `[]` with a backtick "`" - as otherwise this gets rendered incorrectly, unfortunately.
 
-More [information on writing documentation can be found in this guide](reference-documentation.md).
-
 ### Step 9: Send the Pull Request
 
-See [our recommendations for opening a Pull Request](our-recommendations-for-opening-a-pr.md).
+See [our recommendations for opening a Pull Request](guide-opening-a-pr.md).

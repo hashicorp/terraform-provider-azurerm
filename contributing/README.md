@@ -23,7 +23,7 @@ Basics:
 * [High-level overview of the Provider](topics/high-level-overview.md).
 * [Building the Provider](topics/building-the-provider.md).
 * [Running the Tests](topics/running-the-tests.md).
-* [Our recommendations for opening a Pull Request](topics/our-recommendations-for-opening-a-pr.md).
+* [Our recommendations for opening a Pull Request](topics/guide-opening-a-pr.md).
 * [Debugging the Provider](topics/debugging-the-provider.md).
 * [Frequently Asked Questions](topics/frequently-asked-questions.md).
 
@@ -34,17 +34,14 @@ Common Topics/Guides:
 * [Adding a new Resource](topics/guide-new-resource.md).
 * [Adding fields to an existing Data Source](topics/guide-new-fields-to-data-source.md).
 * [Adding fields to an existing Resource](topics/guide-new-fields-to-resource.md).
+* [Opening a PR](topics/guide-opening-a-pr.md).
 
 References:
 
 * [Acceptance Testing](topics/reference-acceptance-testing.md).
-* [Writing Documentation](topics/reference-documentation.md).
-* [Working with Azure Resource IDs](topics/reference-azure-resource-ids.md).
 * [Working with Errors](topics/reference-errors.md).
-* [Terraform Data Source/Resource Design Choices](topics/reference-terraform-design-choices.md).
 * [Glossary](topics/reference-glossary.md).
 * [Naming](topics/reference-naming.md).
-* [Determining which SDK Client to use](topics/reference-finding-an-sdk-client.md).
 
 Maintainer specific:
 
