@@ -654,7 +654,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 
 			// Breaking replication
-			_, err = client.BreakReplication(ctx,
+			future, err := client.BreakReplication(ctx,
 				replicaVolumeId.ResourceGroup,
 				replicaVolumeId.NetAppAccountName,
 				replicaVolumeId.CapacityPoolName,
@@ -665,6 +665,9 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 			if err != nil {
 				return fmt.Errorf("breaking replication for %s: %+v", *replicaVolumeId, err)
+			}
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for replication of %q: %+v", id, err)
 			}
 
 			// Waiting for replication be in broken state

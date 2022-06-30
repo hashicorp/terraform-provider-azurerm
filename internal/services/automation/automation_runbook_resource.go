@@ -201,10 +201,14 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		reader := io.NopCloser(bytes.NewBufferString(content))
 		draftClient := meta.(*clients.Client).Automation.RunbookDraftClient
 
-		_, err := draftClient.ReplaceContent(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, reader)
+		future, err := draftClient.ReplaceContent(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name, reader)
 		if err != nil {
 			return fmt.Errorf("setting the draft for %s: %+v", id, err)
 		}
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for update of %q: %+v", id, err)
+		}
+
 		// Uncomment below once https://github.com/Azure/azure-sdk-for-go/issues/17196 is resolved.
 		// if err := f1.WaitForCompletionRef(ctx, draftClient.Client); err != nil {
 		// 	return fmt.Errorf("waiting for set the draft for %s: %+v", id, err)

@@ -131,9 +131,14 @@ func (m ServerDNSAliasResource) Delete() sdk.ResourceFunc {
 			}
 			metadata.Logger.Infof("deleting %s", id)
 			client := metadata.Client.MSSQL.ServerDNSAliasClient
-			if _, err = client.Delete(ctx, id.ResourceGroup, id.ServerName, id.DnsAliaseName); err != nil {
+			future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.DnsAliaseName)
+			if err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
+			}
+
 			return nil
 		},
 	}
