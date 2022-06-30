@@ -99,6 +99,8 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"compute_isolation_properties": SchemaHDInsightsComputeIsolation(),
+
 			"gateway": SchemaHDInsightsGateway(),
 
 			"metastores": SchemaHDInsightsExternalMetastores(),
@@ -194,6 +196,8 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("expanding `roles`: %+v", err)
 	}
 
+	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation_properties").([]interface{}))
+
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -229,6 +233,7 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			ComputeProfile: &hdinsight.ComputeProfile{
 				Roles: roles,
 			},
+			ComputeIsolationProperties: computeIsolationProperties,
 		},
 		Tags:     tags.Expand(t),
 		Identity: identity,
@@ -389,6 +394,12 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, sparkRoles)
 		if err := d.Set("roles", flattenedRoles); err != nil {
 			return fmt.Errorf("flattening `roles`: %+v", err)
+		}
+
+		if props.ComputeIsolationProperties != nil {
+			if err := d.Set("compute_isolation_properties", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
+				return fmt.Errorf("failed setting `compute_isolation_properties`: %+v", err)
+			}
 		}
 
 		httpEndpoint := FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
