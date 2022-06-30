@@ -32,7 +32,7 @@ func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 				StateFunc: azure.NormalizeLocation,
 			},
 
-			"scope_filter": {
+			"scope": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -46,7 +46,7 @@ func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"recur_every_filter": {
+			"recur_every": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -55,7 +55,7 @@ func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"public_maintenance_configurations": {
+			"configs": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
@@ -64,30 +64,37 @@ func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
 						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
 						"location": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
 						"description": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
 						"duration": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
 						"maintenance_scope": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
 						"time_zone": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
 						"recur_every": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -114,7 +121,7 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 
 	filteredPublicConfigs := make([]interface{}, 0)
 
-	recurEveryFilter := d.Get("recur_every_filter").(string)
+	recurEveryFilter := d.Get("recur_every").(string)
 	if recurEveryFilter == recurFridayToSunday {
 		recurEveryFilter = "week Friday, Saturday, Sunday"
 	} else if recurEveryFilter == recurMondayToThursday {
@@ -122,7 +129,7 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 	}
 
 	locationFilter := azure.NormalizeLocation(d.Get("location").(string))
-	scopeFilter := d.Get("scope_filter").(string)
+	scopeFilter := d.Get("scope").(string)
 
 	if resp.Value != nil {
 		for _, maintenanceConfig := range *resp.Value {
@@ -158,8 +165,8 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("no Public Maintenance Configurations were found")
 	}
 
-	if err := d.Set("public_maintenance_configurations", filteredPublicConfigs); err != nil {
-		return fmt.Errorf("setting `public_maintenance_configurations`: %+v", err)
+	if err := d.Set("configs", filteredPublicConfigs); err != nil {
+		return fmt.Errorf("setting `configs`: %+v", err)
 	}
 
 	d.SetId(time.Now().UTC().String())

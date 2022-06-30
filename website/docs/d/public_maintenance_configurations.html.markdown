@@ -14,13 +14,13 @@ Use this data source to access information about existing Public Maintenance Con
 
 ```hcl
 data "azurerm_public_maintenance_configurations" "existing" {
-  location           = "West Europe"
-  scope_filter       = "SQLManagedInstance"
-  recur_every_filter = "Monday-Thursday"
+  location    = "West Europe"
+  scope       = "SQLManagedInstance"
+  recur_every = "Monday-Thursday"
 }
 
 output "name" {
-  value = data.azurerm_public_maintenance_configurations.existing.public_maintenance_configurations[0].name
+  value = data.azurerm_public_maintenance_configurations.existing.configs[0].name
 }
 ```
 
@@ -28,17 +28,17 @@ output "name" {
 
 * `location` - The Azure location to filter the list of Public Maintenance Configurations against.
 
-* `scope_filter` - The scope to filter the list of Public Maintenance Configurations against. Possible values are `All`, `Extension`, `Host`, `InGuestPatch`, `OSImage`, `SQLDB` and `SQLManagedInstance`.
+* `scope` - The scope to filter the list of Public Maintenance Configurations against. Possible values are `All`, `Extension`, `Host`, `InGuestPatch`, `OSImage`, `SQLDB` and `SQLManagedInstance`.
 
-* `recur_every_filter` - The recurring window to filter the list of Public Maintenance Configurations against. Possible values are `Monday-Thursday` and `Friday-Sunday`
+* `recur_every` - The recurring window to filter the list of Public Maintenance Configurations against. Possible values are `Monday-Thursday` and `Friday-Sunday`
 
 ## Attributes Reference
 
-* `public_maintenance_configurations` - A `public_maintenance_configurations` block as defined below.
+* `configs` - A `configs` block as defined below.
 
 ---
 
-A `public_maintenance_configurations` block exports the following:
+A `configs` block exports the following:
 
 * `name` - The name of the Public Maintenance Configuration.
 
