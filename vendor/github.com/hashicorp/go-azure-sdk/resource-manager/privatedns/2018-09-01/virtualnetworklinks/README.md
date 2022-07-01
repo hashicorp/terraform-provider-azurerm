@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01
 ```go
 client := virtualnetworklinks.NewVirtualNetworkLinksClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -33,11 +30,8 @@ payload := virtualnetworklinks.VirtualNetworkLink{
 	// ...
 }
 
-future, err := client.CreateOrUpdate(ctx, id, payload, virtualnetworklinks.DefaultCreateOrUpdateOperationOptions())
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.CreateOrUpdateThenPoll(ctx, id, payload, virtualnetworklinks.DefaultCreateOrUpdateOperationOptions()); err != nil {
 	// handle the error
 }
 ```
@@ -48,11 +42,8 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := virtualnetworklinks.NewVirtualNetworkLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue", "virtualNetworkLinkValue")
-future, err := client.Delete(ctx, id, virtualnetworklinks.DefaultDeleteOperationOptions())
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.DeleteThenPoll(ctx, id, virtualnetworklinks.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
 }
 ```
@@ -63,6 +54,7 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := virtualnetworklinks.NewVirtualNetworkLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue", "virtualNetworkLinkValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +70,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := virtualnetworklinks.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue")
+
 // alternatively `client.List(ctx, id, virtualnetworklinks.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, virtualnetworklinks.DefaultListOperationOptions())
 if err != nil {
@@ -99,11 +92,8 @@ payload := virtualnetworklinks.VirtualNetworkLink{
 	// ...
 }
 
-future, err := client.Update(ctx, id, payload, virtualnetworklinks.DefaultUpdateOperationOptions())
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.UpdateThenPoll(ctx, id, payload, virtualnetworklinks.DefaultUpdateOperationOptions()); err != nil {
 	// handle the error
 }
 ```
