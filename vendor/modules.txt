@@ -40,7 +40,6 @@ github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault
 github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-08-27/kusto
 github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic
 github.com/Azure/azure-sdk-for-go/services/logz/mgmt/2020-10-01/logz
-github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices
 github.com/Azure/azure-sdk-for-go/services/maintenance/mgmt/2021-05-01/maintenance
 github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices
 github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2021-02-01/maps
@@ -223,6 +222,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attest
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2021-04-30/cognitiveservicesaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2020-08-20/communicationservice
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
+github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes
+github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/managedapis
 # github.com/hashicorp/go-checkpoint v0.5.0

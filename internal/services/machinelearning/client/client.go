@@ -1,9 +1,9 @@
 package client
 
 import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/sdk/2021-07-01/machinelearningcomputes"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/sdk/2021-07-01/workspaces"
 )
 
 type Client struct {

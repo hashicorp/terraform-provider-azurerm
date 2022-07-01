@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -238,20 +239,20 @@ func TestAccMachineLearningWorkspace_systemAssignedAndCustomManagedKey(t *testin
 
 func (r WorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	workspacesClient := client.MachineLearning.WorkspacesClient
-	id, err := parse.WorkspaceID(state.ID)
+	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := workspacesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := workspacesClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Machine Learning Workspace %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.WorkspaceProperties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil), nil
 }
 
 func (r WorkspaceResource) basic(data acceptance.TestData) string {
@@ -465,7 +466,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   container_registry_id                        = azurerm_container_registry.test.id
   sku_name                                     = "Basic"
   high_business_impact                         = true
-  public_access_behind_virtual_network_enabled = true
   image_build_compute_name                     = "terraformCompute"
 
   identity {
