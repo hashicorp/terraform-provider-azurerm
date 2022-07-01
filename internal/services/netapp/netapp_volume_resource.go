@@ -100,7 +100,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: netAppValidate.SnapshotID,
+				ValidateFunc: snapshots.ValidateSnapshotID,
 			},
 
 			"network_features": {
