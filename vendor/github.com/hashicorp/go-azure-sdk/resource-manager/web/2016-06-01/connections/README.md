@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connec
 ```go
 client := connections.NewConnectionsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "examp
 payload := connections.ConfirmConsentCodeDefinition{
 	// ...
 }
+
 
 read, err := client.ConfirmConsentCode(ctx, id, payload)
 if err != nil {
@@ -53,6 +51,7 @@ payload := connections.ApiConnectionDefinition{
 	// ...
 }
 
+
 read, err := client.CreateOrUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
@@ -68,6 +67,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionValue")
+
 read, err := client.Delete(ctx, id)
 if err != nil {
 	// handle the error
@@ -83,6 +83,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -98,6 +99,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := connections.NewResourceGroupID()
+
 read, err := client.List(ctx, id, connections.DefaultListOperationOptions())
 if err != nil {
 	// handle the error
@@ -118,6 +120,7 @@ payload := connections.ListConsentLinksDefinition{
 	// ...
 }
 
+
 read, err := client.ListConsentLinks(ctx, id, payload)
 if err != nil {
 	// handle the error
@@ -137,6 +140,7 @@ id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "examp
 payload := connections.ApiConnectionDefinition{
 	// ...
 }
+
 
 read, err := client.Update(ctx, id, payload)
 if err != nil {

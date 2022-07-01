@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/powerbidedicated/2021
 ```go
 client := capacities.NewCapacitiesClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := capacities.NewLocationID("12345678-1234-9876-4563-123456789012", "location
 payload := capacities.CheckCapacityNameAvailabilityParameters{
 	// ...
 }
+
 
 read, err := client.CheckNameAvailability(ctx, id, payload)
 if err != nil {
@@ -53,11 +51,8 @@ payload := capacities.DedicatedCapacity{
 	// ...
 }
 
-future, err := client.Create(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -68,11 +63,8 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := capacities.NewCapacitiesID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityValue")
-future, err := client.Delete(ctx, id)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
@@ -83,6 +75,7 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := capacities.NewCapacitiesID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityValue")
+
 read, err := client.GetDetails(ctx, id)
 if err != nil {
 	// handle the error
@@ -98,6 +91,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := capacities.NewSubscriptionID()
+
 read, err := client.List(ctx, id)
 if err != nil {
 	// handle the error
@@ -113,6 +107,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := capacities.NewResourceGroupID()
+
 read, err := client.ListByResourceGroup(ctx, id)
 if err != nil {
 	// handle the error
@@ -128,6 +123,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := capacities.NewCapacitiesID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityValue")
+
 read, err := client.ListSkusForCapacity(ctx, id)
 if err != nil {
 	// handle the error
@@ -143,11 +139,8 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := capacities.NewCapacitiesID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityValue")
-future, err := client.Resume(ctx, id)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.ResumeThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
@@ -158,11 +151,8 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := capacities.NewCapacitiesID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedCapacityValue")
-future, err := client.Suspend(ctx, id)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.SuspendThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
@@ -178,11 +168,8 @@ payload := capacities.DedicatedCapacityUpdateParameters{
 	// ...
 }
 
-future, err := client.Update(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
