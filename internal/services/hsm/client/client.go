@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2018-10-31-preview/dedicatedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

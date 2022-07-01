@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2018-10-31-preview/dedicatedhsms` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms` Documentation
 
-The `dedicatedhsms` SDK allows for interaction with the Azure Resource Manager Service `hardwaresecuritymodules` (API Version `2018-10-31-preview`).
+The `dedicatedhsms` SDK allows for interaction with the Azure Resource Manager Service `hardwaresecuritymodules` (API Version `2021-11-30`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2018-10-31-preview/dedicatedhsms"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms"
 ```
 
 
@@ -90,6 +90,23 @@ id := dedicatedhsms.NewSubscriptionID()
 
 // alternatively `client.DedicatedHsmListBySubscription(ctx, id, dedicatedhsms.DefaultDedicatedHsmListBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.DedicatedHsmListBySubscriptionComplete(ctx, id, dedicatedhsms.DefaultDedicatedHsmListBySubscriptionOperationOptions())
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `DedicatedHsmsClient.DedicatedHsmListOutboundNetworkDependenciesEndpoints`
+
+```go
+ctx := context.TODO()
+id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nameValue")
+
+// alternatively `client.DedicatedHsmListOutboundNetworkDependenciesEndpoints(ctx, id)` can be used to do batched pagination
+items, err := client.DedicatedHsmListOutboundNetworkDependenciesEndpointsComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
