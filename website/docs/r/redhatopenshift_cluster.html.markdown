@@ -68,7 +68,6 @@ resource "azurerm_redhatopenshift_cluster" "example" {
     vm_size    = "Standard_D4s_v3"
     subnet_id  = azurerm_subnet.worker_subnet.id
     node_count = 3
-    subnet_id  = azurerm_subnet.worker_subnet.id
   }
 
   tags = {
