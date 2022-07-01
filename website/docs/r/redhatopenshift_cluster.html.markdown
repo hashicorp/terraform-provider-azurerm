@@ -16,7 +16,7 @@ Manages a fully managed Azure Red Hat Openshift Cluster (also known as ARO).
 
 ## Example Usage
 
-This example provisions a basic Azure Red Hat Openshift Cluster. Other examples of the `azurerm_redhatopenshift_cluster` resource can be found in [the `./examples/redhatopenshift` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/redhatopenshift)
+This example provisions a basic Azure Red Hat Openshift Cluster. Other examples of the `azurerm_redhatopenshift_cluster` resource can be found in [the `./examples/redhatopenshift` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/redhatopenshift).
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -32,12 +32,13 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "master_subnet" {
-  name                                          = "master-subnet"
-  resource_group_name                           = azurerm_resource_group.example.name
-  virtual_network_name                          = azurerm_virtual_network.example.name
-  address_prefixes                              = ["10.0.0.0/23"]
-  service_endpoints                             = ["Microsoft.ContainerRegistry"]
-  enforce_private_link_service_network_policies = true
+  name                                           = "master-subnet"
+  resource_group_name                            = azurerm_resource_group.example.name
+  virtual_network_name                           = azurerm_virtual_network.example.name
+  address_prefixes                               = ["10.0.0.0/23"]
+  service_endpoints                              = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  enforce_private_link_service_network_policies  = true
+  enforce_private_link_endpoint_network_policies = true
 }
 
 resource "azurerm_subnet" "worker_subnet" {
@@ -45,7 +46,7 @@ resource "azurerm_subnet" "worker_subnet" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.0.0/23"]
-  service_endpoints    = ["Microsoft.ContainerRegistry"]
+  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
 }
 
 resource "azurerm_redhatopenshift_cluster" "example" {
@@ -64,8 +65,10 @@ resource "azurerm_redhatopenshift_cluster" "example" {
   }
 
   worker_profile {
-    vm_size   = "Standard_D4s_v3"
-    subnet_id = azurerm_subnet.worker_subnet.id
+    vm_size    = "Standard_D4s_v3"
+    subnet_id  = azurerm_subnet.worker_subnet.id
+    node_count = 3
+    subnet_id  = azurerm_subnet.worker_subnet.id
   }
 
   tags = {
@@ -102,9 +105,9 @@ The following arguments are supported:
 
 * `network_profile` - (Optional) A `network_profile` block as defined below.
 
-* `api_server_profile` - (Optional) A `api_server_profile` block as defined below.
+* `api_server_profile` - (Optional) An `api_server_profile` block as defined below.
 
-* `ingress_profile` - (Optional) A `ingress_profile` block as defined below.
+* `ingress_profile` - (Optional) An `ingress_profile` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -121,11 +124,12 @@ A `service_principal` block supports the following:
 A `master_profile` block supports the following:
 
 * `subnet_id` - (Required) The ID of the subnet where master nodes will be hosted.
-* `vm_size` - (Optional) The size of the Virtual Machines for the master nodes. Currently supported values are `Standard_D2s_v3`, `Standard_D4s_v3` and `Standard_D8s_v3`. Defaults to `Standard_D8s_v3`. Changing this forces a new resource to be created.
-
+* `vm_size` - (Required) The size of the Virtual Machines for the master nodes.
+* `encryption_at_host_enabled` - (Optional) Whether master virtual machines are encrypted at host. Defaults to `false`.
+* `disk_encryption_set_id` - (Optional) The resource ID of an associated disk encryption set. The `encryption_at_host_enabled` argument must be set to 
 -> **NOTE** The subnet which master nodes will be associated must met the following requirements:
 
-  * Private subnet access granted to `Microsoft.ContainerRegistry` service endpoint.
+  * Private subnet access granted to `Microsoft.Storage` and `Microsoft.ContainerRegistry` service endpoints.
   * Subnet private endpoint policies disabled. For more info, see [Disable network policies for Private Link service source IP](https://docs.microsoft.com/azure/private-link/disable-private-link-service-network-policy).
 
 ---
@@ -133,11 +137,13 @@ A `master_profile` block supports the following:
 A `worker_profile` block supports the following:
 
 * `subnet_id` - (Required) The ID of the subnet where worker nodes will be hosted.
-* `vm_size` - (Optional) The size of the Virtual Machines for the worker nodes. Currently supported values are `Standard_D2s_v3`, `Standard_D4s_v3` and `Standard_D8s_v3`. Defaults to `Standard_D4s_v3`. Changing this forces a new resource to be created.
-* `disk_size_gb` - (Optional) The internal OS disk size of the worker Virtual Machines in GB. Must be `128` or greater. Defaults to `128`. Changing this forces a new resource to be created.
-* `node_count` - (Optional) The initial number of worker nodes which should exist in the cluster. If specified this must be between `3` and `20`. Defaults to `3`. Changing this forces a new resource to be created.
+* `vm_size` - (Required) The size of the Virtual Machines for the worker nodes.
+* `disk_size_gb` - (Required) The internal OS disk size of the worker Virtual Machines in GB.
+* `node_count` - (Required) The initial number of worker nodes which should exist in the cluster.
+* `encryption_at_host_enabled` - (Optional) Whether worker virtual machines are encrypted at host. Defaults to `false`.
+* `disk_encryption_set_id` - (Optional) The resource ID of an associated disk encryption set.
 
--> **NOTE** The subnet which worker nodes will be associated must have private subnet access granted to `Microsoft.ContainerRegistry` service endpoint.
+-> **NOTE** The subnet which worker nodes will be associated must have private subnet access granted to `Microsoft.Storage` and `Microsoft.ContainerRegistry` service endpoints.
 
 ---
 
@@ -145,6 +151,7 @@ A `cluster_profile` block supports the following:
 
 * `pull_secret` - (Optional) The Red Hat pull secret for the cluster.
 * `domain` - (Optional) The custom domain for the cluster. Defaults to `<random>.<location>.aroapp.io`. For more info, see [Prepare a custom domain for your cluster](https://docs.microsoft.com/azure/openshift/tutorial-create-cluster#prepare-a-custom-domain-for-your-cluster-optional).
+* `fips_enabled` - (Optional) Whether Federal Information Processing Standard (FIPS) validated cryptographic modules are used.
 
 ---
 
@@ -171,7 +178,7 @@ A `ingress_profile` block supports the following:
 
 The following attributes are exported:
 
-* `version` - The Openshift version used by the The Red Hat Openshift cluster.
+* `version` - The Red Hat Openshift cluster version.
 * `console_url` - The Red Hat Openshift cluster console URL.
 
 ---
@@ -180,10 +187,10 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 90 minutes) Used when creating the Kubernetes Cluster.
-* `update` - (Defaults to 90 minutes) Used when updating the Kubernetes Cluster.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster.
-* `delete` - (Defaults to 90 minutes) Used when deleting the Kubernetes Cluster.
+* `create` - (Defaults to 90 minutes) Used when creating the Red Hat OpenShift cluster.
+* `update` - (Defaults to 90 minutes) Used when updating the Red Hat OpenShift cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Red Hat OpenShift cluster.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Red Hat OpenShift cluster.
 
 ## Import
 
