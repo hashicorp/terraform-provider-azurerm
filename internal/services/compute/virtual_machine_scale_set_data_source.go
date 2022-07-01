@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -92,11 +92,6 @@ func dataSourceVirtualMachineScaleSet() *pluginsdk.Resource {
 							},
 						},
 
-						"provisioning_state": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
 						"virtual_machine_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -166,30 +161,32 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 
 	for result.NotDone() {
 		instance := result.Value()
+		if instance.InstanceID != nil {
+			nics, err := networkInterfacesClient.ListVirtualMachineScaleSetVMNetworkInterfacesComplete(ctx, id.ResourceGroup, id.Name, *instance.InstanceID)
+			if err != nil {
+				return fmt.Errorf("listing Network Interfaces for VM Instance %q for Virtual Machine Scale Set %q (Resource Group %q): %+v", *instance.InstanceID, id.ResourceGroup, id.Name, err)
+			}
+
+			networkInterfaces := make([]network.Interface, 0)
+			for nics.NotDone() {
+				networkInterfaces = append(networkInterfaces, nics.Value())
+				if err := nics.NextWithContext(ctx); err != nil {
+					return fmt.Errorf("listing next page of Network Interfaces for VM Instance %q of Virtual Machine Scale Set %q (Resource Group %q): %v", *instance.InstanceID, id.ResourceGroup, id.Name, err)
+				}
+			}
+
+			connectionInfo, err := getVirtualMachineScaleSetVMConnectionInfo(ctx, networkInterfaces, id.ResourceGroup, id.Name, *instance.InstanceID, publicIPAddressesClient)
+			if err != nil {
+				return err
+			}
+
+			flattenedInstances := flattenVirtualMachineScaleSetVM(instance, connectionInfo)
+			instances = append(instances, flattenedInstances)
+		}
+
 		if err := result.NextWithContext(ctx); err != nil {
 			return fmt.Errorf("listing next page VM Instances for Virtual Machine Scale Set %q (Resource Group %q): %+v", id.ResourceGroup, id.Name, err)
 		}
-
-		nics, err := networkInterfacesClient.ListVirtualMachineScaleSetVMNetworkInterfacesComplete(ctx, id.ResourceGroup, id.Name, *instance.InstanceID)
-		if err != nil {
-			return fmt.Errorf("listing Network Interfaces for VM Instance %q for Virtual Machine Scale Set %q (Resource Group %q): %+v", *instance.InstanceID, id.ResourceGroup, id.Name, err)
-		}
-
-		networkInterfaces := make([]network.Interface, 0)
-		for nics.NotDone() {
-			networkInterfaces = append(networkInterfaces, nics.Value())
-			if err := nics.NextWithContext(ctx); err != nil {
-				return fmt.Errorf("listing next page of Network Interfaces for VM Instance %q of Virtual Machine Scale Set %q (Resource Group %q): %v", *instance.InstanceID, id.ResourceGroup, id.Name, err)
-			}
-		}
-
-		connectionInfo, err := getVirtualMachineScaleSetVMConnectionInfo(ctx, networkInterfaces, id.ResourceGroup, id.Name, *instance.InstanceID, publicIPAddressesClient)
-		if err != nil {
-			return err
-		}
-
-		flattenedInstances := flattenVirtualMachineScaleSetVM(instance, connectionInfo)
-		instances = append(instances, flattenedInstances)
 	}
 	if err := d.Set("instances", instances); err != nil {
 		return fmt.Errorf("setting `instances`: %+v", err)
@@ -198,7 +195,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func getVirtualMachineScaleSetVMConnectionInfo(ctx context.Context, networkInterfaces []network.Interface, resourceGroupName string, virtualMachineScaleSetName string, instanceID string, publicIPAddressesClient *network.PublicIPAddressesClient) (*connectionInfo, error) {
+func getVirtualMachineScaleSetVMConnectionInfo(ctx context.Context, networkInterfaces []network.Interface, resourceGroupName string, virtualMachineScaleSetName string, virtualmachineIndex string, publicIPAddressesClient *network.PublicIPAddressesClient) (*connectionInfo, error) {
 	if len(networkInterfaces) == 0 {
 		return nil, nil
 	}
@@ -217,9 +214,9 @@ func getVirtualMachineScaleSetVMConnectionInfo(ctx context.Context, networkInter
 						return nil, err
 					}
 
-					publicIPAddress, err := publicIPAddressesClient.GetVirtualMachineScaleSetPublicIPAddress(ctx, resourceGroupName, virtualMachineScaleSetName, instanceID, pipID.NetworkInterfaceName, pipID.IpConfigurationName, pipID.PublicIPAddressName, "")
+					publicIPAddress, err := publicIPAddressesClient.GetVirtualMachineScaleSetPublicIPAddress(ctx, resourceGroupName, virtualMachineScaleSetName, virtualmachineIndex, pipID.NetworkInterfaceName, pipID.IpConfigurationName, pipID.PublicIPAddressName, "")
 					if err != nil {
-						return nil, fmt.Errorf("reading Public IP Address for VM Instance %q for Virtual Machine Scale Set %q (Resource Group %q): %+v", instanceID, virtualMachineScaleSetName, resourceGroupName, err)
+						return nil, fmt.Errorf("reading Public IP Address for VM Instance %q for Virtual Machine Scale Set %q (Resource Group %q): %+v", virtualmachineIndex, virtualMachineScaleSetName, resourceGroupName, err)
 					}
 
 					if *nic.Primary && *props.Primary {
@@ -256,25 +253,10 @@ func getVirtualMachineScaleSetVMConnectionInfo(ctx context.Context, networkInter
 
 func flattenVirtualMachineScaleSetVM(input compute.VirtualMachineScaleSetVM, connectionInfo *connectionInfo) map[string]interface{} {
 	output := make(map[string]interface{})
-	if input.Name != nil {
-		output["name"] = *input.Name
-	}
-
-	if input.InstanceID != nil {
-		output["instance_id"] = *input.InstanceID
-	}
-
-	if input.LatestModelApplied != nil {
-		output["latest_model_applied"] = *input.LatestModelApplied
-	}
-
-	if input.ProvisioningState != nil {
-		output["provisioning_state"] = *input.ProvisioningState
-	}
-
-	if input.VMID != nil {
-		output["virtual_machine_id"] = *input.VMID
-	}
+	output["name"] = *input.Name
+	output["instance_id"] = *input.InstanceID
+	output["latest_model_applied"] = *input.LatestModelApplied
+	output["virtual_machine_id"] = *input.VMID
 
 	props := *input.VirtualMachineScaleSetVMProperties
 	if profile := props.OsProfile; profile != nil {
