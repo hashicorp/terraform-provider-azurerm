@@ -9,13 +9,16 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type ListResponse struct {
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type ListOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *ObjectReplicationPolicies
 }
 
 // List ...
-func (c ObjectReplicationPoliciesClient) List(ctx context.Context, id StorageAccountId) (result ListResponse, err error) {
+func (c ObjectReplicationPoliciesClient) List(ctx context.Context, id StorageAccountId) (result ListOperationResponse, err error) {
 	req, err := c.preparerForList(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "objectreplicationpolicies.ObjectReplicationPoliciesClient", "List", nil, "Failure preparing request")
@@ -54,7 +57,7 @@ func (c ObjectReplicationPoliciesClient) preparerForList(ctx context.Context, id
 
 // responderForList handles the response to the List request. The method always
 // closes the http.Response Body.
-func (c ObjectReplicationPoliciesClient) responderForList(resp *http.Response) (result ListResponse, err error) {
+func (c ObjectReplicationPoliciesClient) responderForList(resp *http.Response) (result ListOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

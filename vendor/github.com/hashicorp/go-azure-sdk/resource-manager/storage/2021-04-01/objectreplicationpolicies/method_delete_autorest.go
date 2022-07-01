@@ -8,12 +8,15 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type DeleteResponse struct {
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type DeleteOperationResponse struct {
 	HttpResponse *http.Response
 }
 
 // Delete ...
-func (c ObjectReplicationPoliciesClient) Delete(ctx context.Context, id ObjectReplicationPoliciesId) (result DeleteResponse, err error) {
+func (c ObjectReplicationPoliciesClient) Delete(ctx context.Context, id ObjectReplicationPoliciesId) (result DeleteOperationResponse, err error) {
 	req, err := c.preparerForDelete(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "objectreplicationpolicies.ObjectReplicationPoliciesClient", "Delete", nil, "Failure preparing request")
@@ -52,7 +55,7 @@ func (c ObjectReplicationPoliciesClient) preparerForDelete(ctx context.Context, 
 
 // responderForDelete handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (c ObjectReplicationPoliciesClient) responderForDelete(resp *http.Response) (result DeleteResponse, err error) {
+func (c ObjectReplicationPoliciesClient) responderForDelete(resp *http.Response) (result DeleteOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusNoContent, http.StatusOK),
