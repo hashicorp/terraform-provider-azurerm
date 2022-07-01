@@ -45,7 +45,7 @@ func (id VirtualMachineScaleSetPublicIPAddressId) String() string {
 }
 
 func (id VirtualMachineScaleSetPublicIPAddressId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.Compute/virtualMachineScaleSets/%s/virtualMachines/%s/networkInterfaces/%s/ipConfigurations/%s/publicIPAddresses/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s/virtualMachines/%s/networkInterfaces/%s/ipConfigurations/%s/publicIPAddresses/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualMachineScaleSetName, id.VirtualMachineName, id.NetworkInterfaceName, id.IpConfigurationName, id.PublicIPAddressName)
 }
 
