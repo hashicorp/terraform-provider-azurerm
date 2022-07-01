@@ -9,18 +9,16 @@ import (
 	"strings"
 	"time"
 
-	compute2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	compute2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	intStor "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -157,7 +155,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							MinItems: 1,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: msivalidate.UserAssignedIdentityID,
+								ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 							},
 						},
 					},
@@ -1150,7 +1148,7 @@ func flattenAzureRmVirtualMachineIdentity(identity *compute.VirtualMachineIdenti
 			}
 		*/
 		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(key)
+			parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(key)
 			if err != nil {
 				return nil, err
 			}

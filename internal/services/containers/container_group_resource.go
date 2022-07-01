@@ -291,6 +291,44 @@ func resourceContainerGroup() *pluginsdk.Resource {
 							},
 						},
 
+						"cpu_limit": {
+							Type:         pluginsdk.TypeFloat,
+							Optional:     true,
+							ValidateFunc: validation.FloatAtLeast(0.0),
+						},
+
+						"memory_limit": {
+							Type:         pluginsdk.TypeFloat,
+							Optional:     true,
+							ValidateFunc: validation.FloatAtLeast(0.0),
+						},
+
+						//lintignore:XS003
+						"gpu_limit": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"count": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+
+									"sku": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"K80",
+											"P100",
+											"V100",
+										}, false),
+									},
+								},
+							},
+						},
+
 						"ports": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -1065,6 +1103,31 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 			}
 		}
 
+		cpuLimit := data["cpu_limit"].(float64)
+		memLimit := data["memory_limit"].(float64)
+		gpuLimit := data["gpu_limit"].([]interface{})
+
+		if !(cpuLimit == 0.0 && memLimit == 0.0 && len(gpuLimit) == 0) {
+			limits := &containerinstance.ResourceLimits{}
+			if cpuLimit != 0.0 {
+				limits.CPU = &cpuLimit
+			}
+			if memLimit != 0.0 {
+				limits.MemoryInGB = &memLimit
+			}
+			if len(gpuLimit) == 1 && gpuLimit[0] != nil {
+				v := gpuLimit[0].(map[string]interface{})
+				limits.Gpu = &containerinstance.GpuResource{}
+				if v := int32(v["count"].(int)); v != 0 {
+					limits.Gpu.Count = &v
+				}
+				if v := containerinstance.GpuSku(v["sku"].(string)); v != "" {
+					limits.Gpu.Sku = v
+				}
+			}
+			container.Resources.Limits = limits
+		}
+
 		if v, ok := data["ports"].(*pluginsdk.Set); ok && len(v.List()) > 0 {
 			var ports []containerinstance.ContainerPort
 			for _, v := range v.List() {
@@ -1580,6 +1643,25 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 					gpus = append(gpus, gpu)
 				}
 				containerConfig["gpu"] = gpus
+			}
+			if resourceLimits := resources.Limits; resourceLimits != nil {
+				if v := resourceLimits.CPU; v != nil {
+					containerConfig["cpu_limit"] = *v
+				}
+				if v := resourceLimits.MemoryInGB; v != nil {
+					containerConfig["memory_limit"] = *v
+				}
+
+				gpus := make([]interface{}, 0)
+				if v := resourceLimits.Gpu; v != nil {
+					gpu := make(map[string]interface{})
+					if v.Count != nil {
+						gpu["count"] = *v.Count
+					}
+					gpu["sku"] = string(v.Sku)
+					gpus = append(gpus, gpu)
+				}
+				containerConfig["gpu_limit"] = gpus
 			}
 		}
 
