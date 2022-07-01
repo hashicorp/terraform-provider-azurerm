@@ -130,7 +130,7 @@ func resourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("volume_name", id.VolumeName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(&model.Location))
+		d.Set("location", azure.NormalizeLocation(model.Location))
 	}
 
 	return nil
