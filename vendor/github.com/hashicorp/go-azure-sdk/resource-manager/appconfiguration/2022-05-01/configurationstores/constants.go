@@ -67,6 +67,34 @@ func parseConnectionStatus(input string) (*ConnectionStatus, error) {
 	return &out, nil
 }
 
+type CreateMode string
+
+const (
+	CreateModeDefault CreateMode = "Default"
+	CreateModeRecover CreateMode = "Recover"
+)
+
+func PossibleValuesForCreateMode() []string {
+	return []string{
+		string(CreateModeDefault),
+		string(CreateModeRecover),
+	}
+}
+
+func parseCreateMode(input string) (*CreateMode, error) {
+	vals := map[string]CreateMode{
+		"default": CreateModeDefault,
+		"recover": CreateModeRecover,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := CreateMode(input)
+	return &out, nil
+}
+
 type ProvisioningState string
 
 const (

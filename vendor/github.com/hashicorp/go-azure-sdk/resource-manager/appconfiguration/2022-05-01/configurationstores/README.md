@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2020-06-01/configurationstores` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores` Documentation
 
-The `configurationstores` SDK allows for interaction with the Azure Resource Manager Service `appconfiguration` (API Version `2020-06-01`).
+The `configurationstores` SDK allows for interaction with the Azure Resource Manager Service `appconfiguration` (API Version `2022-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2020-06-01/configurationstores"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores"
 ```
 
 
@@ -101,26 +101,6 @@ if err != nil {
 }
 for _, item := range items {
 	// do something
-}
-```
-
-
-### Example Usage: `ConfigurationStoresClient.ListKeyValue`
-
-```go
-ctx := context.TODO()
-id := configurationstores.NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configStoreValue")
-
-payload := configurationstores.ListKeyValueParameters{
-	// ...
-}
-
-read, err := client.ListKeyValue(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
 }
 ```
 
