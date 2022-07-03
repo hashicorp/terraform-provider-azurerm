@@ -54,7 +54,7 @@ type LinuxFunctionAppModel struct {
 	KeyVaultReferenceIdentityID string                               `tfschema:"key_vault_reference_identity_id"`
 	SiteConfig                  []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
 	Tags                        map[string]string                    `tfschema:"tags"`
-	VirtualNetworkSubnetID      string                     			 `tfschema:"virtual_network_subnet_id"`
+	VirtualNetworkSubnetID      string                               `tfschema:"virtual_network_subnet_id"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -457,6 +457,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(functionApp.KeyVaultReferenceIdentityID)
 			}
 
+			if functionApp.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionApp.VirtualNetworkSubnetID)
+			}
+
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 			if err != nil {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
@@ -492,9 +496,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if functionApp.VirtualNetworkSubnetID != "" {
-				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionApp.VirtualNetworkSubnetID)
-			}
+
 
 			auth := helpers.ExpandAuthSettings(functionApp.AuthSettings)
 			if auth.SiteAuthSettingsProperties != nil {
