@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-0
 ```go
 client := profiles.NewProfilesClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -31,6 +28,7 @@ ctx := context.TODO()
 payload := profiles.CheckTrafficManagerRelativeDnsNameAvailabilityParameters{
 	// ...
 }
+
 
 read, err := client.CheckTrafficManagerRelativeDnsNameAvailability(ctx, payload)
 if err != nil {
@@ -52,6 +50,7 @@ payload := profiles.Profile{
 	// ...
 }
 
+
 read, err := client.CreateOrUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
@@ -67,6 +66,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileValue")
+
 read, err := client.Delete(ctx, id)
 if err != nil {
 	// handle the error
@@ -82,6 +82,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -97,6 +98,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := profiles.NewResourceGroupID()
+
 read, err := client.ListByResourceGroup(ctx, id)
 if err != nil {
 	// handle the error
@@ -112,6 +114,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := profiles.NewSubscriptionID()
+
 read, err := client.ListBySubscription(ctx, id)
 if err != nil {
 	// handle the error
@@ -131,6 +134,7 @@ id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012"
 payload := profiles.Profile{
 	// ...
 }
+
 
 read, err := client.Update(ctx, id, payload)
 if err != nil {

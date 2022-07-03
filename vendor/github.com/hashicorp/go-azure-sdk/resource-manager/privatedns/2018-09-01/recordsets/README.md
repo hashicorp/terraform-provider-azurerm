@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01
 ```go
 client := recordsets.NewRecordSetsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "exampl
 payload := recordsets.RecordSet{
 	// ...
 }
+
 
 read, err := client.CreateOrUpdate(ctx, id, payload, recordsets.DefaultCreateOrUpdateOperationOptions())
 if err != nil {
@@ -48,6 +46,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue", "A", "relativeRecordSetValue")
+
 read, err := client.Delete(ctx, id, recordsets.DefaultDeleteOperationOptions())
 if err != nil {
 	// handle the error
@@ -63,6 +62,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue", "A", "relativeRecordSetValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +78,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := recordsets.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue")
+
 // alternatively `client.List(ctx, id, recordsets.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, recordsets.DefaultListOperationOptions())
 if err != nil {
@@ -94,6 +95,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := recordsets.NewPrivateZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue", "A")
+
 // alternatively `client.ListByType(ctx, id, recordsets.DefaultListByTypeOperationOptions())` can be used to do batched pagination
 items, err := client.ListByTypeComplete(ctx, id, recordsets.DefaultListByTypeOperationOptions())
 if err != nil {
@@ -114,6 +116,7 @@ id := recordsets.NewRecordTypeID("12345678-1234-9876-4563-123456789012", "exampl
 payload := recordsets.RecordSet{
 	// ...
 }
+
 
 read, err := client.Update(ctx, id, payload, recordsets.DefaultUpdateOperationOptions())
 if err != nil {

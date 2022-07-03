@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-pre
 ```go
 client := dashboard.NewDashboardClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := dashboard.NewDashboardID("12345678-1234-9876-4563-123456789012", "example-
 payload := dashboard.Dashboard{
 	// ...
 }
+
 
 read, err := client.CreateOrUpdate(ctx, id, payload)
 if err != nil {
@@ -48,6 +46,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := dashboard.NewDashboardID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dashboardValue")
+
 read, err := client.Delete(ctx, id)
 if err != nil {
 	// handle the error
@@ -63,6 +62,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := dashboard.NewDashboardID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dashboardValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +78,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := dashboard.NewResourceGroupID()
+
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
 if err != nil {
@@ -94,6 +95,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := dashboard.NewSubscriptionID()
+
 // alternatively `client.ListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id)
 if err != nil {
@@ -114,6 +116,7 @@ id := dashboard.NewDashboardID("12345678-1234-9876-4563-123456789012", "example-
 payload := dashboard.PatchableDashboard{
 	// ...
 }
+
 
 read, err := client.Update(ctx, id, payload)
 if err != nil {
