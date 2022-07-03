@@ -47,6 +47,7 @@ type LinuxFunctionAppSlotModel struct {
 	KeyVaultReferenceIdentityID   string                                   `tfschema:"key_vault_reference_identity_id"`
 	SiteConfig                    []helpers.SiteConfigLinuxFunctionAppSlot `tfschema:"site_config"`
 	Tags                          map[string]string                        `tfschema:"tags"`
+	VirtualNetworkSubnetID        string                                   `tfschema:"virtual_network_subnet_id"`
 	CustomDomainVerificationId    string                                   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string                                   `tfschema:"default_hostname"`
 	Kind                          string                                   `tfschema:"kind"`
@@ -224,6 +225,12 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppSlot(),
 
 		"tags": tags.Schema(),
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
 	}
 }
 
@@ -490,6 +497,10 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if functionAppSlot.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionAppSlot.VirtualNetworkSubnetID)
+			}
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -567,6 +578,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				Tags:                        tags.ToTypedObject(functionApp.Tags),
 				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
+				VirtualNetworkSubnetID:      utils.NormalizeNilableString(functionApp.VirtualNetworkSubnetID),
 			}
 
 			configResp, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)

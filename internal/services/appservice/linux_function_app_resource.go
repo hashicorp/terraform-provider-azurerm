@@ -54,6 +54,7 @@ type LinuxFunctionAppModel struct {
 	KeyVaultReferenceIdentityID string                               `tfschema:"key_vault_reference_identity_id"`
 	SiteConfig                  []helpers.SiteConfigLinuxFunctionApp `tfschema:"site_config"`
 	Tags                        map[string]string                    `tfschema:"tags"`
+	VirtualNetworkSubnetID      string                     			 `tfschema:"virtual_network_subnet_id"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -243,6 +244,12 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"sticky_settings": helpers.StickySettingsSchema(),
 
 		"tags": tags.Schema(),
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
 	}
 }
 
@@ -485,6 +492,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if functionApp.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionApp.VirtualNetworkSubnetID)
+			}
+
 			auth := helpers.ExpandAuthSettings(functionApp.AuthSettings)
 			if auth.SiteAuthSettingsProperties != nil {
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *auth); err != nil {
@@ -591,6 +602,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				Tags:                        tags.ToTypedObject(functionApp.Tags),
 				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
+				VirtualNetworkSubnetID:      utils.NormalizeNilableString(functionApp.VirtualNetworkSubnetID),
 			}
 
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
