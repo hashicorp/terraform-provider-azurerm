@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * azurestackhci: refactoring to use `hashicorp/go-azure-sdk` [GH-17469]
+* hardwaresecuritymodules: refactoring to use `hashicorp/go-azure-sdk` [GH-17470]
 * privatedns: refactoring to use `hashicorp/go-azure-sdk` [GH-17436]
 
 ## 3.12.0 (June 30, 2022)
