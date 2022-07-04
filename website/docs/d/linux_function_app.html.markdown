@@ -97,6 +97,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `site_credential` - A `site_credential` block as defined below.
 
+* `virtual_network_subnet_id` - The subnet id which the Linux Function App is vNet Integrated with.
+
 ---
 
 An `active_directory` block exports the following:
