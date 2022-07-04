@@ -1,7 +1,6 @@
 ---
 name: Unit Tests
 on:
-  workflow_dispatch:
   pull_request:
     types: ['opened', 'synchronize']
     paths:
