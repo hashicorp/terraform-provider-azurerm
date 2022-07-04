@@ -22,16 +22,16 @@ resource "azurerm_virtual_desktop_host_pool" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  name                              = "pooleddepthfirst"
-  friendly_name                     = "pooleddepthfirst"
-  validate_environment              = true
-  start_vm_on_connect               = true
-  custom_rdp_properties             = "audiocapturemode:i:1;audiomode:i:0;"
-  description                       = "Acceptance Test: A pooled host pool - pooleddepthfirst"
-  type                              = "Pooled"
-  maximum_sessions_allowed          = 50
-  load_balancer_type                = "DepthFirst"
-  scheduled_agent_updates_enabled   = true
+  name                            = "pooleddepthfirst"
+  friendly_name                   = "pooleddepthfirst"
+  validate_environment            = true
+  start_vm_on_connect             = true
+  custom_rdp_properties           = "audiocapturemode:i:1;audiomode:i:0;"
+  description                     = "Acceptance Test: A pooled host pool - pooleddepthfirst"
+  type                            = "Pooled"
+  maximum_sessions_allowed        = 50
+  load_balancer_type              = "DepthFirst"
+  scheduled_agent_updates_enabled = true
   agent_updates_schedule {
     day_of_week = "Sunday"
     hour_of_day = 3
@@ -97,7 +97,7 @@ The following arguments are supported:
 An `agent_updates_schedule` block supports the following:
 
 * `day_of_week` - (Required) The day of the week on which agent updates should be performed. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`
-* `hour_of_day` - (Required) The hour of day the update window should start. The update is a 2 hour period following the hour provided. The value should be provided as a number between 0 and 23, with 0 being midnight and 23 being 11pm. A leading zero should not be provided.
+* `hour_of_day` - (Required) The hour of day the update window should start. The update is a 2 hour period following the hour provided. The value should be provided as a number between 0 and 23, with 0 being midnight and 23 being 11pm. A leading zero should not be used.
 
 ---
 
