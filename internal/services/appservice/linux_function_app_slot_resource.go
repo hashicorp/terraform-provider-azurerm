@@ -578,7 +578,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				Tags:                        tags.ToTypedObject(functionApp.Tags),
 				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
-				VirtualNetworkSubnetID:      utils.NormalizeNilableString(functionApp.VirtualNetworkSubnetID),
+				VirtualNetworkSubnetID:      utils.NormalizeNilableString(functionAppSlot.VirtualNetworkSubnetID),
 			}
 
 			configResp, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
