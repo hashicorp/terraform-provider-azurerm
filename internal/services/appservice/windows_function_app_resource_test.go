@@ -2911,7 +2911,7 @@ resource "azurerm_windows_function_app" "test" {
     account_name = azurerm_storage_account.test.name
     share_name   = azurerm_storage_share.test.name
     access_key   = azurerm_storage_account.test.primary_access_key
-    mount_path   = "/files"
+    mount_path   = "\\mounts\\files"
   }
 
 }
@@ -2942,7 +2942,7 @@ resource "azurerm_windows_function_app" "test" {
     account_name = azurerm_storage_account.test.name
     share_name   = azurerm_storage_share.test.name
     access_key   = azurerm_storage_account.test.primary_access_key
-    mount_path   = "/blob"
+    mount_path   = "\\mounts\\blob"
   }
 
 }
