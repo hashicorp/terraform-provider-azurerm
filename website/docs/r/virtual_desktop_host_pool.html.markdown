@@ -84,11 +84,13 @@ The following arguments are supported:
 
 * `scheduled_agent_updates_enabled` - (Optional) Enables or disables scheduled updates of the AVD agent components (RDAgent, Geneva Monitoring agent, and side-by-side stack) on session hosts. If this is enabled then up to two `agent_updates_schedule` blocks must be defined. Default is `false`.
 
-~> **NOTE:** if `scheduled_agent_updates_enabled` is set to `true` then at least one `agent_updates_schedule` block must be provided.
+~> **NOTE:** if `scheduled_agent_updates_enabled` is set to `true` then at least one and a maximum of two `agent_updates_schedule` blocks must be provided.
 
 * `scheduled_agent_updates_timezone` - (Optional) Specifies the time zone in which the agent update schedule will apply, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). If `scheduled_agent_updates_use_session_host_timezone` is enabled then it will override this setting. Default is `UTC`
 
 * `scheduled_agent_updates_use_session_host_timezone` - (Optional) Specifies whether scheduled agent updates should be applied based on the timezone of the affected session host. If configured then this setting overrides `scheduled_agent_updates_timezone`. Default is `false`.
+
+* `agent_updates_schedule` - (Optional) An `agent_updates_schedule` block as defined below. A maximum of two blocks can be added. 
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
