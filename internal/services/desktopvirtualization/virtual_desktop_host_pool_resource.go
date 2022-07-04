@@ -231,18 +231,19 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 	useSessionHostLocalTime := *utils.Bool(d.Get("scheduled_agent_updates_use_session_host_timezone").(bool))
 	updateScheduleTimeZone := utils.String(d.Get("scheduled_agent_updates_timezone").(string))
 	payload.Properties.AgentUpdate = &hostpool.AgentUpdateProperties{}
+	scheduleDisabled := hostpool.SessionHostComponentUpdateType(hostpool.SessionHostComponentUpdateTypeDefault)
+	scheduleEnabled := hostpool.SessionHostComponentUpdateType(hostpool.SessionHostComponentUpdateTypeScheduled)
 	if updateScheduleEnabled {
 		if !useSessionHostLocalTime { // based on the priority used in the Azure Portal, if Session Host time is selected, this overrides the explicit TimeZone setting
 			payload.Properties.AgentUpdate.MaintenanceWindowTimeZone = updateScheduleTimeZone
 		}
-		scheduleType := hostpool.SessionHostComponentUpdateType(hostpool.SessionHostComponentUpdateTypeScheduled)
-		payload.Properties.AgentUpdate.Type = &scheduleType
+
+		payload.Properties.AgentUpdate.Type = &scheduleEnabled
 		payload.Properties.AgentUpdate.UseSessionHostLocalTime = &useSessionHostLocalTime
 		payload.Properties.AgentUpdate.MaintenanceWindows = expandAgentUpdateSchedule(d.Get("agent_updates_schedule").([]interface{}))
 
 	} else {
-		scheduleType := hostpool.SessionHostComponentUpdateType(hostpool.SessionHostComponentUpdateTypeDefault)
-		payload.Properties.AgentUpdate.Type = &scheduleType
+		payload.Properties.AgentUpdate.Type = &scheduleDisabled
 		payload.Properties.AgentUpdate.UseSessionHostLocalTime = &useSessionHostLocalTime // required by REST API even when set to Default/Disabled
 		payload.Properties.AgentUpdate.MaintenanceWindowTimeZone = updateScheduleTimeZone // required by REST API even when set to Default/Disabled
 	}
@@ -449,7 +450,6 @@ func expandAgentUpdateSchedule(input []interface{}) *[]hostpool.MaintenanceWindo
 		}
 
 		v := item.(map[string]interface{})
-		//dayOfWeekRaw := v["day_of_week"].(string)
 		dayOfWeek := hostpool.DayOfWeek(v["day_of_week"].(string))
 
 		hourOfDay := int64(v["hour_of_day"].(int))
@@ -475,7 +475,6 @@ func expandAgentUpdateSchedulePatch(input []interface{}) *[]hostpool.Maintenance
 		}
 
 		v := item.(map[string]interface{})
-		//dayOfWeekRaw := v["day_of_week"].(string)
 		dayOfWeek := hostpool.DayOfWeek(v["day_of_week"].(string))
 
 		hourOfDay := int64(v["hour_of_day"].(int))
