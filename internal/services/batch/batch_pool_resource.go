@@ -578,7 +578,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 			},
 			"identity": commonschema.UserAssignedIdentityOptional(),
 		},
-		// CustomizeDiff:
 	}
 	if !features.FourPointOhBeta() {
 		result.Schema["container_configuration"] = &pluginsdk.Schema{
