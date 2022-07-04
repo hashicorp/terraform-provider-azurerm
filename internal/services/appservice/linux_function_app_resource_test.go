@@ -1213,7 +1213,8 @@ func TestAccLinuxFunctionApp_vNetIntegrationUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
 					check.That("azurerm_subnet.test").Key("id"),
-			),
+			  ),
+      ),
 		},
 		data.ImportStep(),
 		{
