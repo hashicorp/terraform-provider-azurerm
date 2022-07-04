@@ -2564,17 +2564,13 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_linux_function_app" "test" {
-  name                      = "acctest-LFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  service_plan_id           = azurerm_service_plan.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
+  
   site_config {}
-
 }
 
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
@@ -2611,18 +2607,14 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_linux_function_app" "test" {
-  name                      = "acctest-LFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  service_plan_id           = azurerm_service_plan.test.id
-  virtual_network_subnet_id = azurerm_subnet.test.id
-
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  virtual_network_subnet_id  = azurerm_subnet.test.id
 
   site_config {}
-
 }
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
