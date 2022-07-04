@@ -231,18 +231,18 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 	useSessionHostLocalTime := *utils.Bool(d.Get("scheduled_agent_updates_use_session_host_timezone").(bool))
 	updateScheduleTimeZone := utils.String(d.Get("scheduled_agent_updates_timezone").(string))
 	payload.Properties.AgentUpdate = &hostpool.AgentUpdateProperties{}
-	scheduleDisabled := hostpool.SessionHostComponentUpdateType(hostpool.SessionHostComponentUpdateTypeDefault)
-	scheduleEnabled := hostpool.SessionHostComponentUpdateType(hostpool.SessionHostComponentUpdateTypeScheduled)
+
 	if updateScheduleEnabled {
 		if !useSessionHostLocalTime { // based on the priority used in the Azure Portal, if Session Host time is selected, this overrides the explicit TimeZone setting
 			payload.Properties.AgentUpdate.MaintenanceWindowTimeZone = updateScheduleTimeZone
 		}
-
+		scheduleEnabled := hostpool.SessionHostComponentUpdateTypeScheduled
 		payload.Properties.AgentUpdate.Type = &scheduleEnabled
 		payload.Properties.AgentUpdate.UseSessionHostLocalTime = &useSessionHostLocalTime
 		payload.Properties.AgentUpdate.MaintenanceWindows = expandAgentUpdateSchedule(d.Get("agent_updates_schedule").([]interface{}))
 
 	} else {
+		scheduleDisabled := hostpool.SessionHostComponentUpdateTypeDefault
 		payload.Properties.AgentUpdate.Type = &scheduleDisabled
 		payload.Properties.AgentUpdate.UseSessionHostLocalTime = &useSessionHostLocalTime // required by REST API even when set to Default/Disabled
 		payload.Properties.AgentUpdate.MaintenanceWindowTimeZone = updateScheduleTimeZone // required by REST API even when set to Default/Disabled
@@ -313,8 +313,8 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 			if d.HasChange("scheduled_agent_updates_enabled") {
 				updatesEnabled := false
 				updatesEnabled = d.Get("scheduled_agent_updates_enabled").(bool)
-				updatesScheduled := hostpool.SessionHostComponentUpdateType(hostpool.SessionHostComponentUpdateTypeScheduled)
-				updatesDefault := hostpool.SessionHostComponentUpdateType(hostpool.SessionHostComponentUpdateTypeDefault)
+				updatesScheduled := hostpool.SessionHostComponentUpdateTypeScheduled
+				updatesDefault := hostpool.SessionHostComponentUpdateTypeDefault
 				if updatesEnabled {
 					payload.Properties.AgentUpdate.Type = &updatesScheduled
 				} else {
