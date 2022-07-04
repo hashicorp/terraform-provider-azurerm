@@ -3177,10 +3177,10 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_linux_function_app" "test" {
-  name                      = "acctest-LFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  service_plan_id           = azurerm_service_plan.test.id
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
 
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
@@ -3188,6 +3188,7 @@ resource "azurerm_linux_function_app" "test" {
   site_config {}
 
 }
+
 
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
