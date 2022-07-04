@@ -399,6 +399,7 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 			if agentUpdates.Type != nil {
 				if *agentUpdates.Type == hostpool.SessionHostComponentUpdateTypeScheduled {
 					d.Set("scheduled_agent_updates_enabled", true)
+					d.Set("agent_updates_schedule", flattenAgentUpdateSchedule(agentUpdates.MaintenanceWindows))
 				} else {
 					d.Set("scheduled_agent_updates_enabled", false)
 				}
@@ -408,7 +409,7 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 
 			d.Set("scheduled_agent_updates_timezone", agentUpdates.MaintenanceWindowTimeZone)
 			d.Set("scheduled_agent_updates_use_session_host_timezone", agentUpdates.UseSessionHostLocalTime)
-			d.Set("agent_updates_schedule", flattenAgentUpdateSchedule(agentUpdates.MaintenanceWindows))
+
 		}
 	}
 
