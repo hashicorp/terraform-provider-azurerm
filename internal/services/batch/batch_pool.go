@@ -86,10 +86,13 @@ func flattenBatchPoolUserAccount(account *batch.UserAccount) map[string]interfac
 	return userAccount
 }
 
-func findSensitiveInfoForMountConfig(targetType string, sourceType string, sourceValue string, mountType string, n int, d *pluginsdk.ResourceData) string {
-	for i := 0; i < n; i++ {
-		if src, ok := d.GetOk(fmt.Sprintf("mount_configuration.%d.%v.0.%v", i, mountType, sourceType)); ok && src == sourceValue {
-			return d.Get(fmt.Sprintf("mount_configuration.%d.%v.0.%v", i, mountType, targetType)).(string)
+func findSensitiveInfoForMountConfig(targetType string, sourceType string, sourceValue string, mountType string, d *pluginsdk.ResourceData) string {
+	if num, ok := d.GetOk("mount_configuration.#"); ok {
+		n := num.(int)
+		for i := 0; i < n; i++ {
+			if src, ok := d.GetOk(fmt.Sprintf("mount_configuration.%d.%v.0.%v", i, mountType, sourceType)); ok && src == sourceValue {
+				return d.Get(fmt.Sprintf("mount_configuration.%d.%v.0.%v", i, mountType, targetType)).(string)
+			}
 		}
 	}
 	return ""
@@ -98,77 +101,68 @@ func findSensitiveInfoForMountConfig(targetType string, sourceType string, sourc
 func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *batch.MountConfiguration) map[string]interface{} {
 	mountConfig := make(map[string]interface{})
 
-	if n, ok := d.GetOk("mount_configuration.#"); ok {
-		numMountConfig := n.(int)
+	if config.AzureBlobFileSystemConfiguration != nil {
+		azureBlobFileSysConfigList := make([]interface{}, 0)
+		azureBlobFileSysConfig := make(map[string]interface{})
+		azureBlobFileSysConfig["account_name"] = *config.AzureBlobFileSystemConfiguration.AccountName
+		azureBlobFileSysConfig["container_name"] = *config.AzureBlobFileSystemConfiguration.ContainerName
+		azureBlobFileSysConfig["relative_mount_path"] = *config.AzureBlobFileSystemConfiguration.RelativeMountPath
+		azureBlobFileSysConfig["account_key"] = findSensitiveInfoForMountConfig("account_key", "account_name", *config.AzureBlobFileSystemConfiguration.AccountName, "azure_blob_file_system_configuration", d)
+		azureBlobFileSysConfig["sas_key"] = findSensitiveInfoForMountConfig("sas_key", "account_name", *config.AzureBlobFileSystemConfiguration.AccountName, "azure_blob_file_system_configuration", d)
+		if config.AzureBlobFileSystemConfiguration.IdentityReference != nil {
+			azureBlobFileSysConfig["identity_reference"] = flattenBatchPoolIdentityReference(config.AzureBlobFileSystemConfiguration.IdentityReference)
+		}
+		if config.AzureBlobFileSystemConfiguration.BlobfuseOptions != nil {
+			azureBlobFileSysConfig["blobfuse_options"] = *config.AzureBlobFileSystemConfiguration.BlobfuseOptions
+		}
+		azureBlobFileSysConfigList = append(azureBlobFileSysConfigList, azureBlobFileSysConfig)
+		mountConfig["azure_blob_file_system_configuration"] = azureBlobFileSysConfigList
+	} else if config.AzureFileShareConfiguration != nil {
+		azureFileShareConfigList := make([]interface{}, 0)
+		azureFileShareConfig := make(map[string]interface{})
+		azureFileShareConfig["account_name"] = *config.AzureFileShareConfiguration.AccountName
+		azureFileShareConfig["azure_file_url"] = *config.AzureFileShareConfiguration.AzureFileURL
+		azureFileShareConfig["account_key"] = findSensitiveInfoForMountConfig("account_key", "account_name", *config.AzureFileShareConfiguration.AccountName, "azure_file_share_configuration", d)
+		azureFileShareConfig["relative_mount_path"] = *config.AzureFileShareConfiguration.RelativeMountPath
 
-		if config.AzureBlobFileSystemConfiguration != nil {
-			azureBlobFileSysConfigList := make([]interface{}, 0)
-			azureBlobFileSysConfig := make(map[string]interface{})
-			azureBlobFileSysConfig["account_name"] = *config.AzureBlobFileSystemConfiguration.AccountName
-			azureBlobFileSysConfig["container_name"] = *config.AzureBlobFileSystemConfiguration.ContainerName
-			azureBlobFileSysConfig["relative_mount_path"] = *config.AzureBlobFileSystemConfiguration.RelativeMountPath
-			azureBlobFileSysConfig["account_key"] = findSensitiveInfoForMountConfig("account_key", "account_name", *config.AzureBlobFileSystemConfiguration.AccountName, "azure_blob_file_system_configuration", numMountConfig, d)
-			azureBlobFileSysConfig["sas_key"] = findSensitiveInfoForMountConfig("sas_key", "account_name", *config.AzureBlobFileSystemConfiguration.AccountName, "azure_blob_file_system_configuration", numMountConfig, d)
-			if config.AzureBlobFileSystemConfiguration.IdentityReference != nil {
-				azureBlobFileSysConfig["identity_reference"] = flattenBatchPoolIdentityReference(config.AzureBlobFileSystemConfiguration.IdentityReference)
-			}
-			if config.AzureBlobFileSystemConfiguration.BlobfuseOptions != nil {
-				azureBlobFileSysConfig["blobfuse_options"] = *config.AzureBlobFileSystemConfiguration.BlobfuseOptions
-			}
-			azureBlobFileSysConfigList = append(azureBlobFileSysConfigList, azureBlobFileSysConfig)
-			mountConfig["azure_blob_file_system_configuration"] = azureBlobFileSysConfigList
+		if config.AzureFileShareConfiguration.MountOptions != nil {
+			azureFileShareConfig["mount_options"] = *config.AzureFileShareConfiguration.MountOptions
 		}
 
-		if config.AzureFileShareConfiguration != nil {
-			azureFileShareConfigList := make([]interface{}, 0)
-			azureFileShareConfig := make(map[string]interface{})
-			azureFileShareConfig["account_name"] = *config.AzureFileShareConfiguration.AccountName
-			azureFileShareConfig["azure_file_url"] = *config.AzureFileShareConfiguration.AzureFileURL
-			azureFileShareConfig["account_key"] = findSensitiveInfoForMountConfig("account_key", "account_name", *config.AzureFileShareConfiguration.AccountName, "azure_file_share_configuration", numMountConfig, d)
-			azureFileShareConfig["relative_mount_path"] = *config.AzureFileShareConfiguration.RelativeMountPath
+		azureFileShareConfigList = append(azureFileShareConfigList, azureFileShareConfig)
+		mountConfig["azure_file_share_configuration"] = azureFileShareConfigList
+	} else if config.CifsMountConfiguration != nil {
+		cifsMountConfigList := make([]interface{}, 0)
+		cifsMountConfig := make(map[string]interface{})
 
-			if config.AzureFileShareConfiguration.MountOptions != nil {
-				azureFileShareConfig["mount_options"] = *config.AzureFileShareConfiguration.MountOptions
-			}
+		cifsMountConfig["user_name"] = *config.CifsMountConfiguration.Username
+		cifsMountConfig["password"] = findSensitiveInfoForMountConfig("password", "user_name", *config.CifsMountConfiguration.Username, "cifs_mount_configuration", d)
+		cifsMountConfig["source"] = *config.CifsMountConfiguration.Source
+		cifsMountConfig["relative_mount_path"] = *config.CifsMountConfiguration.RelativeMountPath
 
-			azureFileShareConfigList = append(azureFileShareConfigList, azureFileShareConfig)
-			mountConfig["azure_file_share_configuration"] = azureFileShareConfigList
+		if config.CifsMountConfiguration.MountOptions != nil {
+			cifsMountConfig["mount_options"] = *config.CifsMountConfiguration.MountOptions
 		}
 
-		if config.CifsMountConfiguration != nil {
-			cifsMountConfigList := make([]interface{}, 0)
-			cifsMountConfig := make(map[string]interface{})
+		cifsMountConfigList = append(cifsMountConfigList, cifsMountConfig)
+		mountConfig["cifs_mount_configuration"] = cifsMountConfigList
+	} else if config.NfsMountConfiguration != nil {
+		nfsMountConfigList := make([]interface{}, 0)
+		nfsMountConfig := make(map[string]interface{})
 
-			cifsMountConfig["user_name"] = *config.CifsMountConfiguration.Username
-			cifsMountConfig["password"] = findSensitiveInfoForMountConfig("password", "user_name", *config.CifsMountConfiguration.Username, "cifs_mount_configuration", numMountConfig, d)
-			cifsMountConfig["source"] = *config.CifsMountConfiguration.Source
-			cifsMountConfig["relative_mount_path"] = *config.CifsMountConfiguration.RelativeMountPath
+		nfsMountConfig["source"] = *config.NfsMountConfiguration.Source
+		nfsMountConfig["relative_mount_path"] = *config.NfsMountConfiguration.RelativeMountPath
 
-			if config.CifsMountConfiguration.MountOptions != nil {
-				cifsMountConfig["mount_options"] = *config.CifsMountConfiguration.MountOptions
-			}
-
-			cifsMountConfigList = append(cifsMountConfigList, cifsMountConfig)
-			mountConfig["cifs_mount_configuration"] = cifsMountConfigList
+		if config.NfsMountConfiguration.MountOptions != nil {
+			nfsMountConfig["mount_options"] = *config.NfsMountConfiguration.MountOptions
 		}
 
-		if config.NfsMountConfiguration != nil {
-			nfsMountConfigList := make([]interface{}, 0)
-			nfsMountConfig := make(map[string]interface{})
-
-			nfsMountConfig["source"] = *config.NfsMountConfiguration.Source
-			nfsMountConfig["relative_mount_path"] = *config.NfsMountConfiguration.RelativeMountPath
-
-			if config.NfsMountConfiguration.MountOptions != nil {
-				nfsMountConfig["mount_options"] = *config.NfsMountConfiguration.MountOptions
-			}
-
-			nfsMountConfigList = append(nfsMountConfigList, nfsMountConfig)
-			mountConfig["nfs_mount_configuration"] = nfsMountConfigList
-		}
+		nfsMountConfigList = append(nfsMountConfigList, nfsMountConfig)
+		mountConfig["nfs_mount_configuration"] = nfsMountConfigList
 	} else {
 		return nil
 	}
+
 	return mountConfig
 }
 

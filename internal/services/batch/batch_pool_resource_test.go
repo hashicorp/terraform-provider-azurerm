@@ -542,7 +542,10 @@ func TestAccBatchPool_mountConfiguration(t *testing.T) {
 				check.That(data.ResourceName).Key("mount_configuration.0.azure_blob_file_system_configuration.0.relative_mount_path").HasValue("/mnt/"),
 			),
 		},
-		data.ImportStep("stop_pending_resize_operation"),
+		data.ImportStep(
+			"stop_pending_resize_operation",
+			"mount_configuration.0.azure_blob_file_system_configuration.0.account_key",
+		),
 	})
 }
 
