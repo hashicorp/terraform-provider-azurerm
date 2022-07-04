@@ -22,15 +22,21 @@ resource "azurerm_virtual_desktop_host_pool" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  name                     = "pooleddepthfirst"
-  friendly_name            = "pooleddepthfirst"
-  validate_environment     = true
-  start_vm_on_connect      = true
-  custom_rdp_properties    = "audiocapturemode:i:1;audiomode:i:0;"
-  description              = "Acceptance Test: A pooled host pool - pooleddepthfirst"
-  type                     = "Pooled"
-  maximum_sessions_allowed = 50
-  load_balancer_type       = "DepthFirst"
+  name                              = "pooleddepthfirst"
+  friendly_name                     = "pooleddepthfirst"
+  validate_environment              = true
+  start_vm_on_connect               = true
+  custom_rdp_properties             = "audiocapturemode:i:1;audiomode:i:0;"
+  description                       = "Acceptance Test: A pooled host pool - pooleddepthfirst"
+  type                              = "Pooled"
+  maximum_sessions_allowed          = 50
+  load_balancer_type                = "DepthFirst"
+  scheduled_agent_updates_enabled   = true
+  agent_updates_schedule {
+    day_of_week = "Sunday"
+    hour_of_day = 3
+  }
+
 }
 ```
 
@@ -70,13 +76,30 @@ The following arguments are supported:
 
 ~> **NOTE:** `personal_desktop_assignment_type` is required if the `type` of your Virtual Desktop Host Pool is `Personal`
 
-* `maximum_sessions_allowed` (Optional) A valid integer value from 0 to 999999 for the maximum number of users that have concurrent sessions on a session host.
+* `maximum_sessions_allowed` - (Optional) A valid integer value from 0 to 999999 for the maximum number of users that have concurrent sessions on a session host.
     Should only be set if the `type` of your Virtual Desktop Host Pool is `Pooled`.
 
-* `preferred_app_group_type` (Optional) Option to specify the preferred Application Group type for the Virtual Desktop Host Pool.
+* `preferred_app_group_type` - (Optional) Option to specify the preferred Application Group type for the Virtual Desktop Host Pool.
     Valid options are `None`, `Desktop` or `RailApplications`. Default is `None`.
 
+* `scheduled_agent_updates_enabled` - (Optional) Enables or disables scheduled updates of the AVD agent components (RDAgent, Geneva Monitoring agent, and side-by-side stack) on session hosts. If this is enabled then up to two `agent_updates_schedule` blocks must be defined. Default is `false`.
+
+~> **NOTE:** if `scheduled_agent_updates_enabled` is set to `true` then at least one `agent_updates_schedule` block must be provided.
+
+* `scheduled_agent_updates_timezone` - (Optional) Specifies the time zone in which the agent update schedule will apply, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). If `scheduled_agent_updates_use_session_host_timezone` is enabled then it will override this setting. Default is `UTC`
+
+* `scheduled_agent_updates_use_session_host_timezone` - (Optional) Specifies whether scheduled agent updates should be applied based on the timezone of the affected session host. If configured then this setting overrides `scheduled_agent_updates_timezone`. Default is `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+An `agent_updates_schedule` block supports the following:
+
+* `day_of_week` - (Required) The day of the week on which agent updates should be performed. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`
+* `hour_of_day` - (Required) The hour of day the update window should start. The update is a 2 hour period following the hour provided. The value should be provided as a number betwen 0 and 23, with 0 being midnight and 23 being 11pm. A leading zero should not be provided.
+
+---
 
 
 ## Attributes Reference
