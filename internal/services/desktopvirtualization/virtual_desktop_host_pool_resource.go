@@ -145,7 +145,7 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"scheduled_agent_updates_time_zone": {
+			"scheduled_agent_updates_timezone": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "UTC",
@@ -154,6 +154,7 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 			"scheduled_agent_updates_use_session_host_timezone": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"agent_updates_schedule": {
@@ -226,21 +227,24 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 	updateScheduleEnabled := false
-	updateScheduleEnabled = d.Get("scheduled_agent_updates_enabled").(bool)
-	useSessionHostLocalTime := d.Get("scheduled_agent_updates_use_session_host_timezone").(bool)
-	updateTimeZone := ""
-	if !useSessionHostLocalTime { // Based on the priority used in the Azure Portal, if Session Host time is selected, this overrides the explicit TimeZone setting
-		updateTimeZone = d.Get("scheduled_agent_updates_timezone").(string)
-	}
-
+	updateScheduleEnabled = *utils.Bool(d.Get("scheduled_agent_updates_enabled").(bool))
+	useSessionHostLocalTime := *utils.Bool(d.Get("scheduled_agent_updates_use_session_host_timezone").(bool))
+	updateScheduleTimeZone := utils.String(d.Get("scheduled_agent_updates_timezone").(string))
+	payload.Properties.AgentUpdate = &hostpool.AgentUpdateProperties{}
 	if updateScheduleEnabled {
-		scheduleType := hostpool.SessionHostComponentUpdateType(hostpool.SessionHostComponentUpdateTypeScheduled)
-		payload.Properties.AgentUpdate = &hostpool.AgentUpdateProperties{
-			Type:                      &scheduleType,
-			UseSessionHostLocalTime:   &useSessionHostLocalTime,
-			MaintenanceWindowTimeZone: &updateTimeZone,
-			MaintenanceWindows:        expandAgentUpdateSchedule(d.Get("agent_updates_schedule").([]interface{})),
+		if !useSessionHostLocalTime { // based on the priority used in the Azure Portal, if Session Host time is selected, this overrides the explicit TimeZone setting
+			payload.Properties.AgentUpdate.MaintenanceWindowTimeZone = updateScheduleTimeZone
 		}
+		scheduleType := hostpool.SessionHostComponentUpdateType(hostpool.SessionHostComponentUpdateTypeScheduled)
+		payload.Properties.AgentUpdate.Type = &scheduleType
+		payload.Properties.AgentUpdate.UseSessionHostLocalTime = &useSessionHostLocalTime
+		payload.Properties.AgentUpdate.MaintenanceWindows = expandAgentUpdateSchedule(d.Get("agent_updates_schedule").([]interface{}))
+
+	} else {
+		scheduleType := hostpool.SessionHostComponentUpdateType(hostpool.SessionHostComponentUpdateTypeDefault)
+		payload.Properties.AgentUpdate.Type = &scheduleType
+		payload.Properties.AgentUpdate.UseSessionHostLocalTime = &useSessionHostLocalTime // required by REST API even when set to Default/Disabled
+		payload.Properties.AgentUpdate.MaintenanceWindowTimeZone = updateScheduleTimeZone // required by REST API even when set to Default/Disabled
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
@@ -270,7 +274,7 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "maximum_sessions_allowed", "preferred_app_group_type", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates_enabled", "scheduled_agent_updates_time_zone", "scheduled_agent_updates_use_session_host_timezone", "agent_updates_schedule") {
+	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "maximum_sessions_allowed", "preferred_app_group_type", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates_enabled", "scheduled_agent_updates_timezone", "scheduled_agent_updates_use_session_host_timezone", "agent_updates_schedule") {
 		payload.Properties = &hostpool.HostPoolPatchProperties{}
 
 		if d.HasChange("custom_rdp_properties") {
@@ -302,7 +306,7 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 			payload.Properties.ValidationEnvironment = utils.Bool(d.Get("validate_environment").(bool))
 		}
 
-		if d.HasChanges("scheduled_agent_updates_enabled", "scheduled_agent_updates_time_zone", "scheduled_agent_updates_use_session_host_timezone", "agent_updates_schedule") {
+		if d.HasChanges("scheduled_agent_updates_enabled", "scheduled_agent_updates_timezone", "scheduled_agent_updates_use_session_host_timezone", "agent_updates_schedule") {
 			payload.Properties.AgentUpdate = &hostpool.AgentUpdatePatchProperties{}
 
 			if d.HasChange("scheduled_agent_updates_enabled") {
@@ -314,20 +318,15 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 					payload.Properties.AgentUpdate.Type = &updatesScheduled
 				} else {
 					payload.Properties.AgentUpdate.Type = &updatesDefault
+					payload.Properties.AgentUpdate.MaintenanceWindows = &[]hostpool.MaintenanceWindowPatchProperties{}
 				}
 			}
 
-			if d.HasChanges("scheduled_agent_updates_time_zone", "scheduled_agent_updates_use_session_host_timezone") {
+			if d.HasChanges("scheduled_agent_updates_timezone", "scheduled_agent_updates_use_session_host_timezone") {
 				useSessionHostTZ := false
 				useSessionHostTZ = d.Get("scheduled_agent_updates_use_session_host_timezone").(bool)
-				agentUpdateTZ := ""
 				payload.Properties.AgentUpdate.UseSessionHostLocalTime = &useSessionHostTZ
-				if useSessionHostTZ {
-					payload.Properties.AgentUpdate.MaintenanceWindowTimeZone = &agentUpdateTZ
-				} else {
-					agentUpdateTZ = d.Get("scheduled_agent_updates_time_zone").(string)
-					payload.Properties.AgentUpdate.MaintenanceWindowTimeZone = &agentUpdateTZ
-				}
+				payload.Properties.AgentUpdate.MaintenanceWindowTimeZone = utils.String(d.Get("scheduled_agent_updates_timezone").(string))
 			}
 
 			if d.HasChange("agent_updates_schedule") {
@@ -395,17 +394,21 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)
 
-		agentUpdates := model.Properties.AgentUpdate
+		if agentUpdates := model.Properties.AgentUpdate; agentUpdates != nil {
+			if agentUpdates.Type != nil {
+				if *agentUpdates.Type == hostpool.SessionHostComponentUpdateTypeScheduled {
+					d.Set("scheduled_agent_updates_enabled", true)
+				} else {
+					d.Set("scheduled_agent_updates_enabled", false)
+				}
+			} else {
+				d.Set("scheduled_agent_updates_enabled", false)
+			}
 
-		if *agentUpdates.Type == hostpool.SessionHostComponentUpdateTypeDefault {
-			d.Set("scheduled_agent_updates_enabled", true)
-		} else {
-			d.Set("scheduled_agent_updates_enabled", false)
+			d.Set("scheduled_agent_updates_timezone", agentUpdates.MaintenanceWindowTimeZone)
+			d.Set("scheduled_agent_updates_use_session_host_timezone", agentUpdates.UseSessionHostLocalTime)
+			d.Set("agent_updates_schedule", flattenAgentUpdateSchedule(agentUpdates.MaintenanceWindows))
 		}
-
-		d.Set("scheduled_agent_updates_time_zone", agentUpdates.MaintenanceWindowTimeZone)
-		d.Set("scheduled_agent_updates_use_session_host_timezone", agentUpdates.UseSessionHostLocalTime)
-		d.Set("agent_updates_schedule", flattenAgentUpdateSchedule(agentUpdates.MaintenanceWindows))
 	}
 
 	return nil
@@ -449,7 +452,7 @@ func expandAgentUpdateSchedule(input []interface{}) *[]hostpool.MaintenanceWindo
 		//dayOfWeekRaw := v["day_of_week"].(string)
 		dayOfWeek := hostpool.DayOfWeek(v["day_of_week"].(string))
 
-		hourOfDay := v["hour_of_day"].(int64)
+		hourOfDay := int64(v["hour_of_day"].(int))
 
 		results = append(results, hostpool.MaintenanceWindowProperties{
 			DayOfWeek: &dayOfWeek,
@@ -475,7 +478,7 @@ func expandAgentUpdateSchedulePatch(input []interface{}) *[]hostpool.Maintenance
 		//dayOfWeekRaw := v["day_of_week"].(string)
 		dayOfWeek := hostpool.DayOfWeek(v["day_of_week"].(string))
 
-		hourOfDay := v["hour_of_day"].(int64)
+		hourOfDay := int64(v["hour_of_day"].(int))
 
 		results = append(results, hostpool.MaintenanceWindowPatchProperties{
 			DayOfWeek: &dayOfWeek,
@@ -502,8 +505,8 @@ func flattenAgentUpdateSchedule(input *[]hostpool.MaintenanceWindowProperties) [
 			hourOfDay = utils.Int64(*item.Hour)
 		}
 		results = append(results, map[string]interface{}{
-			"day_of_week":          dayOfWeek,
-			"scaling_plan_enabled": hourOfDay,
+			"day_of_week": dayOfWeek,
+			"hour_of_day": hourOfDay,
 		})
 	}
 	return results
