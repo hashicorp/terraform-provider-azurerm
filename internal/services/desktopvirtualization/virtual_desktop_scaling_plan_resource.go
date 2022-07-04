@@ -9,13 +9,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/hostpool"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/scalingplan"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -233,7 +234,7 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -271,7 +272,7 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 	payload := scalingplan.ScalingPlan{
 		Name:     utils.String(d.Get("name").(string)),
 		Location: &location,
-		Tags:     expandTags(t),
+		Tags:     tags.Expand(t),
 		Properties: &scalingplan.ScalingPlanProperties{
 			Description:        utils.String(d.Get("description").(string)),
 			FriendlyName:       utils.String(d.Get("friendly_name").(string)),
@@ -307,7 +308,7 @@ func resourceVirtualDesktopScalingPlanUpdate(d *pluginsdk.ResourceData, meta int
 	t := d.Get("tags").(map[string]interface{})
 
 	payload := scalingplan.ScalingPlanPatch{
-		Tags: expandTags(t),
+		Tags: tags.Expand(t),
 		Properties: &scalingplan.ScalingPlanPatchProperties{
 			Description:        utils.String(d.Get("description").(string)),
 			FriendlyName:       utils.String(d.Get("friendly_name").(string)),
@@ -360,7 +361,7 @@ func resourceVirtualDesktopScalingPlanRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("host_pool", flattenScalingHostpoolReference(props.HostPoolReferences))
 		}
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}

@@ -3,7 +3,7 @@ package storage_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"testing"
@@ -960,7 +960,7 @@ func TestAccAzureRMStorageAccount_sharePropertiesUpdate(t *testing.T) {
 func TestAccAzureRMStorageAccount_shareSoftDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
-	sourceBlob, err := ioutil.TempFile("", "")
+	sourceBlob, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
 	}
