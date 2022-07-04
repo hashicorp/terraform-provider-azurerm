@@ -604,7 +604,6 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				Tags:                        tags.ToTypedObject(functionApp.Tags),
 				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
-				VirtualNetworkSubnetID:      utils.NormalizeNilableString(functionApp.VirtualNetworkSubnetID),
 			}
 
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
@@ -632,6 +631,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 
 			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
+			state.VirtualNetworkSubnetID = utils.NormalizeNilableString(functionApp.VirtualNetworkSubnetID)
 
 			if err := metadata.Encode(&state); err != nil {
 				return fmt.Errorf("encoding: %+v", err)
