@@ -112,6 +112,12 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
+* `virtual_network_subnet_id` - (Optional) The subnet id which the function app will be vNet Integrated with. Changing this forces a new Linux Function App to be created.
+
+~> **NOTE on virtual network integration:** The AzureRM Terraform provider provides virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simutaneously.
+
+~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permisions)
+
 ---
 
 An `active_directory` block supports the following:
