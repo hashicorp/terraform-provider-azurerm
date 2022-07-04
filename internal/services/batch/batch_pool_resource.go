@@ -1394,6 +1394,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("flattening `fixed_scale `: %+v", err)
 			}
 		}
+
 		if !features.FourPointOhBeta() {
 			if props.DeploymentConfiguration != nil &&
 				props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&

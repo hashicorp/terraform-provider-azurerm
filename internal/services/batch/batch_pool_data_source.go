@@ -3,6 +3,7 @@ package batch
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -909,16 +910,16 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("application_packages", applicationPackages)
 		}
 
-		if props.TaskSchedulingPolicy != nil {
-			taskSchedulingPolicy := make([]interface{}, 1)
-			nodeFillType := make(map[string]interface{}, 1)
+		if props.TaskSchedulingPolicy != nil && props.TaskSchedulingPolicy.NodeFillType != "" {
+			taskSchedulingPolicy := make([]interface{}, 0)
+			nodeFillType := make(map[string]interface{})
 			nodeFillType["node_fill_type"] = string(props.TaskSchedulingPolicy.NodeFillType)
 			taskSchedulingPolicy = append(taskSchedulingPolicy, nodeFillType)
 			d.Set("task_scheduling_policy", taskSchedulingPolicy)
 		}
 
 		if props.UserAccounts != nil {
-			userAccounts := make([]interface{}, len(*props.UserAccounts))
+			userAccounts := make([]interface{}, 0)
 			for _, userAccount := range *props.UserAccounts {
 				userAccounts = append(userAccounts, flattenBatchPoolUserAccount(&userAccount))
 			}
@@ -926,24 +927,11 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 
 		if props.MountConfiguration != nil {
-			mountConfigs := make([]interface{}, len(*props.MountConfiguration))
+			mountConfigs := make([]interface{}, 0)
 			for _, mountConfig := range *props.MountConfiguration {
-				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(nil, &mountConfig))
+				mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(d, &mountConfig))
 			}
 			d.Set("mount_configuration", mountConfigs)
-		}
-
-		if props.DeploymentConfiguration != nil {
-			deploymentConfigMap := make(map[string]interface{}, 0)
-			if props.DeploymentConfiguration.CloudServiceConfiguration != nil {
-				deploymentConfigMap["cloud_service_configuration"] = flattenBatchPoolCloudServiceConfiguration(props.DeploymentConfiguration.CloudServiceConfiguration)
-
-			}
-			if props.DeploymentConfiguration.VirtualMachineConfiguration != nil {
-				deploymentConfigMap["cloud_service_configuration"] = flattenBatchPoolVirtualMachineConfiguration(d, props.DeploymentConfiguration.VirtualMachineConfiguration)
-			}
-
-			d.Set("deployment_configuration", deploymentConfigMap)
 		}
 
 		if scaleSettings := props.ScaleSettings; scaleSettings != nil {
@@ -955,21 +943,40 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 
-		//if dcfg := props.DeploymentConfiguration; dcfg != nil {
-		//	if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
-		//		if err := d.Set("container_configuration", flattenBatchPoolContainerConfiguration(vmcfg.ContainerConfiguration)); err != nil {
-		//			return fmt.Errorf("setting `container_configuration`: %v", err)
-		//		}
-		//
-		//		if err := d.Set("storage_image_reference", flattenBatchPoolImageReference(vmcfg.ImageReference)); err != nil {
-		//			return fmt.Errorf("setting `storage_image_reference`: %v", err)
-		//		}
-		//
-		//		if err := d.Set("node_agent_sku_id", vmcfg.NodeAgentSkuID); err != nil {
-		//			return fmt.Errorf("setting `node_agent_sku_id`: %v", err)
-		//		}
-		//	}
-		//}
+		if !features.FourPointOhBeta() {
+			if props.DeploymentConfiguration != nil &&
+				props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
+				props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
+				imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
+
+				d.Set("storage_image_reference", flattenBatchPoolImageReference(imageReference))
+				d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
+			}
+
+			if dcfg := props.DeploymentConfiguration; dcfg != nil {
+				if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
+					d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration))
+				}
+			}
+		} else {
+			if props.DeploymentConfiguration != nil {
+				deploymentConfigMap := make(map[string]interface{}, 0)
+				if props.DeploymentConfiguration.CloudServiceConfiguration != nil {
+					deploymentConfigMap["cloud_service_configuration"] = []interface{}{
+						flattenBatchPoolCloudServiceConfiguration(props.DeploymentConfiguration.CloudServiceConfiguration),
+					}
+				}
+				if props.DeploymentConfiguration.VirtualMachineConfiguration != nil {
+					deploymentConfigMap["virtual_machine_configuration"] = []interface{}{
+						flattenBatchPoolVirtualMachineConfiguration(d, props.DeploymentConfiguration.VirtualMachineConfiguration),
+					}
+				}
+				deploymentConfigList := []interface{}{
+					deploymentConfigMap,
+				}
+				d.Set("deployment_configuration", deploymentConfigList)
+			}
+		}
 
 		if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
 			return fmt.Errorf("setting `certificate`: %v", err)
