@@ -506,8 +506,6 @@ func TestAccBatchPool_additionalSimpleProperties(t *testing.T) {
 			Config: r.additional_simple_properties(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				//check.That(data.ResourceName).Key("application_licenses.#").HasValue("2"),
-				//check.That(data.ResourceName).Key("application_licenses.0").HasValue("app-license0"),
 				check.That(data.ResourceName).Key("inter_node_communication").HasValue("Disabled"),
 				check.That(data.ResourceName).Key("task_scheduling_policy.0.node_fill_type").HasValue("Pack"),
 			),
@@ -602,8 +600,6 @@ resource "azurerm_batch_pool" "test" {
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 18.04"
   vm_size             = "Standard_A1"
-
-  # application_licenses = ["app-license0", "app-license1"]
 
   inter_node_communication = "Disabled"
 

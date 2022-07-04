@@ -550,20 +550,6 @@ func findBatchPoolContainerRegistryPassword(d *pluginsdk.ResourceData, armServer
 	return ""
 }
 
-func ExpandBatchPoolApplicationLicenses(d *pluginsdk.ResourceData) (*[]string, error) {
-	if applicationLicensesList, ok := d.GetOk("application_licenses"); ok {
-		applicationLicenses := applicationLicensesList.([]interface{})
-		if len(applicationLicenses) > 0 {
-			var result []string
-			for _, applicationLicense := range applicationLicenses {
-				result = append(result, applicationLicense.(string))
-			}
-			return &result, nil
-		}
-	}
-	return nil, fmt.Errorf("application_license either is empty or contains parsing errors")
-}
-
 func ExpendBatchPoolApplicationPackages(d *pluginsdk.ResourceData) (*[]batch.ApplicationPackageReference, error) {
 	var result []batch.ApplicationPackageReference
 

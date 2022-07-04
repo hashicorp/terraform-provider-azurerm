@@ -86,13 +86,6 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			"application_licenses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
 			"application_packages": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -902,14 +895,6 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("vm_size", props.VMSize)
 		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
 		d.Set("inter_node_communication", string(props.InterNodeCommunication))
-
-		if props.ApplicationLicenses != nil {
-			applicationLicenses := make([]interface{}, len(*props.ApplicationLicenses))
-			for _, license := range *props.ApplicationLicenses {
-				applicationLicenses = append(applicationLicenses, license)
-			}
-			d.Set("application_licenses", applicationLicenses)
-		}
 
 		if props.ApplicationPackages != nil {
 			applicationPackages := make([]interface{}, len(*props.ApplicationPackages))

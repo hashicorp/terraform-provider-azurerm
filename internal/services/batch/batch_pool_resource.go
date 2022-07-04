@@ -84,14 +84,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			"application_licenses": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-			},
 			"application_packages": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1045,12 +1037,6 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		},
 	}
 
-	applicationLicences, err := ExpandBatchPoolApplicationLicenses(d)
-	if err != nil {
-		log.Printf(`[DEBUG] expanding "application_licenses": %v`, err)
-	}
-	parameters.PoolProperties.ApplicationLicenses = applicationLicences
-
 	applicationPackages, err := ExpendBatchPoolApplicationPackages(d)
 	if err != nil {
 		log.Printf(`[DEBUG] expanding "application_packages": %v`, err)
@@ -1212,12 +1198,6 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	parameters.Identity = identity
 
-	applicationLicences, err := ExpandBatchPoolApplicationLicenses(d)
-	if err != nil {
-		log.Printf(`[DEBUG] expanding "application_licenses": %v`, err)
-	}
-	parameters.PoolProperties.ApplicationLicenses = applicationLicences
-
 	applicationPackages, err := ExpendBatchPoolApplicationPackages(d)
 	if err != nil {
 		log.Printf(`[DEBUG] expanding "application_packages": %v`, err)
@@ -1368,14 +1348,6 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("vm_size", props.VMSize)
 		d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
 		d.Set("inter_node_communication", string(props.InterNodeCommunication))
-
-		if props.ApplicationLicenses != nil {
-			applicationLicenses := make([]interface{}, 0)
-			for _, license := range *props.ApplicationLicenses {
-				applicationLicenses = append(applicationLicenses, license)
-			}
-			d.Set("application_licenses", applicationLicenses)
-		}
 
 		if props.ApplicationPackages != nil {
 			applicationPackages := make([]interface{}, 0)
