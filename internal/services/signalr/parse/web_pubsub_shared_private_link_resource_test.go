@@ -12,7 +12,7 @@ var _ resourceids.Id = WebPubsubSharedPrivateLinkResourceId{}
 
 func TestWebPubsubSharedPrivateLinkResourceIDFormatter(t *testing.T) {
 	actual := NewWebPubsubSharedPrivateLinkResourceID("12345678-1234-9876-4563-123456789012", "resGroup1", "Webpubsub1", "resource1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/Webpubsub1/sharedPrivateLinkResources/resource1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/Webpubsub1/sharedPrivateLinkResources/resource1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -51,37 +51,37 @@ func TestWebPubsubSharedPrivateLinkResourceID(t *testing.T) {
 
 		{
 			// missing value for ResourceGroup
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Error: true,
 		},
 
 		{
 			// missing WebPubSubName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.SignalRService/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/",
 			Error: true,
 		},
 
 		{
 			// missing value for WebPubSubName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/",
 			Error: true,
 		},
 
 		{
 			// missing SharedPrivateLinkResourceName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/Webpubsub1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/Webpubsub1/",
 			Error: true,
 		},
 
 		{
 			// missing value for SharedPrivateLinkResourceName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/Webpubsub1/sharedPrivateLinkResources/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/Webpubsub1/sharedPrivateLinkResources/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourcegroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/Webpubsub1/sharedPrivateLinkResources/resource1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.SignalRService/WebPubSub/Webpubsub1/sharedPrivateLinkResources/resource1",
 			Expected: &WebPubsubSharedPrivateLinkResourceId{
 				SubscriptionId:                "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:                 "resGroup1",
