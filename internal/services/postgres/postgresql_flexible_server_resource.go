@@ -100,7 +100,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					string(postgresqlflexibleservers.ServerVersionOneOne),
 					string(postgresqlflexibleservers.ServerVersionOneTwo),
 					string(postgresqlflexibleservers.ServerVersionOneThree),
-					// string(postgresqlflexibleservers.ServerVersionOneThree),
+					// string(postgresqlflexibleservers.ServerVersionOneFour),
 					// ^ This will eventually for version 14 work when
 					// https://github.com/Azure/azure-sdk-for-go/issues/18506
 					// has been merged.
