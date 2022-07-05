@@ -72,7 +72,9 @@ func dataSourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 		props := model.Properties
 		if address := props.IpAddress; address != nil {
 			d.Set("ip_address", address.Ip)
