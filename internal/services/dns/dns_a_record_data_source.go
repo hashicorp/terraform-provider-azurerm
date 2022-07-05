@@ -36,11 +36,10 @@ func dataSourceDnsARecord() *pluginsdk.Resource {
 			},
 
 			"records": {
-				Type:         pluginsdk.TypeSet,
-				Computed:     true,
-				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:          pluginsdk.HashString,
-				ExactlyOneOf: []string{"target_resource_id"},
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      pluginsdk.HashString,
 			},
 
 			"ttl": {
@@ -54,9 +53,8 @@ func dataSourceDnsARecord() *pluginsdk.Resource {
 			},
 
 			"target_resource_id": {
-				Type:         pluginsdk.TypeString,
-				Computed:     true,
-				ExactlyOneOf: []string{"records"},
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),

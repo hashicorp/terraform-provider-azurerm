@@ -37,11 +37,10 @@ func dataSourceDnsAAAARecord() *pluginsdk.Resource {
 			},
 
 			"records": {
-				Type:         pluginsdk.TypeSet,
-				Computed:     true,
-				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:          set.HashIPv6Address,
-				ExactlyOneOf: []string{"target_resource_id"},
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				Set:      set.HashIPv6Address,
 			},
 
 			"ttl": {
@@ -55,9 +54,8 @@ func dataSourceDnsAAAARecord() *pluginsdk.Resource {
 			},
 
 			"target_resource_id": {
-				Type:         pluginsdk.TypeString,
-				Computed:     true,
-				ExactlyOneOf: []string{"records"},
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),

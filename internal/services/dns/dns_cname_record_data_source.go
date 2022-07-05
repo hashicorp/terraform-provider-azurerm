@@ -36,9 +36,8 @@ func dataSourceDnsCNameRecord() *pluginsdk.Resource {
 			},
 
 			"record": {
-				Type:          pluginsdk.TypeString,
-				Computed:      true,
-				ConflictsWith: []string{"target_resource_id"},
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"ttl": {
@@ -52,9 +51,8 @@ func dataSourceDnsCNameRecord() *pluginsdk.Resource {
 			},
 
 			"target_resource_id": {
-				Type:          pluginsdk.TypeString,
-				Computed:      true,
-				ConflictsWith: []string{"record"},
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),

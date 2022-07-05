@@ -52,8 +52,8 @@ resource "azurerm_dns_zone" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   soa_record {
-	email     = "abc@abc.com"
-	host_name = "ns1-03.azure-dns.com."
+    email     = "abc@abc.com"
+    host_name = "ns1-03.azure-dns.com."
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
