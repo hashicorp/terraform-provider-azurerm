@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/streamanalytics/mgmt/2020-03-01-preview/streamanalytics"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2020-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -97,7 +97,7 @@ func (r ClusterResource) Create() sdk.ResourceFunc {
 				Name:     utils.String(model.Name),
 				Location: utils.String(model.Location),
 				Sku: &streamanalytics.ClusterSku{
-					Name:     streamanalytics.Default,
+					Name:     streamanalytics.ClusterSkuNameDefault,
 					Capacity: utils.Int32(model.StreamingCapacity),
 				},
 				Tags: tags.Expand(model.Tags),

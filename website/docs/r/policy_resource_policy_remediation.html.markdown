@@ -25,10 +25,17 @@ resource "azurerm_virtual_network" "example" {
   address_space       = ["10.0.0.0/16"]
 }
 
+resource "azurerm_policy_definition" "example" {
+  name         = "only-deploy-in-westeurope"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "my-policy-definition"
+}
+
 resource "azurerm_resource_policy_assignment" "example" {
   name                 = "assignment1"
   resource_id          = azurerm_virtual_network.example.id
-  policy_definition_id = data.azurerm_policy_definition.example.id
+  policy_definition_id = azurerm_policy_definition.example.id
   parameters = jsonencode({
     "listOfAllowedLocations" = {
       "value" = [azurerm_resource_group.example.location, "East US"]
@@ -36,10 +43,16 @@ resource "azurerm_resource_policy_assignment" "example" {
   })
 }
 
+resource "azurerm_resource_group_policy_assignment" "example" {
+  name                 = "example"
+  resource_group_id    = azurerm_resource_group.example.id
+  policy_definition_id = azurerm_policy_definition.example.id
+}
+
 resource "azurerm_resource_policy_remediation" "example" {
   name                 = "remediation1"
   resource_id          = azurerm_virtual_network.example.id
-  policy_assignment_id = azurerm_resource_group_policy_assignment.test.id
+  policy_assignment_id = azurerm_resource_group_policy_assignment.example.id
 }
 ```
 
@@ -53,7 +66,7 @@ The following arguments are supported:
 
 * `policy_assignment_id` - (Required) The ID of the Policy Assignment that should be remediated.
 
-* `policy_definition_reference_id` - (Optional) The unique ID for the policy definition within the policy set definition that should be remediated. Required when the policy assignment being remediated assigns a policy set definition.
+* `policy_definition_id` - (Optional) The unique ID for the policy definition within the policy set definition that should be remediated. Required when the policy assignment being remediated assigns a policy set definition.
 
 * `location_filters` - (Optional) A list of the resource locations that will be remediated.
 
@@ -80,5 +93,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Policy Remediations can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_policy_remediation.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.PolicyInsights/remediations/remediation1
+terraform import azurerm_resource_policy_remediation.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.PolicyInsights/remediations/remediation1
 ```

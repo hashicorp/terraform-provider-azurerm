@@ -214,17 +214,19 @@ An `endpoint` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Identity which should be assigned to the IoT Hub. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this IoT Hub. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the IoT Hub.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this IoT Hub.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
 A `network_rule_set` block supports the following:
 
-* `default_action` - (Optional) Default Action for Network Rule Set. Possible values are `DefaultActionDeny`, `DefaultActionAllow`. Defaults to `DefaultActionDeny`.
+* `default_action` - (Optional) Default Action for Network Rule Set. Possible values are `Deny`, `Allow`. Defaults to `Deny`.
 
 * `apply_to_builtin_eventhub_endpoint` - (Optional) Determines if Network Rule Set is also applied to the BuiltIn EventHub EndPoint of the IotHub. Defaults to `false`.
 
@@ -234,9 +236,9 @@ A `network_rule_set` block supports the following:
 
 A `ip_rule` block supports the following:
 
-* `name` - (Required) The name of the ip rule.
+* `name` - (Required) The name of the IP rule.
 
-* `ip_mask` - (Required) The IP address range in CIDR notation for the ip rule.
+* `ip_mask` - (Required) The IP address range in CIDR notation for the IP rule.
 
 * `action` - (Optional) The desired action for requests captured by this rule. Possible values are `Allow`. Defaults to `Allow`.
 
@@ -346,9 +348,9 @@ The following attributes are exported:
 
 An `identity` block exports the following:
 
-* `principal_id` - The ID of the System Managed Service Principal.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Tenant the System Managed Service Principal is assigned in.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 

@@ -22,26 +22,4 @@ resource "azurerm_kubernetes_cluster" "example" {
   identity {
     type = "SystemAssigned"
   }
-
-  addon_profile {
-    aci_connector_linux {
-      enabled = false
-    }
-
-    azure_policy {
-      enabled = false
-    }
-
-    http_application_routing {
-      enabled = false
-    }
-
-    kube_dashboard {
-      enabled = true
-    }
-
-    oms_agent {
-      enabled = false
-    }
-  }
 }

@@ -17,13 +17,14 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "rg-example"
+  location = "West Europe"
 }
 
 data "azurerm_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = data.azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_spring_cloud_service" "example" {

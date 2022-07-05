@@ -277,6 +277,21 @@ func TestAccBatchPool_startTask_complete(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_startTask_userIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.startTask_userIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+	})
+}
+
 func TestAccBatchPool_certificates(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
@@ -877,6 +892,64 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) startTask_userIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  vm_size             = "Standard_A1"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-lts"
+    version   = "latest"
+  }
+
+  start_task {
+    command_line       = "echo 'Hello World from $env'"
+    wait_for_success   = true
+    task_retry_maximum = 5
+
+    common_environment_properties = {
+      env = "TEST"
+      bu  = "Research&Dev"
+    }
+
+    user_identity {
+      user_name = "adminuser"
+    }
+
+    resource_file {
+      storage_container_url = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/main/README.md"
+      file_path             = "README.md"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (BatchPoolResource) validateResourceFileWithoutSource(data acceptance.TestData) string {

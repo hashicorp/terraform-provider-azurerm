@@ -60,7 +60,7 @@ The following arguments are supported:
 
 ~> **NOTE:** When using `UserSubscription` mode, an Azure KeyVault reference has to be specified. See `key_vault_reference` below.
 
-~> **NOTE:** When using `UserSubscription` mode, the `Microsoft Azure Batch` service principal has to have `Contributor` role on your subscription scope, as documented [here](https://docs.microsoft.com/en-us/azure/batch/batch-account-create-portal#additional-configuration-for-user-subscription-mode).
+~> **NOTE:** When using `UserSubscription` mode, the `Microsoft Azure Batch` service principal has to have `Contributor` role on your subscription scope, as documented [here](https://docs.microsoft.com/azure/batch/batch-account-create-portal#additional-configuration-for-user-subscription-mode).
 
 * `key_vault_reference` - (Optional) A `key_vault_reference` block that describes the Azure KeyVault reference to use when deploying the Azure Batch account using the `UserSubscription` pool allocation mode.
 
@@ -74,9 +74,11 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The identity type of the Batch Account. Possible values are `SystemAssigned` and `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Batch Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of user assigned identity ids. Required if `type` is `UserAssigned`.
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -90,7 +92,7 @@ A `key_vault_reference` block supports the following:
 
 A `encryption` block supports the following:
 
-* `key_vault_key_id` - (Required) The Azure key vault reference id with version that should be used to encrypt data, as documented [here](https://docs.microsoft.com/en-us/azure/batch/batch-customer-managed-key). Key rotation is not yet supported.
+* `key_vault_key_id` - (Required) The Azure key vault reference id with version that should be used to encrypt data, as documented [here](https://docs.microsoft.com/azure/batch/batch-customer-managed-key). Key rotation is not yet supported.
 
 ## Attributes Reference
 
@@ -106,15 +108,15 @@ The following attributes are exported:
 
 * `account_endpoint` - The account endpoint used to interact with the Batch service.
 
-~> **NOTE:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService`. See [documentation](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics) for more information.
+~> **NOTE:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService`. See [documentation](https://docs.microsoft.com/azure/batch/batch-api-basics) for more information.
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the system assigned identity of this Batch Account.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `principal_id` - The Principal ID for the Service Principal associated with the system assigned identity of this Batch Account.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 

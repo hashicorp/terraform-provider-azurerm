@@ -18,6 +18,7 @@ func Default() UserFeatures {
 			PurgeSoftDeletedKeysOnDestroy:    true,
 			PurgeSoftDeletedCertsOnDestroy:   true,
 			PurgeSoftDeletedSecretsOnDestroy: true,
+			PurgeSoftDeletedHSMsOnDestroy:    true,
 			RecoverSoftDeletedKeyVaults:      true,
 			RecoverSoftDeletedKeys:           true,
 			RecoverSoftDeletedCerts:          true,
@@ -27,7 +28,7 @@ func Default() UserFeatures {
 			PermanentlyDeleteOnDestroy: true,
 		},
 		ResourceGroup: ResourceGroupFeatures{
-			PreventDeletionIfContainsResources: false,
+			PreventDeletionIfContainsResources: true,
 		},
 		TemplateDeployment: TemplateDeploymentFeatures{
 			DeleteNestedItemsDuringDeletion: true,

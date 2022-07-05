@@ -212,21 +212,21 @@ resource "azurerm_key_vault_access_policy" "example-identity" {
 
   // default set by service
   key_permissions = [
-    "wrapKey",
-    "unwrapKey",
-    "get",
-    "recover",
+    "WrapKey",
+    "UnwrapKey",
+    "Get",
+    "Recover",
   ]
 
 
   secret_permissions = [
-    "get",
-    "list",
-    "set",
-    "delete",
-    "recover",
-    "backup",
-    "restore"
+    "Get",
+    "List",
+    "Set",
+    "Delete",
+    "Recover",
+    "Backup",
+    "Restore"
   ]
 }
 
@@ -360,7 +360,11 @@ The following arguments are supported:
 
 -> **NOTE:** The `admin_enabled` should be `true` in order to associate the Container Registry to this Machine Learning Workspace.
 
+* `public_access_behind_virtual_network_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind a VNet.
+
 * `public_network_access_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind VNet.
+
+~> **NOTE:** `public_network_access_enabled` is deprecated and will be removed in favour of the property `public_access_behind_virtual_network_enabled` in version 4.0 of the AzureRM Provider.
 
 * `image_build_compute_name` - (Optional) The compute name for image build of the Machine Learning Workspace.
 
@@ -380,9 +384,11 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be used for this Machine Learning Workspace. Possible values are `UserAssigned`, `SystemAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Machine Learning Workspace. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) The user assigned identity IDs associated with the resource.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Machine Learning Workspace.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -408,9 +414,9 @@ The following attributes are exported:
 
 An `identity` block exports the following:
 
-* `principal_id` - The (Client) ID of the Service Principal.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ### Timeouts
 

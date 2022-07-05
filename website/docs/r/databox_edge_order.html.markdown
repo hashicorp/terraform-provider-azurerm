@@ -31,18 +31,18 @@ resource "azurerm_databox_edge_order" "example" {
   device_name         = azurerm_databox_edge_device.example.name
 
   contact {
-    company_name = "Contoso Corporation"
-    name         = "Bart"
-    email_lists  = ["bart@example.com"]
-    phone        = "(800) 867-5309"
+    name         = "TerraForm Test"
+    emails       = ["creator4983@FlynnsArcade.com"]
+    company_name = "Flynn's Arcade"
+    phone_number = "(800) 555-1234"
   }
 
   shipment_address {
-    address     = ["740 Evergreen Terrace"]
-    city        = "Springfield"
+    address     = ["One Microsoft Way"]
+    city        = "Redmond"
+    postal_code = "98052"
+    state       = "WA"
     country     = "United States"
-    postal_code = "97403"
-    state       = "OR"
   }
 }
 ```

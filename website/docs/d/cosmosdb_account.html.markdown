@@ -51,7 +51,7 @@ The following attributes are exported:
 
 * `ip_range_filter` - The current IP Filter for this CosmosDB account
 
-* `enable_free_tier` - If Free Tier pricing option is enabled for this CosmosDB Account.
+* `enable_free_tier` - If Free Tier pricing option is enabled for this CosmosDB Account. You can have up to one free tier Azure Cosmos DB account per Azure subscription.
 
 * `enable_automatic_failover` - If automatic failover is enabled for this CosmosDB Account.
 
@@ -68,7 +68,6 @@ The following attributes are exported:
 * `consistency_level` - The Consistency Level used by this CosmosDB Account.
 * `max_interval_in_seconds` - The amount of staleness (in seconds) tolerated when the consistency level is Bounded Staleness.
 * `max_staleness_prefix` - The number of stale requests tolerated when the consistency level is Bounded Staleness.
-
 
 `geo_location` The geographic locations data is replicated to with the following properties:
 

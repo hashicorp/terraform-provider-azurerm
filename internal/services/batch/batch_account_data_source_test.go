@@ -188,7 +188,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_role_assignment" "contribrole" {
   scope                = "/subscriptions/%s"
-  role_definition_name = "Contributor"
+  role_definition_name = "Reader"
   principal_id         = "${data.azuread_service_principal.test.object_id}"
 }
 
@@ -217,7 +217,8 @@ func (BatchAccountDataSource) cmkData(data acceptance.TestData, tenantID string)
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }

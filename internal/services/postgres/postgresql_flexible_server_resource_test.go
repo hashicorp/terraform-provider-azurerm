@@ -210,7 +210,13 @@ func TestAccPostgresqlFlexibleServer_failover(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
-			Config: r.failover(data, "1", "2"),
+			Config: r.failoverRemoveHA(data, "2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.failover(data, "2", "1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -555,6 +561,31 @@ resource "azurerm_postgresql_flexible_server" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, primaryZone, standbyZone)
+}
+
+func (r PostgresqlFlexibleServerResource) failoverRemoveHA(data acceptance.TestData, primaryZone string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  version                = "12"
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  zone                   = "%s"
+  backup_retention_days  = 10
+  storage_mb             = 131072
+  sku_name               = "GP_Standard_D2s_v3"
+
+  maintenance_window {
+    day_of_week  = 0
+    start_hour   = 0
+    start_minute = 0
+  }
+}
+`, r.template(data), data.RandomInteger, primaryZone)
 }
 
 func (r PostgresqlFlexibleServerResource) geoRedundantBackupEnabled(data acceptance.TestData) string {

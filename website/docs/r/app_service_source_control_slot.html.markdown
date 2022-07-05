@@ -1,7 +1,7 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "app_service_source_control_slot: azurerm_app_service_source_control_slot"
+page_title: "Azure Resource Manager: azurerm_app_service_source_control_slot"
 description: |-
   Manages an App Service Source Control Slot.
 ---
@@ -25,9 +25,9 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_service_plan" "example" {
   name                = "example-plan"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "West Europe"
+  location            = azurerm_resource_group.example.location
   os_type             = "Linux"
-  sku_name            = "P1V2"
+  sku_name            = "P1v2"
 }
 
 resource "azurerm_linux_web_app" "example" {
@@ -134,5 +134,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 an App Service Source Control Slot can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import app_service_source_control_slot.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1"
+terraform import azurerm_app_service_source_control_slot.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1"
 ```

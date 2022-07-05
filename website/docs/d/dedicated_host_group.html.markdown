@@ -44,7 +44,7 @@ The following attributes are exported:
 
 * `automatic_placement_enabled` - Whether virtual machines or virtual machine scale sets be placed automatically on this Dedicated Host Group.
 
-* `zones` - The Availability Zones in which this Dedicated Host Group is located.
+* `zones` - A list of Availability Zones in which this Dedicated Host Group is located.
 
 * `tags` - A mapping of tags assigned to the resource.
 

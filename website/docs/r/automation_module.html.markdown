@@ -22,10 +22,7 @@ resource "azurerm_automation_account" "example" {
   name                = "account1"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-
-  sku {
-    name = "Basic"
-  }
+  sku_name            = "Basic"
 }
 
 resource "azurerm_automation_module" "example" {
@@ -53,7 +50,7 @@ The following arguments are supported:
 
 `module_link` supports the following:
 
-* `uri` - (Required) The uri of the module content (zip or nupkg).
+* `uri` - (Required) The URI of the module content (zip or nupkg).
 
 ## Attributes Reference
 

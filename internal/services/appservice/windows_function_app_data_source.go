@@ -45,6 +45,7 @@ type WindowsFunctionAppDataSourceModel struct {
 	ForceDisableContentShare  bool                                   `tfschema:"content_share_force_disabled"`
 	HttpsOnly                 bool                                   `tfschema:"https_only"`
 	SiteConfig                []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
+	StickySettings            []helpers.StickySettings               `tfschema:"sticky_settings"`
 	Tags                      map[string]string                      `tfschema:"tags"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -210,6 +211,8 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppComputed(),
 
+		"sticky_settings": helpers.StickySettingsComputedSchema(),
+
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"tags": tags.SchemaDataSource(),
@@ -252,6 +255,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp.DailyMemoryTimeQuota = int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota))
 			functionApp.Tags = tags.ToTypedObject(existing.Tags)
 			functionApp.Kind = utils.NormalizeNilableString(existing.Kind)
+			functionApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
 
 			appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
@@ -261,6 +265,11 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			connectionStrings, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
+			}
+
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
@@ -316,6 +325,8 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp.Backup = helpers.FlattenBackupConfig(backup)
 
 			functionApp.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
+
+			functionApp.StickySettings = helpers.FlattenStickySettings(stickySettings.SlotConfigNames)
 
 			functionApp.HttpsOnly = utils.NormaliseNilableBool(existing.HTTPSOnly)
 

@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `dns` - (Optional) A `dns` block as defined below.
 
-* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Firewall Policy to be created.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `insights` - (Optional) An `insights` block as defined below.
 
@@ -71,9 +71,9 @@ A `dns` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The Type of Identity which should be assigned to this Firewall Policy. At this time the only supported value is `UserAssigned`. Changing this forces a new Firewall Policy to be created.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Firewall Policy. Only possible value is `UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of Managed Identity IDs which should be assigned to this Firewall Policy.
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Firewall Policy.
 
 ---
 
@@ -91,7 +91,7 @@ An `insights` block supports the following:
 
 A `intrusion_detection` block supports the following:
 
-* `mode` - (Optional) In which mode you want to run intrusion detection: "Off", "Alert" or "Deny".
+* `mode` - (Optional) In which mode you want to run intrusion detection: `Off`, `Alert` or `Deny`.
 
 * `signature_overrides` - (Optional) One or more `signature_overrides` blocks as defined below.
 
@@ -111,7 +111,7 @@ A `signature_overrides` block supports the following:
 
 * `id` - (Optional) 12-digit number (id) which identifies your signature.
 
-* `state` - (Optional) state can be any of "Off", "Alert" or "Deny".
+* `state` - (Optional) state can be any of `Off`, `Alert` or `Deny`.
 
 ---
 
@@ -135,7 +135,7 @@ A `traffic_bypass` block supports the following:
 
 * `name` - (Required) The name which should be used for this bypass traffic setting.
 
-* `protocol` - (Required) The protocols any of "ANY", "TCP", "ICMP", "UDP" that shall be bypassed by intrusion detection.
+* `protocol` - (Required) The protocols any of `ANY`, `TCP`, `ICMP`, `UDP` that shall be bypassed by intrusion detection.
 
 * `description` - (Optional) The description for this bypass traffic setting.
 
@@ -147,7 +147,7 @@ A `traffic_bypass` block supports the following:
 
 * `source_addresses` - (Optional) Specifies a list of source addresses that shall be bypassed by intrusion detection.
 
-* `source_ip_groups` - (Optional) Specifies a list of source ip groups that shall be bypassed by intrusion detection.
+* `source_ip_groups` - (Optional) Specifies a list of source IP groups that shall be bypassed by intrusion detection.
 
 ## Attributes Reference
 

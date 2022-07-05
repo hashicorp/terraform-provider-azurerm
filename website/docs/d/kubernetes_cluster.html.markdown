@@ -38,7 +38,7 @@ The following attributes are exported:
 
 * `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the primaries.
 
--> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
+-> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/azure/firewall/public-preview)
 
 * `aci_connector_linux` - An `aci_connector_linux` block as documented below.
 
@@ -78,6 +78,12 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 
+* `microsoft_defender` - A `microsoft_defender` block as defined below.
+
+* `oidc_issuer_enabled` - Whether or not the OIDC feature is enabled or disabled.
+
+* `oidc_issuer_url` - The OIDC issuer URL that is associated with the cluster.
+
 * `oms_agent` - An `oms_agent` block as documented below.
 
 * `open_service_mesh_enabled` - Is Open Service Mesh enabled for this managed Kubernetes Cluster?
@@ -96,7 +102,7 @@ The following attributes are exported:
 
 * `service_principal` - A `service_principal` block as documented below.
 
-* `identity` - A `identity` block as documented below.
+* `identity` - An `identity` block as documented below.
 
 * `kubelet_identity` - A `kubelet_identity` block as documented below.
 
@@ -144,7 +150,7 @@ A `agent_pool_profile` block exports the following:
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
-* `zones` - Specifies the Availability Zones where the Nodes within this Agent Pool exist.
+* `zones` - A list of Availability Zones in which this Kubernetes Cluster is located.
 
 ---
 
@@ -217,6 +223,12 @@ A `linux_profile` block exports the following:
 
 ---
 
+A `microsoft_defender` block exports the following:
+
+* `log_analytics_workspace_id` - The ID of the Log Analytics Workspace which Microsoft Defender uses to send audit logs to.
+
+---
+
 A `windows_profile` block exports the following:
 
 * `admin_username` - The username associated with the administrator account of the Windows VMs.
@@ -231,9 +243,9 @@ A `network_profile` block exports the following:
 
 * `network_plugin` - Network plugin used such as `azure` or `kubenet`.
 
-* `network_policy` - Network policy to be used with Azure CNI. Eg: `calico` or `azure`
+* `network_policy` - Network policy to be used with Azure CNI. e.g. `calico` or `azure`
 
-* `network_mode` - Network mode to be used with Azure CNI. Eg: `bridge` or `transparent`
+* `network_mode` - Network mode to be used with Azure CNI. e.g. `bridge` or `transparent`
 
 -> **NOTE:** `network_mode` Is currently in Preview on an opt-in basis. To use it, enable feature `AKSNetworkModePreview` for `namespace Microsoft.ContainerService`.
 
@@ -301,15 +313,17 @@ A `service_principal` block supports the following:
 
 ---
 
-The `identity` block exports the following:
+An `identity` block exports the following:
 
-* `type` - The type of identity used for the managed cluster.
+* `type` - The type of Managed Service Identity that is configured on this Kubernetes Cluster.
 
-* `principal_id` - The principal id of the system assigned identity assigned to this Kubernetes Cluster.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Kubernetes Cluster.
 
-* `tenant_id` - The tenant id of the system assigned identity assigned to this Kubernetes Cluster.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Kubernetes Cluster.
 
-* `identity_ids` - A list of User Assigned Identity IDs assigned to this Kubernetes Cluster.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Kubernetes Cluster.
+
+-> **NOTE:** Currently only one User Assigned Identity is supported.
 
 ---
 

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,6 +29,7 @@ type WindowsWebAppModel struct {
 	Location                      string                      `tfschema:"location"`
 	ServicePlanId                 string                      `tfschema:"service_plan_id"`
 	AppSettings                   map[string]string           `tfschema:"app_settings"`
+	StickySettings                []helpers.StickySettings    `tfschema:"sticky_settings"`
 	AuthSettings                  []helpers.AuthSettings      `tfschema:"auth_settings"`
 	Backup                        []helpers.Backup            `tfschema:"backup"`
 	ClientAffinityEnabled         bool                        `tfschema:"client_affinity_enabled"`
@@ -49,6 +50,7 @@ type WindowsWebAppModel struct {
 	PossibleOutboundIPAddresses   string                      `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                    `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential    `tfschema:"site_credential"`
+	ZipDeployFile                 string                      `tfschema:"zip_deploy_file"`
 	Tags                          map[string]string           `tfschema:"tags"`
 }
 
@@ -129,14 +131,24 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: msivalidate.UserAssignedIdentityID,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"logs": helpers.LogsConfigSchema(),
 
 		"site_config": helpers.SiteConfigSchemaWindows(),
 
+		"sticky_settings": helpers.StickySettingsSchema(),
+
 		"storage_account": helpers.StorageAccountSchemaWindows(),
+
+		"zip_deploy_file": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` on the App in `app_settings`.",
+		},
 
 		"tags": tags.Schema(),
 	}
@@ -327,6 +339,17 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			stickySettings := helpers.ExpandStickySettings(webApp.StickySettings)
+
+			if stickySettings != nil {
+				stickySettingsUpdate := web.SlotConfigNamesResource{
+					SlotConfigNames: stickySettings,
+				}
+				if _, err := client.UpdateSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Windows %s: %+v", id, err)
+				}
+			}
+
 			auth := helpers.ExpandAuthSettings(webApp.AuthSettings)
 			if auth.SiteAuthSettingsProperties != nil {
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *auth); err != nil {
@@ -363,6 +386,12 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			if connectionStrings.Properties != nil {
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStrings); err != nil {
 					return fmt.Errorf("setting Connection Strings for Windows %s: %+v", id, err)
+				}
+			}
+
+			if webApp.ZipDeployFile != "" {
+				if err = helpers.GetCredentialsAndPublish(ctx, client, id.ResourceGroup, id.SiteName, webApp.ZipDeployFile); err != nil {
+					return err
 				}
 			}
 
@@ -422,6 +451,11 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
 			}
 
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+			}
+
 			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", id, err)
@@ -472,6 +506,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				LogsConfig:                  helpers.FlattenLogsConfig(logsConfig),
 				SiteCredentials:             helpers.FlattenSiteCredentials(siteCredentials),
 				StorageAccounts:             helpers.FlattenStorageAccounts(storageAccounts),
+				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                        tags.ToTypedObject(webApp.Tags),
 			}
 
@@ -495,6 +530,11 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			state.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+
+			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
+			if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
+				state.ZipDeployFile = deployFile
+			}
 
 			if err := metadata.Encode(&state); err != nil {
 				return fmt.Errorf("encoding: %+v", err)
@@ -639,6 +679,30 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("sticky_settings") {
+				emptySlice := make([]string, 0)
+				stickySettings := helpers.ExpandStickySettings(state.StickySettings)
+				stickySettingsUpdate := web.SlotConfigNamesResource{
+					SlotConfigNames: &web.SlotConfigNames{
+						AppSettingNames:       &emptySlice,
+						ConnectionStringNames: &emptySlice,
+					},
+				}
+
+				if stickySettings != nil {
+					if stickySettings.AppSettingNames != nil {
+						stickySettingsUpdate.SlotConfigNames.AppSettingNames = stickySettings.AppSettingNames
+					}
+					if stickySettings.ConnectionStringNames != nil {
+						stickySettingsUpdate.SlotConfigNames.ConnectionStringNames = stickySettings.ConnectionStringNames
+					}
+				}
+
+				if _, err := client.UpdateSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
+				}
+			}
+
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, *authUpdate); err != nil {
@@ -673,6 +737,12 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
 					return fmt.Errorf("updating Storage Accounts for Windows %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("zip_deploy_file") || metadata.ResourceData.HasChange("zip_deploy_file") {
+				if err = helpers.GetCredentialsAndPublish(ctx, client, id.ResourceGroup, id.SiteName, state.ZipDeployFile); err != nil {
+					return err
 				}
 			}
 

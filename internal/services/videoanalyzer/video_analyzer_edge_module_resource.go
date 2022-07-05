@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/videoanalyzer/2021-05-01-preview/videoanalyzer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/sdk/2021-05-01-preview/videoanalyzer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -33,6 +33,8 @@ func resourceVideoAnalyzerEdgeModule() *pluginsdk.Resource {
 			_, err := videoanalyzer.ParseEdgeModuleID(id)
 			return err
 		}),
+
+		DeprecationMessage: `Video Analyzer (Preview) is now Deprecated and will be Retired on 2022-11-30 - as such the 'azurerm_video_analyzer_edge_module' resource is deprecated and will be removed in v4.0 of the AzureRM Provider`,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {

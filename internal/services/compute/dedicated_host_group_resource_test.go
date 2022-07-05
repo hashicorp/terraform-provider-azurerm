@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -126,30 +124,6 @@ resource "azurerm_dedicated_host_group" "import" {
 }
 
 func (DedicatedHostGroupResource) complete(data acceptance.TestData) string {
-	if !features.ThreePointOhBeta() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-compute-%d"
-  location = "%s"
-}
-
-resource "azurerm_dedicated_host_group" "test" {
-  name                        = "acctestDHG-compute-%d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  platform_fault_domain_count = 2
-  zones                       = ["1"]
-  tags = {
-    ENV = "prod"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

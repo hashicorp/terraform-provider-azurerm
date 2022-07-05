@@ -1,0 +1,11 @@
+{
+  "commit": "bb9f1204f9a337404ff7e7b73b4c7b4ddde7f8f1",
+  "readme": "/_/azure-rest-api-specs/specification/netapp/resource-manager/readme.md",
+  "tag": "package-netapp-2021-10-01",
+  "use": "@microsoft.azure/autorest.go@2.1.187",
+  "repository_url": "https://github.com/Azure/azure-rest-api-specs.git",
+  "autorest_command": "autorest --use=@microsoft.azure/autorest.go@2.1.187 --tag=package-netapp-2021-10-01 --go-sdk-folder=/_/azure-sdk-for-go --go --verbose --use-onever --version=2.0.4421 --go.license-header=MICROSOFT_MIT_NO_VERSION --enum-prefix /_/azure-rest-api-specs/specification/netapp/resource-manager/readme.md",
+  "additional_properties": {
+    "additional_options": "--go --verbose --use-onever --version=2.0.4421 --go.license-header=MICROSOFT_MIT_NO_VERSION --enum-prefix"
+  }
+}

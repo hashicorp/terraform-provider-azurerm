@@ -126,7 +126,7 @@ resource "azurerm_network_interface" "example" {
 resource "azurerm_network_interface_application_gateway_backend_address_pool_association" "example" {
   network_interface_id    = azurerm_network_interface.example.id
   ip_configuration_name   = "testconfiguration1"
-  backend_address_pool_id = azurerm_application_gateway.network.backend_address_pool[0].id
+  backend_address_pool_id = tolist(azurerm_application_gateway.network.backend_address_pool).0.id
 }
 ```
 

@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -53,7 +52,7 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 }
 
 func storageBlobInventoryPolicyResourceSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"storage_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -160,16 +159,6 @@ func storageBlobInventoryPolicyResourceSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		s["storage_container_name"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Deprecated: "The policy level destination storage container is deprecated by the service team since API version 2021-04-01, this is not functional and will be removed in v3.0 of the provider. Use the `rules.*.storage_container_name` instead.",
-		}
-	}
-
-	return s
 }
 
 func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -241,10 +230,6 @@ func resourceStorageBlobInventoryPolicyRead(d *pluginsdk.ResourceData, meta inte
 				log.Printf("[INFO] storage %q is not enabled - removing from state", d.Id())
 				d.SetId("")
 				return nil
-			}
-
-			if !features.ThreePointOhBeta() {
-				d.Set("storage_container_name", "")
 			}
 
 			d.Set("rules", flattenBlobInventoryPolicyRules(policy.Rules))

@@ -104,50 +104,6 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 				},
 			},
 
-			"structure_column": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Deprecated: "This block has been deprecated in favour of `schema_column` and will be removed.",
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Byte",
-								"Byte[]",
-								"Boolean",
-								"Date",
-								"DateTime",
-								"DateTimeOffset",
-								"Decimal",
-								"Double",
-								"Guid",
-								"Int16",
-								"Int32",
-								"Int64",
-								"Single",
-								"String",
-								"TimeSpan",
-							}, false),
-						},
-						"description": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-				ConflictsWith: []string{
-					"schema_column",
-				},
-			},
-
 			"schema_column": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -208,9 +164,6 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{
-					"structure_column",
-				},
 			},
 		},
 	}
@@ -259,6 +212,7 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 		SnowflakeDatasetTypeProperties: &snowflakeDatasetProperties,
 		LinkedServiceName:              linkedService,
 		Description:                    &description,
+		Schema:                         make([]interface{}, 0),
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
@@ -272,17 +226,11 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 		snowflakeTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
 	}
 
-	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		snowflakeTableset.Annotations = &annotations
-	}
+	annotations := d.Get("annotations").([]interface{})
+	snowflakeTableset.Annotations = &annotations
 
 	if v, ok := d.GetOk("additional_properties"); ok {
 		snowflakeTableset.AdditionalProperties = v.(map[string]interface{})
-	}
-
-	if v, ok := d.GetOk("structure_column"); ok {
-		snowflakeTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
@@ -375,11 +323,6 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 		if folder.Name != nil {
 			d.Set("folder", folder.Name)
 		}
-	}
-
-	structureColumns := flattenDataFactoryStructureColumns(snowflakeTable.Structure)
-	if err := d.Set("structure_column", structureColumns); err != nil {
-		return fmt.Errorf("setting `structure_column`: %+v", err)
 	}
 
 	schemaColumns := flattenDataFactorySnowflakeSchemaColumns(snowflakeTable.Schema)

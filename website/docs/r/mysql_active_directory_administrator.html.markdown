@@ -1,7 +1,7 @@
 ---
 subcategory: "Database"
 layout: "azurerm"
-page_title: "Azure Resource manager: azurerm_mysql_active_directory_administrator"
+page_title: "Azure Resource Manager: azurerm_mysql_active_directory_administrator"
 description: |-
   Manages an Active Directory administrator on a MySQL server
 ---
@@ -27,6 +27,7 @@ resource "azurerm_mysql_server" "example" {
 
   administrator_login          = "mysqladminun"
   administrator_login_password = "H@Sh1CoR3!"
+  ssl_enforcement_enabled      = true
 
   sku_name   = "B_Gen5_2"
   storage_mb = 5120

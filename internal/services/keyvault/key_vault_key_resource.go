@@ -18,7 +18,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -110,7 +109,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				Computed: true,
 				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-					return features.ThreePointOhBeta() && old == "SECP256K1" && new == string(keyvault.P256K)
+					return old == "SECP256K1" && new == string(keyvault.P256K)
 				},
 				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
 					out := []string{
@@ -118,9 +117,6 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 						string(keyvault.P256K),
 						string(keyvault.P384),
 						string(keyvault.P521),
-					}
-					if !features.ThreePointOhBeta() {
-						out = append(out, "SECP256K1")
 					}
 					return validation.StringInSlice(out, false)
 				}(),
@@ -179,6 +175,16 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 			},
 
 			"public_key_openssh": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"resource_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"resource_versionless_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -495,6 +501,9 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 	}
+
+	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name, id.Version).ID())
+	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, id.Name).ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
