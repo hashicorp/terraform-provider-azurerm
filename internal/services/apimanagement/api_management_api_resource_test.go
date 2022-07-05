@@ -28,7 +28,7 @@ func TestAccApiManagementApi_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("is_current").HasValue("true"),
 				check.That(data.ResourceName).Key("is_online").HasValue("false"),
 				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
-				check.That(data.ResourceName).Key("type").HasValue("http"),
+				check.That(data.ResourceName).Key("api_type").HasValue("http"),
 			),
 		},
 		data.ImportStep(),
@@ -172,7 +172,7 @@ func TestAccApiManagementApi_typeGraphQL(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subscription_required").HasValue("false"),
-				check.That(data.ResourceName).Key("type").HasValue("graphql"),
+				check.That(data.ResourceName).Key("api_type").HasValue("graphql"),
 			),
 		},
 		data.ImportStep(),
@@ -447,7 +447,7 @@ resource "azurerm_api_management_api" "test" {
   protocols             = ["https"]
   revision              = "1"
   subscription_required = false
-	type                  = "graphql"
+  api_type              = "graphql"
 }
 `, r.template(data), data.RandomInteger)
 }

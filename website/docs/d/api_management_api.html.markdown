@@ -59,7 +59,7 @@ output "api_management_api_id" {
 
 * `subscription_required` - Should this API require a subscription key?
 
-* `type` - The type of the API: "http", "graphql", "soap", "websocket"
+* `api_type` - The type of the API: "http", "graphql", "soap", "websocket"
 
 * `version` - The Version number of this API, if this API is versioned.
 

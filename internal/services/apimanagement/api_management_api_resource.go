@@ -176,7 +176,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"type": {
+			"api_type": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -319,7 +319,7 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		apiType = apimanagement.APITypeSoap
 		soapApiType = apimanagement.SoapAPITypeSoapPassThrough
 	} else {
-		if d.Get("type").(string) == string(apimanagement.APITypeGraphql) {
+		if d.Get("api_type").(string) == string(apimanagement.APITypeGraphql) {
 			apiType = apimanagement.APITypeGraphql
 			soapApiType = apimanagement.SoapAPITypeGraphQL
 		} else {
@@ -480,7 +480,7 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("revision", props.APIRevision)
 		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapAPITypeSoapPassThrough))
 		d.Set("subscription_required", props.SubscriptionRequired)
-		d.Set("type", props.APIType)
+		d.Set("api_type", props.APIType)
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)
 		d.Set("revision_description", props.APIRevisionDescription)
