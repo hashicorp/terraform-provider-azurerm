@@ -3,12 +3,12 @@ package containers_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2021-03-01/containerinstance"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -2277,17 +2277,21 @@ resource "azurerm_container_group" "test" {
 }
 
 func (t ContainerGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ContainerGroupID(state.ID)
+	id, err := containerinstance.ParseContainerGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Containers.GroupsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Containers.ContainerInstanceClient.ContainerGroupsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Container Group (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	if resp.Model == nil {
+		return nil, fmt.Errorf("unexpected nil model of %q", id)
+	}
+
+	return utils.Bool(resp.Model.Id != nil), nil
 }
 
 func (ContainerGroupResource) withPrivateEmpty(data acceptance.TestData) string {
