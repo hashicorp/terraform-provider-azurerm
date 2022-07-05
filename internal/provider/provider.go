@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -144,14 +143,6 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "The Hostname which should be used for the Azure Metadata Service.",
 			},
 
-			"metadata_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// TODO: remove in 3.0
-				Deprecated:  "use `metadata_host` instead",
-				Description: "Deprecated - replaced by `metadata_host`.",
-			},
-
 			// Client Certificate specific fields
 			"client_certificate_path": {
 				Type:        schema.TypeString,
@@ -173,6 +164,27 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET", ""),
 				Description: "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
+			},
+
+			// OIDC specifc fields
+			"oidc_request_token": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN"}, ""),
+				Description: "The bearer token for the request to the OIDC provider. For use When authenticating as a Service Principal using OpenID Connect.",
+			},
+			"oidc_request_url": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL"}, ""),
+				Description: "The URL for the OIDC provider from which to request an ID token. For use When authenticating as a Service Principal using OpenID Connect.",
+			},
+
+			"use_oidc": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_OIDC", false),
+				Description: "Allow OpenID Connect to be used for authentication",
 			},
 
 			// Managed Service Identity specific fields
@@ -228,27 +240,10 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
 				Description: "Should the AzureRM Provider use AzureAD to access the Storage Data Plane API's?",
 			},
-
-			// TODO: v3.0 will only support MSAL; remove the `use_msal` property in v3.0
-			"use_msal": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Should Terraform obtain MSAL auth tokens and no longer use Azure Active Directory Graph?",
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_USE_MSAL", "ARM_USE_MSGRAPH"}, false),
-			},
 		},
 
 		DataSourcesMap: dataSources,
 		ResourcesMap:   resources,
-	}
-
-	if !features.ThreePointOhBeta() {
-		p.Schema["skip_credentials_validation"] = &schema.Schema{
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "[DEPRECATED] This will cause the AzureRM Provider to skip verifying the credentials being used are valid.",
-			Deprecated:  "This field is deprecated and will be removed in version 3.0 of the Azure Provider",
-		}
 	}
 
 	p.ConfigureContextFunc = providerConfigure(p)
@@ -270,34 +265,25 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		}
 
 		metadataHost := d.Get("metadata_host").(string)
-		// TODO: remove in 3.0
-		// note: this is inline to avoid calling out deprecations for users not setting this
-		if v := d.Get("metadata_url").(string); v != "" {
-			metadataHost = v
-		} else if v := os.Getenv("ARM_METADATA_URL"); v != "" {
-			metadataHost = v
-		}
-
-		useMsal := d.Get("use_msal").(bool)
-		if features.ThreePointOhBeta() {
-			useMsal = true
-		}
 
 		builder := &authentication.Builder{
-			SubscriptionID:     d.Get("subscription_id").(string),
-			ClientID:           d.Get("client_id").(string),
-			ClientSecret:       d.Get("client_secret").(string),
-			TenantID:           d.Get("tenant_id").(string),
-			AuxiliaryTenantIDs: auxTenants,
-			Environment:        d.Get("environment").(string),
-			MetadataHost:       metadataHost,
-			MsiEndpoint:        d.Get("msi_endpoint").(string),
-			ClientCertPassword: d.Get("client_certificate_password").(string),
-			ClientCertPath:     d.Get("client_certificate_path").(string),
+			SubscriptionID:      d.Get("subscription_id").(string),
+			ClientID:            d.Get("client_id").(string),
+			ClientSecret:        d.Get("client_secret").(string),
+			TenantID:            d.Get("tenant_id").(string),
+			AuxiliaryTenantIDs:  auxTenants,
+			Environment:         d.Get("environment").(string),
+			MetadataHost:        metadataHost,
+			MsiEndpoint:         d.Get("msi_endpoint").(string),
+			ClientCertPassword:  d.Get("client_certificate_password").(string),
+			ClientCertPath:      d.Get("client_certificate_path").(string),
+			IDTokenRequestToken: d.Get("oidc_request_token").(string),
+			IDTokenRequestURL:   d.Get("oidc_request_url").(string),
 
 			// Feature Toggles
 			SupportsClientCertAuth:         true,
 			SupportsClientSecretAuth:       true,
+			SupportsOIDCAuth:               d.Get("use_oidc").(bool),
 			SupportsManagedServiceIdentity: d.Get("use_msi").(bool),
 			SupportsAzureCliToken:          true,
 			SupportsAuxiliaryTenants:       len(auxTenants) > 0,
@@ -305,8 +291,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			// Doc Links
 			ClientSecretDocsLink: "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret",
 
-			// MSAL opt-in
-			UseMicrosoftGraph: useMsal,
+			// Use MSAL
+			UseMicrosoftGraph: true,
 		}
 
 		config, err := builder.Build()
@@ -331,7 +317,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
 			Features:                    expandFeatures(d.Get("features").([]interface{})),
 			StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
-			UseMSAL:                     useMsal,
 
 			// this field is intentionally not exposed in the provider block, since it's only used for
 			// platform level tracing

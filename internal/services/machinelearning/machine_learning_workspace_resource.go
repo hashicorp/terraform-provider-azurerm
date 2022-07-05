@@ -4,19 +4,20 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	appInsightsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
+	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -32,7 +33,7 @@ const (
 )
 
 func resourceMachineLearningWorkspace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceMachineLearningWorkspaceCreate,
 		Read:   resourceMachineLearningWorkspaceRead,
 		Update: resourceMachineLearningWorkspaceUpdate,
@@ -63,11 +64,10 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"application_insights_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO -- use the custom validation function of application insights
-				ValidateFunc: azure.ValidateResourceID,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: appInsightsValidate.ComponentID,
 				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -82,11 +82,10 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			},
 
 			"storage_account_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO -- use the custom validation function of storage account, when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
-				ValidateFunc: azure.ValidateResourceID,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: storageValidate.StorageAccountID,
 				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -96,24 +95,29 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"primary_user_assigned_identity": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: msiValidate.UserAssignedIdentityID,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			},
 
 			"container_registry_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				// TODO -- use the custom validation function of container registry
-				ValidateFunc: azure.ValidateResourceID,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: containerValidate.RegistryID,
 				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"public_network_access_enabled": {
+			"public_access_behind_virtual_network_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Computed: !features.FourPointOhBeta(),
 				ForceNew: true,
-				Default:  false,
+				ConflictsWith: func() []string {
+					if !features.FourPointOhBeta() {
+						return []string{"public_network_access_enabled"}
+					}
+					return []string{}
+				}(),
 			},
 
 			"image_build_compute_name": {
@@ -147,7 +151,9 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 						"user_assigned_identity_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: msiValidate.UserAssignedIdentityID,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+							// TODO: remove this
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -164,17 +170,10 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(Basic),
-				ValidateFunc: validation.StringInSlice(func() []string {
-					out := []string{string(Basic)}
-					if !features.ThreePointOhBeta() {
-						out = append(out, "Enterprise")
-					}
-					return out
-				}(), !features.ThreePointOh()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(Basic),
+				ValidateFunc: validation.StringInSlice([]string{string(Basic)}, false),
 			},
 
 			"discovery_url": {
@@ -185,6 +184,22 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"tags": tags.Schema(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		// For the time being we should just deprecate and remove this property since it's broken in the API - it doesn't
+		// actually set the property and also isn't returned by the API. Once https://github.com/Azure/azure-rest-api-specs/issues/18340
+		// is fixed we can reassess how to deal with this field.
+		resource.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			Deprecated:    "`public_network_access_enabled` will be removed in favour of the property `public_access_behind_virtual_network_enabled` in version 4.0 of the AzureRM Provider.",
+			ConflictsWith: []string{"public_access_behind_virtual_network_enabled"},
+		}
+	}
+
+	return resource
 }
 
 func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -211,6 +226,16 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 
 	expandedEncryption := expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{}))
 
+	networkAccessBehindVnetEnabled := false
+	if !features.FourPointOhBeta() {
+		if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
+			networkAccessBehindVnetEnabled = v.(bool)
+		}
+	}
+	if v, ok := d.GetOkExists("public_access_behind_virtual_network_enabled"); ok {
+		networkAccessBehindVnetEnabled = v.(bool)
+	}
+
 	workspace := machinelearningservices.Workspace{
 		Name:     utils.String(id.Name),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
@@ -225,7 +250,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 			StorageAccount:                  utils.String(d.Get("storage_account_id").(string)),
 			ApplicationInsights:             utils.String(d.Get("application_insights_id").(string)),
 			KeyVault:                        utils.String(d.Get("key_vault_id").(string)),
-			AllowPublicAccessWhenBehindVnet: utils.Bool(d.Get("public_network_access_enabled").(bool)),
+			AllowPublicAccessWhenBehindVnet: utils.Bool(networkAccessBehindVnetEnabled),
 		},
 	}
 
@@ -304,10 +329,14 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("description", props.Description)
 		d.Set("friendly_name", props.FriendlyName)
 		d.Set("high_business_impact", props.HbiWorkspace)
-		d.Set("public_network_access_enabled", props.AllowPublicAccessWhenBehindVnet)
 		d.Set("image_build_compute_name", props.ImageBuildCompute)
 		d.Set("discovery_url", props.DiscoveryURL)
 		d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
+		d.Set("public_access_behind_virtual_network_enabled", props.AllowPublicAccessWhenBehindVnet)
+
+		if !features.FourPointOhBeta() {
+			d.Set("public_network_access_enabled", props.AllowPublicAccessWhenBehindVnet)
+		}
 	}
 
 	flattenedIdentity, err := flattenMachineLearningWorkspaceIdentity(resp.Identity)

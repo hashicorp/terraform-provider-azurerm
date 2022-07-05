@@ -112,7 +112,7 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"location": azure.SchemaLocationForDataSource(),
+						"location": commonschema.LocationComputed(),
 
 						"capacity": {
 							Type:     pluginsdk.TypeInt,

@@ -24,6 +24,8 @@ func resourceSqlFirewallRule() *pluginsdk.Resource {
 		Update: resourceSqlFirewallRuleCreateUpdate,
 		Delete: resourceSqlFirewallRuleDelete,
 
+		DeprecationMessage: "The `azurerm_sql_firewall_rule` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_firewall_rule` resource instead.",
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.FirewallRuleID(id)
 			return err

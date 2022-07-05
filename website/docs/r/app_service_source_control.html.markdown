@@ -10,8 +10,6 @@ description: |-
 
 Manages an App Service Web App or Function App Source Control Configuration.
 
-!> **Note:** This Resource is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -27,9 +25,9 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_service_plan" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "West Europe"
+  location            = azurerm_resource_group.example.location
   os_type             = "Linux"
-  sku_name            = "P1V2"
+  sku_name            = "P1v2"
 }
 
 resource "azurerm_linux_web_app" "example" {
@@ -56,9 +54,9 @@ The following arguments are supported:
 
 ~> **NOTE:** Function apps are not supported at this time. 
 
-* `branch` - (Required) The branch name to use for deployments. Changing this forces a new resource to be created.
+* `branch` - (Optional) The branch name to use for deployments. Changing this forces a new resource to be created.
 
-* `repo_url` - (Required) The URL for the repository. Changing this forces a new resource to be created.
+* `repo_url` - (Optional) The URL for the repository. Changing this forces a new resource to be created.
 
 ---
 

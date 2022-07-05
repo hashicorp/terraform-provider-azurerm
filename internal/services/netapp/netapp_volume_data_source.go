@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
@@ -28,9 +29,9 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 				ValidateFunc: validate.VolumeName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -67,6 +68,11 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"network_features": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"storage_quota_in_gb": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -93,18 +99,11 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"remote_volume_location": azure.SchemaLocationForDataSource(),
+						"remote_volume_location": commonschema.LocationComputed(),
 
 						"remote_volume_resource_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
-						},
-
-						// todo remove this in version 3.0 of the provider
-						"replication_schedule": {
-							Type:       pluginsdk.TypeString,
-							Computed:   true,
-							Deprecated: "This property is not in use and will be removed in version 3.0 of the provider. Please use `replication_frequency` instead",
 						},
 
 						"replication_frequency": {
@@ -140,14 +139,13 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("account_name", id.NetAppAccountName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.VolumeProperties; props != nil {
 		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", props.ServiceLevel)
 		d.Set("subnet_id", props.SubnetID)
+		d.Set("network_features", props.NetworkFeatures)
 
 		protocolTypes := make([]string, 0)
 		if prtclTypes := props.ProtocolTypes; prtclTypes != nil {

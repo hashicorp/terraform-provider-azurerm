@@ -148,42 +148,6 @@ func TestAccHPCCache_dnsSetting(t *testing.T) {
 	})
 }
 
-func TestAccHPCCache_rootSquashDeprecated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
-	r := HPCCacheResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.rootSquashDeprecated(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.rootSquashDeprecated(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
-			),
-		},
-		// Following import verification will cause diff given we simply set whatever is in cfg to state for "root_squash_enabled", since there is no
-		// "cfg" during import verification, the state of the "root_squash_enabled" is always false.
-		// The clarification is that since this is a deprecated property, users shouldn't import an existing resource to a new .tf file whilst using that
-		// deprecated property.
-		// data.ImportStep(),
-		{
-			Config: r.rootSquashDeprecated(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccHPCCache_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	r := HPCCacheResource{}
@@ -373,6 +337,50 @@ func TestAccHPCCache_directoryFlatFile(t *testing.T) {
 	})
 }
 
+func TestAccHPCCache_customerManagedKeyWithAutoKeyRotationEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customerManagedKeyWithAutoKeyRotationEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customerManagedKeyWithAutoKeyRotationEnabledUpdateKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccHPCCache_customerManagedKeyUpdateAutoKeyRotation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customerManagedKeyWithDefaultAutoKeyRotation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customerManagedKeyWithAutoKeyRotationEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (HPCCacheResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CacheID(state.ID)
 	if err != nil {
@@ -452,22 +460,6 @@ resource "azurerm_hpc_cache" "test" {
   mtu                 = %d
 }
 `, r.template(data), data.RandomInteger, mtu)
-}
-
-func (r HPCCacheResource) rootSquashDeprecated(data acceptance.TestData, enable bool) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_hpc_cache" "test" {
-  name                = "acctest-HPCC-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  cache_size_in_gb    = 3072
-  subnet_id           = azurerm_subnet.test.id
-  sku_name            = "Standard_2G"
-  root_squash_enabled = %t
-}
-`, r.template(data), data.RandomInteger, enable)
 }
 
 func (r HPCCacheResource) defaultAccessPolicyBasic(data acceptance.TestData) string {
@@ -812,7 +804,7 @@ ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f /tmp/rpw.ldif
 # Setup self signed certificate
 cp /etc/ssl/certs/ca-certificates.crt /etc/ldap/sasl2
 cd /etc/ldap/sasl2
-openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=CN/ST=SH/L=SH/O=NA/CN=www.example.com" -keyout server.key -out server.crt
+openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=CN/ST=SH/L=SH/O=NA/CN=${azurerm_network_interface.test.private_ip_address}" -keyout server.key -out server.crt
 chown openldap. /etc/ldap/sasl2/*
 
 cat << EOF > /tmp/cert.ldif
@@ -889,7 +881,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -904,6 +896,194 @@ resource "azurerm_network_interface" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r HPCCacheResource) customerManagedKeyWithDefaultAutoKeyRotation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  key_vault_key_id = azurerm_key_vault_key.test.id
+}
+`, r.customerManagedKeyTemplate(data), data.RandomInteger)
+}
+
+func (r HPCCacheResource) customerManagedKeyWithAutoKeyRotationEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  key_vault_key_id                           = azurerm_key_vault_key.test.id
+  automatically_rotate_key_to_latest_enabled = true
+}
+`, r.customerManagedKeyTemplate(data), data.RandomInteger)
+}
+
+func (r HPCCacheResource) customerManagedKeyWithAutoKeyRotationEnabledUpdateKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hpc_cache" "test" {
+  name                = "acctest-HPCC-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_2G"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  key_vault_key_id                           = azurerm_key_vault_key.test2.id
+  automatically_rotate_key_to_latest_enabled = true
+}
+`, r.customerManagedKeyTemplate(data), data.RandomInteger)
+}
+
+func (HPCCacheResource) customerManagedKeyTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults    = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "acctestkv-%[3]s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "standard"
+  purge_protection_enabled    = true
+  soft_delete_retention_days  = 7
+  enabled_for_disk_encryption = true
+}
+
+resource "azurerm_key_vault_access_policy" "service-principal" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Update",
+  ]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "examplekey"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault_access_policy.service-principal]
+}
+
+resource "azurerm_key_vault_key" "test2" {
+  name         = "examplekey2"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault_access_policy.service-principal]
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_key_vault_access_policy" "service-principal2" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
+
+  key_permissions = [
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
+  ]
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-VN-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsub-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+`, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (HPCCacheResource) template(data acceptance.TestData) string {
@@ -928,7 +1108,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsub-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

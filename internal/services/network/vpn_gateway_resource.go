@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -70,6 +70,12 @@ func resourceVPNGateway() *pluginsdk.Resource {
 					"Microsoft Network",
 					"Internet",
 				}, false),
+			},
+
+			"bgp_route_translation_for_nat_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"bgp_settings": {
@@ -221,7 +227,8 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	parameters := network.VpnGateway{
 		Location: utils.String(location),
 		VpnGatewayProperties: &network.VpnGatewayProperties{
-			BgpSettings: bgpSettings,
+			EnableBgpRouteTranslationForNat: utils.Bool(d.Get("bgp_route_translation_for_nat_enabled").(bool)),
+			BgpSettings:                     bgpSettings,
 			VirtualHub: &network.SubResource{
 				ID: utils.String(virtualHubId),
 			},
@@ -231,13 +238,17 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		Tags: tags.Expand(t),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 	if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
 		return err
 	}
-
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -259,8 +270,14 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 				val := input1[0].(map[string]interface{})
 				(*resp.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 			}
-			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, resp); err != nil {
+
+			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, resp)
+			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 			}
 			if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
 				return err
@@ -297,6 +314,9 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	if d.HasChange("tags") {
 		existing.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
+	if d.HasChange("bgp_route_translation_for_nat_enabled") {
+		existing.EnableBgpRouteTranslationForNat = utils.Bool(d.Get("bgp_route_translation_for_nat_enabled").(bool))
+	}
 
 	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
 	if len(bgpSettingsRaw) > 0 {
@@ -316,8 +336,13 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 	if err := waitForCompletion(d, ctx, client, id.ResourceGroup, id.Name); err != nil {
 		return err
@@ -357,6 +382,12 @@ func resourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err := d.Set("bgp_settings", flattenVPNGatewayBGPSettings(props.BgpSettings)); err != nil {
 			return fmt.Errorf("setting `bgp_settings`: %+v", err)
 		}
+
+		bgpRouteTranslationForNatEnabled := false
+		if props.EnableBgpRouteTranslationForNat != nil {
+			bgpRouteTranslationForNatEnabled = *props.EnableBgpRouteTranslationForNat
+		}
+		d.Set("bgp_route_translation_for_nat_enabled", bgpRouteTranslationForNatEnabled)
 
 		scaleUnit := 0
 		if props.VpnGatewayScaleUnit != nil {

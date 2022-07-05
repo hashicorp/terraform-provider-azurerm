@@ -6,8 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -45,24 +43,13 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 }
 
 func resourceStorageAccountNetworkRulesSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		//lintignore: S013
 		"storage_account_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     features.ThreePointOhBeta(),
-			Optional:     !features.ThreePointOhBeta(),
-			Computed:     !features.ThreePointOhBeta(),
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.StorageAccountID,
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{
-						"resource_group_name",
-						"storage_account_name",
-					}
-				}
-				return []string{}
-			}(),
 		},
 
 		"bypass": {
@@ -135,39 +122,6 @@ func resourceStorageAccountNetworkRulesSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.ThreePointOhBeta() {
-		out["resource_group_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceGroupName,
-			Deprecated:   "Deprecated in favour of `storage_account_id`",
-			RequiredWith: []string{
-				"storage_account_name",
-			},
-			ConflictsWith: []string{
-				"storage_account_id",
-			},
-		}
-
-		out["storage_account_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.StorageAccountName,
-			Deprecated:   "Deprecated in favour of `storage_account_id`",
-			RequiredWith: []string{
-				"resource_group_name",
-			},
-			ConflictsWith: []string{
-				"storage_account_id",
-			},
-		}
-	}
-	return out
 }
 
 func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -179,11 +133,6 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 
 	var storageAccountName string
 	var resourceGroup string
-	if !features.ThreePointOhBeta() {
-		resourceGroup = d.Get("resource_group_name").(string)
-		storageAccountName = d.Get("storage_account_name").(string)
-	}
-
 	raw, ok := d.GetOk("storage_account_id")
 	if ok {
 		parsedStorageAccountId, err := parse.StorageAccountID(raw.(string))
@@ -266,11 +215,6 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 
 	d.Set("storage_account_id", d.Id())
 
-	if !features.ThreePointOhBeta() {
-		d.Set("resource_group_name", id.ResourceGroup)
-		d.Set("storage_account_name", id.Name)
-	}
-
 	if rules := storageAccount.NetworkRuleSet; rules != nil {
 		if err := d.Set("ip_rules", pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountIPRules(rules.IPRules))); err != nil {
 			return fmt.Errorf("setting `ip_rules`: %+v", err)
@@ -317,11 +261,15 @@ func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta in
 	}
 
 	// We can't delete a network rule set so we'll just update it back to the default instead
+	virtualNetworkRules := make([]storage.VirtualNetworkRule, 0)
+	ipRules := make([]storage.IPRule, 0)
 	opts := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			NetworkRuleSet: &storage.NetworkRuleSet{
-				Bypass:        storage.BypassAzureServices,
-				DefaultAction: storage.DefaultActionAllow,
+				Bypass:              storage.BypassAzureServices,
+				VirtualNetworkRules: &virtualNetworkRules,
+				IPRules:             &ipRules,
+				DefaultAction:       storage.DefaultActionAllow,
 			},
 		},
 	}

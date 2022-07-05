@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -30,9 +31,9 @@ func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"type": {
 				Type:     pluginsdk.TypeString,
@@ -75,6 +76,11 @@ func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"name": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -253,13 +259,10 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
 
-	if resp.VirtualNetworkGatewayPropertiesFormat != nil {
-		gw := *resp.VirtualNetworkGatewayPropertiesFormat
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
+	if gw := resp.VirtualNetworkGatewayPropertiesFormat; gw != nil {
 		d.Set("type", string(gw.GatewayType))
 		d.Set("enable_bgp", gw.EnableBgp)
 		d.Set("private_ip_address_enabled", gw.EnablePrivateIPAddress)
@@ -307,6 +310,10 @@ func flattenVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]network
 		for _, cfg := range *ipConfigs {
 			props := cfg.VirtualNetworkGatewayIPConfigurationPropertiesFormat
 			v := make(map[string]interface{})
+
+			if id := cfg.ID; id != nil {
+				v["id"] = *id
+			}
 
 			if name := cfg.Name; name != nil {
 				v["name"] = *name

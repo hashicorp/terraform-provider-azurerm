@@ -41,6 +41,31 @@ func TestAccSignalRService_basic(t *testing.T) {
 	})
 }
 
+func TestAccSignalRService_premium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Premium_P1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSignalRService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
@@ -287,10 +312,10 @@ func TestAccSignalRService_skuAndCapacityUpdate(t *testing.T) {
 func TestAccSignalRService_serviceMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
-
+	config := r.withServiceMode(data, "Serverless")
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withServiceMode(data, "Serverless"),
+			Config: config,
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("hostname").Exists(),
@@ -380,10 +405,10 @@ func TestAccSignalRService_cors(t *testing.T) {
 func TestAccSignalRService_upstreamSetting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
-
+	config := r.withUpstreamEndpoints(data)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withUpstreamEndpoints(data),
+			Config: config,
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("upstream_endpoint.#").HasValue("4"),
@@ -441,6 +466,30 @@ resource "azurerm_signalr_service" "test" {
 
   sku {
     name     = "Free_F1"
+    capacity = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r SignalRServiceResource) premium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Premium_P1"
     capacity = 1
   }
 }
@@ -526,12 +575,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_signalr_service" "test" {
-  name                = "acctestSignalR-%d"
+  name                = "acctestSignalR-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -540,22 +589,11 @@ resource "azurerm_signalr_service" "test" {
     capacity = 1
   }
 
-  features {
-    flag  = "ServiceMode"
-    value = "%s"
-  }
-
-  features {
-    flag  = "EnableConnectivityLogs"
-    value = "False"
-  }
-
-  features {
-    flag  = "EnableMessagingLogs"
-    value = "False"
-  }
+  service_mode              = "%s"
+  connectivity_logs_enabled = false
+  messaging_logs_enabled    = false
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, serviceMode)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r SignalRServiceResource) withUpstreamEndpoints(data acceptance.TestData) string {
@@ -579,20 +617,9 @@ resource "azurerm_signalr_service" "test" {
     capacity = 1
   }
 
-  features {
-    flag  = "ServiceMode"
-    value = "Serverless"
-  }
-
-  features {
-    flag  = "EnableConnectivityLogs"
-    value = "False"
-  }
-
-  features {
-    flag  = "EnableMessagingLogs"
-    value = "False"
-  }
+  service_mode              = "Serverless"
+  connectivity_logs_enabled = false
+  messaging_logs_enabled    = false
 
   upstream_endpoint {
     category_pattern = ["*"]

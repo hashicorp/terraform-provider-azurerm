@@ -22,6 +22,10 @@ resource "azurerm_purview_account" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 ```
 
@@ -30,6 +34,8 @@ resource "azurerm_purview_account" "example" {
 The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Purview Account should exist. Changing this forces a new Purview Account to be created.
+
+* `identity` - (Required) An `identity` block as defined below.
 
 * `name` - (Required) The name which should be used for this Purview Account. Changing this forces a new Purview Account to be created.
 
@@ -44,6 +50,12 @@ The following arguments are supported:
 ~> **Note:** `managed_resource_group_name` must be a new Resource Group
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Purview Account.
+
+---
+
+The `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Purview Account. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
@@ -67,13 +79,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The ID of the Azure Active Directory Tenant.
-
-* `type` - The type of Managed Identity assigned to this Purview Account.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 

@@ -1,9 +1,9 @@
 package client
 
 import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/accounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/creators"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/sdk/2021-02-01/accounts"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/sdk/2021-02-01/creators"
 )
 
 type Client struct {

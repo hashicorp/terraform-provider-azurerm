@@ -40,7 +40,7 @@ output "service_key" {
 
 * `peerings` - A `peerings` block for the ExpressRoute circuit as documented below
 
-* `service_provider_provisioning_state` - The ExpressRoute circuit provisioning state from your chosen service provider. Possible values are "NotProvisioned", "Provisioning", "Provisioned", and "Deprovisioning".
+* `service_provider_provisioning_state` - The ExpressRoute circuit provisioning state from your chosen service provider. Possible values are `NotProvisioned`, `Provisioning`, `Provisioned`, and `Deprovisioning`.
 
 * `service_key` - The string needed by the service provider to provision the ExpressRoute circuit.
 

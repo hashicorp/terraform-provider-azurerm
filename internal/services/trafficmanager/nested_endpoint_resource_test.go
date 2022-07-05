@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -180,7 +180,7 @@ resource "azurerm_traffic_manager_profile" "parent" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -197,7 +197,7 @@ resource "azurerm_traffic_manager_profile" "child" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -227,7 +227,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }
@@ -244,7 +244,7 @@ resource "azurerm_traffic_manager_profile" "child" {
   }
 
   monitor_config {
-    protocol = "https"
+    protocol = "HTTPS"
     port     = 443
     path     = "/"
   }

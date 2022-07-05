@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,14 +26,7 @@ func dataSourceFunctionAppHostKeys() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-
-			"master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `primary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"primary_key": {
 				Type:      pluginsdk.TypeString,
@@ -96,7 +89,6 @@ func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface
 			return pluginsdk.RetryableError(fmt.Errorf("making Read request on %s: %+v", id, err))
 		}
 
-		d.Set("master_key", res.MasterKey)
 		d.Set("primary_key", res.MasterKey)
 
 		defaultFunctionKey := ""

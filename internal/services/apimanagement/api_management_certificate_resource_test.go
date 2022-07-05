@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -193,11 +192,11 @@ resource "azurerm_key_vault_access_policy" "test" {
   object_id    = azurerm_api_management.test.identity.0.principal_id
 
   secret_permissions = [
-    "get",
+    "Get",
   ]
 
   certificate_permissions = [
-    "get",
+    "Get",
   ]
 }
 
@@ -243,11 +242,11 @@ resource "azurerm_key_vault_access_policy" "test" {
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
   secret_permissions = [
-    "get",
+    "Get",
   ]
 
   certificate_permissions = [
-    "get",
+    "Get",
   ]
 }
 
@@ -263,10 +262,6 @@ resource "azurerm_api_management_certificate" "test" {
 }
 
 func (ApiManagementCertificateResource) templateKeyVault(data acceptance.TestData) string {
-	var softDelete string
-	if !features.ThreePointOhBeta() {
-		softDelete = "soft_delete_enabled = true"
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -283,7 +278,6 @@ resource "azurerm_key_vault" "test" {
   name                = "acct%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  %s
 
   tenant_id = data.azurerm_client_config.test.tenant_id
 
@@ -296,18 +290,18 @@ resource "azurerm_key_vault_access_policy" "sptest" {
   object_id    = data.azurerm_client_config.test.object_id
 
   secret_permissions = [
-    "delete",
-    "get",
-    "purge",
-    "set",
+    "Delete",
+    "Get",
+    "Purge",
+    "Set",
   ]
 
   certificate_permissions = [
-    "create",
-    "delete",
-    "get",
-    "purge",
-    "import",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Import",
   ]
 }
 
@@ -368,7 +362,7 @@ resource "azurerm_key_vault_certificate" "cert2" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, softDelete)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (r ApiManagementCertificateResource) requiresImport(data acceptance.TestData) string {

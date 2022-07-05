@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
@@ -35,65 +34,33 @@ func resourceServiceBusQueueAuthorizationRule() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: authorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.AuthorizationRuleName(),
-			},
-
-			// TODO 3.0 - Make it required
-			"queue_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  validate.QueueID,
-				ConflictsWith: []string{"queue_name", "namespace_name", "resource_group_name"},
-			},
-
-			// TODO 3.0 - Remove in favor of queue_id
-			"queue_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  validate.QueueName(),
-				Deprecated:    `Deprecated in favor of "queue_id"`,
-				ConflictsWith: []string{"queue_id"},
-			},
-
-			// TODO 3.0 - Remove in favor of queue_id
-			"namespace_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  validate.NamespaceName,
-				Deprecated:    `Deprecated in favor of "queue_id"`,
-				ConflictsWith: []string{"queue_id"},
-			},
-
-			// TODO 3.0 - Remove in favor of queue_id
-			"resource_group_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  azure.ValidateResourceGroupName,
-				Deprecated:    `Deprecated in favor of "queue_id"`,
-				ConflictsWith: []string{"queue_id"},
-			},
-		}),
+		Schema: resourceServiceBusqueueAuthorizationRuleSchema(),
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(authorizationRuleCustomizeDiff),
 	}
 }
 
+func resourceServiceBusqueueAuthorizationRuleSchema() map[string]*pluginsdk.Schema {
+	return authorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AuthorizationRuleName(),
+		},
+
+		//lintignore: S013
+		"queue_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.QueueID,
+		},
+	})
+}
+
 func resourceServiceBusQueueAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -103,8 +70,6 @@ func resourceServiceBusQueueAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 	if queueIdLit := d.Get("queue_id").(string); queueIdLit != "" {
 		queueId, _ := parse.QueueID(queueIdLit)
 		resourceId = parse.NewQueueAuthorizationRuleID(queueId.SubscriptionId, queueId.ResourceGroup, queueId.NamespaceName, queueId.Name, d.Get("name").(string))
-	} else {
-		resourceId = parse.NewQueueAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("queue_name").(string), d.Get("name").(string))
 	}
 
 	if d.IsNewResource() {
@@ -166,9 +131,6 @@ func resourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("name", id.AuthorizationRuleName)
-	d.Set("queue_name", id.QueueName)
-	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("queue_id", parse.NewQueueID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.QueueName).ID())
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {

@@ -13,9 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,6 +29,8 @@ func resourceSqlDatabase() *pluginsdk.Resource {
 		Read:   resourceSqlDatabaseRead,
 		Update: resourceSqlDatabaseCreateUpdate,
 		Delete: resourceSqlDatabaseDelete,
+
+		DeprecationMessage: "The `azurerm_sql_database` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_database` resource instead.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.DatabaseID(id)
@@ -87,11 +87,7 @@ func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
 	createMode := sql.CreateMode(d.Get("create_mode").(string))
-	if createMode == sql.CreateModeOnlineSecondary && len(auditingPolicies) > 0 {
-		return fmt.Errorf("auditing policies are not supported on an online secondary for %s", id)
-	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
@@ -209,16 +205,6 @@ func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("setting database threat detection policy: %+v", err)
 	}
 
-	if createMode != sql.CreateModeOnlineSecondary {
-		auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
-		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{
-			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlDBBlobAuditingPolicies(auditingPolicies),
-		}
-		if _, err = auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, auditingProps); err != nil {
-			return fmt.Errorf("setting Blob Auditing Policies for %s: %+v", id, err)
-		}
-	}
-
 	return resourceSqlDatabaseRead(d, meta)
 }
 
@@ -249,12 +235,6 @@ func resourceSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if err := d.Set("threat_detection_policy", flattenArmSqlServerThreatDetectionPolicy(d, threat)); err != nil {
 			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
 		}
-	}
-
-	auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -295,11 +275,6 @@ func resourceSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("encryption", flattenEncryptionStatus(props.TransparentDataEncryption))
 		d.Set("read_scale", props.ReadScale == sql.ReadScaleEnabled)
 		d.Set("zone_redundant", props.ZoneRedundant)
-	}
-
-	flattenBlobAuditing := helper.FlattenAzureRmSqlDBBlobAuditingPolicies(&auditingResp, d)
-	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
-		return fmt.Errorf("failure in setting `extended_auditing_policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -352,9 +327,6 @@ func flattenArmSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, policy 
 
 	threatDetectionPolicy["state"] = string(properties.State)
 	threatDetectionPolicy["email_account_admins"] = string(properties.EmailAccountAdmins)
-	if !features.ThreePointOhBeta() {
-		threatDetectionPolicy["use_server_default"] = string(properties.UseServerDefault)
-	}
 
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
 		flattenedAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
@@ -428,9 +400,6 @@ func expandArmSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location
 
 		properties.State = sql.SecurityAlertPolicyState(threatDetection["state"].(string))
 		properties.EmailAccountAdmins = sql.SecurityAlertPolicyEmailAccountAdmins(threatDetection["email_account_admins"].(string))
-		if !features.ThreePointOhBeta() {
-			properties.UseServerDefault = sql.SecurityAlertPolicyUseServerDefault(threatDetection["use_server_default"].(string))
-		}
 
 		if v, ok := threatDetection["disabled_alerts"]; ok {
 			alerts := v.(*pluginsdk.Set).List()
@@ -465,7 +434,7 @@ func expandArmSqlServerThreatDetectionPolicy(d *pluginsdk.ResourceData, location
 }
 
 func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -485,10 +454,9 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"create_mode": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			Default:          string(sql.Default),
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(sql.Default),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(sql.CreateModeCopy),
 				string(sql.CreateModeDefault),
@@ -498,7 +466,7 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 				string(sql.CreateModeRecovery),
 				string(sql.CreateModeRestore),
 				string(sql.CreateModeRestoreLongTermRetentionBackup),
-			}, !features.ThreePointOh()),
+			}, false),
 		},
 
 		"import": {
@@ -517,13 +485,12 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 						Sensitive: true,
 					},
 					"storage_key_type": {
-						Type:             pluginsdk.TypeString,
-						Required:         true,
-						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						Type:     pluginsdk.TypeString,
+						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"StorageAccessKey",
 							"SharedAccessKey",
-						}, !features.ThreePointOh()),
+						}, false),
 					},
 					"administrator_login": {
 						Type:     pluginsdk.TypeString,
@@ -535,22 +502,20 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 						Sensitive: true,
 					},
 					"authentication_type": {
-						Type:             pluginsdk.TypeString,
-						Required:         true,
-						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						Type:     pluginsdk.TypeString,
+						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"ADPassword",
 							"SQL",
-						}, !features.ThreePointOh()),
+						}, false),
 					},
 					"operation_mode": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						Default:          "Import",
-						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "Import",
 						ValidateFunc: validation.StringInSlice([]string{
 							"Import",
-						}, !features.ThreePointOh()),
+						}, false),
 					},
 				},
 			},
@@ -570,10 +535,9 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"edition": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			Computed:         true,
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(sql.Basic),
 				string(sql.Business),
@@ -589,7 +553,7 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 				string(sql.System),
 				string(sql.System2),
 				string(sql.Web),
-			}, !features.ThreePointOh()),
+			}, false),
 		},
 
 		"collation": {
@@ -674,20 +638,18 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 								"Sql_Injection",
 								"Sql_Injection_Vulnerability",
 								"Access_Anomaly",
-							}, !features.ThreePointOh()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 					},
 
 					"email_account_admins": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-						Default:          string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
 							string(sql.SecurityAlertPolicyEmailAccountAdminsEnabled),
-						}, !features.ThreePointOh()),
+						}, false),
 					},
 
 					"email_addresses": {
@@ -706,15 +668,14 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"state": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-						Default:          string(sql.SecurityAlertPolicyStateDisabled),
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  string(sql.SecurityAlertPolicyStateDisabled),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(sql.SecurityAlertPolicyStateDisabled),
 							string(sql.SecurityAlertPolicyStateEnabled),
 							string(sql.SecurityAlertPolicyStateNew),
-						}, !features.ThreePointOh()),
+						}, false),
 					},
 
 					"storage_account_access_key": {
@@ -744,25 +705,6 @@ func resourceSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"extended_auditing_policy": helper.ExtendedAuditingSchema(),
-
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		s := schema["threat_detection_policy"].Elem.(*pluginsdk.Resource)
-		s.Schema["use_server_default"] = &pluginsdk.Schema{
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-			Default:          string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
-				string(sql.SecurityAlertPolicyUseServerDefaultEnabled),
-			}, !features.ThreePointOh()),
-			Deprecated: "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
-		}
-	}
-
-	return schema
 }

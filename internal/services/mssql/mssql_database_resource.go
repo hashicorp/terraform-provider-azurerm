@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
@@ -29,7 +28,7 @@ import (
 )
 
 func resourceMsSqlDatabase() *pluginsdk.Resource {
-	resourceData := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlDatabaseCreateUpdate,
 		Read:   resourceMsSqlDatabaseRead,
 		Update: resourceMsSqlDatabaseCreateUpdate,
@@ -60,29 +59,15 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-				if !features.ThreePointOhBeta() {
-					return nil
-				}
+				transparentDataEncryption := d.Get("transparent_data_encryption_enabled").(bool)
 				sku := d.Get("sku_name").(string)
-				if !strings.HasPrefix(sku, "DW") && !d.Get("transparent_data_encryption_enabled").(bool) {
+				if !strings.HasPrefix(sku, "DW") && !transparentDataEncryption {
 					return fmt.Errorf("transparent data encryption can only be disabled on Data Warehouse SKUs")
 				}
+
 				return nil
 			}),
 	}
-	if features.ThreePointOhBeta() {
-		// TODO: Update docs with the following text:
-		//
-		// * `transparent_data_encryption_enabled` - If set to true, Transparent Data Encryption will be enabled on the database.
-		// -> **NOTE:** TDE cannot be disabled on servers with SKUs other than ones starting with DW.
-
-		resourceData.Schema["transparent_data_encryption_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		}
-	}
-	return resourceData
 }
 
 func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
@@ -121,7 +106,6 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 
 func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
-	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	serversClient := meta.(*clients.Client).MSSQL.ServersClient
 	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
@@ -177,6 +161,8 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 			}
 		}
 	}
+
+	ledgerEnabled := d.Get("ledger_enabled").(bool)
 
 	// When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
 	// partner databases. To work around this, we'll try to identify any partner databases that are secondary to this
@@ -246,8 +232,9 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 			MinCapacity:                      utils.Float(d.Get("min_capacity").(float64)),
 			HighAvailabilityReplicaCount:     utils.Int32(int32(d.Get("read_replica_count").(int))),
 			SampleName:                       sql.SampleName(d.Get("sample_name").(string)),
-			RequestedBackupStorageRedundancy: expandMsSqlBackupStorageRedundancy(d.Get("storage_account_type").(string)),
+			RequestedBackupStorageRedundancy: sql.RequestedBackupStorageRedundancy(d.Get("storage_account_type").(string)),
 			ZoneRedundant:                    utils.Bool(d.Get("zone_redundant").(bool)),
+			IsLedgerOn:                       utils.Bool(ledgerEnabled),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -265,11 +252,6 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
-
-	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
-	if (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.CreateModeSecondary)) && len(auditingPolicies) > 0 {
-		return fmt.Errorf("cannot configure `extended_auditing_policy` in secondary create mode for %s", id)
-	}
 
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		// `max_size_gb` is Computed, so has a value after the first run
@@ -327,7 +309,46 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
-	if features.ThreePointOhBeta() {
+	// Wait for the ProvisioningState to become "Succeeded"
+	log.Printf("[DEBUG] Waiting for %s to become ready", id)
+	pendingStatuses := make([]string, 0)
+	for _, s := range sql.PossibleDatabaseStatusValues() {
+		if s != sql.DatabaseStatusOnline {
+			pendingStatuses = append(pendingStatuses, string(s))
+		}
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: pendingStatuses,
+		Target:  []string{string(sql.DatabaseStatusOnline)},
+		Refresh: func() (interface{}, string, error) {
+			log.Printf("[DEBUG] Checking to see if %s is online...", id)
+
+			resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+			if err != nil {
+				return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
+			}
+
+			if props := resp.DatabaseProperties; props != nil {
+				return resp, string(props.Status), nil
+			}
+
+			return resp, "", nil
+		},
+		MinTimeout:                1 * time.Minute,
+		ContinuousTargetOccurence: 2,
+	}
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
+	} else {
+		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+	}
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
+	}
+
+	// Cannot set transparent data encryption for secondary databases
+	if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
 		statusProperty := sql.TransparentDataEncryptionStatusDisabled
 		encryptionStatus := d.Get("transparent_data_encryption_enabled").(bool)
 		if encryptionStatus {
@@ -384,26 +405,29 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if _, err = securityAlertPoliciesClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, expandMsSqlServerSecurityAlertPolicy(d)); err != nil {
-		return fmt.Errorf("setting database threat detection policy for %s: %+v", id, err)
+	if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+		result, err := securityAlertPoliciesClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, expandMsSqlServerSecurityAlertPolicy(d))
+
+		if result.Response.StatusCode == 404 {
+			return resource.RetryableError(fmt.Errorf("database %s is still creating", id.String()))
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(fmt.Errorf("setting database threat detection policy for %s: %+v", id, err))
+		}
+
+		return nil
+	}); err != nil {
+		return nil
 	}
 
-	if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
-		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{
-			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandMsSqlDBBlobAuditingPolicies(auditingPolicies),
-		}
-		if _, err = auditingClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, auditingProps); err != nil {
-			return fmt.Errorf("setting Blob Auditing Policies for %s: %+v", id, err)
-		}
-	}
-
-	// hyper-scale SKU's do not support LRP currently
-	if d.HasChange("long_term_retention_policy") {
+	if d.HasChange("long_term_retention_policy") && !ledgerEnabled {
 		v := d.Get("long_term_retention_policy")
 		longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(v.([]interface{}))
 		if longTermRetentionProps != nil {
 			longTermRetentionPolicy := sql.LongTermRetentionPolicy{}
 
+			// hyper-scale SKU's do not support LRP currently
 			if !strings.HasPrefix(skuName.(string), "HS") && !strings.HasPrefix(skuName.(string), "DW") {
 				longTermRetentionPolicy.BaseLongTermRetentionPolicyProperties = longTermRetentionProps
 			}
@@ -446,7 +470,7 @@ func resourceMsSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
-	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
+
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
@@ -475,6 +499,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("server_id", serverId.ID())
 
 	skuName := ""
+	ledgerEnabled := false
 	if props := resp.DatabaseProperties; props != nil {
 		d.Set("auto_pause_delay_in_minutes", props.AutoPauseDelay)
 		d.Set("collation", props.Collation)
@@ -494,8 +519,12 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			skuName = *props.CurrentServiceObjectiveName
 		}
 		d.Set("sku_name", skuName)
-		d.Set("storage_account_type", flattenMsSqlBackupStorageRedundancy(props.CurrentBackupStorageRedundancy))
+		d.Set("storage_account_type", string(props.CurrentBackupStorageRedundancy))
 		d.Set("zone_redundant", props.ZoneRedundant)
+		if props.IsLedgerOn != nil {
+			ledgerEnabled = *props.IsLedgerOn
+		}
+		d.Set("ledger_enabled", ledgerEnabled)
 	}
 
 	securityAlertPolicy, err := securityAlertPoliciesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
@@ -505,21 +534,10 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	extendedAuditingPolicy := []interface{}{}
-	if createMode, ok := d.GetOk("create_mode"); !ok || (createMode.(string) != "Secondary" && createMode.(string) != "OnlineSecondary") {
-		auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-		if err != nil {
-			return fmt.Errorf("retrieving Blob Auditing Policies for %s: %+v", id, err)
-		}
-
-		extendedAuditingPolicy = helper.FlattenMsSqlDBBlobAuditingPolicies(&auditingResp, d)
-	}
-	d.Set("extended_auditing_policy", extendedAuditingPolicy)
-
 	geoBackupPolicy := true
 
 	// Hyper Scale SKU's do not currently support LRP and do not honour normal SRP operations
-	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") {
+	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") && !ledgerEnabled {
 		longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			return fmt.Errorf("retrieving Long Term Retention Policies for %s: %+v", id, err)
@@ -561,17 +579,15 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("setting `geo_backup_enabled`: %+v", err)
 	}
 
-	if features.ThreePointOhBeta() {
-		tde, err := transparentEncryptionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-		if err != nil {
-			return fmt.Errorf("while retrieving Transparent Data Encryption status of %q: %+v", id.String(), err)
-		}
-		tdeStatus := false
-		if tde.TransparentDataEncryptionProperties != nil && tde.TransparentDataEncryptionProperties.Status == sql.TransparentDataEncryptionStatusEnabled {
-			tdeStatus = true
-		}
-		d.Set("transparent_data_encryption_enabled", tdeStatus)
+	tde, err := transparentEncryptionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		return fmt.Errorf("while retrieving Transparent Data Encryption status of %q: %+v", id.String(), err)
 	}
+	tdeStatus := false
+	if tde.TransparentDataEncryptionProperties != nil && tde.TransparentDataEncryptionProperties.Status == sql.TransparentDataEncryptionStatusEnabled {
+		tdeStatus = true
+	}
+	d.Set("transparent_data_encryption_enabled", tdeStatus)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -609,9 +625,6 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy sql
 	securityAlertPolicy := make(map[string]interface{})
 
 	securityAlertPolicy["state"] = string(properties.State)
-	if !features.ThreePointOhBeta() {
-		securityAlertPolicy["use_server_default"] = "Disabled"
-	}
 
 	securityAlertPolicy["email_account_admins"] = "Disabled"
 	if properties.EmailAccountAdmins != nil && *properties.EmailAccountAdmins {
@@ -702,36 +715,8 @@ func expandMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData) sql.Databas
 	return policy
 }
 
-func flattenMsSqlBackupStorageRedundancy(currentBackupStorageRedundancy sql.CurrentBackupStorageRedundancy) string {
-	if !features.ThreePointOhBeta() {
-		switch currentBackupStorageRedundancy {
-		case sql.CurrentBackupStorageRedundancyLocal:
-			return "LRS"
-		case sql.CurrentBackupStorageRedundancyZone:
-			return "ZRS"
-		default:
-			return "GRS"
-		}
-	}
-	return string(currentBackupStorageRedundancy)
-}
-
-func expandMsSqlBackupStorageRedundancy(storageAccountType string) sql.RequestedBackupStorageRedundancy {
-	if !features.ThreePointOhBeta() {
-		switch storageAccountType {
-		case "LRS":
-			return sql.RequestedBackupStorageRedundancyLocal
-		case "ZRS":
-			return sql.RequestedBackupStorageRedundancyZone
-		default:
-			return sql.RequestedBackupStorageRedundancyGeo
-		}
-	}
-	return sql.RequestedBackupStorageRedundancy(storageAccountType)
-}
-
 func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -786,12 +771,9 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ElasticPoolID,
 		},
 
-		"extended_auditing_policy": helper.ExtendedAuditingSchema(),
-
 		"license_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(sql.DatabaseLicenseTypeBasePrice),
 				string(sql.DatabaseLicenseTypeLicenseIncluded),
@@ -859,11 +841,10 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			Computed:         true,
-			ValidateFunc:     validate.DatabaseSkuName(),
-			DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validate.DatabaseSkuName(),
 		},
 
 		"creation_source_database_id": {
@@ -877,27 +858,12 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"storage_account_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
-			Default: func() string {
-				if !features.ThreePointOhBeta() {
-					return "GRS"
-				}
-				return string(sql.CurrentBackupStorageRedundancyGeo)
-			}(),
-			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-				if !features.ThreePointOhBeta() {
-					return validation.StringInSlice([]string{
-						"GRS",
-						"LRS",
-						"ZRS",
-					}, false)
-				}
-				return validation.StringInSlice([]string{
-					string(sql.CurrentBackupStorageRedundancyGeo),
-					string(sql.CurrentBackupStorageRedundancyLocal),
-					string(sql.CurrentBackupStorageRedundancyZone),
-				}, false)
-			}(),
+			Default:  string(sql.CurrentBackupStorageRedundancyGeo),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(sql.CurrentBackupStorageRedundancyGeo),
+				string(sql.CurrentBackupStorageRedundancyLocal),
+				string(sql.CurrentBackupStorageRedundancyZone),
+			}, false),
 		},
 
 		"zone_redundant": {
@@ -923,20 +889,18 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 								"Sql_Injection",
 								"Sql_Injection_Vulnerability",
 								"Access_Anomaly",
-							}, !features.ThreePointOh()),
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							}, false),
 						},
 					},
 
 					"email_account_admins": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-						Default:          "Disabled",
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "Disabled",
 						ValidateFunc: validation.StringInSlice([]string{
 							"Disabled",
 							"Enabled",
-						}, !features.ThreePointOh()),
+						}, false),
 					},
 
 					"email_addresses": {
@@ -955,15 +919,14 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"state": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-						Default:          string(sql.SecurityAlertPolicyStateDisabled),
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  string(sql.SecurityAlertPolicyStateDisabled),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(sql.SecurityAlertPolicyStateDisabled),
 							string(sql.SecurityAlertPolicyStateEnabled),
 							string(sql.SecurityAlertPolicyStateNew),
-						}, !features.ThreePointOh()),
+						}, false),
 					},
 
 					"storage_account_access_key": {
@@ -987,23 +950,20 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  true,
 		},
+
+		"ledger_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+		},
+
+		"transparent_data_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		s := out["threat_detection_policy"].Elem.(*schema.Resource)
-		s.Schema["use_server_default"] = &pluginsdk.Schema{
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			DiffSuppressFunc: suppress.CaseDifference,
-			Default:          "Disabled",
-			ValidateFunc: validation.StringInSlice([]string{
-				"Disabled",
-				"Enabled",
-			}, true),
-			Deprecated: "This field is now non-functional and thus will be removed in version 3.0 of the Azure Provider",
-		}
-	}
-
-	return out
 }

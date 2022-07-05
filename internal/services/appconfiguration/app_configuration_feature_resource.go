@@ -166,6 +166,9 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, model.ConfigurationStoreId)
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", model.ConfigurationStoreId)
+			}
 			if err != nil {
 				return err
 			}
@@ -222,6 +225,10 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if client == nil {
+				// if the AppConfiguration is gone then all the data inside it is too
+				return metadata.MarkAsGone(resourceID)
+			}
 			if err != nil {
 				return err
 			}
@@ -290,6 +297,9 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, resourceID.Name)
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
+			}
 			if err != nil {
 				return err
 			}
@@ -327,6 +337,9 @@ func (k FeatureResource) Delete() sdk.ResourceFunc {
 			}
 
 			client, err := metadata.Client.AppConfiguration.DataPlaneClient(ctx, resourceID.ConfigurationStoreId)
+			if client == nil {
+				return fmt.Errorf("app configuration %q was not found", resourceID.ConfigurationStoreId)
+			}
 			if err != nil {
 				return err
 			}
@@ -375,6 +388,7 @@ func createOrUpdateFeature(ctx context.Context, client *appconfiguration.BaseCli
 		Enabled:     model.Enabled,
 	}
 
+	value.Conditions.ClientFilters.Filters = make([]interface{}, 0)
 	if model.PercentageFilter > 0 {
 		value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, PercentageFeatureFilter{
 			Name:       PercentageFilterName,

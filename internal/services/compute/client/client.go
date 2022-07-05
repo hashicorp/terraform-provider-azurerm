@@ -1,13 +1,15 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	AvailabilitySetsClient          *compute.AvailabilitySetsClient
+	CapacityReservationsClient      *compute.CapacityReservationsClient
+	CapacityReservationGroupsClient *compute.CapacityReservationGroupsClient
 	DedicatedHostsClient            *compute.DedicatedHostsClient
 	DedicatedHostGroupsClient       *compute.DedicatedHostGroupsClient
 	DisksClient                     *compute.DisksClient
@@ -35,6 +37,12 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&availabilitySetsClient.Client, o.ResourceManagerAuthorizer)
+
+	capacityReservationsClient := compute.NewCapacityReservationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&capacityReservationsClient.Client, o.ResourceManagerAuthorizer)
+
+	capacityReservationGroupsClient := compute.NewCapacityReservationGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&capacityReservationGroupsClient.Client, o.ResourceManagerAuthorizer)
 
 	dedicatedHostsClient := compute.NewDedicatedHostsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&dedicatedHostsClient.Client, o.ResourceManagerAuthorizer)
@@ -104,6 +112,8 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		AvailabilitySetsClient:          &availabilitySetsClient,
+		CapacityReservationsClient:      &capacityReservationsClient,
+		CapacityReservationGroupsClient: &capacityReservationGroupsClient,
 		DedicatedHostsClient:            &dedicatedHostsClient,
 		DedicatedHostGroupsClient:       &dedicatedHostGroupsClient,
 		DisksClient:                     &disksClient,

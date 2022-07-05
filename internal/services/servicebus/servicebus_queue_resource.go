@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -37,172 +36,150 @@ func resourceServiceBusQueue() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			// Required
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azValidate.QueueName(),
-			},
+		Schema: resourceServicebusQueueSchema(),
+	}
+}
 
-			// TODO 3.0 - Make it required
-			"namespace_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  azValidate.NamespaceID,
-				ConflictsWith: []string{"namespace_name", "resource_group_name"},
-			},
+func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: azValidate.QueueName(),
+		},
 
-			// TODO 3.0 - Remove in favor of namespace_id
-			"namespace_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  azValidate.NamespaceName,
-				Deprecated:    `Deprecated in favor of "namespace_id"`,
-				ConflictsWith: []string{"namespace_id"},
-			},
+		//lintignore: S013
+		"namespace_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: azValidate.NamespaceID,
+		},
 
-			// TODO 3.0 - Remove in favor of namespace_id
-			"resource_group_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  azure.ValidateResourceGroupName,
-				Deprecated:    `Deprecated in favor of "namespace_id"`,
-				ConflictsWith: []string{"namespace_id"},
-			},
+		// Optional
+		"auto_delete_on_idle": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validate.ISO8601Duration,
+		},
 
-			// Optional
-			"auto_delete_on_idle": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validate.ISO8601Duration,
-			},
+		"dead_lettering_on_message_expiration": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
-			"dead_lettering_on_message_expiration": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
+		"default_message_ttl": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validate.ISO8601Duration,
+		},
 
-			"default_message_ttl": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validate.ISO8601Duration,
-			},
+		"duplicate_detection_history_time_window": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validate.ISO8601Duration,
+		},
 
-			"duplicate_detection_history_time_window": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validate.ISO8601Duration,
-			},
+		// TODO 4.0: change this from enable_* to *_enabled
+		"enable_batched_operations": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_batched_operations": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
+		// TODO 4.0: change this from enable_* to *_enabled
+		"enable_express": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_express": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
+		// TODO 4.0: change this from enable_* to *_enabled
+		"enable_partitioning": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+			ForceNew: true,
+		},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_partitioning": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
-			},
+		"forward_dead_lettered_messages_to": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: azValidate.QueueName(),
+		},
 
-			"forward_dead_lettered_messages_to": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: azValidate.QueueName(),
-			},
+		"forward_to": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: azValidate.QueueName(),
+		},
 
-			"forward_to": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: azValidate.QueueName(),
-			},
+		"lock_duration": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
 
-			"lock_duration": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
+		"max_delivery_count": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      10,
+			ValidateFunc: validation.IntAtLeast(1),
+		},
 
-			"max_delivery_count": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      10,
-				ValidateFunc: validation.IntAtLeast(1),
-			},
+		"max_message_size_in_kilobytes": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
+		},
 
-			"max_message_size_in_kilobytes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
-			},
+		"max_size_in_megabytes": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
+		},
 
-			"max_size_in_megabytes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
-			},
+		"requires_duplicate_detection": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+			ForceNew: true,
+		},
 
-			"requires_duplicate_detection": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
-			},
+		"requires_session": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+			ForceNew: true,
+		},
 
-			"requires_session": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
-			},
-
-			"status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(servicebus.EntityStatusActive),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servicebus.EntityStatusActive),
-					string(servicebus.EntityStatusCreating),
-					string(servicebus.EntityStatusDeleting),
-					string(servicebus.EntityStatusDisabled),
-					string(servicebus.EntityStatusReceiveDisabled),
-					string(servicebus.EntityStatusRenaming),
-					string(servicebus.EntityStatusSendDisabled),
-					string(servicebus.EntityStatusUnknown),
-				}, false),
-			},
+		"status": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(servicebus.EntityStatusActive),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(servicebus.EntityStatusActive),
+				string(servicebus.EntityStatusCreating),
+				string(servicebus.EntityStatusDeleting),
+				string(servicebus.EntityStatusDisabled),
+				string(servicebus.EntityStatusReceiveDisabled),
+				string(servicebus.EntityStatusRenaming),
+				string(servicebus.EntityStatusSendDisabled),
+				string(servicebus.EntityStatusUnknown),
+			}, false),
 		},
 	}
 }
 
 func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for ServiceBus Queue creation/update.")
@@ -211,8 +188,6 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	if namespaceIdLit := d.Get("namespace_id").(string); namespaceIdLit != "" {
 		namespaceId, _ := parse.NamespaceID(namespaceIdLit)
 		resourceId = parse.NewQueueID(namespaceId.SubscriptionId, namespaceId.ResourceGroup, namespaceId.Name, d.Get("name").(string))
-	} else {
-		resourceId = parse.NewQueueID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 	}
 
 	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
@@ -327,8 +302,6 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.Set("name", id.Name)
-	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("namespace_id", parse.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName).ID())
 
 	if props := resp.SBQueueProperties; props != nil {

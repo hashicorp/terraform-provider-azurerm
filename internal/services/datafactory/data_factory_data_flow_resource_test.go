@@ -221,7 +221,65 @@ resource "azurerm_data_factory_data_flow" "test" {
   transformation {
     name        = "filter1"
     description = "description for filter1"
+
+    dataset {
+      name = azurerm_data_factory_dataset_json.test1.name
+      parameters = {
+        "Key1" = "value1"
+      }
+    }
+
+    linked_service {
+      name = azurerm_data_factory_linked_custom_service.test.name
+      parameters = {
+        "Key1" = "value1"
+      }
+    }
   }
+
+  script_lines = [<<EOT
+source(output(
+		movie as string,
+		title as string,
+		genres as string,
+		year as string,
+		Rating as string,
+		{Rotton Tomato} as string
+	),
+	allowSchemaDrift: true,
+	validateSchema: false,
+	limit: 100,
+	ignoreNoFilesFound: false) ~> source1
+source1 filter(toInteger(year) >= 1910 && toInteger(year) <= 2000) ~> Filter1
+Filter1 sink(allowSchemaDrift: true,
+	validateSchema: false,
+	skipDuplicateMapInputs: true,
+	skipDuplicateMapOutputs: true,
+	saveOrder: 0,
+	partitionBy('roundRobin', 3)) ~> sink1
+EOT,
+<<EOT
+source(output(
+		movie as string,
+		title as string,
+		genres as string,
+		year as string,
+		Rating as string,
+		{Rotton Tomato} as string
+	),
+	allowSchemaDrift: true,
+	validateSchema: false,
+	limit: 100,
+	ignoreNoFilesFound: false) ~> source1
+source1 filter(toInteger(year) >= 1910 && toInteger(year) <= 2000) ~> Filter1
+Filter1 sink(allowSchemaDrift: true,
+	validateSchema: false,
+	skipDuplicateMapInputs: true,
+	skipDuplicateMapOutputs: true,
+	saveOrder: 0,
+	partitionBy('roundRobin', 3)) ~> sink1
+EOT
+  ]
 
   script = <<EOT
 source(output(
@@ -286,8 +344,7 @@ JSON
 
 resource "azurerm_data_factory_dataset_json" "test1" {
   name                = "acctestds1%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_custom_service.test.name
 
   azure_blob_storage_location {
@@ -301,8 +358,7 @@ resource "azurerm_data_factory_dataset_json" "test1" {
 
 resource "azurerm_data_factory_dataset_json" "test2" {
   name                = "acctestds2%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_custom_service.test.name
 
   azure_blob_storage_location {

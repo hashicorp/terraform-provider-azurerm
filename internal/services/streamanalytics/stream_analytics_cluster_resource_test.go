@@ -19,7 +19,7 @@ func TestAccStreamAnalyticsCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_cluster", "test")
 	r := StreamAnalyticsClusterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -34,7 +34,7 @@ func TestAccStreamAnalyticsCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_cluster", "test")
 	r := StreamAnalyticsClusterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -55,7 +55,7 @@ func TestAccStreamAnalyticsCluster_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_cluster", "test")
 	r := StreamAnalyticsClusterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tags(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -77,7 +77,7 @@ func TestAccStreamAnalyticsCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_cluster", "test")
 	r := StreamAnalyticsClusterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

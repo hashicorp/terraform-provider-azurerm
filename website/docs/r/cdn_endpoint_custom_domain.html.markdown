@@ -89,7 +89,7 @@ A `cdn_managed_https` block supports the following:
  
 * `protocol_type` - (Required) The type of protocol. Possible values are `ServerNameIndication` and `IPBased`.
 
-* `tls_version` - (Optional) The TLS protocol version that is used for HTTPS. Possible values are `TLS10` (representing TLS 1.0/1.1) and `TLS12` (representing TLS 1.2). Defaults to `TLS12`.
+* `tls_version` - (Optional) The minimum TLS protocol version that is used for HTTPS. Possible values are `TLS10` (representing TLS 1.0/1.1), `TLS12` (representing TLS 1.2) and `None` (representing no minimums). Defaults to `TLS12`.
 
 ---
 
@@ -97,7 +97,7 @@ A `user_managed_https` block supports the following:
 
 * `key_vault_certificate_id` - (Required) The ID of the Key Vault Certificate that contains the HTTPS certificate.
  
-* `tls_version` - (Optional) The TLS protocol version that is used for HTTPS. Possible values are `TLS10` (representing TLS 1.0/1.1) and `TLS12` (representing TLS 1.2). Defaults to `TLS12`.
+* `tls_version` - (Optional) The minimum TLS protocol version that is used for HTTPS. Possible values are `TLS10` (representing TLS 1.0/1.1), `TLS12` (representing TLS 1.2) and `None` (representing no minimums). Defaults to `TLS12`.
 
 ## Attributes Reference
 

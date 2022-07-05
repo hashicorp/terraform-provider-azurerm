@@ -7,13 +7,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-06-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-10-01/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -23,8 +22,6 @@ func resourceNetAppSnapshot() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceNetAppSnapshotCreate,
 		Read:   resourceNetAppSnapshotRead,
-		// todo remove this in version 3.0 of the provider as tags was the only updatable property and they can no longer be updated and will also be removed
-		Update: resourceNetAppSnapshotUpdate,
 		Delete: resourceNetAppSnapshotDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -70,18 +67,6 @@ func resourceNetAppSnapshot() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.VolumeName,
 			},
-
-			// TODO: remove this in a next breaking changes release since tags are
-			// not supported anymore on Snapshots (todo 3.0)
-			// todo remove this in version 3.0 of the provider
-			"tags": {
-				Type:     pluginsdk.TypeMap,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-				Deprecated: "This property as been deprecated as the API no longer supports tags and will be removed in version 3.0 of the provider.",
-			},
 		},
 	}
 }
@@ -106,10 +91,6 @@ func resourceNetAppSnapshotCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-
-	if tags.Expand(d.Get("tags").(map[string]interface{})) != nil {
-		log.Printf("[WARN] Tags are not supported on snaphots anymore, ignoring values.")
-	}
 
 	parameters := netapp.Snapshot{
 		Location: utils.String(location),
@@ -157,17 +138,6 @@ func resourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	return nil
-}
-
-// todo remove this in version 3.0 of the provider
-func resourceNetAppSnapshotUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	// Snapshot resource in Azure changed its type to proxied resource, therefore
-	// tags are not supported anymore, ignoring any tags.
-	if tags.Expand(d.Get("tags").(map[string]interface{})) == nil {
-		log.Printf("[WARN] Tags are not supported on snaphots anymore, no update will happen in a snapshot at this time.")
-	}
-
-	return resourceNetAppSnapshotRead(d, meta)
 }
 
 func resourceNetAppSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) error {

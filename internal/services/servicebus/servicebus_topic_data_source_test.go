@@ -39,9 +39,8 @@ func (ServiceBusTopicDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_servicebus_topic" "test" {
-  name                = azurerm_servicebus_topic.test.name
-  namespace_name      = azurerm_servicebus_topic.test.namespace_name
-  resource_group_name = azurerm_servicebus_topic.test.resource_group_name
+  name         = azurerm_servicebus_topic.test.name
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 `, ServiceBusTopicResource{}.basic(data))
 }

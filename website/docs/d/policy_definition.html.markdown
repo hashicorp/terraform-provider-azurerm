@@ -40,7 +40,7 @@ output "id" {
 
 * `description` - The Description of the Policy.
 
-* `policy_type` - The Type of the Policy. Possible values are "BuiltIn", "Custom" and "NotSpecified".
+* `policy_type` - The Type of the Policy. Possible values are `BuiltIn`, `Custom` and `NotSpecified`.
 
 * `policy_rule` - The Rule as defined (in JSON) in the Policy.
 

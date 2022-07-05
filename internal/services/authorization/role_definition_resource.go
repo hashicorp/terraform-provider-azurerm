@@ -388,8 +388,8 @@ func roleDefinitionEventualConsistencyUpdate(ctx context.Context, client azuresd
 			return resp, "Pending", nil
 		}
 
-		if !respUpdatedOn.After(updateRequestTime) {
-			// The real updated on will be after the time we requested it due to the swap out.
+		if updateRequestTime.After(respUpdatedOn) {
+			// The real updated on will be equal or after the time we requested it due to the swap out.
 			return resp, "Pending", nil
 		}
 

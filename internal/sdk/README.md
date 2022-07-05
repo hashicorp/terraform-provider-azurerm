@@ -30,7 +30,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
@@ -55,7 +55,7 @@ func (r ResourceGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 		},
 
-		"location": location.Schema(),
+		"location": commonschema.Location(),
 
 		"tags": tags.Schema(),
 	}

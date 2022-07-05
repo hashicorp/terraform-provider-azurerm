@@ -4,15 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -67,8 +64,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 					string(network.SecurityRuleProtocolIcmp),
 					string(network.SecurityRuleProtocolAh),
 					string(network.SecurityRuleProtocolEsp),
-				}, !features.ThreePointOh()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"source_port_range": {
@@ -151,8 +147,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.SecurityRuleAccessAllow),
 					string(network.SecurityRuleAccessDeny),
-				}, !features.ThreePointOh()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"priority": {
@@ -167,8 +162,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.SecurityRuleDirectionInbound),
 					string(network.SecurityRuleDirectionOutbound),
-				}, !features.ThreePointOh()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 		},
 	}
@@ -203,11 +197,6 @@ func resourceNetworkSecurityRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	access := d.Get("access").(string)
 	direction := d.Get("direction").(string)
 	protocol := d.Get("protocol").(string)
-
-	if !meta.(*clients.Client).Features.Network.RelaxedLocking {
-		locks.ByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
-		defer locks.UnlockByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
-	}
 
 	rule := network.SecurityRule{
 		Name: &id.Name,
@@ -362,11 +351,6 @@ func resourceNetworkSecurityRuleDelete(d *pluginsdk.ResourceData, meta interface
 	id, err := parse.SecurityRuleID(d.Id())
 	if err != nil {
 		return err
-	}
-
-	if !meta.(*clients.Client).Features.Network.RelaxedLocking {
-		locks.ByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
-		defer locks.UnlockByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkSecurityGroupName, id.Name)

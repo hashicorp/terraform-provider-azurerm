@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -86,14 +87,17 @@ func resourceSharedImage() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"publisher": {
 							Type:     pluginsdk.TypeString,
+							ForceNew: true,
 							Required: true,
 						},
 						"offer": {
 							Type:     pluginsdk.TypeString,
+							ForceNew: true,
 							Required: true,
 						},
 						"sku": {
 							Type:     pluginsdk.TypeString,
+							ForceNew: true,
 							Required: true,
 						},
 					},
@@ -108,6 +112,7 @@ func resourceSharedImage() *pluginsdk.Resource {
 			"eula": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"purchase_plan": {
@@ -140,6 +145,7 @@ func resourceSharedImage() *pluginsdk.Resource {
 
 			"privacy_statement_uri": {
 				Type:     pluginsdk.TypeString,
+				ForceNew: true,
 				Optional: true,
 			},
 
@@ -155,6 +161,12 @@ func resourceSharedImage() *pluginsdk.Resource {
 			},
 
 			"trusted_launch_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"accelerated_network_support_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
@@ -194,12 +206,17 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			Value: utils.String("TrustedLaunch"),
 		})
 	}
+	if d.Get("accelerated_network_support_enabled").(bool) {
+		features = append(features, compute.GalleryImageFeature{
+			Name:  utils.String("IsAcceleratedNetworkSupported"),
+			Value: utils.String("true"),
+		})
+	}
 
 	image := compute.GalleryImage{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		GalleryImageProperties: &compute.GalleryImageProperties{
 			Description:         utils.String(d.Get("description").(string)),
-			Eula:                utils.String(d.Get("eula").(string)),
 			Identifier:          expandGalleryImageIdentifier(d),
 			PrivacyStatementURI: utils.String(d.Get("privacy_statement_uri").(string)),
 			ReleaseNoteURI:      utils.String(d.Get("release_note_uri").(string)),
@@ -209,6 +226,10 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			Features:            &features,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("eula"); ok {
+		image.GalleryImageProperties.Eula = utils.String(v.(string))
 	}
 
 	if d.Get("specialized").(bool) {
@@ -276,15 +297,25 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			return fmt.Errorf("setting `purchase_plan`: %+v", err)
 		}
 
-		trusted_launch_enabled := false
-		if props.Features != nil {
-			for _, feature := range *props.Features {
-				if feature.Name != nil && feature.Value != nil && *feature.Name == "SecurityType" && *feature.Value == "TrustedLaunch" {
-					trusted_launch_enabled = true
+		trustedLaunchEnabled := false
+		acceleratedNetworkSupportEnabled := false
+		if features := props.Features; features != nil {
+			for _, feature := range *features {
+				if feature.Name == nil || feature.Value == nil {
+					continue
+				}
+
+				if strings.EqualFold(*feature.Name, "SecurityType") {
+					trustedLaunchEnabled = strings.EqualFold(*feature.Value, "TrustedLaunch")
+				}
+
+				if strings.EqualFold(*feature.Name, "IsAcceleratedNetworkSupported") {
+					acceleratedNetworkSupportEnabled = strings.EqualFold(*feature.Value, "true")
 				}
 			}
 		}
-		d.Set("trusted_launch_enabled", trusted_launch_enabled)
+		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+		d.Set("accelerated_network_support_enabled", acceleratedNetworkSupportEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

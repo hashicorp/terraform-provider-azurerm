@@ -34,7 +34,7 @@ resource "azurerm_log_analytics_datasource_windows_event" "example" {
   resource_group_name = azurerm_resource_group.example.name
   workspace_name      = azurerm_log_analytics_workspace.example.name
   event_log_name      = "Application"
-  event_types         = ["error"]
+  event_types         = ["Error"]
 }
 ```
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `event_log_name` - (Required) Specifies the name of the Windows Event Log to collect events from.
 
-* `event_types` - (Required) Specifies an array of event types applied to the specified event log. Possible values include `error`, `warning` and `information`.
+* `event_types` - (Required) Specifies an array of event types applied to the specified event log. Possible values include `Error`, `Warning` and `Information`.
 
 ## Attributes Reference
 

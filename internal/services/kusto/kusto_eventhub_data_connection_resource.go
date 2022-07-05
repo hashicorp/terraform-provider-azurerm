@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-08-27/kusto"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -13,7 +14,6 @@ import (
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -33,7 +33,6 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 		}, importDataConnection(kusto.KindBasicDataConnectionKindEventHub)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			// TODO: confirm these
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -114,7 +113,7 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 				Optional: true,
 				ValidateFunc: validation.Any(
 					validate.ClusterID,
-					msiValidate.UserAssignedIdentityID,
+					commonids.ValidateUserAssignedIdentityID,
 				),
 			},
 

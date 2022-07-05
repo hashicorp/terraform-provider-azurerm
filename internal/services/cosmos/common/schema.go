@@ -93,13 +93,6 @@ func DatabaseAutoscaleSettingsSchema() *pluginsdk.Schema {
 	}
 }
 
-func MongoCollectionAutoscaleSettingsSchema() *pluginsdk.Schema {
-	autoscaleSettingsDatabaseSchema := DatabaseAutoscaleSettingsSchema()
-	autoscaleSettingsDatabaseSchema.RequiredWith = []string{"shard_key"}
-
-	return autoscaleSettingsDatabaseSchema
-}
-
 func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -110,15 +103,13 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				// `automatic` is excluded as it is deprecated; see https://stackoverflow.com/a/58721386
 				// `indexing_mode` case changes from 2020-04-01 to 2021-01-15 issue https://github.com/Azure/azure-rest-api-specs/issues/14051
-				// todo: change to SDK constants and remove translation code in 3.0
 				"indexing_mode": {
-					Type:             pluginsdk.TypeString,
-					Optional:         true,
-					Default:          documentdb.IndexingModeConsistent,
-					DiffSuppressFunc: suppress.CaseDifference, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  documentdb.IndexingModeConsistent,
 					ValidateFunc: validation.StringInSlice([]string{
-						"Consistent",
-						"None",
+						string(documentdb.IndexingModeConsistent),
+						string(documentdb.IndexingModeNone),
 					}, false),
 				},
 
@@ -210,17 +201,15 @@ func CosmosDbIndexingPolicyCompositeIndexSchema() *pluginsdk.Schema {
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							// `order` case changes from 2020-04-01 to 2021-01-15, issue opened:https://github.com/Azure/azure-rest-api-specs/issues/14051
-							// todo: change to SDK constants and remove translation code in 3.0
 							"order": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
 								// Workaround for Azure/azure-rest-api-specs#11222
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc: validation.StringInSlice(
-									[]string{
-										"Ascending",
-										"Descending",
-									}, false),
+								ValidateFunc: validation.StringInSlice([]string{
+									string(documentdb.CompositePathSortOrderAscending),
+									string(documentdb.CompositePathSortOrderDescending),
+								}, true),
 							},
 						},
 					},

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -47,18 +47,18 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 	d.SetId(id.ID())
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+
+	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	if props := resp.RegistryProperties; props != nil {
+		d.Set("admin_enabled", resp.AdminUserEnabled)
+		d.Set("login_server", resp.LoginServer)
+		d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
 	}
-	d.Set("admin_enabled", resp.AdminUserEnabled)
-	d.Set("login_server", resp.LoginServer)
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Tier))
 	}
-
-	// Deprecated as it is not returned by the API now.
-	d.Set("storage_account_id", "")
 
 	if *resp.AdminUserEnabled {
 		credsResp, err := client.ListCredentials(ctx, id.ResourceGroup, id.Name)
@@ -80,16 +80,16 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ContainerRegistryName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-		"location": azure.SchemaLocationForDataSource(),
+		"location": commonschema.LocationComputed(),
 
 		"admin_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -106,6 +106,11 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"data_endpoint_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"login_server": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -118,13 +123,4 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.SchemaDataSource(),
 	}
-	if !features.ThreePointOhBeta() {
-		out["storage_account_id"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
-		}
-	}
-
-	return out
 }

@@ -9,11 +9,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -105,14 +103,13 @@ func resourceAppServiceCertificateOrder() *pluginsdk.Resource {
 			},
 
 			"product_type": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Default:          "Standard",
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "Standard",
 				ValidateFunc: validation.StringInSlice([]string{
 					"Standard",
 					"WildCard",
-				}, !features.ThreePointOh()),
+				}, false),
 			},
 
 			"validity_in_years": {

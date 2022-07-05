@@ -16,21 +16,6 @@ import (
 
 type PolicySetDefinitionResource struct{}
 
-func TestAccAzureRMPolicySetDefinition_builtInDeprecated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.builtInDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
@@ -58,21 +43,6 @@ func TestAccAzureRMPolicySetDefinition_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
-	})
-}
-
-func TestAccAzureRMPolicySetDefinition_customDeprecated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.customDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -215,21 +185,6 @@ func TestAccAzureRMPolicySetDefinition_customWithDefinitionGroups(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMPolicySetDefinition_managementGroupDeprecated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.managementGroupDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccAzureRMPolicySetDefinition_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResource{}
@@ -237,21 +192,6 @@ func TestAccAzureRMPolicySetDefinition_managementGroup(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.managementGroup(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccAzureRMPolicySetDefinition_metadataDeprecated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	r := PolicySetDefinitionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.metadataDeprecated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -273,46 +213,6 @@ func TestAccAzureRMPolicySetDefinition_metadata(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-}
-
-func (r PolicySetDefinitionResource) builtInDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_policy_set_definition" "test" {
-  name         = "acctestpolset-%d"
-  policy_type  = "Custom"
-  display_name = "acctestpolset-%d"
-
-  parameters = <<PARAMETERS
-    {
-        "allowedLocations": {
-            "type": "Array",
-            "metadata": {
-                "description": "The list of allowed locations for resources.",
-                "displayName": "Allowed locations",
-                "strongType": "location"
-            }
-        }
-    }
-PARAMETERS
-
-  policy_definitions = <<POLICY_DEFINITIONS
-    [
-        {
-            "parameters": {
-                "listOfAllowedLocations": {
-                    "value": "[parameters('allowedLocations')]"
-                }
-            },
-            "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-        }
-    ]
-POLICY_DEFINITIONS
-}
-`, data.RandomInteger, data.RandomInteger)
 }
 
 func (r PolicySetDefinitionResource) builtIn(data acceptance.TestData) string {
@@ -352,7 +252,7 @@ VALUES
 }
 
 func (r PolicySetDefinitionResource) requiresImport(data acceptance.TestData) string {
-	template := r.builtInDeprecated(data)
+	template := r.builtIn(data)
 	return fmt.Sprintf(`
 %s
 
@@ -372,45 +272,6 @@ VALUES
   }
 }
 `, template)
-}
-
-func (r PolicySetDefinitionResource) customDeprecated(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_policy_set_definition" "test" {
-  name         = "acctestPolSet-%d"
-  policy_type  = "Custom"
-  display_name = "acctestPolSet-display-%d"
-
-  parameters = <<PARAMETERS
-    {
-        "allowedLocations": {
-            "type": "Array",
-            "metadata": {
-                "description": "The list of allowed locations for resources.",
-                "displayName": "Allowed locations",
-                "strongType": "location"
-            }
-        }
-    }
-PARAMETERS
-
-  policy_definitions = <<POLICY_DEFINITIONS
-    [
-        {
-            "parameters": {
-                "allowedLocations": {
-                    "value": "[parameters('allowedLocations')]"
-                }
-            },
-            "policyDefinitionId": "${azurerm_policy_definition.test.id}"
-        }
-    ]
-POLICY_DEFINITIONS
-}
-`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func (r PolicySetDefinitionResource) custom(data acceptance.TestData) string {
@@ -583,51 +444,6 @@ resource "azurerm_policy_set_definition" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func (r PolicySetDefinitionResource) managementGroupDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_management_group" "test" {
-  display_name = "acctestmg-%d"
-}
-
-resource "azurerm_policy_set_definition" "test" {
-  name                = "acctestpolset-%d"
-  policy_type         = "Custom"
-  display_name        = "acctestpolset-%d"
-  management_group_id = azurerm_management_group.test.group_id
-
-  parameters = <<PARAMETERS
-    {
-        "allowedLocations": {
-            "type": "Array",
-            "metadata": {
-                "description": "The list of allowed locations for resources.",
-                "displayName": "Allowed locations",
-                "strongType": "location"
-            }
-        }
-    }
-PARAMETERS
-
-  policy_definitions = <<POLICY_DEFINITIONS
-    [
-        {
-            "parameters": {
-                "listOfAllowedLocations": {
-                    "value": "[parameters('allowedLocations')]"
-                }
-            },
-            "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-        }
-    ]
-POLICY_DEFINITIONS
-}
-`, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
 func (r PolicySetDefinitionResource) managementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -642,7 +458,7 @@ resource "azurerm_policy_set_definition" "test" {
   name                = "acctestpolset-%d"
   policy_type         = "Custom"
   display_name        = "acctestpolset-%d"
-  management_group_id = azurerm_management_group.test.group_id
+  management_group_id = azurerm_management_group.test.id
 
   parameters = <<PARAMETERS
     {
@@ -667,52 +483,6 @@ VALUES
   }
 }
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (r PolicySetDefinitionResource) metadataDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_policy_set_definition" "test" {
-  name         = "acctestpolset-%d"
-  policy_type  = "Custom"
-  display_name = "acctestpolset-%d"
-
-  parameters = <<PARAMETERS
-    {
-        "allowedLocations": {
-            "type": "Array",
-            "metadata": {
-                "description": "The list of allowed locations for resources.",
-                "displayName": "Allowed locations",
-                "strongType": "location"
-            }
-        }
-    }
-PARAMETERS
-
-  policy_definitions = <<POLICY_DEFINITIONS
-    [
-        {
-            "parameters": {
-                "listOfAllowedLocations": {
-                    "value": "[parameters('allowedLocations')]"
-                }
-            },
-            "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-        }
-    ]
-POLICY_DEFINITIONS
-
-  metadata = <<METADATA
-    {
-        "foo": "bar"
-    }
-METADATA
-}
-`, data.RandomInteger, data.RandomInteger)
 }
 
 func (r PolicySetDefinitionResource) metadata(data acceptance.TestData) string {

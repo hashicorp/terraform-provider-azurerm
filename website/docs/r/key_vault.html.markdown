@@ -16,8 +16,6 @@ Manages a Key Vault.
 
 ~> **Note:** Terraform will automatically recover a soft-deleted Key Vault during Creation if one is found - you can opt out of this using the `features` block within the Provider block.
 
-!> **Note:** As of 2020-12-15 Azure now requires that Soft Delete is enabled on Key Vaults and this can no longer be disabled. Version v2.42 of the Azure Provider and later ignore the value of the `soft_delete_enabled` field and force this value to be `true` - as such this field can be safely removed from your Terraform Configuration. This field will be removed in version 3.0 of the Azure Provider. 
-
 ## Example Usage
 
 ```hcl
@@ -70,7 +68,7 @@ resource "azurerm_key_vault" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Key Vault. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Key Vault. Changing this forces a new resource to be created. The name must be globally unique. If the vault is in a recoverable state then the vault will need to be purged before reusing the name.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -138,7 +136,7 @@ A `network_acls` block supports the following:
 
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Key Vault.
 
-* `virtual_network_subnet_ids` - (Optional) One or more Subnet ID's which should be able to access this Key Vault.
+* `virtual_network_subnet_ids` - (Optional) One or more Subnet IDs which should be able to access this Key Vault.
 
 ---
 

@@ -9,11 +9,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/domainservices/mgmt/2020-01-01/aad"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -90,7 +91,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 						},
 
 						// location is computed here
-						"location": azure.SchemaLocationForDataSource(),
+						"location": commonschema.LocationComputed(),
 
 						"service_status": {
 							Type:     pluginsdk.TypeString,
@@ -243,6 +244,16 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 				},
 			},
 
+			"domain_configuration_type": {
+				Type:     pluginsdk.TypeString,
+				ForceNew: true,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"FullySynced",
+					"ResourceTrusting",
+				}, false),
+			},
+
 			"tags": tags.Schema(),
 
 			"deployment_id": {
@@ -343,6 +354,10 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if v := d.Get("domain_configuration_type").(string); v != "" {
+		domainService.DomainServiceProperties.DomainConfigurationType = &v
+	}
+
 	if d.IsNewResource() {
 		// On resource creation, specify the initial replica set.
 		// No provision is made for changing the initial replica set, it should remain intact for the resource to function properly
@@ -439,8 +454,7 @@ func resourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta in
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("resource_id", resp.ID)
 
-	loc := location.NormalizeNilable(resp.Location)
-	d.Set("location", loc)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.DomainServiceProperties; props != nil {
 		d.Set("deployment_id", props.DeploymentID)
@@ -448,6 +462,7 @@ func resourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta in
 		d.Set("sync_owner", props.SyncOwner)
 		d.Set("tenant_id", props.TenantID)
 		d.Set("version", props.Version)
+		d.Set("domain_configuration_type", props.DomainConfigurationType)
 
 		d.Set("filtered_sync_enabled", false)
 		if props.FilteredSync == aad.FilteredSyncEnabled {

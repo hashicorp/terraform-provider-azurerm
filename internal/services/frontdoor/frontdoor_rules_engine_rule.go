@@ -6,10 +6,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/sdk/2020-05-01/frontdoors"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
@@ -52,7 +51,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: azValidate.FrontDoorName,
 			},
-			"location": location.SchemaComputed(),
+			"location": commonschema.LocationComputed(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -148,7 +147,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 									"negate_condition": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
-										Default:  !features.ThreePointOhBeta(),
+										Default:  false,
 									},
 
 									"value": {
