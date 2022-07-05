@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/a
 ```go
 client := authorizationruleseventhubs.NewAuthorizationRulesEventHubsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := authorizationruleseventhubs.NewEventhubAuthorizationRuleID("12345678-1234-
 payload := authorizationruleseventhubs.AuthorizationRule{
 	// ...
 }
+
 
 read, err := client.EventHubsCreateOrUpdateAuthorizationRule(ctx, id, payload)
 if err != nil {
@@ -48,6 +46,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := authorizationruleseventhubs.NewEventhubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventHubValue")
+
 // alternatively `client.EventHubsListAuthorizationRules(ctx, id)` can be used to do batched pagination
 items, err := client.EventHubsListAuthorizationRulesComplete(ctx, id)
 if err != nil {
@@ -64,6 +63,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := authorizationruleseventhubs.NewEventhubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventHubValue", "authorizationRuleValue")
+
 read, err := client.EventHubsListKeys(ctx, id)
 if err != nil {
 	// handle the error
@@ -83,6 +83,7 @@ id := authorizationruleseventhubs.NewEventhubAuthorizationRuleID("12345678-1234-
 payload := authorizationruleseventhubs.RegenerateAccessKeyParameters{
 	// ...
 }
+
 
 read, err := client.EventHubsRegenerateKeys(ctx, id, payload)
 if err != nil {

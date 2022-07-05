@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/a
 ```go
 client := authorizationrulesnamespaces.NewAuthorizationRulesNamespacesClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := authorizationrulesnamespaces.NewAuthorizationRuleID("12345678-1234-9876-45
 payload := authorizationrulesnamespaces.AuthorizationRule{
 	// ...
 }
+
 
 read, err := client.NamespacesCreateOrUpdateAuthorizationRule(ctx, id, payload)
 if err != nil {
@@ -48,6 +46,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := authorizationrulesnamespaces.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "authorizationRuleValue")
+
 read, err := client.NamespacesDeleteAuthorizationRule(ctx, id)
 if err != nil {
 	// handle the error
@@ -63,6 +62,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := authorizationrulesnamespaces.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "authorizationRuleValue")
+
 read, err := client.NamespacesGetAuthorizationRule(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +78,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := authorizationrulesnamespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+
 // alternatively `client.NamespacesListAuthorizationRules(ctx, id)` can be used to do batched pagination
 items, err := client.NamespacesListAuthorizationRulesComplete(ctx, id)
 if err != nil {
@@ -94,6 +95,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := authorizationrulesnamespaces.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "authorizationRuleValue")
+
 read, err := client.NamespacesListKeys(ctx, id)
 if err != nil {
 	// handle the error
@@ -113,6 +115,7 @@ id := authorizationrulesnamespaces.NewAuthorizationRuleID("12345678-1234-9876-45
 payload := authorizationrulesnamespaces.RegenerateAccessKeyParameters{
 	// ...
 }
+
 
 read, err := client.NamespacesRegenerateKeys(ctx, id, payload)
 if err != nil {

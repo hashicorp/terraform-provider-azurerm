@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/e
 ```go
 client := eventhubs.NewEventHubsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := eventhubs.NewEventhubID("12345678-1234-9876-4563-123456789012", "example-r
 payload := eventhubs.Eventhub{
 	// ...
 }
+
 
 read, err := client.CreateOrUpdate(ctx, id, payload)
 if err != nil {
@@ -48,6 +46,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := eventhubs.NewEventhubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventHubValue")
+
 read, err := client.Delete(ctx, id)
 if err != nil {
 	// handle the error
@@ -63,6 +62,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := eventhubs.NewEventhubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventHubValue", "authorizationRuleValue")
+
 read, err := client.DeleteAuthorizationRule(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +78,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := eventhubs.NewEventhubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventHubValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -93,6 +94,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := eventhubs.NewEventhubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "eventHubValue", "authorizationRuleValue")
+
 read, err := client.GetAuthorizationRule(ctx, id)
 if err != nil {
 	// handle the error
@@ -108,6 +110,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := eventhubs.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+
 // alternatively `client.ListByNamespace(ctx, id, eventhubs.DefaultListByNamespaceOperationOptions())` can be used to do batched pagination
 items, err := client.ListByNamespaceComplete(ctx, id, eventhubs.DefaultListByNamespaceOperationOptions())
 if err != nil {

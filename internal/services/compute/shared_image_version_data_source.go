@@ -118,8 +118,14 @@ func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	d.SetId(id.ID())
-	d.Set("name", image.Name)
+	name := ""
+	if image.Name != nil {
+		name = *image.Name
+	}
+
+	exactId := parse.NewSharedImageVersionID(subscriptionId, id.ResourceGroup, id.GalleryName, id.ImageName, name)
+	d.SetId(exactId.ID())
+	d.Set("name", name)
 	d.Set("image_name", id.ImageName)
 	d.Set("gallery_name", id.GalleryName)
 	d.Set("resource_group_name", id.ResourceGroup)

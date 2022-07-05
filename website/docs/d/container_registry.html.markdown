@@ -41,6 +41,8 @@ The following attributes are exported:
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
 
+* `data_endpoint_enabled` - Whether dedicated data endpoints for this Container Registry are enabled?
+
 * `location` - The Azure Region in which this Container Registry exists.
 
 * `admin_enabled` - Is the Administrator account enabled for this Container Registry.

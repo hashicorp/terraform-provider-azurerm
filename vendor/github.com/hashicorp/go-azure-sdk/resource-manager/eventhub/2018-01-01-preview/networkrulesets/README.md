@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2018-01-01-p
 ```go
 client := networkrulesets.NewNetworkRuleSetsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := networkrulesets.NewNamespaceID("12345678-1234-9876-4563-123456789012", "ex
 payload := networkrulesets.NetworkRuleSet{
 	// ...
 }
+
 
 read, err := client.NamespacesCreateOrUpdateNetworkRuleSet(ctx, id, payload)
 if err != nil {
@@ -48,6 +46,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := networkrulesets.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+
 read, err := client.NamespacesGetNetworkRuleSet(ctx, id)
 if err != nil {
 	// handle the error

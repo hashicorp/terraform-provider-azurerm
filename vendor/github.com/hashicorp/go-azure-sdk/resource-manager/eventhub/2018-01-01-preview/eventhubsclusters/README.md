@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2018-01-01-p
 ```go
 client := eventhubsclusters.NewEventHubsClustersClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -33,11 +30,8 @@ payload := eventhubsclusters.Cluster{
 	// ...
 }
 
-future, err := client.ClustersCreateOrUpdate(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.ClustersCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -48,11 +42,8 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := eventhubsclusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
-future, err := client.ClustersDelete(ctx, id)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.ClustersDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
@@ -63,6 +54,7 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := eventhubsclusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+
 read, err := client.ClustersGet(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +70,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := eventhubsclusters.NewResourceGroupID()
+
 // alternatively `client.ClustersListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ClustersListByResourceGroupComplete(ctx, id)
 if err != nil {
@@ -99,11 +92,8 @@ payload := eventhubsclusters.Cluster{
 	// ...
 }
 
-future, err := client.ClustersUpdate(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.ClustersUpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```

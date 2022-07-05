@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/c
 ```go
 client := checknameavailabilitydisasterrecoveryconfigs.NewCheckNameAvailabilityDisasterRecoveryConfigsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := checknameavailabilitydisasterrecoveryconfigs.NewNamespaceID("12345678-1234
 payload := checknameavailabilitydisasterrecoveryconfigs.CheckNameAvailabilityParameter{
 	// ...
 }
+
 
 read, err := client.DisasterRecoveryConfigsCheckNameAvailability(ctx, id, payload)
 if err != nil {
