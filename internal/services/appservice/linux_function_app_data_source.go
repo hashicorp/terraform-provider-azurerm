@@ -305,6 +305,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				StickySettings:       helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                 tags.ToTypedObject(functionApp.Tags),
 				Kind:                 utils.NormalizeNilableString(functionApp.Kind),
+				DefaultHostname:      utils.NormalizeNilableString(functionApp.DefaultHostName),
 			}
 
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
