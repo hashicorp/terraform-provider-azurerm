@@ -176,6 +176,12 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"type": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"soap_pass_through": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -313,8 +319,13 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		apiType = apimanagement.APITypeSoap
 		soapApiType = apimanagement.SoapAPITypeSoapPassThrough
 	} else {
-		apiType = apimanagement.APITypeHTTP
-		soapApiType = apimanagement.SoapAPITypeSoapToRest
+		if d.Get("type").(string) == string(apimanagement.APITypeGraphql) {
+			apiType = apimanagement.APITypeGraphql
+			soapApiType = apimanagement.SoapAPITypeGraphQL
+		} else {
+			apiType = apimanagement.APITypeHTTP
+			soapApiType = apimanagement.SoapAPITypeSoapToRest
+		}
 	}
 
 	// If import is used, we need to send properties to Azure API in two operations.
@@ -469,6 +480,7 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("revision", props.APIRevision)
 		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapAPITypeSoapPassThrough))
 		d.Set("subscription_required", props.SubscriptionRequired)
+		d.Set("type", props.APIType)
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)
 		d.Set("revision_description", props.APIRevisionDescription)

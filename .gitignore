@@ -50,3 +50,4 @@ tf.zip
 
 # do not upload secrets
 .env
+bash.exe.stackdump

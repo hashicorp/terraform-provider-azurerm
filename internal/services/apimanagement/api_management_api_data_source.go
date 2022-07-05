@@ -79,6 +79,12 @@ func dataSourceApiManagementApi() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"type": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"soap_pass_through": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -154,6 +160,7 @@ func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("service_url", props.ServiceURL)
 		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapAPITypeSoapPassThrough))
 		d.Set("subscription_required", props.SubscriptionRequired)
+		d.Set("type", props.APIType)
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)
 

@@ -53,7 +53,7 @@ func resourceApiManagementApiSchema() *pluginsdk.Resource {
 
 			"value": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					if d.Get("content_type") == "application/vnd.ms-azure-apim.swagger.definitions+json" || d.Get("content_type") == "application/vnd.oai.openapi.components+json" {
@@ -61,6 +61,20 @@ func resourceApiManagementApiSchema() *pluginsdk.Resource {
 					}
 					return old == new
 				},
+			},
+
+			"definitions": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				StateFunc:    utils.NormalizeJson,
+			},
+
+			"components": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				StateFunc:    utils.NormalizeJson,
 			},
 		},
 	}
@@ -89,6 +103,7 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	contentType := d.Get("content_type").(string)
 	value := d.Get("value").(string)
+
 	parameters := apimanagement.SchemaContract{
 		SchemaContractProperties: &apimanagement.SchemaContractProperties{
 			ContentType: &contentType,
@@ -96,6 +111,22 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 				Value: &value,
 			},
 		},
+	}
+
+	if definitionsRaw, ok := d.GetOk("definitions"); ok {
+		definitions, err := expandJsonBody(definitionsRaw.(string))
+		if err != nil {
+			return fmt.Errorf("expanding `definitions`: %+v", err)
+		}
+		parameters.SchemaContractProperties.SchemaDocumentProperties.Definitions = definitions
+	}
+
+	if componentsRaw, ok := d.GetOk("components"); ok {
+		components, err := expandJsonBody(componentsRaw.(string))
+		if err != nil {
+			return fmt.Errorf("expanding `components`: %+v", err)
+		}
+		parameters.SchemaContractProperties.SchemaDocumentProperties.Components = components
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.ApiName, id.SchemaName, parameters, "")
@@ -168,12 +199,20 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 			switch *properties.ContentType {
 			case "application/vnd.ms-azure-apim.swagger.definitions+json", "application/vnd.oai.openapi.components+json":
 				if documentProperties.Definitions != nil {
-					value, err := json.Marshal(documentProperties.Definitions)
+					value, err := flattenJsonBody(documentProperties.Definitions)
 					if err != nil {
 						return fmt.Errorf("[FATAL] Unable to serialize schema to json. Error: %+v. Schema struct: %+v", err, documentProperties.Definitions)
 					}
-					d.Set("value", string(value))
+					d.Set("definitions", value)
 				}
+				if documentProperties.Components != nil {
+					value, err := flattenJsonBody(documentProperties.Components)
+					if err != nil {
+						return fmt.Errorf("[FATAL] Unable to serialize schema to json. Error: %+v. Schema struct: %+v", err, documentProperties.Components)
+					}
+					d.Set("components", value)
+				}
+				d.Set("value", documentProperties.Value)
 			case "application/vnd.ms-azure-apim.xsd+xml", "application/vnd.ms-azure-apim.wadl.grammars+xml":
 				d.Set("value", documentProperties.Value)
 			default:
@@ -202,4 +241,32 @@ func resourceApiManagementApiSchemaDelete(d *pluginsdk.ResourceData, meta interf
 	}
 
 	return nil
+}
+
+func expandJsonBody(input string) (*map[string]interface{}, error) {
+	var output map[string]interface{}
+
+	if len(input) > 0 {
+		if err := json.Unmarshal([]byte(input), &output); err != nil {
+			return nil, err
+		}
+	}
+
+	return &output, nil
+}
+
+func flattenJsonBody(input interface{}) (*string, error) {
+	output := "{}" // since this should be json
+
+	if input == nil {
+		return &output, nil
+	}
+
+	bytes, err := json.Marshal(input)
+	if err != nil {
+		return nil, fmt.Errorf("marshalling json: %+v", err)
+	}
+
+	output = string(bytes)
+	return &output, nil
 }

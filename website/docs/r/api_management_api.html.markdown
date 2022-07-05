@@ -82,6 +82,8 @@ The following arguments are supported:
 
 * `subscription_required` - (Optional) Should this API require a subscription key?
 
+* `type` - (Optional) The type of the API: "http", "graphql", "soap", "websocket"
+
 * `version` - (Optional) The Version number of this API, if this API is versioned.
 
 * `version_set_id` - (Optional) The ID of the Version Set which this API is associated with.

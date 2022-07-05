@@ -48,7 +48,11 @@ The following arguments are supported:
 
 * `content_type` - (Required) The content type of the API Schema.
 
-* `value` - (Required) The JSON escaped string defining the document representing the Schema.
+* `value` - (Optional) The JSON escaped string defining the document representing the Schema. Used for schemas other than Swagger/OpenAPI.
+
+* `definitions` - (Optional) The JSON escaped string defining the document representing Types definitions. Used for OpenAPI v2 (Swagger) schemas only, null otherwise.
+
+* `components` - (Optional) The JSON escaped string defining the document representing Types definitions. Used for OpenAPI v3 schemas only, null otherwise.
 
 ## Attributes Reference
 

@@ -28,6 +28,7 @@ func TestAccApiManagementApi_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("is_current").HasValue("true"),
 				check.That(data.ResourceName).Key("is_online").HasValue("false"),
 				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
+				check.That(data.ResourceName).Key("type").HasValue("http"),
 			),
 		},
 		data.ImportStep(),
@@ -155,6 +156,23 @@ func TestAccApiManagementApi_subscriptionRequired(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("subscription_required").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementApi_typeGraphQL(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.typeGraphQL(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("false"),
+				check.That(data.ResourceName).Key("type").HasValue("graphql"),
 			),
 		},
 		data.ImportStep(),
@@ -412,6 +430,24 @@ resource "azurerm_api_management_api" "test" {
   protocols             = ["https"]
   revision              = "1"
   subscription_required = false
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) typeGraphQL(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                  = "acctestapi-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  api_management_name   = azurerm_api_management.test.name
+  display_name          = "api1"
+  path                  = "api1"
+  protocols             = ["https"]
+  revision              = "1"
+  subscription_required = false
+	type                  = "graphql"
 }
 `, r.template(data), data.RandomInteger)
 }
