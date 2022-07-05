@@ -2868,22 +2868,15 @@ func ExpandSiteConfigWindows(siteConfig []SiteConfigWindows, existing *web.SiteC
 
 	winSiteConfig := siteConfig[0]
 
-	isFreeSku := false
-	for _, sku := range freeSkus {
-		if servicePlan.Sku != nil && servicePlan.Sku.Name != nil && *servicePlan.Sku.Name == sku {
-			isFreeSku = true
+	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
+		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+			if winSiteConfig.AlwaysOn == true {
+				return nil, nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
+			}
+			if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true {
+				return nil, nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+			}
 		}
-	}
-	for _, sku := range sharedSkus {
-		if servicePlan.Sku != nil && servicePlan.Sku.Name != nil && *servicePlan.Sku.Name == sku {
-			isFreeSku = true
-		}
-	}
-	if winSiteConfig.AlwaysOn == true && isFreeSku {
-		return nil, nil, fmt.Errorf("always_on feature cannot be set to true when using Free, F1, D1 Sku")
-	}
-	if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true && isFreeSku {
-		return nil, nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
 	}
 	expanded.AlwaysOn = utils.Bool(winSiteConfig.AlwaysOn)
 
@@ -3038,22 +3031,15 @@ func ExpandSiteConfigLinux(siteConfig []SiteConfigLinux, existing *web.SiteConfi
 
 	linuxSiteConfig := siteConfig[0]
 
-	isFreeSku := false
-	for _, sku := range freeSkus {
-		if servicePlan.Sku != nil && servicePlan.Sku.Name != nil && *servicePlan.Sku.Name == sku {
-			isFreeSku = true
+	if servicePlan.Sku != nil && servicePlan.Sku.Name != nil {
+		if isFreeOrSharedServicePlan(*servicePlan.Sku.Name) {
+			if linuxSiteConfig.AlwaysOn == true {
+				return nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
+			}
+			if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true {
+				return nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
+			}
 		}
-	}
-	for _, sku := range sharedSkus {
-		if servicePlan.Sku != nil && servicePlan.Sku.Name != nil && *servicePlan.Sku.Name == sku {
-			isFreeSku = true
-		}
-	}
-	if linuxSiteConfig.AlwaysOn == true && isFreeSku {
-		return nil, fmt.Errorf("always_on cannot be set to true when using Free, F1, D1 Sku")
-	}
-	if expanded.AlwaysOn != nil && *expanded.AlwaysOn == true && isFreeSku {
-		return nil, fmt.Errorf("always_on feature has to be turned off before switching to a free/shared Sku")
 	}
 	expanded.AlwaysOn = utils.Bool(linuxSiteConfig.AlwaysOn)
 
@@ -4220,4 +4206,19 @@ func DisabledLogsConfig() *web.SiteLogsConfig {
 			},
 		},
 	}
+}
+
+func isFreeOrSharedServicePlan(inputSKU string) bool {
+	result := false
+	for _, sku := range freeSkus {
+		if inputSKU == sku {
+			result = true
+		}
+	}
+	for _, sku := range sharedSkus {
+		if inputSKU == sku {
+			result = true
+		}
+	}
+	return result
 }

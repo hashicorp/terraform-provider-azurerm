@@ -33,7 +33,7 @@ func TestAccWindowsWebApp_basic(t *testing.T) {
 	})
 }
 
-func TestAccWindowsWebApp_freeSku(t *testing.T) {
+func TestAccWindowsWebApp_freeSkuAlwaysOnShouldFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
 

@@ -32,7 +32,7 @@ func TestAccLinuxWebApp_basic(t *testing.T) {
 	})
 }
 
-func TestAccLinuxWebApp_freeSku(t *testing.T) {
+func TestAccLinuxWebApp_freeSkuAlwaysOnShouldFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
 
