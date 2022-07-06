@@ -800,9 +800,14 @@ func ExpandSiteConfigWindowsWebAppSlot(siteConfig []SiteConfigWindowsWebAppSlot,
 		expanded = existing
 	}
 
+	winSlotSiteConfig := siteConfig[0]
+
 	currentStack := ""
 
-	winSlotSiteConfig := siteConfig[0]
+	if len(winSlotSiteConfig.ApplicationStack) == 1 {
+		winAppStack := winSlotSiteConfig.ApplicationStack[0]
+		currentStack = winAppStack.CurrentStack
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.always_on") {
 		expanded.AlwaysOn = utils.Bool(winSlotSiteConfig.AlwaysOn)
