@@ -8,6 +8,7 @@ ENHANCEMENTS:
 * hardwaresecuritymodules: refactoring to use `hashicorp/go-azure-sdk` [GH-17470]
 * privatedns: refactoring to use `hashicorp/go-azure-sdk` [GH-17436]
 * Data Source: `azurerm_container_registry` - add support for the `data_endpoint_enabled` property [GH-17466]
+* `azurerm_spring_cloud_deployment` - support for the `addon_json` property [GH-16984]
 * `azurerm_hdinsight_kafka_cluster` -support for the `network` block [GH-17259]
 * `azurerm_synapse_integration_runtime_azure` - the `location` property now supports `Auto Resolve` [GH-17111]
 * `azurerm_kubernetes_clusterl`- support for the `capacity_reservation_group_id` property [GH-17395]
