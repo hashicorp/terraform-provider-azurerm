@@ -316,9 +316,10 @@ resource "azurerm_active_directory_domain_service" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  domain_name           = "never.gonna.shut.you.down"
-  sku                   = "Enterprise"
-  filtered_sync_enabled = false
+  domain_name               = "never.gonna.shut.you.down"
+  sku                       = "Enterprise"
+  domain_configuration_type = "FullySynced"
+  filtered_sync_enabled     = false
 
   initial_replica_set {
     subnet_id = azurerm_subnet.aadds.id

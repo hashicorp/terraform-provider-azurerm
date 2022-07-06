@@ -13,6 +13,10 @@ Manages a API Management Email Template.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -30,7 +34,7 @@ resource "azurerm_api_management" "example" {
 
 resource "azurerm_api_management_email_template" "example" {
   template_name       = "ConfirmSignUpIdentityDefault"
-  resource_group_name = azurerm_resource_group.example.resource_group_name
+  resource_group_name = azurerm_resource_group.example.name
   api_management_name = azurerm_api_management.example.name
   subject             = "Customized confirmation email for your new $OrganizationName API account"
   body                = <<EOF

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2021-10-01/keyvault"
 	KeyVaultMgmt "github.com/Azure/azure-sdk-for-go/services/keyvault/v7.1/keyvault"
-	"github.com/Azure/azure-sdk-for-go/services/preview/keyvault/mgmt/2020-04-01-preview/keyvault"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -79,8 +79,8 @@ func resourceKeyVault() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(keyvault.Standard),
-					string(keyvault.Premium),
+					string(keyvault.SkuNameStandard),
+					string(keyvault.SkuNamePremium),
 				}, false),
 			},
 
@@ -153,16 +153,16 @@ func resourceKeyVault() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(keyvault.Allow),
-								string(keyvault.Deny),
+								string(keyvault.NetworkRuleActionAllow),
+								string(keyvault.NetworkRuleActionDeny),
 							}, false),
 						},
 						"bypass": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(keyvault.None),
-								string(keyvault.AzureServices),
+								string(keyvault.NetworkRuleBypassOptionsNone),
+								string(keyvault.NetworkRuleBypassOptionsAzureServices),
 							}, false),
 						},
 						"ip_rules": {
@@ -514,6 +514,13 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		update.Properties.EnablePurgeProtection = utils.Bool(newValue)
+
+		if newValue {
+			// When the KV was created with a version prior to v2.42 and the `soft_delete_enabled` is set to false, setting `purge_protection_enabled` to `true` would not work when updating KV with v2.42 or later of terraform provider.
+			// This is because the `purge_protection_enabled` only works when soft delete is enabled.
+			// Since version v2.42 of the Azure Provider and later force the value of `soft_delete_enabled` to be true, we should set `EnableSoftDelete` to true when `purge_protection_enabled` is enabled to make sure it works in this case.
+			update.Properties.EnableSoftDelete = utils.Bool(true)
+		}
 	}
 
 	if d.HasChange("sku_name") {
@@ -871,8 +878,8 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	if input == nil {
 		return []interface{}{
 			map[string]interface{}{
-				"bypass":                     string(keyvault.AzureServices),
-				"default_action":             string(keyvault.Allow),
+				"bypass":                     string(keyvault.NetworkRuleBypassOptionsAzureServices),
+				"default_action":             string(keyvault.NetworkRuleActionAllow),
 				"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, []interface{}{}),
 				"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, []interface{}{}),
 			},

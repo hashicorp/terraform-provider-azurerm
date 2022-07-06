@@ -24,16 +24,15 @@ resource "azurerm_data_factory" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_data_factory_pipeline" "test" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_id     = azurerm_data_factory.test.id
+resource "azurerm_data_factory_pipeline" "example" {
+  name            = "example"
+  data_factory_id = azurerm_data_factory.example.id
 }
 
-resource "azurerm_data_factory_trigger_schedule" "test" {
+resource "azurerm_data_factory_trigger_schedule" "example" {
   name            = "example"
-  data_factory_id = azurerm_data_factory.test.id
-  pipeline_name   = azurerm_data_factory_pipeline.test.name
+  data_factory_id = azurerm_data_factory.example.id
+  pipeline_name   = azurerm_data_factory_pipeline.example.name
 
   interval  = 5
   frequency = "Day"
@@ -47,8 +46,6 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the Data Factory Schedule Trigger. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
-
-* `pipeline_name` - (Required) The Data Factory Pipeline name that the trigger will act on.
 
 * `description` - (Optional) The Schedule Trigger's description.
 
@@ -65,6 +62,10 @@ The following arguments are supported:
 * `frequency` - (Optional) The trigger frequency. Valid values include `Minute`, `Hour`, `Day`, `Week`, `Month`. Defaults to `Minute`.
 
 * `activated` - (Optional) Specifies if the Data Factory Schedule Trigger is activated. Defaults to `true`.
+
+* `pipeline` - (Optional) block as defined below.
+
+* `pipeline_name` - (Optional) The Data Factory Pipeline name that the trigger will act on.
 
 * `pipeline_parameters` - (Optional) The pipeline parameters that the trigger will act upon.
 
@@ -91,6 +92,14 @@ A `monthly` block supports the following:
 * `weekday` - (Required) The day of the week on which the trigger runs. For example, a `monthly` property with a `weekday` value of `Sunday` means every Sunday of the month.
 
 * `week` - (Optional) The occurrence of the specified day during the month. For example, a `monthly` property with `weekday` and `week` values of `Sunday, -1` means the last Sunday of the month.
+
+---
+
+A `pipeline` block supports the following:
+
+* `name` - (Required) Reference pipeline name.
+
+* `parameters` - (Optional) The pipeline parameters that the trigger will act upon.
 
 ## Attributes Reference
 

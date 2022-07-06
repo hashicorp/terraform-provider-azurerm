@@ -17,15 +17,24 @@ Manages a API Management Custom Domain.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
+data "azurerm_key_vault" "example" {
+  name                = "mykeyvault"
+  resource_group_name = "some-resource-group"
+}
+
 resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Developer_1"
@@ -33,7 +42,7 @@ resource "azurerm_api_management" "example" {
 
 resource "azurerm_key_vault_certificate" "example" {
   name         = "example-certificate"
-  key_vault_id = azurerm_key_vault.test.id
+  key_vault_id = data.azurerm_key_vault.example.id
 
   certificate_policy {
     issuer_parameters {
@@ -89,12 +98,12 @@ resource "azurerm_api_management_custom_domain" "example" {
 
   gateway {
     host_name    = "api.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+    key_vault_id = azurerm_key_vault_certificate.example.secret_id
   }
 
   developer_portal {
     host_name    = "portal.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+    key_vault_id = azurerm_key_vault_certificate.example.secret_id
   }
 }
 ```

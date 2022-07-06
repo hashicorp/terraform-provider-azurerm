@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -449,7 +449,9 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 	}
 	if userNameValue, ok := userIdentityValue["user_name"]; ok {
 		userName := userNameValue.(string)
-		userIdentity.UserName = &userName
+		if len(userName) != 0 {
+			userIdentity.UserName = &userName
+		}
 	}
 
 	resourceFileList := startTaskValue["resource_file"].([]interface{})

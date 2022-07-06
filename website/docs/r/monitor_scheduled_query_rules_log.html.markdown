@@ -26,25 +26,6 @@ resource "azurerm_log_analytics_workspace" "example" {
   retention_in_days   = 30
 }
 
-# Example: LogToMetric Action for the named Computer
-resource "azurerm_monitor_scheduled_query_rules_log" "example" {
-  name                = format("%s-queryrule", var.prefix)
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  criteria {
-    metric_name = "Average_% Idle Time"
-    dimension {
-      name     = "Computer"
-      operator = "Include"
-      values   = ["targetVM"]
-    }
-  }
-  data_source_id = azurerm_log_analytics_workspace.example.id
-  description    = "Scheduled query rule LogToMetric example"
-  enabled        = true
-}
-
 resource "azurerm_monitor_action_group" "example" {
   name                = "example-actiongroup"
   resource_group_name = azurerm_resource_group.example.name
@@ -67,7 +48,7 @@ resource "azurerm_monitor_metric_alert" "example" {
 
   criteria {
     metric_namespace = "Microsoft.OperationalInsights/workspaces"
-    metric_name      = azurerm_scheduled_query_rules_log.example.criteria[0].metric_name
+    metric_name      = "UsedCapacity"
     aggregation      = "Average"
     operator         = "LessThan"
     threshold        = 10
@@ -76,6 +57,25 @@ resource "azurerm_monitor_metric_alert" "example" {
   action {
     action_group_id = azurerm_monitor_action_group.example.id
   }
+}
+
+# Example: LogToMetric Action for the named Computer
+resource "azurerm_monitor_scheduled_query_rules_log" "example" {
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  criteria {
+    metric_name = "Average_% Idle Time"
+    dimension {
+      name     = "Computer"
+      operator = "Include"
+      values   = ["targetVM"]
+    }
+  }
+  data_source_id = azurerm_log_analytics_workspace.example.id
+  description    = "Scheduled query rule LogToMetric example"
+  enabled        = true
 }
 ```
 
