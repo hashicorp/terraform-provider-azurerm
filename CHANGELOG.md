@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * containerinstance: refactoring to use `hashicorp/go-azure-sdk` [GH-17499]
 * eventhub: refactoring to use `hashicorp/go-azure-sdk` [GH-17445]
 * hardwaresecuritymodules: refactoring to use `hashicorp/go-azure-sdk` [GH-17470]
+* netapp: refactoring to use `hashicorp/go-azure-sdk` [GH-17465]
 * privatedns: refactoring to use `hashicorp/go-azure-sdk` [GH-17436]
 * Data Source: `azurerm_container_registry` - add support for the `data_endpoint_enabled` property [GH-17466]
 * `azurerm_hdinsight_kafka_cluster` -support for the `network` block [GH-17259]
