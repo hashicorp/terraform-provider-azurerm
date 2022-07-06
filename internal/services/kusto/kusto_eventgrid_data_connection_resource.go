@@ -2,11 +2,11 @@ package kusto
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
