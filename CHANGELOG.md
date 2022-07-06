@@ -11,6 +11,8 @@ ENHANCEMENTS:
 * `azurerm_hdinsight_kafka_cluster` -support for the `network` block [GH-17259]
 * `azurerm_kubernetes_clusterl`- support for the `capacity_reservation_group_id` property [GH-17395]
 * `azurerm_kubernetes_node_pool`- support for the `capacity_reservation_group_id` property [GH-17395]
+* `azurerm_linux_virtual_machine` - support for the `capacity_reservation_group_id` property [GH-17236]
+* `azurerm_windows_virtual_machine` - support for the `capacity_reservation_group_id` property [GH-17236]
 
 ## 3.12.0 (June 30, 2022)
 
