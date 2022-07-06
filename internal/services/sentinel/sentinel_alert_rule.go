@@ -128,7 +128,7 @@ func flattenAlertRuleIncidentConfiguration(input *securityinsight.IncidentConfig
 	}
 }
 
-func expandAlertRuleGrouping(input []interface{}, withGroupByPrefix bool) *securityinsight.GroupingConfiguration {
+func expandAlertRuleGrouping(input []interface{}, withGroupPrefix bool) *securityinsight.GroupingConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -142,9 +142,9 @@ func expandAlertRuleGrouping(input []interface{}, withGroupByPrefix bool) *secur
 		MatchingMethod:       securityinsight.MatchingMethod(raw["entity_matching_method"].(string)),
 	}
 
-	key := "entities"
-	if withGroupByPrefix {
-		key = "group_by_" + key
+	key := "by_entities"
+	if withGroupPrefix {
+		key = "group_" + key
 	}
 	groupByEntitiesList := raw[key].([]interface{})
 	groupByEntities := make([]securityinsight.EntityMappingType, len(groupByEntitiesList))
@@ -153,9 +153,9 @@ func expandAlertRuleGrouping(input []interface{}, withGroupByPrefix bool) *secur
 	}
 	output.GroupByEntities = &groupByEntities
 
-	key = "alert_details"
-	if withGroupByPrefix {
-		key = "group_by_" + key
+	key = "by_alert_details"
+	if withGroupPrefix {
+		key = "group_" + key
 	}
 	groupByAlertDetailsList := raw[key].([]interface{})
 	groupByAlertDetails := make([]securityinsight.AlertDetail, len(groupByAlertDetailsList))
@@ -164,16 +164,16 @@ func expandAlertRuleGrouping(input []interface{}, withGroupByPrefix bool) *secur
 	}
 	output.GroupByAlertDetails = &groupByAlertDetails
 
-	key = "custom_details"
-	if withGroupByPrefix {
-		key = "group_by_" + key
+	key = "by_custom_details"
+	if withGroupPrefix {
+		key = "group_" + key
 	}
 	output.GroupByCustomDetails = utils.ExpandStringSlice(raw[key].([]interface{}))
 
 	return output
 }
 
-func flattenAlertRuleGrouping(input *securityinsight.GroupingConfiguration, withGroupByPrefix bool) []interface{} {
+func flattenAlertRuleGrouping(input *securityinsight.GroupingConfiguration, withGroupPrefix bool) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -215,15 +215,15 @@ func flattenAlertRuleGrouping(input *securityinsight.GroupingConfiguration, with
 	}
 
 	var (
-		k1 = "entities"
-		k2 = "alert_details"
-		k3 = "custom_details"
+		k1 = "by_entities"
+		k2 = "by_alert_details"
+		k3 = "by_custom_details"
 	)
 
-	if withGroupByPrefix {
-		k1 = "group_by_" + k1
-		k2 = "group_by_" + k2
-		k3 = "group_by_" + k3
+	if withGroupPrefix {
+		k1 = "group_" + k1
+		k2 = "group_" + k2
+		k3 = "group_" + k3
 	}
 	return []interface{}{
 		map[string]interface{}{

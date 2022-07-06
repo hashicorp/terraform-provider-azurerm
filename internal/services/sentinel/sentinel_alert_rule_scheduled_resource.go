@@ -186,7 +186,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 											string(securityinsight.MatchingMethodAllEntities),
 										}, false),
 									},
-									// TODO 4.0 - rename this to "entities"
+									// TODO 4.0 - rename this to "by_entities"
 									"group_by_entities": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -195,7 +195,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 											ValidateFunc: validation.StringInSlice(entityMappingTypes, false),
 										},
 									},
-									// TODO 4.0 - rename this to "alert_details"
+									// TODO 4.0 - rename this to "by_alert_details"
 									"group_by_alert_details": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
@@ -208,7 +208,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 												false),
 										},
 									},
-									// TODO 4.0 - rename this to "custom_details"
+									// TODO 4.0 - rename this to "by_custom_details"
 									"group_by_custom_details": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,

@@ -165,7 +165,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 											string(securityinsight.MatchingMethodAllEntities),
 										}, false),
 									},
-									"entities": {
+									"by_entities": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -173,7 +173,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 											ValidateFunc: validation.StringInSlice(entityMappingTypes, false),
 										},
 									},
-									"alert_details": {
+									"by_alert_details": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -185,7 +185,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 												false),
 										},
 									},
-									"custom_details": {
+									"by_custom_details": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
