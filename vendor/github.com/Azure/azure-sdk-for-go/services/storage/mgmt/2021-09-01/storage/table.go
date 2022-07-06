@@ -15,35 +15,34 @@ import (
 	"net/http"
 )
 
-// QueueClient is the the Azure Storage Management API.
-type QueueClient struct {
+// TableClient is the the Azure Storage Management API.
+type TableClient struct {
 	BaseClient
 }
 
-// NewQueueClient creates an instance of the QueueClient client.
-func NewQueueClient(subscriptionID string) QueueClient {
-	return NewQueueClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewTableClient creates an instance of the TableClient client.
+func NewTableClient(subscriptionID string) TableClient {
+	return NewTableClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewQueueClientWithBaseURI creates an instance of the QueueClient client using a custom endpoint.  Use this when
+// NewTableClientWithBaseURI creates an instance of the TableClient client using a custom endpoint.  Use this when
 // interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewQueueClientWithBaseURI(baseURI string, subscriptionID string) QueueClient {
-	return QueueClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewTableClientWithBaseURI(baseURI string, subscriptionID string) TableClient {
+	return TableClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Create creates a new queue with the specified queue name, under the specified account.
+// Create creates a new table with the specified table name, under the specified account.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-// queueName - a queue name must be unique within a storage account and must be between 3 and 63 characters.The
-// name must comprise of lowercase alphanumeric and dash(-) characters only, it should begin and end with an
-// alphanumeric character and it cannot have two consecutive dash(-) characters.
-// queue - queue properties and metadata to be created with
-func (client QueueClient) Create(ctx context.Context, resourceGroupName string, accountName string, queueName string, queue Queue) (result Queue, err error) {
+// tableName - a table name must be unique within a storage account and must be between 3 and 63 characters.The
+// name must comprise of only alphanumeric characters and it cannot begin with a numeric character.
+// parameters - the parameters to provide to create a table.
+func (client TableClient) Create(ctx context.Context, resourceGroupName string, accountName string, tableName string, parameters *Table) (result Table, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/QueueClient.Create")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TableClient.Create")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -62,28 +61,29 @@ func (client QueueClient) Create(ctx context.Context, resourceGroupName string, 
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: queueName,
-			Constraints: []validation.Constraint{{Target: "queueName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "queueName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.QueueClient", "Create", err.Error())
+		{TargetValue: tableName,
+			Constraints: []validation.Constraint{{Target: "tableName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "tableName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "tableName", Name: validation.Pattern, Rule: `^[A-Za-z][A-Za-z0-9]{2,62}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storage.TableClient", "Create", err.Error())
 	}
 
-	req, err := client.CreatePreparer(ctx, resourceGroupName, accountName, queueName, queue)
+	req, err := client.CreatePreparer(ctx, resourceGroupName, accountName, tableName, parameters)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Create", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "Create", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.CreateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Create", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "Create", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.CreateResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Create", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "Create", resp, "Failure responding to request")
 		return
 	}
 
@@ -91,15 +91,15 @@ func (client QueueClient) Create(ctx context.Context, resourceGroupName string, 
 }
 
 // CreatePreparer prepares the Create request.
-func (client QueueClient) CreatePreparer(ctx context.Context, resourceGroupName string, accountName string, queueName string, queue Queue) (*http.Request, error) {
+func (client TableClient) CreatePreparer(ctx context.Context, resourceGroupName string, accountName string, tableName string, parameters *Table) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"queueName":         autorest.Encode("path", queueName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -108,21 +108,24 @@ func (client QueueClient) CreatePreparer(ctx context.Context, resourceGroupName 
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/queueServices/default/queues/{queueName}", pathParameters),
-		autorest.WithJSON(queue),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/tableServices/default/tables/{tableName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if parameters != nil {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithJSON(parameters))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
-func (client QueueClient) CreateSender(req *http.Request) (*http.Response, error) {
+func (client TableClient) CreateSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
 // closes the http.Response Body.
-func (client QueueClient) CreateResponder(resp *http.Response) (result Queue, err error) {
+func (client TableClient) CreateResponder(resp *http.Response) (result Table, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -132,18 +135,17 @@ func (client QueueClient) CreateResponder(resp *http.Response) (result Queue, er
 	return
 }
 
-// Delete deletes the queue with the specified queue name, under the specified account if it exists.
+// Delete deletes the table with the specified table name, under the specified account if it exists.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-// queueName - a queue name must be unique within a storage account and must be between 3 and 63 characters.The
-// name must comprise of lowercase alphanumeric and dash(-) characters only, it should begin and end with an
-// alphanumeric character and it cannot have two consecutive dash(-) characters.
-func (client QueueClient) Delete(ctx context.Context, resourceGroupName string, accountName string, queueName string) (result autorest.Response, err error) {
+// tableName - a table name must be unique within a storage account and must be between 3 and 63 characters.The
+// name must comprise of only alphanumeric characters and it cannot begin with a numeric character.
+func (client TableClient) Delete(ctx context.Context, resourceGroupName string, accountName string, tableName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/QueueClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TableClient.Delete")
 		defer func() {
 			sc := -1
 			if result.Response != nil {
@@ -162,28 +164,29 @@ func (client QueueClient) Delete(ctx context.Context, resourceGroupName string, 
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: queueName,
-			Constraints: []validation.Constraint{{Target: "queueName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "queueName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.QueueClient", "Delete", err.Error())
+		{TargetValue: tableName,
+			Constraints: []validation.Constraint{{Target: "tableName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "tableName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "tableName", Name: validation.Pattern, Rule: `^[A-Za-z][A-Za-z0-9]{2,62}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storage.TableClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName, queueName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName, tableName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.DeleteSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Delete", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "Delete", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "Delete", resp, "Failure responding to request")
 		return
 	}
 
@@ -191,15 +194,15 @@ func (client QueueClient) Delete(ctx context.Context, resourceGroupName string, 
 }
 
 // DeletePreparer prepares the Delete request.
-func (client QueueClient) DeletePreparer(ctx context.Context, resourceGroupName string, accountName string, queueName string) (*http.Request, error) {
+func (client TableClient) DeletePreparer(ctx context.Context, resourceGroupName string, accountName string, tableName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"queueName":         autorest.Encode("path", queueName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -207,20 +210,20 @@ func (client QueueClient) DeletePreparer(ctx context.Context, resourceGroupName 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/queueServices/default/queues/{queueName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/tableServices/default/tables/{tableName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client QueueClient) DeleteSender(req *http.Request) (*http.Response, error) {
+func (client TableClient) DeleteSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client QueueClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client TableClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
@@ -229,18 +232,17 @@ func (client QueueClient) DeleteResponder(resp *http.Response) (result autorest.
 	return
 }
 
-// Get gets the queue with the specified queue name, under the specified account if it exists.
+// Get gets the table with the specified table name, under the specified account if it exists.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-// queueName - a queue name must be unique within a storage account and must be between 3 and 63 characters.The
-// name must comprise of lowercase alphanumeric and dash(-) characters only, it should begin and end with an
-// alphanumeric character and it cannot have two consecutive dash(-) characters.
-func (client QueueClient) Get(ctx context.Context, resourceGroupName string, accountName string, queueName string) (result Queue, err error) {
+// tableName - a table name must be unique within a storage account and must be between 3 and 63 characters.The
+// name must comprise of only alphanumeric characters and it cannot begin with a numeric character.
+func (client TableClient) Get(ctx context.Context, resourceGroupName string, accountName string, tableName string) (result Table, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/QueueClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TableClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -259,28 +261,29 @@ func (client QueueClient) Get(ctx context.Context, resourceGroupName string, acc
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: queueName,
-			Constraints: []validation.Constraint{{Target: "queueName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "queueName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.QueueClient", "Get", err.Error())
+		{TargetValue: tableName,
+			Constraints: []validation.Constraint{{Target: "tableName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "tableName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "tableName", Name: validation.Pattern, Rule: `^[A-Za-z][A-Za-z0-9]{2,62}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storage.TableClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, accountName, queueName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, accountName, tableName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -288,15 +291,15 @@ func (client QueueClient) Get(ctx context.Context, resourceGroupName string, acc
 }
 
 // GetPreparer prepares the Get request.
-func (client QueueClient) GetPreparer(ctx context.Context, resourceGroupName string, accountName string, queueName string) (*http.Request, error) {
+func (client TableClient) GetPreparer(ctx context.Context, resourceGroupName string, accountName string, tableName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"queueName":         autorest.Encode("path", queueName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -304,20 +307,20 @@ func (client QueueClient) GetPreparer(ctx context.Context, resourceGroupName str
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/queueServices/default/queues/{queueName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/tableServices/default/tables/{tableName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client QueueClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client TableClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client QueueClient) GetResponder(resp *http.Response) (result Queue, err error) {
+func (client TableClient) GetResponder(resp *http.Response) (result Table, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -327,22 +330,19 @@ func (client QueueClient) GetResponder(resp *http.Response) (result Queue, err e
 	return
 }
 
-// List gets a list of all the queues under the specified storage account
+// List gets a list of all the tables under the specified storage account
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-// maxpagesize - optional, a maximum number of queues that should be included in a list queue response
-// filter - optional, When specified, only the queues with a name starting with the given filter will be
-// listed.
-func (client QueueClient) List(ctx context.Context, resourceGroupName string, accountName string, maxpagesize string, filter string) (result ListQueueResourcePage, err error) {
+func (client TableClient) List(ctx context.Context, resourceGroupName string, accountName string) (result ListTableResourcePage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/QueueClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TableClient.List")
 		defer func() {
 			sc := -1
-			if result.lqr.Response.Response != nil {
-				sc = result.lqr.Response.Response.StatusCode
+			if result.ltr.Response.Response != nil {
+				sc = result.ltr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -357,29 +357,29 @@ func (client QueueClient) List(ctx context.Context, resourceGroupName string, ac
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.QueueClient", "List", err.Error())
+		return result, validation.NewError("storage.TableClient", "List", err.Error())
 	}
 
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, resourceGroupName, accountName, maxpagesize, filter)
+	req, err := client.ListPreparer(ctx, resourceGroupName, accountName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.lqr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "List", resp, "Failure sending request")
+		result.ltr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.lqr, err = client.ListResponder(resp)
+	result.ltr, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.lqr.hasNextLink() && result.lqr.IsEmpty() {
+	if result.ltr.hasNextLink() && result.ltr.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -388,41 +388,35 @@ func (client QueueClient) List(ctx context.Context, resourceGroupName string, ac
 }
 
 // ListPreparer prepares the List request.
-func (client QueueClient) ListPreparer(ctx context.Context, resourceGroupName string, accountName string, maxpagesize string, filter string) (*http.Request, error) {
+func (client TableClient) ListPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
-	}
-	if len(maxpagesize) > 0 {
-		queryParameters["$maxpagesize"] = autorest.Encode("query", maxpagesize)
-	}
-	if len(filter) > 0 {
-		queryParameters["$filter"] = autorest.Encode("query", filter)
 	}
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/queueServices/default/queues", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/tableServices/default/tables", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client QueueClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client TableClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client QueueClient) ListResponder(resp *http.Response) (result ListQueueResource, err error) {
+func (client TableClient) ListResponder(resp *http.Response) (result ListTableResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -433,10 +427,10 @@ func (client QueueClient) ListResponder(resp *http.Response) (result ListQueueRe
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client QueueClient) listNextResults(ctx context.Context, lastResults ListQueueResource) (result ListQueueResource, err error) {
-	req, err := lastResults.listQueueResourcePreparer(ctx)
+func (client TableClient) listNextResults(ctx context.Context, lastResults ListTableResource) (result ListTableResource, err error) {
+	req, err := lastResults.listTableResourcePreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "storage.QueueClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "storage.TableClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -444,19 +438,19 @@ func (client QueueClient) listNextResults(ctx context.Context, lastResults ListQ
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "storage.QueueClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "storage.TableClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client QueueClient) ListComplete(ctx context.Context, resourceGroupName string, accountName string, maxpagesize string, filter string) (result ListQueueResourceIterator, err error) {
+func (client TableClient) ListComplete(ctx context.Context, resourceGroupName string, accountName string) (result ListTableResourceIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/QueueClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TableClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -465,23 +459,22 @@ func (client QueueClient) ListComplete(ctx context.Context, resourceGroupName st
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, resourceGroupName, accountName, maxpagesize, filter)
+	result.page, err = client.List(ctx, resourceGroupName, accountName)
 	return
 }
 
-// Update creates a new queue with the specified queue name, under the specified account.
+// Update creates a new table with the specified table name, under the specified account.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-// queueName - a queue name must be unique within a storage account and must be between 3 and 63 characters.The
-// name must comprise of lowercase alphanumeric and dash(-) characters only, it should begin and end with an
-// alphanumeric character and it cannot have two consecutive dash(-) characters.
-// queue - queue properties and metadata to be created with
-func (client QueueClient) Update(ctx context.Context, resourceGroupName string, accountName string, queueName string, queue Queue) (result Queue, err error) {
+// tableName - a table name must be unique within a storage account and must be between 3 and 63 characters.The
+// name must comprise of only alphanumeric characters and it cannot begin with a numeric character.
+// parameters - the parameters to provide to create a table.
+func (client TableClient) Update(ctx context.Context, resourceGroupName string, accountName string, tableName string, parameters *Table) (result Table, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/QueueClient.Update")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TableClient.Update")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -500,28 +493,29 @@ func (client QueueClient) Update(ctx context.Context, resourceGroupName string, 
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: queueName,
-			Constraints: []validation.Constraint{{Target: "queueName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "queueName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.QueueClient", "Update", err.Error())
+		{TargetValue: tableName,
+			Constraints: []validation.Constraint{{Target: "tableName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "tableName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "tableName", Name: validation.Pattern, Rule: `^[A-Za-z][A-Za-z0-9]{2,62}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storage.TableClient", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, accountName, queueName, queue)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, accountName, tableName, parameters)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Update", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.UpdateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Update", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "Update", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Update", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.TableClient", "Update", resp, "Failure responding to request")
 		return
 	}
 
@@ -529,15 +523,15 @@ func (client QueueClient) Update(ctx context.Context, resourceGroupName string, 
 }
 
 // UpdatePreparer prepares the Update request.
-func (client QueueClient) UpdatePreparer(ctx context.Context, resourceGroupName string, accountName string, queueName string, queue Queue) (*http.Request, error) {
+func (client TableClient) UpdatePreparer(ctx context.Context, resourceGroupName string, accountName string, tableName string, parameters *Table) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"queueName":         autorest.Encode("path", queueName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"tableName":         autorest.Encode("path", tableName),
 	}
 
-	const APIVersion = "2021-04-01"
+	const APIVersion = "2021-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -546,21 +540,24 @@ func (client QueueClient) UpdatePreparer(ctx context.Context, resourceGroupName 
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/queueServices/default/queues/{queueName}", pathParameters),
-		autorest.WithJSON(queue),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/tableServices/default/tables/{tableName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if parameters != nil {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithJSON(parameters))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client QueueClient) UpdateSender(req *http.Request) (*http.Response, error) {
+func (client TableClient) UpdateSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client QueueClient) UpdateResponder(resp *http.Response) (result Queue, err error) {
+func (client TableClient) UpdateResponder(resp *http.Response) (result Table, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
