@@ -3,6 +3,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
@@ -409,6 +410,22 @@ func (r GalleryApplicationVersionResource) Delete() sdk.ResourceFunc {
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 			}
+
+			log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
+			timeout, _ := ctx.Deadline()
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"Exists"},
+				Target:                    []string{"NotFound"},
+				Refresh:                   galleryApplicationVersionDeleteStateRefreshFunc(ctx, client, *id),
+				MinTimeout:                10 * time.Second,
+				ContinuousTargetOccurence: 10,
+				Timeout:                   time.Until(timeout),
+			}
+
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
+			}
+
 			return nil
 		},
 		Timeout: 30 * time.Minute,
@@ -531,4 +548,22 @@ func flattenGalleryApplicationVersionTargetRegion(input *[]compute.TargetRegion)
 		results = append(results, obj)
 	}
 	return results
+}
+
+func galleryApplicationVersionDeleteStateRefreshFunc(ctx context.Context, client *compute.GalleryApplicationVersionsClient, id parse.GalleryApplicationVersionId) pluginsdk.StateRefreshFunc {
+	// Whilst the Gallery Application Version is deleted quickly, it appears it's not actually finished replicating at this time
+	// so the deletion of the parent Gallery Application fails with "can not delete until nested resources are deleted"
+	// ergo we need to poll on this for a bit, see https://github.com/Azure/azure-rest-api-specs/issues/19686
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ApplicationName, id.VersionName, "")
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return "NotFound", "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("failed to poll to check if the Gallery Application Version has been deleted: %+v", err)
+		}
+
+		return res, "Exists", nil
+	}
 }
