@@ -1,5 +1,9 @@
 ## 3.13.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_logz_sub_account` [GH-16581]
+
 ENHANCEMENTS:
 
 * azurestackhci: refactoring to use `hashicorp/go-azure-sdk` [GH-17469]
