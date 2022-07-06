@@ -105,6 +105,21 @@ func TestAccKustoEventHubDataConnection_userAssignedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccKustoEventHubDataConnection_databaseRouting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_eventhub_data_connection", "test")
+	r := KustoEventHubDataConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.databaseRouting(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KustoEventHubDataConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataConnectionID(state.ID)
 	if err != nil {
@@ -253,6 +268,24 @@ resource "azurerm_kusto_eventhub_data_connection" "test" {
   identity_id = azurerm_kusto_cluster.test.id
 
   depends_on = [azurerm_role_assignment.test]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r KustoEventHubDataConnectionResource) databaseRouting(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_kusto_eventhub_data_connection" "test" {
+  name                = "acctestkedc-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_name        = azurerm_kusto_cluster.test.name
+  database_name       = azurerm_kusto_database.test.name
+  eventhub_id    = azurerm_eventhub.test.id
+  consumer_group = azurerm_eventhub_consumer_group.test.name
+  mapping_rule_name = "Json_Mapping"
+  data_format       = "MULTIJSON"
+  database_routing = "Multi"
 }
 `, r.template(data), data.RandomInteger)
 }
