@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_public_maintenance_configurations` [GH-16810]
 * **New Resource**: `azurerm_logz_sub_account` [GH-16581]
 
 ENHANCEMENTS:
