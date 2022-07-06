@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-08-27/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
