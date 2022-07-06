@@ -23,6 +23,10 @@ ENHANCEMENTS:
 * `azurerm_synapse_integration_runtime_azure` - the `location` property now supports `Auto Resolve` [GH-17111]
 * `azurerm_windows_virtual_machine` - support for the `capacity_reservation_group_id` property [GH-17236]
 
+BUG FIXES:
+
+* `azurerm_application_gateway` -  `request_routing_rule.x.priority` is optional [GH-17380]
+
 ## 3.12.0 (June 30, 2022)
 
 FEATURES:
