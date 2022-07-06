@@ -2,6 +2,7 @@ package kusto
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"time"
 
@@ -137,6 +138,33 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 					string(kusto.EventGridDataFormatW3CLOGFILE),
 				}, false),
 			},
+
+			"database_routing": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(kusto.DatabaseRoutingSingle),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.DatabaseRoutingSingle),
+					string(kusto.DatabaseRoutingMulti),
+				}, false),
+			},
+
+			"eventgrid_resource_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"managed_identity_resource_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.Any(
+					validation.StringIsEmpty,
+					validate.ClusterID,
+					commonids.ValidateUserAssignedIdentityID,
+				),
+			},
 		},
 	}
 }
@@ -184,6 +212,18 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData,
 
 	if df, ok := d.GetOk("data_format"); ok {
 		dataConnection.EventGridConnectionProperties.DataFormat = kusto.EventGridDataFormat(df.(string))
+	}
+
+	if databaseRouting, ok := d.GetOk("database_routing"); ok {
+		dataConnection.DatabaseRouting = kusto.DatabaseRouting(databaseRouting.(string))
+	}
+
+	if eventGridRID, ok := d.GetOk("eventgrid_resource_id"); ok {
+		dataConnection.EventGridConnectionProperties.EventGridResourceID = utils.String(eventGridRID.(string))
+	}
+
+	if managedIdentityRID, ok := d.GetOk("managed_identity_resource_id"); ok {
+		dataConnection.EventGridConnectionProperties.ManagedIdentityResourceID = utils.String(managedIdentityRID.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name, dataConnection)
@@ -235,6 +275,9 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 			d.Set("table_name", props.TableName)
 			d.Set("mapping_rule_name", props.MappingRuleName)
 			d.Set("data_format", props.DataFormat)
+			d.Set("database_routing", props.DatabaseRouting)
+			d.Set("eventgrid_resource_id", props.EventGridResourceID)
+			d.Set("managed_identity_resource_id", props.ManagedIdentityResourceID)
 		}
 	}
 
