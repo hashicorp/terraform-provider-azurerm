@@ -3,7 +3,6 @@ package compute
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
@@ -411,7 +410,7 @@ func (r GalleryApplicationVersionResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 			}
 
-			log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
+			metadata.Logger.Infof("Waiting for %s to be eventually deleted", *id)
 			timeout, _ := ctx.Deadline()
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"Exists"},
