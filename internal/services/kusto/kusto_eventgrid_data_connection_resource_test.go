@@ -54,7 +54,7 @@ func TestAccKustoEventGridDataConnection_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("azurerm_kusto_eventgrid_data_connection.0.database_routing").HasValue("Multi"),
+				check.That(data.ResourceName).Key("database_routing").HasValue("Multi"),
 			),
 		},
 		data.ImportStep(),
@@ -253,7 +253,7 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
   eventhub_id                  = azurerm_eventhub.test.id
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
   managed_identity_resource_id = azurerm_user_assigned_identity.test.id
-  depends_on = [azurerm_eventgrid_event_subscription.test]
+  depends_on                   = [azurerm_eventgrid_event_subscription.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -271,7 +271,7 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
   eventhub_id                  = azurerm_eventhub.test.id
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
   managed_identity_resource_id = azurerm_kusto_cluster.test.id
-  depends_on = [azurerm_eventgrid_event_subscription.test]
+  depends_on                   = [azurerm_eventgrid_event_subscription.test]
 }
 `, r.template(data), data.RandomInteger)
 }
