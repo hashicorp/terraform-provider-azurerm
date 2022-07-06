@@ -40,6 +40,12 @@ resource "azurerm_lb" "example" {
   }
 }
 
+resource "azurerm_lb_backend_address_pool" "example" {
+  resource_group_name = azurerm_resource_group.example.name
+  loadbalancer_id     = azurerm_lb.example.id
+  name                = "be"
+}
+
 resource "azurerm_lb_nat_rule" "example" {
   resource_group_name            = azurerm_resource_group.example.name
   loadbalancer_id                = azurerm_lb.example.id
@@ -47,6 +53,18 @@ resource "azurerm_lb_nat_rule" "example" {
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
+  frontend_ip_configuration_name = "PublicIPAddress"
+}
+
+resource "azurerm_lb_nat_rule" "example1" {
+  resource_group_name            = azurerm_resource_group.example.name
+  loadbalancer_id                = azurerm_lb.example.id
+  name                           = "RDPAccess"
+  protocol                       = "Tcp"
+  frontend_port_start            = 3000
+  frontend_port_end              = 3389
+  backend_port                   = 3389
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.example.id
   frontend_ip_configuration_name = "PublicIPAddress"
 }
 ```
@@ -60,8 +78,11 @@ The following arguments are supported:
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the NAT Rule.
 * `frontend_ip_configuration_name` - (Required) The name of the frontend IP configuration exposing this rule.
 * `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Udp`, `Tcp` or `All`.
-* `frontend_port` - (Required) The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer. Possible values range between 0 and 65534, inclusive.
-* `backend_port` - (Required) The port used for internal connections on the endpoint. Possible values range between 0 and 65535, inclusive.
+* `frontend_port` - (Optional) The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer. Possible values range between 1 and 65534, inclusive.
+* `backend_port` - (Required) The port used for internal connections on the endpoint. Possible values range between 1 and 65535, inclusive.
+* `frontend_port_start` - (Optional) The port range start for the external endpoint. This property is used together with BackendAddressPool and FrontendPortRangeEnd. Individual inbound NAT rule port mappings will be created for each backend address from BackendAddressPool. Acceptable values range from 1 to 65534, inclusive.
+* `frontend_port_end` - (Optional) The port range end for the external endpoint. This property is used together with BackendAddressPool and FrontendPortRangeStart. Individual inbound NAT rule port mappings will be created for each backend address from BackendAddressPool. Acceptable values range from 1 to 65534, inclusive.
+* `backend_address_pool_id` - (Optional) Specifies a reference to backendAddressPool resource.
 * `idle_timeout_in_minutes` - (Optional) Specifies the idle timeout in minutes for TCP connections. Valid values are between `4` and `30` minutes. Defaults to `4` minutes.
 * `enable_floating_ip` - (Optional) Are the Floating IPs enabled for this Load Balancer Rule? A "floating” IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group. Defaults to `false`.
 * `enable_tcp_reset` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? Defaults to `false`.
