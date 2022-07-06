@@ -431,11 +431,9 @@ A `request_routing_rule` block supports the following:
 
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
-* `priority` - (Required)  Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority. Only valid for v2 SKUs.
+* `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority. 
 
--> **NOTE - v1 SKUs** v1 SKUs do not support the `priority` field.
-
-~> **NOTE - v2 SKUs** v2 SKUs support the `priority` field. It is [required](https://docs.microsoft.com/en-us/azure/application-gateway/multiple-site-overview#request-routing-rules-evaluation-order) with AzureRM release 3.6.0 and later.
+-> **NOTE:** `priority` is required when `sku.0.tier` is set to `*_v2`.
 
 ---
 
