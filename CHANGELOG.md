@@ -1,8 +1,13 @@
-## 3.13.0 (Unreleased)
+## 3.13.0 (Unreleased)
 
 ENHANCEMENTS:
 
+* azurestackhci: refactoring to use `hashicorp/go-azure-sdk` [GH-17469]
+* containerinstance: refactoring to use `hashicorp/go-azure-sdk` [GH-17499]
+* eventhub: refactoring to use `hashicorp/go-azure-sdk` [GH-17445]
+* hardwaresecuritymodules: refactoring to use `hashicorp/go-azure-sdk` [GH-17470]
 * privatedns: refactoring to use `hashicorp/go-azure-sdk` [GH-17436]
+* Data Source: `azurerm_container_registry` - add support for the `data_endpoint_enabled` property [GH-17466]
 
 ## 3.12.0 (June 30, 2022)
 
