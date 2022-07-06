@@ -70,7 +70,7 @@ func resourceSharedImage() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"disallowed_disk_types": {
+			"disk_types_not_allowed": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
@@ -348,15 +348,15 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if props := resp.GalleryImageProperties; props != nil {
 		d.Set("description", props.Description)
 
-		disallowedDiskTypes := make([]string, 0)
+		diskTypesNotAllowed := make([]string, 0)
 		if disallowed := props.Disallowed; disallowed != nil {
 			if disallowed.DiskTypes != nil {
 				for _, v := range *disallowed.DiskTypes {
-					disallowedDiskTypes = append(disallowedDiskTypes, v)
+					diskTypesNotAllowed = append(diskTypesNotAllowed, v)
 				}
 			}
 		}
-		d.Set("disallowed_disk_types", disallowedDiskTypes)
+		d.Set("disk_types_not_allowed", diskTypesNotAllowed)
 
 		if v := props.EndOfLifeDate; v != nil {
 			d.Set("end_of_life_date", props.EndOfLifeDate.Format(time.RFC3339))
@@ -579,15 +579,15 @@ func flattenGalleryImagePurchasePlan(input *compute.ImagePurchasePlan) []interfa
 }
 
 func expandGalleryImageDisallowed(d *pluginsdk.ResourceData) *compute.Disallowed {
-	disallowedDiskTypesRaw := d.Get("disallowed_disk_types").(*pluginsdk.Set).List()
+	diskTypesNotAllowedRaw := d.Get("disk_types_not_allowed").(*pluginsdk.Set).List()
 
-	disallowedDiskTypes := make([]string, 0)
-	for _, v := range disallowedDiskTypesRaw {
-		disallowedDiskTypes = append(disallowedDiskTypes, v.(string))
+	diskTypesNotAllowed := make([]string, 0)
+	for _, v := range diskTypesNotAllowedRaw {
+		diskTypesNotAllowed = append(diskTypesNotAllowed, v.(string))
 	}
 
 	return &compute.Disallowed{
-		DiskTypes: &disallowedDiskTypes,
+		DiskTypes: &diskTypesNotAllowed,
 	}
 }
 

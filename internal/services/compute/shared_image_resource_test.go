@@ -172,14 +172,14 @@ func TestAccSharedImage_disallowedDiskTypes(t *testing.T) {
 	r := SharedImageResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithDisallowedDiskTypes(data),
+			Config: r.basicWithDiskTypesNotAllowed(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithDisallowedDiskTypesUpdated(data),
+			Config: r.basicWithDiskTypesNotAllowedUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -193,7 +193,7 @@ func TestAccSharedImage_disallowedDiskTypes(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithDisallowedDiskTypes(data),
+			Config: r.basicWithDiskTypesNotAllowed(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -652,7 +652,7 @@ resource "azurerm_shared_image" "test" {
 `, data.Locations.Primary, data.RandomInteger)
 }
 
-func (SharedImageResource) basicWithDisallowedDiskTypes(data acceptance.TestData) string {
+func (SharedImageResource) basicWithDiskTypesNotAllowed(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -676,7 +676,7 @@ resource "azurerm_shared_image" "test" {
   location            = azurerm_resource_group.test.location
   os_type             = "Linux"
 
-  disallowed_disk_types = [
+  disk_types_not_allowed = [
     "Standard_LRS",
   ]
 
@@ -689,7 +689,7 @@ resource "azurerm_shared_image" "test" {
 `, data.Locations.Primary, data.RandomInteger)
 }
 
-func (SharedImageResource) basicWithDisallowedDiskTypesUpdated(data acceptance.TestData) string {
+func (SharedImageResource) basicWithDiskTypesNotAllowedUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -713,7 +713,7 @@ resource "azurerm_shared_image" "test" {
   location            = azurerm_resource_group.test.location
   os_type             = "Linux"
 
-  disallowed_disk_types = [
+  disk_types_not_allowed = [
     "Standard_LRS",
     "Premium_LRS",
   ]

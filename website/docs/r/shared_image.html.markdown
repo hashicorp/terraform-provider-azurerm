@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description of this Shared Image.
 
-* `disallowed_disk_types` - (Optional) One or more Disk Types disallowed for the Image. Possible values include `Standard_LRS` and `Premium_LRS`.
+* `disk_types_not_allowed` - (Optional) One or more Disk Types not allowed for the Image. Possible values include `Standard_LRS` and `Premium_LRS`.
 
 * `end_of_life_date` - (Optional) The end of life date in RFC3339 format of the Image.
 
