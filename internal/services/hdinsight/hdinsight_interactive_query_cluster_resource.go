@@ -82,6 +82,8 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"disk_encryption_properties": SchemaHDInsightsDiskEncryptionProperties(),
+
 			"component_version": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -230,6 +232,11 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 		Identity: identity,
 	}
 
+	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption_properties"); ok {
+		diskEncryptionProperties := ExpandHDInsightDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		params.Properties.DiskEncryptionProperties = diskEncryptionProperties
+	}
+
 	if v, ok := d.GetOk("security_profile"); ok {
 		params.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
 
@@ -343,6 +350,10 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 
 			if props.EncryptionInTransitProperties != nil {
 				d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
+			}
+
+			if err = d.Set("disk_encryption_properties", FlattenHDInsightDiskEncryptionProperties(*props.DiskEncryptionProperties)); err != nil {
+				return fmt.Errorf("failed setting `disk_encryption_properties`: %+v", err)
 			}
 
 			if props.NetworkProperties != nil {

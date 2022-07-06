@@ -642,6 +642,112 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 	}
 }
 
+type DiskEncryptionProperties struct {
+	EncryptionAlgorithm string `tfschema:"encryption_algorithm"`
+	EncryptionAtHost    bool   `tfschema:"encryption_at_host"`
+	KeyName             string `tfschema:"key_name"`
+	KeyVersion          string `tfschema:"key_version"`
+	MsiResourceId       string `tfschema:"msi_resource_id"`
+	VaultUri            string `tfschema:"vault_uri"`
+}
+
+func SchemaHDInsightsDiskEncryptionProperties() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"encryption_algorithm": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(hdinsight.JSONWebKeyEncryptionAlgorithmRSA15),
+						string(hdinsight.JSONWebKeyEncryptionAlgorithmRSAOAEP),
+						string(hdinsight.JSONWebKeyEncryptionAlgorithmRSAOAEP256),
+					}, false),
+				},
+
+				"encryption_at_host": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+
+				"key_name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"key_version": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"msi_resource_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+				},
+
+				"vault_uri": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func ExpandHDInsightDiskEncryptionProperties(input []interface{}) *hdinsight.DiskEncryptionProperties {
+	v := input[0].(map[string]interface{})
+
+	encryptionAlgorithm := v["encryption_algorithm"].(string)
+	encryptionAtHost := v["encryption_at_host"].(bool)
+	keyName := v["key_name"].(string)
+	keyVersion := v["key_version"].(string)
+	msiResourceId := v["msi_resource_id"].(string)
+	vaultUri := v["vault_uri"].(string)
+
+	return &hdinsight.DiskEncryptionProperties{
+		EncryptionAlgorithm: hdinsight.JSONWebKeyEncryptionAlgorithm(encryptionAlgorithm),
+		EncryptionAtHost:    &encryptionAtHost,
+		KeyName:             &keyName,
+		KeyVersion:          &keyVersion,
+		MsiResourceID:       &msiResourceId,
+		VaultURI:            &vaultUri,
+	}
+}
+
+func FlattenHDInsightDiskEncryptionProperties(input hdinsight.DiskEncryptionProperties) []interface{} {
+	var encryptionAlgorithm string
+	var encryptionAtHost bool
+	var keyName string
+	var keyVersion string
+	var msiResourceId string
+	var vaultUri string
+
+	if input.EncryptionAtHost != nil {
+		encryptionAtHost = *input.EncryptionAtHost
+	}
+	encryptionAlgorithm = string(input.EncryptionAlgorithm)
+	keyName = *input.KeyName
+	keyVersion = *input.KeyVersion
+	msiResourceId = *input.MsiResourceID
+	vaultUri = *input.VaultURI
+
+	return []interface{}{
+		map[string]interface{}{
+			"encryption_algorithm": encryptionAlgorithm,
+			"encryption_at_host":   encryptionAtHost,
+			"key_name":             keyName,
+			"key_version":          keyVersion,
+			"msi_resource_id":      msiResourceId,
+			"vault_uri":            vaultUri,
+		},
+	}
+}
+
 // ExpandHDInsightsStorageAccounts returns an array of StorageAccount structs, as well as a ClusterIdentity
 // populated with any managed identities required for accessing Data Lake Gen2 storage.
 func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageAccounts []interface{}) (*[]hdinsight.StorageAccount, *hdinsight.ClusterIdentity, error) {

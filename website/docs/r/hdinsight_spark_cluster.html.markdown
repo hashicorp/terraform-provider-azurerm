@@ -251,7 +251,23 @@ A `zookeeper_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
---- 
+---
+
+A `display_encryption_properties` block supports the following:
+
+* `encryption_algorithm` - (Optional) This is an algorithm identifier for encryption. Possible values are `RSA1_5`, `RSA-OAEP`, `RSA-OAEP-256`.
+
+* `encryption_at_host` - (Optional) This is indicator to show whether resource disk encryption is enabled.
+
+* `key_name` - (Optional) This is the name of key used for enabling disk encryption.
+
+* `key_version` - (Optional) This is the specific version of the key used for enabling disk encryption.
+
+* `msi_resource_id` - (Optional) This is the resource ID of Managed Identity used to access the key vault.
+
+* `vault_uri` - (Optional) this is the base key vault URI where the customers key is located.
+
+---
 
 A `metastores` block supports the following:
 
