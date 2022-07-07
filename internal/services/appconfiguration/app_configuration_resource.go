@@ -70,6 +70,12 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"public_network_access": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  nil,
+			},
+
 			"primary_read_key": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -192,8 +198,12 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		return tf.ImportAsExistsError("azurerm_app_configuration", resourceId.ID())
 	}
 
+	publicNetworkAccessValue, nil := parsePublicNetworkAccess(d.Get("public_network_access").(string))
+
 	parameters := configurationstores.ConfigurationStore{
 		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Properties: &configurationstores.ConfigurationStoreProperties{
+			PublicNetworkAccess: publicNetworkAccessValue},
 		Sku: configurationstores.Sku{
 			Name: d.Get("sku").(string),
 		},
@@ -214,6 +224,20 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceAppConfigurationRead(d, meta)
 }
 
+func parsePublicNetworkAccess(input string) (*configurationstores.PublicNetworkAccess, error) {
+	vals := map[string]configurationstores.PublicNetworkAccess{
+		"disabled": configurationstores.PublicNetworkAccessDisabled,
+		"enabled":  configurationstores.PublicNetworkAccessEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := configurationstores.PublicNetworkAccess(input)
+	return &out, nil
+}
+
 func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -225,7 +249,10 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
+	publicNetworkAccessValue, nil := parsePublicNetworkAccess(d.Get("public_network_access").(string))
 	parameters := configurationstores.ConfigurationStoreUpdateParameters{
+		Properties: &configurationstores.ConfigurationStorePropertiesUpdateParameters{
+			PublicNetworkAccess: publicNetworkAccessValue},
 		Sku: &configurationstores.Sku{
 			Name: d.Get("sku").(string),
 		},
@@ -281,6 +308,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
+			d.Set("public_network_access", props.PublicNetworkAccess)
 		}
 
 		accessKeys := flattenAppConfigurationAccessKeys(resultPage.Items)
