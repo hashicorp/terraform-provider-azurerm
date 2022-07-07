@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2
 ```go
 client := applicationinsights.NewApplicationInsightsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := applicationinsights.NewWorkbookTemplateID("12345678-1234-9876-4563-1234567
 payload := applicationinsights.WorkbookTemplate{
 	// ...
 }
+
 
 read, err := client.WorkbookTemplatesCreateOrUpdate(ctx, id, payload)
 if err != nil {
@@ -48,6 +46,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := applicationinsights.NewWorkbookTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+
 read, err := client.WorkbookTemplatesDelete(ctx, id)
 if err != nil {
 	// handle the error
@@ -63,6 +62,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := applicationinsights.NewWorkbookTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+
 read, err := client.WorkbookTemplatesGet(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +78,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := applicationinsights.NewResourceGroupID()
+
 read, err := client.WorkbookTemplatesListByResourceGroup(ctx, id)
 if err != nil {
 	// handle the error
@@ -97,6 +98,7 @@ id := applicationinsights.NewWorkbookTemplateID("12345678-1234-9876-4563-1234567
 payload := applicationinsights.WorkbookTemplateUpdateParameters{
 	// ...
 }
+
 
 read, err := client.WorkbookTemplatesUpdate(ctx, id, payload)
 if err != nil {
