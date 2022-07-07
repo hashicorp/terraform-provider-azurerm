@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/videoanalyzer/2021-05
 ```go
 client := videoanalyzer.NewVideoAnalyzerClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := videoanalyzer.NewAccessPoliciesID("12345678-1234-9876-4563-123456789012", 
 payload := videoanalyzer.AccessPolicyEntity{
 	// ...
 }
+
 
 read, err := client.AccessPoliciesCreateOrUpdate(ctx, id, payload)
 if err != nil {
@@ -48,6 +46,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := videoanalyzer.NewAccessPoliciesID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "accessPolicyValue")
+
 read, err := client.AccessPoliciesDelete(ctx, id)
 if err != nil {
 	// handle the error
@@ -63,6 +62,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := videoanalyzer.NewAccessPoliciesID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "accessPolicyValue")
+
 read, err := client.AccessPoliciesGet(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +78,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := videoanalyzer.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+
 // alternatively `client.AccessPoliciesList(ctx, id, videoanalyzer.DefaultAccessPoliciesListOperationOptions())` can be used to do batched pagination
 items, err := client.AccessPoliciesListComplete(ctx, id, videoanalyzer.DefaultAccessPoliciesListOperationOptions())
 if err != nil {
@@ -99,6 +100,7 @@ payload := videoanalyzer.AccessPolicyEntity{
 	// ...
 }
 
+
 read, err := client.AccessPoliciesUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
@@ -119,6 +121,7 @@ payload := videoanalyzer.EdgeModuleEntity{
 	// ...
 }
 
+
 read, err := client.EdgeModulesCreateOrUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
@@ -134,6 +137,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := videoanalyzer.NewEdgeModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "edgeModuleValue")
+
 read, err := client.EdgeModulesDelete(ctx, id)
 if err != nil {
 	// handle the error
@@ -149,6 +153,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := videoanalyzer.NewEdgeModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "edgeModuleValue")
+
 read, err := client.EdgeModulesGet(ctx, id)
 if err != nil {
 	// handle the error
@@ -164,6 +169,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := videoanalyzer.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+
 // alternatively `client.EdgeModulesList(ctx, id, videoanalyzer.DefaultEdgeModulesListOperationOptions())` can be used to do batched pagination
 items, err := client.EdgeModulesListComplete(ctx, id, videoanalyzer.DefaultEdgeModulesListOperationOptions())
 if err != nil {
@@ -185,6 +191,7 @@ payload := videoanalyzer.ListProvisioningTokenInput{
 	// ...
 }
 
+
 read, err := client.EdgeModulesListProvisioningToken(ctx, id, payload)
 if err != nil {
 	// handle the error
@@ -204,6 +211,7 @@ id := videoanalyzer.NewLocationID("12345678-1234-9876-4563-123456789012", "locat
 payload := videoanalyzer.CheckNameAvailabilityRequest{
 	// ...
 }
+
 
 read, err := client.LocationsCheckNameAvailability(ctx, id, payload)
 if err != nil {
@@ -225,6 +233,7 @@ payload := videoanalyzer.VideoAnalyzer{
 	// ...
 }
 
+
 read, err := client.VideoAnalyzersCreateOrUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
@@ -240,6 +249,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := videoanalyzer.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+
 read, err := client.VideoAnalyzersDelete(ctx, id)
 if err != nil {
 	// handle the error
@@ -255,6 +265,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := videoanalyzer.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+
 read, err := client.VideoAnalyzersGet(ctx, id)
 if err != nil {
 	// handle the error
@@ -270,6 +281,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := videoanalyzer.NewResourceGroupID()
+
 read, err := client.VideoAnalyzersList(ctx, id)
 if err != nil {
 	// handle the error
@@ -285,6 +297,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := videoanalyzer.NewSubscriptionID()
+
 read, err := client.VideoAnalyzersListBySubscription(ctx, id)
 if err != nil {
 	// handle the error
@@ -304,6 +317,7 @@ id := videoanalyzer.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "
 payload := videoanalyzer.SyncStorageKeysInput{
 	// ...
 }
+
 
 read, err := client.VideoAnalyzersSyncStorageKeys(ctx, id, payload)
 if err != nil {
@@ -325,6 +339,7 @@ payload := videoanalyzer.VideoAnalyzerUpdate{
 	// ...
 }
 
+
 read, err := client.VideoAnalyzersUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
@@ -345,6 +360,7 @@ payload := videoanalyzer.VideoEntity{
 	// ...
 }
 
+
 read, err := client.VideosCreateOrUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
@@ -360,6 +376,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := videoanalyzer.NewVideoID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "videoValue")
+
 read, err := client.VideosDelete(ctx, id)
 if err != nil {
 	// handle the error
@@ -375,6 +392,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := videoanalyzer.NewVideoID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "videoValue")
+
 read, err := client.VideosGet(ctx, id)
 if err != nil {
 	// handle the error
@@ -390,6 +408,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := videoanalyzer.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
+
 // alternatively `client.VideosList(ctx, id, videoanalyzer.DefaultVideosListOperationOptions())` can be used to do batched pagination
 items, err := client.VideosListComplete(ctx, id, videoanalyzer.DefaultVideosListOperationOptions())
 if err != nil {
@@ -406,6 +425,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := videoanalyzer.NewVideoID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue", "videoValue")
+
 read, err := client.VideosListStreamingToken(ctx, id)
 if err != nil {
 	// handle the error
@@ -425,6 +445,7 @@ id := videoanalyzer.NewVideoID("12345678-1234-9876-4563-123456789012", "example-
 payload := videoanalyzer.VideoEntity{
 	// ...
 }
+
 
 read, err := client.VideosUpdate(ctx, id, payload)
 if err != nil {

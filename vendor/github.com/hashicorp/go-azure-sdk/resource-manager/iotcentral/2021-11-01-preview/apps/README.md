@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01
 ```go
 client := apps.NewAppsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := apps.NewSubscriptionID()
 payload := apps.OperationInputs{
 	// ...
 }
+
 
 read, err := client.CheckNameAvailability(ctx, id, payload)
 if err != nil {
@@ -53,6 +51,7 @@ payload := apps.OperationInputs{
 	// ...
 }
 
+
 read, err := client.CheckSubdomainAvailability(ctx, id, payload)
 if err != nil {
 	// handle the error
@@ -73,11 +72,8 @@ payload := apps.App{
 	// ...
 }
 
-future, err := client.CreateOrUpdate(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -88,11 +84,8 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
-future, err := client.Delete(ctx, id)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
@@ -103,6 +96,7 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := apps.NewIotAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -118,6 +112,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := apps.NewResourceGroupID()
+
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
 if err != nil {
@@ -134,6 +129,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := apps.NewSubscriptionID()
+
 // alternatively `client.ListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id)
 if err != nil {
@@ -150,6 +146,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := apps.NewSubscriptionID()
+
 // alternatively `client.ListTemplates(ctx, id)` can be used to do batched pagination
 items, err := client.ListTemplatesComplete(ctx, id)
 if err != nil {
@@ -171,11 +168,8 @@ payload := apps.AppPatch{
 	// ...
 }
 
-future, err := client.Update(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```

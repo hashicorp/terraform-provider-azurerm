@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-0
 ```go
 client := geographichierarchies.NewGeographicHierarchiesClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -27,6 +24,7 @@ if err != nil {
 
 ```go
 ctx := context.TODO()
+
 
 read, err := client.GetDefault(ctx)
 if err != nil {
