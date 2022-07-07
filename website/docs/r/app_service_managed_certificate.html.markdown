@@ -15,7 +15,6 @@ This certificate can be used to secure custom domains on App Services (Windows a
 ## Example Usage
 
 ```hcl
-
 data "azurerm_dns_zone" "example" {
   name                = "mydomain.com"
   resource_group_name = azurerm_resource_group.example.name
@@ -55,6 +54,14 @@ resource "azurerm_dns_txt_record" "example" {
   record {
     value = azurerm_app_service.example.custom_domain_verification_id
   }
+}
+
+resource "azurerm_dns_cname_record" "example" {
+  name                = "example-adcr"
+  zone_name           = data.azurerm_dns_zone.example.name
+  resource_group_name = data.azurerm_dns_zone.example.resource_group_name
+  ttl                 = 300
+  record              = azurerm_app_service.example.default_site_hostname
 }
 
 resource "azurerm_app_service_custom_hostname_binding" "example" {

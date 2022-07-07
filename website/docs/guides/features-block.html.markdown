@@ -128,6 +128,8 @@ The `key_vault` block supports the following:
 
 * `purge_soft_deleted_secrets_on_destroy` - (Optional) Should the `azurerm_key_vault_secret` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
+* `purge_soft_deleted_hardware_security_modules_on_destroy` - (Optional) Should the `azurerm_key_vault_managed_hardware_security_module` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
 * `recover_soft_deleted_certificates` - (Optional) Should the `azurerm_key_vault_certificate` resource recover a Soft-Deleted Certificate? Defaults to `true`.
 
 * `recover_soft_deleted_key_vaults` - (Optional) Should the `azurerm_key_vault` resource recover a Soft-Deleted Key Vault? Defaults to `true`.

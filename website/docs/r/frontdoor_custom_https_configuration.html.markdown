@@ -30,9 +30,8 @@ data "azurerm_key_vault" "vault" {
 }
 
 resource "azurerm_frontdoor" "example" {
-  name                                         = "example-FrontDoor"
-  resource_group_name                          = azurerm_resource_group.example.name
-  enforce_backend_pools_certificate_name_check = false
+  name                = "example-FrontDoor"
+  resource_group_name = azurerm_resource_group.example.name
 
   routing_rule {
     name               = "exampleRoutingRule1"

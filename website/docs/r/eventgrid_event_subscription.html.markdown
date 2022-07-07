@@ -19,8 +19,8 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_storage_account" "default" {
-  name                     = "defaultStorageAccount"
+resource "azurerm_storage_account" "example" {
+  name                     = "exampleasa"
   resource_group_name      = azurerm_resource_group.example.name
   location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
@@ -31,18 +31,18 @@ resource "azurerm_storage_account" "default" {
   }
 }
 
-resource "azurerm_storage_queue" "default" {
-  name                 = "defaultStorageQueue"
-  storage_account_name = azurerm_storage_account.default.name
+resource "azurerm_storage_queue" "example" {
+  name                 = "example-astq"
+  storage_account_name = azurerm_storage_account.example.name
 }
 
-resource "azurerm_eventgrid_event_subscription" "default" {
-  name  = "defaultEventSubscription"
+resource "azurerm_eventgrid_event_subscription" "example" {
+  name  = "example-aees"
   scope = azurerm_resource_group.example.id
 
   storage_queue_endpoint {
-    storage_account_id = azurerm_storage_account.default.id
-    queue_name         = azurerm_storage_queue.default.name
+    storage_account_id = azurerm_storage_account.example.id
+    queue_name         = azurerm_storage_queue.example.name
   }
 }
 ```

@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `acl` - (Optional) One or more `acl` blocks as defined below.
 
-* `enabled_protocol` - (Optional) The protocol used for the share. Possible values are `SMB` and `NFS`. The `SBM` indicates the share can be accessed by SMBv3.0, SMBv2.1 and REST. The `NFS` indicates the share can be accessed by NFSv4.1. Defaults to `SMB`. Changing this forces a new resource to be created.
+* `enabled_protocol` - (Optional) The protocol used for the share. Possible values are `SMB` and `NFS`. The `SMB` indicates the share can be accessed by SMBv3.0, SMBv2.1 and REST. The `NFS` indicates the share can be accessed by NFSv4.1. Defaults to `SMB`. Changing this forces a new resource to be created.
 
 ~>**NOTE:** The `Premium` SKU of the `azurerm_storage_account` is required for the `NFS` protocol.
 

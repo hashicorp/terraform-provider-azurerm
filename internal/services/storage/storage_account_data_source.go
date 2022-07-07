@@ -38,6 +38,8 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
 			"account_kind": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -417,6 +419,14 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		storageAccountKeys := *accessKeys
 		d.Set("primary_access_key", storageAccountKeys[0].Value)
 		d.Set("secondary_access_key", storageAccountKeys[1].Value)
+	}
+
+	identity, err := flattenAzureRmStorageAccountIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

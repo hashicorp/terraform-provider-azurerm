@@ -59,6 +59,10 @@ The following attributes are exported:
 
 * `public_key_openssh` - The OpenSSH encoded public key of this Key Vault Key.
 
+* `resource_id` - The (Versioned) ID for this Key Vault Key. This property points to a specific version of a Key Vault Key, as such using this won't auto-rotate values if used in other Azure Services.
+
+* `resource_versionless_id` - The Versionless ID of the Key Vault Key. This property allows other Azure Services (that support it) to auto-rotate their value when the Key Vault Key is updated.
+
 * `tags` - A mapping of tags assigned to this Key Vault Key.
 
 * `version` - The current version of the Key Vault Key.

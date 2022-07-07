@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/sdk/2018-11-30/managedidentity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -67,7 +67,7 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 }
 
 func (r UserAssignedIdentityResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := managedidentity.ParseUserAssignedIdentitiesID(state.ID)
+	id, err := commonids.ParseUserAssignedIdentityID(state.ID)
 	if err != nil {
 		return nil, err
 	}

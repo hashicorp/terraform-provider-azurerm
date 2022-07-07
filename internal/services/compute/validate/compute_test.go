@@ -39,11 +39,11 @@ func TestSharedImageGalleryName(t *testing.T) {
 			ShouldError: true,
 		},
 		{
-			Input:       strings.Repeat("a", 79),
+			Input:       strings.Repeat("a", 80),
 			ShouldError: false,
 		},
 		{
-			Input:       strings.Repeat("a", 80),
+			Input:       strings.Repeat("a", 81),
 			ShouldError: true,
 		},
 	}
@@ -98,11 +98,11 @@ func TestSharedImageName(t *testing.T) {
 			ShouldError: false,
 		},
 		{
-			Input:       strings.Repeat("a", 79),
+			Input:       strings.Repeat("a", 80),
 			ShouldError: false,
 		},
 		{
-			Input:       strings.Repeat("a", 80),
+			Input:       strings.Repeat("a", 81),
 			ShouldError: true,
 		},
 	}
