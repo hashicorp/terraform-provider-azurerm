@@ -315,42 +315,6 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			"node_agent_sku_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-			"storage_image_reference": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"publisher": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"offer": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"sku": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"version": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
 			"task_scheduling_policy": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -958,7 +922,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if props.UserAccounts != nil {
 			userAccounts := make([]interface{}, 0)
 			for _, userAccount := range *props.UserAccounts {
-				userAccounts = append(userAccounts, flattenBatchPoolUserAccount(&userAccount))
+				userAccounts = append(userAccounts, flattenBatchPoolUserAccount(d, &userAccount))
 			}
 			d.Set("user_accounts", userAccounts)
 		}

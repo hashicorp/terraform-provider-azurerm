@@ -497,13 +497,13 @@ func TestAccBatchPool_fixedScaleUpdate(t *testing.T) {
 	})
 }
 
-func TestAccBatchPool_additionalSimpleProperties(t *testing.T) {
+func TestAccBatchPool_interNodeCommunicationWithTaskSchedulingPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.additional_simple_properties(data),
+			Config: r.inter_node_communication(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("inter_node_communication").HasValue("Disabled"),
@@ -549,6 +549,30 @@ func TestAccBatchPool_mountConfiguration(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_userAccounts(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userAccounts(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("user_accounts.0.name").HasValue("username1"),
+				check.That(data.ResourceName).Key("user_accounts.0.password").HasValue("<ExamplePassword>"),
+				check.That(data.ResourceName).Key("user_accounts.0.elevation_level").HasValue("Admin"),
+				check.That(data.ResourceName).Key("user_accounts.0.linux_user_configuration.0.ssh_private_key").HasValue("sshprivatekeyvalue"),
+				check.That(data.ResourceName).Key("user_accounts.0.linux_user_configuration.0.uid").HasValue("1234"),
+				check.That(data.ResourceName).Key("user_accounts.0.linux_user_configuration.0.gid").HasValue("4567"),
+			),
+		},
+		data.ImportStep(
+			"stop_pending_resize_operation",
+			"user_accounts.0.linux_user_configuration.0.ssh_private_key",
+		),
+	})
+}
+
 func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PoolID(state.ID)
 	if err != nil {
@@ -563,7 +587,7 @@ func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, 
 	return utils.Bool(resp.PoolProperties != nil), nil
 }
 
-func (BatchPoolResource) additional_simple_properties(data acceptance.TestData) string {
+func (BatchPoolResource) inter_node_communication(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -574,28 +598,12 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-# resource "azurerm_storage_account" "test" {
-#  name                     = "testsabatch%s"
-#  resource_group_name      = azurerm_resource_group.test.name
-#  location                 = azurerm_resource_group.test.location
-#  account_tier             = "Standard"
-#  account_replication_type = "LRS"
-# }
-
 resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-# storage_account_id  = azurerm_storage_account.test.id
   public_network_access_enabled = false
 }
-
-# resource "azurerm_batch_application" "test" {
-# name                = "acctestbatchapp-%d"
-# resource_group_name = azurerm_resource_group.test.name
-# account_name        = azurerm_batch_account.test.name
-# display_name        = "terraformtestapp"
-# }
 
 resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
@@ -621,7 +629,7 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) fixedScale_complete(data acceptance.TestData) string {
@@ -1916,4 +1924,53 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) userAccounts(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 18.04"
+  vm_size             = "Standard_A1"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-lts"
+    version   = "latest"
+  }
+
+  user_accounts {
+    name             = "username1"
+    password         = "<ExamplePassword>"
+    elevation_level   = "Admin"
+    linux_user_configuration {
+       ssh_private_key = "sshprivatekeyvalue"
+       uid           = 1234
+       gid           = 4567
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

@@ -157,6 +157,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						//This is a writeOnly option by service team and not able to perform GET only applicable when PUT
 						"node_deallocation_option": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
@@ -1372,7 +1373,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if props.UserAccounts != nil {
 			userAccounts := make([]interface{}, 0)
 			for _, userAccount := range *props.UserAccounts {
-				userAccounts = append(userAccounts, flattenBatchPoolUserAccount(&userAccount))
+				userAccounts = append(userAccounts, flattenBatchPoolUserAccount(d, &userAccount))
 			}
 			d.Set("user_accounts", userAccounts)
 		}
