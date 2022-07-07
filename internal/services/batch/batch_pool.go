@@ -84,7 +84,7 @@ func flattenBatchPoolUserAccount(d *pluginsdk.ResourceData, account *batch.UserA
 			linuxUserConfig["uid"] = *account.LinuxUserConfiguration.UID
 			linuxUserConfig["gid"] = *account.LinuxUserConfiguration.Gid
 		}
-		if account.LinuxUserConfiguration.SSHPrivateKey != nil {
+		if userAccountIndex > -1 {
 			if sshPrivateKey, ok := d.GetOk(fmt.Sprintf("user_accounts.%d.linux_user_configuration.0.ssh_private_key", userAccountIndex)); ok {
 				linuxUserConfig["ssh_private_key"] = sshPrivateKey
 			}

@@ -503,7 +503,7 @@ func TestAccBatchPool_interNodeCommunicationWithTaskSchedulingPolicy(t *testing.
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.inter_node_communication(data),
+			Config: r.interNodeCommunication(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("inter_node_communication").HasValue("Disabled"),
@@ -568,6 +568,7 @@ func TestAccBatchPool_userAccounts(t *testing.T) {
 		},
 		data.ImportStep(
 			"stop_pending_resize_operation",
+			"user_accounts.0.password",
 			"user_accounts.0.linux_user_configuration.0.ssh_private_key",
 		),
 	})
@@ -587,7 +588,7 @@ func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, 
 	return utils.Bool(resp.PoolProperties != nil), nil
 }
 
-func (BatchPoolResource) inter_node_communication(data acceptance.TestData) string {
+func (BatchPoolResource) interNodeCommunication(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
