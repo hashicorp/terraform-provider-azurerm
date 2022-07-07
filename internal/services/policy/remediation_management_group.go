@@ -103,10 +103,7 @@ func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resour
 	if err != nil {
 		return err
 	}
-	id := policyinsights.NewProviders2RemediationID(policyinsights.ManagementGroupsNamespaceTypeMicrosoftPointManagement,
-		managementID.Name,
-		d.Get("name").(string),
-	)
+	id := policyinsights.NewProviders2RemediationID(managementID.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.RemediationsGetAtManagementGroup(ctx, id)
