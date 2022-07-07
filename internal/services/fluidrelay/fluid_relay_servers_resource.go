@@ -74,6 +74,7 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 		"storage_sku": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			// todo remove computed when https://github.com/Azure/azure-rest-api-specs/issues/19700 is fixed
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(fluidrelayservers.PossibleValuesForStorageSKU(), false),
