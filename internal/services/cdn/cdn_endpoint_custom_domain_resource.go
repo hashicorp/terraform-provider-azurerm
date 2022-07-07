@@ -168,6 +168,8 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	// Enable https if specified
 	var params cdn.BasicCustomDomainHTTPSParameters
 	if v, ok := d.GetOk("user_managed_https"); ok {
@@ -200,8 +202,6 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 			return err
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceArmCdnEndpointCustomDomainRead(d, meta)
 }

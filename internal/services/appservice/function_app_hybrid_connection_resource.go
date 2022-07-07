@@ -7,15 +7,14 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/hybridconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	relayParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/hybridconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -221,7 +220,7 @@ func (r FunctionAppHybridConnectionResource) Read() sdk.ResourceFunc {
 
 			if appHybridConn.ServiceBusNamespace != "" && appHybridConn.SendKeyName != "" {
 				relayNamespaceClient := metadata.Client.Relay.NamespacesClient
-				relayId, err := relayParse.HybridConnectionID(appHybridConn.RelayId)
+				relayId, err := hybridconnections.ParseHybridConnectionID(appHybridConn.RelayId)
 				if err != nil {
 					return err
 				}

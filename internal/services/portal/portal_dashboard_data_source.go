@@ -10,10 +10,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -49,7 +49,7 @@ func dataSourcePortalDashboard() *pluginsdk.Resource {
 				Computed:  true,
 				StateFunc: utils.NormalizeJson,
 			},
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -121,7 +121,6 @@ func dataSourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("parsing JSON for Portal Dashboard Properties: %+v", err)
 	}
 	d.Set("dashboard_properties", string(v))
-	d.Set("tags", flattenTags(props.Tags))
 
-	return nil
+	return tags.FlattenAndSet(d, props.Tags)
 }

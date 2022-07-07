@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -50,7 +51,7 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"dashboard_properties": {
 				Type:      pluginsdk.TypeString,
@@ -84,7 +85,7 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	props := dashboard.Dashboard{
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	var dashboardProperties dashboard.DashboardProperties
@@ -138,7 +139,7 @@ func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("dashboard_properties", string(v))
 		}
 
-		return d.Set("tags", flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil
