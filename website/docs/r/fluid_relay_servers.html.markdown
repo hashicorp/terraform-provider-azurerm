@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `storage_sku` - (Optional) Sku of the storage associated with the resource, Possible values are `standard` and `basic`.
+* `storage_sku` - (Optional) Sku of the storage associated with the resource, Possible values are `standard` and `basic`. Changing this forces a new Fluid Relay Server to be created.
 
 ---
 
