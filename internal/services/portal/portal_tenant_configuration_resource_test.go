@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -82,12 +83,12 @@ func (r PortalTenantConfigurationResource) Exists(ctx context.Context, client *c
 		return nil, err
 	}
 
-	resp, err := client.Portal.TenantConfigurationsClient.Get(ctx)
+	resp, err := client.Portal.TenantConfigurationsClient.TenantConfigurationsGet(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.ConfigurationProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r PortalTenantConfigurationResource) basic(enforcePrivateMarkdownStorage bool) string {

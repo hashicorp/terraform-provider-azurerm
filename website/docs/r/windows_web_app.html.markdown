@@ -27,6 +27,7 @@ resource "azurerm_service_plan" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku_name            = "P1v2"
+  os_type             = "Windows"
 }
 
 resource "azurerm_windows_web_app" "example" {
@@ -417,7 +418,7 @@ A `scm_ip_restriction` block supports the following:
 
 A `site_config` block supports the following:
 
-* `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `false`.
+* `always_on` - (Optional) If this Windows Web App is Always On enabled. Defaults to `true`.
 
 * `api_management_api_id` - (Optional) The API Management API ID this Windows Web App Slot is associated with.
 
@@ -470,6 +471,8 @@ A `site_config` block supports the following:
 * `use_32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker.
 
 * `virtual_application` - (Optional) One or more `virtual_application` blocks as defined below.
+
+* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`. 
 

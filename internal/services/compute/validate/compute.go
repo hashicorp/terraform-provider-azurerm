@@ -17,7 +17,7 @@ func SharedImageGalleryName(v interface{}, k string) (warnings []string, errors 
 	}
 
 	length := len(value)
-	if length >= 80 {
+	if length > 80 {
 		errors = append(errors, fmt.Errorf("%s can be up to 80 characters, currently %d.", k, length))
 	}
 
@@ -33,7 +33,7 @@ func SharedImageName(v interface{}, k string) (warnings []string, errors []error
 	}
 
 	length := len(value)
-	if length >= 80 {
+	if length > 80 {
 		errors = append(errors, fmt.Errorf("%s can be up to 80 characters, currently %d.", k, length))
 	}
 

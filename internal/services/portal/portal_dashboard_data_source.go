@@ -3,15 +3,17 @@ package portal
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -47,7 +49,7 @@ func dataSourcePortalDashboard() *pluginsdk.Resource {
 				Computed:  true,
 				StateFunc: utils.NormalizeJson,
 			},
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -58,80 +60,67 @@ func dataSourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	displayName, displayNameOk := d.GetOk("display_name")
-	resourceGroup := d.Get("resource_group_name").(string)
 
-	var dashboard portal.Dashboard
+	id := dashboard.NewDashboardID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	props := dashboard.Dashboard{}
 
 	if !displayNameOk {
-		var err error
-		dashboard, err = client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if utils.ResponseWasNotFound(dashboard.Response) {
-				return fmt.Errorf("portal Dashboard %q was not found in Resource Group %q", name, resourceGroup)
+			if response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("%s was not found", id)
 			}
-			return fmt.Errorf("retrieving Portal Dashboard %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		if model := resp.Model; model != nil {
+			props = *model
 		}
 	} else {
-		dashboards := make([]portal.Dashboard, 0)
+		dashboards := make([]dashboard.Dashboard, 0)
 
-		iterator, err := client.ListByResourceGroupComplete(ctx, resourceGroup)
+		iterator, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName))
 		if err != nil {
-			if utils.ResponseWasNotFound(iterator.Response().Response) {
-				return fmt.Errorf("no Portal Dashboards were found for Resource Group %q", resourceGroup)
-			}
-			return fmt.Errorf("getting list of Portal Dashboards (Resource Group %q): %+v", resourceGroup, err)
+			return fmt.Errorf("getting list of Portal Dashboards for %s: %+v", id, err)
 		}
 
-		for iterator.NotDone() {
-			dashboard = iterator.Value()
+		log.Printf("portal_debug iterator: %+v", iterator.Items)
 
-			found := false
-			for k, v := range dashboard.Tags {
-				if k == "hidden-title" && *v == displayName {
-					found = true
+		for _, item := range iterator.Items {
+			tags := *item.Tags
+			for k, v := range tags {
+				if k == "hidden-title" && v == displayName {
+					dashboards = append(dashboards, item)
 					break
 				}
-			}
-
-			if found {
-				dashboards = append(dashboards, dashboard)
-			}
-			if err := iterator.NextWithContext(ctx); err != nil {
-				return err
 			}
 		}
 
 		if 1 > len(dashboards) {
-			return fmt.Errorf("no Portal Dashboards were found for Resource Group %q", resourceGroup)
+			return fmt.Errorf("no Portal Dashboards were found for %s", id)
 		}
 
 		if len(dashboards) > 1 {
-			return fmt.Errorf("multiple Portal Dashboards were found for Resource Group %q", resourceGroup)
+			return fmt.Errorf("multiple Portal Dashboards were found for %s", id)
 		}
 
-		dashboard = dashboards[0]
+		props = dashboards[0]
 	}
-
-	if dashboard.Name == nil {
-		return fmt.Errorf("portal Dashboard name is empty in Resource Group %s", resourceGroup)
-	}
-
-	id := parse.NewDashboardID(subscriptionId, resourceGroup, *dashboard.Name)
 
 	d.SetId(id.ID())
 
-	d.Set("name", name)
+	d.Set("name", id.DashboardName)
 	d.Set("display_name", displayName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(dashboard.Location))
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("location", location.Normalize(props.Location))
 
-	props, jsonErr := json.Marshal(dashboard.DashboardProperties)
-	if jsonErr != nil {
-		return fmt.Errorf("parsing JSON for Portal Dashboard Properties: %+v", jsonErr)
+	v, err := json.Marshal(props.Properties)
+	if err != nil {
+		return fmt.Errorf("parsing JSON for Portal Dashboard Properties: %+v", err)
 	}
-	d.Set("dashboard_properties", string(props))
+	d.Set("dashboard_properties", string(v))
 
-	return tags.FlattenAndSet(d, dashboard.Tags)
+	return tags.FlattenAndSet(d, props.Tags)
 }
