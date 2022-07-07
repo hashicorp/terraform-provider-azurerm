@@ -22,9 +22,7 @@ resource "azurerm_healthbot" "example" {
   name                = "example-bot"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku {
-    name = "F0"
-  }
+  sku_name            = "F0"
 }
 ```
 
@@ -39,7 +37,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies The Azure Region where the resource exists. CHanging this force a new resource to be created.
 
-* `sku_name` - (Required) The name which should be used for the SKU of the service. Possible values are "F0" and "S1".
+* `sku_name` - (Required) The name which should be used for the SKU of the service. Possible values are `F0` and `S1`.
 
 ---
 

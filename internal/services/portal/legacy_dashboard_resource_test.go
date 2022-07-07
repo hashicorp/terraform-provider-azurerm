@@ -49,7 +49,7 @@ func (LegacyDashboardResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, err
 	}
 
-	resp, err := clients.Portal.DashboardsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Portal.LegacyDashboardsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}

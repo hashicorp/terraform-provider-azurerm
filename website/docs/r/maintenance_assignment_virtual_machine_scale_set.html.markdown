@@ -50,30 +50,26 @@ resource "azurerm_lb" "example" {
 
   frontend_ip_configuration {
     name                 = "internal"
-    public_ip_address_id = azurerm_public_ip.test.id
+    public_ip_address_id = azurerm_public_ip.example.id
   }
 }
 
 resource "azurerm_lb_backend_address_pool" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "example"
+  loadbalancer_id = azurerm_lb.example.id
 }
 
 resource "azurerm_lb_probe" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "example"
-  port                = 22
-  protocol            = "Tcp"
+  name            = "example"
+  loadbalancer_id = azurerm_lb.example.id
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "example" {
   name                           = "example"
-  resource_group_name            = azurerm_resource_group.example.name
-  loadbalancer_id                = azurerm_lb.test.id
-  probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  loadbalancer_id                = azurerm_lb.example.id
+  probe_id                       = azurerm_lb_probe.example.id
   frontend_ip_configuration_name = "internal"
   protocol                       = "Tcp"
   frontend_port                  = 22
@@ -93,6 +89,34 @@ resource "azurerm_maintenance_configuration" "example" {
     duration             = "06:00"
     time_zone            = "Pacific Standard Time"
     recur_every          = "1Days"
+  }
+}
+
+resource "azurerm_network_interface" "example" {
+  name                = "sample-nic"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "example" {
+  name                = "example-machine"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+
+  network_interface_ids = [
+    azurerm_network_interface.example.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 }
 

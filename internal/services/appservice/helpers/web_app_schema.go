@@ -8,11 +8,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -1719,6 +1717,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 				"slow_request": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
+					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"time_taken": {
@@ -1927,6 +1926,7 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 				"slow_request": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
+					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"time_taken": {
@@ -2515,9 +2515,8 @@ func ConnectionStringSchema() *pluginsdk.Schema {
 						string(web.ConnectionStringTypeServiceBus),
 						string(web.ConnectionStringTypeSQLAzure),
 						string(web.ConnectionStringTypeSQLServer),
-					}, !features.ThreePointOhBeta()),
-					DiffSuppressFunc: suppress.CaseDifferenceV2Only,
-					Description:      "Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.",
+					}, false),
+					Description: "Type of database. Possible values include: `MySQL`, `SQLServer`, `SQLAzure`, `Custom`, `NotificationHub`, `ServiceBus`, `EventHub`, `APIHub`, `DocDb`, `RedisCache`, and `PostgreSQL`.",
 				},
 
 				"value": {
@@ -3857,6 +3856,17 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 		}
 	}
 
+	if len(triggers.SlowRequests) == 1 {
+		result.Triggers.SlowRequests = &web.SlowRequestsBasedTrigger{
+			TimeTaken:    utils.String(triggers.SlowRequests[0].TimeTaken),
+			TimeInterval: utils.String(triggers.SlowRequests[0].Interval),
+			Count:        utils.Int32(int32(triggers.SlowRequests[0].Count)),
+		}
+		if triggers.SlowRequests[0].Path != "" {
+			result.Triggers.SlowRequests.Path = utils.String(triggers.SlowRequests[0].Path)
+		}
+	}
+
 	if triggers.PrivateMemoryKB != 0 {
 		result.Triggers.PrivateBytesInKB = utils.Int32(int32(triggers.PrivateMemoryKB))
 	}
@@ -4028,6 +4038,17 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *web.A
 		result.Triggers.Requests = &web.RequestsBasedTrigger{
 			Count:        utils.Int32(int32(triggers.Requests[0].Count)),
 			TimeInterval: utils.String(triggers.Requests[0].Interval),
+		}
+	}
+
+	if len(triggers.SlowRequests) == 1 {
+		result.Triggers.SlowRequests = &web.SlowRequestsBasedTrigger{
+			TimeTaken:    utils.String(triggers.SlowRequests[0].TimeTaken),
+			TimeInterval: utils.String(triggers.SlowRequests[0].Interval),
+			Count:        utils.Int32(int32(triggers.SlowRequests[0].Count)),
+		}
+		if triggers.SlowRequests[0].Path != "" {
+			result.Triggers.SlowRequests.Path = utils.String(triggers.SlowRequests[0].Path)
 		}
 	}
 

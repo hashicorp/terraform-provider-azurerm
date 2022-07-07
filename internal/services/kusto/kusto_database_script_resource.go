@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2021-08-27/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,8 +98,9 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	locks.ByID(databaseId.ID())
-	defer locks.UnlockByID(databaseId.ID())
+	clusterId := parse.NewClusterID(databaseId.SubscriptionId, databaseId.ResourceGroup, databaseId.ClusterName)
+	locks.ByID(clusterId.ID())
+	defer locks.UnlockByID(clusterId.ID())
 
 	forceUpdateTag := d.Get("force_an_update_when_value_changed").(string)
 	if len(forceUpdateTag) == 0 {

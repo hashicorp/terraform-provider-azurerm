@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	purviewValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -278,7 +278,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			"purview_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: purviewValidate.AccountID,
+				ValidateFunc: account.ValidateAccountID,
 			},
 
 			"sql_identity_control_enabled": {
@@ -556,7 +556,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	if d.HasChanges("tags", "sql_administrator_login_password", "github_repo", "azure_devops_repo", "customer_managed_key") {
+	if d.HasChanges("tags", "sql_administrator_login_password", "github_repo", "azure_devops_repo", "customer_managed_key", "public_network_access_enabled") {
 		publicNetworkAccess := synapse.WorkspacePublicNetworkAccessEnabled
 		if !d.Get("public_network_access_enabled").(bool) {
 			publicNetworkAccess = synapse.WorkspacePublicNetworkAccessDisabled

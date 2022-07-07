@@ -141,6 +141,8 @@ A `vpn_link` block supports the following:
 
 * `policy_based_traffic_selector_enabled` - (Optional) Whether to enable policy-based traffic selectors? Defaults to `false`.
 
+* `custom_bgp_address` - (Optional) One or more `custom_bgp_address` blocks as defined below.
+
 ---
 
 A `routing` block supports the following:
@@ -164,6 +166,14 @@ A `propagated_route_table` block supports the following:
 * `route_table_ids` - (Required) A list of Route Table IDs to associated with this VPN Gateway Connection.
 
 * `labels` - (Optional) A list of labels to assign to this route table.
+
+---
+
+A `custom_bgp_address` block supports the following:
+
+* `ip_address` - (Required) The custom bgp ip address which belongs to the IP Configuration.
+
+* `ip_configuration_id` - (Required) The ID of the IP Configuration which belongs to the VPN Gateway.
 
 ## Attributes Reference
 

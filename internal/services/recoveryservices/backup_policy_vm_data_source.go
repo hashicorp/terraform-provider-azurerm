@@ -46,6 +46,10 @@ func dataSourceBackupPolicyVmRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("making Read request on Backup Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	if protectionPolicy.ID == nil || *protectionPolicy.ID == "" {
+		return fmt.Errorf("retrieving Backup Policy VM %q (Vault Name %q /Resource Group %q): ID was nil or empty", name, vaultName, resourceGroup)
+	}
+
 	id := strings.Replace(*protectionPolicy.ID, "Subscriptions", "subscriptions", 1)
 	d.SetId(id)
 

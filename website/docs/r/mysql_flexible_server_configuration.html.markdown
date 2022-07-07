@@ -28,8 +28,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_mysql_flexible_server" "example" {
   name                   = "example-fs"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.example.name
+  location               = azurerm_resource_group.example.location
   administrator_login    = "adminTerraform"
   administrator_password = "H@Sh1CoR3!"
   sku_name               = "GP_Standard_D2ds_v4"

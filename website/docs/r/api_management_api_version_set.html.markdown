@@ -13,6 +13,10 @@ Manages an API Version Set within an API Management Service.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -29,7 +33,7 @@ resource "azurerm_api_management" "example" {
 }
 
 resource "azurerm_api_management_api_version_set" "example" {
-  name                = "example-apimapi-1.0.0"
+  name                = "example-apimapi-1_0_0"
   resource_group_name = azurerm_resource_group.example.name
   api_management_name = azurerm_api_management.example.name
   display_name        = "ExampleAPIVersionSet"

@@ -14,6 +14,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 * [Authenticating to Azure using Managed Service Identity](managed_service_identity.html)
 * [Authenticating to Azure using a Service Principal and a Client Certificate](service_principal_client_certificate.html)
 * Authenticating to Azure using a Service Principal and a Client Secret (which is covered in this guide)
+* [Authenticating to Azure using a Service Principal and OpenID Connect](service_principal_oidc.html)
 
 ---
 
@@ -23,7 +24,7 @@ We recommend using either a Service Principal or Managed Service Identity when r
 
 A Service Principal is an application within Azure Active Directory whose authentication tokens can be used as the `client_id`, `client_secret`, and `tenant_id` fields needed by Terraform (`subscription_id` can be independently recovered from your Azure account details).
 
-It's possible to complete this task in either the [Azure CLI](#creating-a-service-principal-using-the-azure-cli) or in the [Azure Portal](#creating-a-service-principal-in-the-azure-portal) - in both we'll create a Service Principal which has `Contributor` rights to the subscription. [It's also possible to assign other rights](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles) depending on your configuration.
+It's possible to complete this task in either the [Azure CLI](#creating-a-service-principal-using-the-azure-cli) or in the [Azure Portal](#creating-a-service-principal-in-the-azure-portal) - in both we'll create a Service Principal which has `Contributor` rights to the subscription. [It's also possible to assign other rights](https://docs.microsoft.com/azure/role-based-access-control/built-in-roles) depending on your configuration.
 
 ### Creating a Service Principal using the Azure CLI
 
@@ -156,7 +157,7 @@ On this screen, we can generate a new Client Secret by clicking the **New client
 
 Once the Application exists in Azure Active Directory - we can grant it permissions to modify resources in the Subscription. To do this, [navigate to the **Subscriptions** blade within the Azure Portal](https://portal.azure.com/#blade/Microsoft_Azure_Billing/SubscriptionsBlade), then select the Subscription you wish to use, then click **Access Control (IAM)**, and finally **Add** > **Add role assignment**.
 
-Firstly, specify a Role which grants the appropriate permissions needed for the Service Principal (for example, `Contributor` will grant Read/Write on all resources in the Subscription). There's more information about [the built in roles available here](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles).
+Firstly, specify a Role which grants the appropriate permissions needed for the Service Principal (for example, `Contributor` will grant Read/Write on all resources in the Subscription). There's more information about [the built in roles available here](https://docs.microsoft.com/azure/role-based-access-control/built-in-roles).
 
 Secondly, search for and select the name of the Service Principal created in Azure Active Directory to assign it this role - then press **Save**.
 

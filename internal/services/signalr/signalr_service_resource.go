@@ -482,6 +482,7 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice([]string{
 							"Free_F1",
 							"Standard_S1",
+							"Premium_P1",
 						}, false),
 					},
 

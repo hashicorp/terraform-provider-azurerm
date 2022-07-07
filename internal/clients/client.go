@@ -25,6 +25,7 @@ import (
 	cognitiveServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/client"
 	communication "github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/client"
 	compute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
+	confidentialledger "github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/client"
 	connections "github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/client"
 	consumption "github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/client"
 	containerServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
@@ -43,6 +44,7 @@ import (
 	disks "github.com/hashicorp/terraform-provider-azurerm/internal/services/disks/client"
 	dns "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/client"
 	domainservices "github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/client"
+	elastic "github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/client"
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
 	firewall "github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/client"
@@ -134,6 +136,7 @@ type Client struct {
 	Cognitive             *cognitiveServices.Client
 	Communication         *communication.Client
 	Compute               *compute.Client
+	ConfidentialLedger    *confidentialledger.Client
 	Connections           *connections.Client
 	Consumption           *consumption.Client
 	Containers            *containerServices.Client
@@ -152,6 +155,7 @@ type Client struct {
 	Disks                 *disks.Client
 	Dns                   *dns.Client
 	DomainServices        *domainservices.Client
+	Elastic               *elastic.Client
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
 	Firewall              *firewall.Client
@@ -245,6 +249,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Cognitive = cognitiveServices.NewClient(o)
 	client.Communication = communication.NewClient(o)
 	client.Compute = compute.NewClient(o)
+	client.ConfidentialLedger = confidentialledger.NewClient(o)
 	client.Connections = connections.NewClient(o)
 	client.Consumption = consumption.NewClient(o)
 	client.Containers = containerServices.NewClient(o)
@@ -263,6 +268,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Disks = disks.NewClient(o)
 	client.Dns = dns.NewClient(o)
 	client.DomainServices = domainservices.NewClient(o)
+	client.Elastic = elastic.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)
 	client.Firewall = firewall.NewClient(o)

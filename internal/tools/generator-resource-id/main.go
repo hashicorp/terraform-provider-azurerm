@@ -13,7 +13,6 @@ import (
 	"unicode"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 var packagesUsingAlias = map[string]struct{}{
@@ -204,11 +203,9 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 
 		// the RP shouldn't be transformed
 		if key == "providers" {
-			if features.ThreePointOh() {
-				r := regexp.MustCompile(`^Microsoft.[A-Z][A-Za-z]+$`)
-				if !r.MatchString(value) {
-					return nil, fmt.Errorf("the resource provider in the id must begin with upper case got: %s", value)
-				}
+			r := regexp.MustCompile(`^Microsoft.[A-Z][A-Za-z]+$`)
+			if !r.MatchString(value) {
+				return nil, fmt.Errorf("the resource provider in the id must begin with upper case got: %s", value)
 			}
 			continue
 		}

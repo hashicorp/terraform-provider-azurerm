@@ -36,8 +36,9 @@ resource "azurerm_api_management_api_operation" "example" {
 }
 
 resource "azurerm_api_management_api_operation_tag" "example" {
-  api_operation_id = azurerm_api_management_api_operation.example.id
   name             = "example-Tag"
+  api_operation_id = azurerm_api_management_api_operation.example.id
+  display_name     = "example-Tag"
 }
 ```
 
