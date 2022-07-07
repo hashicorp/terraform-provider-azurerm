@@ -586,7 +586,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 			Optional:   true,
 			MinItems:   1,
 			MaxItems:   1,
-			Deprecated: "`container_configuration` will be removed in favour of the property `deployment_configuration.virtual_machine_configuration.container_configuration` in version 4.0 of the AzureRM Provider.",
+			Deprecated: "de",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
@@ -735,7 +735,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 										Schema: map[string]*pluginsdk.Schema{
 											"type": {
 												Type:         pluginsdk.TypeString,
-												Optional:     true,
+												Required:     true,
 												ValidateFunc: validation.StringIsNotEmpty,
 												AtLeastOneOf: []string{
 													"deployment_configuration.0.virtual_machine_configuration.0.container_configuration.0.type",
