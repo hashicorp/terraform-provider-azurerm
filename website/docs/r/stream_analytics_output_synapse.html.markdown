@@ -45,16 +45,20 @@ resource "azurerm_synapse_workspace" "example" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.example.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_stream_analytics_output_synapse" "example" {
   name                      = "example-output-synapse"
-  stream_analytics_job_name = azurerm_stream_analytics_job.example.name
-  resource_group_name       = azurerm_stream_analytics_job.example.resource_group_name
+  stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
+  resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
 
-  server   = azurerm_synapse_workspace.test.connectivity_endpoints["sqlOnDemand"]
-  user     = azurerm_synapse_workspace.test.sql_administrator_login
-  password = azurerm_synapse_workspace.test.sql_administrator_login_password
+  server   = azurerm_synapse_workspace.example.connectivity_endpoints["sqlOnDemand"]
+  user     = azurerm_synapse_workspace.example.sql_administrator_login
+  password = azurerm_synapse_workspace.example.sql_administrator_login_password
   database = "master"
   table    = "ExampleTable"
 }

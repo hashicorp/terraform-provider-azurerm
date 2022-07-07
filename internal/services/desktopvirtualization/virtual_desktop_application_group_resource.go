@@ -6,15 +6,18 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2021-09-03-preview/desktopvirtualization"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/applicationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/desktop"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -38,7 +41,7 @@ func resourceVirtualDesktopApplicationGroup() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ApplicationGroupID(id)
+			_, err := applicationgroup.ParseApplicationGroupID(id)
 			return err
 		}),
 
@@ -70,15 +73,15 @@ func resourceVirtualDesktopApplicationGroup() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(desktopvirtualization.ApplicationGroupTypeDesktop),
-					string(desktopvirtualization.ApplicationGroupTypeRemoteApp),
+					string(applicationgroup.ApplicationGroupTypeDesktop),
+					string(applicationgroup.ApplicationGroupTypeRemoteApp),
 				}, false),
 			},
 
 			"host_pool_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.HostPoolID,
+				ValidateFunc: hostpool.ValidateHostPoolID,
 			},
 
 			"friendly_name": {
@@ -99,7 +102,7 @@ func resourceVirtualDesktopApplicationGroup() *pluginsdk.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 512),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -119,62 +122,64 @@ func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewApplicationGroupID(subscriptionId, resourceGroup, name).ID()
+	id := applicationgroup.NewApplicationGroupID(subscriptionId, resourceGroup, name)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Virtual Desktop Application Group %q (Resource Group %q): %s", name, resourceGroup, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ApplicationGroupProperties != nil {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_application_group", resourceId)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_application_group", id.ID())
 		}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	context := desktopvirtualization.ApplicationGroup{
+	payload := applicationgroup.ApplicationGroup{
 		Location: &location,
 		Tags:     tags.Expand(t),
-		ApplicationGroupProperties: &desktopvirtualization.ApplicationGroupProperties{
-			ApplicationGroupType: desktopvirtualization.ApplicationGroupType(d.Get("type").(string)),
+		Properties: applicationgroup.ApplicationGroupProperties{
+			ApplicationGroupType: applicationgroup.ApplicationGroupType(d.Get("type").(string)),
 			FriendlyName:         utils.String(d.Get("friendly_name").(string)),
 			Description:          utils.String(d.Get("description").(string)),
-			HostPoolArmPath:      utils.String(d.Get("host_pool_id").(string)),
+			HostPoolArmPath:      d.Get("host_pool_id").(string),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, context); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating Virtual Desktop Application Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if desktopvirtualization.ApplicationGroupType(d.Get("type").(string)) == desktopvirtualization.ApplicationGroupTypeDesktop {
+	if applicationgroup.ApplicationGroupType(d.Get("type").(string)) == applicationgroup.ApplicationGroupTypeDesktop {
 		if desktopFriendlyName := utils.String(d.Get("default_desktop_display_name").(string)); desktopFriendlyName != nil {
 			desktopClient := meta.(*clients.Client).DesktopVirtualization.DesktopsClient
 			// default desktop name created for Application Group is 'sessionDesktop'
-			desktop, err := desktopClient.Get(ctx, resourceGroup, name, "sessionDesktop")
+			desktopId := desktop.NewDesktopID(id.SubscriptionId, id.ResourceGroupName, id.ApplicationGroupName, "sessionDesktop")
+			model, err := desktopClient.Get(ctx, desktopId)
 			if err != nil {
-				if !utils.ResponseWasNotFound(desktop.Response) {
-					return fmt.Errorf("checking for presence of default desktop in Application Group %q (Resource Group %q): %s", name, resourceGroup, err)
+				if !response.WasNotFound(model.HttpResponse) {
+					return fmt.Errorf("retrieving default desktop for %s: %+v", id, err)
 				}
 			}
 
-			desktopPatch := desktopvirtualization.DesktopPatch{
-				DesktopPatchProperties: &desktopvirtualization.DesktopPatchProperties{
+			desktopPatch := desktop.DesktopPatch{
+				Properties: &desktop.DesktopPatchProperties{
 					FriendlyName: desktopFriendlyName,
 				},
 			}
 
-			if _, err := desktopClient.Update(ctx, resourceGroup, name, "sessionDesktop", &desktopPatch); err != nil {
-				return fmt.Errorf("setting default desktop friendly name for Application Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+			if _, err := desktopClient.Update(ctx, desktopId, desktopPatch); err != nil {
+				return fmt.Errorf("setting friendly name for default desktop %s: %+v", id, err)
 			}
 		}
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id.ID())
+
 	return resourceVirtualDesktopApplicationGroupRead(d, meta)
 }
 
@@ -183,75 +188,78 @@ func resourceVirtualDesktopApplicationGroupRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApplicationGroupID(d.Id())
+	id, err := applicationgroup.ParseApplicationGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Virtual Desktop Application Group %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Virtual Desktop Application Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ApplicationGroupName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	if props := resp.ApplicationGroupProperties; props != nil {
+		props := model.Properties
+
 		d.Set("friendly_name", props.FriendlyName)
 		d.Set("description", props.Description)
 		d.Set("type", string(props.ApplicationGroupType))
-		if props.ApplicationGroupType == desktopvirtualization.ApplicationGroupTypeDesktop {
+		defaultDesktopDisplayName := ""
+		if props.ApplicationGroupType == applicationgroup.ApplicationGroupTypeDesktop {
 			desktopClient := meta.(*clients.Client).DesktopVirtualization.DesktopsClient
 			// default desktop name created for Application Group is 'sessionDesktop'
-			desktop, err := desktopClient.Get(ctx, id.ResourceGroup, id.Name, "sessionDesktop")
-			// if the default desktop was found then set the display name attribute
-			if err == nil {
-				if desktopProps := desktop.DesktopProperties; desktopProps != nil {
-					d.Set("default_desktop_display_name", desktopProps.FriendlyName)
+			desktopId := desktop.NewDesktopID(id.SubscriptionId, id.ResourceGroupName, id.ApplicationGroupName, "sessionDesktop")
+			desktopResp, err := desktopClient.Get(ctx, desktopId)
+			if err != nil {
+				if !response.WasNotFound(desktopResp.HttpResponse) {
+					return fmt.Errorf("retrieving default desktop for %s: %+v", *id, err)
 				}
 			}
-		}
-
-		hostPoolIdStr := ""
-		if props.HostPoolArmPath != nil {
-			hostPoolId, err := parse.HostPoolIDInsensitively(*props.HostPoolArmPath)
-			if err != nil {
-				return fmt.Errorf("parsing Host Pool ID %q: %+v", *props.HostPoolArmPath, err)
+			// if the default desktop was found then set the display name attribute
+			if desktopModel := desktopResp.Model; desktopModel != nil && desktopModel.Properties != nil && desktopModel.Properties.FriendlyName != nil {
+				defaultDesktopDisplayName = *desktopModel.Properties.FriendlyName
 			}
-
-			hostPoolIdStr = hostPoolId.ID()
 		}
-		d.Set("host_pool_id", hostPoolIdStr)
+		d.Set("default_desktop_display_name", defaultDesktopDisplayName)
+
+		hostPoolId, err := hostpool.ParseHostPoolIDInsensitively(props.HostPoolArmPath)
+		if err != nil {
+			return fmt.Errorf("parsing Host Pool ID %q: %+v", props.HostPoolArmPath, err)
+		}
+		d.Set("host_pool_id", hostPoolId.ID())
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceVirtualDesktopApplicationGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
 
-	id, err := parse.ApplicationGroupID(d.Id())
+	id, err := applicationgroup.ParseApplicationGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Name, applicationGroupType)
-	defer locks.UnlockByName(id.Name, applicationGroupType)
+	locks.ByName(id.ApplicationGroupName, applicationGroupType)
+	defer locks.UnlockByName(id.ApplicationGroupName, applicationGroupType)
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting Virtual Desktop Application Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err = client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

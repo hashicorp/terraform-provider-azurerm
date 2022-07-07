@@ -38,8 +38,8 @@ resource "azurerm_storage_table" "example" {
 
 resource "azurerm_stream_analytics_output_table" "example" {
   name                      = "output-to-storage-table"
-  stream_analytics_job_name = azurerm_stream_analytics_job.example.name
-  resource_group_name       = azurerm_stream_analytics_job.example.resource_group_name
+  stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
+  resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
   storage_account_name      = azurerm_storage_account.example.name
   storage_account_key       = azurerm_storage_account.example.primary_access_key
   table                     = azurerm_storage_table.example.name

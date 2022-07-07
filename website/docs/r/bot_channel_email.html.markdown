@@ -34,9 +34,8 @@ resource "azurerm_bot_channel_email" "example" {
   bot_name            = azurerm_bot_channels_registration.example.name
   location            = azurerm_bot_channels_registration.example.location
   resource_group_name = azurerm_resource_group.example.name
-  client_id           = "exampleId"
-  client_secret       = "exampleSecret"
-  verification_token  = "exampleVerificationToken"
+  email_address       = "example.com"
+  email_password      = "123456"
 }
 ```
 
