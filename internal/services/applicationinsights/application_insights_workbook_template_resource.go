@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -383,11 +385,11 @@ func expandWorkbookTemplateGalleryModel(inputList []WorkbookTemplateGalleryModel
 	var outputList []applicationinsights.WorkbookTemplateGallery
 	for _, input := range inputList {
 		output := applicationinsights.WorkbookTemplateGallery{
-			Category:     &input.Category,
-			Name:         &input.Name,
-			Order:        &input.Order,
-			ResourceType: &input.ResourceType,
-			Type:         &input.Type,
+			Category:     utils.String(input.Category),
+			Name:         utils.String(input.Name),
+			Order:        utils.Int64(input.Order),
+			ResourceType: utils.String(input.ResourceType),
+			Type:         utils.String(input.Type),
 		}
 
 		outputList = append(outputList, output)
