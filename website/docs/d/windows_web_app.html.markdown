@@ -409,6 +409,8 @@ A `site_config` block exports the following:
 
 * `virtual_application` - A `virtual_application` block as defined below.
 
+* `vnet_route_all_enabled` - Are all outbound traffic to NAT Gateways, Network Security Groups and User Defined Routes applied?
+
 * `websockets_enabled` - Are Web Sockets enabled?
 
 * `windows_fx_version` - The string representation of the Windows FX Version.

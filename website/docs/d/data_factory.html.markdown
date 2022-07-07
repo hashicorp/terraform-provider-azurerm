@@ -43,6 +43,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 - `location` - The Azure Region where the Azure Data Factory exists.
 
+- `purview_id` - (Optional) The ID of purview account.
+
 - `tags` - A mapping of tags assigned to the Azure Data Factory.
 
 - `vsts_configuration` - A `vsts_configuration` block as defined below.

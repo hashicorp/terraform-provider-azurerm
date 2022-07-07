@@ -5,14 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2021-09-03-preview/desktopvirtualization"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -36,7 +38,7 @@ func resourceArmDesktopVirtualizationWorkspace() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.WorkspaceID(id)
+			_, err := workspace.ParseWorkspaceID(id)
 			return err
 		}),
 
@@ -69,7 +71,7 @@ func resourceArmDesktopVirtualizationWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 512),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -82,40 +84,37 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *pluginsdk.Resource
 
 	log.Printf("[INFO] preparing arguments for Virtual Desktop Workspace create/update")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resourceId := parse.NewWorkspaceID(subscriptionId, resourceGroup, name).ID()
+	id := workspace.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Virtual Desktop Workspace %q (Resource Group %q): %s", name, resourceGroup, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.WorkspaceProperties != nil {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace", resourceId)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace", id.ID())
 		}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	context := desktopvirtualization.Workspace{
+	payload := workspace.Workspace{
 		Location: &location,
 		Tags:     tags.Expand(t),
-		WorkspaceProperties: &desktopvirtualization.WorkspaceProperties{
+		Properties: &workspace.WorkspaceProperties{
 			Description:  utils.String(d.Get("description").(string)),
 			FriendlyName: utils.String(d.Get("friendly_name").(string)),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, context); err != nil {
-		return fmt.Errorf("creating Virtual Desktop Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id.ID())
 
 	return resourceArmDesktopVirtualizationWorkspaceRead(d, meta)
 }
@@ -125,52 +124,56 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WorkspaceID(d.Id())
+	id, err := workspace.ParseWorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Virtual Desktop Workspace %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Virtual Desktop Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.WorkspaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		if props := model.Properties; props != nil {
+			d.Set("description", props.Description)
+			d.Set("friendly_name", props.FriendlyName)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	if props := resp.WorkspaceProperties; props != nil {
-		d.Set("description", props.Description)
-		d.Set("friendly_name", props.FriendlyName)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmDesktopVirtualizationWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 
-	id, err := parse.WorkspaceID(d.Id())
+	id, err := workspace.ParseWorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Name, workspaceResourceType)
-	defer locks.UnlockByName(id.Name, workspaceResourceType)
+	locks.ByName(id.WorkspaceName, workspaceResourceType)
+	defer locks.UnlockByName(id.WorkspaceName, workspaceResourceType)
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting Desktop Virtualization Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err = client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/botservice/mgmt/2021-03-01/botservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2021-05-01-preview/botservice"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -36,7 +36,7 @@ func testAccBotChannelAlexa_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_alexa", "test")
 	r := BotChannelAlexaResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -15,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -217,7 +218,7 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: msivalidate.UserAssignedIdentityID,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			Description:  "The User Assigned Identity to use for Key Vault access.",
 		},
 
@@ -350,7 +351,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			availabilityRequest := web.ResourceNameAvailabilityRequest{
-				Name: utils.String(functionAppSlot.Name),
+				Name: utils.String(fmt.Sprintf("%s-%s", id.SiteName, id.SlotName)),
 				Type: web.CheckNameResourceTypesMicrosoftWebsites,
 			}
 
@@ -573,6 +574,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				Tags:                        tags.ToTypedObject(functionAppSlot.Tags),
 				Kind:                        utils.NormalizeNilableString(functionAppSlot.Kind),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
+				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 			}
 
 			configResp, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)

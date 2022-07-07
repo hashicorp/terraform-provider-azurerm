@@ -264,7 +264,7 @@ func resourceOrderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDeviceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("device_name").(string))
+	id := parse.NewOrderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("device_name").(string), "default")
 	if d.IsNewResource() {
 		// SDK method: Get(ctx context.Context, deviceName string, resourceGroupName string)
 		existing, err := client.Get(ctx, id.DataBoxEdgeDeviceName, id.ResourceGroup)

@@ -873,7 +873,69 @@ func TestAccLinuxWebAppSlot_withDocker(t *testing.T) {
 	})
 }
 
-// Attributes
+// Deployments
+
+func TestAccLinuxWebAppSlot_zipDeploy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zipDeploy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("zip_deploy_file"),
+	})
+}
+
+// Network tests
+
+func TestAccLinuxWebAppSlot_vNetIntegration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetIntegrationWebApp_withSubnetId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxWebAppSlot_vNetIntegrationUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetIntegrationWebApp_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegrationWebApp_withSubnetId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegrationWebApp_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 
 // Exists
 
@@ -1958,6 +2020,35 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
+func (r LinuxWebAppSlotResource) zipDeploy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  app_settings = {
+    WEBSITE_RUN_FROM_PACKAGE       = "1"
+    SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
+  }
+
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+  }
+
+  zip_deploy_file = "./testdata/msdocs-python-flask-webapp-quickstart-main.zip"
+}
+
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
 // Templates
 
 func (LinuxWebAppSlotResource) baseTemplate(data acceptance.TestData) string {
@@ -2078,4 +2169,85 @@ resource "azurerm_linux_web_app" "test" {
   site_config {}
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LinuxWebAppSlotResource) vNetIntegrationWebApp_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "subnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name                      = "acctestWAS-%[2]d"
+  app_service_id            = azurerm_linux_web_app.test.id
+  virtual_network_subnet_id = azurerm_subnet.test.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) vNetIntegrationWebApp_withSubnetId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "subnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name                      = "acctestWAS-%[2]d"
+  app_service_id            = azurerm_linux_web_app.test.id
+  virtual_network_subnet_id = azurerm_subnet.test.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
 }

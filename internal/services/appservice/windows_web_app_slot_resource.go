@@ -6,13 +6,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -45,6 +46,7 @@ type WindowsWebAppSlotModel struct {
 	PossibleOutboundIPAddresses   string                                `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                              `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential              `tfschema:"site_credential"`
+	ZipDeployFile                 string                                `tfschema:"zip_deploy_file"`
 	Tags                          map[string]string                     `tfschema:"tags"`
 }
 
@@ -134,7 +136,7 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: msivalidate.UserAssignedIdentityID,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"logs": helpers.LogsConfigSchema(),
@@ -142,6 +144,14 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"site_config": helpers.SiteConfigSchemaWindowsWebAppSlot(),
 
 		"storage_account": helpers.StorageAccountSchemaWindows(),
+
+		"zip_deploy_file": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` on the App in `app_settings`.",
+		},
 
 		"tags": tags.Schema(),
 	}
@@ -328,6 +338,12 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if webAppSlot.ZipDeployFile != "" {
+				if err = helpers.GetCredentialsAndPublishSlot(ctx, client, id.ResourceGroup, id.SiteName, webAppSlot.ZipDeployFile, id.SlotName); err != nil {
+					return err
+				}
+			}
+
 			return nil
 		},
 
@@ -455,6 +471,11 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			state.SiteConfig = helpers.FlattenSiteConfigWindowsAppSlot(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
+
+			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
+			if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
+				state.ZipDeployFile = deployFile
+			}
 
 			if err := metadata.Encode(&state); err != nil {
 				return fmt.Errorf("encoding: %+v", err)
@@ -626,6 +647,12 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
 				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate, id.SlotName); err != nil {
 					return fmt.Errorf("updating Storage Accounts for Windows %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("zip_deploy_file") || metadata.ResourceData.HasChange("zip_deploy_file") {
+				if err = helpers.GetCredentialsAndPublish(ctx, client, id.ResourceGroup, id.SiteName, state.ZipDeployFile); err != nil {
+					return err
 				}
 			}
 

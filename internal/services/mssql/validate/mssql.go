@@ -51,3 +51,15 @@ func ValidateMsSqlJobAgentName(i interface{}, k string) (_ []string, errors []er
 
 	return nil, nil
 }
+
+// ValidateMsSqlDNSAliasName
+// Server DNS Alias name cannot be empty or null. It can only be made
+//        up of lowercase letters 'a'-'z', the numbers 0-9 and the hyphen. The hyphen
+//        may not lead or trail in the name.
+func ValidateMsSqlDNSAliasName(i interface{}, k string) ([]string, []error) {
+	if m, regexErrs := validate.RegExHelper(i, k, `^[0-9a-z][-0-9a-z]{0,127}[0-9a-z]$`); !m {
+		return nil, append(regexErrs, fmt.Errorf("`%q` Server DNS Alias name cannot be empty or null. It can only be made up of lowercase letters 'a'-'z', the numbers 0-9 and the hyphen. The hyphen may not lead or trail in the name.", k))
+	}
+
+	return nil, nil
+}

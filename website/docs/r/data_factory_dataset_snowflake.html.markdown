@@ -32,8 +32,8 @@ resource "azurerm_data_factory_linked_service_snowflake" "example" {
 
 resource "azurerm_data_factory_dataset_snowflake" "example" {
   name                = "example"
-  data_factory_id     = azurerm_data_factory.test.id
-  linked_service_name = azurerm_data_factory_linked_service_snowflake.test.name
+  data_factory_id     = azurerm_data_factory.example.id
+  linked_service_name = azurerm_data_factory_linked_service_snowflake.example.name
 
   schema_name = "foo_schema"
   table_name  = "foo_table"
@@ -44,7 +44,7 @@ resource "azurerm_data_factory_dataset_snowflake" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Data Factory Dataset Snowflake. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Dataset Snowflake. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 

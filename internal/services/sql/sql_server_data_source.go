@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -19,7 +18,7 @@ func dataSourceSqlServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceArmSqlServerRead,
 
-		DeprecationMessage: features.DeprecatedInThreePointOh("The `azurerm_sql_server` data source is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_server` data source instead."),
+		DeprecationMessage: "The `azurerm_sql_server` data source is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_mssql_server` data source instead.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),

@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_storage_account" "example" {
-  name                = "example-storage-account"
+  name                = "example"
   resource_group_name = azurerm_resource_group.example.name
 
   location                 = azurerm_resource_group.example.location
@@ -29,7 +29,7 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                 = "examplecontainer"
-  storage_account_name = azurerm_storage_account.test.name
+  storage_account_name = azurerm_storage_account.example.name
 }
 
 resource "azurerm_resource_group_cost_management_export" "example" {
@@ -40,7 +40,7 @@ resource "azurerm_resource_group_cost_management_export" "example" {
   recurrence_period_end_date   = "2020-09-18T00:00:00Z"
 
   export_data_storage_location {
-    container_id     = azurerm_storage_container.test.resource_manager_id
+    container_id     = azurerm_storage_container.example.resource_manager_id
     root_folder_path = "/root/updated"
   }
 

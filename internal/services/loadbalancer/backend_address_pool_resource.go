@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -102,6 +102,14 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 			},
 
 			"backend_ip_configurations": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"inbound_nat_rules": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
@@ -311,6 +319,19 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, me
 		}
 		if err := d.Set("outbound_rules", outboundRules); err != nil {
 			return fmt.Errorf("setting `outbound_rules`: %v", err)
+		}
+
+		var inboundNATRules []string
+		if rules := props.InboundNatRules; rules != nil {
+			for _, rule := range *rules {
+				if rule.ID == nil {
+					continue
+				}
+				inboundNATRules = append(inboundNATRules, *rule.ID)
+			}
+		}
+		if err := d.Set("inbound_nat_rules", inboundNATRules); err != nil {
+			return fmt.Errorf("setting `inbound_nat_rules`: %v", err)
 		}
 	}
 

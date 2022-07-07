@@ -51,18 +51,9 @@ resource "azurerm_mssql_database" "test" {
   sku_name       = "S0"
   zone_redundant = true
 
-  extended_auditing_policy {
-    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
-    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
-    storage_account_access_key_is_secondary = true
-    retention_in_days                       = 6
-  }
-
-
   tags = {
     foo = "bar"
   }
-
 }
 ```
 
@@ -102,7 +93,7 @@ The following arguments are supported:
 
 * `max_size_gb` - (Optional) The max size of the database in gigabytes.
 
-~> **Note:** This value should not be configured when the `create_mode` is `Secondary` or `OnlineSecondary`, as the sizing of the primary is then used as per [Azure documentation](https://docs.microsoft.com/en-us/azure/azure-sql/database/single-database-scale#geo-replicated-database).
+~> **Note:** This value should not be configured when the `create_mode` is `Secondary` or `OnlineSecondary`, as the sizing of the primary is then used as per [Azure documentation](https://docs.microsoft.com/azure/azure-sql/database/single-database-scale#geo-replicated-database).
 
 * `min_capacity` - (Optional) Minimal capacity that database will always have allocated, if not paused. This property is only settable for General Purpose Serverless databases.
 

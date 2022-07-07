@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-01-02-preview/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -53,6 +53,13 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"capacity_reservation_group_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: computeValidate.CapacityReservationGroupID,
 					},
 
 					// TODO 4.0: change this from enable_* to *_enabled
@@ -755,6 +762,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 		profile.WorkloadRuntime = containerservice.WorkloadRuntime(workloadRunTime)
 	}
 
+	if capacityReservationGroupId := raw["capacity_reservation_group_id"].(string); capacityReservationGroupId != "" {
+		profile.CapacityReservationGroupID = utils.String(capacityReservationGroupId)
+	}
+
 	count := raw["node_count"].(int)
 	maxCount := raw["max_count"].(int)
 	minCount := raw["min_count"].(int)
@@ -1115,6 +1126,10 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 	if agentPool.VMSize != nil {
 		vmSize = *agentPool.VMSize
 	}
+	capacityReservationGroupId := ""
+	if agentPool.CapacityReservationGroupID != nil {
+		capacityReservationGroupId = *agentPool.CapacityReservationGroupID
+	}
 
 	workloadRunTime := ""
 	if agentPool.WorkloadRuntime != "" {
@@ -1128,38 +1143,39 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 	}
 
 	out := map[string]interface{}{
-		"enable_auto_scaling":          enableAutoScaling,
-		"enable_node_public_ip":        enableNodePublicIP,
-		"enable_host_encryption":       enableHostEncryption,
-		"fips_enabled":                 enableFIPS,
-		"kubelet_disk_type":            string(agentPool.KubeletDiskType),
-		"max_count":                    maxCount,
-		"max_pods":                     maxPods,
-		"message_of_day":               messageOfTheDay,
-		"min_count":                    minCount,
-		"name":                         name,
-		"node_count":                   count,
-		"node_labels":                  nodeLabels,
-		"node_public_ip_prefix_id":     nodePublicIPPrefixID,
-		"node_taints":                  []string{},
-		"os_disk_size_gb":              osDiskSizeGB,
-		"os_disk_type":                 string(osDiskType),
-		"os_sku":                       string(agentPool.OsSKU),
-		"scale_down_mode":              string(scaleDownMode),
-		"tags":                         tags.Flatten(agentPool.Tags),
-		"type":                         string(agentPool.Type),
-		"ultra_ssd_enabled":            enableUltraSSD,
-		"vm_size":                      vmSize,
-		"workload_runtime":             workloadRunTime,
-		"pod_subnet_id":                podSubnetId,
-		"orchestrator_version":         orchestratorVersion,
-		"proximity_placement_group_id": proximityPlacementGroupId,
-		"upgrade_settings":             upgradeSettings,
-		"vnet_subnet_id":               vnetSubnetId,
-		"only_critical_addons_enabled": criticalAddonsEnabled,
-		"kubelet_config":               flattenAgentPoolKubeletConfig(agentPool.KubeletConfig),
-		"linux_os_config":              linuxOSConfig,
-		"zones":                        zones.Flatten(agentPool.AvailabilityZones),
+		"enable_auto_scaling":           enableAutoScaling,
+		"enable_node_public_ip":         enableNodePublicIP,
+		"enable_host_encryption":        enableHostEncryption,
+		"fips_enabled":                  enableFIPS,
+		"kubelet_disk_type":             string(agentPool.KubeletDiskType),
+		"max_count":                     maxCount,
+		"max_pods":                      maxPods,
+		"message_of_day":                messageOfTheDay,
+		"min_count":                     minCount,
+		"name":                          name,
+		"node_count":                    count,
+		"node_labels":                   nodeLabels,
+		"node_public_ip_prefix_id":      nodePublicIPPrefixID,
+		"node_taints":                   []string{},
+		"os_disk_size_gb":               osDiskSizeGB,
+		"os_disk_type":                  string(osDiskType),
+		"os_sku":                        string(agentPool.OsSKU),
+		"scale_down_mode":               string(scaleDownMode),
+		"tags":                          tags.Flatten(agentPool.Tags),
+		"type":                          string(agentPool.Type),
+		"ultra_ssd_enabled":             enableUltraSSD,
+		"vm_size":                       vmSize,
+		"workload_runtime":              workloadRunTime,
+		"pod_subnet_id":                 podSubnetId,
+		"orchestrator_version":          orchestratorVersion,
+		"proximity_placement_group_id":  proximityPlacementGroupId,
+		"upgrade_settings":              upgradeSettings,
+		"vnet_subnet_id":                vnetSubnetId,
+		"only_critical_addons_enabled":  criticalAddonsEnabled,
+		"kubelet_config":                flattenAgentPoolKubeletConfig(agentPool.KubeletConfig),
+		"linux_os_config":               linuxOSConfig,
+		"zones":                         zones.Flatten(agentPool.AvailabilityZones),
+		"capacity_reservation_group_id": capacityReservationGroupId,
 	}
 
 	return &[]interface{}{

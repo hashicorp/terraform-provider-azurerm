@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshotpolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -156,17 +156,17 @@ func TestAccNetAppSnapshotPolicy_complete(t *testing.T) {
 }
 
 func (t NetAppSnapshotPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SnapshotPolicyID(state.ID)
+	id, err := snapshotpolicy.ParseSnapshotPoliciesID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.NetApp.SnapshotPoliciesClient.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
+	resp, err := clients.NetApp.SnapshotPoliciesClient.SnapshotPoliciesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Netapp SnapshotPolicy (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (NetAppSnapshotPolicyResource) basic(data acceptance.TestData) string {

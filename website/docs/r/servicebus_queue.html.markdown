@@ -49,9 +49,9 @@ The following arguments are supported:
 
 * `max_message_size_in_kilobytes` - (Optional) Integer value which controls the maximum size of
     a message allowed on the queue for Premium SKU. For supported values see the "Large messages support"
-    section of [this document](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-premium-messaging#large-messages-support-preview).
+    section of [this document](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-premium-messaging#large-messages-support-preview).
 
-* `max_size_in_megabytes` - (Optional) Integer value which controls the size of memory allocated for the queue. For supported values see the "Queue or topic size" section of [Service Bus Quotas](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas). Defaults to `1024`.
+* `max_size_in_megabytes` - (Optional) Integer value which controls the size of memory allocated for the queue. For supported values see the "Queue or topic size" section of [Service Bus Quotas](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas). Defaults to `1024`.
 
 * `requires_duplicate_detection` - (Optional) Boolean flag which controls whether the Queue requires duplicate detection. Changing this forces a new resource to be created. Defaults to `false`.
 
@@ -73,13 +73,13 @@ The following arguments are supported:
 
 * `enable_partitioning` - (Optional) Boolean flag which controls whether to enable the queue to be partitioned across multiple message brokers. Changing this forces a new resource to be created. Defaults to `false` for Basic and Standard. For Premium, it MUST be set to `true`.
 
--> **NOTE:** Partitioning is available at entity creation for all queues and topics in Basic or Standard SKUs. It is not available for the Premium messaging SKU, but any previously existing partitioned entities in Premium namespaces continue to work as expected. Please [see the documentation](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-partitioning) for more information.
+-> **NOTE:** Partitioning is available at entity creation for all queues and topics in Basic or Standard SKUs. It is not available for the Premium messaging SKU, but any previously existing partitioned entities in Premium namespaces continue to work as expected. Please [see the documentation](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-partitioning) for more information.
 
 * `enable_express` - (Optional) Boolean flag which controls whether Express Entities are enabled. An express queue holds a message in memory temporarily before writing it to persistent storage. Defaults to `false` for Basic and Standard. For Premium, it MUST be set to `false`.
 
 ~> **NOTE:** Service Bus Premium namespaces do not support Express Entities, so `enable_express` MUST be set to `false`.
 
-* `forward_to` - (Optional) The name of a Queue or Topic to automatically forward messages to. Please [see the documentation](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-auto-forwarding) for more information.
+* `forward_to` - (Optional) The name of a Queue or Topic to automatically forward messages to. Please [see the documentation](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-auto-forwarding) for more information.
 
 * `forward_dead_lettered_messages_to` - (Optional) The name of a Queue or Topic to automatically forward dead lettered messages to.
 

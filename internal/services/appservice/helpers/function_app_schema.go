@@ -976,7 +976,7 @@ type ApplicationStackLinuxFunctionApp struct {
 	DotNetIsolated        bool                     `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string                   `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`
 	PythonVersion         string                   `tfschema:"python_version"`              // Supported values `3.9`, `3.8`, `3.7`
-	PowerShellCoreVersion string                   `tfschema:"powershell_core_version"`     // Supported values are `7.0`
+	PowerShellCoreVersion string                   `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`
 	JavaVersion           string                   `tfschema:"java_version"`                // Supported values `8`, `11`
 	CustomHandler         bool                     `tfschema:"use_custom_runtime"`          // Supported values `true`
 	Docker                []ApplicationStackDocker `tfschema:"docker"`                      // Needs ElasticPremium or Basic (B1) Standard (S 1-3) or Premium(PxV2 or PxV3) LINUX Service Plan
@@ -987,7 +987,7 @@ type ApplicationStackWindowsFunctionApp struct {
 	DotNetIsolated        bool   `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`
 	JavaVersion           string `tfschema:"java_version"`                // Supported values `8`, `11`
-	PowerShellCoreVersion string `tfschema:"powershell_core_version"`     // Supported values are `7.0`
+	PowerShellCoreVersion string `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`
 	CustomHandler         bool   `tfschema:"use_custom_runtime"`          // Supported values `true`
 }
 
@@ -1085,6 +1085,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"7",
+						"7.2", // preview LTS Support
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1095,7 +1096,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of PowerShell Core to use. Possibles values are `7`.",
+					Description: "The version of PowerShell Core to use. Possibles values are `7`, and `7.2`",
 				},
 
 				"java_version": {
@@ -1344,6 +1345,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"7",
+						"7.2", // preview LTS Support
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1352,7 +1354,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The PowerShell Core version to use. Possible values are `7`.",
+					Description: "The PowerShell Core version to use. Possible values are `7`, and `7.2`",
 				},
 
 				"use_custom_runtime": {
@@ -1681,6 +1683,10 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.VnetRouteAllEnabled = utils.Bool(linuxSiteConfig.VnetRouteAllEnabled)
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
+		expanded.MinimumElasticInstanceCount = utils.Int32(int32(linuxSiteConfig.ElasticInstanceMinimum))
+	}
+
 	expanded.AppSettings = &appSettings
 
 	return expanded, nil
@@ -1911,6 +1917,10 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 
 	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
 		expanded.VnetRouteAllEnabled = utils.Bool(windowsSiteConfig.VnetRouteAllEnabled)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
+		expanded.MinimumElasticInstanceCount = utils.Int32(int32(windowsSiteConfig.ElasticInstanceMinimum))
 	}
 
 	expanded.AppSettings = &appSettings

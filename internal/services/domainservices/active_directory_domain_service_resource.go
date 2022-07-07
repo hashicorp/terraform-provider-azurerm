@@ -244,6 +244,16 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 				},
 			},
 
+			"domain_configuration_type": {
+				Type:     pluginsdk.TypeString,
+				ForceNew: true,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"FullySynced",
+					"ResourceTrusting",
+				}, false),
+			},
+
 			"tags": tags.Schema(),
 
 			"deployment_id": {
@@ -342,6 +352,10 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 		},
 		Location: utils.String(loc),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v := d.Get("domain_configuration_type").(string); v != "" {
+		domainService.DomainServiceProperties.DomainConfigurationType = &v
 	}
 
 	if d.IsNewResource() {
@@ -448,6 +462,7 @@ func resourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta in
 		d.Set("sync_owner", props.SyncOwner)
 		d.Set("tenant_id", props.TenantID)
 		d.Set("version", props.Version)
+		d.Set("domain_configuration_type", props.DomainConfigurationType)
 
 		d.Set("filtered_sync_enabled", false)
 		if props.FilteredSync == aad.FilteredSyncEnabled {
