@@ -387,6 +387,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
     }
   }
+
+  depends_on = [
+    azurerm_capacity_reservation.test,
+  ]
 }
 `, r.template(data), data.RandomInteger)
 }
