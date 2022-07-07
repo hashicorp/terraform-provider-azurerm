@@ -75,6 +75,7 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(fluidrelayservers.PossibleValuesForStorageSKU(), false),
 		},
 	}
