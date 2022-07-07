@@ -11,17 +11,15 @@ var _ resourceids.ResourceId = Providers2RemediationId{}
 
 // Providers2RemediationId is a struct representing the Resource ID for a Providers 2 Remediation
 type Providers2RemediationId struct {
-	ManagementGroupsNamespace ManagementGroupsNamespaceType
-	ManagementGroupId         string
-	RemediationName           string
+	ManagementGroupId string
+	RemediationName   string
 }
 
 // NewProviders2RemediationID returns a new Providers2RemediationId struct
-func NewProviders2RemediationID(managementGroupsNamespace ManagementGroupsNamespaceType, managementGroupId string, remediationName string) Providers2RemediationId {
+func NewProviders2RemediationID(managementGroupId string, remediationName string) Providers2RemediationId {
 	return Providers2RemediationId{
-		ManagementGroupsNamespace: managementGroupsNamespace,
-		ManagementGroupId:         managementGroupId,
-		RemediationName:           remediationName,
+		ManagementGroupId: managementGroupId,
+		RemediationName:   remediationName,
 	}
 }
 
@@ -35,18 +33,6 @@ func ParseProviders2RemediationID(input string) (*Providers2RemediationId, error
 
 	var ok bool
 	id := Providers2RemediationId{}
-
-	if v, ok := parsed.Parsed["managementGroupsNamespace"]; true {
-		if !ok {
-			return nil, fmt.Errorf("the segment 'managementGroupsNamespace' was not found in the resource id %q", input)
-		}
-
-		managementGroupsNamespace, err := parseManagementGroupsNamespaceType(v)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
-		}
-		id.ManagementGroupsNamespace = *managementGroupsNamespace
-	}
 
 	if id.ManagementGroupId, ok = parsed.Parsed["managementGroupId"]; !ok {
 		return nil, fmt.Errorf("the segment 'managementGroupId' was not found in the resource id %q", input)
@@ -70,18 +56,6 @@ func ParseProviders2RemediationIDInsensitively(input string) (*Providers2Remedia
 
 	var ok bool
 	id := Providers2RemediationId{}
-
-	if v, ok := parsed.Parsed["managementGroupsNamespace"]; true {
-		if !ok {
-			return nil, fmt.Errorf("the segment 'managementGroupsNamespace' was not found in the resource id %q", input)
-		}
-
-		managementGroupsNamespace, err := parseManagementGroupsNamespaceType(v)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
-		}
-		id.ManagementGroupsNamespace = *managementGroupsNamespace
-	}
 
 	if id.ManagementGroupId, ok = parsed.Parsed["managementGroupId"]; !ok {
 		return nil, fmt.Errorf("the segment 'managementGroupId' was not found in the resource id %q", input)
@@ -111,15 +85,15 @@ func ValidateProviders2RemediationID(input interface{}, key string) (warnings []
 
 // ID returns the formatted Providers 2 Remediation ID
 func (id Providers2RemediationId) ID() string {
-	fmtString := "/providers/%s/managementGroups/%s/providers/Microsoft.PolicyInsights/remediations/%s"
-	return fmt.Sprintf(fmtString, string(id.ManagementGroupsNamespace), id.ManagementGroupId, id.RemediationName)
+	fmtString := "/providers/Microsoft.Management/managementGroups/%s/providers/Microsoft.PolicyInsights/remediations/%s"
+	return fmt.Sprintf(fmtString, id.ManagementGroupId, id.RemediationName)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Providers 2 Remediation ID
 func (id Providers2RemediationId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
-		resourceids.ConstantSegment("managementGroupsNamespace", PossibleValuesForManagementGroupsNamespaceType(), "Microsoft.Management"),
+		resourceids.StaticSegment("managementGroupsNamespace", "Microsoft.Management", "Microsoft.Management"),
 		resourceids.StaticSegment("staticManagementGroups", "managementGroups", "managementGroups"),
 		resourceids.UserSpecifiedSegment("managementGroupId", "managementGroupIdValue"),
 		resourceids.StaticSegment("staticProviders2", "providers", "providers"),
@@ -132,7 +106,6 @@ func (id Providers2RemediationId) Segments() []resourceids.Segment {
 // String returns a human-readable description of this Providers 2 Remediation ID
 func (id Providers2RemediationId) String() string {
 	components := []string{
-		fmt.Sprintf("Management Groups Namespace: %q", string(id.ManagementGroupsNamespace)),
 		fmt.Sprintf("Management Group: %q", id.ManagementGroupId),
 		fmt.Sprintf("Remediation Name: %q", id.RemediationName),
 	}

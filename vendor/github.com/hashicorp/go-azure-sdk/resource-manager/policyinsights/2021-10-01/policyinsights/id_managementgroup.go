@@ -11,15 +11,13 @@ var _ resourceids.ResourceId = ManagementGroupId{}
 
 // ManagementGroupId is a struct representing the Resource ID for a Management Group
 type ManagementGroupId struct {
-	ManagementGroupsNamespace ManagementGroupsNamespaceType
-	ManagementGroupId         string
+	ManagementGroupId string
 }
 
 // NewManagementGroupID returns a new ManagementGroupId struct
-func NewManagementGroupID(managementGroupsNamespace ManagementGroupsNamespaceType, managementGroupId string) ManagementGroupId {
+func NewManagementGroupID(managementGroupId string) ManagementGroupId {
 	return ManagementGroupId{
-		ManagementGroupsNamespace: managementGroupsNamespace,
-		ManagementGroupId:         managementGroupId,
+		ManagementGroupId: managementGroupId,
 	}
 }
 
@@ -33,18 +31,6 @@ func ParseManagementGroupID(input string) (*ManagementGroupId, error) {
 
 	var ok bool
 	id := ManagementGroupId{}
-
-	if v, ok := parsed.Parsed["managementGroupsNamespace"]; true {
-		if !ok {
-			return nil, fmt.Errorf("the segment 'managementGroupsNamespace' was not found in the resource id %q", input)
-		}
-
-		managementGroupsNamespace, err := parseManagementGroupsNamespaceType(v)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
-		}
-		id.ManagementGroupsNamespace = *managementGroupsNamespace
-	}
 
 	if id.ManagementGroupId, ok = parsed.Parsed["managementGroupId"]; !ok {
 		return nil, fmt.Errorf("the segment 'managementGroupId' was not found in the resource id %q", input)
@@ -64,18 +50,6 @@ func ParseManagementGroupIDInsensitively(input string) (*ManagementGroupId, erro
 
 	var ok bool
 	id := ManagementGroupId{}
-
-	if v, ok := parsed.Parsed["managementGroupsNamespace"]; true {
-		if !ok {
-			return nil, fmt.Errorf("the segment 'managementGroupsNamespace' was not found in the resource id %q", input)
-		}
-
-		managementGroupsNamespace, err := parseManagementGroupsNamespaceType(v)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
-		}
-		id.ManagementGroupsNamespace = *managementGroupsNamespace
-	}
 
 	if id.ManagementGroupId, ok = parsed.Parsed["managementGroupId"]; !ok {
 		return nil, fmt.Errorf("the segment 'managementGroupId' was not found in the resource id %q", input)
@@ -101,15 +75,15 @@ func ValidateManagementGroupID(input interface{}, key string) (warnings []string
 
 // ID returns the formatted Management Group ID
 func (id ManagementGroupId) ID() string {
-	fmtString := "/providers/%s/managementGroups/%s"
-	return fmt.Sprintf(fmtString, string(id.ManagementGroupsNamespace), id.ManagementGroupId)
+	fmtString := "/providers/Microsoft.Management/managementGroups/%s"
+	return fmt.Sprintf(fmtString, id.ManagementGroupId)
 }
 
 // Segments returns a slice of Resource ID Segments which comprise this Management Group ID
 func (id ManagementGroupId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
-		resourceids.ConstantSegment("managementGroupsNamespace", PossibleValuesForManagementGroupsNamespaceType(), "Microsoft.Management"),
+		resourceids.StaticSegment("managementGroupsNamespace", "Microsoft.Management", "Microsoft.Management"),
 		resourceids.StaticSegment("staticManagementGroups", "managementGroups", "managementGroups"),
 		resourceids.UserSpecifiedSegment("managementGroupId", "managementGroupIdValue"),
 	}
@@ -118,7 +92,6 @@ func (id ManagementGroupId) Segments() []resourceids.Segment {
 // String returns a human-readable description of this Management Group ID
 func (id ManagementGroupId) String() string {
 	components := []string{
-		fmt.Sprintf("Management Groups Namespace: %q", string(id.ManagementGroupsNamespace)),
 		fmt.Sprintf("Management Group: %q", id.ManagementGroupId),
 	}
 	return fmt.Sprintf("Management Group (%s)", strings.Join(components, "\n"))
