@@ -477,7 +477,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	if hostGroupID := d.Get("host_group_id").(string); hostGroupID != "" {
 		profile.HostGroupID = utils.String(hostGroupID)
-  }
+	}
 
 	if capacityReservationGroupId := d.Get("capacity_reservation_group_id").(string); capacityReservationGroupId != "" {
 		profile.CapacityReservationGroupID = utils.String(capacityReservationGroupId)
