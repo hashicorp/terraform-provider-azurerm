@@ -155,6 +155,10 @@ The following arguments are supported:
 
 * `certificate` - (Optional) One or more `certificate` blocks that describe the certificates to be installed on each compute node in the pool.
 
+* `task_scheduling_policy` - (Optional) A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool. If not specified, the default is spread.
+
+* `user_accounts` - (Optional) A `user_accounts` block that describes the list of user accounts to be created on each node in the pool.
+
 * `container_configuration` - (Optional) The container configuration used in the pool's VMs.
 
 -> **NOTE:** `container_configuration` will be removed in favour of the property `deployment_configuration.virtual_machine_configuration.container_configuration` in version 4.0 of the AzureRM Provider.
@@ -264,7 +268,7 @@ An `azure_file_share_configuration` block supports the following:
 
 ---
 
-An `cifs_mount_configuration` block supports the following:
+A `cifs_mount_configuration` block supports the following:
 
 * `user_name` - (Required) The user to use for authentication against the CIFS file system.
 
@@ -278,7 +282,7 @@ An `cifs_mount_configuration` block supports the following:
 
 ---
 
-An `nfs_mount_configuration` block supports the following:
+A `nfs_mount_configuration` block supports the following:
 
 * `source` - (Required) The URI of the file system to mount.
 
@@ -319,6 +323,12 @@ If `container_configuration` is specified, setup is performed on each node in th
 * `container_image_names` - (Optional) This is the full image reference, as would be specified to \"docker pull\". An image will be sourced from the default Docker registry unless the image is fully qualified with an alternative registry.
 
 * `container_registries` - (Optional) A `container_registries` block as defined below.
+
+---
+
+A `task_scheduling_policy` block supports the following:
+
+* `node_fill_type` - (Required) Supported values are "Pack" and "Spread". "Pack" means as many tasks as possible (taskSlotsPerNode) should be assigned to each node in the pool before any tasks are assigned to the next node in the pool. "Spread" means that tasks should be assigned evenly across all nodes in the pool.
 
 ---
 
@@ -436,6 +446,8 @@ A `start_task` block supports the following:
 
 * `command_line` - (Required) The command line executed by the start task.
 
+* `container_settings` - (Optional) A `container_setting` block is the settings for the container under which the start task runs. When this is specified, all directories recursively below the `AZ_BATCH_NODE_ROOT_DIR` (the root of Azure Batch directories on the node) are mapped into the container, all task environment variables are mapped into the container, and the task command line is executed in the container.
+
 * `task_retry_maximum` - (Optional) The number of retry count. Defaults to `1`.
 
 * `wait_for_success` - (Optional) A flag that indicates if the Batch pool should wait for the start task to be completed. Default to `false`.
@@ -445,6 +457,18 @@ A `start_task` block supports the following:
 * `user_identity` - (Required) A `user_identity` block that describes the user identity under which the start task runs.
 
 * `resource_file` - (Optional) One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
+
+---
+
+A `container_settings` block supports the following:
+
+* `image_name` - (Required) The image to use to create the container in which the task will run. This is the full image reference, as would be specified to "docker pull". If no tag is provided as part of the image name, the tag ":latest" is used as a default.
+
+* `container_run_options` - (Optional) Additional options to the container create command. These additional options are supplied as arguments to the "docker create" command, in addition to those controlled by the Batch Service.
+
+* `registry` - (Optional) The same reference as `container_registry` block defined as follows.
+
+* `working_directory` - (Optional) A flag to indicate where the container task working directory is. The default is "TaskWorkingDirectory", an alternative value is "ContainerImageDefault".
 
 ---
 
@@ -480,6 +504,36 @@ A `certificate` block supports the following:
 
 ---
 
+A `user_accounts` block supports the following:
+
+* `name` - (Required) The name of the user account.
+
+* `password` - (Required) The password for the user account.
+
+* `elevation_level` - (Required) The elevation level of the user account. "NonAdmin" - The auto user is a standard user without elevated access. "Admin" - The auto user is a user with elevated access and operates with full Administrator permissions. The default value is nonAdmin.
+
+* `linux_user_configuration` - (Optional) The `linux_user_configuration` block defined below is a linux-specific user configuration for the user account. This property is ignored if specified on a Windows pool. If not specified, the user is created with the default options.
+
+* `windows_user_configuration` - (Optional) The `windows_user_configuration` block defined below is a windows-specific user configuration for the user account. This property can only be specified if the user is on a Windows pool. If not specified and on a Windows pool, the user is created with the default options.
+
+---
+
+A `linux_user_configuration` block supports the following:
+
+* `uid` - (Optional) The group ID for the user account. The `uid` and `gid` properties must be specified together or not at all. If not specified the underlying operating system picks the gid.
+
+* `gid` - (Optional) The user ID of the user account. The `uid` and `gid` properties must be specified together or not at all. If not specified the underlying operating system picks the uid.
+
+* `ssh_private_key` - (Optional) The SSH private key for the user account. The private key must not be password protected. The private key is used to automatically configure asymmetric-key based authentication for SSH between nodes in a Linux pool when the pool's enableInterNodeCommunication property is true (it is ignored if enableInterNodeCommunication is false). It does this by placing the key pair into the user's .ssh directory. If not specified, password-less SSH is not configured between nodes (no modification of the user's .ssh directory is done).
+
+---
+
+A `windows_user_configuration` block supports the following:
+
+* `login_mode` - (Optional) Specifies login mode for the user. The default value for VirtualMachineConfiguration pools is interactive mode and for CloudServiceConfiguration pools is batch mode. Values supported are "Batch" and "Interactive".
+
+---
+
 A `container_configuration` block supports the following:
 
 * `type` - (Optional) The type of container configuration. Possible value is `DockerCompatible`.
@@ -504,11 +558,15 @@ A `resource_file` block supports the following:
 
 * `storage_container_url` - (Optional) The URL of the blob container within Azure Blob Storage. This URL must be readable and listable using anonymous access; that is, the Batch service does not present any credentials when downloading the blob. There are two ways to get such a URL for a blob in Azure storage: include a Shared Access Signature (SAS) granting read and list permissions on the blob, or set the ACL for the blob or its container to allow public access.
 
+* `identity_reference` - (Optional) The reference `identity_reference` which is used to use to access Azure Blob Storage specified by storageContainerUrl or httpUrl. The reference to a user assigned identity associated with the Batch pool which a compute node will use.
+
 ~> **Please Note:** Exactly one of `auto_storage_container_name`, `storage_container_url` and `auto_user` must be specified.
 
 ---
 
 A `container_registries` block supports the following:
+
+* `identity_reference` - (Optional) The reference to the `identity_reference` block which is used to access an Azure Container Registry instead of username and password. The reference to a user assigned identity associated with the Batch pool which a compute node will use.
 
 * `registry_server` - (Optional) The container registry URL. The default is "docker.io". Changing this forces a new resource to be created.
 
@@ -522,6 +580,8 @@ A `network_configuration` block supports the following:
 
 * `subnet_id` - (Required) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
 
+* `dynamic_vnet_assignment_scope` - (Optional) The scope of dynamic vnet assignment.
+
 * `public_ips` - (Optional) A list of public IP ids that will be allocated to nodes. Changing this forces a new resource to be created.
 
 * `endpoint_configuration` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
@@ -532,13 +592,13 @@ A `network_configuration` block supports the following:
 
 A `endpoint_configuration` block supports the following:
 
-* `name` - The name of the endpoint. The name must be unique within a Batch pool, can contain letters, numbers, underscores, periods, and hyphens. Names must start with a letter or number, must end with a letter, number, or underscore, and cannot exceed 77 characters. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the endpoint. The name must be unique within a Batch pool, can contain letters, numbers, underscores, periods, and hyphens. Names must start with a letter or number, must end with a letter, number, or underscore, and cannot exceed 77 characters. Changing this forces a new resource to be created.
 
-* `backend_port` - The port number on the compute node. Acceptable values are between `1` and `65535` except for `29876`, `29877` as these are reserved. Changing this forces a new resource to be created.
+* `backend_port` - (Required) The port number on the compute node. Acceptable values are between `1` and `65535` except for `29876`, `29877` as these are reserved. Changing this forces a new resource to be created.
 
-* `protocol` - The protocol of the endpoint. Acceptable values are `TCP` and `UDP`. Changing this forces a new resource to be created.
+* `protocol` - (Required) The protocol of the endpoint. Acceptable values are `TCP` and `UDP`. Changing this forces a new resource to be created.
 
-* `frontend_port_range` - The range of external ports that will be used to provide inbound access to the backendPort on individual compute nodes in the format of `1000-1100`. Acceptable values range between `1` and `65534` except ports from `50000` to `55000` which are reserved by the Batch service. All ranges within a pool must be distinct and cannot overlap. Values must be a range of at least `100` nodes. Changing this forces a new resource to be created.
+* `frontend_port_range` - (Required) The range of external ports that will be used to provide inbound access to the backendPort on individual compute nodes in the format of `1000-1100`. Acceptable values range between `1` and `65534` except ports from `50000` to `55000` which are reserved by the Batch service. All ranges within a pool must be distinct and cannot overlap. Values must be a range of at least `100` nodes. Changing this forces a new resource to be created.
 
 * `network_security_group_rules` - (Optional) A list of network security group rules that will be applied to the endpoint. The maximum number of rules that can be specified across all the endpoints on a Batch pool is `25`. If no network security group rules are specified, a default rule will be created to allow inbound access to the specified backendPort. Set as documented in the network_security_group_rules block below. Changing this forces a new resource to be created.
 
@@ -546,11 +606,13 @@ A `endpoint_configuration` block supports the following:
 
 A `network_security_group_rules` block supports the following:
 
-* `access` - The action that should be taken for a specified IP address, subnet range or tag. Acceptable values are `Allow` and `Deny`. Changing this forces a new resource to be created.
+* `access` - (Required) The action that should be taken for a specified IP address, subnet range or tag. Acceptable values are `Allow` and `Deny`. Changing this forces a new resource to be created.
 
-* `priority` - The priority for this rule. The value must be at least `150`. Changing this forces a new resource to be created.
+* `priority` - (Required) The priority for this rule. The value must be at least `150`. Changing this forces a new resource to be created.
 
-* `source_address_prefix` - The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
+* `source_address_prefix` - (Required) The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
+
+* `source_port_ranges` - (Optional) The source port ranges to match for the rule. Valid values are '*' (for all ports 0 - 65535) or arrays of ports or port ranges (i.e. 100-200). The ports should in the range of 0 to 65535 and the port ranges or ports can't overlap. If any other values are provided the request fails with HTTP status code 400. Default value will be *.
 
 ## Attributes Reference
 
