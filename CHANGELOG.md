@@ -12,8 +12,9 @@ BUG FIXES:
 * `azurerm_linux_function_app` - set the `default_hostname` properly on read [GH-17498]
 * `azurerm_linux_function_app_slot` - set the `default_hostname` properly on read [GH-17498]
 * `azurerm_windows_function_app` - set the `default_hostname` properly on read [GH-17498]
+* `azurerm_windows_function_app` - correctly create function apps when custom handlers are used [GH-17498]
 * `azurerm_windows_function_app_slot` - set the `default_hostname` properly on read [GH-17498]
-
+* `azurerm_windows_function_app_slot` - correctly create function apps when custom handlers are used [GH-17498]
 
 ## 3.13.0 (July 08, 2022)
 
