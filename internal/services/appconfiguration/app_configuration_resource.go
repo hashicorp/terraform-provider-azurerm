@@ -71,9 +71,10 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 			},
 
 			"public_network_access": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  nil,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      nil,
+				ValidateFunc: validation.StringInSlice(configurationstores.PossibleValuesForPublicNetworkAccess(), true),
 			},
 
 			"primary_read_key": {
