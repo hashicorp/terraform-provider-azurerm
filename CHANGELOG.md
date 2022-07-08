@@ -1,3 +1,5 @@
+## 3.14.0 (Unreleased)
+
 ## 3.13.0 (July 08, 2022)
 
 FEATURES:
@@ -26,7 +28,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `azurerm_application_gateway` -  `request_routing_rule.x.priority` is optional ([#17380](https://github.com/hashicorp/terraform-provider-azurerm/issues/17380))
+* `azurerm_application_gateway` -  the `request_routing_rule.x.priority` property is now optional ([#17380](https://github.com/hashicorp/terraform-provider-azurerm/issues/17380))
 
 ## 3.12.0 (June 30, 2022)
 
