@@ -4,10 +4,16 @@ ENHANCEMENTS:
 
 * `azurerm_kusto_cluster` - support for the `public_ip_address` property [GH-17520]
 * `azurerm_kusto_script` - support for the `script_content` property [GH-17522]
+* `azurerm_linux_virtual_machine_scale_set` - support for `capacity_reservation_group_id` property [GH-17530]
+* `azurerm_windows_virtual_machine_scale_set` - support for `capacity_reservation_group_id` property [GH-17530]
 
 BUG FIXES:
 
-* `azurerm_{linux|windows}_function_app[_slot]` - set the `default_hostname` property to state on read [GH-17498]
+* `azurerm_linux_function_app` - set the `default_hostname` properly on read [GH-17498]
+* `azurerm_linux_function_app_slot` - set the `default_hostname` properly on read [GH-17498]
+* `azurerm_windows_function_app` - set the `default_hostname` properly on read [GH-17498]
+* `azurerm_windows_function_app_slot` - set the `default_hostname` properly on read [GH-17498]
+
 
 ## 3.13.0 (July 08, 2022)
 
