@@ -59,7 +59,7 @@ func TestAccNetAppPool_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_level").HasValue("Standard"),
 				check.That(data.ResourceName).Key("size_in_tb").HasValue("15"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 				check.That(data.ResourceName).Key("qos_type").HasValue("Auto"),
 			),
@@ -78,7 +78,7 @@ func TestAccNetAppPool_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("size_in_tb").HasValue("4"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("qos_type").HasValue("Auto"),
 			),
 		},
@@ -88,7 +88,7 @@ func TestAccNetAppPool_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("size_in_tb").HasValue("15"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 				check.That(data.ResourceName).Key("qos_type").HasValue("Auto"),
 			),
@@ -99,7 +99,7 @@ func TestAccNetAppPool_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("size_in_tb").HasValue("15"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 				check.That(data.ResourceName).Key("qos_type").HasValue("Manual"),
 			),
@@ -145,6 +145,10 @@ resource "azurerm_netapp_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_level       = "Standard"
   size_in_tb          = 4
+
+  tags = {
+	"CreatedOnDate" = timestamp()
+  }  
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -190,7 +194,8 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Auto"
 
   tags = {
-    "FoO" = "BaR"
+	"CreatedOnDate"    = timestamp(),
+    "FoO"              = "BaR"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -223,7 +228,8 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Manual"
 
   tags = {
-    "FoO" = "BaR"
+	"CreatedOnDate"    = timestamp(),
+    "FoO"              = "BaR"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

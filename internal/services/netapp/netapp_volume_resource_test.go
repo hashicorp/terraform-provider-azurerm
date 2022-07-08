@@ -156,7 +156,7 @@ func TestAccNetAppVolume_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("service_level").HasValue("Standard"),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("101"),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 				check.That(data.ResourceName).Key("mount_ip_addresses.#").HasValue("1"),
 			),
@@ -176,8 +176,8 @@ func TestAccNetAppVolume_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("100"),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
-				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("1.6"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
+				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("1.562"),
 			),
 		},
 		data.ImportStep(),
@@ -187,7 +187,7 @@ func TestAccNetAppVolume_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("101"),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("2"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("4"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 				check.That(data.ResourceName).Key("tags.bAr").HasValue("fOo"),
 				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("65"),
@@ -286,6 +286,7 @@ resource "azurerm_netapp_volume" "test" {
   storage_quota_in_gb = 100
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -309,7 +310,7 @@ resource "azurerm_netapp_volume" "test" {
   protocols           = ["NFSv4.1"]
   security_style      = "Unix"
   storage_quota_in_gb = 100
-  throughput_in_mibps = 1.6
+  throughput_in_mibps = 1.562
 
   export_policy_rule {
     rule_index        = 1
@@ -320,6 +321,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -345,6 +347,7 @@ resource "azurerm_netapp_volume" "test" {
   storage_quota_in_gb = 100
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -383,13 +386,14 @@ resource "azurerm_netapp_volume" "test" {
   protocols           = ["NFSv3"]
   security_style      = "Unix"
   storage_quota_in_gb = 100
-  throughput_in_mibps = 1.6
+  throughput_in_mibps= 1.562
 
   data_protection_snapshot_policy {
     snapshot_policy_id = azurerm_netapp_snapshot_policy.test.id
   }
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -412,7 +416,7 @@ resource "azurerm_netapp_volume" "test_primary" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
-  throughput_in_mibps = 1.6
+  throughput_in_mibps = 1.562
 
   export_policy_rule {
     rule_index        = 1
@@ -423,6 +427,7 @@ resource "azurerm_netapp_volume" "test_primary" {
   }
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -439,7 +444,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
   protocols                  = ["NFSv3"]
   storage_quota_in_gb        = 100
   snapshot_directory_visible = false
-  throughput_in_mibps        = 1.6
+  throughput_in_mibps        = 1.562
 
   export_policy_rule {
     rule_index        = 1
@@ -457,6 +462,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
   }
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -479,7 +485,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
-  throughput_in_mibps = 1.6
+  throughput_in_mibps = 1.562
 
   export_policy_rule {
     rule_index        = 1
@@ -490,6 +496,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -525,6 +532,7 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
   }
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -548,7 +556,7 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_false" {
   protocols                  = ["NFSv3"]
   storage_quota_in_gb        = 100
   snapshot_directory_visible = false
-  throughput_in_mibps        = 1.6
+  throughput_in_mibps        = 1.562
 
   export_policy_rule {
     rule_index        = 1
@@ -559,6 +567,7 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_false" {
   }
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -625,6 +634,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "FoO"              = "BaR",
     "SkipASMAzSecPack" = "true"
   }
@@ -647,7 +657,7 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
-  throughput_in_mibps = 1.6
+  throughput_in_mibps = 1.562
 
   export_policy_rule {
     rule_index        = 1
@@ -674,6 +684,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "FoO"              = "BaR",
     "SkipASMAzSecPack" = "true"
   }
@@ -715,6 +726,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "FoO"              = "BaR",
     "bAr"              = "fOo",
     "SkipASMAzSecPack" = "true"
@@ -734,6 +746,7 @@ resource "azurerm_virtual_network" "updated" {
   address_space       = ["10.1.0.0/16"]
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -765,9 +778,10 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = azurerm_subnet.updated.id
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
-  throughput_in_mibps = 1.6
+  throughput_in_mibps = 1.562
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -800,6 +814,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "FoO"              = "BaR",
     "SkipASMAzSecPack" = "true"
   }
@@ -818,6 +833,7 @@ resource "azurerm_virtual_network" "test_secondary" {
   address_space       = ["10.6.0.0/16"]
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -844,6 +860,7 @@ resource "azurerm_netapp_account" "test_secondary" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -858,6 +875,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
   qos_type            = "Manual"
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -880,6 +898,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -891,6 +910,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.6.0.0/16"]
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -926,6 +946,7 @@ resource "azurerm_netapp_pool" "test" {
   size_in_tb          = 4
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -948,6 +969,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -958,6 +980,7 @@ resource "azurerm_network_security_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     environment        = "Production",
     "SkipASMAzSecPack" = "true"
   }
@@ -970,6 +993,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.6.0.0/16"]
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -996,6 +1020,7 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1010,6 +1035,7 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Manual"
 
   tags = {
+    "CreatedOnDate"    = timestamp(),
     "SkipASMAzSecPack" = "true"
   }
 }
