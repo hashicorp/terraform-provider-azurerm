@@ -1,10 +1,25 @@
 ## 3.13.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_logz_sub_account` [GH-16581]
+
 ENHANCEMENTS:
 
 * azurestackhci: refactoring to use `hashicorp/go-azure-sdk` [GH-17469]
+* containerinstance: refactoring to use `hashicorp/go-azure-sdk` [GH-17499]
+* eventhub: refactoring to use `hashicorp/go-azure-sdk` [GH-17445]
 * hardwaresecuritymodules: refactoring to use `hashicorp/go-azure-sdk` [GH-17470]
 * privatedns: refactoring to use `hashicorp/go-azure-sdk` [GH-17436]
+* Data Source: `azurerm_container_registry` - add support for the `data_endpoint_enabled` property [GH-17466]
+* `azurerm_hdinsight_kafka_cluster` -support for the `network` block [GH-17259]
+* `azurerm_key_vault_certificate` - will now correctly recover certificates on import [GH-17415]
+* `azurerm_kubernetes_clusterl`- support for the `capacity_reservation_group_id` property [GH-17395]
+* `azurerm_kubernetes_node_pool`- support for the `capacity_reservation_group_id` property [GH-17395]
+* `azurerm_linux_virtual_machine` - support for the `capacity_reservation_group_id` property [GH-17236]
+* `azurerm_spring_cloud_deployment` - support for the `addon_json` property [GH-16984]
+* `azurerm_synapse_integration_runtime_azure` - the `location` property now supports `Auto Resolve` [GH-17111]
+* `azurerm_windows_virtual_machine` - support for the `capacity_reservation_group_id` property [GH-17236]
 
 ## 3.12.0 (June 30, 2022)
 

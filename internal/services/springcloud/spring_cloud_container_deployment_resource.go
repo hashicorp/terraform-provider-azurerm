@@ -62,6 +62,14 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"addon_json": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+			},
+
 			"arguments": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -181,6 +189,11 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("invalid `sku` for Spring Cloud Service %q (Resource Group %q)", appId.SpringName, appId.ResourceGroup)
 	}
 
+	addonConfig, err := expandSpringCloudAppAddon(d.Get("addon_json").(string))
+	if err != nil {
+		return err
+	}
+
 	deployment := appplatform.DeploymentResource{
 		Sku: &appplatform.Sku{
 			Name:     service.Sku.Name,
@@ -198,6 +211,7 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 				},
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
+				AddonConfigs:         addonConfig,
 				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
 				ResourceRequests:     expandSpringCloudContainerDeploymentResourceRequests(d.Get("quota").([]interface{})),
 			},
@@ -248,6 +262,9 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 			d.Set("environment_variables", flattenSpringCloudDeploymentEnvironmentVariables(settings.EnvironmentVariables))
 			if err := d.Set("quota", flattenSpringCloudDeploymentResourceRequests(settings.ResourceRequests)); err != nil {
 				return fmt.Errorf("setting `quota`: %+v", err)
+			}
+			if err := d.Set("addon_json", flattenSpringCloudAppAddon(settings.AddonConfigs)); err != nil {
+				return fmt.Errorf("setting `addon_json`: %s", err)
 			}
 		}
 		if source, ok := resp.Properties.Source.AsCustomContainerUserSourceInfo(); ok && source != nil {
