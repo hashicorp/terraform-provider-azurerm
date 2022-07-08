@@ -121,7 +121,7 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"database_routing": {
+			"database_routing_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -184,7 +184,7 @@ func resourceKustoIotHubDataConnectionCreate(d *pluginsdk.ResourceData, meta int
 		IotHubConnectionProperties: iotHubDataConnectionProperties,
 	}
 
-	if databaseRouting, ok := d.GetOk("database_routing"); ok {
+	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
 		dataConnection.DatabaseRouting = kusto.DatabaseRouting(databaseRouting.(string))
 	}
 
@@ -233,7 +233,7 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("table_name", props.TableName)
 			d.Set("mapping_rule_name", props.MappingRuleName)
 			d.Set("data_format", props.DataFormat)
-			d.Set("database_routing", props.DatabaseRouting)
+			d.Set("database_routing_type", props.DatabaseRouting)
 			d.Set("shared_access_policy_name", props.SharedAccessPolicyName)
 			d.Set("event_system_properties", utils.FlattenStringSlice(props.EventSystemProperties))
 		}
