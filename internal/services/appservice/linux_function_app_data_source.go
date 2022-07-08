@@ -306,7 +306,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				Tags:                       tags.ToTypedObject(functionApp.Tags),
 				Kind:                       utils.NormalizeNilableString(functionApp.Kind),
 				CustomDomainVerificationId: utils.NormalizeNilableString(props.CustomDomainVerificationID),
-				DefaultHostname:      utils.NormalizeNilableString(functionApp.DefaultHostName),
+				DefaultHostname:            utils.NormalizeNilableString(functionApp.DefaultHostName),
 			}
 
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
