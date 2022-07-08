@@ -13,14 +13,25 @@ Manages a Healthcare FHIR (Fast Healthcare Interoperability Resources) Service
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example"
+  location = "West Europe"
+}
+
 data "azurerm_client_config" "current" {
 }
 
-resource "azurerm_healthcare_fhir_service" "test" {
+resource "azurerm_healthcare_workspace" "example" {
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_healthcare_fhir_service" "example" {
   name                = "tfexfhir"
   location            = "east us"
   resource_group_name = "tfex-resource_group"
-  workspace_id        = "tfex-workspace_id"
+  workspace_id        = azurerm_healthcare_workspace.example.id
   kind                = "fhir-R4"
 
   authentication {

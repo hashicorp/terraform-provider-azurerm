@@ -22,9 +22,7 @@ resource "azurerm_healthbot" "example" {
   name                = "example-bot"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku {
-    name = "F0"
-  }
+  sku_name            = "F0"
 }
 ```
 

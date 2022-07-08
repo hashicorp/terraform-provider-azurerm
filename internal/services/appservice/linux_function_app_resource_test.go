@@ -462,6 +462,7 @@ func TestAccLinuxFunctionApp_elasticPremiumComplete(t *testing.T) {
 			Config: r.elasticComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("5"),
 			),
 		},
 		data.ImportStep(),
@@ -2445,6 +2446,8 @@ resource "azurerm_linux_function_app" "test" {
     application_stack {
       python_version = "3.8"
     }
+
+    elastic_instance_minimum = 5
 
     container_registry_use_managed_identity       = true
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id

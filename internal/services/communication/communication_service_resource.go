@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2020-08-20/communicationservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -62,7 +63,7 @@ func resourceArmCommunicationService() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"primary_connection_string": {
 				Type:     pluginsdk.TypeString,
@@ -116,7 +117,7 @@ func resourceArmCommunicationServiceCreateUpdate(d *pluginsdk.ResourceData, meta
 		Properties: &communicationservice.CommunicationServiceProperties{
 			DataLocation: d.Get("data_location").(string),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameter); err != nil {
@@ -162,7 +163,7 @@ func resourceArmCommunicationServiceRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("data_location", props.DataLocation)
 		}
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}

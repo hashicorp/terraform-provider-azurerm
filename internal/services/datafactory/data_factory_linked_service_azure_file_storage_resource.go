@@ -174,7 +174,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 		},
 		FileShare: d.Get("file_share").(string),
 		Host:      d.Get("host").(string),
-		UserID:    d.Get("connection_string").(string),
+		UserID:    d.Get("user_id").(string),
 	}
 
 	password := d.Get("password").(string)
@@ -265,6 +265,10 @@ func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *pluginsdk.ResourceD
 				return fmt.Errorf("setting `key_vault_password`: %+v", err)
 			}
 		}
+	}
+
+	if fileStorage.UserID != nil {
+		d.Set("user_id", fileStorage.UserID.(string))
 	}
 
 	annotations := flattenDataFactoryAnnotations(fileStorage.Annotations)
