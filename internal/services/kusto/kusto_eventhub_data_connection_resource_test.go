@@ -114,7 +114,7 @@ func TestAccKustoEventHubDataConnection_databaseRouting(t *testing.T) {
 			Config: r.databaseRouting(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("database_routing").HasValue("Multi"),
+				check.That(data.ResourceName).Key("database_routing_type").HasValue("Multi"),
 			),
 		},
 		data.ImportStep(),
@@ -286,7 +286,7 @@ resource "azurerm_kusto_eventhub_data_connection" "test" {
   consumer_group      = azurerm_eventhub_consumer_group.test.name
   mapping_rule_name   = "Json_Mapping"
   data_format         = "MULTIJSON"
-  database_routing    = "Multi"
+  database_routing_type    = "Multi"
 }
 `, r.template(data), data.RandomInteger)
 }
