@@ -76,5 +76,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Policy Remediations can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_policy_remediation.example /providers/Microsoft.Management/managementGroups/my-mgmt-group-id/providers/Microsoft.PolicyInsights/remediations/remediation1
+terraform import azurerm_management_group_policy_remediation.example /providers/Microsoft.Management/managementGroups/my-mgmt-group-id/providers/Microsoft.PolicyInsights/remediations/remediation1
 ```
