@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sort"
 	"strings"
 	"time"
 
@@ -1502,9 +1501,6 @@ func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containeri
 		}
 		headers = append(headers, header)
 	}
-	sort.Slice(headers, func(i, j int) bool {
-		return *headers[i].Name < *headers[j].Name
-	})
 	return &headers
 }
 
