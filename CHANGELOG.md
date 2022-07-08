@@ -6,6 +6,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* policyremediation: updated to use version `2021-10-01` [GH-17298]
+
 * `azurerm_kusto_cluster` - support for the `public_ip_address` property [GH-17520]
 * `azurerm_kusto_script` - support for the `script_content` property [GH-17522]
 * `azurerm_kubernetes_cluster` - support for the `host_group_id` property [GH-17496]
