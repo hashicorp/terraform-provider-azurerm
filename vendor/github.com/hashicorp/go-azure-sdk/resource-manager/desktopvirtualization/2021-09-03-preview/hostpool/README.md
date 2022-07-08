@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization
 ```go
 client := hostpool.NewHostPoolClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := hostpool.NewHostPoolID("12345678-1234-9876-4563-123456789012", "example-re
 payload := hostpool.HostPool{
 	// ...
 }
+
 
 read, err := client.CreateOrUpdate(ctx, id, payload)
 if err != nil {
@@ -48,6 +46,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := hostpool.NewHostPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostPoolValue")
+
 read, err := client.Delete(ctx, id, hostpool.DefaultDeleteOperationOptions())
 if err != nil {
 	// handle the error
@@ -63,6 +62,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := hostpool.NewHostPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostPoolValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +78,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := hostpool.NewSubscriptionID()
+
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
 if err != nil {
@@ -94,6 +95,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := hostpool.NewResourceGroupID()
+
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
 if err != nil {
@@ -110,6 +112,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := hostpool.NewHostPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostPoolValue")
+
 read, err := client.RetrieveRegistrationToken(ctx, id)
 if err != nil {
 	// handle the error
@@ -129,6 +132,7 @@ id := hostpool.NewHostPoolID("12345678-1234-9876-4563-123456789012", "example-re
 payload := hostpool.HostPoolPatch{
 	// ...
 }
+
 
 read, err := client.Update(ctx, id, payload)
 if err != nil {

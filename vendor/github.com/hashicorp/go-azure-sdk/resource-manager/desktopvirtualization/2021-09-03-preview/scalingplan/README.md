@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization
 ```go
 client := scalingplan.NewScalingPlanClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := scalingplan.NewScalingPlanID("12345678-1234-9876-4563-123456789012", "exam
 payload := scalingplan.ScalingPlan{
 	// ...
 }
+
 
 read, err := client.Create(ctx, id, payload)
 if err != nil {
@@ -48,6 +46,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := scalingplan.NewScalingPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scalingPlanValue")
+
 read, err := client.Delete(ctx, id)
 if err != nil {
 	// handle the error
@@ -63,6 +62,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := scalingplan.NewScalingPlanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scalingPlanValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +78,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := scalingplan.NewHostPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostPoolValue")
+
 // alternatively `client.ListByHostPool(ctx, id)` can be used to do batched pagination
 items, err := client.ListByHostPoolComplete(ctx, id)
 if err != nil {
@@ -94,6 +95,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := scalingplan.NewResourceGroupID()
+
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
 if err != nil {
@@ -110,6 +112,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := scalingplan.NewSubscriptionID()
+
 // alternatively `client.ListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id)
 if err != nil {
@@ -130,6 +133,7 @@ id := scalingplan.NewScalingPlanID("12345678-1234-9876-4563-123456789012", "exam
 payload := scalingplan.ScalingPlanPatch{
 	// ...
 }
+
 
 read, err := client.Update(ctx, id, payload)
 if err != nil {

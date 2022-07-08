@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization
 ```go
 client := applicationgroup.NewApplicationGroupClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := applicationgroup.NewApplicationGroupID("12345678-1234-9876-4563-1234567890
 payload := applicationgroup.ApplicationGroup{
 	// ...
 }
+
 
 read, err := client.CreateOrUpdate(ctx, id, payload)
 if err != nil {
@@ -48,6 +46,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := applicationgroup.NewApplicationGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGroupValue")
+
 read, err := client.Delete(ctx, id)
 if err != nil {
 	// handle the error
@@ -63,6 +62,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := applicationgroup.NewApplicationGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationGroupValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +78,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := applicationgroup.NewResourceGroupID()
+
 // alternatively `client.ListByResourceGroup(ctx, id, applicationgroup.DefaultListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id, applicationgroup.DefaultListByResourceGroupOperationOptions())
 if err != nil {
@@ -94,6 +95,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := applicationgroup.NewSubscriptionID()
+
 // alternatively `client.ListBySubscription(ctx, id, applicationgroup.DefaultListBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id, applicationgroup.DefaultListBySubscriptionOperationOptions())
 if err != nil {
@@ -114,6 +116,7 @@ id := applicationgroup.NewApplicationGroupID("12345678-1234-9876-4563-1234567890
 payload := applicationgroup.ApplicationGroupPatch{
 	// ...
 }
+
 
 read, err := client.Update(ctx, id, payload)
 if err != nil {

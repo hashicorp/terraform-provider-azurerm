@@ -591,6 +591,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
+				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
 			}
 
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
