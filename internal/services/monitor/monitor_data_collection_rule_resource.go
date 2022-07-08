@@ -441,11 +441,11 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 			var destinations []Destination
 
 			if model := resp.Model; model != nil {
-				kind = flattenStringTypePtr(model.Kind)
+				kind = flattenDataCollectionRuleKind(model.Kind)
 				location = azure.NormalizeLocation(model.Location)
 				tag = tags.Flatten(model.Tags)
 				if prop := model.Properties; prop != nil {
-					description = flattenStringTypePtr(prop.Description)
+					description = flattenStringPtr(prop.Description)
 					dataFlows = flattenDataCollectionRuleDataFlows(prop.DataFlows)
 					dataSources = flattenDataCollectionRuleDataSources(prop.DataSources)
 					destinations = flattenDataCollectionRuleDestinations(prop.Destinations)
@@ -556,18 +556,6 @@ func (r DataCollectionRuleResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandStringTypeSlice[T ~string](input []string) *[]T {
-	if len(input) == 0 {
-		return nil
-	}
-
-	result := make([]T, 0)
-	for _, v := range input {
-		result = append(result, T(v))
-	}
-	return &result
-}
-
 func expandDataCollectionRuleKind(input string) *datacollectionrules.KnownDataCollectionRuleResourceKind {
 	if input == "" {
 		return nil
@@ -590,8 +578,20 @@ func expandDataCollectionRuleDataFlows(input []DataFlow) *[]datacollectionrules.
 	for _, v := range input {
 		result = append(result, datacollectionrules.DataFlow{
 			Destinations: stringSlice(v.Destinations),
-			Streams:      expandStringTypeSlice[datacollectionrules.KnownDataFlowStreams](v.Streams),
+			Streams:      expandDataCollectionRuleDataFlowStreams(v.Streams),
 		})
+	}
+	return &result
+}
+
+func expandDataCollectionRuleDataFlowStreams(input []string) *[]datacollectionrules.KnownDataFlowStreams {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]datacollectionrules.KnownDataFlowStreams, 0)
+	for _, v := range input {
+		result = append(result, datacollectionrules.KnownDataFlowStreams(v))
 	}
 	return &result
 }
@@ -635,10 +635,22 @@ func expandDataCollectionRuleDataSourceExtensions(input []Extension) (*[]datacol
 			ExtensionSettings: &extensionSettings,
 			InputDataSources:  stringSlice(v.InputDataSources),
 			Name:              utils.String(v.Name),
-			Streams:           expandStringTypeSlice[datacollectionrules.KnownExtensionDataSourceStreams](v.Streams),
+			Streams:           expandDataCollectionRuleDataSourceExtensionStreams(v.Streams),
 		})
 	}
 	return &result, nil
+}
+
+func expandDataCollectionRuleDataSourceExtensionStreams(input []string) *[]datacollectionrules.KnownExtensionDataSourceStreams {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]datacollectionrules.KnownExtensionDataSourceStreams, 0)
+	for _, v := range input {
+		result = append(result, datacollectionrules.KnownExtensionDataSourceStreams(v))
+	}
+	return &result
 }
 
 func expandDataCollectionRuleDataSourcePerfCounters(input []PerfCounter) *[]datacollectionrules.PerfCounterDataSource {
@@ -652,8 +664,20 @@ func expandDataCollectionRuleDataSourcePerfCounters(input []PerfCounter) *[]data
 			CounterSpecifiers:          stringSlice(v.CounterSpecifiers),
 			Name:                       utils.String(v.Name),
 			SamplingFrequencyInSeconds: utils.Int64(v.SamplingFrequencyInSeconds),
-			Streams:                    expandStringTypeSlice[datacollectionrules.KnownPerfCounterDataSourceStreams](v.Streams),
+			Streams:                    expandDataCollectionRuleDataSourcePerfCounterStreams(v.Streams),
 		})
+	}
+	return &result
+}
+
+func expandDataCollectionRuleDataSourcePerfCounterStreams(input []string) *[]datacollectionrules.KnownPerfCounterDataSourceStreams {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]datacollectionrules.KnownPerfCounterDataSourceStreams, 0)
+	for _, v := range input {
+		result = append(result, datacollectionrules.KnownPerfCounterDataSourceStreams(v))
 	}
 	return &result
 }
@@ -666,11 +690,35 @@ func expandDataCollectionRuleDataSourceSyslog(input []Syslog) *[]datacollectionr
 	result := make([]datacollectionrules.SyslogDataSource, 0)
 	for _, v := range input {
 		result = append(result, datacollectionrules.SyslogDataSource{
-			FacilityNames: expandStringTypeSlice[datacollectionrules.KnownSyslogDataSourceFacilityNames](v.FacilityNames),
-			LogLevels:     expandStringTypeSlice[datacollectionrules.KnownSyslogDataSourceLogLevels](v.LogLevels),
+			FacilityNames: expandDataCollectionRuleDataSourceSyslogFacilityNames(v.FacilityNames),
+			LogLevels:     expandDataCollectionRuleDataSourceSyslogLogLevels(v.LogLevels),
 			Name:          utils.String(v.Name),
 			Streams:       &[]datacollectionrules.KnownSyslogDataSourceStreams{datacollectionrules.KnownSyslogDataSourceStreamsMicrosoftNegativeSyslog},
 		})
+	}
+	return &result
+}
+
+func expandDataCollectionRuleDataSourceSyslogFacilityNames(input []string) *[]datacollectionrules.KnownSyslogDataSourceFacilityNames {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]datacollectionrules.KnownSyslogDataSourceFacilityNames, 0)
+	for _, v := range input {
+		result = append(result, datacollectionrules.KnownSyslogDataSourceFacilityNames(v))
+	}
+	return &result
+}
+
+func expandDataCollectionRuleDataSourceSyslogLogLevels(input []string) *[]datacollectionrules.KnownSyslogDataSourceLogLevels {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]datacollectionrules.KnownSyslogDataSourceLogLevels, 0)
+	for _, v := range input {
+		result = append(result, datacollectionrules.KnownSyslogDataSourceLogLevels(v))
 	}
 	return &result
 }
@@ -684,9 +732,21 @@ func expandDataCollectionRuleDataSourceWindowsEventLogs(input []WindowsEventLog)
 	for _, v := range input {
 		result = append(result, datacollectionrules.WindowsEventLogDataSource{
 			Name:         utils.String(v.Name),
-			Streams:      expandStringTypeSlice[datacollectionrules.KnownWindowsEventLogDataSourceStreams](v.Streams),
+			Streams:      expandDataCollectionRuleDataSourceWindowsEventLogsStreams(v.Streams),
 			XPathQueries: stringSlice(v.XPathQueries),
 		})
+	}
+	return &result
+}
+
+func expandDataCollectionRuleDataSourceWindowsEventLogsStreams(input []string) *[]datacollectionrules.KnownWindowsEventLogDataSourceStreams {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]datacollectionrules.KnownWindowsEventLogDataSourceStreams, 0)
+	for _, v := range input {
+		result = append(result, datacollectionrules.KnownWindowsEventLogDataSourceStreams(v))
 	}
 	return &result
 }
@@ -727,32 +787,25 @@ func expandDataCollectionRuleDestinationLogAnalytics(input []LogAnalytic) *[]dat
 	return &result
 }
 
-func flattenStringTypePtr[T ~string](input *T) string {
+func flattenDataCollectionRuleKind(input *datacollectionrules.KnownDataCollectionRuleResourceKind) string {
 	if input == nil {
 		return ""
 	}
-
 	return string(*input)
 }
 
-func flattenTypePtr[T any](input *T) T {
-	var v T
+func flattenStringPtr(input *string) string {
 	if input == nil {
-		return v
+		return ""
 	}
 	return *input
 }
 
-func flattenStringTypeSlice[T ~string](input *[]T) []string {
+func flattenStringSlicePtr(input *[]string) []string {
 	if input == nil {
 		return make([]string, 0)
 	}
-
-	result := make([]string, 0)
-	for _, v := range *input {
-		result = append(result, string(v))
-	}
-	return result
+	return *input
 }
 
 func flattenDataCollectionRuleDataFlows(input *[]datacollectionrules.DataFlow) []DataFlow {
@@ -763,9 +816,21 @@ func flattenDataCollectionRuleDataFlows(input *[]datacollectionrules.DataFlow) [
 	result := make([]DataFlow, 0)
 	for _, v := range *input {
 		result = append(result, DataFlow{
-			Destinations: flattenTypePtr(v.Destinations),
-			Streams:      flattenStringTypeSlice(v.Streams),
+			Destinations: flattenStringSlicePtr(v.Destinations),
+			Streams:      flattenDataCollectionRuleDataFlowStreams(v.Streams),
 		})
+	}
+	return result
+}
+
+func flattenDataCollectionRuleDataFlowStreams(input *[]datacollectionrules.KnownDataFlowStreams) []string {
+	if input == nil {
+		return make([]string, 0)
+	}
+
+	result := make([]string, 0)
+	for _, v := range *input {
+		result = append(result, string(v))
 	}
 	return result
 }
@@ -797,11 +862,23 @@ func flattenDataCollectionRuleDataSourceExtensions(input *[]datacollectionrules.
 		}
 		result = append(result, Extension{
 			ExtensionName:     v.ExtensionName,
-			Name:              flattenTypePtr(v.Name),
+			Name:              flattenStringPtr(v.Name),
 			ExtensionSettings: extensionSettings,
-			InputDataSources:  flattenTypePtr(v.InputDataSources),
-			Streams:           flattenStringTypeSlice(v.Streams),
+			InputDataSources:  flattenStringSlicePtr(v.InputDataSources),
+			Streams:           flattenDataCollectionRuleDataSourceExtensionStreams(v.Streams),
 		})
+	}
+	return result
+}
+
+func flattenDataCollectionRuleDataSourceExtensionStreams(input *[]datacollectionrules.KnownExtensionDataSourceStreams) []string {
+	if input == nil {
+		return make([]string, 0)
+	}
+
+	result := make([]string, 0)
+	for _, v := range *input {
+		result = append(result, string(v))
 	}
 	return result
 }
@@ -814,11 +891,23 @@ func flattenDataCollectionRuleDataSourcePerfCounters(input *[]datacollectionrule
 	result := make([]PerfCounter, 0)
 	for _, v := range *input {
 		result = append(result, PerfCounter{
-			Name:                       flattenTypePtr(v.Name),
-			CounterSpecifiers:          flattenTypePtr(v.CounterSpecifiers),
-			SamplingFrequencyInSeconds: flattenTypePtr(v.SamplingFrequencyInSeconds),
-			Streams:                    flattenStringTypeSlice(v.Streams),
+			Name:                       flattenStringPtr(v.Name),
+			CounterSpecifiers:          flattenStringSlicePtr(v.CounterSpecifiers),
+			SamplingFrequencyInSeconds: utils.NormaliseNilableInt64(v.SamplingFrequencyInSeconds),
+			Streams:                    flattenDataCollectionRuleDataSourcePerfCounterStreams(v.Streams),
 		})
+	}
+	return result
+}
+
+func flattenDataCollectionRuleDataSourcePerfCounterStreams(input *[]datacollectionrules.KnownPerfCounterDataSourceStreams) []string {
+	if input == nil {
+		return make([]string, 0)
+	}
+
+	result := make([]string, 0)
+	for _, v := range *input {
+		result = append(result, string(v))
 	}
 	return result
 }
@@ -831,10 +920,34 @@ func flattenDataCollectionRuleDataSourceSyslog(input *[]datacollectionrules.Sysl
 	result := make([]Syslog, 0)
 	for _, v := range *input {
 		result = append(result, Syslog{
-			Name:          flattenTypePtr(v.Name),
-			FacilityNames: flattenStringTypeSlice(v.FacilityNames),
-			LogLevels:     flattenStringTypeSlice(v.LogLevels),
+			Name:          flattenStringPtr(v.Name),
+			FacilityNames: flattenDataCollectionRuleDataSourceSyslogFacilityNames(v.FacilityNames),
+			LogLevels:     flattenDataCollectionRuleDataSourceSyslogLogLevels(v.LogLevels),
 		})
+	}
+	return result
+}
+
+func flattenDataCollectionRuleDataSourceSyslogFacilityNames(input *[]datacollectionrules.KnownSyslogDataSourceFacilityNames) []string {
+	if input == nil {
+		return make([]string, 0)
+	}
+
+	result := make([]string, 0)
+	for _, v := range *input {
+		result = append(result, string(v))
+	}
+	return result
+}
+
+func flattenDataCollectionRuleDataSourceSyslogLogLevels(input *[]datacollectionrules.KnownSyslogDataSourceLogLevels) []string {
+	if input == nil {
+		return make([]string, 0)
+	}
+
+	result := make([]string, 0)
+	for _, v := range *input {
+		result = append(result, string(v))
 	}
 	return result
 }
@@ -847,10 +960,22 @@ func flattenDataCollectionRuleWindowsEventLogs(input *[]datacollectionrules.Wind
 	result := make([]WindowsEventLog, 0)
 	for _, v := range *input {
 		result = append(result, WindowsEventLog{
-			Name:         flattenTypePtr(v.Name),
-			XPathQueries: flattenTypePtr(v.XPathQueries),
-			Streams:      flattenStringTypeSlice(v.Streams),
+			Name:         flattenStringPtr(v.Name),
+			XPathQueries: flattenStringSlicePtr(v.XPathQueries),
+			Streams:      flattenDataCollectionRuleWindowsEventLogStreams(v.Streams),
 		})
+	}
+	return result
+}
+
+func flattenDataCollectionRuleWindowsEventLogStreams(input *[]datacollectionrules.KnownWindowsEventLogDataSourceStreams) []string {
+	if input == nil {
+		return make([]string, 0)
+	}
+
+	result := make([]string, 0)
+	for _, v := range *input {
+		result = append(result, string(v))
 	}
 	return result
 }
@@ -872,7 +997,7 @@ func flattenDataCollectionRuleDestinationMetrics(input *datacollectionrules.Azur
 	}
 
 	return []AzureMonitorMetric{{
-		Name: flattenTypePtr(input.Name),
+		Name: flattenStringPtr(input.Name),
 	}}
 }
 
@@ -884,8 +1009,8 @@ func flattenDataCollectionRuleDestinationLogAnalytics(input *[]datacollectionrul
 	result := make([]LogAnalytic, 0)
 	for _, v := range *input {
 		result = append(result, LogAnalytic{
-			Name:                flattenTypePtr(v.Name),
-			WorkspaceResourceId: flattenTypePtr(v.WorkspaceResourceId),
+			Name:                flattenStringPtr(v.Name),
+			WorkspaceResourceId: flattenStringPtr(v.WorkspaceResourceId),
 		})
 	}
 	return result
