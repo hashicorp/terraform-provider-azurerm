@@ -116,6 +116,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		appconfiguration.Registration{},
 		applicationinsights.Registration{},
 		appservice.Registration{},
+		automation.Registration{},
 		batch.Registration{},
 		bot.Registration{},
 		consumption.Registration{},
