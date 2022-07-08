@@ -1,5 +1,9 @@
 ## 3.14.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_application_insights_workbook_template` [GH-17433]
+
 ENHANCEMENTS:
 
 * `azurerm_kusto_cluster` - support for the `public_ip_address` property [GH-17520]
