@@ -6,11 +6,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-10-01/netapp"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -41,7 +40,7 @@ func TestAccNetAppVolume_nfsv41(t *testing.T) {
 			Config: r.nfsv41(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_features").HasValue(string(netapp.NetworkFeaturesBasic)),
+				check.That(data.ResourceName).Key("network_features").HasValue(string(volumes.NetworkFeaturesBasic)),
 			),
 		},
 		data.ImportStep(),
@@ -57,7 +56,7 @@ func TestAccNetAppVolume_standardNetworkFeature(t *testing.T) {
 			Config: r.standardNetworkFeature(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_features").HasValue(string(netapp.NetworkFeaturesStandard)),
+				check.That(data.ResourceName).Key("network_features").HasValue(string(volumes.NetworkFeaturesStandard)),
 			),
 		},
 		data.ImportStep(),
@@ -257,17 +256,17 @@ func TestAccNetAppVolume_updateExportPolicyRule(t *testing.T) {
 }
 
 func (t NetAppVolumeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VolumeID(state.ID)
+	id, err := volumes.ParseVolumeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.NetApp.VolumeClient.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
+	resp, err := clients.NetApp.VolumeClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Netapp Volume (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (NetAppVolumeResource) basic(data acceptance.TestData) string {

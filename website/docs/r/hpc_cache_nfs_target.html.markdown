@@ -175,5 +175,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 NFS Target within a HPC Cache can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_hpc_cache_blob_target.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StorageCache/caches/cache1/storageTargets/target1
+terraform import azurerm_hpc_cache_nfs_target.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StorageCache/caches/cache1/storageTargets/target1
 ```

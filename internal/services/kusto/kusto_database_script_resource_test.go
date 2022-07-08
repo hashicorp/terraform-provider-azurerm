@@ -317,3 +317,17 @@ resource "azurerm_kusto_script" "test4" {
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
+
+func (r KustoScriptResource) scriptContent(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_kusto_script" "test" {
+  name                               = "acctest-ks-%d"
+  database_id                        = azurerm_kusto_database.test.id
+  continue_on_errors_enabled         = true
+  force_an_update_when_value_changed = "first"
+  script_content                     = ".create table MyTable (Level:string, Timestamp:datetime, UserId:string, TraceId:string, Message:string, ProcessId:int32)"
+}
+`, template, data.RandomInteger)
+}

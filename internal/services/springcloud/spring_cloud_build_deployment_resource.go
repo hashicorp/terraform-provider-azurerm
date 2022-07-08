@@ -56,6 +56,14 @@ func resourceSpringCloudBuildDeployment() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"addon_json": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+			},
+
 			"environment_variables": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
@@ -149,6 +157,11 @@ func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("invalid `sku` for Spring Cloud Service %q (Resource Group %q)", appId.SpringName, appId.ResourceGroup)
 	}
 
+	addonConfig, err := expandSpringCloudAppAddon(d.Get("addon_json").(string))
+	if err != nil {
+		return err
+	}
+
 	deployment := appplatform.DeploymentResource{
 		Sku: &appplatform.Sku{
 			Name:     service.Sku.Name,
@@ -160,6 +173,7 @@ func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, m
 				BuildResultID: utils.String(d.Get("build_result_id").(string)),
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
+				AddonConfigs:         addonConfig,
 				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
 				ResourceRequests:     expandSpringCloudBuildDeploymentResourceRequests(d.Get("quota").([]interface{})),
 			},
@@ -210,6 +224,9 @@ func resourceSpringCloudBuildDeploymentRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("environment_variables", flattenSpringCloudDeploymentEnvironmentVariables(settings.EnvironmentVariables))
 			if err := d.Set("quota", flattenSpringCloudDeploymentResourceRequests(settings.ResourceRequests)); err != nil {
 				return fmt.Errorf("setting `quota`: %+v", err)
+			}
+			if err := d.Set("addon_json", flattenSpringCloudAppAddon(settings.AddonConfigs)); err != nil {
+				return fmt.Errorf("setting `addon_json`: %s", err)
 			}
 		}
 		if source, ok := resp.Properties.Source.AsBuildResultUserSourceInfo(); ok && source != nil {

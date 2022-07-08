@@ -127,6 +127,7 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 			ForceUpdateTag:   utils.String(forceUpdateTag),
 		},
 	}
+
 	if scriptURL, ok := d.GetOk("url"); ok {
 		parameters.ScriptURL = utils.String(scriptURL.(string))
 	}

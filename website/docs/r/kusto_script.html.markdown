@@ -97,6 +97,7 @@ The following arguments are supported:
 * `name` - (Required) The name which should be used for this Kusto Script. Changing this forces a new Kusto Script to be created.
   
 * `database_id` - (Required) The ID of the Kusto Database. Changing this forces a new Kusto Script to be created.
+
 ---
 
 * `continue_on_errors_enabled` - (Optional) Flag that indicates whether to continue if one of the command fails.

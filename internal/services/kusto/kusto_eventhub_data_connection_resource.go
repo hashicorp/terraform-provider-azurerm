@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -113,7 +113,7 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 				Optional: true,
 				ValidateFunc: validation.Any(
 					validate.ClusterID,
-					msiValidate.UserAssignedIdentityID,
+					commonids.ValidateUserAssignedIdentityID,
 				),
 			},
 
@@ -139,17 +139,6 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 					string(kusto.EventHubDataFormatSOHSV),
 					string(kusto.EventHubDataFormatTSV),
 					string(kusto.EventHubDataFormatTXT),
-				}, false),
-			},
-
-			"database_routing": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(kusto.DatabaseRoutingSingle),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(kusto.DatabaseRoutingSingle),
-					string(kusto.DatabaseRoutingMulti),
 				}, false),
 			},
 		},
@@ -189,10 +178,6 @@ func resourceKustoEventHubDataConnectionCreateUpdate(d *pluginsdk.ResourceData, 
 		Name:                         &id.Name,
 		Location:                     &location,
 		EventHubConnectionProperties: eventHubDataConnectionProperties,
-	}
-
-	if databaseRouting, ok := d.GetOk("database_routing"); ok {
-		dataConnection1.DatabaseRouting = kusto.DatabaseRouting(databaseRouting.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name, dataConnection1)
@@ -244,7 +229,6 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 			d.Set("table_name", props.TableName)
 			d.Set("mapping_rule_name", props.MappingRuleName)
 			d.Set("data_format", props.DataFormat)
-			d.Set("database_routing", props.DatabaseRouting)
 			d.Set("compression", props.Compression)
 			d.Set("event_system_properties", props.EventSystemProperties)
 			d.Set("identity_id", props.ManagedIdentityResourceID)
