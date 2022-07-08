@@ -406,10 +406,10 @@ resource "azurerm_servicebus_topic" "test" {
 }
 
 resource "azurerm_servicebus_subscription" "test" {
-  name                                 = "_acctestsub-%[1]d_"
-  topic_id                             = azurerm_servicebus_topic.test.id
-  max_delivery_count                   = 10
-  client_scoped_subscription_enabled   = true
+  name                               = "_acctestsub-%[1]d_"
+  topic_id                           = azurerm_servicebus_topic.test.id
+  max_delivery_count                 = 10
+  client_scoped_subscription_enabled = true
   client_scoped_subscription {
     client_id                               = "123456"
     is_client_scoped_subscription_shareable = false

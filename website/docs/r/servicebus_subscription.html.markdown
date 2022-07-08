@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `client_scoped_subscription_enabled` - (Optional)  whether the subscription is scoped to a client id. Defaults to `False`. 
 
-~> **NOTE:** Client Scoped Subscription can only be used for JMS subscription.
+~> **NOTE:** Client Scoped Subscription can only be used for JMS subscription (Java Message Service).
 
 * `client_scoped_subscription` - (Optional)  A `client_scoped_subscription` block as defined below.
 
