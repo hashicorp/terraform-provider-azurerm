@@ -192,9 +192,39 @@ An `cloud_service_configuration` block supports the following:
 
 A `virtual_machine_configuration` block supports the following:
 
-* `container_configuration` - (Optional) block as defined below.
+* `image_reference` - (Required) An `image_reference` block as defined below.
 
-* `data_disks` - (Optional) block as defined below.
+* `node_agent_sku_id` - (Required) The SKU of the Batch node agent to be provisioned on compute nodes in the pool. The Batch node agent is a program that runs on each node in the pool, and provides the command-and-control interface between the node and the Batch service. There are different implementations of the node agent, known as SKUs, for different operating systems. You must specify a node agent SKU which matches the selected image reference. To get the list of supported node agent SKUs along with their list of verified image references, see the 'List supported node agent SKUs' operation.
+
+* `container_configuration` - (Optional) A `container_configuration` block as defined below.
+
+* `data_disks` - (Optional) A `data_disks` block as defined below.
+
+* `disk_encryption_configuration` - (Optional) A `disk_encryption_configuration` block as defined below.
+
+* `extensions` - (Optional) An `extensions` block as defined below.
+
+* `license_type` - (Optional) The type of on-premises license to be used when deploying the operating system. This only applies to images that contain the Windows operating system, and should only be used when you hold valid on-premises licenses for the nodes which will be deployed. If omitted, no on-premises licensing discount is applied. Values are: Windows_Server - The on-premises license is for Windows Server. Windows_Client - The on-premises license is for Windows Client.
+
+* `node_placement_configuration` - (Optional)  A `node_placement_configuration` block as defined below.
+
+* `os_disk` - (Optional) An `os_disk` block as defined below.
+
+---
+
+A `image_reference` block supports the following:
+
+A reference to an Azure Virtual Machines Marketplace image or the Azure Image resource of a custom Virtual Machine. To get the list of all imageReferences verified by Azure Batch, see the 'List supported node agent SKUs' operation.
+
+* `id` - (Optional) The ARM resource identifier of the Shared Image Gallery Image. Compute Nodes in the Pool will be created using this Image Id. This is of the form /subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Compute/galleries/{galleryName}/images/{imageDefinitionName}/versions/{versionId}. This property is mutually exclusive with other properties. The Shared Image Gallery image must have replicas in the same region as the Azure Batch account. For information about the firewall settings for the Batch node agent to communicate with the Batch service see https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#virtual-network-vnet-and-firewall-configuration.
+
+* `publisher` - (Optional) The publisher of the Azure Virtual Machines Marketplace image. For example, Canonical or MicrosoftWindowsServer.
+
+* `offer` - (Optional) The offer type of the Azure Virtual Machines Marketplace image. For example, UbuntuServer or WindowsServer.
+
+* `sku` - (Optional) The SKU of the Azure Virtual Machines Marketplace image. For example, 18.04-LTS or 2022-datacenter.
+
+* `version` - (Optional) The version of the Azure Virtual Machines Marketplace image. A value of 'latest' can be specified to select the latest version of an image. If omitted, the default is 'latest'.
 
 ---
 
@@ -219,6 +249,55 @@ A `data_disks` block supports the following:
 * `disk_size_gb` - (Required) The initial disk size in GB when creating new data disk.
 
 * `storage_account_type` - (Optional) The storage account type to be used for the data disk. If omitted, the default is "Standard_LRS". Values are: "Standard_LRS" - The data disk should use standard locally redundant storage. "Premium_LRS" - The data disk should use premium locally redundant storage.
+
+---
+
+A `disk_encryption_configuration` block supports the following:
+
+The disk encryption configuration applied on compute nodes in the pool. Disk encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared Image Gallery Image.
+
+* `disk_encryption_target` - (Required) On Linux pool, only \"TemporaryDisk\" is supported; on Windows pool, \"OsDisk\" and \"TemporaryDisk\" must be specified.
+
+---
+
+An `extensions` block supports the following:
+
+The virtual machine extension for the pool.
+If specified, the extensions mentioned in this configuration will be installed on each node.
+
+* `name` - (Required) The name of the virtual machine extension.
+
+* `publisher` - (Required) The name of the extension handler publisher.The name of the extension handler publisher.
+
+* `type` - (Required) The type of the extensions.
+
+* `type_handler_version` - (Optional) The version of script handler.
+
+* `auto_upgrade_minor_version` - (Optional) Indicates whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.
+
+* `settings` - (Optional) JSON formatted public settings for the extension.
+
+* `protected_settings` - (Optional) The extension can contain either `protected_settings` or `provision_after_extensions` or no protected settings at all.
+
+* `provision_after_extensions` - (Optional) The collection of extension names. Collection of extension names after which this extension needs to be provisioned.
+
+---
+
+A `node_placement_configuration` block supports the following:
+
+Node placement Policy type on Batch Pools. Allocation policy used by Batch Service to provision the nodes. If not specified, Batch will use the regional policy.
+
+* `policy` - (Required) The placement policy for allocating nodes in the pool. Values are: "Regional": All nodes in the pool will be allocated in the same region; "Zonal": Nodes in the pool will be spread across different zones with the best effort balancing.
+
+---
+
+An `os_disk` block supports the following:
+
+* `ephemeral_os_disk_settings` - (Required) An `ephemeral_os_disk_settings` block defined as follows.
+
+---
+
+
 
 ---
 
