@@ -97,6 +97,10 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The secondary connection string for the CosmosDB account.
 
+* `primary_readonly_connection_string` - The primary read-only connection string for the CosmosDB account.
+
+* `secondary_readonly_connection_string` - The secondary read-only connection string for the CosmosDB account.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
