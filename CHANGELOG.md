@@ -8,6 +8,8 @@ ENHANCEMENTS:
 
 * `azurerm_kusto_cluster` - support for the `public_ip_address` property [GH-17520]
 * `azurerm_kusto_script` - support for the `script_content` property [GH-17522]
+* `azurerm_kubernetes_cluster` - support for the `host_group_id` property [GH-17496]
+* `azurerm_kubernetes_cluster_node_pool` - support for the `host_group_id` property [GH-17496]
 * `azurerm_linux_virtual_machine_scale_set` - support for `capacity_reservation_group_id` property [GH-17530]
 * `azurerm_windows_virtual_machine_scale_set` - support for `capacity_reservation_group_id` property [GH-17530]
 
