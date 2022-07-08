@@ -1,5 +1,9 @@
 ## 3.14.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_kusto_cluster` - support for the `public_ip_address` property [GH-17520]
+
 ## 3.13.0 (July 08, 2022)
 
 FEATURES:
