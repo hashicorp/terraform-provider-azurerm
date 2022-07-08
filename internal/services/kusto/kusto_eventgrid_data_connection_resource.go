@@ -139,7 +139,7 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"database_routing": {
+			"database_routing_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -214,7 +214,7 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData,
 		dataConnection.EventGridConnectionProperties.DataFormat = kusto.EventGridDataFormat(df.(string))
 	}
 
-	if databaseRouting, ok := d.GetOk("database_routing"); ok {
+	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
 		dataConnection.DatabaseRouting = kusto.DatabaseRouting(databaseRouting.(string))
 	}
 
@@ -275,7 +275,7 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 			d.Set("table_name", props.TableName)
 			d.Set("mapping_rule_name", props.MappingRuleName)
 			d.Set("data_format", props.DataFormat)
-			d.Set("database_routing", props.DatabaseRouting)
+			d.Set("database_routing_type", props.DatabaseRouting)
 			d.Set("eventgrid_resource_id", props.EventGridResourceID)
 			d.Set("managed_identity_resource_id", props.ManagedIdentityResourceID)
 		}

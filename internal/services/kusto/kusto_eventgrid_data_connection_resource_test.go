@@ -54,7 +54,7 @@ func TestAccKustoEventGridDataConnection_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("database_routing").HasValue("Multi"),
+				check.That(data.ResourceName).Key("database_routing_type").HasValue("Multi"),
 			),
 		},
 		data.ImportStep(),
@@ -207,7 +207,7 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
   blob_storage_event_type = "Microsoft.Storage.BlobRenamed"
   skip_first_record       = true
 
-  database_routing      = "Multi"
+  database_routing_type = "Multi"
   eventgrid_resource_id = azurerm_eventgrid_event_subscription.test.id
 
   depends_on = [azurerm_eventgrid_event_subscription.test]

@@ -126,7 +126,7 @@ The following arguments are supported:
 
 * `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSV` and `TXT`.
 
-* `database_routing` - (Optional) Indication for database routing information from the data connection, by default only database routing information is allowed. Allowed values: `Single`, `Multi`.
+* `database_routing_type` - (Optional) Indication for database routing information from the data connection, by default only database routing information is allowed. Allowed values: `Single`, `Multi`.
 
 * `eventgrid_resource_id` - (Optional) The resource ID of the event grid that is subscribed to the storage account events.
 
