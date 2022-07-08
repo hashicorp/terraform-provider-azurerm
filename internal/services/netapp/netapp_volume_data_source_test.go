@@ -10,11 +10,11 @@ import (
 
 type NetAppVolumeDataSource struct{}
 
-func TestAccDataSourceNetAppVolume_basic(t *testing.T) {
+func testAccDataSourceNetAppVolume_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume", "test")
 	r := NetAppVolumeDataSource{}
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTestInSequence(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

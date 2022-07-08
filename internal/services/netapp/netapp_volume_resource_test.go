@@ -16,11 +16,53 @@ import (
 
 type NetAppVolumeResource struct{}
 
-func TestAccNetAppVolume_basic(t *testing.T) {
+func TestAccNetAppVolume(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests due to
+	// Azure only being happy about provisioning one per region at once
+	// (which our test suite can't easily workaround)
+
+	// NOTE: Normally these tests can be separated to its own test cases, rather than this big composite one, since
+	// we are not calling the `t.Parallel()` for each sub-test. However, currently nightly test are using the jen20/teamcity-go-test
+	// which will invoke a `go test` for each test function, which effectively making them to be in parallel, even if they are intended
+	// to be run in sequential.
+	testCases := map[string]map[string]func(t *testing.T){
+		"resource": {
+			"basic":                              testAccNetAppVolume_basic,
+			"nfsv41":                             testAccNetAppVolume_nfsv41,
+			"standardNetworkFeature":             testAccNetAppVolume_standardNetworkFeature,
+			"snapshotPolicy":                     testAccNetAppVolume_snapshotPolicy,
+			"crossRegionReplication":             testAccNetAppVolume_crossRegionReplication,
+			"nfsv3FromSnapshot":                  testAccNetAppVolume_nfsv3FromSnapshot,
+			"nfsv3SnapshotDirectoryVisibleFalse": testAccNetAppVolume_nfsv3SnapshotDirectoryVisibleFalse,
+			"requiresImport":                     testAccNetAppVolume_requiresImport,
+			"complete":                           testAccNetAppVolume_complete,
+			"update":                             testAccNetAppVolume_update,
+			"updateSubnet":                       testAccNetAppVolume_updateSubnet,
+			"updateExportPolicyRule":             testAccNetAppVolume_updateExportPolicyRule,
+		},
+		"datasource": {
+			"basic": testAccDataSourceNetAppVolume_basic,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccNetAppVolume_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -31,11 +73,11 @@ func TestAccNetAppVolume_basic(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_nfsv41(t *testing.T) {
+func testAccNetAppVolume_nfsv41(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nfsv41(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -47,11 +89,11 @@ func TestAccNetAppVolume_nfsv41(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_standardNetworkFeature(t *testing.T) {
+func testAccNetAppVolume_standardNetworkFeature(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardNetworkFeature(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -63,11 +105,11 @@ func TestAccNetAppVolume_standardNetworkFeature(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_snapshotPolicy(t *testing.T) {
+func testAccNetAppVolume_snapshotPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.snapshotPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -79,11 +121,11 @@ func TestAccNetAppVolume_snapshotPolicy(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_crossRegionReplication(t *testing.T) {
+func testAccNetAppVolume_crossRegionReplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_secondary")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.crossRegionReplication(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -95,11 +137,11 @@ func TestAccNetAppVolume_crossRegionReplication(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_nfsv3FromSnapshot(t *testing.T) {
+func testAccNetAppVolume_nfsv3FromSnapshot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_snapshot_vol")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nfsv3FromSnapshot(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -110,11 +152,11 @@ func TestAccNetAppVolume_nfsv3FromSnapshot(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_nfsv3SnapshotDirectoryVisibleFalse(t *testing.T) {
+func testAccNetAppVolume_nfsv3SnapshotDirectoryVisibleFalse(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_snapshot_directory_visible_false")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nfsv3SnapshotDirectoryVisibleFalse(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -126,11 +168,11 @@ func TestAccNetAppVolume_nfsv3SnapshotDirectoryVisibleFalse(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_requiresImport(t *testing.T) {
+func testAccNetAppVolume_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -144,11 +186,11 @@ func TestAccNetAppVolume_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_complete(t *testing.T) {
+func testAccNetAppVolume_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -165,11 +207,11 @@ func TestAccNetAppVolume_complete(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_update(t *testing.T) {
+func testAccNetAppVolume_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completePoolQosManual(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -197,7 +239,7 @@ func TestAccNetAppVolume_update(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_updateSubnet(t *testing.T) {
+func testAccNetAppVolume_updateSubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 	resourceGroupName := fmt.Sprintf("acctestRG-netapp-%d", data.RandomInteger)
@@ -211,7 +253,7 @@ func TestAccNetAppVolume_updateSubnet(t *testing.T) {
 	oldSubnetId := fmt.Sprintf(uriTemplate, subscriptionID, resourceGroupName, oldVNetName, oldSubnetName)
 	newSubnetId := fmt.Sprintf(uriTemplate, subscriptionID, resourceGroupName, newVNetName, newSubnetName)
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -231,11 +273,11 @@ func TestAccNetAppVolume_updateSubnet(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_updateExportPolicyRule(t *testing.T) {
+func testAccNetAppVolume_updateExportPolicyRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
