@@ -40,8 +40,8 @@ func TestAccVirtualDesktopHostPool_agentupdates(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-				check.That(data.ResourceName).Key("scheduled_agent_updates_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("agent_updates_schedule.0.day_of_week").HasValue("Saturday"),
+				check.That(data.ResourceName).Key("scheduled_agent_updates.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("scheduled_agent_updates.0.schedule.0.day_of_week").HasValue("Saturday"),
 			),
 		},
 		{
@@ -49,10 +49,10 @@ func TestAccVirtualDesktopHostPool_agentupdates(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-				check.That(data.ResourceName).Key("scheduled_agent_updates_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("scheduled_agent_updates_use_session_host_timezone").HasValue("true"),
-				check.That(data.ResourceName).Key("agent_updates_schedule.0.day_of_week").HasValue("Saturday"),
-				check.That(data.ResourceName).Key("agent_updates_schedule.1.day_of_week").HasValue("Sunday"),
+				check.That(data.ResourceName).Key("scheduled_agent_updates.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("scheduled_agent_updates.0.use_session_host_timezone").HasValue("true"),
+				check.That(data.ResourceName).Key("scheduled_agent_updates.0.schedule.0.day_of_week").HasValue("Saturday"),
+				check.That(data.ResourceName).Key("scheduled_agent_updates.0.schedule.1.day_of_week").HasValue("Sunday"),
 			),
 		},
 		{
@@ -60,7 +60,7 @@ func TestAccVirtualDesktopHostPool_agentupdates(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-				check.That(data.ResourceName).Key("scheduled_agent_updates_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("scheduled_agent_updates.0.enabled").HasValue("false"),
 			),
 		},
 	})
@@ -157,10 +157,12 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   type                            = "Pooled"
   validate_environment            = true
   load_balancer_type              = "BreadthFirst"
-  scheduled_agent_updates_enabled = true
-  agent_updates_schedule {
-    day_of_week = "Saturday"
-    hour_of_day = 2
+  scheduled_agent_updates {
+	enabled = true
+	schedule {
+		day_of_week = "Saturday"
+    	hour_of_day = 2
+	}
   }
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString)
@@ -184,15 +186,17 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   type                                              = "Pooled"
   validate_environment                              = true
   load_balancer_type                                = "BreadthFirst"
-  scheduled_agent_updates_enabled                   = true
-  scheduled_agent_updates_use_session_host_timezone = true
-  agent_updates_schedule {
-    day_of_week = "Saturday"
-    hour_of_day = 2
-  }
-  agent_updates_schedule {
-    day_of_week = "Sunday"
-    hour_of_day = 3
+  scheduled_agent_updates {
+	enabled = true
+	use_session_host_timezone = true
+	schedule {
+		day_of_week = "Saturday"
+    	hour_of_day = 2
+	}
+	schedule {
+		day_of_week = "Sunday"
+    	hour_of_day = 2
+	}
   }
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString)
@@ -216,8 +220,10 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   type                                              = "Pooled"
   validate_environment                              = true
   load_balancer_type                                = "BreadthFirst"
-  scheduled_agent_updates_enabled                   = false
-  scheduled_agent_updates_use_session_host_timezone = true
+  scheduled_agent_updates {
+	enabled = false
+	use_session_host_timezone = true
+  }
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
