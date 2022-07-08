@@ -141,7 +141,11 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `inter_node_communication` - (Optional) Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool. If not specified, this value defaults to "Disabled". Values allowed are "Disabled" and "Enabled".
+
 * `max_tasks_per_node` - (Optional) Specifies the maximum number of tasks that can run concurrently on a single compute node in the pool. Defaults to `1`. Changing this forces a new resource to be created.
+
+* `mount_configuration` - (Optional) A `mount_configuration` block defined as below.
 
 * `fixed_scale` - (Optional) A `fixed_scale` block that describes the scale settings when using fixed scale.
 
@@ -209,6 +213,84 @@ A `virtual_machine_configuration` block supports the following:
 * `node_placement_configuration` - (Optional)  A `node_placement_configuration` block as defined below.
 
 * `os_disk` - (Optional) An `os_disk` block as defined below.
+
+* `windows_configuration` - (Optional) A `windows_configuration` block as defined below.
+
+---
+
+An `mount_configuration` block supports the following:
+
+Any property below is mutually exclusive with all other properties.
+
+* `azure_blob_file_system_configuration` - (Optional) A `azure_blob_file_system_configuration` block defined as below.
+
+* `azure_file_share_configuration` - (Optional) A `azure_file_share_configuration` block defined as below.
+
+* `cifs_mount_configuration` - (Optional) A `cifs_mount_configuration` block defined as below.
+
+* `nfs_mount_configuration` - (Optional) A `nfs_mount_configuration` block defined as below.
+
+---
+
+An `azure_blob_file_system_configuration` block supports the following:
+
+* `account_name` - (Required) The Azure Storage Account name.
+
+* `container_name` - (Required) The Azure Blob Storage Container name.
+
+* `relative_mount_path` - (Required) The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `account_key` - (Optional) The Azure Storage Account key. This property is mutually exclusive with both `sas_key` and `identity_reference`; exactly one must be specified.
+
+* `sas_key` - (Optional) The Azure Storage SAS token. This property is mutually exclusive with both `account_key` and `identity_reference`; exactly one must be specified.
+
+* `identity_reference` - (Optional) An `identity_reference` block defined as below. This property is mutually exclusive with both `account_key` and `sas_key`; exactly one must be specified.
+
+* `blobfuse_options` - (Optional) Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
+
+An `azure_file_share_configuration` block supports the following:
+
+* `account_name` - (Required) The Azure Storage Account name.
+
+* `account_key` - (Required) The Azure Storage Account key.
+
+* `azure_file_url` - (Required) The Azure Files URL. This is of the form 'https://{account}.file.core.windows.net/'.
+
+* `relative_mount_path` - (Required) The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `mount_options` - (Optional) Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
+
+An `cifs_mount_configuration` block supports the following:
+
+* `user_name` - (Required) The user to use for authentication against the CIFS file system.
+
+* `password` - (Required) The password to use for authentication against the CIFS file system.
+
+* `source` - (Required) The URI of the file system to mount.
+
+* `relative_mount_path` - (Required) The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `mount_options` - (Optional) Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
+
+An `nfs_mount_configuration` block supports the following:
+
+* `source` - (Required) The URI of the file system to mount.
+
+* `relative_mount_path` - (Required) The relative path on compute node where the file system will be mounted All file systems are mounted relative to the Batch mounts directory, accessible via the `AZ_BATCH_NODE_MOUNTS_DIR` environment variable.
+
+* `mount_options` - (Optional) Additional command line options to pass to the mount command. These are 'net use' options in Windows and 'mount' options in Linux.
+
+---
+
+An `identity_reference` block supports the following:
+
+* `identity_id` - (Required) The ARM resource id of the user assigned identity.
 
 ---
 
@@ -297,7 +379,11 @@ An `os_disk` block supports the following:
 
 ---
 
+A `windows_configuration` block supports the following:
 
+Windows operating system settings on the virtual machine. This property must not be specified if the imageReference specifies a Linux OS image.
+
+* `enable_automatic_updates` - (Required) Whether automatic updates are enabled on the virtual machine. If omitted, the default value is true.
 
 ---
 
