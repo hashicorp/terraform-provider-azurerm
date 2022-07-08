@@ -409,16 +409,11 @@ resource "azurerm_servicebus_subscription" "test" {
   name                                 = "_acctestsub-%[1]d_"
   topic_id                             = azurerm_servicebus_topic.test.id
   max_delivery_count                   = 10
-  auto_delete_on_idle                  = "PT5M"
-  lock_duration                        = "PT1M"
-  dead_lettering_on_message_expiration = true
-	%[3]s
-  client_scoped_subscription_enabled       = true
-  client_id_for_client_scoped_subscription = "123456"
-  is_client_scoped_subscription_shareable  = false
-
+  client_scoped_subscription_enabled   = true
+  client_scoped_subscription {
+    client_id                               = "123456"
+    is_client_scoped_subscription_shareable = false
+  }
 }
-
-
-`, data.RandomInteger, data.Locations.Primary, "")
+`, data.RandomInteger, data.Locations.Primary)
 }

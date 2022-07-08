@@ -57,9 +57,13 @@ output "servicebus_subscription" {
 
 * `forward_dead_lettered_messages_to` - The name of a Queue or Topic to automatically forward Dead Letter messages to.
 
-* `client_scoped_subscription_enabled` - The subscription has an affinity to the client id or not. 
+* `client_scoped_subscription_enabled` - Does the subscription scoped to a client id or not. 
 
-* `client_id_for_client_scoped_subscription` - The Client ID of the application that created the client-scoped subscription.
+* `client_scoped_subscription` - (Optional)  A `client_scoped_subscription` block as defined below.
+
+---
+
+* `client_id` - The Client ID of the application that created the client-scoped subscription.
 
 * `is_client_scoped_subscription_shareable` - The client scoped subscription is shareable or not. 
 

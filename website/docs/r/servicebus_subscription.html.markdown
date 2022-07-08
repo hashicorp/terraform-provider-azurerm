@@ -73,11 +73,17 @@ The following arguments are supported:
 
 * `status` - (Optional) The status of the Subscription. Possible values are `Active`,`ReceiveDisabled`, or `Disabled`. Defaults to `Active`.
 
-* `client_scoped_subscription_enabled` - (Optional)  whether the subscription has an affinity to the client id. Defaults to `False`. 
+* `client_scoped_subscription_enabled` - (Optional)  whether the subscription is scoped to a client id. Defaults to `False`. 
 
 ~> **NOTE:** Client Scoped Subscription can only be used for JMS subscription.
 
-* `client_id_for_client_scoped_subscription` - (Optional)  Specifies the Client ID of the application that created the client-scoped subscription.
+* `client_scoped_subscription` - (Optional)  A `client_scoped_subscription` block as defined below.
+
+---
+
+A `client_scoped_subscription` block supports the following:
+
+* `client_id` - (Optional)  Specifies the Client ID of the application that created the client-scoped subscription.
 
 ~> **NOTE:** Client ID can be null or empty, but it must match the client ID set on the JMS client application. From the Azure Service Bus perspective, a null client ID and an empty client id have the same behavior. If the client ID is set to null or empty, it is only accessible to client applications whose client ID is also set to null or empty.
 

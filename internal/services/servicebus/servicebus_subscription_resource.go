@@ -137,21 +137,31 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"client_id_for_client_scoped_subscription": {
-			Type:     pluginsdk.TypeString,
+		"client_scoped_subscription": {
+			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
-		},
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"client_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+					},
 
-		"is_client_scoped_subscription_shareable": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
+					"is_client_scoped_subscription_shareable": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+						ForceNew: true,
+					},
 
-		"is_client_scoped_subscription_durable": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+					"is_client_scoped_subscription_durable": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+				},
+			},
 		},
 	}
 }
@@ -166,16 +176,18 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	name := d.Get("name").(string)
 
 	clientId := ""
-	isSubShared := true
+	var isSubShared bool
 	isClintAffineEnabled := d.Get("client_scoped_subscription_enabled").(bool)
 	if isClintAffineEnabled {
-		if v, ok := d.GetOk("client_id_for_client_scoped_subscription"); ok {
-			clientId = v.(string)
-		}
-		name = name + "$" + clientId + "$D"
+		clientScopedSubsRawData := d.Get("client_scoped_subscription").([]interface{})
+		if len(clientScopedSubsRawData) > 0 {
+			clientScopedSubsProps := clientScopedSubsRawData[0].(map[string]interface{})
+			if clientScopedSubsProps["client_id"] != "" {
+				clientId = clientScopedSubsProps["client_id"].(string)
+			}
+			name = name + "$" + clientId + "$D"
 
-		if d.Get("is_client_scoped_subscription_shareable") != nil {
-			isSubShared = d.Get("is_client_scoped_subscription_shareable").(bool)
+			isSubShared = clientScopedSubsProps["is_client_scoped_subscription_shareable"].(bool)
 		}
 	}
 
@@ -264,7 +276,7 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 
 	d.Set("topic_id", parse.NewTopicID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName).ID())
 
-	isClientAffine := false
+	clientAffineEnabled := false
 	userAssignedName := id.Name
 	clientId := ""
 
@@ -286,21 +298,18 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 		}
 
 		if props.IsClientAffine != nil && *props.IsClientAffine {
-			isClientAffine = true
-		}
-
-		if props.ClientAffineProperties != nil {
-			d.Set("client_id_for_client_scoped_subscription", props.ClientAffineProperties.ClientID)
 			if props.ClientAffineProperties.ClientID != nil {
 				clientId = *props.ClientAffineProperties.ClientID
 			}
-			d.Set("is_client_scoped_subscription_shareable", props.ClientAffineProperties.IsShared)
-			d.Set("is_client_scoped_subscription_durable", props.ClientAffineProperties.IsDurable)
+			clientAffineEnabled = true
 		}
+
+		d.Set("client_scoped_subscription", flattenServiceBusNamespaceClientScopedSubscription(props.ClientAffineProperties))
 	}
 
-	if isClientAffine {
-		userAssignedName = strings.TrimSuffix(userAssignedName, "$"+clientId+"$D")
+	if clientAffineEnabled {
+		suffix := "$" + clientId + "$D"
+		userAssignedName = strings.TrimSuffix(userAssignedName, suffix)
 	}
 	d.Set("name", userAssignedName)
 
@@ -322,4 +331,33 @@ func resourceServiceBusSubscriptionDelete(d *pluginsdk.ResourceData, meta interf
 	}
 
 	return nil
+}
+
+func flattenServiceBusNamespaceClientScopedSubscription(clientScopedSubsProps *servicebus.SBClientAffineProperties) []interface{} {
+	if clientScopedSubsProps == nil {
+		return []interface{}{}
+	}
+
+	var clientId string
+	var isShareable, isDurable bool
+
+	if clientScopedSubsProps.ClientID != nil {
+		clientId = *clientScopedSubsProps.ClientID
+	}
+
+	if clientScopedSubsProps.IsShared != nil {
+		isShareable = *clientScopedSubsProps.IsShared
+	}
+
+	if clientScopedSubsProps.IsDurable != nil {
+		isDurable = *clientScopedSubsProps.IsDurable
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"client_id": clientId,
+			"is_client_scoped_subscription_shareable": isShareable,
+			"is_client_scoped_subscription_durable":   isDurable,
+		},
+	}
 }
