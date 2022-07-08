@@ -3,12 +3,14 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	ConfigurationsClient                *postgresql.ConfigurationsClient
-	DatabasesClient                     *postgresql.DatabasesClient
+	ConfigurationsClient                *configurations.ConfigurationsClient
+	DatabasesClient                     *databases.DatabasesClient
 	FirewallRulesClient                 *postgresql.FirewallRulesClient
 	FlexibleServersClient               *postgresqlflexibleservers.ServersClient
 	FlexibleServersConfigurationsClient *postgresqlflexibleservers.ConfigurationsClient
