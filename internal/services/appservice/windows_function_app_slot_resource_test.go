@@ -2213,7 +2213,7 @@ func (WindowsFunctionAppSlotResource) template(data acceptance.TestData, planSku
 	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-LFA-%[1]d"
+  name     = "acctestRG-WFA-%[1]d"
   location = "%[2]s"
 }
 
@@ -2393,7 +2393,7 @@ resource "azurerm_subnet" "test" {
   }
 }
 resource "azurerm_windows_function_app_slot" "test" {
-  name                       = "acctest-LFAS-%d"
+  name                       = "acctest-WFAS-%d"
   function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
@@ -2428,7 +2428,7 @@ resource "azurerm_subnet" "test" {
   }
 }
 resource "azurerm_windows_function_app_slot" "test" {
-  name                       = "acctest-LFAS-%d"
+  name                       = "acctest-WFAS-%d"
   function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key

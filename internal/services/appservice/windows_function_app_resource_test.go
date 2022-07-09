@@ -2400,7 +2400,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-LFA-%d"
+  name                = "acctest-WFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -2767,7 +2767,7 @@ func (WindowsFunctionAppResource) template(data acceptance.TestData, planSku str
 	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-LFA-%d"
+  name     = "acctestRG-WFA-%d"
   location = "%s"
 }
 
@@ -2923,7 +2923,7 @@ resource "azurerm_subnet" "test" {
   }
 }
 resource "azurerm_windows_function_app" "test" {
-  name                       = "acctest-LFA-%d"
+  name                       = "acctest-WFA-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   service_plan_id            = azurerm_service_plan.test.id
@@ -2960,7 +2960,7 @@ resource "azurerm_subnet" "test" {
   }
 }
 resource "azurerm_windows_function_app" "test" {
-  name                       = "acctest-LFA-%d"
+  name                       = "acctest-WFA-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   service_plan_id            = azurerm_service_plan.test.id
