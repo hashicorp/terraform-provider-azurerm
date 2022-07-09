@@ -7,6 +7,15 @@ name: MakeTests
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      service:
+        type: string
+        description: the service to be tested
+        default: appservice
+      tests:
+        type: string
+        description: the service to be tested
+        default: TestAccWindowsFunctionApp
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -38,5 +47,5 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
-        run: make acctests SERVICE='appservice' TESTARGS='-run=TestAccWindowsFunctionApp_vNetIntegration' TESTTIMEOUT='600m'
+        run: make acctests SERVICE='${{ github.event.inputs.service }}"' TESTARGS='-run=${{ github.event.inputs.tests }}"' TESTTIMEOUT='600m'
         
