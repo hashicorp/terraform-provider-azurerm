@@ -56,6 +56,7 @@ type WindowsFunctionAppSlotModel struct {
 	PossibleOutboundIPAddresses   string                                     `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string                                   `tfschema:"possible_outbound_ip_address_list"`
 	SiteCredentials               []helpers.SiteCredential                   `tfschema:"site_credential"`
+	VirtualNetworkSubnetID        string                                     `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.ResourceWithUpdate = WindowsFunctionAppSlotResource{}
@@ -225,6 +226,12 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppSlot(),
 
 		"tags": tags.Schema(),
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
 	}
 }
 
@@ -242,7 +249,7 @@ func (r WindowsFunctionAppSlotResource) Attributes() map[string]*pluginsdk.Schem
 			Computed:    true,
 			Description: "The default hostname of the Windows Function App Slot.",
 		},
-
+ 
 		"kind": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
@@ -446,6 +453,10 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertMode:       web.ClientCertMode(functionAppSlot.ClientCertMode),
 					DailyMemoryTimeQuota: utils.Int32(int32(functionAppSlot.DailyMemoryTimeQuota)),
 				},
+			}
+
+			if functionAppSlot.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionAppSlot.VirtualNetworkSubnetID)
 			}
 
 			if functionAppSlot.KeyVaultReferenceIdentityID != "" {

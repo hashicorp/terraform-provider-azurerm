@@ -55,6 +55,7 @@ type WindowsFunctionAppModel struct {
 	KeyVaultReferenceIdentityID string                                 `tfschema:"key_vault_reference_identity_id"`
 	SiteConfig                  []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
 	Tags                        map[string]string                      `tfschema:"tags"`
+	VirtualNetworkSubnetID      string                                 `tfschema:"virtual_network_subnet_id"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -244,6 +245,12 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"sticky_settings": helpers.StickySettingsSchema(),
 
 		"tags": tags.Schema(),
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
 	}
 }
 
@@ -443,6 +450,10 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 					ClientCertMode:       web.ClientCertMode(functionApp.ClientCertMode),
 					DailyMemoryTimeQuota: utils.Int32(int32(functionApp.DailyMemoryTimeQuota)),
 				},
+			}
+
+			if functionApp.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(functionApp.VirtualNetworkSubnetID)
 			}
 
 			if functionApp.KeyVaultReferenceIdentityID != "" {
