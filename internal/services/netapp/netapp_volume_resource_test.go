@@ -930,12 +930,6 @@ resource "azurerm_subnet" "test" {
       actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true",
-    "SkipNRMSNSG"      = "true"
-  }
 }
 
 resource "azurerm_netapp_account" "test" {
@@ -1023,11 +1017,6 @@ resource "azurerm_subnet" "test" {
       name    = "Microsoft.Netapp/volumes"
       actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
-  }
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true"
   }
 }
 

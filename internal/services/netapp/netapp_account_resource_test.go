@@ -142,6 +142,12 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
   location = "%s"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true",
+    "SkipNRMSNSG"      = "true"
+  }
 }
 
 resource "azurerm_netapp_account" "test" {
@@ -150,7 +156,7 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate" = timestamp()
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
   }  
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -166,7 +172,7 @@ resource "azurerm_netapp_account" "import" {
   resource_group_name = azurerm_netapp_account.test.resource_group_name
 
   tags = {
-    "CreatedOnDate" = timestamp()
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
   }  
 }
 `, r.basicConfig(data))
@@ -181,6 +187,12 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
   location = "%s"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true",
+    "SkipNRMSNSG"      = "true"
+  }
 }
 
 resource "azurerm_netapp_account" "test" {
@@ -198,7 +210,7 @@ resource "azurerm_netapp_account" "test" {
   }
 
   tags = {
-	"CreatedOnDate" = timestamp(),
+	"CreatedOnDate" = "2022-07-08T23:50:21Z",
     "FoO"           = "BaR"
   }
 }
