@@ -386,7 +386,7 @@ resource "azurerm_netapp_volume" "test" {
   protocols           = ["NFSv3"]
   security_style      = "Unix"
   storage_quota_in_gb = 100
-  throughput_in_mibps= 1.562
+  throughput_in_mibps = 1.562
 
   data_protection_snapshot_policy {
     snapshot_policy_id = azurerm_netapp_snapshot_policy.test.id

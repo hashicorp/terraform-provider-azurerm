@@ -153,8 +153,8 @@ resource "azurerm_netapp_pool" "test" {
   size_in_tb          = 4
 
   tags = {
-	"CreatedOnDate" = "2022-07-08T23:50:21Z",
-  }  
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -211,7 +211,7 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Auto"
 
   tags = {
-	"CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
     "FoO"           = "BaR"
   }
 }
@@ -256,7 +256,7 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Manual"
 
   tags = {
-	"CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
     "FoO"           = "BaR"
   }
 }

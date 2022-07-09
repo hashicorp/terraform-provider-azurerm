@@ -157,7 +157,7 @@ resource "azurerm_netapp_account" "test" {
 
   tags = {
     "CreatedOnDate" = "2022-07-08T23:50:21Z",
-  }  
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -173,7 +173,7 @@ resource "azurerm_netapp_account" "import" {
 
   tags = {
     "CreatedOnDate" = "2022-07-08T23:50:21Z",
-  }  
+  }
 }
 `, r.basicConfig(data))
 }
@@ -210,7 +210,7 @@ resource "azurerm_netapp_account" "test" {
   }
 
   tags = {
-	"CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
     "FoO"           = "BaR"
   }
 }
