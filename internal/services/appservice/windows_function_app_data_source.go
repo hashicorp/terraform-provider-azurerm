@@ -47,7 +47,7 @@ type WindowsFunctionAppDataSourceModel struct {
 	SiteConfig                []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
 	StickySettings            []helpers.StickySettings               `tfschema:"sticky_settings"`
 	Tags                      map[string]string                      `tfschema:"tags"`
-	VirtualNetworkSubnetID    string                                 `tfschema:"virtual_network_subnet_id"`
+	VirtualNetworkSubnetId    string                                 `tfschema:"virtual_network_subnet_id"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
@@ -217,6 +217,11 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"tags": tags.SchemaDataSource(),
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -258,8 +263,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp.Kind = utils.NormalizeNilableString(existing.Kind)
 			functionApp.CustomDomainVerificationId = utils.NormalizeNilableString(props.CustomDomainVerificationID)
 			functionApp.DefaultHostname = utils.NormalizeNilableString(props.DefaultHostName)
-			functionApp.VirtualNetworkSubnetID = utils.NormalizeNilableString(props.VirtualNetworkSubnetID)
-
+			functionApp.VirtualNetworkSubnetId = utils.NormalizeNilableString(props.VirtualNetworkSubnetID)
 
 			appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
