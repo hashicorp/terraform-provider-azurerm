@@ -286,7 +286,7 @@ resource "azurerm_netapp_volume" "test" {
   storage_quota_in_gb = 100
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -321,7 +321,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -347,7 +347,7 @@ resource "azurerm_netapp_volume" "test" {
   storage_quota_in_gb = 100
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -393,7 +393,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -427,7 +427,7 @@ resource "azurerm_netapp_volume" "test_primary" {
   }
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -462,7 +462,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
   }
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -496,7 +496,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -532,7 +532,7 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
   }
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -567,7 +567,7 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_false" {
   }
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -634,7 +634,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "FoO"              = "BaR",
     "SkipASMAzSecPack" = "true"
   }
@@ -684,7 +684,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "FoO"              = "BaR",
     "SkipASMAzSecPack" = "true"
   }
@@ -726,7 +726,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "FoO"              = "BaR",
     "bAr"              = "fOo",
     "SkipASMAzSecPack" = "true"
@@ -746,7 +746,7 @@ resource "azurerm_virtual_network" "updated" {
   address_space       = ["10.1.0.0/16"]
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -781,7 +781,7 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -814,7 +814,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "FoO"              = "BaR",
     "SkipASMAzSecPack" = "true"
   }
@@ -833,7 +833,7 @@ resource "azurerm_virtual_network" "test_secondary" {
   address_space       = ["10.6.0.0/16"]
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -860,7 +860,7 @@ resource "azurerm_netapp_account" "test_secondary" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -875,7 +875,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
   qos_type            = "Manual"
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -898,7 +898,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -910,7 +910,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.6.0.0/16"]
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -946,7 +946,7 @@ resource "azurerm_netapp_pool" "test" {
   size_in_tb          = 4
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -969,7 +969,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -980,7 +980,7 @@ resource "azurerm_network_security_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     environment        = "Production",
     "SkipASMAzSecPack" = "true"
   }
@@ -993,7 +993,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.6.0.0/16"]
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1020,7 +1020,7 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1035,7 +1035,7 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Manual"
 
   tags = {
-    "CreatedOnDate"    = timestamp(),
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
