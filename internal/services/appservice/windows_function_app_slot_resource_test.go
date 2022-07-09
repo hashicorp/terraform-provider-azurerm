@@ -863,6 +863,56 @@ func TestAccWindowsFunctionAppSlot_storageAccountKeyVaultSecretVersionless(t *te
 	})
 }
 
+func TestAccWindowsFunctionAppSlot_vNetIntegration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetIntegration_withSubnetId(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test").Key("id"),
+				),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsFunctionAppSlot_vNetIntegrationUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetIntegration_basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegration_withSubnetId(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test").Key("id"),
+				),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vNetIntegration_basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // Exists
 
 func (r WindowsFunctionAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -2315,4 +2365,75 @@ resource "azurerm_windows_function_app" "test" {
   site_config {}
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, planSku)
+}
+
+func (r WindowsFunctionAppSlotResource) vNetIntegration_basic(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+resource "azurerm_subnet" "test" {
+  name                 = "subnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
+}
+
+func (r WindowsFunctionAppSlotResource) vNetIntegration_withSubnetId(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+%s
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+resource "azurerm_subnet" "test" {
+  name                 = "subnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  virtual_network_subnet_id  = azurerm_subnet.test.id
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
