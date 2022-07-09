@@ -47,5 +47,5 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
-        run: make acctests SERVICE='${{ github.event.inputs.service }}"' TESTARGS='-run=${{ github.event.inputs.tests }}"' TESTTIMEOUT='600m'
+        run: make acctests SERVICE='${{ github.event.inputs.service }}' TESTARGS='-run=${{ github.event.inputs.tests }}' TESTTIMEOUT='600m'
         
