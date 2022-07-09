@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-
 ```go
 client := databases.NewDatabasesClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -33,11 +30,8 @@ payload := databases.Database{
 	// ...
 }
 
-future, err := client.Create(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -48,11 +42,8 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
-future, err := client.Delete(ctx, id)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
@@ -68,11 +59,8 @@ payload := databases.ExportClusterParameters{
 	// ...
 }
 
-future, err := client.Export(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.ExportThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -88,11 +76,8 @@ payload := databases.ForceUnlinkParameters{
 	// ...
 }
 
-future, err := client.ForceUnlink(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.ForceUnlinkThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -103,6 +88,7 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -123,11 +109,8 @@ payload := databases.ImportClusterParameters{
 	// ...
 }
 
-future, err := client.Import(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.ImportThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -138,6 +121,7 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := databases.NewRedisEnterpriseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+
 // alternatively `client.ListByCluster(ctx, id)` can be used to do batched pagination
 items, err := client.ListByClusterComplete(ctx, id)
 if err != nil {
@@ -154,6 +138,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
+
 read, err := client.ListKeys(ctx, id)
 if err != nil {
 	// handle the error
@@ -174,11 +159,8 @@ payload := databases.RegenerateKeyParameters{
 	// ...
 }
 
-future, err := client.RegenerateKey(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.RegenerateKeyThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -194,11 +176,8 @@ payload := databases.DatabaseUpdate{
 	// ...
 }
 
-future, err := client.Update(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```

@@ -22,6 +22,8 @@ When adding a changelog entry the following rules should be followed:
 * each entry should link to the pull request with the placeholder `[GH-{number}]` (e.g. `[GH-1234]`), this will be replaced with a link during the release process.
 * entries should read as complete sentences such as `support for the property ```new_feature``` ` or `improve validation of the property ```old_feature``` ` not `support ```new_feature``` `.
 
+And finally when making the edit commit, the PR number should be included in the commit message so the edit is linked to the PR, and the entry from the pr. For example `CHANGELOG.md for #1234`.
+
 Here is a list of common changelog entries and how they should be formatted:
 
 ```go
