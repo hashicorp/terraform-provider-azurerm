@@ -170,6 +170,9 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		RollingUpgradePolicy:     rollingUpgradePolicy,
 	}
 
+	// NOTE: Hardware Profile is currently only supported in Uniform
+	hardwareProfile := &compute.VirtualMachineScaleSetHardwareProfile{}
+
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
 		Priority: priority,
 		OsProfile: &compute.VirtualMachineScaleSetOSProfile{
@@ -191,6 +194,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 			OsDisk:         osDisk,
 			DataDisks:      dataDisks,
 		},
+		HardwareProfile: hardwareProfile,
 	}
 
 	hasHealthExtension := false
@@ -1123,6 +1127,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Default:      "PT1H30M",
 			ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 		},
+
+		"hardware_profile": VirtualMachineScaleSetHardwareProfileSchema(),
 
 		"health_probe_id": {
 			Type:         pluginsdk.TypeString,

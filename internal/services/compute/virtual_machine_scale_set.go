@@ -15,6 +15,32 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+func VirtualMachineScaleSetHardwareProfileSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"virtual_cpus_available": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Default:  1,
+					ForceNew: true,
+				},
+
+				// NOTE: If vCPUs per core is set to 1 hyper-threading is disabled
+				"virtual_cpus_per_core": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Default:  1,
+					ForceNew: true,
+				},
+			},
+		},
+	}
+}
+
 func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -25,6 +51,13 @@ func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 				// NOTE: requires registration to use:
 				// $ az feature show --namespace Microsoft.Compute --name UltraSSDWithVMSS
 				// $ az provider register -n Microsoft.Compute
+				"hibernation_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+					ForceNew: true,
+				},
+
 				"ultra_ssd_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -42,6 +75,7 @@ func ExpandVirtualMachineScaleSetAdditionalCapabilities(input []interface{}) *co
 	if len(input) > 0 {
 		raw := input[0].(map[string]interface{})
 
+		capabilities.HibernationEnabled = utils.Bool(raw["hibernation_enabled"].(bool))
 		capabilities.UltraSSDEnabled = utils.Bool(raw["ultra_ssd_enabled"].(bool))
 	}
 
@@ -53,15 +87,20 @@ func FlattenVirtualMachineScaleSetAdditionalCapabilities(input *compute.Addition
 		return []interface{}{}
 	}
 
-	ultraSsdEnabled := false
+	hibernationEnabled := false
+	if input.HibernationEnabled != nil {
+		hibernationEnabled = *input.HibernationEnabled
+	}
 
+	ultraSsdEnabled := false
 	if input.UltraSSDEnabled != nil {
 		ultraSsdEnabled = *input.UltraSSDEnabled
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"ultra_ssd_enabled": ultraSsdEnabled,
+			"hibernation_enabled": hibernationEnabled,
+			"ultra_ssd_enabled":   ultraSsdEnabled,
 		},
 	}
 }
@@ -658,7 +697,7 @@ func expandVirtualMachineScaleSetIPConfigurationUpdate(raw map[string]interface{
 	version := compute.IPVersion(raw["version"].(string))
 
 	if primary && version == compute.IPVersionIPv6 {
-		return nil, fmt.Errorf("An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
+		return nil, fmt.Errorf("an IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary")
 	}
 
 	ipConfiguration := compute.VirtualMachineScaleSetUpdateIPConfiguration{
@@ -1523,6 +1562,16 @@ func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 					// this field actually has a range from 30m to 90m, is there a function that can do this validation?
 					ValidateFunc: azValidate.ISO8601Duration,
 				},
+				"repair_action": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(compute.RepairActionReplace),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.RepairActionReplace),
+						string(compute.RepairActionReimage),
+						string(compute.RepairActionRestart),
+					}, false),
+				},
 			},
 		},
 	}
@@ -1536,8 +1585,9 @@ func ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(input []interface{}) *co
 	raw := input[0].(map[string]interface{})
 
 	return &compute.AutomaticRepairsPolicy{
-		Enabled:     utils.Bool(raw["enabled"].(bool)),
-		GracePeriod: utils.String(raw["grace_period"].(string)),
+		Enabled:      utils.Bool(raw["enabled"].(bool)),
+		GracePeriod:  utils.String(raw["grace_period"].(string)),
+		RepairAction: compute.RepairAction(raw["repair_action"].(string)),
 	}
 }
 
@@ -1555,10 +1605,16 @@ func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *compute.Automati
 		gracePeriod = *input.GracePeriod
 	}
 
+	repairAction := "Replace"
+	if input != nil && input.RepairAction != "" {
+		repairAction = string(input.RepairAction)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"enabled":      enabled,
-			"grace_period": gracePeriod,
+			"enabled":       enabled,
+			"grace_period":  gracePeriod,
+			"repair_action": repairAction,
 		},
 	}
 }

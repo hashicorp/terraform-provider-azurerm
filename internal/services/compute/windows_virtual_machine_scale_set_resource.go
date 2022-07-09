@@ -173,6 +173,9 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		RollingUpgradePolicy:     rollingUpgradePolicy,
 	}
 
+	// NOTE: Hardware Profile is currently only supported in Uniform
+	hardwareProfile := &compute.VirtualMachineScaleSetHardwareProfile{}
+
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
 		Priority: priority,
 		OsProfile: &compute.VirtualMachineScaleSetOSProfile{
@@ -192,6 +195,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 			OsDisk:         osDisk,
 			DataDisks:      dataDisks,
 		},
+		HardwareProfile: hardwareProfile,
 	}
 
 	hasHealthExtension := false
@@ -1159,6 +1163,8 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Default:      "PT1H30M",
 			ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
 		},
+
+		"hardware_profile": VirtualMachineScaleSetHardwareProfileSchema(),
 
 		"health_probe_id": {
 			Type:         pluginsdk.TypeString,

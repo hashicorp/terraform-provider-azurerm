@@ -12,9 +12,9 @@ Manages an Orchestrated Virtual Machine Scale Set.
 
 ## Disclaimers
 
-~> **NOTE:** As of the **v2.86.0** (November 19, 2021) release of the provider this resource will only create Virtual Machine Scale Sets with the **Flexible** Orchestration Mode.
+-> **NOTE:** As of the **v2.86.0** (November 19, 2021) release of the provider this resource will only create Virtual Machine Scale Sets with the **Flexible** Orchestration Mode.
 
-~> **NOTE:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+-> **NOTE:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 ## Example Usage
 
@@ -47,9 +47,11 @@ The following arguments are supported:
 
 * `platform_fault_domain_count` - (Required) Specifies the number of fault domains that are used by this Orchestrated Virtual Machine Scale Set. Changing this forces a new resource to be created.
 
-~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - a list can be found [here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
+-> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - a list can be found [here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
 
 * `sku_name` - (Optional) The `name` of the SKU to be used by this Orcestrated Virtual Machine Scale Set. Valid values include: any of the [General purpose](https://docs.microsoft.com/azure/virtual-machines/sizes-general), [Compute optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-compute), [Memory optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-memory), [Storage optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-storage), [GPU optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-gpu), [FPGA optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-field-programmable-gate-arrays), [High performance](https://docs.microsoft.com/azure/virtual-machines/sizes-hpc), or [Previous generation](https://docs.microsoft.com/azure/virtual-machines/sizes-previous-gen) virtual machine SKUs.
+
+* `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below.
 
 * `instances`- (Optional) The number of Virtual Machines in the Orcestrated Virtual Machine Scale Set.
 
@@ -91,9 +93,15 @@ The following arguments are supported:
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Orchestrated Virtual Machine should be located. Changing this forces a new Orchestrated Virtual Machine to be created.
 
-~> **NOTE:** Due to a limitation of the Azure API at this time only one Availability Zone can be defined.
+-> **NOTE:** Due to a limitation of the Azure API at this time only one Availability Zone can be defined.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Orchestrated Virtual Machine Scale Set.
+
+---
+
+A `additional_capabilities` block supports the following:
+
+* `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Orchestrated Virtual Machine Scale Set? Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
@@ -101,7 +109,7 @@ A `os_profile` block supports the following:
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Orchestrated Virtual Machine Scale Set.
 
-~> **NOTE:** When Custom Data has been configured, it's not possible to remove it without tainting the Orchestrated Virtual Machine Scale Set, due to a limitation of the Azure API.
+-> **NOTE:** When Custom Data has been configured, it's not possible to remove it without tainting the Orchestrated Virtual Machine Scale Set, due to a limitation of the Azure API.
 
 * `windows_configuration` - (Optional) A `windows_configuration` block as documented below.
 
@@ -114,6 +122,10 @@ A `windows_configuration` block supports the following:
 * `admin_username` - (Required) The username of the local administrator on each Orchestrated Virtual Machine Scale Set instance. Changing this forces a new resource to be created.
 
 * `admin_password` - (Required) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
+
+* `automatic_instance_repair` - (Optional) A `automatic_instance_repair` block as defined below. 
+
+-> **NOTE:** To enable the `automatic_instance_repair`, the Orchestrated Virtual Machine Scale Set must have a valid `health_probe_id` or an [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
 
 * `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the `name` field. If the value of the `name` field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`.
 
@@ -147,7 +159,7 @@ A `linux_configuration` block supports the following:
 
 * `disable_password_authentication` - (Optional) When an `admin_password` is specified `disable_password_authentication` must be set to `false`. Defaults to `true`.
 
-~> **NOTE:** Either `admin_password` or `admin_ssh_key` must be specified.
+-> **NOTE:** Either `admin_password` or `admin_ssh_key` must be specified.
 
 * `patch_mode` - (Optional) Specifies the mode of in-guest patching of this Windows Virtual Machine. Possible values are `ImageDefault` or `AutomaticByPlatform`. Defaults to `ImageDefault`. For more information on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
 
@@ -165,7 +177,7 @@ A `secret` block supports the following:
 
 * `certificate` - (Required) One or more `certificate` blocks as defined below.
 
-~> **NOTE:** The schema of the `certificate` block is slightly different depending on if you are provisioning a `windows_configuration` or a `linux_configuration`.
+-> **NOTE:** The schema of the `certificate` block is slightly different depending on if you are provisioning a `windows_configuration` or a `linux_configuration`.
 
 ---
 
@@ -189,7 +201,7 @@ A `admin_ssh_key` block supports the following:
 
 * `username` - (Required) The Username for which this Public SSH Key should be configured. Changing this forces a new resource to be created.
 
-~> **NOTE:** The Azure VM Agent only allows creating SSH Keys at the path `/home/{username}/.ssh/authorized_keys` - as such this public key will be written to the authorized keys file.
+-> **NOTE:** The Azure VM Agent only allows creating SSH Keys at the path `/home/{username}/.ssh/authorized_keys` - as such this public key will be written to the authorized keys file.
 
 ---
 
@@ -197,7 +209,7 @@ A `winrm_listener` block supports the following:
 
 * `certificate_url` - (Optional) The Secret URL of a Key Vault Certificate, which must be specified when protocol is set to `Https`.
 
-~> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource.
+-> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource.
 
 ---
 
@@ -206,6 +218,8 @@ A `automatic_instance_repair` block supports the following:
 * `enabled` - (Required) Should the automatic instance repair be enabled on this Orchestrated Virtual Machine Scale Set? Possible values are `true` and `false`. Defaults to `false`.
 
 * `grace_period` - (Optional) Amount of time for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. Possible values are between `30` and `90` minutes. Defaults to `30` minutes. The time duration should be specified in `ISO 8601` format (e.g. `PT30M` to `PT90M`).
+
+* `repair_action` - (Optional) The repair action that will be taken for repairing unhealthy virtual machines in the scale set. Possible values are `Replace`, `Restart` and `Reimage`. Defaults to `Replace`.
 
 ---
 
@@ -221,7 +235,7 @@ A `certificate` block supports the following:
 
 * `url` - (Required) The Secret URL of a Key Vault Certificate. 
 
-~> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource. 
+-> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource. 
 
 ---
 
@@ -263,7 +277,7 @@ An `extension` block supports the following:
 
 * `protected_settings` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension. 
 
-~> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. `TitleCase` vs `snakeCase`) depends on the Extension being used. Please refer to the documentation for the specific Orchestrated Virtual Machine Extension you're looking to use for more information. 
+-> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. `TitleCase` vs `snakeCase`) depends on the Extension being used. Please refer to the documentation for the specific Orchestrated Virtual Machine Extension you're looking to use for more information. 
 
 ---
 
@@ -277,17 +291,17 @@ A `ip_configuration` block supports the following:
 
 * `load_balancer_backend_address_pool_ids` - (Optional) A list of Backend Address Pools IDs from a Load Balancer which this Orchestrated Virtual Machine Scale Set should be connected to.
 
-~> **NOTE:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a depends_on between this resource and the Load Balancer Rule.
+-> **NOTE:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a depends_on between this resource and the Load Balancer Rule.
 
 * `primary` - (Optional) Is this the Primary IP Configuration for this Network Interface? Possible values are `true` and `false`. Defaults to `false`.
 
-~> **NOTE:** One `ip_configuration` block must be marked as Primary for each Network Interface.
+-> **NOTE:** One `ip_configuration` block must be marked as Primary for each Network Interface.
 
 * `public_ip_address` - (Optional) A `public_ip_address` block as defined below.
 
 * `subnet_id` - (Optional) The ID of the Subnet which this IP Configuration should be connected to.
 
-~> **NOTE:** `subnet_id` is required if version is set to `IPv4`. 
+-> **NOTE:** `subnet_id` is required if version is set to `IPv4`. 
 
 * `version` - (Optional) The Internet Protocol Version which should be used for this IP Configuration. Possible values are `IPv4` and `IPv6`. Defaults to `IPv4`.
 
@@ -317,7 +331,7 @@ A `network_interface` block supports the following:
 
 * `primary` - (Optional) Is this the Primary IP Configuration? Possible values are `true` and `false`. Defaults to `false`.
 
-~> **NOTE:** If multiple `network_interface` blocks are specified, one must be set to `primary`.
+-> **NOTE:** If multiple `network_interface` blocks are specified, one must be set to `primary`.
 
 ---
 
@@ -331,7 +345,7 @@ A `os_disk` block supports the following:
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this OS Disk. 
 
-~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions 
+-> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions 
 
 * `disk_size_gb` - (Optional) The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine Scale Set is sourced from.
 

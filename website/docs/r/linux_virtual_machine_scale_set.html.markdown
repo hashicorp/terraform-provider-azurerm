@@ -12,9 +12,9 @@ Manages a Linux Virtual Machine Scale Set.
 
 ## Disclaimers
 
-~> **NOTE:** As of the **v2.86.0** (November 19, 2021) release of the provider this resource will only create Virtual Machine Scale Sets with the **Uniform** Orchestration Mode.
+-> **NOTE:** As of the **v2.86.0** (November 19, 2021) release of the provider this resource will only create Virtual Machine Scale Sets with the **Uniform** Orchestration Mode.
 
-~> **NOTE:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+-> **NOTE:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 -> **NOTE:** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured [using the `features` setting within the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features).
 
@@ -108,7 +108,7 @@ The following arguments are supported:
 
 * `network_interface` - (Required) One or more `network_interface` blocks as defined below.
 
-* `os_disk` - (Required) An `os_disk` block as defined below.
+* `os_disk` - (Required) A `os_disk` block as defined below.
 
 ---
 
@@ -116,19 +116,19 @@ The following arguments are supported:
 
 * `admin_password` - (Optional) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
 
--> **NOTE:** When an `admin_password` is specified `disable_password_authentication` must be set to `false`.
+-> **NOTE:** When a `admin_password` is specified `disable_password_authentication` must be set to `false`.
 
-~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
+-> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
 
 * `admin_ssh_key` - (Optional) One or more `admin_ssh_key` blocks as defined below.
 
-~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
+-> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
 
 * `automatic_os_upgrade_policy` - (Optional) A `automatic_os_upgrade_policy` block as defined below. This can only be specified when `upgrade_mode` is set to `Automatic`.
 
 * `automatic_instance_repair` - (Optional) A `automatic_instance_repair` block as defined below. To enable the automatic instance repair, this Virtual Machine Scale Set must have a valid `health_probe_id` or an [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
 
-~> **NOTE:** For more information about Automatic Instance Repair, please refer to [this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-automatic-instance-repairs).
+-> **NOTE:** For more information about Automatic Instance Repair, please refer to [this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-automatic-instance-repairs).
 
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
@@ -144,7 +144,7 @@ The following arguments are supported:
 
 -> In general we'd recommend using SSH Keys for authentication rather than Passwords - but there's tradeoff's to each - please [see this thread for more information](https://security.stackexchange.com/questions/69407/why-is-using-an-ssh-key-more-secure-than-using-passwords).
 
--> **NOTE:** When an `admin_password` is specified `disable_password_authentication` must be set to `false`.
+-> **NOTE:** When a `admin_password` is specified `disable_password_authentication` must be set to `false`.
 
 * `do_not_run_extensions_on_overprovisioned_machines` - (Optional) Should Virtual Machine Extensions be run on Overprovisioned Virtual Machines in the Scale Set? Defaults to `false`.
 
@@ -160,9 +160,11 @@ The following arguments are supported:
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
+* `hardware_profile` - (Optional) A `hardware_profile` block as defined below.
+
 * `health_probe_id` - (Optional) The ID of a Load Balancer Probe which should be used to determine the health of an instance. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
 
-* `identity` - (Optional) An `identity` block as defined below.
+* `identity` - (Optional) A `identity` block as defined below.
 
 * `max_bid_price` - (Optional) The maximum price you're willing to pay for each Virtual Machine in this Scale Set, in US Dollars; which must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machines in the Scale Set will be evicted using the `eviction_policy`. Defaults to `-1`, which means that each Virtual Machine in this Scale Set should not be evicted for price reasons.
 
@@ -206,7 +208,7 @@ The following arguments are supported:
 
 * `terminate_notification` - (Optional) A `terminate_notification` block as defined below.
 
-~> **Note:** This property has been deprecated in favour of the `termination_notification` property and will be removed in version 4.0 of the provider.
+-> **Note:** This property has been deprecated in favour of the `termination_notification` property and will be removed in version 4.0 of the provider.
 
 * `termination_notification` - (Optional) A `termination_notification` block as defined below.
 
@@ -226,7 +228,9 @@ The following arguments are supported:
 
 A `additional_capabilities` block supports the following:
 
-* `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine Scale Set? Defaults to `false`. Changing this forces a new resource to be created.
+* `hibernation_enabled` - (Optional) Should the VM be allowed to enter hibernation mode? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine Scale Set? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
@@ -254,6 +258,8 @@ A `automatic_instance_repair` block supports the following:
 
 * `grace_period` - (Optional) Amount of time (in minutes, between 30 and 90, defaults to 30 minutes) for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. The time duration should be specified in ISO 8601 format.
 
+* `repair_action` - (Optional) The repair action that will be taken for repairing unhealthy virtual machines in the scale set. Possible values are `Replace`, `Restart` and `Reimage`. Defaults to `Replace`.
+
 ---
 
 A `boot_diagnostics` block supports the following:
@@ -270,7 +276,7 @@ A `certificate` block supports the following:
 
 -> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource.
 
-~> **NOTE:** The certificate must have been uploaded/created in PFX format, PEM certificates are not currently supported by Azure.
+-> **NOTE:** The certificate must have been uploaded/created in PFX format, PEM certificates are not currently supported by Azure.
 
 ---
 
@@ -292,7 +298,7 @@ A `data_disk` block supports the following:
 
 -> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
 
-~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
+-> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
 * `disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable for UltraSSD disks.
 
@@ -310,7 +316,7 @@ A `diff_disk_settings` block supports the following:
 
 ---
 
-An `extension` block supports the following:
+A `extension` block supports the following:
 
 * `name` - (Required) The name for the Virtual Machine Scale Set Extension.
 
@@ -328,7 +334,7 @@ An `extension` block supports the following:
 
 * `protected_settings` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension.
 
-~> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
+-> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
 
 -> **NOTE:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
 
@@ -336,19 +342,31 @@ An `extension` block supports the following:
 
 * `settings` - (Optional) A JSON String which specifies Settings for the Extension.
 
-~> **NOTE:** Keys within the `settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
+-> **NOTE:** Keys within the `settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
 
 -> **NOTE:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
 
 ---
 
-An `identity` block supports the following:
+A `hardware_profile` block supports the following:
+
+* `virtual_cpus_available` - (Optional) Specifies the number of virtual CPUs available for the VM.
+
+-> **NOTE:** When `virtual_cpus_available` is not defined the default behavior is to set it to the value of `virtual_cpus_available` for the configured VM size.
+
+* `virtual_cpus_per_core` - (Optional) Specifies the virtual CPUs to physical CPU core ratio.
+
+-> **NOTE:** When `virtual_cpus_per_core` is not defined the default behavior is set to the value of `virtual_cpus_per_core` for the configured VM size. Setting `virtual_cpus_per_core` to `1` means that hyper-threading will be `disabled`.
+
+---
+
+A `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Linux Virtual Machine Scale Set. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Linux Virtual Machine Scale Set.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+-> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -378,7 +396,7 @@ A `ip_configuration` block supports the following:
 
 * `subnet_id` - (Optional) The ID of the Subnet which this IP Configuration should be connected to.
 
-~> `subnet_id` is required if `version` is set to `IPv4`.
+-> `subnet_id` is required if `version` is set to `IPv4`.
 
 * `version` - (Optional) The Internet Protocol Version which should be used for this IP Configuration. Possible values are `IPv4` and `IPv6`. Defaults to `IPv4`.
 
@@ -424,7 +442,7 @@ A `os_disk` block supports the following:
 
 -> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
 
-~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
+-> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
 * `disk_size_gb` - (Optional) The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine Scale Set is sourced from.
 
@@ -432,13 +450,13 @@ A `os_disk` block supports the following:
 
 * `secure_vm_disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to Encrypt the OS Disk when the Virtual Machine Scale Set is Confidential VMSS. Conflicts with `disk_encryption_set_id`. Changing this forces a new resource to be created.
 
-~> **NOTE:** `secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`.
+-> **NOTE:** `secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`.
 
 * `security_encryption_type` - (Optional) Encryption Type when the Virtual Machine Scale Set is Confidential VMSS. Possible values are `VMGuestStateOnly` and `DiskWithVMGuestState`. Changing this forces a new resource to be created.
 
-~> **NOTE:** `secure_boot_enabled` and `vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
+-> **NOTE:** `secure_boot_enabled` and `vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
 
-~> **NOTE:** `encryption_at_host_enabled` cannot be set to `true` when `security_encryption_type` is set to `DiskWithVMGuestState`.
+-> **NOTE:** `encryption_at_host_enabled` cannot be set to `true` when `security_encryption_type` is set to `DiskWithVMGuestState`.
 
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this OS Disk? Defaults to `false`.
 
@@ -468,7 +486,7 @@ A `public_ip_address` block supports the following:
 
 * `public_ip_prefix_id` - (Optional) The ID of the Public IP Address Prefix from where Public IP Addresses should be allocated. Changing this forces a new resource to be created.
 
-~> **NOTE:** This functionality is in Preview and must be opted into via `az feature register --namespace Microsoft.Network --name AllowBringYourOwnPublicIpAddress` and then `az provider register -n Microsoft.Network`.
+-> **NOTE:** This functionality is in Preview and must be opted into via `az feature register --namespace Microsoft.Network --name AllowBringYourOwnPublicIpAddress` and then `az provider register -n Microsoft.Network`.
 
 ---
 
@@ -498,7 +516,7 @@ A `terminate_notification` block supports the following:
 
 * `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
 
-~> **NOTE:** For more information about the terminate notification, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
+-> **NOTE:** For more information about the terminate notification, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
 
 ---
 
@@ -508,7 +526,7 @@ A `termination_notification` block supports the following:
 
 * `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
 
-~> **NOTE:** For more information about the termination notification, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
+-> **NOTE:** For more information about the termination notification, please [refer to this doc](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
 
 ---
 
@@ -528,13 +546,13 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the Linux Virtual Machine Scale Set.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A `identity` block as defined below.
 
 * `unique_id` - The Unique ID for this Linux Virtual Machine Scale Set.
 
 ---
 
-An `identity` block exports the following:
+A `identity` block exports the following:
 
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 

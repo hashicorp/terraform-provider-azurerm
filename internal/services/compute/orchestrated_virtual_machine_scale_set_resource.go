@@ -88,11 +88,16 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"os_profile": OrchestratedVirtualMachineScaleSetOSProfileSchema(),
 
 			// Optional
-			"automatic_instance_repair": OrchestratedVirtualMachineScaleSetAutomaticRepairsPolicySchema(),
+			// NOTE: The schema for the automatic instance repair has merged so they are
+			// identical for both uniform and flex mode VMSS's
+			"automatic_instance_repair": VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
 
 			"boot_diagnostics": bootDiagnosticsSchema(),
 
 			"data_disk": OrchestratedVirtualMachineScaleSetDataDiskSchema(),
+
+			// Optional
+			"additional_capabilities": OrchestratedVirtualMachineScaleSetAdditionalCapabilitiesSchema(),
 
 			"encryption_at_host_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -426,8 +431,12 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.StorageProfile.OsDisk = ExpandOrchestratedVirtualMachineScaleSetOSDisk(v.([]interface{}), osType)
 	}
 
+	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
+	additionalCapabilities := ExpandOrchestratedVirtualMachineScaleSetAdditionalCapabilities(additionalCapabilitiesRaw)
+	props.VirtualMachineScaleSetProperties.AdditionalCapabilities = additionalCapabilities
+
 	if v, ok := d.GetOk("data_disk"); ok {
-		ultraSSDEnabled := false // Currently not supported in orchestrated VMSS
+		ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
 		dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(v.([]interface{}), ultraSSDEnabled)
 		if err != nil {
 			return fmt.Errorf("expanding `data_disk`: %+v", err)
@@ -493,7 +502,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		if v, ok := d.GetOk("automatic_instance_repair"); ok {
-			props.VirtualMachineScaleSetProperties.AutomaticRepairsPolicy = ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(v.([]interface{}))
+			props.VirtualMachineScaleSetProperties.AutomaticRepairsPolicy = ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(v.([]interface{}))
 		}
 
 		if v, ok := d.GetOk("zone_balance"); ok && v.(bool) {
@@ -841,7 +850,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 		if d.HasChange("automatic_instance_repair") {
 			automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
-			automaticRepairsPolicy := ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
+			automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 			updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
 		}
 
@@ -1002,7 +1011,11 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 	}
 	props := *resp.VirtualMachineScaleSetProperties
 
-	if err := d.Set("automatic_instance_repair", FlattenOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(props.AutomaticRepairsPolicy)); err != nil {
+	if err := d.Set("additional_capabilities", FlattenOrchestratedVirtualMachineScaleSetAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
+		return fmt.Errorf("setting `additional_capabilities`: %+v", props.AdditionalCapabilities)
+	}
+
+	if err := d.Set("automatic_instance_repair", FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(props.AutomaticRepairsPolicy)); err != nil {
 		return fmt.Errorf("setting `automatic_instance_repair`: %+v", err)
 	}
 
@@ -1170,7 +1183,7 @@ func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*c
 	skuParts := strings.Split(input, "_")
 
 	if len(skuParts) < 2 || strings.Contains(input, "__") || strings.Contains(input, " ") {
-		return nil, fmt.Errorf("'sku_name'(%q) is not formatted properly.", input)
+		return nil, fmt.Errorf("'sku_name'(%q) is not formatted properly", input)
 	}
 
 	sku := &compute.Sku{
@@ -1194,5 +1207,5 @@ func flattenOrchestratedVirtualMachineScaleSetSku(input *compute.Sku) (*string, 
 		return &skuName, nil
 	}
 
-	return nil, fmt.Errorf("Sku struct 'name' is nil")
+	return nil, fmt.Errorf("sku struct 'name' is nil")
 }

@@ -514,6 +514,24 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 	}
 }
 
+func OrchestratedVirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"ultra_ssd_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+					ForceNew: true,
+				},
+			},
+		},
+	}
+}
+
 func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -607,30 +625,6 @@ func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsd
 					Optional:     true,
 					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
-				},
-			},
-		},
-	}
-}
-
-func OrchestratedVirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
-				},
-				"grace_period": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "PT30M",
-					// this field actually has a range from 30m to 90m, is there a function that can do this validation?
-					ValidateFunc: azValidate.ISO8601Duration,
 				},
 			},
 		},
@@ -790,6 +784,36 @@ func validatePasswordComplexity(input interface{}, key string, min int, max int)
 	}
 
 	return warnings, errors
+}
+
+func ExpandOrchestratedVirtualMachineScaleSetAdditionalCapabilities(input []interface{}) *compute.AdditionalCapabilities {
+	capabilities := compute.AdditionalCapabilities{}
+
+	if len(input) > 0 {
+		raw := input[0].(map[string]interface{})
+
+		capabilities.UltraSSDEnabled = utils.Bool(raw["ultra_ssd_enabled"].(bool))
+	}
+
+	return &capabilities
+}
+
+func FlattenOrchestratedVirtualMachineScaleSetAdditionalCapabilities(input *compute.AdditionalCapabilities) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	ultraSsdEnabled := false
+
+	if input.UltraSSDEnabled != nil {
+		ultraSsdEnabled = *input.UltraSSDEnabled
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"ultra_ssd_enabled": ultraSsdEnabled,
+		},
+	}
 }
 
 func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(input map[string]interface{}, customData string) *compute.VirtualMachineScaleSetOSProfile {
@@ -1255,19 +1279,6 @@ func ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input []inte
 			Enable:           &enabled,
 			NotBeforeTimeout: &timeout,
 		},
-	}
-}
-
-func ExpandOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(input []interface{}) *compute.AutomaticRepairsPolicy {
-	if len(input) == 0 {
-		return nil
-	}
-
-	raw := input[0].(map[string]interface{})
-
-	return &compute.AutomaticRepairsPolicy{
-		Enabled:     utils.Bool(raw["enabled"].(bool)),
-		GracePeriod: utils.String(raw["grace_period"].(string)),
 	}
 }
 
@@ -1834,28 +1845,6 @@ func FlattenOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input *comp
 		map[string]interface{}{
 			"enabled": enabled,
 			"timeout": timeout,
-		},
-	}
-}
-
-func FlattenOrchestratedVirtualMachineScaleSetAutomaticRepairsPolicy(input *compute.AutomaticRepairsPolicy) []interface{} {
-	// if enabled is set to false, there will be no AutomaticRepairsPolicy in response, to avoid plan non empty when
-	// a user explicitly set enabled to false, we need to assign a default block to this field
-
-	enabled := false
-	if input != nil && input.Enabled != nil {
-		enabled = *input.Enabled
-	}
-
-	gracePeriod := "PT30M"
-	if input != nil && input.GracePeriod != nil {
-		gracePeriod = *input.GracePeriod
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":      enabled,
-			"grace_period": gracePeriod,
 		},
 	}
 }
