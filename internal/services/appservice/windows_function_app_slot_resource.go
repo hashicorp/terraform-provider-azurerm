@@ -249,7 +249,7 @@ func (r WindowsFunctionAppSlotResource) Attributes() map[string]*pluginsdk.Schem
 			Computed:    true,
 			Description: "The default hostname of the Windows Function App Slot.",
 		},
- 
+
 		"kind": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
