@@ -1056,7 +1056,7 @@ func TestAccWindowsFunctionApp_storageAccountKeyVaultSecretVersionless(t *testin
 	})
 }
 
-func TestAccWindowsunctionApp_vNetIntegration(t *testing.T) {
+func TestAccWindowsFunctionApp_vNetIntegration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
 
