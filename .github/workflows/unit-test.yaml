@@ -1,7 +1,6 @@
 ---
 name: Unit Tests
 on:
-  workflow_dispatch:
   pull_request:
     types: ['opened', 'synchronize']
     paths:
@@ -22,10 +21,6 @@ jobs:
         with:
           go-version: '1.18.1'
       - run: bash scripts/gogetcookie.sh
-      - run: make fmt
+      - run: make test
         env:
           GITHUB_ACTIONS_STAGE: "UNIT_TESTS"
-      - uses: actions/upload-artifact@v3
-        with:
-          name: my-artifact
-          path: /home/runner/work
