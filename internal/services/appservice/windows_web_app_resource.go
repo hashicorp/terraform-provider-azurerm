@@ -52,6 +52,7 @@ type WindowsWebAppModel struct {
 	SiteCredentials               []helpers.SiteCredential    `tfschema:"site_credential"`
 	ZipDeployFile                 string                      `tfschema:"zip_deploy_file"`
 	Tags                          map[string]string           `tfschema:"tags"`
+	VirtualNetworkSubnetID        string                      `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.ResourceWithCustomImporter = WindowsWebAppResource{}
@@ -151,6 +152,12 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": tags.Schema(),
+
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
 	}
 }
 
@@ -311,6 +318,10 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 
 			if webApp.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webApp.KeyVaultReferenceIdentityID)
+			}
+
+			if webApp.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(webApp.VirtualNetworkSubnetID)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
@@ -508,6 +519,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				StorageAccounts:             helpers.FlattenStorageAccounts(storageAccounts),
 				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
 				Tags:                        tags.ToTypedObject(webApp.Tags),
+				VirtualNetworkSubnetID:      utils.NormalizeNilableString(webApp.VirtualNetworkSubnetID),
 			}
 
 			var healthCheckCount *int
