@@ -1930,8 +1930,8 @@ resource "azurerm_subnet" "test" {
   }
 }
 resource "azurerm_windows_web_app_slot" "test" {
-  name                      = "acctestWAS-%[2]d"
-  app_service_id            = azurerm_windows_web_app.test.id
+  name           = "acctestWAS-%[2]d"
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {}
 }
@@ -1967,7 +1967,7 @@ resource "azurerm_windows_web_app_slot" "test" {
   name                      = "acctestWAS-%[2]d"
   app_service_id            = azurerm_windows_web_app.test.id
   virtual_network_subnet_id = azurerm_subnet.test.id
-  
+
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
