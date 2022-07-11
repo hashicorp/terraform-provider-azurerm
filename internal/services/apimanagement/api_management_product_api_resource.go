@@ -93,14 +93,6 @@ func resourceApiManagementProductApiRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	// This can be removed once updated to apimanagement API to 2019-01-01
-	// https://github.com/Azure/azure-sdk-for-go/blob/master/services/apimanagement/mgmt/2019-01-01/apimanagement/productapi.go#L134
-	if utils.ResponseWasNotFound(resp) {
-		log.Printf("[DEBUG] API %q was not found in Product  %q (API Management Service %q / Resource Group %q) was not found - removing from state!", id.ApiName, id.ResourceGroup, id.ServiceName, id.ResourceGroup)
-		d.SetId("")
-		return nil
-	}
-
 	d.Set("api_name", id.ApiName)
 	d.Set("product_id", id.ProductName)
 	d.Set("resource_group_name", id.ResourceGroup)

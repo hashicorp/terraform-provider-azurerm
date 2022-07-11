@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -44,17 +43,12 @@ func resourceDataFactoryDatasetCosmosDbSQLAPI() *pluginsdk.Resource {
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
-			// TODO: replace with `data_factory_id` in 3.0
-			"data_factory_name": {
+			"data_factory_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryName(),
+				ValidateFunc: validate.DataFactoryID,
 			},
-
-			// There's a bug in the Azure API where this is returned in lower-case
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"linked_service_name": {
 				Type:         pluginsdk.TypeString,
@@ -154,18 +148,23 @@ func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDataSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string), d.Get("name").(string))
+	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Dataset CosmosDB SQL API %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_dataset_cosmosdb_sqlapi", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_dataset_cosmosdb_sqlapi", id.ID())
 		}
 	}
 
@@ -181,7 +180,6 @@ func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	description := d.Get("description").(string)
-	// TODO
 	cosmosDbTableset := datafactory.CosmosDbSQLAPICollectionDataset{
 		CosmosDbSQLAPICollectionDatasetTypeProperties: &cosmosDbDatasetProperties,
 		LinkedServiceName: linkedService,
@@ -219,7 +217,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {
-		return fmt.Errorf("creating/updating Data Factory Dataset CosmosDB SQL API %s: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -237,6 +235,8 @@ func resourceDataFactoryDatasetCosmosDbSQLAPIRead(d *pluginsdk.ResourceData, met
 		return err
 	}
 
+	dataFactoryId := parse.NewDataFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -244,12 +244,11 @@ func resourceDataFactoryDatasetCosmosDbSQLAPIRead(d *pluginsdk.ResourceData, met
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Data Factory Dataset CosmosDB SQL API %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("data_factory_name", id.FactoryName)
+	d.Set("data_factory_id", dataFactoryId.ID())
 
 	cosmosDbTable, ok := resp.Properties.AsCosmosDbSQLAPICollectionDataset()
 	if !ok {
@@ -314,7 +313,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPIDelete(d *pluginsdk.ResourceData, m
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Data Factory Dataset CosmosDB SQL API %s: %+v", *id, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

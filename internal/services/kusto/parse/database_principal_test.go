@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = DatabasePrincipalId{}
+var _ resourceids.Id = DatabasePrincipalId{}
 
 func TestDatabasePrincipalIDFormatter(t *testing.T) {
 	actual := NewDatabasePrincipalID("12345678-1234-9876-4563-123456789012", "resGroup1", "cluster1", "database1", "Viewer", "aaduser=11111111-1111-1111-1111-111111111111;22222222-2222-2222-2222-222222222222").ID()

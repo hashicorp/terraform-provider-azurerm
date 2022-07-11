@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = BackendAddressPoolAddressId{}
+var _ resourceids.Id = BackendAddressPoolAddressId{}
 
 func TestBackendAddressPoolAddressIDFormatter(t *testing.T) {
 	actual := NewBackendAddressPoolAddressID("12345678-1234-9876-4563-123456789012", "resGroup1", "loadBalancer1", "backendAddressPool1", "address1").ID()

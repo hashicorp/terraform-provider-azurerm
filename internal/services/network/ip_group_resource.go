@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -63,22 +63,22 @@ func resourceIpGroup() *pluginsdk.Resource {
 
 func resourceIpGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.IPGroupsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewIpGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing IP Group %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_ip_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_ip_group", id.ID())
 		}
 	}
 
@@ -87,7 +87,7 @@ func resourceIpGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	ipAddresses := d.Get("cidrs").(*pluginsdk.Set).List()
 
 	sg := network.IPGroup{
-		Name:     &name,
+		Name:     &id.Name,
 		Location: &location,
 		IPGroupPropertiesFormat: &network.IPGroupPropertiesFormat{
 			IPAddresses: utils.ExpandStringSlice(ipAddresses),
@@ -95,24 +95,16 @@ func resourceIpGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, sg)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, sg)
 	if err != nil {
-		return fmt.Errorf("creating/updating IP Group %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of IP Group %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for the completion of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name, "")
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("cannot read IP Group %q (resource group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceIpGroupRead(d, meta)
 }

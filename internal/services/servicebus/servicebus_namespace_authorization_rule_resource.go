@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
@@ -36,36 +35,43 @@ func resourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
 		},
 
 		// function takes a schema map and adds the authorization rule properties to it
-		Schema: authorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.AuthorizationRuleName(),
-			},
-
-			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NamespaceName,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-		}),
+		Schema: resourceServiceBusNamespaceAuthorizationRuleSchema(),
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(authorizationRuleCustomizeDiff),
 	}
 }
 
+func resourceServiceBusNamespaceAuthorizationRuleSchema() map[string]*pluginsdk.Schema {
+	return authorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AuthorizationRuleName(),
+		},
+		//lintignore: S013
+		"namespace_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.NamespaceID,
+		},
+	})
+}
+
 func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for ServiceBus Namespace Authorization Rule create/update.")
-	resourceId := parse.NewNamespaceAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+
+	var resourceId parse.NamespaceAuthorizationRuleId
+	if namespaceIdLit := d.Get("namespace_id").(string); namespaceIdLit != "" {
+		namespaceId, _ := parse.NamespaceID(namespaceIdLit)
+		resourceId = parse.NewNamespaceAuthorizationRuleID(namespaceId.SubscriptionId, namespaceId.ResourceGroup, namespaceId.Name, d.Get("name").(string))
+	}
+
 	if d.IsNewResource() {
 		existing, err := client.GetAuthorizationRule(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.AuthorizationRuleName)
 		if err != nil {
@@ -74,7 +80,7 @@ func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resou
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_servicebus_namespace_authorization_rule", resourceId.ID())
 		}
 	}
@@ -124,8 +130,7 @@ func resourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData,
 	}
 
 	d.Set("name", id.AuthorizationRuleName)
-	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("namespace_id", parse.NewNamespaceID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName).ID())
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
 		listen, send, manage := flattenAuthorizationRuleRights(properties.Rights)

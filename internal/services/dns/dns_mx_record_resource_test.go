@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DnsMxRecordResource struct {
-}
+type DnsMxRecordResource struct{}
 
 func TestAccDnsMxRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_mx_record", "test")

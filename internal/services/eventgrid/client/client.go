@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-10-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2021-12-01/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -18,7 +18,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	DomainsClient := eventgrid.NewDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DomainsClient.Client, o.ResourceManagerAuthorizer)
 
-	DomainTopicsClient := eventgrid.NewDomainTopicsClient(o.SubscriptionId)
+	DomainTopicsClient := eventgrid.NewDomainTopicsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DomainTopicsClient.Client, o.ResourceManagerAuthorizer)
 
 	EventSubscriptionsClient := eventgrid.NewEventSubscriptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

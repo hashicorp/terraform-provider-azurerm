@@ -31,8 +31,7 @@ data "azurerm_client_config" "current" {
 
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "example" {
   name                  = "example"
-  resource_group_name   = azurerm_resource_group.example.name
-  data_factory_name     = azurerm_data_factory.example.name
+  data_factory_id       = azurerm_data_factory.example.id
   service_principal_id  = data.azurerm_client_config.current.client_id
   service_principal_key = "exampleKey"
   tenant                = "11111111-1111-1111-1111-111111111111"
@@ -45,11 +44,9 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "example" 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 
 * `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data
-  factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+  factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service. Changing this forces a new resource
-
-* `data_factory_name` - (Required) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `description` - (Optional) The description for the Data Factory Linked Service.
 

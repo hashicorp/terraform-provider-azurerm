@@ -13,6 +13,49 @@ Manages an Azure Front Door Rules Engine configuration and rules.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-rg"
+  location = "West Europe"
+}
+
+resource "azurerm_frontdoor" "example" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+
+  backend_pool {
+    name                = "exampleBackendBing"
+    load_balancing_name = "exampleLoadBalancingSettings1"
+    health_probe_name   = "exampleHealthProbeSetting1"
+
+    backend {
+      host_header = "www.bing.com"
+      address     = "www.bing.com"
+      http_port   = 80
+      https_port  = 443
+    }
+  }
+
+  backend_pool_health_probe {
+    name = "exampleHealthProbeSetting1"
+  }
+
+  backend_pool_load_balancing {
+    name = "exampleLoadBalancingSettings1"
+  }
+
+  frontend_endpoint {
+    name      = "exampleFrontendEndpoint1"
+    host_name = "example-FrontDoor.azurefd.net"
+  }
+
+  routing_rule {
+    name               = "exampleRoutingRule1"
+    accepted_protocols = ["Http", "Https"]
+    patterns_to_match  = ["/*"]
+    frontend_endpoints = ["exampleFrontendEndpoint1"]
+  }
+}
+
 resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
   name                = "exampleRulesEngineConfig1"
   frontdoor_name      = azurerm_frontdoor.example.name
@@ -127,3 +170,11 @@ The `match_condition` block supports the following:
 * `negate_condition` can be set to `true` or `false` to negate the given condition. Defaults to `true`.
 
 * `value` (array) can contain one or more strings.
+
+## Import
+
+Azure Front Door Rules Engine's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_frontdoor_rules_engine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/rulesengines/rule1
+```

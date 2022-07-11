@@ -11,6 +11,8 @@ description: |-
 
 Use this data source to access information about a Function App.
 
+!> **Note:** The `azurerm_function_app` data source is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_linux_function_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/linux_function_app) and [`azurerm_windows_function_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/windows_function_app) data sources instead.
+
 ## Example Usage
 
 ```hcl
@@ -118,7 +120,7 @@ A `site_config` block exports the following:
 
 * `cors` - A `cors` block as defined above.
 
-* `dotnet_framework_version` - The version of the .net framework's CLR used in this App Service.
+* `dotnet_framework_version` - The version of the .NET framework's CLR used in this App Service.
 
 * `elastic_instance_minimum` - The number of minimum instances for this function app. Only applicable to apps on the Premium plan.
 
@@ -168,11 +170,13 @@ A `source_control` block exports the following:
 
 An `identity` block exports the following:
 
-* `principal_id` - The ID of the System Managed Service Principal assigned to the function app.
+* `identity_ids` - A list of User Assigned Identity IDs assigned to the Function App.
 
-* `tenant_id` - The ID of the Tenant of the System Managed Service Principal assigned to the function app.
+* `principal_id` - The ID of the Managed Identity assigned to the Function App.
 
-* `type` - The identity type of the Managed Identity assigned to the function app.
+* `tenant_id` - The ID of the Tenant where the Managed Identity assigned to the Function App is located.
+
+* `type` - The identity type of the Managed Identity assigned to the Function App.
 
 ## Timeouts
 

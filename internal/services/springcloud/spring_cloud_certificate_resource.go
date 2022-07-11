@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2021-06-01-preview/appplatform"
+	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-03-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -53,10 +53,19 @@ func resourceSpringCloudCertificate() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudServiceName,
 			},
 
+			"certificate_content": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				AtLeastOneOf: []string{"key_vault_certificate_id", "certificate_content"},
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"key_vault_certificate_id": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
+				AtLeastOneOf: []string{"key_vault_certificate_id", "certificate_content"},
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
 
@@ -89,19 +98,29 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 		return tf.ImportAsExistsError("azurerm_spring_cloud_certificate", resourceId)
 	}
 
-	keyVaultCertificateId, err := keyVaultParse.ParseNestedItemID(d.Get("key_vault_certificate_id").(string))
-	if err != nil {
-		return err
-	}
-	cert := appplatform.CertificateResource{
-		Properties: &appplatform.CertificateProperties{
+	cert := appplatform.CertificateResource{}
+	if value, ok := d.GetOk("key_vault_certificate_id"); ok {
+		keyVaultCertificateId, err := keyVaultParse.ParseNestedItemID(value.(string))
+		if err != nil {
+			return err
+		}
+		cert.Properties = &appplatform.KeyVaultCertificateProperties{
 			VaultURI:         &keyVaultCertificateId.KeyVaultBaseUrl,
 			KeyVaultCertName: &keyVaultCertificateId.Name,
-		},
+		}
+	}
+	if value, ok := d.GetOk("certificate_content"); ok {
+		cert.Properties = &appplatform.ContentCertificateProperties{
+			Content: utils.String(value.(string)),
+		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, cert); err != nil {
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, cert)
+	if err != nil {
 		return fmt.Errorf("creating Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q(Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
 	d.SetId(resourceId)
@@ -131,7 +150,10 @@ func resourceSpringCloudCertificateRead(d *pluginsdk.ResourceData, meta interfac
 	d.Set("service_name", id.SpringName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if props := resp.Properties; props != nil {
+	if props, ok := resp.Properties.AsKeyVaultCertificateProperties(); ok && props != nil {
+		d.Set("thumbprint", props.Thumbprint)
+	}
+	if props, ok := resp.Properties.AsContentCertificateProperties(); ok && props != nil {
 		d.Set("thumbprint", props.Thumbprint)
 	}
 
@@ -148,8 +170,12 @@ func resourceSpringCloudCertificateDelete(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.CertificateName); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.CertificateName)
+	if err != nil {
 		return fmt.Errorf("deleting Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", id.CertificateName, id.SpringName, id.ResourceGroup, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
 	return nil

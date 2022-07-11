@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = MariaDBDatabaseId{}
+var _ resourceids.Id = MariaDBDatabaseId{}
 
 func TestMariaDBDatabaseIDFormatter(t *testing.T) {
 	actual := NewMariaDBDatabaseID("12345678-1234-9876-4563-123456789012", "resGroup1", "server1", "db1").ID()

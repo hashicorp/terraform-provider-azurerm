@@ -7,23 +7,22 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	identityHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2021-04-30/cognitiveservicesaccounts"
+	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/sdk/2021-04-30/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -127,46 +126,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(identityHelper.TypeNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(identityHelper.TypeNone),
-								string(identityHelper.TypeSystemAssigned),
-								string(identityHelper.TypeUserAssigned),
-								string(identityHelper.TypeSystemAssignedUserAssigned),
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"identity_ids": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: msiValidate.UserAssignedIdentityID,
-							},
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"local_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -229,22 +189,11 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 							},
 							Set: set.HashIPv4AddressOrCIDR,
 						},
-						// TODO 3.0 - Remove below property
-						"virtual_network_subnet_ids": {
-							Type:          pluginsdk.TypeSet,
-							Optional:      true,
-							Computed:      true,
-							ConflictsWith: []string{"network_acls.0.virtual_network_rules"},
-							Deprecated:    "Deprecated in favour of `virtual_network_rules`",
-							Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
-						},
 
 						"virtual_network_rules": {
-							Type:          pluginsdk.TypeSet,
-							Optional:      true,
-							Computed:      true, // TODO -- remove this when deprecation resolves
-							ConflictsWith: []string{"network_acls.0.virtual_network_subnet_ids"},
-							ConfigMode:    pluginsdk.SchemaConfigModeAttr, // TODO -- remove in 3.0, because this property is optional and computed, it has to be declared as empty array to remove existed values
+							Type:       pluginsdk.TypeSet,
+							Optional:   true,
+							ConfigMode: pluginsdk.SchemaConfigModeAuto,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"subnet_id": {
@@ -263,8 +212,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					},
 				},
 			},
-
-			"outbound_network_access_restrited": {
+			"outbound_network_access_restricted": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -280,6 +228,12 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+			},
+
+			"custom_question_answering_search_service_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: search.ValidateSearchServiceID,
 			},
 
 			"storage": {
@@ -302,7 +256,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"endpoint": {
 				Type:     pluginsdk.TypeString,
@@ -367,6 +321,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+
 	publicNetworkAccess := cognitiveservicesaccounts.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = cognitiveservicesaccounts.PublicNetworkAccessDisabled
@@ -388,14 +343,13 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restrited").(bool)),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := expandCognitiveAccountIdentity(identityRaw)
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -472,13 +426,13 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restrited").(bool)),
+			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	identityRaw := d.Get("identity").([]interface{})
-	identity, err := expandCognitiveAccountIdentity(identityRaw)
+	identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -545,7 +499,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("sku_name", sku.Name)
 		}
 
-		identity, err := flattenCognitiveAccountIdentity(model.Identity)
+		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return err
 		}
@@ -554,6 +508,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props := model.Properties; props != nil {
 			if apiProps := props.ApiProperties; apiProps != nil {
 				d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
+				d.Set("custom_question_answering_search_service_id", apiProps.QnaAzureSearchEndpointId)
 				d.Set("metrics_advisor_aad_client_id", apiProps.AadClientId)
 				d.Set("metrics_advisor_aad_tenant_id", apiProps.AadTenantId)
 				d.Set("metrics_advisor_super_user_name", apiProps.SuperUser)
@@ -579,7 +534,8 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if props.RestrictOutboundNetworkAccess != nil {
 				outboundNetworkAccessRestricted = *props.RestrictOutboundNetworkAccess
 			}
-			d.Set("outbound_network_access_restrited", outboundNetworkAccessRestricted)
+			//lintignore:R001
+			d.Set("outbound_network_access_restricted", outboundNetworkAccessRestricted)
 
 			localAuthEnabled := true
 			if props.DisableLocalAuth != nil {
@@ -588,7 +544,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("local_auth_enabled", localAuthEnabled)
 		}
 
-		return tags.FlattenAndSet(d, flattenTags(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 	return nil
 }
@@ -690,29 +646,16 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	networkRules := make([]cognitiveservicesaccounts.VirtualNetworkRule, 0)
-	if d.HasChange("network_acls.0.virtual_network_subnet_ids") {
-		networkRulesRaw := v["virtual_network_subnet_ids"]
-		for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
-			rawId := v.(string)
-			subnetIds = append(subnetIds, rawId)
-			rule := cognitiveservicesaccounts.VirtualNetworkRule{
-				Id: rawId,
-			}
-			networkRules = append(networkRules, rule)
+	networkRulesRaw := v["virtual_network_rules"]
+	for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
+		value := v.(map[string]interface{})
+		subnetId := value["subnet_id"].(string)
+		subnetIds = append(subnetIds, subnetId)
+		rule := cognitiveservicesaccounts.VirtualNetworkRule{
+			Id:                               subnetId,
+			IgnoreMissingVnetServiceEndpoint: utils.Bool(value["ignore_missing_vnet_service_endpoint"].(bool)),
 		}
-	}
-	if d.HasChange("network_acls.0.virtual_network_rules") {
-		networkRulesRaw := v["virtual_network_rules"]
-		for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
-			value := v.(map[string]interface{})
-			subnetId := value["subnet_id"].(string)
-			subnetIds = append(subnetIds, subnetId)
-			rule := cognitiveservicesaccounts.VirtualNetworkRule{
-				Id:                               subnetId,
-				IgnoreMissingVnetServiceEndpoint: utils.Bool(value["ignore_missing_vnet_service_endpoint"].(bool)),
-			}
-			networkRules = append(networkRules, rule)
-		}
+		networkRules = append(networkRules, rule)
 	}
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
@@ -738,43 +681,6 @@ func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesacco
 	return &results
 }
 
-func expandCognitiveAccountIdentity(vs []interface{}) (*identity.SystemUserAssignedIdentityMap, error) {
-	if len(vs) == 0 {
-		return &identity.SystemUserAssignedIdentityMap{
-			Type: identity.Type(identityHelper.TypeNone),
-		}, nil
-	}
-
-	v := vs[0].(map[string]interface{})
-
-	config := &identity.ExpandedConfig{
-		Type: identity.Type(v["type"].(string)),
-	}
-
-	managedServiceIdentity := identity.SystemUserAssignedIdentityMap{}
-
-	var identityIdSet []interface{}
-	if identityIds, ok := v["identity_ids"]; ok {
-		identityIdSet = identityIds.(*pluginsdk.Set).List()
-	}
-
-	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
-	if string(config.Type) == string(identityHelper.TypeUserAssigned) || string(config.Type) == string(identityHelper.TypeSystemAssignedUserAssigned) {
-		if len(identityIdSet) == 0 {
-			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
-		}
-
-		config.UserAssignedIdentityIds = *utils.ExpandStringSlice(identityIdSet)
-	} else if len(identityIdSet) > 0 {
-		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
-		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", managedServiceIdentity.Type)
-	}
-
-	managedServiceIdentity.FromExpandedConfig(*config)
-
-	return &managedServiceIdentity, nil
-}
-
 func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.ApiProperties, error) {
 	props := cognitiveservicesaccounts.ApiProperties{}
 	kind := d.Get("kind")
@@ -783,6 +689,13 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 			props.QnaRuntimeEndpoint = utils.String(v.(string))
 		} else {
 			return nil, fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+		}
+	}
+	if v, ok := d.GetOk("custom_question_answering_search_service_id"); ok {
+		if kind == "TextAnalytics" {
+			props.QnaAzureSearchEndpointId = utils.String(v.(string))
+		} else {
+			return nil, fmt.Errorf("the Search Service ID `custom_question_answering_search_service_id` can only be set when kind is set to `TextAnalytics`")
 		}
 	}
 	if v, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
@@ -845,14 +758,12 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 			})
 		}
 	}
-	return []interface{}{
-		map[string]interface{}{
-			"default_action":             input.DefaultAction,
-			"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, ipRules),
-			"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkSubnetIds),
-			"virtual_network_rules":      virtualNetworkRules,
-		},
-	}
+
+	return []interface{}{map[string]interface{}{
+		"default_action":        input.DefaultAction,
+		"ip_rules":              pluginsdk.NewSet(pluginsdk.HashString, ipRules),
+		"virtual_network_rules": virtualNetworkRules,
+	}}
 }
 
 func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwnedStorage) []interface{} {
@@ -871,35 +782,4 @@ func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwned
 		results = append(results, value)
 	}
 	return results
-}
-
-func flattenCognitiveAccountIdentity(identity *identity.SystemUserAssignedIdentityMap) ([]interface{}, error) {
-	if identity == nil || string(identity.Type) == string(identityHelper.TypeNone) {
-		return make([]interface{}, 0), nil
-	}
-
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-
-	if identity.PrincipalId != nil {
-		result["principal_id"] = *identity.PrincipalId
-	}
-
-	if identity.TenantId != nil {
-		result["tenant_id"] = *identity.TenantId
-	}
-
-	identityIds := make([]interface{}, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := msiparse.UserAssignedIdentityID(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
-		}
-		result["identity_ids"] = pluginsdk.NewSet(pluginsdk.HashString, identityIds)
-	}
-
-	return []interface{}{result}, nil
 }

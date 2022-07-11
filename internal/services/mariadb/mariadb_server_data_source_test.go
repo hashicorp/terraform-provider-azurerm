@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type MariaDbServerDataSource struct {
-}
+type MariaDbServerDataSource struct{}
 
 func TestAccMariaDbServerDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mariadb_server", "test")
@@ -45,11 +44,9 @@ resource "azurerm_mariadb_server" "test" {
 
   sku_name = "B_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"

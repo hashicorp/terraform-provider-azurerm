@@ -6,17 +6,15 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ManagementLockResource struct {
-}
+type ManagementLockResource struct{}
 
 func TestAccManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")

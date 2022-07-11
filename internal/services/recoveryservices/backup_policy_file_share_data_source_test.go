@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type BackupProtectionPolicyFileShareDataSource struct {
-}
+type BackupProtectionPolicyFileShareDataSource struct{}
 
 func TestAccDataSourceBackupPolicyFileShare_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_backup_policy_file_share", "test")
@@ -22,7 +21,6 @@ func TestAccDataSourceBackupPolicyFileShare_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("recovery_vault_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
 	})

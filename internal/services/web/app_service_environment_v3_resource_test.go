@@ -216,6 +216,8 @@ resource "azurerm_app_service_environment_v3" "test" {
   subnet_id                    = azurerm_subnet.test.id
   internal_load_balancing_mode = "Web, Publishing"
 
+  allow_new_private_endpoint_connections = false
+
   cluster_setting {
     name  = "InternalEncryption"
     value = "true"
@@ -234,6 +236,7 @@ resource "azurerm_app_service_environment_v3" "test" {
   tags = {
     accTest = "1"
     env     = "Test"
+    tags    = "Updated"
   }
 }
 `, template, data.RandomInteger)
@@ -256,7 +259,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "acctest-subnet2-%[2]d"
   resource_group_name  = azurerm_virtual_network.test2.resource_group_name
   virtual_network_name = azurerm_virtual_network.test2.name
-  address_prefix       = "20.0.2.0/24"
+  address_prefixes     = ["20.0.2.0/24"]
   delegation {
     name = "asedelegation"
     service_delegation {
@@ -340,7 +343,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-subnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   delegation {
     name = "asedelegation"
     service_delegation {

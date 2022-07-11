@@ -27,17 +27,15 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_linked_service_odata" "anonymous" {
-  name                = "anonymous"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
-  url                 = "https://services.odata.org/v4/TripPinServiceRW/People"
+  name            = "anonymous"
+  data_factory_id = azurerm_data_factory.example.id
+  url             = "https://services.odata.org/v4/TripPinServiceRW/People"
 }
 
 resource "azurerm_data_factory_linked_service_odata" "basic_auth" {
-  name                = "basic_auth"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
-  url                 = "https://services.odata.org/v4/TripPinServiceRW/People"
+  name            = "basic_auth"
+  data_factory_id = azurerm_data_factory.example.id
+  url             = "https://services.odata.org/v4/TripPinServiceRW/People"
   basic_authentication {
     username = "emma"
     password = "Ch4ngeM3!"
@@ -49,11 +47,9 @@ resource "azurerm_data_factory_linked_service_odata" "basic_auth" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Data Factory Linked Service OData. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Linked Service OData. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service OData. Changing this forces a new resource
-
-* `data_factory_name` - (Required) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `url` - (Required) The URL of the OData service endpoint.
 

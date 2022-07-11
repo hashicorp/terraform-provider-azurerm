@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -42,17 +41,12 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 				ValidateFunc: validate.LinkedServiceDatasetName,
 			},
 
-			// TODO: replace with `data_factory_id` in 3.0
-			"data_factory_name": {
+			"data_factory_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryName(),
+				ValidateFunc: validate.DataFactoryID,
 			},
-
-			// There's a bug in the Azure API where this is returned in lower-case
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"linked_service_name": {
 				Type:         pluginsdk.TypeString,
@@ -140,6 +134,11 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"dynamic_container_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"path": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -220,12 +219,12 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(datafactory.TypeBasicDatasetCompressionTypeBZip2),
-								string(datafactory.TypeBasicDatasetCompressionTypeDeflate),
-								string(datafactory.TypeBasicDatasetCompressionTypeGZip),
-								string(datafactory.TypeBasicDatasetCompressionTypeTar),
-								string(datafactory.TypeBasicDatasetCompressionTypeTarGZip),
-								string(datafactory.TypeBasicDatasetCompressionTypeZipDeflate),
+								TypeBasicDatasetCompressionTypeBZip2,
+								TypeBasicDatasetCompressionTypeDeflate,
+								TypeBasicDatasetCompressionTypeGZip,
+								TypeBasicDatasetCompressionTypeTar,
+								TypeBasicDatasetCompressionTypeTarGZip,
+								TypeBasicDatasetCompressionTypeZipDeflate,
 							}, false),
 						},
 					},
@@ -241,18 +240,23 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewDataSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string), d.Get("name").(string))
+	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Dataset Binary %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_dataset_binary", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_dataset_binary", id.ID())
 		}
 	}
 
@@ -305,11 +309,7 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {
-		return fmt.Errorf("creating/updating Data Factory Dataset Binary  %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
-	}
-
-	if _, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, ""); err != nil {
-		return fmt.Errorf("retrieving Data Factory Dataset Binary %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -327,6 +327,8 @@ func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
+	dataFactoryId := parse.NewDataFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -334,12 +336,11 @@ func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Data Factory Dataset Binary %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("data_factory_name", id.FactoryName)
+	d.Set("data_factory_id", dataFactoryId.ID())
 
 	binaryTable, ok := resp.Properties.AsBinaryDataset()
 	if !ok {
@@ -410,7 +411,7 @@ func resourceDataFactoryDatasetBinaryDelete(d *pluginsdk.ResourceData, meta inte
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Data Factory Dataset Binary %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

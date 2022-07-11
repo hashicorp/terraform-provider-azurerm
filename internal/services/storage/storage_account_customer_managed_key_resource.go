@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-04-01/storage"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,9 +27,10 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 		Update: resourceStorageAccountCustomerManagedKeyCreateUpdate,
 		Delete: resourceStorageAccountCustomerManagedKeyDelete,
 
-		// TODO: this needs a custom ID validating importer
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := storageParse.StorageAccountID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -67,7 +68,7 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 			"user_assigned_identity_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: msivalidate.UserAssignedIdentityID,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			},
 		},
 	}

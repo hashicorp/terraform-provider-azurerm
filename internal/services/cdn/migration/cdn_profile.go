@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -58,23 +57,15 @@ func (CdnProfileV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// summary:
 		// resourcegroups -> resourceGroups
 		oldId := rawState["id"].(string)
-		oldParsedId, err := azure.ParseAzureResourceID(oldId)
+		id, err := parse.ProfileIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}
+		newId := id.ID()
 
-		resourceGroup := oldParsedId.ResourceGroup
-		name, err := oldParsedId.PopSegment("profiles")
-		if err != nil {
-			return rawState, err
-		}
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 
-		newId := parse.NewProfileID(oldParsedId.SubscriptionID, resourceGroup, name)
-		newIdStr := newId.ID()
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newIdStr)
-
-		rawState["id"] = newIdStr
+		rawState["id"] = newId
 
 		return rawState, nil
 	}

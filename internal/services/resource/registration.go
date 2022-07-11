@@ -5,8 +5,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.TypedServiceRegistration = Registration{}
-var _ sdk.UntypedServiceRegistration = Registration{}
+var (
+	_ sdk.TypedServiceRegistration   = Registration{}
+	_ sdk.UntypedServiceRegistration = Registration{}
+)
 
 type Registration struct{}
 
@@ -27,9 +29,13 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_resources":             dataSourceResources(),
-		"azurerm_resource_group":        dataSourceResourceGroup(),
-		"azurerm_template_spec_version": dataSourceTemplateSpecVersion(),
+		"azurerm_resources":                            dataSourceResources(),
+		"azurerm_resource_group":                       dataSourceResourceGroup(),
+		"azurerm_template_spec_version":                dataSourceTemplateSpecVersion(),
+		"azurerm_management_group_template_deployment": dataSourceManagementGroupTemplateDeployment(),
+		"azurerm_resource_group_template_deployment":   dataSourceResourceGroupTemplateDeployment(),
+		"azurerm_subscription_template_deployment":     dataSourceSubscriptionTemplateDeployment(),
+		"azurerm_tenant_template_deployment":           dataSourceTenantTemplateDeployment(),
 	}
 }
 

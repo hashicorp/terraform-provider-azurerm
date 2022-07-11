@@ -91,15 +91,25 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	vs[name] = vals
 	definition[propertyName] = vs
 
+	if read.Identity != nil && read.Identity.UserAssignedIdentities != nil {
+		for k := range read.Identity.UserAssignedIdentities {
+			read.Identity.UserAssignedIdentities[k] = &logic.UserAssignedIdentity{
+				// this has to be an empty object due to the API design
+			}
+		}
+	}
+
 	properties := logic.Workflow{
 		Location: read.Location,
 		WorkflowProperties: &logic.WorkflowProperties{
-			Definition: definition,
-			Parameters: read.WorkflowProperties.Parameters,
+			Definition:         definition,
+			Parameters:         read.WorkflowProperties.Parameters,
+			AccessControl:      read.WorkflowProperties.AccessControl,
+			IntegrationAccount: read.WorkflowProperties.IntegrationAccount,
 		},
-		Tags: read.Tags,
+		Identity: read.Identity,
+		Tags:     read.Tags,
 	}
-
 	if _, err = client.CreateOrUpdate(ctx, workflowId.ResourceGroup, workflowId.Name, properties); err != nil {
 		return fmt.Errorf("updating Logic App Workflow %s for %s %q: %+v", workflowId, kind, name, err)
 	}
@@ -175,7 +185,7 @@ func retrieveLogicAppAction(d *pluginsdk.ResourceData, meta interface{}, resourc
 
 func retrieveLogicAppHttpTrigger(d *pluginsdk.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, *string, error) {
 	t, app, err := retrieveLogicAppTrigger(d, meta, resourceGroup, logicAppName, name)
-	if err != nil {
+	if err != nil || t == nil {
 		return nil, nil, nil, err
 	}
 	url, err := retreiveLogicAppTriggerCallbackUrl(d, meta, resourceGroup, logicAppName, name)

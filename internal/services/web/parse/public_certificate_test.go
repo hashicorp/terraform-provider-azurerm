@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = PublicCertificateId{}
+var _ resourceids.Id = PublicCertificateId{}
 
 func TestPublicCertificateIDFormatter(t *testing.T) {
 	actual := NewPublicCertificateID("12345678-1234-9876-4563-123456789012", "resGroup1", "site1", "publicCertificate1").ID()

@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type EventHubNamespaceDataSource struct {
-}
+type EventHubNamespaceDataSource struct{}
 
 func TestAccEventHubNamespaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace", "test")

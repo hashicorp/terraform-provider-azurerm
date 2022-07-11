@@ -9,17 +9,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/migration"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
-
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -44,7 +40,7 @@ func resourceTemplateDeployment() *pluginsdk.Resource {
 			0: migration.TemplateDeploymentV0ToV1{},
 		}),
 
-		DeprecationMessage: features.DeprecatedInThreePointOh("The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource."),
+		DeprecationMessage: "The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource.",
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -84,8 +80,7 @@ func resourceTemplateDeployment() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(resources.DeploymentModeComplete),
 					string(resources.DeploymentModeIncremental),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, false),
 			},
 
 			"outputs": {
@@ -273,7 +268,7 @@ func resourceTemplateDeploymentDelete(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.SubscriptionId); err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.DeploymentName); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

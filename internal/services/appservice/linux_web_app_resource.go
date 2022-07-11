@@ -8,8 +8,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -28,19 +30,21 @@ type LinuxWebAppModel struct {
 	Location                      string                     `tfschema:"location"`
 	ServicePlanId                 string                     `tfschema:"service_plan_id"`
 	AppSettings                   map[string]string          `tfschema:"app_settings"`
+	StickySettings                []helpers.StickySettings   `tfschema:"sticky_settings"`
 	AuthSettings                  []helpers.AuthSettings     `tfschema:"auth_settings"`
 	Backup                        []helpers.Backup           `tfschema:"backup"`
 	ClientAffinityEnabled         bool                       `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled             bool                       `tfschema:"client_cert_enabled"`
-	ClientCertMode                string                     `tfschema:"client_cert_mode"`
+	ClientCertEnabled             bool                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                string                     `tfschema:"client_certificate_mode"`
 	Enabled                       bool                       `tfschema:"enabled"`
 	HttpsOnly                     bool                       `tfschema:"https_only"`
-	Identity                      []helpers.Identity         `tfschema:"identity"`
+	VirtualNetworkSubnetID        string                     `tfschema:"virtual_network_subnet_id"`
+	KeyVaultReferenceIdentityID   string                     `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                    []helpers.LogsConfig       `tfschema:"logs"`
-	MetaData                      map[string]string          `tfschema:"app_metadata"`
 	SiteConfig                    []helpers.SiteConfigLinux  `tfschema:"site_config"`
 	StorageAccounts               []helpers.StorageAccount   `tfschema:"storage_account"`
 	ConnectionStrings             []helpers.ConnectionString `tfschema:"connection_string"`
+	ZipDeployFile                 string                     `tfschema:"zip_deploy_file"`
 	Tags                          map[string]string          `tfschema:"tags"`
 	CustomDomainVerificationId    string                     `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string                     `tfschema:"default_hostname"`
@@ -67,7 +71,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
 
-		"location": location.Schema(),
+		"location": commonschema.Location(),
 
 		"service_plan_id": {
 			Type:         pluginsdk.TypeString,
@@ -95,13 +99,13 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"client_cert_enabled": {
+		"client_certificate_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
-		"client_cert_mode": {
+		"client_certificate_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  "Required",
@@ -125,20 +129,42 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"identity": helpers.IdentitySchema(),
+		"virtual_network_subnet_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		},
 
 		"logs": helpers.LogsConfigSchema(),
 
 		"site_config": helpers.SiteConfigSchemaLinux(),
 
+		"sticky_settings": helpers.StickySettingsSchema(),
+
 		"storage_account": helpers.StorageAccountSchema(),
+
+		"zip_deploy_file": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` on the App in `app_settings`.",
+		},
 
 		"tags": tags.Schema(),
 	}
 }
 
 // TODO - Feature: Deployments (Preview)?
-// TODO - Feature: App Insights? - Part of site_settings map
 
 func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -156,14 +182,6 @@ func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 		"kind": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-		},
-
-		"app_metadata": {
-			Type:     pluginsdk.TypeMap,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
 		},
 
 		"outbound_ip_addresses": {
@@ -280,9 +298,14 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			siteEnvelope := web.Site{
 				Location: utils.String(webApp.Location),
-				Identity: helpers.ExpandIdentity(webApp.Identity),
+				Identity: expandedIdentity,
 				Tags:     tags.FromTypedObject(webApp.Tags),
 				SiteProperties: &web.SiteProperties{
 					ServerFarmID:          utils.String(webApp.ServicePlanId),
@@ -293,6 +316,14 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:     utils.Bool(webApp.ClientCertEnabled),
 					ClientCertMode:        web.ClientCertMode(webApp.ClientCertMode),
 				},
+			}
+
+			if webApp.VirtualNetworkSubnetID != "" {
+				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(webApp.VirtualNetworkSubnetID)
+			}
+
+			if webApp.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(webApp.KeyVaultReferenceIdentityID)
 			}
 
 			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
@@ -306,7 +337,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			appSettings := helpers.ExpandAppSettings(webApp.AppSettings)
+			appSettings := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
 			}
@@ -314,6 +345,17 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			if appSettings.Properties != nil {
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettings); err != nil {
 					return fmt.Errorf("setting App Settings for Linux %s: %+v", id, err)
+				}
+			}
+
+			stickySettings := helpers.ExpandStickySettings(webApp.StickySettings)
+
+			if stickySettings != nil {
+				stickySettingsUpdate := web.SlotConfigNamesResource{
+					SlotConfigNames: stickySettings,
+				}
+				if _, err := client.UpdateSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
 				}
 			}
 
@@ -356,6 +398,12 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if webApp.ZipDeployFile != "" {
+				if err = helpers.GetCredentialsAndPublish(ctx, client, id.ResourceGroup, id.SiteName, webApp.ZipDeployFile); err != nil {
+					return err
+				}
+			}
+
 			return nil
 		},
 	}
@@ -378,7 +426,8 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}
 
-			if webApp.SiteProperties == nil {
+			props := webApp.SiteProperties
+			if props == nil {
 				return fmt.Errorf("reading properties of Linux %s", id)
 			}
 
@@ -410,6 +459,11 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
 			}
 
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+			}
+
 			storageAccounts, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
@@ -434,58 +488,33 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			state := LinuxWebAppModel{
-				Name:          id.SiteName,
-				ResourceGroup: id.ResourceGroup,
-				Location:      location.NormalizeNilable(webApp.Location),
-				Tags:          tags.ToTypedObject(webApp.Tags),
+				Name:                        id.SiteName,
+				ResourceGroup:               id.ResourceGroup,
+				Location:                    location.NormalizeNilable(webApp.Location),
+				ServicePlanId:               utils.NormalizeNilableString(props.ServerFarmID),
+				ClientAffinityEnabled:       utils.NormaliseNilableBool(props.ClientAffinityEnabled),
+				ClientCertEnabled:           utils.NormaliseNilableBool(props.ClientCertEnabled),
+				ClientCertMode:              string(props.ClientCertMode),
+				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
+				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
+				Kind:                        utils.NormalizeNilableString(webApp.Kind),
+				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
+				Enabled:                     utils.NormaliseNilableBool(props.Enabled),
+				HttpsOnly:                   utils.NormaliseNilableBool(props.HTTPSOnly),
+				VirtualNetworkSubnetID:      utils.NormalizeNilableString(webApp.VirtualNetworkSubnetID),
+				StickySettings:              helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
+				Tags:                        tags.ToTypedObject(webApp.Tags),
 			}
 
 			var healthCheckCount *int
 			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
 
-			webAppProps := webApp.SiteProperties
-			if v := webAppProps.ServerFarmID; v != nil {
-				state.ServicePlanId = *v
-			}
-
-			if v := webAppProps.ClientAffinityEnabled; v != nil {
-				state.ClientAffinityEnabled = *v
-			}
-
-			if v := webAppProps.ClientCertEnabled; v != nil {
-				state.ClientCertEnabled = *v
-			}
-
-			if webAppProps.ClientCertMode != "" {
-				state.ClientCertMode = string(webAppProps.ClientCertMode)
-			}
-
-			if v := webAppProps.Enabled; v != nil {
-				state.Enabled = *v
-			}
-
-			if v := webAppProps.HTTPSOnly; v != nil {
-				state.HttpsOnly = *v
-			}
-
-			if v := webAppProps.CustomDomainVerificationID; v != nil {
-				state.CustomDomainVerificationId = *v
-			}
-
-			if v := webAppProps.DefaultHostName; v != nil {
-				state.DefaultHostname = *v
-			}
-
-			if v := webApp.Kind; v != nil {
-				state.Kind = *v
-			}
-
-			if v := webAppProps.OutboundIPAddresses; v != nil {
+			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
 				state.OutboundIPAddressList = strings.Split(*v, ",")
 			}
 
-			if v := webAppProps.PossibleOutboundIPAddresses; v != nil {
+			if v := props.PossibleOutboundIPAddresses; v != nil {
 				state.PossibleOutboundIPAddresses = *v
 				state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
 			}
@@ -493,10 +522,6 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			state.AuthSettings = helpers.FlattenAuthSettings(auth)
 
 			state.Backup = helpers.FlattenBackupConfig(backup)
-
-			if identity := helpers.FlattenIdentity(webApp.Identity); identity != nil {
-				state.Identity = identity
-			}
 
 			state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
@@ -507,7 +532,25 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
 
 			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
-			return metadata.Encode(&state)
+
+			// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
+			if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
+				state.ZipDeployFile = deployFile
+			}
+
+			if err := metadata.Encode(&state); err != nil {
+				return fmt.Errorf("encoding: %+v", err)
+			}
+
+			flattenedIdentity, err := flattenIdentity(webApp.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			return nil
 		},
 	}
 }
@@ -573,15 +616,23 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("client_affinity_enabled") {
 				existing.SiteProperties.ClientAffinityEnabled = utils.Bool(state.ClientAffinityEnabled)
 			}
-			if metadata.ResourceData.HasChange("client_cert_enabled") {
+			if metadata.ResourceData.HasChange("client_certificate_enabled") {
 				existing.SiteProperties.ClientCertEnabled = utils.Bool(state.ClientCertEnabled)
 			}
-			if metadata.ResourceData.HasChange("client_cert_mode") {
+			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				existing.Identity = helpers.ExpandIdentity(state.Identity)
+				expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				existing.Identity = expandedIdentity
+			}
+
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				existing.KeyVaultReferenceIdentity = utils.String(state.KeyVaultReferenceIdentityID)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -606,7 +657,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if metadata.ResourceData.HasChange("app_settings") {
-				appSettingsUpdate := helpers.ExpandAppSettings(state.AppSettings)
+				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
 				if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 					appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
 				}
@@ -622,6 +673,30 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				}
 				if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, *connectionStringUpdate); err != nil {
 					return fmt.Errorf("updating Connection Strings for Linux %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("sticky_settings") {
+				emptySlice := make([]string, 0)
+				stickySettings := helpers.ExpandStickySettings(state.StickySettings)
+				stickySettingsUpdate := web.SlotConfigNamesResource{
+					SlotConfigNames: &web.SlotConfigNames{
+						AppSettingNames:       &emptySlice,
+						ConnectionStringNames: &emptySlice,
+					},
+				}
+
+				if stickySettings != nil {
+					if stickySettings.AppSettingNames != nil {
+						stickySettingsUpdate.SlotConfigNames.AppSettingNames = stickySettings.AppSettingNames
+					}
+					if stickySettings.ConnectionStringNames != nil {
+						stickySettingsUpdate.SlotConfigNames.ConnectionStringNames = stickySettings.ConnectionStringNames
+					}
+				}
+
+				if _, err := client.UpdateSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName, stickySettingsUpdate); err != nil {
+					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
 				}
 			}
 
@@ -659,6 +734,12 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate); err != nil {
 					return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("zip_deploy_file") || metadata.ResourceData.HasChange("zip_deploy_file") {
+				if err = helpers.GetCredentialsAndPublish(ctx, client, id.ResourceGroup, id.SiteName, state.ZipDeployFile); err != nil {
+					return err
 				}
 			}
 

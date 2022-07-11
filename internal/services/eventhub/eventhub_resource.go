@@ -5,14 +5,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-01-01-preview/namespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -22,9 +23,9 @@ var eventHubResourceName = "azurerm_eventhub"
 
 func resourceEventHub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubCreateUpdate,
+		Create: resourceEventHubCreate,
 		Read:   resourceEventHubRead,
-		Update: resourceEventHubCreateUpdate,
+		Update: resourceEventHubUpdate,
 		Delete: resourceEventHubDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -59,7 +60,6 @@ func resourceEventHub() *pluginsdk.Resource {
 			"partition_count": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubPartitionCount,
 			},
 
@@ -85,13 +85,12 @@ func resourceEventHub() *pluginsdk.Resource {
 							Default:  false,
 						},
 						"encoding": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(eventhubs.EncodingCaptureDescriptionAvro),
 								string(eventhubs.EncodingCaptureDescriptionAvroDeflate),
-							}, true),
+							}, false),
 						},
 						"interval_in_seconds": {
 							Type:         pluginsdk.TypeInt,
@@ -163,7 +162,7 @@ func resourceEventHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -177,28 +176,71 @@ func resourceEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
+		if existing.Model != nil {
 			return tf.ImportAsExistsError("azurerm_eventhub", id.ID())
 		}
 	}
 
-	partitionCount := int64(d.Get("partition_count").(int))
-	messageRetention := int64(d.Get("message_retention").(int))
 	eventhubStatus := eventhubs.EntityStatus(d.Get("status").(string))
-
 	parameters := eventhubs.Eventhub{
 		Properties: &eventhubs.EventhubProperties{
-			PartitionCount:         &partitionCount,
-			MessageRetentionInDays: &messageRetention,
+			PartitionCount:         utils.Int64(int64(d.Get("partition_count").(int))),
+			MessageRetentionInDays: utils.Int64(int64(d.Get("message_retention").(int))),
 			Status:                 &eventhubStatus,
 		},
 	}
 
 	if _, ok := d.GetOk("capture_description"); ok {
+		parameters.Properties.CaptureDescription = expandEventHubCaptureDescription(d)
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+		return err
+	}
+
+	d.SetId(id.ID())
+
+	return resourceEventHubRead(d, meta)
+}
+
+func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Eventhub.EventHubsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for Azure ARM EventHub update.")
+
+	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+
+	if d.HasChange("partition_count") {
+		client := meta.(*clients.Client).Eventhub.NamespacesClient
+		namespaceId := namespaces.NewNamespaceID(subscriptionId, id.ResourceGroupName, id.NamespaceName)
+		resp, err := client.Get(ctx, namespaceId)
+		if err != nil {
+			return err
+		}
+		if model := resp.Model; model != nil {
+			if model.Sku.Name != namespaces.SkuNamePremium {
+				return fmt.Errorf("`partition_count` cannot be changed unless the namespace sku is `Premium`")
+			}
+		}
+	}
+
+	eventhubStatus := eventhubs.EntityStatus(d.Get("status").(string))
+	parameters := eventhubs.Eventhub{
+		Properties: &eventhubs.EventhubProperties{
+			PartitionCount:         utils.Int64(int64(d.Get("partition_count").(int))),
+			MessageRetentionInDays: utils.Int64(int64(d.Get("message_retention").(int))),
+			Status:                 &eventhubStatus,
+		},
+	}
+
+	if d.HasChange("capture_description") {
 		parameters.Properties.CaptureDescription = expandEventHubCaptureDescription(d)
 	}
 
@@ -275,6 +317,9 @@ func resourceEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.CaptureDescription {
 	inputs := d.Get("capture_description").([]interface{})
+	if len(inputs) == 0 || inputs[0] == nil {
+		return nil
+	}
 	input := inputs[0].(map[string]interface{})
 
 	enabled := input["enabled"].(bool)

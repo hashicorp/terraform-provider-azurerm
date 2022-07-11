@@ -2,15 +2,14 @@ package identity
 
 import (
 	"encoding/json"
-	"strings"
 )
 
 var _ json.Marshaler = &SystemAssigned{}
 
 type SystemAssigned struct {
-	Type        Type   `json:"type"`
-	PrincipalId string `json:"principalId"`
-	TenantId    string `json:"tenantId"`
+	Type        Type   `json:"type" tfschema:"type"`
+	PrincipalId string `json:"principalId" tfschema:"principal_id"`
+	TenantId    string `json:"tenantId" tfschema:"tenant_id"`
 }
 
 func (s *SystemAssigned) MarshalJSON() ([]byte, error) {
@@ -37,7 +36,13 @@ func ExpandSystemAssigned(input []interface{}) (*SystemAssigned, error) {
 }
 
 func FlattenSystemAssigned(input *SystemAssigned) []interface{} {
-	if input == nil || strings.EqualFold(string(input.Type), string(TypeNone)) {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	input.Type = normalizeType(input.Type)
+
+	if input.Type == TypeNone {
 		return []interface{}{}
 	}
 
@@ -46,6 +51,38 @@ func FlattenSystemAssigned(input *SystemAssigned) []interface{} {
 			"type":         input.Type,
 			"principal_id": input.PrincipalId,
 			"tenant_id":    input.TenantId,
+		},
+	}
+}
+
+func ExpandSystemAssignedFromModel(input []ModelSystemAssigned) (*SystemAssigned, error) {
+	if len(input) == 0 {
+		return &SystemAssigned{
+			Type: TypeNone,
+		}, nil
+	}
+
+	return &SystemAssigned{
+		Type: TypeSystemAssigned,
+	}, nil
+}
+
+func FlattenSystemAssignedToModel(input *SystemAssigned) []ModelSystemAssigned {
+	if input == nil {
+		return []ModelSystemAssigned{}
+	}
+
+	input.Type = normalizeType(input.Type)
+
+	if input.Type == TypeNone {
+		return []ModelSystemAssigned{}
+	}
+
+	return []ModelSystemAssigned{
+		{
+			Type:        input.Type,
+			PrincipalId: input.PrincipalId,
+			TenantId:    input.TenantId,
 		},
 	}
 }

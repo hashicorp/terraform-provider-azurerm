@@ -1,7 +1,6 @@
 package authorization
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -43,24 +42,8 @@ func dataSourceArmClientConfig() *pluginsdk.Resource {
 
 func dataSourceArmClientConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client)
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	_, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	if client.Account.AuthenticatedAsAServicePrincipal {
-		spClient := client.Authorization.ServicePrincipalsClient
-		// Application & Service Principal is 1:1 per tenant. Since we know the appId (client_id)
-		// here, we can query for the Service Principal whose appId matches.
-		filter := fmt.Sprintf("appId eq '%s'", client.Account.ClientId)
-		listResult, listErr := spClient.List(ctx, filter)
-
-		if listErr != nil {
-			return fmt.Errorf("listing Service Principals: %#v", listErr)
-		}
-
-		if listResult.Values() == nil || len(listResult.Values()) != 1 {
-			return fmt.Errorf("Unexpected Service Principal query result: %#v", listResult.Values())
-		}
-	}
 
 	d.SetId(time.Now().UTC().String())
 	d.Set("client_id", client.Account.ClientId)

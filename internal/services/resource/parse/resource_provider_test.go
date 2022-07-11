@@ -24,7 +24,6 @@ func TestResourceProviderID(t *testing.T) {
 		Error    bool
 		Expected *ResourceProviderId
 	}{
-
 		{
 			// empty
 			Input: "",

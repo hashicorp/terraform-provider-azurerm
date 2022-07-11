@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
@@ -35,43 +34,43 @@ func resourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: authorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.AuthorizationRuleName(),
-			},
-
-			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NamespaceName,
-			},
-
-			"topic_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.TopicName(),
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-		}),
+		Schema: authorizationRuleSchemaFrom(resourceServiceBusTopicAuthorizationRuleSchema()),
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(authorizationRuleCustomizeDiff),
 	}
 }
 
+func resourceServiceBusTopicAuthorizationRuleSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AuthorizationRuleName(),
+		},
+
+		//lintignore: S013
+		"topic_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.TopicID,
+		},
+	}
+}
+
 func resourceServiceBusTopicAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Topic Authorization Rule creation.")
 
-	resourceId := parse.NewTopicAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("topic_name").(string), d.Get("name").(string))
+	var resourceId parse.TopicAuthorizationRuleId
+	if topicIdLit := d.Get("topic_id").(string); topicIdLit != "" {
+		topicId, _ := parse.TopicID(topicIdLit)
+		resourceId = parse.NewTopicAuthorizationRuleID(topicId.SubscriptionId, topicId.ResourceGroup, topicId.NamespaceName, topicId.Name, d.Get("name").(string))
+	}
+
 	if d.IsNewResource() {
 		existing, err := client.GetAuthorizationRule(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.AuthorizationRuleName)
 		if err != nil {
@@ -125,9 +124,7 @@ func resourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("name", id.AuthorizationRuleName)
-	d.Set("topic_name", id.TopicName)
-	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("topic_id", parse.NewTopicID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName).ID())
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
 		listen, send, manage := flattenAuthorizationRuleRights(properties.Rights)

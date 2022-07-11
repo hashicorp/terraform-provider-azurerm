@@ -3,17 +3,17 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 )
 
 func FirewallSubnetName(v interface{}, k string) (warnings []string, errors []error) {
-	parsed, err := azure.ParseAzureResourceID(v.(string))
+	parsed, err := networkParse.SubnetID(v.(string))
 	if err != nil {
-		errors = append(errors, fmt.Errorf("parsing Azure Resource ID %q", v.(string)))
+		errors = append(errors, fmt.Errorf("parsing %q: %+v", v.(string), err))
 		return warnings, errors
 	}
-	subnetName := parsed.Path["subnets"]
-	if subnetName != "AzureFirewallSubnet" {
+
+	if parsed.Name != "AzureFirewallSubnet" {
 		errors = append(errors, fmt.Errorf("The name of the Subnet for %q must be exactly 'AzureFirewallSubnet' to be used for the Azure Firewall resource", k))
 	}
 

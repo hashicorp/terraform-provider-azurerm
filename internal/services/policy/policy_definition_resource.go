@@ -7,10 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	mgmtGrpParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -37,88 +38,7 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
-			"policy_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.BuiltIn),
-					string(policy.Custom),
-					string(policy.NotSpecified),
-					string(policy.Static),
-				}, true),
-			},
-
-			"mode": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice(
-					[]string{
-						"All",
-						"Indexed",
-						"Microsoft.ContainerService.Data",
-						"Microsoft.CustomerLockbox.Data",
-						"Microsoft.DataCatalog.Data",
-						"Microsoft.KeyVault.Data",
-						"Microsoft.Kubernetes.Data",
-						"Microsoft.MachineLearningServices.Data",
-						"Microsoft.Network.Data",
-						"Microsoft.Synapse.Data",
-					}, false,
-				),
-			},
-
-			// TODO: deprecate Name in favour of this
-			"management_group_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				ConflictsWith: []string{"management_group_name"},
-				Deprecated:    "Deprecated in favour of `management_group_name`", // TODO -- remove this in next major version
-			},
-
-			"management_group_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true, // TODO -- remove this when deprecation resolves
-				ConflictsWith: []string{"management_group_id"},
-			},
-
-			"display_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"description": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
-
-			"policy_rule": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-			},
-
-			"parameters": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-			},
-
-			"metadata": metadataSchema(),
-		},
+		Schema: resourceArmPolicyDefinitionSchema(),
 	}
 }
 
@@ -132,12 +52,14 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	mode := d.Get("mode").(string)
 	displayName := d.Get("display_name").(string)
 	description := d.Get("description").(string)
+
 	managementGroupName := ""
-	if v, ok := d.GetOk("management_group_name"); ok {
-		managementGroupName = v.(string)
-	}
 	if v, ok := d.GetOk("management_group_id"); ok {
-		managementGroupName = v.(string)
+		id, err := mgmtGrpParse.ManagementGroupID(v.(string))
+		if err != nil {
+			return err
+		}
+		managementGroupName = id.Name
 	}
 
 	if d.IsNewResource() {
@@ -229,7 +151,12 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("empty or nil ID returned for Policy Assignment %q", name)
 	}
-	d.SetId(*resp.ID)
+
+	id, err := parse.PolicyDefinitionID(*resp.ID)
+	if err != nil {
+		return fmt.Errorf("failed to flatten Policy Parameters %q: %+v", *resp.ID, err)
+	}
+	d.SetId(id.Id)
 
 	return resourceArmPolicyDefinitionRead(d, meta)
 }
@@ -245,9 +172,11 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	managementGroupName := ""
+	var managementGroupId mgmtGrpParse.ManagementGroupId
 	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
 	case parse.ScopeAtManagementGroup:
-		managementGroupName = scopeId.ManagementGroupName
+		managementGroupId = mgmtGrpParse.NewManagementGroupId(scopeId.ManagementGroupName)
+		managementGroupName = managementGroupId.Name
 	}
 
 	resp, err := getPolicyDefinitionByName(ctx, client, id.Name, managementGroupName)
@@ -262,8 +191,11 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.Set("name", resp.Name)
+
 	d.Set("management_group_id", managementGroupName)
-	d.Set("management_group_name", managementGroupName)
+	if managementGroupName != "" {
+		d.Set("management_group_id", managementGroupId.ID())
+	}
 
 	if props := resp.DefinitionProperties; props != nil {
 		d.Set("policy_type", props.PolicyType)
@@ -344,4 +276,77 @@ func flattenJSON(stringMap interface{}) string {
 	}
 
 	return ""
+}
+
+func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"policy_type": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(policy.TypeBuiltIn),
+				string(policy.TypeCustom),
+				string(policy.TypeNotSpecified),
+				string(policy.TypeStatic),
+			}, false),
+		},
+
+		"mode": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice(
+				[]string{
+					"All",
+					"Indexed",
+					"Microsoft.ContainerService.Data",
+					"Microsoft.CustomerLockbox.Data",
+					"Microsoft.DataCatalog.Data",
+					"Microsoft.KeyVault.Data",
+					"Microsoft.Kubernetes.Data",
+					"Microsoft.MachineLearningServices.Data",
+					"Microsoft.Network.Data",
+					"Microsoft.Synapse.Data",
+				}, false,
+			),
+		},
+
+		"management_group_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"display_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+		},
+
+		"description": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
+
+		"policy_rule": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+		},
+
+		"parameters": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+		},
+
+		"metadata": metadataSchema(),
+	}
 }

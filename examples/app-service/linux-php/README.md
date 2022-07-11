@@ -1,9 +1,20 @@
-## Example: App Service configured for PHP
+# Example: App Service configured for PHP
 
 This example provisions an App Service inside an App Service Plan which is configured for PHP.
 
 When provisioning this example - the `repository_url` is output - however since the username includes `$` sign (as shown below) this will need to be escaped:
 
+## Variables
+
+- `prefix` - (Required) The prefix used for all resources in this example.
+- `location` - (Required) Azure Region in which all resources in this example should be provisioned.
+
+## Outputs
+
+- `app_name` - The name of the app.
+- `repository_url` - The URL of the SCM site for the app.
+
+## Example use
 
 ```bash
 $ terraform apply

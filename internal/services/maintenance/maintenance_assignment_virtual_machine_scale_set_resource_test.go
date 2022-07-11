@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MaintenanceAssignmentVirtualMachineScaleSetResource struct {
-}
+type MaintenanceAssignmentVirtualMachineScaleSetResource struct{}
 
 func TestAccMaintenanceAssignmentVirtualMachineScaleSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_virtual_machine_scale_set", "test")
@@ -115,25 +114,22 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_probe" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "acctest-lb-probe"
-  port                = 22
-  protocol            = "Tcp"
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "acctest-lb-probe"
+  port            = 22
+  protocol        = "Tcp"
 }
 
 resource "azurerm_lb_rule" "test" {
   name                           = "AccTestLBRule"
-  resource_group_name            = azurerm_resource_group.test.name
   loadbalancer_id                = azurerm_lb.test.id
   probe_id                       = azurerm_lb_probe.test.id
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = "internal"
   protocol                       = "Tcp"
   frontend_port                  = 22
@@ -167,7 +163,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {

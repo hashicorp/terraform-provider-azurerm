@@ -7,9 +7,11 @@ import (
 	"sort"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -26,12 +28,11 @@ func dataSourceImage() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"name_regex": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ValidateFunc:  validation.StringIsValidRegExp,
-				ConflictsWith: []string{"name"},
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsValidRegExp,
+				ExactlyOneOf: []string{"name", "name_regex"},
 			},
 			"sort_descending": {
 				Type:     pluginsdk.TypeBool,
@@ -40,14 +41,14 @@ func dataSourceImage() *pluginsdk.Resource {
 			},
 
 			"name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"name_regex"},
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"name", "name_regex"},
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"zone_resilient": {
 				Type:     pluginsdk.TypeBool,
@@ -123,38 +124,34 @@ func dataSourceImage() *pluginsdk.Resource {
 
 func dataSourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup := d.Get("resource_group_name").(string)
-
 	name := d.Get("name").(string)
 	nameRegex, nameRegexOk := d.GetOk("name_regex")
-
-	if name == "" && !nameRegexOk {
-		return fmt.Errorf("[ERROR] either name or name_regex is required")
-	}
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	var img compute.Image
 
 	if !nameRegexOk {
 		var err error
-		if img, err = client.Get(ctx, resGroup, name, ""); err != nil {
+		if img, err = client.Get(ctx, resourceGroup, name, ""); err != nil {
 			if utils.ResponseWasNotFound(img.Response) {
-				return fmt.Errorf("image %q was not found in resource group %q", name, resGroup)
+				return fmt.Errorf("image %q (Resource Group: %s) was not found", name, resourceGroup)
 			}
-			return fmt.Errorf("[ERROR] Error making Read request on Azure Image %q (resource group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("making Read request on image %q (Resource Group: %s): %s", name, resourceGroup, err)
 		}
 	} else {
 		r := regexp.MustCompile(nameRegex.(string))
 
 		list := make([]compute.Image, 0)
-		resp, err := client.ListByResourceGroupComplete(ctx, resGroup)
+		resp, err := client.ListByResourceGroupComplete(ctx, resourceGroup)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response().Response) {
-				return fmt.Errorf("No Images were found for Resource Group %q", resGroup)
+				return fmt.Errorf("no Images were found for Resource Group %q", resourceGroup)
 			}
-			return fmt.Errorf("[ERROR] Error getting list of images (resource group %q): %+v", resGroup, err)
+			return fmt.Errorf("getting list of images (resource group %q): %+v", resourceGroup, err)
 		}
 
 		for resp.NotDone() {
@@ -170,7 +167,7 @@ func dataSourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if 1 > len(list) {
-			return fmt.Errorf("No Images were found for Resource Group %q", resGroup)
+			return fmt.Errorf("no Images were found for Resource Group %q", resourceGroup)
 		}
 
 		if len(list) > 1 {
@@ -185,12 +182,16 @@ func dataSourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		img = list[0]
 	}
 
-	d.SetId(*img.ID)
-	d.Set("name", img.Name)
-	d.Set("resource_group_name", resGroup)
-	if location := img.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if img.Name == nil {
+		return fmt.Errorf("image name is empty in Resource Group %s", resourceGroup)
 	}
+
+	id := parse.NewImageID(subscriptionId, resourceGroup, *img.Name)
+
+	d.SetId(id.ID())
+	d.Set("name", img.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(img.Location))
 
 	if profile := img.StorageProfile; profile != nil {
 		if disk := profile.OsDisk; disk != nil {

@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -29,8 +28,10 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 		Update: resourceCosmosDbGremlinGraphUpdate,
 		Delete: resourceCosmosDbGremlinGraphDelete,
 
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.GremlinGraphID(id)
+			return err
+		}),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -111,15 +112,13 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 						},
 
 						// case change in 2021-01-15, issue https://github.com/Azure/azure-rest-api-specs/issues/14051
-						// todo: change to SDK constants and remove translation code in 3.0
 						"indexing_mode": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
+							Type:     pluginsdk.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"Consistent",
-								"Lazy",
-								"None",
+								string(documentdb.IndexingModeConsistent),
+								string(documentdb.IndexingModeNone),
+								string(documentdb.IndexingModeLazy),
 							}, false),
 						},
 
@@ -178,23 +177,21 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 
 func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	database := d.Get("database_name").(string)
-	account := d.Get("account_name").(string)
+	id := parse.NewGremlinGraphID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 	partitionkeypaths := d.Get("partition_key_path").(string)
 
-	existing, err := client.GetGremlinGraph(ctx, resourceGroup, account, database, name)
+	existing, err := client.GetGremlinGraph(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of creating Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v", name, account, database, err)
+			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
 	} else {
 		if existing.ID == nil && *existing.ID == "" {
-			return fmt.Errorf("generating import ID for Cosmos Gremlin Graph %q (Account: %q, Database: %q)", name, account, database)
+			return fmt.Errorf("generating import ID for %s", id)
 		}
 
 		return tf.ImportAsExistsError("azurerm_cosmosdb_gremlin_graph", *existing.ID)
@@ -203,7 +200,7 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 	db := documentdb.GremlinGraphCreateUpdateParameters{
 		GremlinGraphCreateUpdateProperties: &documentdb.GremlinGraphCreateUpdateProperties{
 			Resource: &documentdb.GremlinGraphResource{
-				ID:                       &name,
+				ID:                       &id.GraphName,
 				IndexingPolicy:           expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d),
 				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]interface{})),
 			},
@@ -243,25 +240,16 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 		db.GremlinGraphCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
-	future, err := client.CreateUpdateGremlinGraph(ctx, resourceGroup, account, database, name, db)
+	future, err := client.CreateUpdateGremlinGraph(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName, db)
 	if err != nil {
-		return fmt.Errorf("issuing create/update request for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v", name, account, database, err)
+		return fmt.Errorf("issuing create/update request for %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for Cosmos Gremlin Graph%q (Account: %q, Database: %q): %+v", name, account, database, err)
+		return fmt.Errorf("waiting on create/update future for %s: %+v", id, err)
 	}
 
-	resp, err := client.GetGremlinGraph(ctx, resourceGroup, account, database, name)
-	if err != nil {
-		return fmt.Errorf("making get request for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v", name, account, database, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("getting ID from Cosmos Gremlin Graph %q (Account: %q, Database: %q)", name, account, database)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceCosmosDbGremlinGraphRead(d, meta)
 }
@@ -343,6 +331,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 
 func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
+	accountClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -406,19 +395,27 @@ func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{
 			}
 		}
 	}
-
-	throughputResp, err := client.GetGremlinGraphThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName)
+	accResp, err := accountClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("reading Throughput on Gremlin Graph %q (Account: %q, Database: %q) ID: %v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
-		} else {
-			d.Set("throughput", nil)
-			d.Set("autoscale_settings", nil)
-		}
-	} else {
-		common.SetResourceDataThroughputFromResponse(throughputResp, d)
+		return fmt.Errorf("reading Cosmos Account %q : %+v", id.DatabaseAccountName, err)
+	}
+	if accResp.ID == nil || *accResp.ID == "" {
+		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.DatabaseAccountName, id.ResourceGroup)
 	}
 
+	if !isServerlessCapacityMode(accResp) {
+		throughputResp, err := client.GetGremlinGraphThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(throughputResp.Response) {
+				return fmt.Errorf("reading Throughput on Gremlin Graph %q (Account: %q, Database: %q) ID: %v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
+			} else {
+				d.Set("throughput", nil)
+				d.Set("autoscale_settings", nil)
+			}
+		} else {
+			common.SetResourceDataThroughputFromResponse(throughputResp, d)
+		}
+	}
 	return nil
 }
 
@@ -532,7 +529,7 @@ func flattenAzureRmCosmosDBGremlinGraphIndexingPolicy(input *documentdb.Indexing
 	indexPolicy := make(map[string]interface{})
 
 	indexPolicy["automatic"] = input.Automatic
-	indexPolicy["indexing_mode"] = strings.Title(string(input.IndexingMode))
+	indexPolicy["indexing_mode"] = string(input.IndexingMode)
 	indexPolicy["included_paths"] = pluginsdk.NewSet(pluginsdk.HashString, flattenAzureRmCosmosDBGremlinGraphIncludedPaths(input.IncludedPaths))
 	indexPolicy["excluded_paths"] = pluginsdk.NewSet(pluginsdk.HashString, flattenAzureRmCosmosDBGremlinGraphExcludedPaths(input.ExcludedPaths))
 	indexPolicy["composite_index"] = common.FlattenCosmosDBIndexingPolicyCompositeIndexes(input.CompositeIndexes)

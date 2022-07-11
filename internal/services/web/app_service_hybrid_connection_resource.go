@@ -6,15 +6,16 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/hybridconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	relayParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
-	relayValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -34,6 +35,8 @@ func resourceAppServiceHybridConnection() *pluginsdk.Resource {
 			_, err := parse.HybridConnectionID(id)
 			return err
 		}),
+
+		DeprecationMessage: "The `azurerm_app_service_hybrid_connection` resource has been superseded by the `azurerm_function_app_hybrid_connection` and `azurerm_web_app_hybrid_connection` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -56,7 +59,7 @@ func resourceAppServiceHybridConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: relayValidate.HybridConnectionID,
+				ValidateFunc: hybridconnections.ValidateHybridConnectionID,
 			},
 
 			"hostname": {
@@ -109,29 +112,27 @@ func resourceAppServiceHybridConnection() *pluginsdk.Resource {
 
 func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("app_service_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 	relayArmURI := d.Get("relay_id").(string)
-	relayId, err := relayParse.HybridConnectionID(relayArmURI)
+	relayId, err := hybridconnections.ParseHybridConnectionID(relayArmURI)
 	if err != nil {
 		return fmt.Errorf("parsing relay ID %q: %s", relayArmURI, err)
 	}
-	namespaceName := relayId.NamespaceName
-	relayName := relayId.HybridConnectionName
+	id := parse.NewHybridConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string), relayId.NamespaceName, relayId.HybridConnectionName)
 
 	if d.IsNewResource() {
-		existing, err := client.GetHybridConnection(ctx, resourceGroup, name, namespaceName, relayName)
+		existing, err := client.GetHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing App Service Hybrid Connection %q (Resource Group %q, Namespace %q, Relay Name %q): %s", name, resourceGroup, namespaceName, relayName, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service_hybrid_connection", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_app_service_hybrid_connection", id.ID())
 		}
 	}
 
@@ -147,21 +148,19 @@ func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, m
 		},
 	}
 
-	hybridConnection, err := client.CreateOrUpdateHybridConnection(ctx, resourceGroup, name, namespaceName, relayName, connectionEnvelope)
+	_, err = client.CreateOrUpdateHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName, connectionEnvelope)
 	if err != nil {
-		return fmt.Errorf("failed creating App Service Hybrid Connection %q (resource group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("failed creating %s: %s", id, err)
 	}
 
-	if hybridConnection.ID == nil && *hybridConnection.ID == "" {
-		return fmt.Errorf("failed to read ID for Hybrid Connection %q", name)
-	}
-	d.SetId(*hybridConnection.ID)
+	d.SetId(id.ID())
 
 	return resourceAppServiceHybridConnectionRead(d, meta)
 }
 
 func resourceAppServiceHybridConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	relayClient := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -202,11 +201,17 @@ func resourceAppServiceHybridConnectionRead(d *pluginsdk.ResourceData, meta inte
 		}
 		authRuleId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, *relayNamespaceRG, *resp.ServiceBusNamespace, *resp.SendKeyName)
 		accessKeys, err := relayNamespacesClient.ListKeys(ctx, authRuleId)
-		if err != nil {
-			return fmt.Errorf("unable to List Access Keys for Namespace %q (Resource Group %q): %+v", *resp.ServiceBusNamespace, id.ResourceGroup, err)
+
+		if err == nil && accessKeys.Model != nil {
+			d.Set("send_key_value", accessKeys.Model.PrimaryKey)
+			return nil
 		}
 
-		if model := accessKeys.Model; model != nil {
+		connAccessKeys, err := relayClient.ListKeys(ctx, hybridconnections.NewHybridConnectionAuthorizationRuleID(id.SubscriptionId, *relayNamespaceRG, *resp.ServiceBusNamespace, *resp.Name, *resp.SendKeyName))
+		if err != nil {
+			return fmt.Errorf("unable to List Access Keys for %q (Resource Group %q): %+v", id, id.ResourceGroup, err)
+		}
+		if model := connAccessKeys.Model; model != nil {
 			d.Set("send_key_value", model.PrimaryKey)
 		}
 	}
@@ -235,7 +240,7 @@ func resourceAppServiceHybridConnectionDelete(d *pluginsdk.ResourceData, meta in
 }
 
 func findRelayNamespace(ctx context.Context, client *namespaces.NamespacesClient, subscriptionId, name string) (*string, error) {
-	subId := namespaces.NewSubscriptionID(subscriptionId)
+	subId := commonids.NewSubscriptionID(subscriptionId)
 	relayNSIterator, err := client.ListComplete(ctx, subId)
 	if err != nil {
 		return nil, fmt.Errorf("listing Relay Namespaces: %+v", err)

@@ -98,7 +98,7 @@ func resourceIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *pluginsdk.Resource
 		return err
 	}
 
-	resourceId := parse.NewAccessPolicyID(subscriptionId, environmentId.ResourceGroup, environmentId.Name, name).ID()
+	resourceId := parse.NewAccessPolicyID(subscriptionId, environmentId.ResourceGroup, environmentId.Name, name)
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, environmentId.ResourceGroup, environmentId.Name, name)
 		if err != nil {
@@ -107,8 +107,8 @@ func resourceIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *pluginsdk.Resource
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_iot_time_series_insights_access_policy", resourceId)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_iot_time_series_insights_access_policy", resourceId.ID())
 		}
 	}
 
@@ -124,7 +124,7 @@ func resourceIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("creating/updating IoT Time Series Insights Access Policy %q (Resource Group %q): %+v", name, environmentId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(resourceId.ID())
 	return resourceIoTTimeSeriesInsightsAccessPolicyRead(d, meta)
 }
 

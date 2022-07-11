@@ -5,15 +5,18 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
-	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2020-03-13/search"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/adminkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/querykeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -35,7 +38,7 @@ func resourceSearchService() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SearchServiceID(id)
+			_, err := services.ParseSearchServiceID(id)
 			return err
 		}),
 
@@ -55,13 +58,13 @@ func resourceSearchService() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(search.Free),
-					string(search.Basic),
-					string(search.Standard),
-					string(search.Standard2),
-					string(search.Standard3),
-					string(search.StorageOptimizedL1),
-					string(search.StorageOptimizedL2),
+					string(services.SkuNameFree),
+					string(services.SkuNameBasic),
+					string(services.SkuNameStandard),
+					string(services.SkuNameStandardTwo),
+					string(services.SkuNameStandardThree),
+					string(services.SkuNameStorageOptimizedLOne),
+					string(services.SkuNameStorageOptimizedLOne),
 				}, false),
 			},
 
@@ -124,34 +127,9 @@ func resourceSearchService() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(search.SystemAssigned),
-							}, false),
-						},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -162,62 +140,61 @@ func resourceSearchServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSearchServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := services.NewSearchServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, nil)
+		existing, err := client.Get(ctx, id, services.GetOperationOptions{})
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_search_service", id.ID())
 		}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	skuName := d.Get("sku").(string)
 
-	publicNetworkAccess := search.Enabled
+	publicNetworkAccess := services.PublicNetworkAccessEnabled
 	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
-		publicNetworkAccess = search.Disabled
+		publicNetworkAccess = services.PublicNetworkAccessDisabled
 	}
 
-	t := d.Get("tags").(map[string]interface{})
+	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 
-	properties := search.Service{
+	skuName := services.SkuName(d.Get("sku").(string))
+	properties := services.SearchService{
 		Location: utils.String(location),
-		Sku: &search.Sku{
-			Name: search.SkuName(skuName),
+		Sku: &services.Sku{
+			Name: &skuName,
 		},
-		ServiceProperties: &search.ServiceProperties{
-			PublicNetworkAccess: publicNetworkAccess,
-			NetworkRuleSet: &search.NetworkRuleSet{
-				IPRules: expandSearchServiceIPRules(d.Get("allowed_ips").([]interface{})),
+		Properties: &services.SearchServiceProperties{
+			PublicNetworkAccess: &publicNetworkAccess,
+			NetworkRuleSet: &services.NetworkRuleSet{
+				IpRules: expandSearchServiceIPRules(d.Get("allowed_ips").([]interface{})),
 			},
 		},
-		Identity: expandSearchServiceIdentity(d.Get("identity").([]interface{})),
-		Tags:     tags.Expand(t),
+		Identity: expandedIdentity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("replica_count"); ok {
-		replicaCount := int32(v.(int))
-		properties.ServiceProperties.ReplicaCount = utils.Int32(replicaCount)
+		replicaCount := int64(v.(int))
+		properties.Properties.ReplicaCount = utils.Int64(replicaCount)
 	}
 
 	if v, ok := d.GetOk("partition_count"); ok {
-		partitionCount := int32(v.(int))
-		properties.ServiceProperties.PartitionCount = utils.Int32(partitionCount)
+		partitionCount := int64(v.(int))
+		properties.Properties.PartitionCount = utils.Int64(partitionCount)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties, nil)
+	err = client.CreateOrUpdateThenPoll(ctx, id, properties, services.CreateOrUpdateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -229,14 +206,14 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SearchServiceID(d.Id())
+	id, err := services.ParseSearchServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, nil)
+	resp, err := client.Get(ctx, *id, services.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -245,46 +222,78 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.SearchServiceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku", string(sku.Name))
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	if props := resp.ServiceProperties; props != nil {
-		if count := props.PartitionCount; count != nil {
-			d.Set("partition_count", int(*count))
+		skuName := ""
+		if sku := model.Sku; sku != nil && sku.Name != nil {
+			skuName = string(*sku.Name)
+		}
+		d.Set("sku", skuName)
+
+		if props := model.Properties; props != nil {
+			partitionCount := 0
+			replicaCount := 0
+			publicNetworkAccess := false
+
+			if count := props.PartitionCount; count != nil {
+				partitionCount = int(*count)
+			}
+
+			if count := props.ReplicaCount; count != nil {
+				replicaCount = int(*count)
+			}
+
+			if props.PublicNetworkAccess != nil {
+				publicNetworkAccess = *props.PublicNetworkAccess != "Disabled"
+			}
+
+			d.Set("partition_count", partitionCount)
+			d.Set("replica_count", replicaCount)
+			d.Set("public_network_access_enabled", publicNetworkAccess)
+			d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 		}
 
-		if count := props.ReplicaCount; count != nil {
-			d.Set("replica_count", int(*count))
+		if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+			return fmt.Errorf("setting `identity`: %s", err)
 		}
 
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess != "Disabled")
-
-		d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
+		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	adminKeysClient := meta.(*clients.Client).Search.AdminKeysClient
-	adminKeysResp, err := adminKeysClient.Get(ctx, id.ResourceGroup, id.Name, nil)
+	adminKeysId, err := adminkeys.ParseSearchServiceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	adminKeysResp, err := adminKeysClient.Get(ctx, *adminKeysId, adminkeys.GetOperationOptions{})
 	if err == nil {
-		d.Set("primary_key", adminKeysResp.PrimaryKey)
-		d.Set("secondary_key", adminKeysResp.SecondaryKey)
+		if model := adminKeysResp.Model; model != nil {
+			d.Set("primary_key", model.PrimaryKey)
+			d.Set("secondary_key", model.SecondaryKey)
+		}
 	}
 
 	queryKeysClient := meta.(*clients.Client).Search.QueryKeysClient
-	queryKeysResp, err := queryKeysClient.ListBySearchService(ctx, id.ResourceGroup, id.Name, nil)
+	queryKeysId, err := querykeys.ParseSearchServiceID(d.Id())
+	if err != nil {
+		return err
+	}
+	queryKeysResp, err := queryKeysClient.ListBySearchService(ctx, *queryKeysId, querykeys.ListBySearchServiceOperationOptions{})
 	if err == nil {
-		d.Set("query_keys", flattenSearchQueryKeys(queryKeysResp.Values()))
+		if model := queryKeysResp.Model; model != nil {
+			d.Set("query_keys", flattenSearchQueryKeys(*model))
+
+		}
 	}
 
-	if err := d.Set("identity", flattenSearchServiceIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("setting `identity`: %s", err)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -292,14 +301,14 @@ func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SearchServiceID(d.Id())
+	id, err := services.ParseSearchServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name, nil)
+	resp, err := client.Delete(ctx, *id, services.DeleteOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
 
@@ -309,7 +318,7 @@ func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func flattenSearchQueryKeys(input []search.QueryKey) []interface{} {
+func flattenSearchQueryKeys(input []querykeys.QueryKey) []interface{} {
 	results := make([]interface{}, 0)
 
 	for _, v := range input {
@@ -326,15 +335,15 @@ func flattenSearchQueryKeys(input []search.QueryKey) []interface{} {
 	return results
 }
 
-func expandSearchServiceIPRules(input []interface{}) *[]search.IPRule {
-	output := make([]search.IPRule, 0)
+func expandSearchServiceIPRules(input []interface{}) *[]services.IpRule {
+	output := make([]services.IpRule, 0)
 	if input == nil {
 		return &output
 	}
 
 	for _, rule := range input {
 		if rule != nil {
-			output = append(output, search.IPRule{
+			output = append(output, services.IpRule{
 				Value: utils.String(rule.(string)),
 			})
 		}
@@ -343,49 +352,13 @@ func expandSearchServiceIPRules(input []interface{}) *[]search.IPRule {
 	return &output
 }
 
-func flattenSearchServiceIPRules(input *search.NetworkRuleSet) []interface{} {
-	if input == nil || *input.IPRules == nil || len(*input.IPRules) == 0 {
+func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
+	if input == nil || *input.IpRules == nil || len(*input.IpRules) == 0 {
 		return nil
 	}
 	result := make([]interface{}, 0)
-	for _, rule := range *input.IPRules {
+	for _, rule := range *input.IpRules {
 		result = append(result, rule.Value)
 	}
 	return result
-}
-
-func expandSearchServiceIdentity(input []interface{}) *search.Identity {
-	if len(input) == 0 || input[0] == nil {
-		return &search.Identity{
-			Type: search.None,
-		}
-	}
-	identity := input[0].(map[string]interface{})
-	return &search.Identity{
-		Type: search.IdentityType(identity["type"].(string)),
-	}
-}
-
-func flattenSearchServiceIdentity(identity *search.Identity) []interface{} {
-	if identity == nil || identity.Type == search.None {
-		return make([]interface{}, 0)
-	}
-
-	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
-	}
-
-	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-			"type":         string(identity.Type),
-		},
-	}
 }

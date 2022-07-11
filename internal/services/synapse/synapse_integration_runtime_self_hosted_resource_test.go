@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IntegrationRuntimeSelfHostedResource struct {
-}
+type IntegrationRuntimeSelfHostedResource struct{}
 
 func TestAccSynapseIntegrationRuntimeSelfHosted_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_self_hosted", "test")
@@ -96,6 +95,9 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
   managed_virtual_network_enabled      = true
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_synapse_firewall_rule" "test" {

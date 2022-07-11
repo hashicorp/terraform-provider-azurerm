@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/disasterrecoveryconfigs"
-
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/disasterrecoveryconfigs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EventHubNamespaceDisasterRecoveryConfigResource struct {
-}
+type EventHubNamespaceDisasterRecoveryConfigResource struct{}
 
 func TestAccEventHubNamespaceDisasterRecoveryConfig_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_disaster_recovery_config", "test")

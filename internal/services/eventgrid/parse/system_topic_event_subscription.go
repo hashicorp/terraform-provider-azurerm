@@ -1,32 +1,69 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 type SystemTopicEventSubscriptionId struct {
-	ResourceGroup string
-	SystemTopic   string
-	Name          string
+	SubscriptionId        string
+	ResourceGroup         string
+	SystemTopicName       string
+	EventSubscriptionName string
 }
 
+func NewSystemTopicEventSubscriptionID(subscriptionId, resourceGroup, systemTopicName, eventSubscriptionName string) SystemTopicEventSubscriptionId {
+	return SystemTopicEventSubscriptionId{
+		SubscriptionId:        subscriptionId,
+		ResourceGroup:         resourceGroup,
+		SystemTopicName:       systemTopicName,
+		EventSubscriptionName: eventSubscriptionName,
+	}
+}
+
+func (id SystemTopicEventSubscriptionId) String() string {
+	segments := []string{
+		fmt.Sprintf("Event Subscription Name %q", id.EventSubscriptionName),
+		fmt.Sprintf("System Topic Name %q", id.SystemTopicName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "System Topic Event Subscription", segmentsStr)
+}
+
+func (id SystemTopicEventSubscriptionId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.EventGrid/systemTopics/%s/eventSubscriptions/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SystemTopicName, id.EventSubscriptionName)
+}
+
+// SystemTopicEventSubscriptionID parses a SystemTopicEventSubscription ID into an SystemTopicEventSubscriptionId struct
 func SystemTopicEventSubscriptionID(input string) (*SystemTopicEventSubscriptionId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse EventGrid System Topic Event Subscription ID %q: %+v", input, err)
-	}
-
-	systemTopicEventSubscriptionID := SystemTopicEventSubscriptionId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if systemTopicEventSubscriptionID.SystemTopic, err = id.PopSegment("systemTopics"); err != nil {
 		return nil, err
 	}
 
-	if systemTopicEventSubscriptionID.Name, err = id.PopSegment("eventSubscriptions"); err != nil {
+	resourceId := SystemTopicEventSubscriptionId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.SystemTopicName, err = id.PopSegment("systemTopics"); err != nil {
+		return nil, err
+	}
+	if resourceId.EventSubscriptionName, err = id.PopSegment("eventSubscriptions"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +71,5 @@ func SystemTopicEventSubscriptionID(input string) (*SystemTopicEventSubscription
 		return nil, err
 	}
 
-	return &systemTopicEventSubscriptionID, nil
+	return &resourceId, nil
 }

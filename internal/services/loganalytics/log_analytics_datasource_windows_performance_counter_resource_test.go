@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsDataSourceWindowsPerformanceCounterResource struct {
-}
+type LogAnalyticsDataSourceWindowsPerformanceCounterResource struct{}
 
 func TestAccLogAnalyticsDataSourceWindowsPerformanceCounter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_performance_counter", "test")
@@ -100,12 +99,12 @@ func TestAccLogAnalyticsDataSourceWindowsPerformanceCounter_requiresImport(t *te
 }
 
 func (t LogAnalyticsDataSourceWindowsPerformanceCounterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogAnalyticsDataSourceID(state.ID)
+	id, err := parse.DataSourceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.LogAnalytics.DataSourcesClient.Get(ctx, id.ResourceGroup, id.Workspace, id.Name)
+	resp, err := clients.LogAnalytics.DataSourcesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("readingLog Analytics Data Source Windows Event (%s): %+v", id, err)
 	}

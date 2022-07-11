@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/eventhubs"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,7 +30,7 @@ func dataSourceMonitorActionGroup() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"short_name": {
 				Type:     pluginsdk.TypeString,
@@ -302,6 +304,34 @@ func dataSourceMonitorActionGroup() *pluginsdk.Resource {
 					},
 				},
 			},
+			"event_hub_receiver": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"event_hub_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: eventhubs.ValidateEventhubID,
+						},
+						"tenant_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+						"use_common_alert_schema": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -312,7 +342,9 @@ func dataSourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewActionGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	id := parse.NewActionGroupID(subscriptionId, resourceGroup, d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
@@ -364,6 +396,9 @@ func dataSourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{
 		}
 		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(group.ArmRoleReceivers)); err != nil {
 			return fmt.Errorf("setting `arm_role_receiver`: %+v", err)
+		}
+		if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(resourceGroup, group.EventHubReceivers)); err != nil {
+			return fmt.Errorf("setting `event_hub_receiver`: %+v", err)
 		}
 	}
 

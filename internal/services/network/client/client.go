@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -9,6 +9,7 @@ type Client struct {
 	ApplicationGatewaysClient              *network.ApplicationGatewaysClient
 	ApplicationSecurityGroupsClient        *network.ApplicationSecurityGroupsClient
 	BastionHostsClient                     *network.BastionHostsClient
+	ConfigurationPolicyGroupClient         *network.ConfigurationPolicyGroupsClient
 	ConnectionMonitorsClient               *network.ConnectionMonitorsClient
 	DDOSProtectionPlansClient              *network.DdosProtectionPlansClient
 	ExpressRouteAuthsClient                *network.ExpressRouteCircuitAuthorizationsClient
@@ -24,6 +25,7 @@ type Client struct {
 	InterfacesClient                       *network.InterfacesClient
 	IPGroupsClient                         *network.IPGroupsClient
 	LocalNetworkGatewaysClient             *network.LocalNetworkGatewaysClient
+	NatRuleClient                          *network.NatRulesClient
 	PointToSiteVpnGatewaysClient           *network.P2sVpnGatewaysClient
 	ProfileClient                          *network.ProfilesClient
 	PacketCapturesClient                   *network.PacketCapturesClient
@@ -44,6 +46,7 @@ type Client struct {
 	VirtualHubBgpConnectionClient          *network.VirtualHubBgpConnectionClient
 	VirtualHubIPClient                     *network.VirtualHubIPConfigurationClient
 	VnetGatewayConnectionsClient           *network.VirtualNetworkGatewayConnectionsClient
+	VnetGatewayNatRuleClient               *network.VirtualNetworkGatewayNatRulesClient
 	VnetGatewayClient                      *network.VirtualNetworkGatewaysClient
 	VnetClient                             *network.VirtualNetworksClient
 	VnetPeeringsClient                     *network.VirtualNetworkPeeringsClient
@@ -70,6 +73,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	BastionHostsClient := network.NewBastionHostsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&BastionHostsClient.Client, o.ResourceManagerAuthorizer)
+
+	configurationPolicyGroupClient := network.NewConfigurationPolicyGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&configurationPolicyGroupClient.Client, o.ResourceManagerAuthorizer)
 
 	ConnectionMonitorsClient := network.NewConnectionMonitorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ConnectionMonitorsClient.Client, o.ResourceManagerAuthorizer)
@@ -115,6 +121,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	LocalNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LocalNetworkGatewaysClient.Client, o.ResourceManagerAuthorizer)
+
+	NatRuleClient := network.NewNatRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&NatRuleClient.Client, o.ResourceManagerAuthorizer)
 
 	pointToSiteVpnGatewaysClient := network.NewP2sVpnGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&pointToSiteVpnGatewaysClient.Client, o.ResourceManagerAuthorizer)
@@ -194,6 +203,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	VnetGatewayConnectionsClient := network.NewVirtualNetworkGatewayConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetGatewayConnectionsClient.Client, o.ResourceManagerAuthorizer)
 
+	VnetGatewayNatRuleClient := network.NewVirtualNetworkGatewayNatRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VnetGatewayNatRuleClient.Client, o.ResourceManagerAuthorizer)
+
 	VirtualWanClient := network.NewVirtualWansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualWanClient.Client, o.ResourceManagerAuthorizer)
 
@@ -225,6 +237,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ApplicationGatewaysClient:              &ApplicationGatewaysClient,
 		ApplicationSecurityGroupsClient:        &ApplicationSecurityGroupsClient,
 		BastionHostsClient:                     &BastionHostsClient,
+		ConfigurationPolicyGroupClient:         &configurationPolicyGroupClient,
 		ConnectionMonitorsClient:               &ConnectionMonitorsClient,
 		DDOSProtectionPlansClient:              &DDOSProtectionPlansClient,
 		ExpressRouteAuthsClient:                &ExpressRouteAuthsClient,
@@ -240,6 +253,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		InterfacesClient:                       &InterfacesClient,
 		IPGroupsClient:                         &IpGroupsClient,
 		LocalNetworkGatewaysClient:             &LocalNetworkGatewaysClient,
+		NatRuleClient:                          &NatRuleClient,
 		PointToSiteVpnGatewaysClient:           &pointToSiteVpnGatewaysClient,
 		ProfileClient:                          &ProfileClient,
 		PacketCapturesClient:                   &PacketCapturesClient,
@@ -260,6 +274,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		VirtualHubBgpConnectionClient:          &VirtualHubBgpConnectionClient,
 		VirtualHubIPClient:                     &VirtualHubIPClient,
 		VnetGatewayConnectionsClient:           &VnetGatewayConnectionsClient,
+		VnetGatewayNatRuleClient:               &VnetGatewayNatRuleClient,
 		VnetGatewayClient:                      &VnetGatewayClient,
 		VnetClient:                             &VnetClient,
 		VnetPeeringsClient:                     &VnetPeeringsClient,

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -48,14 +47,12 @@ func resourceDataFactoryIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
 				),
 			},
 
-			"data_factory_name": {
+			"data_factory_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryName(),
+				ValidateFunc: validate.DataFactoryID,
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"description": {
 				Type:     pluginsdk.TypeString,
@@ -77,14 +74,12 @@ func resourceDataFactoryIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
 				},
 			},
 
-			// todo: rename to authorization_key_primary in v3.0
-			"auth_key_1": {
+			"primary_authorization_key": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
-			// todo: rename to authorization_key_secondary in v3.0
-			"auth_key_2": {
+			"secondary_authorization_key": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -98,18 +93,23 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Re
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewIntegrationRuntimeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("data_factory_name").(string), d.Get("name").(string))
+	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewIntegrationRuntimeID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Self-Hosted %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_self_hosted", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_self_hosted", id.ID())
 		}
 	}
 
@@ -151,6 +151,8 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 		return err
 	}
 
+	dataFactoryId := parse.NewDataFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -158,12 +160,11 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Data Factory Self-Hosted %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
-	d.Set("data_factory_name", id.FactoryName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("data_factory_id", dataFactoryId.ID())
 
 	selfHostedIntegrationRuntime, convertSuccess := resp.Properties.AsSelfHostedIntegrationRuntime()
 
@@ -198,8 +199,8 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving Auth Keys for Data Factory Self-Hosted %s: %+v", *id, errKey)
 	}
 
-	d.Set("auth_key_1", respKey.AuthKey1)
-	d.Set("auth_key_2", respKey.AuthKey2)
+	d.Set("primary_authorization_key", respKey.AuthKey1)
+	d.Set("secondary_authorization_key", respKey.AuthKey2)
 
 	return nil
 }
@@ -217,7 +218,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedDelete(d *pluginsdk.Resource
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Data Factory SelfHosted %s: %+v", *id, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 	return nil

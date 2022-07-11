@@ -11,10 +11,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
@@ -170,7 +170,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore: S018
+			//lintignore: S018
 			"dynamic_criteria": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -217,6 +217,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											"Include",
 											"Exclude",
+											"StartsWith",
 										}, false),
 									},
 									"values": {
@@ -399,8 +400,8 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_monitor_metric_alert", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_monitor_metric_alert", id.ID())
 		}
 	}
 
@@ -542,7 +543,7 @@ func resourceMonitorMetricAlertRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		monitorMetricAlertCriteria := flattenMonitorMetricAlertCriteria(alert.Criteria)
-		// lintignore:R001
+		//lintignore:R001
 		if err := d.Set(criteriaSchema, monitorMetricAlertCriteria); err != nil {
 			return fmt.Errorf("failed setting `%s`: %+v", criteriaSchema, err)
 		}

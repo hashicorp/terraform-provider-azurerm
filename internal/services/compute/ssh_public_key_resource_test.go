@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SSHPublicKeyResource struct {
-}
+type SSHPublicKeyResource struct{}
 
 func TestAccSshPublicKey_CreateUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ssh_public_key", "test")

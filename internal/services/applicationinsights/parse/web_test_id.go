@@ -67,3 +67,47 @@ func WebTestID(input string) (*WebTestId, error) {
 
 	return &resourceId, nil
 }
+
+// WebTestIDInsensitively parses an WebTest ID into an WebTestId struct, insensitively
+// This should only be used to parse an ID for rewriting, the WebTestID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func WebTestIDInsensitively(input string) (*WebTestId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := WebTestId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'webTests' segment
+	webTestsKey := "webTests"
+	for key := range id.Path {
+		if strings.EqualFold(key, webTestsKey) {
+			webTestsKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(webTestsKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}

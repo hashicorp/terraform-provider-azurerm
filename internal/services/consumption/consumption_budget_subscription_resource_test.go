@@ -92,6 +92,7 @@ func TestAccConsumptionBudgetSubscription_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccConsumptionBudgetSubscription_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
 	r := ConsumptionBudgetSubscriptionResource{}
@@ -115,15 +116,14 @@ func TestAccConsumptionBudgetSubscription_completeUpdate(t *testing.T) {
 }
 
 func (ConsumptionBudgetSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ConsumptionBudgetSubscriptionID(state.ID)
+	id, err := parse.ConsumptionBudgetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	scope := fmt.Sprintf("/subscriptions/%s", id.SubscriptionId)
-	resp, err := clients.Consumption.BudgetsClient.Get(ctx, scope, id.BudgetName)
+	resp, err := clients.Consumption.BudgetsClient.Get(ctx, id.Scope, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	return utils.Bool(resp.BudgetProperties != nil), nil
@@ -135,11 +135,11 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "current" {}
+data "azurerm_subscription" "test" {}
 
 resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
-  subscription_id = data.azurerm_subscription.current.subscription_id
+  subscription_id = data.azurerm_subscription.test.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -181,7 +181,7 @@ data "azurerm_subscription" "current" {}
 
 resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
-  subscription_id = data.azurerm_subscription.current.subscription_id
+  subscription_id = data.azurerm_subscription.current.id
 
   // Changed the amount from 1000 to 2000
   amount     = 3000
@@ -262,7 +262,7 @@ resource "azurerm_monitor_action_group" "test" {
 
 resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
-  subscription_id = data.azurerm_subscription.current.subscription_id
+  subscription_id = data.azurerm_subscription.current.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -361,7 +361,7 @@ resource "azurerm_monitor_action_group" "test" {
 
 resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
-  subscription_id = data.azurerm_subscription.current.subscription_id
+  subscription_id = data.azurerm_subscription.current.id
 
   // Changed the amount from 1000 to 2000
   amount     = 2000

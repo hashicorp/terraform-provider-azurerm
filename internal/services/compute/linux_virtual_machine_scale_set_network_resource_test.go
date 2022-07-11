@@ -24,34 +24,38 @@ func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworking(t *testing.
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworkingUpdated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
+// This is not a valid test case, so I am removing it. In order to make this work you need to
+// stop and deallocated all VMs in the VMSS in order to enable/disable accelerated networking
+// https://docs.microsoft.com/azure/virtual-network/create-vm-accelerated-networking-cli#enable-accelerated-networking-on-existing-vms
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.networkAcceleratedNetworking(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.networkAcceleratedNetworking(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.networkAcceleratedNetworking(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
+// func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworkingUpdated(t *testing.T) {
+// 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+// 	r := LinuxVirtualMachineScaleSetResource{}
+
+// 	data.ResourceTest(t, r, []acceptance.TestStep{
+// 		{
+// 			Config: r.networkAcceleratedNetworking(data, false),
+// 			Check: acceptance.ComposeTestCheckFunc(
+// 				check.That(data.ResourceName).ExistsInAzure(r),
+// 			),
+// 		},
+// 		data.ImportStep("admin_password"),
+// 		{
+// 			Config: r.networkAcceleratedNetworking(data, true),
+// 			Check: acceptance.ComposeTestCheckFunc(
+// 				check.That(data.ResourceName).ExistsInAzure(r),
+// 			),
+// 		},
+// 		data.ImportStep("admin_password"),
+// 		{
+// 			Config: r.networkAcceleratedNetworking(data, false),
+// 			Check: acceptance.ComposeTestCheckFunc(
+// 				check.That(data.ResourceName).ExistsInAzure(r),
+// 			),
+// 		},
+// 		data.ImportStep("admin_password"),
+// 	})
+// }
 
 func TestAccLinuxVirtualMachineScaleSet_networkApplicationGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
@@ -187,7 +191,7 @@ func TestAccLinuxVirtualMachineScaleSet_networkIPv6(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			ExpectError: regexp.MustCompile("Error: expanding `network_interface`: An IPv6 Primary IP Configuration is unsupported - instead add a IPv4 IP Configuration as the Primary and make the IPv6 IP Configuration the secondary"),
+			ExpectError: regexp.MustCompile("instead add a IPv4 IP Configuration as the Primary"),
 		},
 	})
 }
@@ -506,7 +510,7 @@ resource "azurerm_subnet" "test" {
   name                 = "subnet-%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.0.0/24"
+  address_prefixes     = ["10.0.0.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -584,7 +588,7 @@ resource "azurerm_subnet" "other" {
   name                 = "other"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -618,7 +622,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       name                                         = "internal"
       primary                                      = true
       subnet_id                                    = azurerm_subnet.other.id
-      application_gateway_backend_address_pool_ids = [azurerm_application_gateway.test.backend_address_pool.0.id]
+      application_gateway_backend_address_pool_ids = [tolist(azurerm_application_gateway.test.backend_address_pool)[0].id]
     }
   }
 }
@@ -920,9 +924,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_nat_pool" "test" {

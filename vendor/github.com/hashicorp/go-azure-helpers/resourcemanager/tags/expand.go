@@ -1,10 +1,13 @@
 package tags
 
+// Expand transforms the input Tags to a `*map[string]string`
 func Expand(input map[string]interface{}) *map[string]string {
 	output := make(map[string]string)
 
 	for k, v := range input {
-		output[k] = v.(string)
+		tagKey := k
+		tagValue := v.(string)
+		output[tagKey] = tagValue
 	}
 
 	return &output

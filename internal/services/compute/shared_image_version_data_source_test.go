@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type SharedImageVersionDataSource struct {
-}
+type SharedImageVersionDataSource struct{}
 
 func TestAccDataSourceSharedImageVersion_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_version", "test")

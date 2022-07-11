@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -27,6 +28,8 @@ func resourceAppService() *pluginsdk.Resource {
 		Read:   resourceAppServiceRead,
 		Update: resourceAppServiceUpdate,
 		Delete: resourceAppServiceDelete,
+
+		DeprecationMessage: "The `azurerm_app_service` resource has been superseded by the `azurerm_linux_web_app` and `azurerm_windows_web_app` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AppServiceID(id)
@@ -138,7 +141,7 @@ func resourceAppService() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"identity": schemaAppServiceIdentity(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"https_only": {
 				Type:     pluginsdk.TypeBool,
@@ -150,7 +153,7 @@ func resourceAppService() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: msivalidate.UserAssignedIdentityID,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			},
 
 			"logs": schemaAppServiceLogsConfig(),
@@ -223,27 +226,26 @@ func resourceAppService() *pluginsdk.Resource {
 func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	aspClient := meta.(*clients.Client).Web.AppServicePlansClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service creation.")
+	id := parse.NewAppServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing App Service %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_app_service", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_app_service", id.ID())
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
-		Name: utils.String(name),
+		Name: utils.String(id.SiteName),
 		Type: web.CheckNameResourceTypesMicrosoftWebsites,
 	}
 
@@ -260,16 +262,16 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("App Service Environment %q or Resource Group %q does not exist", aspID.ServerfarmName, aspID.ResourceGroup)
 	}
 	if aspDetails.HostingEnvironmentProfile != nil {
-		availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", name, *aspDetails.HostingEnvironmentProfile.Name))
+		availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", id.SiteName, *aspDetails.HostingEnvironmentProfile.Name))
 		availabilityRequest.IsFqdn = utils.Bool(true)
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
 	if err != nil {
-		return fmt.Errorf("checking if the name %q was available: %+v", name, err)
+		return fmt.Errorf("checking if the name %q was available: %+v", id.SiteName, err)
 	}
 
 	if !*available.NameAvailable {
-		return fmt.Errorf("The name %q used for the App Service needs to be globally unique and isn't available: %s", name, *available.Message)
+		return fmt.Errorf("The name %q used for the App Service needs to be globally unique and isn't available: %s", id.SiteName, *available.Message)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -279,7 +281,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 	if err != nil {
-		return fmt.Errorf("expanding `site_config` for App Service %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("expanding `site_config` for %s: %s", id, err)
 	}
 
 	siteEnvelope := web.Site{
@@ -298,8 +300,10 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity, err := expandAppServiceIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -312,14 +316,14 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	createFuture, err := client.CreateOrUpdate(ctx, resourceGroup, name, siteEnvelope)
+	createFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 	if err != nil {
-		return fmt.Errorf("creating App Service %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %s", id, err)
 	}
 
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("waiting for App Service %q (Resource Group %q) to be created: %s", name, resourceGroup, err)
+		return fmt.Errorf("waiting for %s to be created: %s", id, err)
 	}
 
 	if _, ok := d.GetOk("source_control"); ok {
@@ -330,9 +334,9 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		sourceControl := &web.SiteSourceControl{}
 		sourceControl.SiteSourceControlProperties = sourceControlProperties
 		// TODO - Do we need to lock the app for updates?
-		scFuture, err := client.CreateOrUpdateSourceControl(ctx, resourceGroup, name, *sourceControl)
+		scFuture, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, *sourceControl)
 		if err != nil {
-			return fmt.Errorf("failed to create App Service Source Control for %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("failed to create %s: %+v", id, err)
 		}
 
 		err = scFuture.WaitForCompletionRef(ctx, client.Client)
@@ -341,44 +345,35 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving App Service %q (Resource Group %q): %s", name, resourceGroup, err)
-	}
-
-	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("Cannot read App Service %q (resource group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	authSettingsRaw := d.Get("auth_settings").([]interface{})
 	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
-		ID:                         read.ID,
+		ID:                         utils.String(id.ID()),
 		SiteAuthSettingsProperties: &authSettings,
 	}
 
-	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
-		return fmt.Errorf("updating auth settings for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, auth); err != nil {
+		return fmt.Errorf("updating auth settings for %s: %+v", id, err)
 	}
 
 	logsConfig := expandAppServiceLogs(d.Get("logs"))
 
 	logs := web.SiteLogsConfig{
-		ID:                       read.ID,
+		ID:                       utils.String(id.ID()),
 		SiteLogsConfigProperties: &logsConfig,
 	}
 
-	if _, err := client.UpdateDiagnosticLogsConfig(ctx, resourceGroup, name, logs); err != nil {
-		return fmt.Errorf("updating diagnostic logs config for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, logs); err != nil {
+		return fmt.Errorf("updating diagnostic logs config for %s: %+v", id, err)
 	}
 
 	backupRaw := d.Get("backup").([]interface{})
 	if backup := expandAppServiceBackup(backupRaw); backup != nil {
-		if _, err = client.UpdateBackupConfiguration(ctx, resourceGroup, name, *backup); err != nil {
-			return fmt.Errorf("updating Backup Settings for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if _, err = client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backup); err != nil {
+			return fmt.Errorf("updating Backup Settings for %s: %+v", id, err)
 		}
 	}
 
@@ -597,8 +592,10 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 			return fmt.Errorf("getting configuration for App Service %q: %+v", id.SiteName, err)
 		}
 
-		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity, err := expandAppServiceIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
 		site.Identity = appServiceIdentity
 		site.SiteConfig = siteConfig
 
@@ -780,7 +777,7 @@ func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	identity, err := flattenAppServiceIdentity(resp.Identity)
 	if err != nil {
-		return err
+		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %s", err)

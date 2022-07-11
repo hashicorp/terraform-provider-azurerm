@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementNamedValueResource struct {
-}
+type ApiManagementNamedValueResource struct{}
 
 func TestAccApiManagementNamedValue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_named_value", "test")
@@ -235,15 +234,15 @@ resource "azurerm_key_vault_access_policy" "test" {
   certificate_permissions = [
     "Create",
     "Delete",
-    "Deleteissuers",
+    "DeleteIssuers",
     "Get",
-    "Getissuers",
+    "GetIssuers",
     "Import",
     "List",
-    "Listissuers",
-    "Managecontacts",
-    "Manageissuers",
-    "Setissuers",
+    "ListIssuers",
+    "ManageContacts",
+    "ManageIssuers",
+    "SetIssuers",
     "Update",
     "Purge",
   ]
@@ -390,15 +389,15 @@ resource "azurerm_key_vault_access_policy" "test" {
   certificate_permissions = [
     "Create",
     "Delete",
-    "Deleteissuers",
+    "DeleteIssuers",
     "Get",
-    "Getissuers",
+    "GetIssuers",
     "Import",
     "List",
-    "Listissuers",
-    "Managecontacts",
-    "Manageissuers",
-    "Setissuers",
+    "ListIssuers",
+    "ManageContacts",
+    "ManageIssuers",
+    "SetIssuers",
     "Update",
     "Purge",
   ]

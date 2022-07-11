@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
-
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2020-06-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppConfigurationResource struct {
-}
+type AppConfigurationResource struct{}
 
 func TestAccAppConfiguration_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")

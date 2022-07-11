@@ -2,14 +2,14 @@ package keyvault_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type KeyVaultKeyDataSource struct {
-}
+type KeyVaultKeyDataSource struct{}
 
 func TestAccDataSourceKeyVaultKey_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_key", "test")
@@ -22,6 +22,8 @@ func TestAccDataSourceKeyVaultKey_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("key_type").HasValue("RSA"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("resource_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[\w-]+/resourceGroups/[\w-]+/providers/Microsoft.KeyVault/vaults/[\w-]+/keys/[\w-]+/versions/[\w-]+$`)),
+				check.That(data.ResourceName).Key("resource_versionless_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[\w-]+/resourceGroups/[\w-]+/providers/Microsoft.KeyVault/vaults/[\w-]+/keys/[\w-]+$`)),
 			),
 		},
 	})

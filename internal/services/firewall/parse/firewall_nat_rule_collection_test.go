@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = FirewallNatRuleCollectionId{}
+var _ resourceids.Id = FirewallNatRuleCollectionId{}
 
 func TestFirewallNatRuleCollectionIDFormatter(t *testing.T) {
 	actual := NewFirewallNatRuleCollectionID("00000000-0000-0000-0000-000000000000", "mygroup1", "myfirewall", "natRuleCollection1").ID()

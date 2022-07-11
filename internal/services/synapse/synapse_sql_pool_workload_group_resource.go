@@ -89,6 +89,7 @@ func resourceSynapseSQLPoolWorkloadGroup() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceSynapseSQLPoolWorkloadGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.SQLPoolWorkloadGroupClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)

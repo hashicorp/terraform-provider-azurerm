@@ -81,8 +81,8 @@ func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, me
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mariadb_virtual_network_rule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_mariadb_virtual_network_rule", id.ID())
 		}
 	}
 
@@ -93,8 +93,12 @@ func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, me
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.VirtualNetworkRuleName, parameters); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.VirtualNetworkRuleName, parameters)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	// Wait for the provisioning state to become ready

@@ -6,14 +6,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-03-31/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -37,38 +40,79 @@ func resourceIotHubEndpointServiceBusQueue() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.IoTHubEndpointName,
+		Schema: resourceIothubEndpointServicebusQueue(),
+	}
+}
+
+func resourceIothubEndpointServicebusQueue() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: iothubValidate.IoTHubEndpointName,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		//lintignore: S013
+		"iothub_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: iothubValidate.IotHubID,
+		},
+
+		"authentication_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(devices.AuthenticationTypeKeyBased),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(devices.AuthenticationTypeKeyBased),
+				string(devices.AuthenticationTypeIdentityBased),
+			}, false),
+		},
+
+		"identity_id": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  commonids.ValidateUserAssignedIdentityID,
+			ConflictsWith: []string{"connection_string"},
+		},
+
+		"endpoint_uri": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"entity_path"},
+			ExactlyOneOf: []string{"endpoint_uri", "connection_string"},
+		},
+
+		"entity_path": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.QueueName(),
+			RequiredWith: []string{"endpoint_uri"},
+		},
+
+		"connection_string": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				sharedAccessKeyRegex := regexp.MustCompile("SharedAccessKey=[^;]+")
+				sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
+
+				maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
+				maskedNew = sharedAccessKeyRegex.ReplaceAllString(maskedNew, "SharedAccessKey=****")
+				return (new == d.Get(k).(string)) && (maskedNew == old)
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"iothub_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.IoTHubName,
-			},
-
-			"connection_string": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-					sharedAccessKeyRegex := regexp.MustCompile("SharedAccessKey=[^;]+")
-					sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
-
-					maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
-					maskedNew = sharedAccessKeyRegex.ReplaceAllString(maskedNew, "SharedAccessKey=****")
-					return (new == d.Get(k).(string)) && (maskedNew == old)
-				},
-				Sensitive: true,
-			},
+			Sensitive:     true,
+			ConflictsWith: []string{"identity_id"},
+			ExactlyOneOf:  []string{"endpoint_uri", "connection_string"},
 		},
 	}
+
+	return out
 }
 
 func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -78,25 +122,57 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData
 	defer cancel()
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
-	id := parse.NewEndpointServiceBusQueueID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))
+	endpointRG := d.Get("resource_group_name").(string)
 
-	locks.ByName(id.IotHubName, IothubResourceName)
-	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
+	iotHubId, err := parse.IotHubID(d.Get("iothub_id").(string))
+	if err != nil {
+		return err
+	}
+	iotHubName := iotHubId.Name
+	iotHubRG := iotHubId.ResourceGroup
 
-	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
+	id := parse.NewEndpointServiceBusQueueID(subscriptionId, iotHubRG, iotHubName, d.Get("name").(string))
+
+	locks.ByName(iotHubName, IothubResourceName)
+	defer locks.UnlockByName(iotHubName, IothubResourceName)
+
+	iothub, err := client.Get(ctx, iotHubRG, iotHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(iothub.Response) {
-			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
+			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iotHubName, iotHubRG)
 		}
 
-		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
+		return fmt.Errorf("loading IotHub %q (Resource Group %q): %+v", iotHubName, iotHubRG, err)
 	}
 
+	authenticationType := devices.AuthenticationType(d.Get("authentication_type").(string))
+
 	queueEndpoint := devices.RoutingServiceBusQueueEndpointProperties{
-		ConnectionString: utils.String(d.Get("connection_string").(string)),
-		Name:             utils.String(id.EndpointName),
-		SubscriptionID:   utils.String(subscriptionID),
-		ResourceGroup:    utils.String(id.ResourceGroup),
+		AuthenticationType: authenticationType,
+		Name:               utils.String(id.EndpointName),
+		SubscriptionID:     utils.String(subscriptionID),
+		ResourceGroup:      utils.String(endpointRG),
+	}
+
+	if authenticationType == devices.AuthenticationTypeKeyBased {
+		if v, ok := d.GetOk("connection_string"); ok {
+			queueEndpoint.ConnectionString = utils.String(v.(string))
+		} else {
+			return fmt.Errorf("`connection_string` must be specified when `authentication_type` is `keyBased`")
+		}
+	} else {
+		if v, ok := d.GetOk("endpoint_uri"); ok {
+			queueEndpoint.EndpointURI = utils.String(v.(string))
+			queueEndpoint.EntityPath = utils.String(d.Get("entity_path").(string))
+		} else {
+			return fmt.Errorf("`endpoint_uri` and `entity_path` must be specified when `authentication_type` is `identityBased`")
+		}
+
+		if v, ok := d.GetOk("identity_id"); ok {
+			queueEndpoint.Identity = &devices.ManagedIdentity{
+				UserAssignedIdentity: utils.String(v.(string)),
+			}
+		}
 	}
 
 	routing := iothub.Properties.Routing
@@ -136,7 +212,7 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData
 	}
 	routing.Endpoints.ServiceBusQueues = &endpoints
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
+	future, err := client.CreateOrUpdate(ctx, iotHubRG, iotHubName, iothub, "")
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -166,8 +242,9 @@ func resourceIotHubEndpointServiceBusQueueRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	d.Set("name", id.EndpointName)
-	d.Set("iothub_name", id.IotHubName)
-	d.Set("resource_group_name", id.ResourceGroup)
+
+	iotHubId := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
+	d.Set("iothub_id", iotHubId.ID())
 
 	if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
 		return nil
@@ -177,7 +254,37 @@ func resourceIotHubEndpointServiceBusQueueRead(d *pluginsdk.ResourceData, meta i
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
-					d.Set("connection_string", endpoint.ConnectionString)
+					d.Set("resource_group_name", endpoint.ResourceGroup)
+
+					authenticationType := string(devices.AuthenticationTypeKeyBased)
+					if string(endpoint.AuthenticationType) != "" {
+						authenticationType = string(endpoint.AuthenticationType)
+					}
+					d.Set("authentication_type", authenticationType)
+
+					connectionStr := ""
+					if endpoint.ConnectionString != nil {
+						connectionStr = *endpoint.ConnectionString
+					}
+					d.Set("connection_string", connectionStr)
+
+					endpointUri := ""
+					if endpoint.EndpointURI != nil {
+						endpointUri = *endpoint.EndpointURI
+					}
+					d.Set("endpoint_uri", endpointUri)
+
+					entityPath := ""
+					if endpoint.EntityPath != nil {
+						entityPath = *endpoint.EntityPath
+					}
+					d.Set("entity_path", entityPath)
+
+					identityId := ""
+					if endpoint.Identity != nil && endpoint.Identity.UserAssignedIdentity != nil {
+						identityId = *endpoint.Identity.UserAssignedIdentity
+					}
+					d.Set("identity_id", identityId)
 				}
 			}
 		}

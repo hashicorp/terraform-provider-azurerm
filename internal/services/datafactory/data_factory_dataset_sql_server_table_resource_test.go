@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DatasetSQLServerTableResource struct {
-}
+type DatasetSQLServerTableResource struct{}
 
 func TestAccDataFactoryDatasetSQLServerTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_sql_server_table", "test")
@@ -70,7 +69,7 @@ func (t DatasetSQLServerTableResource) Exists(ctx context.Context, clients *clie
 
 	resp, err := clients.DataFactory.DatasetClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory Dataset SQL Server Table (%s): %+v", *id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.ID != nil), nil
@@ -94,16 +93,14 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_sql_server" "test" {
-  name                = "acctestlssql%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+  name              = "acctestlssql%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
 }
 
 resource "azurerm_data_factory_dataset_sql_server_table" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_sql_server.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -127,16 +124,14 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_sql_server" "test" {
-  name                = "acctestlssql%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+  name              = "acctestlssql%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
 }
 
 resource "azurerm_data_factory_dataset_sql_server_table" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_sql_server.test.name
 
   description = "test description"
@@ -181,16 +176,14 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_sql_server" "test" {
-  name                = "acctestlssql%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+  name              = "acctestlssql%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
 }
 
 resource "azurerm_data_factory_dataset_sql_server_table" "test" {
   name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  data_factory_id     = azurerm_data_factory.test.id
   linked_service_name = azurerm_data_factory_linked_service_sql_server.test.name
 
   description = "test description 2"

@@ -8,14 +8,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2018-01-01-preview/eventhubsclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -43,15 +42,18 @@ func resourceEventHubCluster() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ValidateEventHubName(),
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,48}[a-zA-Z0-9])?$"),
+					"The event hub name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 50 characters, and it must begin and end with a letter or number.",
+				),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
@@ -63,7 +65,7 @@ func resourceEventHubCluster() *pluginsdk.Resource {
 				),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -91,7 +93,7 @@ func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	cluster := eventhubsclusters.Cluster{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		Tags:     tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku:      expandEventHubClusterSkuName(d.Get("sku_name").(string)),
 	}
 
@@ -131,7 +133,7 @@ func resourceEventHubClusterRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("sku_name", flattenEventHubClusterSkuName(model.Sku))
 		d.Set("location", location.NormalizeNilable(model.Location))
 
-		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil
@@ -167,7 +169,7 @@ func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		return nil
-	}) //lintignore:R006
+	})
 }
 
 func expandEventHubClusterSkuName(skuName string) *eventhubsclusters.ClusterSku {

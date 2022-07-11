@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -42,9 +46,9 @@ func dataSourceSharedImageVersion() *pluginsdk.Resource {
 				ValidateFunc: validate.SharedImageName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"managed_image_id": {
 				Type:     pluginsdk.TypeString,
@@ -59,6 +63,12 @@ func dataSourceSharedImageVersion() *pluginsdk.Resource {
 			"os_disk_image_size_gb": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
+			},
+
+			"sort_versions_by_semver": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"target_region": {
@@ -96,28 +106,32 @@ func dataSourceSharedImageVersion() *pluginsdk.Resource {
 
 func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	imageVersion := d.Get("name").(string)
-	imageName := d.Get("image_name").(string)
-	galleryName := d.Get("gallery_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewSharedImageVersionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("image_name").(string), d.Get("name").(string))
+	sortBySemVer := d.Get("sort_versions_by_semver").(bool)
 
-	image, err := obtainImage(client, ctx, resourceGroup, galleryName, imageName, imageVersion)
+	image, err := obtainImage(client, ctx, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName, sortBySemVer)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(*image.ID)
-	d.Set("name", image.Name)
-	d.Set("image_name", imageName)
-	d.Set("gallery_name", galleryName)
-	d.Set("resource_group_name", resourceGroup)
-
-	if location := image.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	name := ""
+	if image.Name != nil {
+		name = *image.Name
 	}
+
+	exactId := parse.NewSharedImageVersionID(subscriptionId, id.ResourceGroup, id.GalleryName, id.ImageName, name)
+	d.SetId(exactId.ID())
+	d.Set("name", name)
+	d.Set("image_name", id.ImageName)
+	d.Set("gallery_name", id.GalleryName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("sort_versions_by_semver", sortBySemVer)
+
+	d.Set("location", location.NormalizeNilable(image.Location))
 
 	if props := image.GalleryImageVersionProperties; props != nil {
 		if profile := props.PublishingProfile; profile != nil {
@@ -150,7 +164,7 @@ func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, image.Tags)
 }
 
-func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context, resourceGroup string, galleryName string, galleryImageName string, galleryImageVersionName string) (*compute.GalleryImageVersion, error) {
+func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context, resourceGroup string, galleryName string, galleryImageName string, galleryImageVersionName string, sortBySemVer bool) (*compute.GalleryImageVersion, error) {
 	notFoundError := fmt.Errorf("A Version was not found for Shared Image %q / Gallery %q / Resource Group %q", galleryImageName, galleryName, resourceGroup)
 
 	switch galleryImageVersionName {
@@ -165,7 +179,15 @@ func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context
 
 		// the last image in the list is the latest version
 		if len(images.Values()) > 0 {
-			image := images.Values()[len(images.Values())-1]
+			values := images.Values()
+			var errs []error
+			if sortBySemVer {
+				values, errs = sortSharedImageVersions(values)
+				if len(errs) > 0 {
+					return nil, fmt.Errorf("parsing version(s): %v", errs)
+				}
+			}
+			image := values[len(values)-1]
 			return &image, nil
 		}
 

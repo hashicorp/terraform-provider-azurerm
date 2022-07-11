@@ -10,16 +10,17 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -124,65 +125,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 					string(postgresql.OneOne),
 					string(postgresql.OneZero),
 					string(postgresql.OneZeroFullStopZero),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference, // TODO: make case sensitive in 3.0
-			},
-
-			"storage_profile": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				Deprecated: "all storage_profile properties have been move to the top level. This block will be removed in version 3.0 of the provider.",
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"storage_mb": {
-							Type:          pluginsdk.TypeInt,
-							Optional:      true,
-							ConflictsWith: []string{"storage_mb"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc: validation.All(
-								validation.IntBetween(5120, 4194304),
-								validation.IntDivisibleBy(1024),
-							),
-						},
-
-						"backup_retention_days": {
-							Type:          pluginsdk.TypeInt,
-							Optional:      true,
-							Default:       7,
-							ConflictsWith: []string{"backup_retention_days"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc:  validation.IntBetween(7, 35),
-						},
-
-						"auto_grow": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ConflictsWith: []string{"auto_grow_enabled"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc: validation.StringInSlice([]string{
-								string(postgresql.StorageAutogrowEnabled),
-								string(postgresql.StorageAutogrowDisabled),
-							}, false),
-						},
-
-						"geo_redundant_backup": {
-							Type:          pluginsdk.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ForceNew:      true,
-							ConflictsWith: []string{"geo_redundant_backup_enabled"},
-							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc: validation.StringInSlice([]string{
-								"Enabled",
-								"Disabled",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-					},
-				},
+				}, false),
 			},
 
 			"administrator_login": {
@@ -200,26 +143,23 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			},
 
 			"auto_grow_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				Computed:      true, // TODO: remove in 3.0 and default to true
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.auto_grow"},
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"backup_retention_days": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.backup_retention_days"},
-				ValidateFunc:  validation.IntBetween(7, 35),
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
 			"geo_redundant_backup_enabled": {
-				Type:          pluginsdk.TypeBool,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true, // TODO: remove in 2.0 and default to false
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
 			},
 
 			"create_mode": {
@@ -240,32 +180,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				ValidateFunc: validate.ServerID,
 			},
 
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(postgresql.SystemAssigned),
-							}, false),
-						},
-
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"infrastructure_encryption_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -286,10 +201,9 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			},
 
 			"storage_mb": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.storage_mb"},
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.All(
 					validation.IntBetween(5120, 16777216),
 					validation.IntDivisibleBy(1024),
@@ -299,12 +213,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			"ssl_minimal_tls_version_enforced": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default: func() interface{} {
-					if features.ThreePointOh() {
-						return string(postgresql.TLS12)
-					}
-					return string(postgresql.TLSEnforcementDisabled)
-				}(),
+				Default:  string(postgresql.TLS12),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.TLSEnforcementDisabled),
 					string(postgresql.TLS10),
@@ -314,22 +223,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			},
 
 			"ssl_enforcement_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true, // required in 3.0
-				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
-			},
-
-			"ssl_enforcement": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				Deprecated:   "this has been renamed to the boolean `ssl_enforcement_enabled` and will be removed in version 3.0 of the provider.",
-				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
-				ValidateFunc: validation.StringInSlice([]string{
-					string(postgresql.SslEnforcementEnumDisabled),
-					string(postgresql.SslEnforcementEnumEnabled),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     pluginsdk.TypeBool,
+				Required: true,
 			},
 
 			"threat_detection_policy": {
@@ -341,7 +236,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 						"enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -361,7 +257,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 									"Unsafe_Action",
 								}, false),
 							},
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -370,7 +267,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 						"email_account_admins": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -384,7 +282,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 								// todo email validation in code
 							},
 							Set: pluginsdk.HashString,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -394,7 +293,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -405,7 +305,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -415,7 +316,8 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							AtLeastOneOf: []string{"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
+							AtLeastOneOf: []string{
+								"threat_detection_policy.0.enabled", "threat_detection_policy.0.disabled_alerts", "threat_detection_policy.0.email_account_admins",
 								"threat_detection_policy.0.email_addresses", "threat_detection_policy.0.retention_days", "threat_detection_policy.0.storage_account_access_key",
 								"threat_detection_policy.0.storage_endpoint",
 							},
@@ -462,34 +364,31 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServersClient
 	securityClient := meta.(*clients.Client).Postgres.ServerSecurityAlertPoliciesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server creation.")
 
-	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	existing, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_postgresql_server", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_postgresql_server", id.ID())
 	}
 
 	mode := postgresql.CreateMode(d.Get("create_mode").(string))
-	tlsMin := postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
 	source := d.Get("creation_source_server_id").(string)
 	version := postgresql.ServerVersion(d.Get("version").(string))
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding `sku_name` for PostgreSQL Server %s (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("expanding `sku_name`: %+v", err)
 	}
 
 	infraEncrypt := postgresql.InfrastructureEncryptionEnabled
@@ -505,6 +404,11 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	ssl := postgresql.SslEnforcementEnumEnabled
 	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
 		ssl = postgresql.SslEnforcementEnumDisabled
+	}
+
+	tlsMin := postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
+	if ssl == postgresql.SslEnforcementEnumDisabled && tlsMin != postgresql.TLSEnforcementDisabled {
+		return fmt.Errorf("`ssl_minimal_tls_version_enforced` must be set to `TLSEnforcementDisabled` if `ssl_enforcement_enabled` is set to `false`")
 	}
 
 	storage := expandPostgreSQLStorageProfile(d)
@@ -544,6 +448,11 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 		time, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 
+		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
+		if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
+			return fmt.Errorf("`public_network_access_enabled` doesn't support PointInTimeRestore mode")
+		}
+
 		props = &postgresql.ServerPropertiesForRestore{
 			CreateMode:     mode,
 			SourceServerID: &source,
@@ -551,7 +460,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 				Time: time,
 			},
 			InfrastructureEncryption: infraEncrypt,
-			PublicNetworkAccess:      publicAccess,
 			MinimalTLSVersion:        tlsMin,
 			SslEnforcement:           ssl,
 			StorageProfile:           storage,
@@ -580,77 +488,72 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	expandedIdentity, err := expandServerIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 	server := postgresql.ServerForCreate{
-		Identity:   expandServerIdentity(d.Get("identity").([]interface{})),
-		Location:   &location,
+		Identity:   expandedIdentity,
+		Location:   utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: props,
 		Sku:        sku,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, server)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, server)
 	if err != nil {
-		return fmt.Errorf("creating PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for PostgreSQL Server %q (Resource Group %q) to become available", name, resourceGroup)
+	log.Printf("[DEBUG] Waiting for %s to become available", id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(postgresql.ServerStateInaccessible)},
 		Target:     []string{string(postgresql.ServerStateReady)},
-		Refresh:    postgreSqlStateRefreshFunc(ctx, client, resourceGroup, name),
+		Refresh:    postgreSqlStateRefreshFunc(ctx, client, id),
 		MinTimeout: 15 * time.Second,
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for PostgreSQL Server %q (Resource Group %q)to become available: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read PostgreSQL Server %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
 		alert := expandSecurityAlertPolicy(v)
 		if alert != nil {
-			future, err := securityClient.CreateOrUpdate(ctx, resourceGroup, name, *alert)
+			future, err := securityClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *alert)
 			if err != nil {
-				return fmt.Errorf("updataing postgres server security alert policy: %v", err)
+				return fmt.Errorf("updataing security alert policy for %s: %v", id, err)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation/update of postgrest server security alert policy (server %q, resource group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("waiting for update of security alert policy for %s: %+v", id, err)
 			}
 		}
 	}
 
 	// Issue tracking the REST API update failure: https://github.com/Azure/azure-rest-api-specs/issues/14117
 	if mode == postgresql.CreateModeReplica {
-		log.Printf("[INFO] changing `public_network_access_enabled` for AzureRM PostgreSQL Server %q (Resource Group %q)", name, resourceGroup)
+		log.Printf("[INFO] updating `public_network_access_enabled` for %s", id)
 		properties := postgresql.ServerUpdateParameters{
 			ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
 				PublicNetworkAccess: publicAccess,
 			},
 		}
 
-		future, err := client.Update(ctx, resourceGroup, name, properties)
+		future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
 		if err != nil {
-			return fmt.Errorf("updating PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("updating Public Network Access for Replica %q: %+v", id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for update of Public Network Access for Replica %q: %+v", id, err)
 		}
 	}
 
@@ -666,8 +569,6 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	// TODO: support for Delta updates
 
-	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server update.")
-
 	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing Postgres Server ID : %v", err)
@@ -680,17 +581,17 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		primaryID = d.Get("creation_source_server_id").(string)
 
 		// Wait for possible restarts triggered by scaling primary (and its replicas)
-		log.Printf("[DEBUG] Waiting for PostgreSQL Server %q (Resource Group %q) to become available", id.Name, id.ResourceGroup)
+		log.Printf("[DEBUG] Waiting for %s to become available", *id)
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:    []string{string(postgresql.ServerStateInaccessible), "Restarting"},
 			Target:     []string{string(postgresql.ServerStateReady)},
-			Refresh:    postgreSqlStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
+			Refresh:    postgreSqlStateRefreshFunc(ctx, client, *id),
 			MinTimeout: 15 * time.Second,
 			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		}
 
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for PostgreSQL Server %q (Resource Group %q)to become available: %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for %s to become available: %+v", *id, err)
 		}
 	}
 	locks.ByID(primaryID)
@@ -698,7 +599,7 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding `sku_name` for PostgreSQL Server %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("expanding `sku_name`: %v", err)
 	}
 
 	if d.HasChange("sku_name") && mode != postgresql.CreateModeReplica {
@@ -709,7 +610,7 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if indexOfSku(old) < indexOfSku(new) {
 			listReplicas, err := replicasClient.ListByServer(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				return fmt.Errorf("listing replicas for PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("listing replicas for %s: %+v", *id, err)
 			}
 
 			propertiesReplica := postgresql.ServerUpdateParameters{
@@ -722,19 +623,14 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 				}
 				future, err := client.Update(ctx, replicaId.ResourceGroup, replicaId.Name, propertiesReplica)
 				if err != nil {
-					return fmt.Errorf("upscaling PostgreSQL Server Replica %q (Resource Group %q): %+v", replicaId.Name, replicaId.ResourceGroup, err)
+					return fmt.Errorf("updating SKU for Replica %s: %+v", *replicaId, err)
 				}
 
 				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("waiting for update of PostgreSQL Server Replica %q (Resource Group %q): %+v", replicaId.Name, replicaId.ResourceGroup, err)
+					return fmt.Errorf("waiting for SKU update for Replica %s: %+v", *replicaId, err)
 				}
 			}
 		}
-	}
-
-	publicAccess := postgresql.PublicNetworkAccessEnumEnabled
-	if v := d.Get("public_network_access_enabled"); !v.(bool) {
-		publicAccess = postgresql.PublicNetworkAccessEnumDisabled
 	}
 
 	ssl := postgresql.SslEnforcementEnumEnabled
@@ -744,34 +640,70 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	tlsMin := postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
 
+	if ssl == postgresql.SslEnforcementEnumDisabled && tlsMin != postgresql.TLSEnforcementDisabled {
+		return fmt.Errorf("`ssl_minimal_tls_version_enforced` must be set to `TLSEnforcementDisabled` if `ssl_enforcement_enabled` is set to `false`")
+	}
+
+	expandedIdentity, err := expandServerIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	properties := postgresql.ServerUpdateParameters{
-		Identity: expandServerIdentity(d.Get("identity").([]interface{})),
+		Identity: expandedIdentity,
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
-			PublicNetworkAccess: publicAccess,
-			SslEnforcement:      ssl,
-			MinimalTLSVersion:   tlsMin,
-			StorageProfile:      expandPostgreSQLStorageProfile(d),
-			Version:             postgresql.ServerVersion(d.Get("version").(string)),
+			SslEnforcement:    ssl,
+			MinimalTLSVersion: tlsMin,
+			StorageProfile:    expandPostgreSQLStorageProfile(d),
+			Version:           postgresql.ServerVersion(d.Get("version").(string)),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if d.HasChange("administrator_login_password") {
-		properties.ServerUpdateParametersProperties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
+	if mode == postgresql.CreateModePointInTimeRestore {
+		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
+		if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
+			return fmt.Errorf("`public_network_access_enabled` doesn't support PointInTimeRestore mode")
+		}
+	} else {
+		publicAccess := postgresql.PublicNetworkAccessEnumEnabled
+		if v := d.Get("public_network_access_enabled"); !v.(bool) {
+			publicAccess = postgresql.PublicNetworkAccessEnumDisabled
+		}
+		properties.ServerUpdateParametersProperties.PublicNetworkAccess = publicAccess
 	}
 
-	if old, new := d.GetChange("create_mode"); postgresql.CreateMode(old.(string)) == postgresql.CreateModeReplica && postgresql.CreateMode(new.(string)) == postgresql.CreateModeDefault {
+	oldCreateMode, newCreateMode := d.GetChange("create_mode")
+	replicaUpdatedToDefault := postgresql.CreateMode(oldCreateMode.(string)) == postgresql.CreateModeReplica && postgresql.CreateMode(newCreateMode.(string)) == postgresql.CreateModeDefault
+	if replicaUpdatedToDefault {
 		properties.ServerUpdateParametersProperties.ReplicationRole = utils.String("None")
+	}
+
+	// Update Admin Password in the separate call when Replication is stopped: https://github.com/Azure/azure-rest-api-specs/issues/16898
+	if d.HasChange("administrator_login_password") && !replicaUpdatedToDefault {
+		properties.ServerUpdateParametersProperties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
 	if err != nil {
-		return fmt.Errorf("updating PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	// Update Admin Password in a separate call when Replication is stopped: https://github.com/Azure/azure-rest-api-specs/issues/16898
+	if d.HasChange("administrator_login_password") && replicaUpdatedToDefault {
+		properties.ServerUpdateParametersProperties.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
+
+		future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
+		if err != nil {
+			return fmt.Errorf("updating Admin Password of %q: %+v", id, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for Admin Password update of %q: %+v", id, err)
+		}
 	}
 
 	if v, ok := d.GetOk("threat_detection_policy"); ok {
@@ -779,11 +711,11 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if alert != nil {
 			future, err := securityClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *alert)
 			if err != nil {
-				return fmt.Errorf("updataing mssql server security alert policy: %v", err)
+				return fmt.Errorf("updating security alert policy for %s: %+v", *id, err)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation/update of postgrest server security alert policy (server %q, resource group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("waiting for update of security alert policy for %s: %+v", *id, err)
 			}
 		}
 	}
@@ -805,20 +737,17 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] PostgreSQL Server %q was not found (resource group %q)", id.Name, id.ResourceGroup)
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Azure PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	tier := postgresql.Basic
 	if sku := resp.Sku; sku != nil {
@@ -832,17 +761,12 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("ssl_enforcement", string(props.SslEnforcement))
 		d.Set("ssl_minimal_tls_version_enforced", props.MinimalTLSVersion)
 		d.Set("version", string(props.Version))
 
 		d.Set("infrastructure_encryption_enabled", props.InfrastructureEncryption == postgresql.InfrastructureEncryptionEnabled)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == postgresql.PublicNetworkAccessEnumEnabled)
 		d.Set("ssl_enforcement_enabled", props.SslEnforcement == postgresql.SslEnforcementEnumEnabled)
-
-		if err := d.Set("storage_profile", flattenPostgreSQLStorageProfile(props.StorageProfile)); err != nil {
-			return fmt.Errorf("setting `storage_profile`: %+v", err)
-		}
 
 		if storage := props.StorageProfile; storage != nil {
 			d.Set("storage_mb", storage.StorageMB)
@@ -880,16 +804,16 @@ func resourcePostgreSQLServerDelete(d *pluginsdk.ResourceData, meta interface{})
 
 	id, err := parse.ServerID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Postgres Server ID : %v", err)
+		return err
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -937,14 +861,6 @@ func expandServerSkuName(skuName string) (*postgresql.Sku, error) {
 
 func expandPostgreSQLStorageProfile(d *pluginsdk.ResourceData) *postgresql.StorageProfile {
 	storage := postgresql.StorageProfile{}
-	if v, ok := d.GetOk("storage_profile"); ok {
-		storageprofile := v.([]interface{})[0].(map[string]interface{})
-
-		storage.BackupRetentionDays = utils.Int32(int32(storageprofile["backup_retention_days"].(int)))
-		storage.StorageMB = utils.Int32(int32(storageprofile["storage_mb"].(int)))
-		storage.StorageAutogrow = postgresql.StorageAutogrow(storageprofile["auto_grow"].(string))
-		storage.GeoRedundantBackup = postgresql.GeoRedundantBackup(storageprofile["geo_redundant_backup"].(string))
-	}
 
 	// now override whatever we may have from the block with the top level properties
 	if v, ok := d.GetOk("auto_grow_enabled"); ok {
@@ -970,25 +886,6 @@ func expandPostgreSQLStorageProfile(d *pluginsdk.ResourceData) *postgresql.Stora
 	}
 
 	return &storage
-}
-
-func flattenPostgreSQLStorageProfile(resp *postgresql.StorageProfile) []interface{} {
-	values := map[string]interface{}{}
-
-	values["storage_mb"] = nil
-	if storageMB := resp.StorageMB; storageMB != nil {
-		values["storage_mb"] = *storageMB
-	}
-
-	values["backup_retention_days"] = nil
-	if backupRetentionDays := resp.BackupRetentionDays; backupRetentionDays != nil {
-		values["backup_retention_days"] = *backupRetentionDays
-	}
-
-	values["auto_grow"] = string(resp.StorageAutogrow)
-	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
-
-	return []interface{}{values}
 }
 
 func expandSecurityAlertPolicy(i interface{}) *postgresql.ServerSecurityAlertPolicy {
@@ -1075,39 +972,37 @@ func flattenSecurityAlertPolicy(props *postgresql.SecurityAlertPolicyProperties,
 	return []interface{}{block}
 }
 
-func expandServerIdentity(input []interface{}) *postgresql.ResourceIdentity {
-	if len(input) == 0 {
-		return nil
+func expandServerIdentity(input []interface{}) (*postgresql.ResourceIdentity, error) {
+	expanded, err := identity.ExpandSystemAssigned(input)
+	if err != nil {
+		return nil, err
 	}
 
-	v := input[0].(map[string]interface{})
-	return &postgresql.ResourceIdentity{
-		Type: postgresql.IdentityType(v["type"].(string)),
+	if expanded.Type == identity.TypeNone {
+		return nil, nil
 	}
+
+	return &postgresql.ResourceIdentity{
+		Type: postgresql.IdentityType(string(expanded.Type)),
+	}, nil
 }
 
 func flattenServerIdentity(input *postgresql.ResourceIdentity) []interface{} {
-	if input == nil {
-		return []interface{}{}
+	var transition *identity.SystemAssigned
+
+	if input != nil {
+		transition = &identity.SystemAssigned{
+			Type: identity.Type(string(input.Type)),
+		}
+		if input.PrincipalID != nil {
+			transition.PrincipalId = input.PrincipalID.String()
+		}
+		if input.TenantID != nil {
+			transition.TenantId = input.TenantID.String()
+		}
 	}
 
-	principalID := ""
-	if input.PrincipalID != nil {
-		principalID = input.PrincipalID.String()
-	}
-
-	tenantID := ""
-	if input.TenantID != nil {
-		tenantID = input.TenantID.String()
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"principal_id": principalID,
-			"tenant_id":    tenantID,
-		},
-	}
+	return identity.FlattenSystemAssigned(transition)
 }
 
 func flattenSecurityAlertPolicySet(input *[]string) []interface{} {
@@ -1125,11 +1020,11 @@ func flattenSecurityAlertPolicySet(input *[]string) []interface{} {
 	return utils.FlattenStringSlice(input)
 }
 
-func postgreSqlStateRefreshFunc(ctx context.Context, client *postgresql.ServersClient, resourceGroup string, name string) pluginsdk.StateRefreshFunc {
+func postgreSqlStateRefreshFunc(ctx context.Context, client *postgresql.ServersClient, id parse.ServerId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, name)
+		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if !utils.ResponseWasNotFound(res.Response) && err != nil {
-			return nil, "", fmt.Errorf("retrieving status of PostgreSQL Server %s (Resource Group %q): %+v", name, resourceGroup, err)
+			return nil, "", fmt.Errorf("retrieving status of %s: %+v", id, err)
 		}
 
 		// This is an issue with the RP, there is a 10 to 15 second lag before the

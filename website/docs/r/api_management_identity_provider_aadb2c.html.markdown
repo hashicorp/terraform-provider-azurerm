@@ -28,26 +28,24 @@ resource "azurerm_api_management" "example" {
 }
 
 resource "azuread_application" "example" {
-  name                       = "acctestAM-%[5]d"
-  oauth2_allow_implicit_flow = true
-  reply_urls                 = ["https://${azurerm_api_management.test.name}.developer.azure-api.net/signin"]
+  display_name = "acctestam-example"
 }
 
 resource "azuread_application_password" "example" {
-  application_object_id = azuread_application.test.object_id
+  application_object_id = azuread_application.example.object_id
   end_date_relative     = "36h"
-  value                 = "P@55w0rD!%[7]s"
 }
 
 resource "azurerm_api_management_identity_provider_aadb2c" "example" {
-  api_management_id = azurerm_api_management.example.id
-  client_id         = azuread_application.example.application_id
-  client_secret     = "P@55w0rD!%[7]s"
-  allowed_tenant    = "myb2ctenant.onmicrosoft.com"
-  signin_tenant     = "myb2ctenant.onmicrosoft.com"
-  authority         = "myb2ctenant.b2clogin.com"
-  signin_policy     = "B2C_1_Login"
-  signup_policy     = "B2C_1_Signup"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
+  client_id           = azuread_application.example.application_id
+  client_secret       = "P@55w0rD!"
+  allowed_tenant      = "myb2ctenant.onmicrosoft.com"
+  signin_tenant       = "myb2ctenant.onmicrosoft.com"
+  authority           = "myb2ctenant.b2clogin.com"
+  signin_policy       = "B2C_1_Login"
+  signup_policy       = "B2C_1_Signup"
 
   depends_on = [azuread_application_password.example]
 }
@@ -101,5 +99,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 API Management Azure AD B2C Identity Providers can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_identity_provider_aadb2c.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service1/identityProviders/AadB2C
+terraform import azurerm_api_management_identity_provider_aadb2c.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/service1/identityProviders/AadB2C
 ```

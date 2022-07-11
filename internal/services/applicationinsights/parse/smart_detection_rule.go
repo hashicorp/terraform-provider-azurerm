@@ -73,3 +73,59 @@ func SmartDetectionRuleID(input string) (*SmartDetectionRuleId, error) {
 
 	return &resourceId, nil
 }
+
+// SmartDetectionRuleIDInsensitively parses an SmartDetectionRule ID into an SmartDetectionRuleId struct, insensitively
+// This should only be used to parse an ID for rewriting, the SmartDetectionRuleID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func SmartDetectionRuleIDInsensitively(input string) (*SmartDetectionRuleId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := SmartDetectionRuleId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'components' segment
+	componentsKey := "components"
+	for key := range id.Path {
+		if strings.EqualFold(key, componentsKey) {
+			componentsKey = key
+			break
+		}
+	}
+	if resourceId.ComponentName, err = id.PopSegment(componentsKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'smartDetectionRule' segment
+	smartDetectionRuleKey := "smartDetectionRule"
+	for key := range id.Path {
+		if strings.EqualFold(key, smartDetectionRuleKey) {
+			smartDetectionRuleKey = key
+			break
+		}
+	}
+	if resourceId.SmartDetectionRuleName, err = id.PopSegment(smartDetectionRuleKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}

@@ -6,10 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/azuresdkhacks"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -25,6 +26,9 @@ func resourceNetworkInterfaceSecurityGroupAssociation() *pluginsdk.Resource {
 		Delete: resourceNetworkInterfaceSecurityGroupAssociationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			splitId := strings.Split(id, "|")
+			if len(splitId) != 2 {
+				return fmt.Errorf("expect ID to be the format {networkInterfaceId}|{networkSecurityGroupId} but got %q", id)
+			}
 			if _, err := parse.NetworkInterfaceID(splitId[0]); err != nil {
 				return err
 			}

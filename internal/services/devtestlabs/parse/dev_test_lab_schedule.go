@@ -73,3 +73,59 @@ func DevTestLabScheduleID(input string) (*DevTestLabScheduleId, error) {
 
 	return &resourceId, nil
 }
+
+// DevTestLabScheduleIDInsensitively parses an DevTestLabSchedule ID into an DevTestLabScheduleId struct, insensitively
+// This should only be used to parse an ID for rewriting, the DevTestLabScheduleID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func DevTestLabScheduleIDInsensitively(input string) (*DevTestLabScheduleId, error) {
+	id, err := resourceids.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := DevTestLabScheduleId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'labs' segment
+	labsKey := "labs"
+	for key := range id.Path {
+		if strings.EqualFold(key, labsKey) {
+			labsKey = key
+			break
+		}
+	}
+	if resourceId.LabName, err = id.PopSegment(labsKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'schedules' segment
+	schedulesKey := "schedules"
+	for key := range id.Path {
+		if strings.EqualFold(key, schedulesKey) {
+			schedulesKey = key
+			break
+		}
+	}
+	if resourceId.ScheduleName, err = id.PopSegment(schedulesKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}

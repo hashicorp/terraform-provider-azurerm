@@ -67,6 +67,20 @@ The following arguments are supported:
 
 ---
 
+An `example` block supports the following:
+
+* `name` - (Required) The name of this example.
+
+* `summary` - (Optional) A short description for this example.
+
+* `description` - (Optional) A long description for this example.
+
+* `value` - (Optional) The example of the representation.
+
+* `external_value` - (Optional) A URL that points to the literal example.
+
+---
+
 A `form_parameter` block supports the following:
 
 * `name` - (Required) The Name of this Form Parameter.
@@ -135,7 +149,7 @@ A `representation` block supports the following:
 
 -> **NOTE:** This is Required when `content_type` is set to `application/x-www-form-urlencoded` or `multipart/form-data`.
 
-* `sample` - (Optional) An example of this representation.
+* `example` - (Optional) One or more `example` blocks as defined above.
 
 * `schema_id` - (Optional) The ID of an API Management Schema which represents this Response.
 

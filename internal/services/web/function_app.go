@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -162,8 +161,7 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 						"v4.0",
 						"v5.0",
 						"v6.0",
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, false),
 				},
 
 				"vnet_route_all_enabled": {
@@ -293,32 +291,28 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 	contentSharePropName := "WEBSITE_CONTENTSHARE"
 	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
 
-	// TODO 3.0 - remove this logic for determining which storage account connection string to use
-	storageConnection := ""
-	if v, ok := d.GetOk("storage_connection_string"); ok {
-		storageConnection = v.(string)
-	}
+	var storageConnection string
 
-	storageAccount := ""
+	storageAccountName := ""
 	if v, ok := d.GetOk("storage_account_name"); ok {
-		storageAccount = v.(string)
+		storageAccountName = v.(string)
 	}
 
-	connectionString := ""
+	storageAccountKey := ""
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		connectionString = v.(string)
+		storageAccountKey = v.(string)
 	}
 
-	if storageConnection == "" && storageAccount == "" && connectionString == "" {
-		return nil, fmt.Errorf("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` must be specified")
+	if storageAccountName == "" && storageAccountKey == "" {
+		return nil, fmt.Errorf("Both `storage_account_name` and `storage_account_access_key` must be specified")
 	}
 
-	if (storageAccount == "" && connectionString != "") || (storageAccount != "" && connectionString == "") {
+	if (storageAccountName == "" && storageAccountKey != "") || (storageAccountName != "" && storageAccountKey == "") {
 		return nil, fmt.Errorf("both `storage_account_name` and `storage_account_access_key` must be specified")
 	}
 
-	if connectionString != "" && storageAccount != "" {
-		storageConnection = fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccount, connectionString, endpointSuffix)
+	if storageAccountKey != "" && storageAccountName != "" {
+		storageConnection = fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccountName, storageAccountKey, endpointSuffix)
 	}
 
 	functionVersion := d.Get("version").(string)
@@ -643,26 +637,17 @@ func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
 	return append(results, result)
 }
 
-func flattenFunctionAppIdentity(input *web.ManagedServiceIdentity) []interface{} {
-	if input == nil {
-		return []interface{}{}
+func appSettingsMapToNameValuePair(input map[string]*string) *[]web.NameValuePair {
+	if len(input) == 0 {
+		return nil
+	}
+	result := make([]web.NameValuePair, 0)
+	for k, v := range input {
+		result = append(result, web.NameValuePair{
+			Name:  utils.String(k),
+			Value: v,
+		})
 	}
 
-	principalID := ""
-	if input.PrincipalID != nil {
-		principalID = *input.PrincipalID
-	}
-
-	tenantID := ""
-	if input.TenantID != nil {
-		tenantID = *input.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         string(input.Type),
-			"principal_id": principalID,
-			"tenant_id":    tenantID,
-		},
-	}
+	return &result
 }

@@ -22,7 +22,6 @@ func TestEnrollmentID(t *testing.T) {
 		Error    bool
 		Expected *EnrollmentId
 	}{
-
 		{
 			// empty
 			Input: "",

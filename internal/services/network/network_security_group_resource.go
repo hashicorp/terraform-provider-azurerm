@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -80,8 +79,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 								string(network.SecurityRuleProtocolIcmp),
 								string(network.SecurityRuleProtocolAh),
 								string(network.SecurityRuleProtocolEsp),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 
 						"source_port_range": {
@@ -152,8 +150,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.SecurityRuleAccessAllow),
 								string(network.SecurityRuleAccessDeny),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 
 						"priority": {
@@ -168,8 +165,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.SecurityRuleDirectionInbound),
 								string(network.SecurityRuleDirectionOutbound),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 					},
 				},
@@ -182,22 +178,22 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 
 func resourceNetworkSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityGroupClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewNetworkSecurityGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Network Security Group %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_network_security_group", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_network_security_group", id.ID())
 		}
 	}
 
@@ -209,11 +205,11 @@ func resourceNetworkSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("Building list of Network Security Group Rules: %+v", sgErr)
 	}
 
-	locks.ByName(name, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(name, networkSecurityGroupResourceName)
+	locks.ByName(id.Name, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(id.Name, networkSecurityGroupResourceName)
 
 	sg := network.SecurityGroup{
-		Name:     &name,
+		Name:     &id.Name,
 		Location: &location,
 		SecurityGroupPropertiesFormat: &network.SecurityGroupPropertiesFormat{
 			SecurityRules: &sgRules,
@@ -221,24 +217,16 @@ func resourceNetworkSecurityGroupCreateUpdate(d *pluginsdk.ResourceData, meta in
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, sg)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, sg)
 	if err != nil {
-		return fmt.Errorf("creating/updating NSG %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of NSG %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for the completion of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name, "")
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read NSG %q (resource group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceNetworkSecurityGroupRead(d, meta)
 }

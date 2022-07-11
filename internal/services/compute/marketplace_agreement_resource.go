@@ -69,18 +69,17 @@ func resourceMarketplaceAgreement() *pluginsdk.Resource {
 func resourceMarketplaceAgreementCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	offer := d.Get("offer").(string)
-	plan := d.Get("plan").(string)
-	publisher := d.Get("publisher").(string)
+	id := parse.NewPlanID(subscriptionId, d.Get("publisher").(string), d.Get("offer").(string), d.Get("plan").(string))
 
-	log.Printf("[DEBUG] Retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q", publisher, offer, plan)
+	log.Printf("[DEBUG] retrieving %s", id)
 
-	term, err := client.Get(ctx, publisher, offer, plan)
+	term, err := client.Get(ctx, id.AgreementName, id.OfferName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(term.Response) {
-			return fmt.Errorf("retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
+			return fmt.Errorf("retrieving %s: %s", id, err)
 		}
 	}
 
@@ -92,37 +91,32 @@ func resourceMarketplaceAgreementCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if accepted {
-		agreement, err := client.GetAgreement(ctx, publisher, offer, plan)
+		agreement, err := client.GetAgreement(ctx, id.AgreementName, id.OfferName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(agreement.Response) {
-				return fmt.Errorf("retrieving agreement for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
+				return fmt.Errorf("retrieving %s: %s", id, err)
 			}
 		}
-		return tf.ImportAsExistsError("azurerm_marketplace_agreement", *agreement.ID)
+		return tf.ImportAsExistsError("azurerm_marketplace_agreement", id.ID())
 	}
 
-	terms, err := client.Get(ctx, publisher, offer, plan)
+	terms, err := client.Get(ctx, id.AgreementName, id.OfferName, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
+		return fmt.Errorf("retrieving %s: %s", id, err)
 	}
 	if terms.AgreementProperties == nil {
-		return fmt.Errorf("retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q: AgreementProperties was nil", publisher, offer, plan)
+		return fmt.Errorf("retrieving %s: AgreementProperties was nil", id)
 	}
 
 	terms.AgreementProperties.Accepted = utils.Bool(true)
 
-	log.Printf("[DEBUG] Accepting the Marketplace Terms for Publisher %q / Offer %q / Plan %q", publisher, offer, plan)
-	if _, err := client.Create(ctx, publisher, offer, plan, terms); err != nil {
-		return fmt.Errorf("accepting Terms for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
+	log.Printf("[DEBUG] Accepting the Marketplace Terms for %s", id)
+	if _, err := client.Create(ctx, id.AgreementName, id.OfferName, id.Name, terms); err != nil {
+		return fmt.Errorf("accepting Terms for %s: %s", id, err)
 	}
-	log.Printf("[DEBUG] Accepted the Marketplace Terms for Publisher %q / Offer %q / Plan %q", publisher, offer, plan)
+	log.Printf("[DEBUG] Accepted the Marketplace Terms for %s", id)
 
-	agreement, err := client.GetAgreement(ctx, publisher, offer, plan)
-	if err != nil {
-		return fmt.Errorf("retrieving agreement for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
-	}
-
-	d.SetId(*agreement.ID)
+	d.SetId(id.ID())
 
 	return resourceMarketplaceAgreementRead(d, meta)
 }

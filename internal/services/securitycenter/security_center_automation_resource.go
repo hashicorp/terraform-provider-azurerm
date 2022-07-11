@@ -6,9 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,9 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-const typeLogicApp = "logicapp"
-const typeEventHub = "eventhub"
-const typeLogAnalytics = "loganalytics"
+const (
+	typeLogicApp     = "logicapp"
+	typeEventHub     = "eventhub"
+	typeLogAnalytics = "loganalytics"
+)
 
 func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -95,7 +96,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 								typeLogicApp,
 								typeLogAnalytics,
 								typeEventHub,
-							}, true),
+							}, false),
 						},
 
 						"resource_id": {
@@ -133,8 +134,12 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(security.EventSourceAlerts),
 								string(security.EventSourceAssessments),
+								string(security.EventSourceRegulatoryComplianceAssessment),
+								string(security.EventSourceRegulatoryComplianceAssessmentSnapshot),
 								string(security.EventSourceSecureScoreControls),
+								string(security.EventSourceSecureScoreControlsSnapshot),
 								string(security.EventSourceSecureScores),
+								string(security.EventSourceSecureScoresSnapshot),
 								string(security.EventSourceSubAssessments),
 							}, false),
 						},
@@ -170,7 +175,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 														string(security.LesserThanOrEqualTo),
 														string(security.NotEquals),
 														string(security.StartsWith),
-													}, true),
+													}, false),
 												},
 												"property_type": {
 													Type:     pluginsdk.TypeString,
@@ -180,7 +185,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 														string(security.String),
 														string(security.Boolean),
 														string(security.Number),
-													}, true),
+													}, false),
 												},
 											},
 										},
@@ -546,7 +551,7 @@ func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationA
 			}
 			actionMap := map[string]string{
 				"resource_id": *actionLogicApp.LogicAppResourceID,
-				"type":        "LogicApp",
+				"type":        "logicapp",
 				"trigger_url": "",
 			}
 
@@ -566,7 +571,7 @@ func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationA
 			}
 			actionMap := map[string]string{
 				"resource_id":       *actionEventHub.EventHubResourceID,
-				"type":              "EventHub",
+				"type":              "eventhub",
 				"connection_string": "",
 			}
 
@@ -586,7 +591,7 @@ func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationA
 			}
 			actionMap := map[string]string{
 				"resource_id": *actionLogAnalytics.WorkspaceResourceID,
-				"type":        "LogAnalytics",
+				"type":        "loganalytics",
 			}
 
 			resultSlice = append(resultSlice, actionMap)

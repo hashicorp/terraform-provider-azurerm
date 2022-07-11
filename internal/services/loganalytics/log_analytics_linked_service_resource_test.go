@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsLinkedServiceResource struct {
-}
+type LogAnalyticsLinkedServiceResource struct{}
 
 func TestAccLogAnalyticsLinkedService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
@@ -65,22 +64,6 @@ func TestAccLogAnalyticsLinkedService_complete(t *testing.T) {
 	})
 }
 
-// TODO: Remove in 3.0
-func TestAccLogAnalyticsLinkedService_legacy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
-	r := LogAnalyticsLinkedServiceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.legacy(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccLogAnalyticsLinkedService_withWriteAccessResourceId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
 	r := LogAnalyticsLinkedServiceResource{}
@@ -101,7 +84,7 @@ func TestAccLogAnalyticsLinkedService_withWriteAccessResourceId(t *testing.T) {
 	})
 }
 
-func (t LogAnalyticsLinkedServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LogAnalyticsLinkedServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LogAnalyticsLinkedServiceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -147,20 +130,6 @@ resource "azurerm_log_analytics_linked_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_log_analytics_workspace.test.id
   read_access_id      = azurerm_automation_account.test.id
-}
-`, r.template(data))
-}
-
-// TODO: Remove in 3.0
-func (r LogAnalyticsLinkedServiceResource) legacy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_linked_service" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = azurerm_log_analytics_workspace.test.name
-  linked_service_name = "automation"
-  resource_id         = azurerm_automation_account.test.id
 }
 `, r.template(data))
 }

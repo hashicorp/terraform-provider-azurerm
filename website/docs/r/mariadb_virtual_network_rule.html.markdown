@@ -10,7 +10,7 @@ description: |-
 
 Manages a MariaDB Virtual Network Rule.
 
--> **NOTE:** MariaDB Virtual Network Rules [can only be used with SKU Tiers of `GeneralPurpose` or `MemoryOptimized`](https://docs.microsoft.com/en-us/azure/mariadb/concepts-data-access-security-vnet)
+-> **NOTE:** MariaDB Virtual Network Rules [can only be used with SKU Tiers of `GeneralPurpose` or `MemoryOptimized`](https://docs.microsoft.com/azure/mariadb/concepts-data-access-security-vnet)
 
 ## Example Usage
 
@@ -41,16 +41,10 @@ resource "azurerm_mariadb_server" "example" {
   resource_group_name          = azurerm_resource_group.example.name
   administrator_login          = "mariadbadminun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.7"
-  ssl_enforcement              = "Enabled"
+  version                      = "10.2"
+  ssl_enforcement_enabled      = true
 
   sku_name = "GP_Gen5_2"
-
-  storage_profile {
-    storage_mb            = 5120
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
 }
 
 resource "azurerm_mariadb_virtual_network_rule" "example" {
@@ -100,5 +94,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 MariaDB Virtual Network Rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_mariadb_virtual_network_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/MariaDB/servers/myserver/virtualNetworkRules/vnetrulename
+terraform import azurerm_mariadb_virtual_network_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.DBforMariaDB/servers/myserver/virtualNetworkRules/vnetrulename
 ```

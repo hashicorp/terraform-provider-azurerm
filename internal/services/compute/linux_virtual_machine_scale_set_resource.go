@@ -5,11 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -34,271 +39,32 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 		}, importVirtualMachineScaleSet(compute.OperatingSystemTypesLinux, "azurerm_linux_virtual_machine_scale_set")),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(time.Minute * 30),
-			Update: pluginsdk.DefaultTimeout(time.Minute * 60),
+			Create: pluginsdk.DefaultTimeout(time.Minute * 60),
 			Read:   pluginsdk.DefaultTimeout(time.Minute * 5),
-			Delete: pluginsdk.DefaultTimeout(time.Minute * 30),
+			Update: pluginsdk.DefaultTimeout(time.Minute * 60),
+			Delete: pluginsdk.DefaultTimeout(time.Minute * 60),
 		},
 
 		// TODO: exposing requireGuestProvisionSignal once it's available
 		// https://github.com/Azure/azure-rest-api-specs/pull/7246
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.VirtualMachineName,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			// Required
-			"admin_username": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"network_interface": VirtualMachineScaleSetNetworkInterfaceSchema(),
-
-			"os_disk": VirtualMachineScaleSetOSDiskSchema(),
-
-			"instances": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntAtLeast(0),
-			},
-
-			"sku": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			// Optional
-			"additional_capabilities": VirtualMachineScaleSetAdditionalCapabilitiesSchema(),
-
-			"admin_password": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				Sensitive:        true,
-				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
-			},
-
-			"admin_ssh_key": SSHKeysSchema(false),
-
-			"automatic_os_upgrade_policy": VirtualMachineScaleSetAutomatedOSUpgradePolicySchema(),
-
-			"automatic_instance_repair": VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
-
-			"boot_diagnostics": bootDiagnosticsSchema(),
-
-			"computer_name_prefix": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-
-				// Computed since we reuse the VM name if one's not specified
-				Computed: true,
-				ForceNew: true,
-
-				ValidateFunc: validate.LinuxComputerNamePrefix,
-			},
-
-			"custom_data": base64.OptionalSchema(false),
-
-			"data_disk": VirtualMachineScaleSetDataDiskSchema(),
-
-			"disable_password_authentication": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"do_not_run_extensions_on_overprovisioned_machines": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"encryption_at_host_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"eviction_policy": {
-				// only applicable when `priority` is set to `Spot`
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
-					string(compute.VirtualMachineEvictionPolicyTypesDelete),
-				}, false),
-			},
-
-			"extension": VirtualMachineScaleSetExtensionsSchema(),
-
-			"extensions_time_budget": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      "PT1H30M",
-				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
-			},
-
-			"health_probe_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
-			"identity": VirtualMachineScaleSetIdentitySchema(),
-
-			"max_bid_price": {
-				Type:         pluginsdk.TypeFloat,
-				Optional:     true,
-				Default:      -1,
-				ValidateFunc: validate.SpotMaxPrice,
-			},
-
-			"overprovision": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"plan": planSchema(),
-
-			"platform_fault_domain_count": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				ForceNew: true,
-				Computed: true,
-			},
-
-			"priority": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(compute.VirtualMachinePriorityTypesRegular),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.VirtualMachinePriorityTypesRegular),
-					string(compute.VirtualMachinePriorityTypesSpot),
-				}, false),
-			},
-
-			"provision_vm_agent": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-				ForceNew: true,
-			},
-
-			"proximity_placement_group_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ProximityPlacementGroupID,
-				// the Compute API is broken and returns the Resource Group name in UPPERCASE :shrug:, github issue: https://github.com/Azure/azure-rest-api-specs/issues/10016
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
-			"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),
-
-			"secret": linuxSecretSchema(),
-
-			"secure_boot_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-
-			"single_placement_group": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"source_image_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.Any(
-					validate.ImageID,
-					validate.SharedImageID,
-					validate.SharedImageVersionID,
-				),
-			},
-
-			"source_image_reference": sourceImageReferenceSchema(false),
-
-			"tags": tags.Schema(),
-
-			"upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(compute.UpgradeModeManual),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.UpgradeModeAutomatic),
-					string(compute.UpgradeModeManual),
-					string(compute.UpgradeModeRolling),
-				}, false),
-			},
-
-			"vtpm_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-
-			"zone_balance": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-				Default:  false,
-			},
-
-			"scale_in_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.VirtualMachineScaleSetScaleInRulesDefault),
-					string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),
-					string(compute.VirtualMachineScaleSetScaleInRulesOldestVM),
-				}, false),
-			},
-
-			"terminate_notification": VirtualMachineScaleSetTerminateNotificationSchema(),
-
-			"zones": azure.SchemaZones(),
-
-			// Computed
-			"unique_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-		},
+		Schema: resourceLinuxVirtualMachineScaleSetSchema(),
 	}
 }
 
 func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	exists, err := client.Get(ctx, resourceGroup, name, compute.ExpandTypesForGetVMScaleSetsUserData)
+	exists, err := client.Get(ctx, id.ResourceGroup, id.Name, compute.ExpandTypesForGetVMScaleSetsUserData)
 	if err != nil {
 		if !utils.ResponseWasNotFound(exists.Response) {
-			return fmt.Errorf("checking for existing Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for existing Linux %s: %+v", id, err)
 		}
 	}
 
@@ -322,8 +88,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("expanding `data_disk`: %+v", err)
 	}
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
+	identity, err := expandVirtualMachineScaleSetIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -335,7 +100,11 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	osDiskRaw := d.Get("os_disk").([]interface{})
-	osDisk := ExpandVirtualMachineScaleSetOSDisk(osDiskRaw, compute.OperatingSystemTypesLinux)
+	osDisk, err := ExpandVirtualMachineScaleSetOSDisk(osDiskRaw, compute.OperatingSystemTypesLinux)
+	if err != nil {
+		return fmt.Errorf("expanding `os_disk`: %+v", err)
+	}
+	securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
 
 	planRaw := d.Get("plan").([]interface{})
 	plan := expandPlan(planRaw)
@@ -373,9 +142,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandLinuxSecrets(secretsRaw)
 
-	zonesRaw := d.Get("zones").([]interface{})
-	zones := azure.ExpandZones(zonesRaw)
-
 	var computerNamePrefix string
 	if v, ok := d.GetOk("computer_name_prefix"); ok && len(v.(string)) > 0 {
 		computerNamePrefix = v.(string)
@@ -384,7 +150,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		if len(errs) > 0 {
 			return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
 		}
-		computerNamePrefix = name
+		computerNamePrefix = id.Name
 	}
 
 	disablePasswordAuthentication := d.Get("disable_password_authentication").(bool)
@@ -427,6 +193,17 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
+	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+		if d.Get("single_placement_group").(bool) {
+			return fmt.Errorf("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
+		}
+		virtualMachineProfile.CapacityReservation = &compute.CapacityReservationProfile{
+			CapacityReservationGroup: &compute.SubResource{
+				ID: utils.String(v.(string)),
+			},
+		}
+	}
+
 	hasHealthExtension := false
 	if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
 		virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.(*pluginsdk.Set).List())
@@ -467,31 +244,63 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+		if encryptionAtHostEnabled.(bool) {
+			if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
+				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+			}
+		}
+
 		virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
 			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
 		}
 	}
 
-	if secureBootEnabled, ok := d.GetOk("secure_boot_enabled"); ok && secureBootEnabled.(bool) {
+	secureBootEnabled := d.Get("secure_boot_enabled").(bool)
+	vtpmEnabled := d.Get("vtpm_enabled").(bool)
+	if securityEncryptionType != "" {
+		if !secureBootEnabled {
+			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
+		}
+		if !vtpmEnabled {
+			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is specified")
+		}
+
 		if virtualMachineProfile.SecurityProfile == nil {
 			virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
 		}
+		virtualMachineProfile.SecurityProfile.SecurityType = compute.SecurityTypesConfidentialVM
+
 		if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
 			virtualMachineProfile.SecurityProfile.UefiSettings = &compute.UefiSettings{}
 		}
-		virtualMachineProfile.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
-		virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled.(bool))
+		virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(true)
+		virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(true)
+	} else {
+		if secureBootEnabled {
+			if virtualMachineProfile.SecurityProfile == nil {
+				virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
+			}
+			if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
+				virtualMachineProfile.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+			}
+			virtualMachineProfile.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+			virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled)
+		}
+
+		if vtpmEnabled {
+			if virtualMachineProfile.SecurityProfile == nil {
+				virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
+			}
+			if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
+				virtualMachineProfile.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+			}
+			virtualMachineProfile.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+			virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled)
+		}
 	}
 
-	if vtpmEnabled, ok := d.GetOk("vtpm_enabled"); ok && vtpmEnabled.(bool) {
-		if virtualMachineProfile.SecurityProfile == nil {
-			virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{}
-		}
-		if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
-			virtualMachineProfile.SecurityProfile.UefiSettings = &compute.UefiSettings{}
-		}
-		virtualMachineProfile.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
-		virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled.(bool))
+	if v, ok := d.GetOk("user_data"); ok {
+		virtualMachineProfile.UserData = utils.String(v.(string))
 	}
 
 	// Azure API: "Authentication using either SSH or by user name and password must be enabled in Linux profile."
@@ -508,7 +317,13 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
-	if v, ok := d.GetOk("terminate_notification"); ok {
+	if !features.FourPointOhBeta() {
+		if v, ok := d.GetOk("terminate_notification"); ok {
+			virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
+		}
+	}
+
+	if v, ok := d.GetOk("termination_notification"); ok {
 		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
 
@@ -517,7 +332,8 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
 	props := compute.VirtualMachineScaleSet{
-		Location: utils.String(location),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         utils.String(location),
 		Sku: &compute.Sku{
 			Name:     utils.String(d.Get("sku").(string)),
 			Capacity: utils.Int64(int64(d.Get("instances").(int))),
@@ -544,7 +360,11 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 				Rules: &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
 			},
 		},
-		Zones: zones,
+	}
+
+	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		props.Zones = &zones
 	}
 
 	if v, ok := d.GetOk("platform_fault_domain_count"); ok {
@@ -558,36 +378,26 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if v, ok := d.GetOk("zone_balance"); ok && v.(bool) {
-		if len(zonesRaw) == 0 {
+		if props.Zones == nil || len(*props.Zones) == 0 {
 			return fmt.Errorf("`zone_balance` can only be set to `true` when zones are specified")
 		}
 
 		props.VirtualMachineScaleSetProperties.ZoneBalance = utils.Bool(v.(bool))
 	}
 
-	log.Printf("[DEBUG] Creating Linux Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props)
+	log.Printf("[DEBUG] Creating Linux %s", id)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, props)
 	if err != nil {
-		return fmt.Errorf("creating Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Linux %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for Linux Virtual Machine Scale Set %q (Resource Group %q) to be created..", name, resourceGroup)
+	log.Printf("[DEBUG] Waiting for Linux %s to be created..", id)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Linux %s: %+v", id, err)
 	}
-	log.Printf("[DEBUG] Virtual Machine Scale Set %q (Resource Group %q) was created", name, resourceGroup)
+	log.Printf("[DEBUG] %s was created", id)
 
-	log.Printf("[DEBUG] Retrieving Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
-	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	resp, err := client.Get(ctx, resourceGroup, name, compute.ExpandTypesForGetVMScaleSetsUserData)
-	if err != nil {
-		return fmt.Errorf("retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): ID was nil", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceLinuxVirtualMachineScaleSetRead(d, meta)
 }
@@ -815,12 +625,27 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if d.HasChange("terminate_notification") {
-		notificationRaw := d.Get("terminate_notification").([]interface{})
+	if !features.FourPointOhBeta() {
+		if d.HasChange("terminate_notification") {
+			notificationRaw := d.Get("terminate_notification").([]interface{})
+			updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
+		}
+	}
+
+	if d.HasChange("termination_notification") {
+		notificationRaw := d.Get("termination_notification").([]interface{})
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
+		if d.Get("encryption_at_host_enabled").(bool) {
+			osDiskRaw := d.Get("os_disk").([]interface{})
+			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
+			if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
+				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+			}
+		}
+
 		updateProps.VirtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
 			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
 		}
@@ -833,7 +658,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 	if d.HasChange("identity") {
 		identityRaw := d.Get("identity").([]interface{})
-		identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
+		identity, err := expandVirtualMachineScaleSetIdentity(identityRaw)
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -879,6 +704,11 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
+	if d.HasChange("user_data") {
+		updateInstances = true
+		updateProps.VirtualMachineProfile.UserData = utils.String(d.Get("user_data").(string))
+	}
+
 	update.VirtualMachineScaleSetUpdateProperties = &updateProps
 
 	metaData := virtualMachineScaleSetUpdateMetaData{
@@ -922,9 +752,9 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
+	d.Set("zones", zones.Flatten(resp.Zones))
 
 	var skuName *string
 	var instances int
@@ -937,7 +767,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 	d.Set("instances", instances)
 	d.Set("sku", skuName)
 
-	identity, err := FlattenVirtualMachineScaleSetIdentity(resp.Identity)
+	identity, err := flattenVirtualMachineScaleSetIdentity(resp.Identity)
 	if err != nil {
 		return err
 	}
@@ -986,6 +816,12 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 		if err := d.Set("boot_diagnostics", flattenBootDiagnostics(profile.DiagnosticsProfile)); err != nil {
 			return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
 		}
+
+		capacityReservationGroupId := ""
+		if profile.CapacityReservation != nil && profile.CapacityReservation.CapacityReservationGroup != nil && profile.CapacityReservation.CapacityReservationGroup.ID != nil {
+			capacityReservationGroupId = *profile.CapacityReservation.CapacityReservationGroup.ID
+		}
+		d.Set("capacity_reservation_group_id", capacityReservationGroupId)
 
 		// defaulted since BillingProfile isn't returned if it's unset
 		maxBidPrice := float64(-1.0)
@@ -1060,9 +896,17 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			d.Set("health_probe_id", healthProbeId)
 		}
 
+		if !features.FourPointOhBeta() {
+			if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
+				if err := d.Set("terminate_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
+					return fmt.Errorf("setting `terminate_notification`: %+v", err)
+				}
+			}
+		}
+
 		if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
-			if err := d.Set("terminate_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
-				return fmt.Errorf("setting `terminate_notification`: %+v", err)
+			if err := d.Set("termination_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
+				return fmt.Errorf("setting `termination_notification`: %+v", err)
 			}
 		}
 
@@ -1099,6 +943,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 		d.Set("vtpm_enabled", vtpmEnabled)
 		d.Set("secure_boot_enabled", secureBootEnabled)
+		d.Set("user_data", profile.UserData)
 	}
 
 	if policy := props.UpgradePolicy; policy != nil {
@@ -1113,10 +958,6 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 		if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
 			return fmt.Errorf("setting `rolling_upgrade_policy`: %+v", err)
 		}
-	}
-
-	if err := d.Set("zones", resp.Zones); err != nil {
-		return fmt.Errorf("setting `zones`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -1188,4 +1029,275 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 	log.Printf("[DEBUG] Deleted Linux Virtual Machine Scale Set %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	return nil
+}
+
+func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.VirtualMachineName,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"location": azure.SchemaLocation(),
+
+		// Required
+		"admin_username": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"network_interface": VirtualMachineScaleSetNetworkInterfaceSchema(),
+
+		"os_disk": VirtualMachineScaleSetOSDiskSchema(),
+
+		"instances": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntAtLeast(0),
+		},
+
+		"sku": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		// Optional
+		"additional_capabilities": VirtualMachineScaleSetAdditionalCapabilitiesSchema(),
+
+		"admin_password": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ForceNew:         true,
+			Sensitive:        true,
+			DiffSuppressFunc: adminPasswordDiffSuppressFunc,
+		},
+
+		"admin_ssh_key": SSHKeysSchema(false),
+
+		"automatic_os_upgrade_policy": VirtualMachineScaleSetAutomatedOSUpgradePolicySchema(),
+
+		"automatic_instance_repair": VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
+
+		"boot_diagnostics": bootDiagnosticsSchema(),
+
+		"capacity_reservation_group_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.CapacityReservationGroupID,
+			ConflictsWith: []string{
+				"proximity_placement_group_id",
+			},
+		},
+
+		"computer_name_prefix": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+
+			// Computed since we reuse the VM name if one's not specified
+			Computed: true,
+			ForceNew: true,
+
+			ValidateFunc: validate.LinuxComputerNamePrefix,
+		},
+
+		"custom_data": base64.OptionalSchema(false),
+
+		"data_disk": VirtualMachineScaleSetDataDiskSchema(),
+
+		"disable_password_authentication": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"do_not_run_extensions_on_overprovisioned_machines": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
+		"encryption_at_host_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"eviction_policy": {
+			// only applicable when `priority` is set to `Spot`
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
+				string(compute.VirtualMachineEvictionPolicyTypesDelete),
+			}, false),
+		},
+
+		"extension": VirtualMachineScaleSetExtensionsSchema(),
+
+		"extensions_time_budget": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "PT1H30M",
+			ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
+		},
+
+		"health_probe_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: azure.ValidateResourceID,
+		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"max_bid_price": {
+			Type:         pluginsdk.TypeFloat,
+			Optional:     true,
+			Default:      -1,
+			ValidateFunc: validate.SpotMaxPrice,
+		},
+
+		"overprovision": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"plan": planSchema(),
+
+		"platform_fault_domain_count": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			ForceNew: true,
+			Computed: true,
+		},
+
+		"priority": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(compute.VirtualMachinePriorityTypesRegular),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(compute.VirtualMachinePriorityTypesRegular),
+				string(compute.VirtualMachinePriorityTypesSpot),
+			}, false),
+		},
+
+		"provision_vm_agent": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+			ForceNew: true,
+		},
+
+		"proximity_placement_group_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ProximityPlacementGroupID,
+			// the Compute API is broken and returns the Resource Group name in UPPERCASE :shrug:, github issue: https://github.com/Azure/azure-rest-api-specs/issues/10016
+			DiffSuppressFunc: suppress.CaseDifference,
+			ConflictsWith: []string{
+				"capacity_reservation_group_id",
+			},
+		},
+
+		"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),
+
+		"secret": linuxSecretSchema(),
+
+		"secure_boot_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"single_placement_group": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"source_image_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.Any(
+				validate.ImageID,
+				validate.SharedImageID,
+				validate.SharedImageVersionID,
+			),
+		},
+
+		"source_image_reference": sourceImageReferenceSchema(false),
+
+		"tags": tags.Schema(),
+
+		"upgrade_mode": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(compute.UpgradeModeManual),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(compute.UpgradeModeAutomatic),
+				string(compute.UpgradeModeManual),
+				string(compute.UpgradeModeRolling),
+			}, false),
+		},
+
+		"user_data": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsBase64,
+		},
+
+		"vtpm_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"zone_balance": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+			Default:  false,
+		},
+
+		"scale_in_policy": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(compute.VirtualMachineScaleSetScaleInRulesDefault),
+				string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),
+				string(compute.VirtualMachineScaleSetScaleInRulesOldestVM),
+			}, false),
+		},
+
+		"termination_notification": VirtualMachineScaleSetTerminationNotificationSchema(),
+
+		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+
+		// Computed
+		"unique_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
+
+	if !features.FourPointOhBeta() {
+		out["terminate_notification"] = VirtualMachineScaleSetTerminateNotificationSchema()
+
+	}
+
+	return out
 }

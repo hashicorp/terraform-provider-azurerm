@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-08-01/trafficmanager"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/geographichierarchies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -42,12 +42,14 @@ func dataSourceArmTrafficManagerGeographicalLocationRead(d *pluginsdk.ResourceDa
 
 	name := d.Get("name").(string)
 
-	var result *trafficmanager.Region
-	if props := results.GeographicHierarchyProperties; props != nil {
-		if topLevelRegion := props.GeographicHierarchy; topLevelRegion != nil {
-			result = topLevelRegion
-			if !geographicalRegionIsMatch(topLevelRegion, name) {
-				result = filterGeographicalRegions(topLevelRegion.Regions, name)
+	var result *geographichierarchies.Region
+	if model := results.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if topLevelRegion := props.GeographicHierarchy; topLevelRegion != nil {
+				result = topLevelRegion
+				if !geographicalRegionIsMatch(topLevelRegion, name) {
+					result = filterGeographicalRegions(topLevelRegion.Regions, name)
+				}
 			}
 		}
 	}
@@ -62,7 +64,7 @@ func dataSourceArmTrafficManagerGeographicalLocationRead(d *pluginsdk.ResourceDa
 	return nil
 }
 
-func filterGeographicalRegions(input *[]trafficmanager.Region, name string) *trafficmanager.Region {
+func filterGeographicalRegions(input *[]geographichierarchies.Region, name string) *geographichierarchies.Region {
 	if regions := input; regions != nil {
 		for _, region := range *regions {
 			if geographicalRegionIsMatch(&region, name) {
@@ -79,6 +81,6 @@ func filterGeographicalRegions(input *[]trafficmanager.Region, name string) *tra
 	return nil
 }
 
-func geographicalRegionIsMatch(input *trafficmanager.Region, name string) bool {
+func geographicalRegionIsMatch(input *geographichierarchies.Region, name string) bool {
 	return strings.EqualFold(*input.Name, name)
 }

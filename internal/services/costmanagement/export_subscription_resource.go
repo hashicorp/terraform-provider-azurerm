@@ -1,9 +1,9 @@
 package costmanagement
 
 import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/validate"
-	subscriptionValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -26,7 +26,7 @@ func (r SubscriptionCostManagementExportResource) Arguments() map[string]*plugin
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: subscriptionValidate.SubscriptionID,
+			ValidateFunc: commonids.ValidateSubscriptionID,
 		},
 	}
 	return r.base.arguments(schema)

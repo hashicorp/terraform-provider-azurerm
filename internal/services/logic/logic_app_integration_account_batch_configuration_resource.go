@@ -91,9 +91,8 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"frequency": {
-										Type:             pluginsdk.TypeString,
-										Required:         true,
-										DiffSuppressFunc: suppress.CaseDifference,
+										Type:     pluginsdk.TypeString,
+										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(logic.RecurrenceFrequencySecond),
 											string(logic.RecurrenceFrequencyMinute),
@@ -102,7 +101,7 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 											string(logic.RecurrenceFrequencyWeek),
 											string(logic.RecurrenceFrequencyMonth),
 											string(logic.RecurrenceFrequencyYear),
-										}, true),
+										}, false),
 									},
 
 									"interval": {
@@ -161,9 +160,8 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
 															"weekday": {
-																Type:             pluginsdk.TypeString,
-																Required:         true,
-																DiffSuppressFunc: suppress.CaseDifference,
+																Type:     pluginsdk.TypeString,
+																Required: true,
 																ValidateFunc: validation.StringInSlice([]string{
 																	string(logic.DayOfWeekMonday),
 																	string(logic.DayOfWeekTuesday),
@@ -172,7 +170,7 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 																	string(logic.DayOfWeekFriday),
 																	string(logic.DayOfWeekSaturday),
 																	string(logic.DayOfWeekSunday),
-																}, true),
+																}, false),
 															},
 
 															"week": {
@@ -189,9 +187,8 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 												},
 
 												"week_days": {
-													Type:             pluginsdk.TypeSet,
-													Optional:         true,
-													DiffSuppressFunc: suppress.CaseDifference,
+													Type:     pluginsdk.TypeSet,
+													Optional: true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 														ValidateFunc: validation.StringInSlice([]string{
@@ -202,7 +199,7 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 															string(logic.DaysOfWeekFriday),
 															string(logic.DaysOfWeekSaturday),
 															string(logic.DaysOfWeekSunday),
-														}, true),
+														}, false),
 													},
 													ConflictsWith: []string{"release_criteria.0.recurrence.0.schedule.0.month_days", "release_criteria.0.recurrence.0.schedule.0.monthly"},
 												},

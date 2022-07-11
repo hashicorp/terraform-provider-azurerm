@@ -49,7 +49,7 @@ resource "azurerm_site_recovery_protection_container" "protection-container" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the network mapping.
+* `name` - (Required) The name of the protection container.
 
 * `resource_group_name` - (Required) Name of the resource group where the vault that should be updated is located.
 

@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type RouteTableDataSource struct {
-}
+type RouteTableDataSource struct{}
 
 func TestAccDataSourceRouteTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_route_table", "test")
@@ -51,12 +50,6 @@ func TestAccDataSourceRouteTable_multipleRoutes(t *testing.T) {
 			Config: r.multipleRoutes(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("route.#").HasValue("2"),
-				check.That(data.ResourceName).Key("route.0.name").HasValue("route1"),
-				check.That(data.ResourceName).Key("route.0.address_prefix").HasValue("10.1.0.0/16"),
-				check.That(data.ResourceName).Key("route.0.next_hop_type").HasValue("VnetLocal"),
-				check.That(data.ResourceName).Key("route.1.name").HasValue("route2"),
-				check.That(data.ResourceName).Key("route.1.address_prefix").HasValue("10.2.0.0/16"),
-				check.That(data.ResourceName).Key("route.1.next_hop_type").HasValue("VnetLocal"),
 			),
 		},
 	})

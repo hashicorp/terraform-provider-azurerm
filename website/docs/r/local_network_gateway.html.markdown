@@ -45,12 +45,12 @@ The following arguments are supported:
 
 * `bgp_settings` - (Optional) A `bgp_settings` block as defined below containing the
     Local Network Gateway's BGP speaker settings.
-    
+
 * `gateway_address` - (Optional) The gateway IP address to connect with.
-    
+
 * `gateway_fqdn` - (Optional) The gateway FQDN to connect with.
 
--> **NOTE**: Either `gateway_address` or `gateway_fqdn` should be specified.
+-> **NOTE:** Either `gateway_address` or `gateway_fqdn` should be specified.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PrivateEndpointResource struct {
-}
+type PrivateEndpointResource struct{}
 
 func TestAccPrivateEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")

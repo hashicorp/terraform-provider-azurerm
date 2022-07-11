@@ -8,14 +8,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2020-12-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2021-06-01/redis"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -55,16 +58,11 @@ func resourceRedisCache() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"location": {
-				Type:      pluginsdk.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				StateFunc: azure.NormalizeLocation,
-			},
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"zones": azure.SchemaMultipleZones(),
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 			"capacity": {
 				Type:     pluginsdk.TypeInt,
@@ -85,19 +83,13 @@ func resourceRedisCache() *pluginsdk.Resource {
 					string(redis.SkuNameBasic),
 					string(redis.SkuNameStandard),
 					string(redis.SkuNamePremium),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, false),
 			},
 
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default: func() interface{} {
-					if features.ThreePointOh() {
-						return string(redis.TLSVersionOneFullStopTwo)
-					}
-					return string(redis.TLSVersionOneFullStopZero)
-				}(),
+				Default:  string(redis.TLSVersionOneFullStopTwo),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(redis.TLSVersionOneFullStopZero),
 					string(redis.TLSVersionOneFullStopOne),
@@ -110,6 +102,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_non_ssl_port": {
 				Type:     pluginsdk.TypeBool,
 				Default:  false,
@@ -210,6 +203,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 							Optional:  true,
 							Sensitive: true,
 						},
+						// TODO 4.0: change this from enable_* to *_enabled
 						"enable_authentication": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -292,7 +286,8 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			// todo 3.0 rename this to replicas_per_main? or something else to confirm to inclusive language guidelines
+			// todo: investigate the difference between `replicas_per_master` and `replicas_per_primary` - are these
+			// the same field that's been renamed ala Redis? https://github.com/Azure/azure-rest-api-specs/pull/13005
 			"replicas_per_master": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
@@ -300,6 +295,8 @@ func resourceRedisCache() *pluginsdk.Resource {
 				// Can't make more than 3 replicas in portal, assuming it's a limitation
 				ValidateFunc: validation.IntBetween(1, 3),
 			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"replicas_per_primary": {
 				Type:         pluginsdk.TypeInt,
@@ -376,6 +373,11 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		publicNetworkAccess = redis.PublicNetworkAccessDisabled
 	}
 
+	redisIdentity, err := expandRedisIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf(`expanding "identity": %v`, err)
+	}
+
 	parameters := redis.CreateParameters{
 		Location: utils.String(location),
 		CreateProperties: &redis.CreateProperties{
@@ -389,7 +391,8 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			RedisConfiguration:  redisConfiguration,
 			PublicNetworkAccess: publicNetworkAccess,
 		},
-		Tags: expandedTags,
+		Identity: redisIdentity,
+		Tags:     expandedTags,
 	}
 
 	if v, ok := d.GetOk("shard_count"); ok {
@@ -433,7 +436,10 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
-		parameters.Zones = azure.ExpandZones(v.([]interface{}))
+		zones := zones.Expand(v.(*schema.Set).List())
+		if len(zones) > 0 {
+			parameters.Zones = &zones
+		}
 	}
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.RediName, parameters)
@@ -556,7 +562,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	log.Printf("[DEBUG] Waiting for Redis Cache %q (Resource Group %q) to become available", id.RediName, id.ResourceGroup)
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Scaling", "Updating", "Creating"},
+		Pending:    []string{"Scaling", "Updating", "Creating", "UpgradingRedisServerVersion"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, id.ResourceGroup, id.RediName),
 		MinTimeout: 15 * time.Second,
@@ -565,6 +571,26 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Redis Cache %q (Resource Group %q) to become available: %+v", id.RediName, id.ResourceGroup, err)
+	}
+
+	// identity cannot be updated with sku,publicNetworkAccess,redisVersion etc.
+	if d.HasChange("identity") {
+		redisIdentity, err := expandRedisIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf(`expanding "identity": %v`, err)
+		}
+
+		identityParameter := redis.UpdateParameters{
+			Identity: redisIdentity,
+		}
+		if _, err := client.Update(ctx, id.ResourceGroup, id.RediName, identityParameter); err != nil {
+			return fmt.Errorf("updating Redis Cache identity %q identity (Resource Group %q): %+v", id.RediName, id.ResourceGroup, err)
+		}
+
+		log.Printf("[DEBUG] Waiting for Redis Cache %q (Resource Group %q) to become available", id.RediName, id.ResourceGroup)
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for Redis Cache %q (Resource Group %q) to become available: %+v", id.RediName, id.ResourceGroup, err)
+		}
 	}
 
 	patchSchedule := expandRedisPatchSchedule(d)
@@ -617,13 +643,18 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
+	redisIdentity, err := flattenRedisIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", redisIdentity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	d.Set("name", id.RediName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-
-	if zones := resp.Zones; zones != nil {
-		d.Set("zones", zones)
-	}
+	d.Set("zones", zones.Flatten(resp.Zones))
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("capacity", sku.Capacity)
@@ -737,8 +768,10 @@ func redisStateRefreshFunc(ctx context.Context, client *redis.Client, resourceGr
 	}
 }
 
-func expandRedisConfiguration(d *pluginsdk.ResourceData) (map[string]*string, error) {
-	output := make(map[string]*string)
+func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.CommonPropertiesRedisConfiguration, error) {
+	output := &redis.CommonPropertiesRedisConfiguration{
+		AdditionalProperties: map[string]interface{}{},
+	}
 
 	input := d.Get("redis_configuration").([]interface{})
 	if len(input) == 0 || input[0] == nil {
@@ -747,25 +780,25 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (map[string]*string, er
 	raw := input[0].(map[string]interface{})
 
 	if v := raw["maxclients"].(int); v > 0 {
-		output["maxclients"] = utils.String(strconv.Itoa(v))
+		output.Maxclients = utils.String(strconv.Itoa(v))
 	}
 
 	if d.Get("sku_name").(string) != string(redis.SkuNameBasic) {
 		if v := raw["maxmemory_delta"].(int); v > 0 {
-			output["maxmemory-delta"] = utils.String(strconv.Itoa(v))
+			output.MaxmemoryDelta = utils.String(strconv.Itoa(v))
 		}
 
 		if v := raw["maxmemory_reserved"].(int); v > 0 {
-			output["maxmemory-reserved"] = utils.String(strconv.Itoa(v))
+			output.MaxmemoryReserved = utils.String(strconv.Itoa(v))
 		}
 
 		if v := raw["maxfragmentationmemory_reserved"].(int); v > 0 {
-			output["maxfragmentationmemory-reserved"] = utils.String(strconv.Itoa(v))
+			output.MaxfragmentationmemoryReserved = utils.String(strconv.Itoa(v))
 		}
 	}
 
 	if v := raw["maxmemory_policy"].(string); v != "" {
-		output["maxmemory-policy"] = utils.String(v)
+		output.MaxmemoryPolicy = utils.String(v)
 	}
 
 	// RDB Backup
@@ -773,36 +806,36 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (map[string]*string, er
 		if connStr := raw["rdb_storage_connection_string"].(string); connStr == "" {
 			return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
 		}
-		output["rdb-backup-enabled"] = utils.String(strconv.FormatBool(v))
+		output.RdbBackupEnabled = utils.String(strconv.FormatBool(v))
 	}
 
 	if v := raw["rdb_backup_frequency"].(int); v > 0 {
-		output["rdb-backup-frequency"] = utils.String(strconv.Itoa(v))
+		output.RdbBackupFrequency = utils.String(strconv.Itoa(v))
 	}
 
 	if v := raw["rdb_backup_max_snapshot_count"].(int); v > 0 {
-		output["rdb-backup-max-snapshot-count"] = utils.String(strconv.Itoa(v))
+		output.RdbBackupMaxSnapshotCount = utils.String(strconv.Itoa(v))
 	}
 
 	if v := raw["rdb_storage_connection_string"].(string); v != "" {
-		output["rdb-storage-connection-string"] = utils.String(v)
+		output.RdbStorageConnectionString = utils.String(v)
 	}
 
 	if v := raw["notify_keyspace_events"].(string); v != "" {
-		output["notify-keyspace-events"] = utils.String(v)
+		output.AdditionalProperties["notify-keyspace-events"] = utils.String(v)
 	}
 
 	// AOF Backup
 	if v := raw["aof_backup_enabled"].(bool); v {
-		output["aof-backup-enabled"] = utils.String(strconv.FormatBool(v))
+		output.AdditionalProperties["aof-backup-enabled"] = utils.String(strconv.FormatBool(v))
 	}
 
 	if v := raw["aof_storage_connection_string_0"].(string); v != "" {
-		output["aof-storage-connection-string-0"] = utils.String(v)
+		output.AofStorageConnectionString0 = utils.String(v)
 	}
 
 	if v := raw["aof_storage_connection_string_1"].(string); v != "" {
-		output["aof-storage-connection-string-1"] = utils.String(v)
+		output.AofStorageConnectionString1 = utils.String(v)
 	}
 
 	authEnabled := raw["enable_authentication"].(bool)
@@ -813,7 +846,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (map[string]*string, er
 		}
 	} else {
 		value := isAuthNotRequiredAsString(authEnabled)
-		output["authnotrequired"] = utils.String(value)
+		output.AdditionalProperties["authnotrequired"] = utils.String(value)
 	}
 	return output, nil
 }
@@ -868,89 +901,90 @@ func flattenTenantSettings(input map[string]*string) map[string]*string {
 	}
 	return output
 }
-func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) {
-	outputs := make(map[string]interface{}, len(input))
 
-	if v := input["maxclients"]; v != nil {
-		i, err := strconv.Atoi(*v)
+func flattenRedisConfiguration(input *redis.CommonPropertiesRedisConfiguration) ([]interface{}, error) {
+	outputs := make(map[string]interface{})
+
+	if input.Maxclients != nil {
+		i, err := strconv.Atoi(*input.Maxclients)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `maxclients` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `maxclients` %q: %+v", *input.Maxclients, err)
 		}
 		outputs["maxclients"] = i
 	}
-	if v := input["maxmemory-delta"]; v != nil {
-		i, err := strconv.Atoi(*v)
+	if input.MaxmemoryDelta != nil {
+		i, err := strconv.Atoi(*input.MaxmemoryDelta)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `maxmemory-delta` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `maxmemory-delta` %q: %+v", *input.MaxmemoryDelta, err)
 		}
 		outputs["maxmemory_delta"] = i
 	}
-	if v := input["maxmemory-reserved"]; v != nil {
-		i, err := strconv.Atoi(*v)
+	if input.MaxmemoryReserved != nil {
+		i, err := strconv.Atoi(*input.MaxmemoryReserved)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `maxmemory-reserved` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `maxmemory-reserved` %q: %+v", *input.MaxmemoryReserved, err)
 		}
 		outputs["maxmemory_reserved"] = i
 	}
-	if v := input["maxmemory-policy"]; v != nil {
-		outputs["maxmemory_policy"] = *v
+	if input.MaxmemoryPolicy != nil {
+		outputs["maxmemory_policy"] = *input.MaxmemoryPolicy
 	}
 
-	if v := input["maxfragmentationmemory-reserved"]; v != nil {
-		i, err := strconv.Atoi(*v)
+	if input.MaxfragmentationmemoryReserved != nil {
+		i, err := strconv.Atoi(*input.MaxfragmentationmemoryReserved)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `maxfragmentationmemory-reserved` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `maxfragmentationmemory-reserved` %q: %+v", *input.MaxfragmentationmemoryReserved, err)
 		}
 		outputs["maxfragmentationmemory_reserved"] = i
 	}
 
 	// delta, reserved, enabled, frequency,, count,
-	if v := input["rdb-backup-enabled"]; v != nil {
-		b, err := strconv.ParseBool(*v)
+	if input.RdbBackupEnabled != nil {
+		b, err := strconv.ParseBool(*input.RdbBackupEnabled)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `rdb-backup-enabled` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `rdb-backup-enabled` %q: %+v", *input.RdbBackupEnabled, err)
 		}
 		outputs["rdb_backup_enabled"] = b
 	}
-	if v := input["rdb-backup-frequency"]; v != nil {
-		i, err := strconv.Atoi(*v)
+	if input.RdbBackupFrequency != nil {
+		i, err := strconv.Atoi(*input.RdbBackupFrequency)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `rdb-backup-frequency` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `rdb-backup-frequency` %q: %+v", *input.RdbBackupFrequency, err)
 		}
 		outputs["rdb_backup_frequency"] = i
 	}
-	if v := input["rdb-backup-max-snapshot-count"]; v != nil {
-		i, err := strconv.Atoi(*v)
+	if input.RdbBackupMaxSnapshotCount != nil {
+		i, err := strconv.Atoi(*input.RdbBackupMaxSnapshotCount)
 		if err != nil {
-			return nil, fmt.Errorf("parsing `rdb-backup-max-snapshot-count` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `rdb-backup-max-snapshot-count` %q: %+v", *input.RdbBackupMaxSnapshotCount, err)
 		}
 		outputs["rdb_backup_max_snapshot_count"] = i
 	}
-	if v := input["rdb-storage-connection-string"]; v != nil {
-		outputs["rdb_storage_connection_string"] = *v
+	if input.RdbStorageConnectionString != nil {
+		outputs["rdb_storage_connection_string"] = *input.RdbStorageConnectionString
 	}
-	if v := input["notify-keyspace-events"]; v != nil {
-		outputs["notify_keyspace_events"] = *v
+	if v := input.AdditionalProperties["notify-keyspace-events"]; v != nil {
+		outputs["notify_keyspace_events"] = v
 	}
 
-	if v := input["aof-backup-enabled"]; v != nil {
-		b, err := strconv.ParseBool(*v)
+	if v := input.AdditionalProperties["aof-backup-enabled"]; v != nil {
+		b, err := strconv.ParseBool(v.(string))
 		if err != nil {
-			return nil, fmt.Errorf("parsing `aof-backup-enabled` %q: %+v", *v, err)
+			return nil, fmt.Errorf("parsing `aof-backup-enabled` %q: %+v", v, err)
 		}
 		outputs["aof_backup_enabled"] = b
 	}
-	if v := input["aof-storage-connection-string-0"]; v != nil {
-		outputs["aof_storage_connection_string_0"] = *v
+	if input.AofStorageConnectionString0 != nil {
+		outputs["aof_storage_connection_string_0"] = *input.AofStorageConnectionString0
 	}
-	if v := input["aof-storage-connection-string-1"]; v != nil {
-		outputs["aof_storage_connection_string_1"] = *v
+	if input.AofStorageConnectionString1 != nil {
+		outputs["aof_storage_connection_string_1"] = *input.AofStorageConnectionString1
 	}
 
 	// `authnotrequired` is not set for instances launched outside a VNET
 	outputs["enable_authentication"] = true
-	if v := input["authnotrequired"]; v != nil {
-		outputs["enable_authentication"] = isAuthRequiredAsBool(*v)
+	if v := input.AdditionalProperties["authnotrequired"]; v != nil {
+		outputs["enable_authentication"] = isAuthRequiredAsBool(v.(string))
 	}
 
 	return []interface{}{outputs}, nil
@@ -991,4 +1025,48 @@ func flattenRedisPatchSchedules(schedule redis.PatchSchedule) []interface{} {
 
 func getRedisConnectionString(redisHostName string, sslPort int32, accessKey string, enableSslPort bool) string {
 	return fmt.Sprintf("%s:%d,password=%s,ssl=%t,abortConnect=False", redisHostName, sslPort, accessKey, enableSslPort)
+}
+
+func expandRedisIdentity(input []interface{}) (*redis.ManagedServiceIdentity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	out := redis.ManagedServiceIdentity{
+		Type: redis.ManagedServiceIdentityType(expanded.Type),
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*redis.UserAssignedIdentity)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &redis.UserAssignedIdentity{
+				// intentionally empty
+			}
+		}
+	}
+	return &out, nil
+}
+
+func flattenRedisIdentity(input *redis.ManagedServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(input.Type),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = input.PrincipalID.String()
+		}
+		if input.TenantID != nil {
+			transform.TenantId = input.TenantID.String()
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    utils.String(v.ClientID.String()),
+				PrincipalId: utils.String(v.PrincipalID.String()),
+			}
+		}
+	}
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }

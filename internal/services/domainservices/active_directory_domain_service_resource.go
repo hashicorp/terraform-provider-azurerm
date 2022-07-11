@@ -9,16 +9,15 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/domainservices/mgmt/2020-01-01/aad"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -92,7 +91,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 						},
 
 						// location is computed here
-						"location": azure.SchemaLocationForDataSource(),
+						"location": commonschema.LocationComputed(),
 
 						"service_status": {
 							Type:     pluginsdk.TypeString,
@@ -245,6 +244,16 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 				},
 			},
 
+			"domain_configuration_type": {
+				Type:     pluginsdk.TypeString,
+				ForceNew: true,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"FullySynced",
+					"ResourceTrusting",
+				}, false),
+			},
+
 			"tags": tags.Schema(),
 
 			"deployment_id": {
@@ -299,7 +308,7 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			// Parse the replica sets and assume the first one returned to be the initial replica set
 			// This is a best effort and the user can choose any replica set if they structure their config accordingly
 			props := existing.DomainServiceProperties
@@ -343,6 +352,10 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 		},
 		Location: utils.String(loc),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v := d.Get("domain_configuration_type").(string); v != "" {
+		domainService.DomainServiceProperties.DomainConfigurationType = &v
 	}
 
 	if d.IsNewResource() {
@@ -441,8 +454,7 @@ func resourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta in
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("resource_id", resp.ID)
 
-	loc := location.NormalizeNilable(resp.Location)
-	d.Set("location", loc)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.DomainServiceProperties; props != nil {
 		d.Set("deployment_id", props.DeploymentID)
@@ -450,6 +462,7 @@ func resourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta in
 		d.Set("sync_owner", props.SyncOwner)
 		d.Set("tenant_id", props.TenantID)
 		d.Set("version", props.Version)
+		d.Set("domain_configuration_type", props.DomainConfigurationType)
 
 		d.Set("filtered_sync_enabled", false)
 		if props.FilteredSync == aad.FilteredSyncEnabled {

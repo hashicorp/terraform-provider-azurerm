@@ -87,7 +87,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicy() *pluginsdk.Resource {
 					string(synapse.SecurityAlertPolicyStateDisabled),
 					string(synapse.SecurityAlertPolicyStateEnabled),
 					string(synapse.SecurityAlertPolicyStateNew),
-				}, true),
+				}, false),
 			},
 
 			"storage_account_access_key": {

@@ -21,7 +21,8 @@ func schemaAppServiceSiteSourceControl() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Computed: true,
-					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+					AtLeastOneOf: []string{
+						"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
 						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
 					},
 				},
@@ -30,7 +31,8 @@ func schemaAppServiceSiteSourceControl() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Computed: true,
-					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+					AtLeastOneOf: []string{
+						"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
 						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
 					},
 				},
@@ -39,7 +41,8 @@ func schemaAppServiceSiteSourceControl() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Computed: true,
-					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+					AtLeastOneOf: []string{
+						"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
 						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
 					},
 				},
@@ -48,7 +51,8 @@ func schemaAppServiceSiteSourceControl() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Computed: true,
-					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+					AtLeastOneOf: []string{
+						"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
 						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
 					},
 				},
@@ -57,7 +61,8 @@ func schemaAppServiceSiteSourceControl() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Computed: true,
-					AtLeastOneOf: []string{"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
+					AtLeastOneOf: []string{
+						"source_control.0.repo_url", "source_control.0.branch", "source_control.0.manual_integration",
 						"source_control.0.use_mercurial", "source_control.0.rollback_enabled",
 					},
 				},
@@ -129,10 +134,9 @@ func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []in
 		result["repo_url"] = *input.RepoURL
 	}
 
+	result["branch"] = "main"
 	if input.Branch != nil && *input.Branch != "" {
 		result["branch"] = *input.Branch
-	} else {
-		result["branch"] = "master" // todo 3.0 change this to default to main
 	}
 
 	result["use_mercurial"] = *input.IsMercurial

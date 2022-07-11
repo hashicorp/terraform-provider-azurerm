@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -80,8 +79,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 								"BC_Gen4",
 								"BC_Gen5",
 								"BC_DC",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 
 						"capacity": {
@@ -99,8 +97,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 								"Premium",
 								"GeneralPurpose",
 								"BusinessCritical",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 
 						"family": {
@@ -111,8 +108,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 								"Gen5",
 								"Fsv2",
 								"DC",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 					},
 				},
@@ -185,25 +181,24 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 
 func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ElasticPoolsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for MSSQL ElasticPool creation.")
 
-	elasticPoolName := d.Get("name").(string)
-	serverName := d.Get("server_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	id := parse.NewElasticPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, serverName, elasticPoolName)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Elastic Pool %q (MSSQL Server %q / Resource Group %q): %s", elasticPoolName, serverName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mssql_elasticpool", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_mssql_elasticpool", id.ID())
 		}
 	}
 
@@ -212,7 +207,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	t := d.Get("tags").(map[string]interface{})
 
 	elasticPool := sql.ElasticPool{
-		Name:     &elasticPoolName,
+		Name:     &id.Name,
 		Location: &location,
 		Sku:      sku,
 		Tags:     tags.Expand(t),
@@ -232,7 +227,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		elasticPool.MaxSizeBytes = utils.Int64(int64(v.(int)))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, elasticPoolName, elasticPool)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, elasticPool)
 	if err != nil {
 		return err
 	}
@@ -241,15 +236,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, serverName, elasticPoolName)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read MsSQL ElasticPool %q (resource group %q) ID", elasticPoolName, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceMsSqlElasticPoolRead(d, meta)
 }

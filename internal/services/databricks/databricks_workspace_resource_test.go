@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DatabricksWorkspaceResource struct {
-}
+type DatabricksWorkspaceResource struct{}
 
 func TestAccDatabricksWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
@@ -975,7 +974,6 @@ resource "azurerm_lb" "test" {
 
 resource "azurerm_lb_outbound_rule" "test" {
   name                     = "OutboundRule-%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
   loadbalancer_id          = azurerm_lb.test.id
   protocol                 = "All"
   enable_tcp_reset         = true
@@ -1082,20 +1080,20 @@ resource "azurerm_key_vault_access_policy" "terraform" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "get",
-    "list",
-    "create",
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-    "delete",
-    "restore",
-    "recover",
-    "update",
-    "purge",
+    "Get",
+    "List",
+    "Create",
+    "Decrypt",
+    "Encrypt",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
+    "Delete",
+    "Restore",
+    "Recover",
+    "Update",
+    "Purge",
   ]
 }
 
@@ -1105,9 +1103,9 @@ resource "azurerm_key_vault_access_policy" "managed" {
   object_id    = "%[4]s"
 
   key_permissions = [
-    "get",
-    "unwrapKey",
-    "wrapKey",
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
@@ -1185,20 +1183,20 @@ resource "azurerm_key_vault_access_policy" "terraform" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "get",
-    "list",
-    "create",
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-    "delete",
-    "restore",
-    "recover",
-    "update",
-    "purge",
+    "Get",
+    "List",
+    "Create",
+    "Decrypt",
+    "Encrypt",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
+    "Delete",
+    "Restore",
+    "Recover",
+    "Update",
+    "Purge",
   ]
 }
 
@@ -1208,9 +1206,9 @@ resource "azurerm_key_vault_access_policy" "managed" {
   object_id    = "%[4]s"
 
   key_permissions = [
-    "get",
-    "unwrapKey",
-    "wrapKey",
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
   ]
 }
 
@@ -1222,9 +1220,9 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   object_id    = azurerm_databricks_workspace.test.storage_account_identity.0.principal_id
 
   key_permissions = [
-    "get",
-    "unwrapKey",
-    "wrapKey",
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
@@ -1388,20 +1386,20 @@ resource "azurerm_key_vault_access_policy" "terraform" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "get",
-    "list",
-    "create",
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-    "delete",
-    "restore",
-    "recover",
-    "update",
-    "purge",
+    "Get",
+    "List",
+    "Create",
+    "Decrypt",
+    "Encrypt",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
+    "Delete",
+    "Restore",
+    "Recover",
+    "Update",
+    "Purge",
   ]
 }
 
@@ -1411,9 +1409,9 @@ resource "azurerm_key_vault_access_policy" "managed" {
   object_id    = "%[4]s"
 
   key_permissions = [
-    "get",
-    "unwrapKey",
-    "wrapKey",
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
   ]
 }
 
@@ -1425,9 +1423,9 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   object_id    = azurerm_databricks_workspace.test.storage_account_identity.0.principal_id
 
   key_permissions = [
-    "get",
-    "unwrapKey",
-    "wrapKey",
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
   ]
 }
 

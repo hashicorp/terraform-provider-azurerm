@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
@@ -140,21 +140,21 @@ func resourceManagedApplication() *pluginsdk.Resource {
 
 func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroupName := d.Get("resource_group_name").(string)
+	id := parse.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroupName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failed to check for present of existing Managed Application Name %q (Resource Group %q): %+v", name, resourceGroupName, err)
+				return fmt.Errorf("failed to check for presence of %s: %+v", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_managed_application", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_managed_application", id.ID())
 		}
 	}
 
@@ -185,22 +185,15 @@ func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 	parameters.Parameters = params
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("failed to create Managed Application %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("failed to create %s: %+v", id, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed to wait for creation of Managed Application %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("failed to wait for creation of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroupName, name)
-	if err != nil {
-		return fmt.Errorf("failed to retrieve Managed Application %q (Resource Group %q): %+v", name, resourceGroupName, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read Managed Application %q (Resource Group %q) ID", name, resourceGroupName)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceManagedApplicationRead(d, meta)
 }
@@ -387,6 +380,14 @@ func flattenManagedApplicationParametersOrOutputs(input interface{}) (map[string
 				results[k] = v.(float64)
 			case string:
 				results[k] = v.(string)
+			case map[string]interface{}:
+				// Azure NVA managed applications read call returns empty map[string]interface{} parameter 'tags'
+				// Do not return an error if the parameter is unsupported type, but is empty
+				if len(v.(map[string]interface{})) == 0 {
+					log.Printf("parameter '%s' is unexpected type %T, but we're ignoring it because of the empty value", k, t)
+				} else {
+					return nil, fmt.Errorf("unexpected parameter type %T", t)
+				}
 			default:
 				return nil, fmt.Errorf("unexpected parameter type %T", t)
 			}

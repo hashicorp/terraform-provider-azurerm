@@ -39,15 +39,15 @@ resource "azurerm_key_vault" "example" {
   access_policy {
     tenant_id               = data.azurerm_client_config.current.tenant_id
     object_id               = data.azurerm_client_config.current.object_id
-    secret_permissions      = ["set"]
-    certificate_permissions = ["create", "delete", "get", "update"]
+    secret_permissions      = ["Set"]
+    certificate_permissions = ["Create", "Delete", "Get", "Update"]
   }
 
   access_policy {
     tenant_id               = data.azurerm_client_config.current.tenant_id
     object_id               = data.azuread_service_principal.example.object_id
-    secret_permissions      = ["get", "list"]
-    certificate_permissions = ["get", "list"]
+    secret_permissions      = ["Get", "List"]
+    certificate_permissions = ["Get", "List"]
   }
 }
 
@@ -121,7 +121,9 @@ The following arguments are supported:
 
 * `service_name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created.
 
-* `key_vault_certificate_id` - (Required) Specifies the ID of the Key Vault Certificate resource. Changing this forces a new resource to be created.
+* `key_vault_certificate_id` - (Optional) Specifies the ID of the Key Vault Certificate resource. Changing this forces a new resource to be created.
+
+* `certificate_content` - (Optional) The content of uploaded certificate. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

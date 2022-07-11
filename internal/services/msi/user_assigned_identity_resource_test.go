@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/sdk/2018-11-30/managedidentity"
-
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -26,9 +24,24 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("client_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("tenant_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("client_id").IsUUID(),
+				check.That(data.ResourceName).Key("tenant_id").IsUUID(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMUserAssignedIdentity_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
+	r := UserAssignedIdentityResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -44,9 +57,9 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("principal_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("client_id").MatchesRegex(validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("tenant_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("client_id").IsUUID(),
+				check.That(data.ResourceName).Key("tenant_id").IsUUID(),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -54,7 +67,7 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 }
 
 func (r UserAssignedIdentityResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := managedidentity.ParseUserAssignedIdentitiesID(state.ID)
+	id, err := commonids.ParseUserAssignedIdentityID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -97,4 +110,26 @@ resource "azurerm_user_assigned_identity" "import" {
   location            = azurerm_user_assigned_identity.test.location
 }
 `, template)
+}
+
+func (r UserAssignedIdentityResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  tags = {
+    environment = "test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

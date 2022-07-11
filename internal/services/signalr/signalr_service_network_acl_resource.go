@@ -35,7 +35,10 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 		}),
 		SchemaVersion: 1,
 
-		Importer: pluginsdk.DefaultImporter(),
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := signalr.ParseSignalRID(id)
+			return err
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"signalr_service_id": {
@@ -139,7 +142,7 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 }
 
 func resourceSignalRServiceNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -203,7 +206,7 @@ func resourceSignalRServiceNetworkACLCreateUpdate(d *pluginsdk.ResourceData, met
 }
 
 func resourceSignalRServiceNetworkACLRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -245,7 +248,7 @@ func resourceSignalRServiceNetworkACLRead(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceSignalRServiceNetworkACLDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.Client
+	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

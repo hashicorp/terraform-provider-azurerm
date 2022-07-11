@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/consumergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/consumergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,12 +24,13 @@ type ConsumerGroupObject struct {
 	UserMetadata      string `tfschema:"user_metadata"`
 }
 
-var _ sdk.Resource = ConsumerGroupResource{}
-var _ sdk.ResourceWithUpdate = ConsumerGroupResource{}
-var _ sdk.ResourceWithStateMigration = ConsumerGroupResource{}
+var (
+	_ sdk.Resource                   = ConsumerGroupResource{}
+	_ sdk.ResourceWithUpdate         = ConsumerGroupResource{}
+	_ sdk.ResourceWithStateMigration = ConsumerGroupResource{}
+)
 
-type ConsumerGroupResource struct {
-}
+type ConsumerGroupResource struct{}
 
 func (r ConsumerGroupResource) ResourceType() string {
 	return "azurerm_eventhub_consumer_group"

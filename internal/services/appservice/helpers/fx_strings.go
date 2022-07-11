@@ -53,7 +53,7 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 }
 
 func EncodeFunctionAppLinuxFxVersion(input []ApplicationStackLinuxFunctionApp) *string {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0].CustomHandler {
 		return utils.String("")
 	}
 
@@ -61,19 +61,31 @@ func EncodeFunctionAppLinuxFxVersion(input []ApplicationStackLinuxFunctionApp) *
 	var appType, appString string
 	switch {
 	case appStack.NodeVersion != "":
-		appType = "Node"
+		appType = "NODE"
 		appString = appStack.NodeVersion
+
 	case appStack.DotNetVersion != "":
-		appType = "DotNet"
+		if appStack.DotNetIsolated {
+			appType = "DOTNET-ISOLATED"
+		} else {
+			appType = "DOTNET"
+		}
 		appString = appStack.DotNetVersion
+
 	case appStack.PythonVersion != "":
-		appType = "Python"
+		appType = "PYTHON"
 		appString = appStack.PythonVersion
+
 	case appStack.JavaVersion != "":
-		appType = "Java"
+		appType = "JAVA"
 		appString = appStack.JavaVersion
+
+	case appStack.PowerShellCoreVersion != "":
+		appType = "POWERSHELL"
+		appString = appStack.PowerShellCoreVersion
+
 	case len(appStack.Docker) > 0 && appStack.Docker[0].ImageName != "":
-		appType = "Docker"
+		appType = "DOCKER"
 		dockerCfg := appStack.Docker[0]
 		if dockerCfg.RegistryURL != "" {
 			appString = fmt.Sprintf("%s/%s:%s", strings.Trim(dockerCfg.RegistryURL, "/"), dockerCfg.ImageName, dockerCfg.ImageTag)
@@ -103,6 +115,10 @@ func DecodeFunctionAppLinuxFxVersion(input string) ([]ApplicationStackLinuxFunct
 		appStack := ApplicationStackLinuxFunctionApp{DotNetVersion: parts[1]}
 		result = append(result, appStack)
 
+	case "dotnet-isolated":
+		appStack := ApplicationStackLinuxFunctionApp{DotNetVersion: parts[1], DotNetIsolated: true}
+		result = append(result, appStack)
+
 	case "node":
 		appStack := ApplicationStackLinuxFunctionApp{NodeVersion: parts[1]}
 		result = append(result, appStack)
@@ -113,6 +129,10 @@ func DecodeFunctionAppLinuxFxVersion(input string) ([]ApplicationStackLinuxFunct
 
 	case "java":
 		appStack := ApplicationStackLinuxFunctionApp{JavaVersion: parts[1]}
+		result = append(result, appStack)
+
+	case "powershell":
+		appStack := ApplicationStackLinuxFunctionApp{PowerShellCoreVersion: parts[1]}
 		result = append(result, appStack)
 
 	case "docker":
@@ -146,4 +166,74 @@ func DecodeFunctionAppDockerFxString(input string, partial ApplicationStackDocke
 	partial.ImageTag = dockerParts[1]
 
 	return []ApplicationStackDocker{partial}, nil
+}
+
+func EncodeFunctionAppWindowsFxVersion(input []ApplicationStackWindowsFunctionApp) *string {
+	if len(input) == 0 {
+		return utils.String("")
+	}
+
+	appStack := input[0]
+	var appType, appString string
+	switch {
+	case appStack.NodeVersion != "":
+		appType = "Node"
+		appString = appStack.NodeVersion
+
+	case appStack.DotNetVersion != "":
+		if appStack.DotNetIsolated {
+			appType = "DotNet-Isolated"
+		} else {
+			appType = "DotNet"
+		}
+		appString = appStack.DotNetVersion
+
+	case appStack.JavaVersion != "":
+		appType = "Java"
+		appString = appStack.JavaVersion
+
+	case appStack.PowerShellCoreVersion != "":
+		appType = "PowerShell"
+		appString = appStack.PowerShellCoreVersion
+	}
+
+	return utils.String(fmt.Sprintf("%s|%s", appType, appString))
+}
+
+func DecodeFunctionAppWindowsFxVersion(input string) ([]ApplicationStackWindowsFunctionApp, error) {
+	if input == "" {
+		// This is a valid string for "Custom" stack which we picked up earlier, so we can skip here
+		return nil, nil
+	}
+
+	parts := strings.Split(input, "|")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("unrecognised WindowsFxVersion format received, got %s", input)
+	}
+
+	result := make([]ApplicationStackWindowsFunctionApp, 0)
+
+	switch strings.ToLower(parts[0]) {
+	case "dotnet":
+		appStack := ApplicationStackWindowsFunctionApp{DotNetVersion: parts[1]}
+		result = append(result, appStack)
+
+	case "dotnet-isolated":
+		appStack := ApplicationStackWindowsFunctionApp{DotNetVersion: parts[1], DotNetIsolated: true}
+		result = append(result, appStack)
+
+	case "node":
+		appStack := ApplicationStackWindowsFunctionApp{NodeVersion: parts[1]}
+		result = append(result, appStack)
+
+	case "java":
+		appStack := ApplicationStackWindowsFunctionApp{JavaVersion: parts[1]}
+		result = append(result, appStack)
+
+	case "powershell":
+		appStack := ApplicationStackWindowsFunctionApp{PowerShellCoreVersion: parts[1]}
+		result = append(result, appStack)
+	}
+
+	return result, nil
 }

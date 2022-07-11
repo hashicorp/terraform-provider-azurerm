@@ -22,8 +22,10 @@ type AppServiceSourceControlTokenModel struct {
 	Type        string `tfschema:"type"`
 }
 
-var _ sdk.ResourceWithUpdate = AppServiceSourceControlTokenResource{}
-var _ sdk.Resource = AppServiceSourceControlTokenResource{}
+var (
+	_ sdk.ResourceWithUpdate = AppServiceSourceControlTokenResource{}
+	_ sdk.Resource           = AppServiceSourceControlTokenResource{}
+)
 
 func (r AppServiceSourceControlTokenResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -59,7 +61,7 @@ func (r AppServiceSourceControlTokenResource) Attributes() map[string]*pluginsdk
 }
 
 func (r AppServiceSourceControlTokenResource) ModelObject() interface{} {
-	return &AppServiceSourceControlModel{}
+	return &SourceControlModel{}
 }
 
 func (r AppServiceSourceControlTokenResource) ResourceType() string {

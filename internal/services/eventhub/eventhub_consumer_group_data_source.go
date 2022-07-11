@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/consumergroups"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/consumergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -45,9 +44,7 @@ func EventHubConsumerGroupDataSource() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateEventHubName(),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-
-			"location": azure.SchemaLocationForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"user_metadata": {
 				Type:     pluginsdk.TypeString,

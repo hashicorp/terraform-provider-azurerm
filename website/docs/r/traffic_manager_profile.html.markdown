@@ -38,7 +38,7 @@ resource "azurerm_traffic_manager_profile" "example" {
   }
 
   monitor_config {
-    protocol                     = "http"
+    protocol                     = "HTTP"
     port                         = 80
     path                         = "/"
     interval_in_seconds          = 30
@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `max_return` - (Optional) The amount of endpoints to return for DNS queries to this Profile. Possible values range from `1` to `8`.
 
-~> **NOTE**: `max_return` must be set when the `traffic_routing_method` is `MultiValue`.
+~> **NOTE:** `max_return` must be set when the `traffic_routing_method` is `MultiValue`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -110,7 +110,7 @@ A `custom_header` block supports the following:
 
 * `name` - (Required) The name of the custom header.
 
-* `value` - (Required) The value of custom header. Applicable for Http and Https protocol.
+* `value` - (Required) The value of custom header. Applicable for HTTP and HTTPS protocol.
 
 ## Attributes Reference
 

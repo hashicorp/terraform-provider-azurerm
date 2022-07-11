@@ -1,10 +1,17 @@
 package datafactory
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/data-factory"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -61,6 +68,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_linked_service_kusto":                  resourceDataFactoryLinkedServiceKusto(),
 		"azurerm_data_factory_linked_service_mysql":                  resourceDataFactoryLinkedServiceMySQL(),
 		"azurerm_data_factory_linked_service_odata":                  resourceArmDataFactoryLinkedServiceOData(),
+		"azurerm_data_factory_linked_service_odbc":                   resourceDataFactoryLinkedServiceOdbc(),
 		"azurerm_data_factory_linked_service_postgresql":             resourceDataFactoryLinkedServicePostgreSQL(),
 		"azurerm_data_factory_linked_service_sftp":                   resourceDataFactoryLinkedServiceSFTP(),
 		"azurerm_data_factory_linked_service_snowflake":              resourceDataFactoryLinkedServiceSnowflake(),

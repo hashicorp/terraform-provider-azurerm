@@ -112,6 +112,16 @@ resource "azurerm_iothub" "example" {
     endpoint_names = ["export", "export2"]
   }
 
+  cloud_to_device {
+    max_delivery_count = 30
+    default_ttl        = "PT1H"
+    feedback {
+      time_to_live       = "PT1H10M"
+      max_delivery_count = 15
+      lock_duration      = "PT30S"
+    }
+  }
+
   tags = {
     purpose = "testing"
   }
@@ -142,11 +152,15 @@ The following arguments are supported:
 
 * `file_upload` - (Optional) A `file_upload` block as defined below.
 
-* `ip_filter_rule` - (Optional) One or more `ip_filter_rule` blocks as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
+
+* `network_rule_set` - (Optional) A `network_rule_set` block as defined below.
 
 * `route` - (Optional) A `route` block as defined below.
 
 * `enrichment` - (Optional) A `enrichment` block as defined below.
+
+* `cloud_to_device` - (Optional) A `cloud_to_device` block as defined below.
 
 * `public_network_access_enabled` - (Optional) Is the IotHub resource accessible from a public network?
 
@@ -170,31 +184,63 @@ An `endpoint` block supports the following:
 
 * `type` - (Required) The type of the endpoint. Possible values are `AzureIotHub.StorageContainer`, `AzureIotHub.ServiceBusQueue`, `AzureIotHub.ServiceBusTopic` or `AzureIotHub.EventHub`.
 
-* `connection_string` - (Required) The connection string for the endpoint.
-
 * `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved:  `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`.
 
-* `batch_frequency_in_seconds` - (Optional) Time interval at which blobs are written to storage. Value should be between 60 and 720 seconds. Default value is 300 seconds. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
+* `authentication_type` - (Optional) The type used to authenticate against the endpoint. Possible values are `keyBased` and `identityBased`. Defaults to `keyBased`.
 
-* `max_chunk_size_in_bytes` - (Optional) Maximum number of bytes for each blob written to storage. Value should be between 10485760(10MB) and 524288000(500MB). Default value is 314572800(300MB). This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
+* `identity_id` - (Optional) The ID of the User Managed Identity used to authenticate against the endpoint.
+
+-> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the IoT Hub. If `identity_id` is omitted when `authentication_type` is `identityBased`, then the System-Assigned Managed Identity of the IoT Hub will be used.
+
+~> **NOTE:** An IoT Hub can only be updated to use the System-Assigned Managed Identity for `endpoint` since it is not possible to grant access to the endpoint until after creation. The extracted resources `azurerm_iothub_endpoint_*` can be used to configure Endpoints with the IoT Hub's System-Assigned Managed Identity without the need for an update.
+
+* `endpoint_uri` - (Optional) URI of the Service Bus or Event Hubs Namespace endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased` for endpoint type `AzureIotHub.ServiceBusQueue`, `AzureIotHub.ServiceBusTopic` or `AzureIotHub.EventHub`.
+
+* `entity_path` - (Optional) Name of the Service Bus Queue/Topic or Event Hub. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased` for endpoint type `AzureIotHub.ServiceBusQueue`, `AzureIotHub.ServiceBusTopic` or `AzureIotHub.EventHub`.
+
+* `connection_string` - (Optional) The connection string for the endpoint. This attribute is mandatory and can only be specified when `authentication_type` is `keyBased`.
+
+* `batch_frequency_in_seconds` - (Optional) Time interval at which blobs are written to storage. Value should be between 60 and 720 seconds. Default value is 300 seconds. This attribute is applicable for endpoint type `AzureIotHub.StorageContainer`.
+
+* `max_chunk_size_in_bytes` - (Optional) Maximum number of bytes for each blob written to storage. Value should be between 10485760(10MB) and 524288000(500MB). Default value is 314572800(300MB). This attribute is applicable for endpoint type `AzureIotHub.StorageContainer`.
 
 * `container_name` - (Optional) The name of storage container in the storage account. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
 
-* `encoding` - (Optional) Encoding that is used to serialize messages to blobs. Supported values are 'avro' and 'avrodeflate'. Default value is 'avro'. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
+* `encoding` - (Optional) Encoding that is used to serialize messages to blobs. Supported values are `Avro`, `AvroDeflate` and `JSON`. Default value is `Avro`. This attribute is applicable for endpoint type `AzureIotHub.StorageContainer`. Changing this forces a new resource to be created.
 
-* `file_name_format` - (Optional) File name format for the blob. Default format is ``{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}``. All parameters are mandatory but can be reordered. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
+* `file_name_format` - (Optional) File name format for the blob. Default format is ``{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}``. All parameters are mandatory but can be reordered. This attribute is applicable for endpoint type `AzureIotHub.StorageContainer`.
 
 * `resource_group_name` - (Optional) The resource group in which the endpoint will be created.
 
 ---
 
-An `ip_filter_rule` block supports the following:
+An `identity` block supports the following:
 
-* `name` - (Required) The name of the filter.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this IoT Hub. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `ip_mask` - (Required) The IP address range in CIDR notation for the rule.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this IoT Hub.
 
-* `action` - (Required) The desired action for requests captured by this rule. Possible values are  `Accept`, `Reject`
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+A `network_rule_set` block supports the following:
+
+* `default_action` - (Optional) Default Action for Network Rule Set. Possible values are `Deny`, `Allow`. Defaults to `Deny`.
+
+* `apply_to_builtin_eventhub_endpoint` - (Optional) Determines if Network Rule Set is also applied to the BuiltIn EventHub EndPoint of the IotHub. Defaults to `false`.
+
+* `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
+
+---
+
+A `ip_rule` block supports the following:
+
+* `name` - (Required) The name of the IP rule.
+
+* `ip_mask` - (Required) The IP address range in CIDR notation for the IP rule.
+
+* `action` - (Optional) The desired action for requests captured by this rule. Possible values are `Allow`. Defaults to `Allow`.
 
 ---
 
@@ -204,7 +250,7 @@ A `route` block supports the following:
 
 * `source` - (Required) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `Invalid`, `DeviceMessages`, `TwinChangeEvents`, `DeviceLifecycleEvents`, `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`.
 
-* `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to true by default. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
 
 * `endpoint_names` - (Required) The list of endpoints to which messages that satisfy the condition are routed.
 
@@ -216,7 +262,7 @@ An `enrichment` block supports the following:
 
 * `key` - (Required) The key of the enrichment.
 
-* `value` - (Required) The value of the enrichment. Value can be any static string, the name of the IoT hub sending the message (use `$iothubname`) or information from the device twin (ex: `$twin.tags.latitude`)
+* `value` - (Required) The value of the enrichment. Value can be any static string, the name of the IoT Hub sending the message (use `$iothubname`) or information from the device twin (ex: `$twin.tags.latitude`)
 
 * `endpoint_names` - (Required) The list of endpoints which will be enriched.
 
@@ -226,7 +272,7 @@ A `fallback_route` block supports the following:
 
 * `source` - (Optional) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `Invalid`, `DeviceMessages`, `TwinChangeEvents`, `DeviceLifecycleEvents`, `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents`.
 
-* `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to true by default. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
 
 * `endpoint_names` - (Optional) The endpoints to which messages that satisfy the condition are routed. Currently only 1 endpoint is allowed.
 
@@ -236,19 +282,47 @@ A `fallback_route` block supports the following:
 
 A `file_upload` block supports the following:
 
+* `authentication_type` - (Optional) The type used to authenticate against the storage account. Possible values are `keyBased` and `identityBased`. Defaults to `keyBased`.
+
+* `identity_id` - (Optional) The ID of the User Managed Identity used to authenticate against the storage account.
+
+-> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the IoT Hub. If `identity_id` is omitted when `authentication_type` is `identityBased`, then the System-Assigned Managed Identity of the IoT Hub will be used.
+
+~> **NOTE:** An IoT Hub can only be updated to use the System-Assigned Managed Identity for `file_upload` since it is not possible to grant access to the endpoint until after creation.
+
 * `connection_string` - (Required) The connection string for the Azure Storage account to which files are uploaded.
 
-* `container_name` - (Required) The name of the root container where you upload files. The container need not exist but should be creatable using the connection_string specified.
+* `container_name` - (Required) The name of the root container where the files should be uploaded to. The container need not exist but should be creatable using the connection_string specified.
 
-* `sas_ttl` - (Optional) The period of time for which the SAS URI generated by IoT Hub for file upload is valid, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 1 minute and 24 hours, and evaluates to 'PT1H' by default.
+* `sas_ttl` - (Optional) The period of time for which the SAS URI generated by IoT Hub for file upload is valid, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 1 minute and 24 hours. Defaults to `PT1H`.
 
-* `notifications` - (Optional) Used to specify whether file notifications are sent to IoT Hub on upload. It evaluates to false by default.
+* `notifications` - (Optional) Used to specify whether file notifications are sent to IoT Hub on upload. Defaults to `false`.
 
-* `lock_duration` - (Optional) The lock duration for the file upload notifications queue, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 5 and 300 seconds, and evaluates to 'PT1M' by default.
+* `lock_duration` - (Optional) The lock duration for the file upload notifications queue, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 5 and 300 seconds. Defaults to `PT1M`.
 
-* `default_ttl` - (Optional) The period of time for which a file upload notification message is available to consume before it is expired by the IoT hub, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 1 minute and 48 hours, and evaluates to 'PT1H' by default.
+* `default_ttl` - (Optional) The period of time for which a file upload notification message is available to consume before it expires, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 1 minute and 48 hours. Defaults to `PT1H`.
 
-* `max_delivery_count` - (Optional) The number of times the IoT hub attempts to deliver a file upload notification message. It evaluates to 10 by default.
+* `max_delivery_count` - (Optional) The number of times the IoT Hub attempts to deliver a file upload notification message. Defaults to `10`.
+
+---
+
+A `cloud_to_device` block supports the following:
+
+* `max_delivery_count` - (Optional) The maximum delivery count for cloud-to-device per-device queues. This value must be between `1` and `100`. Defaults to `10`.
+
+* `default_ttl` - (Optional) The default time to live for cloud-to-device messages, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 1 minute and 48 hours. Defaults to `PT1H`.
+
+* `feedback` - (Optional) A `feedback` block as defined below.
+
+---
+
+A `feedback` block supports the following:
+
+* `time_to_live` - (Optional) The retention time for service-bound feedback messages, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 1 minute and 48 hours. Defaults to `PT1H`.
+
+* `max_delivery_count` - (Optional) The maximum delivery count for the feedback queue. This value must be between `1` and `100`. Defaults to `10`.
+
+* `lock_duration` - (Optional) The lock duration for the feedback queue, specified as an [ISO 8601 timespan duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This value must be between 5 and 300 seconds. Defaults to `PT60S`.
 
 ## Attributes Reference
 
@@ -257,6 +331,7 @@ The following attributes are exported:
 * `id` - The ID of the IoTHub.
 
 * `event_hub_events_endpoint` -  The EventHub compatible endpoint for events data
+* `event_hub_events_namespace` - The EventHub namespace for events data   
 * `event_hub_events_path` -  The EventHub compatible path for events data
 * `event_hub_operations_endpoint` -  The EventHub compatible endpoint for operational data
 * `event_hub_operations_path` -  The EventHub compatible path for operational data
@@ -265,7 +340,17 @@ The following attributes are exported:
 
 * `hostname` - The hostname of the IotHub Resource.
 
+* `identity` - An `identity` block as documented below.
+
 * `shared_access_policy` - One or more `shared_access_policy` blocks as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ---
 

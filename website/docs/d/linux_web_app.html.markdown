@@ -10,8 +10,6 @@ description: |-
 
 Use this data source to access information about an existing Linux Web App.
 
-!> **Note:** This Data Source is coming in version 3.0 of the Azure Provider and is available **as an opt-in Beta** - more information can be found in [the upcoming version 3.0 of the Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/3.0-overview).
-
 ## Example Usage
 
 ```hcl
@@ -49,9 +47,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `client_affinity_enabled` - Is Client Affinity enabled?
 
-* `client_cert_enabled` - Are Client Certificates enabled?
+* `client_certificate_enabled` - Are Client Certificates enabled?
 
-* `client_cert_mode` - The Client Certificate mode.
+* `client_certificate_mode` - The Client Certificate mode.
 
 * `connection_string` - A `connection_string` block as defined below.
 
@@ -84,6 +82,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `site_config` - A `site_config` block as defined below.
 
 * `site_credential` - A `site_credential` block as defined below.
+
+* `sticky_settings` - A `sticky_settings` block as defined below.
 
 * `storage_account` - A `storage_account` block as defined below.
 
@@ -125,9 +125,9 @@ An `application_stack` block exports the following:
 
 * `docker_image_tag` - The image Tag.
 
-* `dotnet_version` - The version of .Net in use.
+* `dotnet_version` - The version of .NET in use.
 
-* `java_server` - The java server type.
+* `java_server` - The Java server type.
 
 * `java_server_version` - The Version of the `java_server` in use.
 
@@ -187,6 +187,8 @@ A `auto_heal_setting` block exports the following:
 
 A `azure_blob_storage` block exports the following:
 
+* `level` - The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
+
 * `retention_in_days` - The time in days after which to remove blobs. A value of `0` means no retention.
 
 * `sas_url` - The SAS url to an Azure blob container.
@@ -227,11 +229,11 @@ A `facebook` block exports the following:
 
 * `app_id` - The App ID of the Facebook app used for login.
 
-* `app_secret` - The App Secret of the Facebook app used for Facebook Login.
+* `app_secret` - The App Secret of the Facebook app used for Facebook login.
 
-* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook Login.
+* `app_secret_setting_name` - The app setting name that contains the `app_secret` value used for Facebook login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Facebook Login authentication.
+* `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Facebook login authentication.
 
 ---
 
@@ -247,11 +249,11 @@ A `github` block exports the following:
 
 * `client_id` - The ID of the GitHub app used for login.
 
-* `client_secret` - The Client Secret of the GitHub app used for GitHub Login.
+* `client_secret` - The client secret of the GitHub app used for GitHub login.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub login.
 
-* `oauth_scopes` - A list of OAuth 2.0 scopes in the GitHub Login authentication.
+* `oauth_scopes` - A list of OAuth 2.0 scopes in the GitHub login authentication.
 
 ---
 
@@ -261,7 +263,7 @@ A `google` block exports the following:
 
 * `client_secret` - The client secret associated with the Google web application.
 
-* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google Login.
+* `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for Google login.
 
 * `oauth_scopes` - A list of OAuth 2.0 scopes that are part of Google Sign-In authentication.
 
@@ -275,15 +277,15 @@ A `http_logs` block exports the following:
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
-* `identity_ids` - A `identity_ids` block as defined below.
+* `type` - The type of Managed Service Identity that is configured on this Linux Web App.
 
-* `principal_id` - The Principal ID Managed Service Identity.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Linux Web App.
 
-* `tenant_id` - The Tenant ID of the Managed Service Identity.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Linux Web App.
 
-* `type` - The type of Managed Service Identity.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Linux Web App.
 
 ---
 
@@ -347,7 +349,7 @@ A `site_config` block exports the following:
 
 * `application_stack` - A `application_stack` block as defined above.
 
-* `auto_heal` - Are Auto heal rules be enabled.
+* `auto_heal_enabled` - Are Auto heal rules be enabled.
 
 * `auto_heal_setting` - A `auto_heal_setting` block as defined above.
 
@@ -361,7 +363,7 @@ A `site_config` block exports the following:
 
 * `default_documents` - The list of Default Documents for the Linux Web App.
 
-* `detailed_error_logging` - Is Detailed Error Logging enabled.
+* `detailed_error_logging_enabled` - Is Detailed Error Logging enabled.
 
 * `ftps_state` - The State of FTP / FTPS service.
 
@@ -377,13 +379,11 @@ A `site_config` block exports the following:
 
 * `load_balancing_mode` - The site Load Balancing Mode.
 
-* `local_mysql` - Is the Local MySQL enabled.
+* `local_mysql_enabled` - Is the Local MySQL enabled.
 
 * `managed_pipeline_mode` - The Managed Pipeline Mode.
 
 * `minimum_tls_version` - The Minimum version of TLS for requests.
-
-* `number_of_workers` - The number of Workers for this Linux App Service.
 
 * `remote_debugging` - Is Remote Debugging enabled.
 
@@ -399,7 +399,11 @@ A `site_config` block exports the following:
 
 * `use_32_bit_worker` - Does the Linux Web App use a 32-bit worker.
 
+* `vnet_route_all_enabled` - Are all outbound traffic to NAT Gateways, Network Security Groups and User Defined Routes applied?
+
 * `websockets_enabled` - Are Web Sockets enabled?
+
+* `worker_count` - The number of Workers for this Linux App Service.
 
 ---
 
@@ -436,6 +440,14 @@ A `status_code` block exports the following:
 * `sub_status` - The Request Sub Status of the Status Code.
 
 * `win32_status` - The Win32 Status Code of the Request.
+
+---
+
+A `sticky_settings` block exports the following:
+
+* `app_setting_names` - A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - A list of `connection_string` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
 
 ---
 

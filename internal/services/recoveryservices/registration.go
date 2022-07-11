@@ -1,10 +1,17 @@
 package recoveryservices
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/recovery-services"
+}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -21,15 +28,18 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_recovery_services_vault":  dataSourceRecoveryServicesVault(),
-		"azurerm_backup_policy_vm":         dataSourceBackupPolicyVm(),
-		"azurerm_backup_policy_file_share": dataSourceBackupPolicyFileShare(),
+		"azurerm_recovery_services_vault":            dataSourceRecoveryServicesVault(),
+		"azurerm_site_recovery_fabric":               dataSourceSiteRecoveryFabric(),
+		"azurerm_site_recovery_protection_container": dataSourceSiteRecoveryProtectionContainer(),
+		"azurerm_backup_policy_vm":                   dataSourceBackupPolicyVm(),
+		"azurerm_backup_policy_file_share":           dataSourceBackupPolicyFileShare(),
+		"azurerm_site_recovery_replication_policy":   dataSourceSiteRecoveryReplicationPolicy(),
 	}
 }
 
-// todo - this package should probably be split into backup, recovery, and site recovery?
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	// todo - this package should probably be split into backup, recovery, and site recovery?
 	return map[string]*pluginsdk.Resource{
 		"azurerm_backup_container_storage_account":           resourceBackupProtectionContainerStorageAccount(),
 		"azurerm_backup_policy_file_share":                   resourceBackupProtectionPolicyFileShare(),

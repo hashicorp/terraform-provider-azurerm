@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -14,9 +14,9 @@ import (
 
 func convertEnforcementMode(mode bool) policy.EnforcementMode {
 	if mode {
-		return policy.Default
+		return policy.EnforcementModeDefault
 	} else {
-		return policy.DoNotEnforce
+		return policy.EnforcementModeDoNotEnforce
 	}
 }
 

@@ -16,52 +16,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KubernetesClusterNodePoolResource struct {
-}
-
-var kubernetesNodePoolTests = map[string]func(t *testing.T){
-	"autoScale":                      testAccKubernetesClusterNodePool_autoScale,
-	"autoScaleUpdate":                testAccKubernetesClusterNodePool_autoScaleUpdate,
-	"availabilityZones":              testAccKubernetesClusterNodePool_availabilityZones,
-	"errorForAvailabilitySet":        testAccKubernetesClusterNodePool_errorForAvailabilitySet,
-	"kubeletAndLinuxOSConfig":        testAccKubernetesClusterNodePool_kubeletAndLinuxOSConfig,
-	"kubeletAndLinuxOSConfigPartial": testAccKubernetesClusterNodePool_kubeletAndLinuxOSConfigPartial,
-	"other":                          testAccKubernetesClusterNodePool_other,
-	"multiplePools":                  testAccKubernetesClusterNodePool_multiplePools,
-	"manualScale":                    testAccKubernetesClusterNodePool_manualScale,
-	"manualScaleMultiplePools":       testAccKubernetesClusterNodePool_manualScaleMultiplePools,
-	"manualScaleMultiplePoolsUpdate": testAccKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate,
-	"manualScaleUpdate":              testAccKubernetesClusterNodePool_manualScaleUpdate,
-	"manualScaleVMSku":               testAccKubernetesClusterNodePool_manualScaleVMSku,
-	"maxSize":                        testAccKubernetesClusterNodePool_maxSize,
-	"nodeLabels":                     testAccKubernetesClusterNodePool_nodeLabels,
-	"nodePublicIP":                   testAccKubernetesClusterNodePool_nodePublicIP,
-	"nodeTaints":                     testAccKubernetesClusterNodePool_nodeTaints,
-	"podSubnet":                      testAccKubernetesClusterNodePool_podSubnet,
-	"requiresImport":                 testAccKubernetesClusterNodePool_requiresImport,
-	"ultraSSD":                       testAccKubernetesClusterNodePool_ultraSSD,
-	"spot":                           testAccKubernetesClusterNodePool_spot,
-	"osDiskSizeGB":                   testAccKubernetesClusterNodePool_osDiskSizeGB,
-	"proximityPlacementGroupId":      testAccKubernetesClusterNodePool_proximityPlacementGroupId,
-	"osDiskType":                     testAccKubernetesClusterNodePool_osDiskType,
-	"osSku":                          testAccKubernetesClusterNodePool_osSku,
-	"modeSystem":                     testAccKubernetesClusterNodePool_modeSystem,
-	"modeUpdate":                     testAccKubernetesClusterNodePool_modeUpdate,
-	"upgradeSettings":                testAccKubernetesClusterNodePool_upgradeSettings,
-	"virtualNetworkAutomatic":        testAccKubernetesClusterNodePool_virtualNetworkAutomatic,
-	"virtualNetworkManual":           testAccKubernetesClusterNodePool_virtualNetworkManual,
-	"windows":                        testAccKubernetesClusterNodePool_windows,
-	"windowsAndLinux":                testAccKubernetesClusterNodePool_windowsAndLinux,
-	"zeroSize":                       testAccKubernetesClusterNodePool_zeroSize,
-	"hostEncryption":                 testAccKubernetesClusterNodePool_hostEncryption,
-}
+type KubernetesClusterNodePoolResource struct{}
 
 func TestAccKubernetesClusterNodePool_autoScale(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_autoScale(t)
-}
-
-func testAccKubernetesClusterNodePool_autoScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -97,11 +54,6 @@ func testAccKubernetesClusterNodePool_autoScale(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_autoScaleUpdate(t)
-}
-
-func testAccKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -131,11 +83,6 @@ func testAccKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_availabilityZones(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_availabilityZones(t)
-}
-
-func testAccKubernetesClusterNodePool_availabilityZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -150,29 +97,34 @@ func testAccKubernetesClusterNodePool_availabilityZones(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_errorForAvailabilitySet(t)
+func TestAccKubernetesClusterNodePool_capacityReservationGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.capacityReservationGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
-func testAccKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
+func TestAccKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.availabilitySetConfig(data),
-			ExpectError: regexp.MustCompile("must be a VirtualMachineScaleSet to attach multiple node pools"),
+			ExpectError: regexp.MustCompile("multiple node pools are only supported when the Default Node Pool uses a VMScaleSet"),
 		},
 	})
 }
 
 func TestAccKubernetesClusterNodePool_kubeletAndLinuxOSConfig(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_kubeletAndLinuxOSConfig(t)
-}
-
-func testAccKubernetesClusterNodePool_kubeletAndLinuxOSConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -188,11 +140,6 @@ func testAccKubernetesClusterNodePool_kubeletAndLinuxOSConfig(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_kubeletAndLinuxOSConfigPartial(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_kubeletAndLinuxOSConfigPartial(t)
-}
-
-func testAccKubernetesClusterNodePool_kubeletAndLinuxOSConfigPartial(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -209,11 +156,6 @@ func testAccKubernetesClusterNodePool_kubeletAndLinuxOSConfigPartial(t *testing.
 }
 
 func TestAccKubernetesClusterNodePool_other(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_other(t)
-}
-
-func testAccKubernetesClusterNodePool_other(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -229,11 +171,6 @@ func testAccKubernetesClusterNodePool_other(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_multiplePools(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_multiplePools(t)
-}
-
-func testAccKubernetesClusterNodePool_multiplePools(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "autoscale")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -254,11 +191,6 @@ func testAccKubernetesClusterNodePool_multiplePools(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_manualScale(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_manualScale(t)
-}
-
-func testAccKubernetesClusterNodePool_manualScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -274,11 +206,6 @@ func testAccKubernetesClusterNodePool_manualScale(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_manualScaleMultiplePools(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_manualScaleMultiplePools(t)
-}
-
-func testAccKubernetesClusterNodePool_manualScaleMultiplePools(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "first")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -300,11 +227,6 @@ func testAccKubernetesClusterNodePool_manualScaleMultiplePools(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t)
-}
-
-func testAccKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "first")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -340,11 +262,6 @@ func testAccKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *testing.
 }
 
 func TestAccKubernetesClusterNodePool_manualScaleIgnoreChanges(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_manualScaleIgnoreChanges(t)
-}
-
-func testAccKubernetesClusterNodePool_manualScaleIgnoreChanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -368,11 +285,6 @@ func testAccKubernetesClusterNodePool_manualScaleIgnoreChanges(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_manualScaleUpdate(t)
-}
-
-func testAccKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -404,11 +316,6 @@ func testAccKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_manualScaleVMSku(t)
-}
-
-func testAccKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -431,11 +338,6 @@ func testAccKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_modeSystem(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_modeSystem(t)
-}
-
-func testAccKubernetesClusterNodePool_modeSystem(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -451,11 +353,6 @@ func testAccKubernetesClusterNodePool_modeSystem(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_modeUpdate(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_modeUpdate(t)
-}
-
-func testAccKubernetesClusterNodePool_modeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -485,11 +382,6 @@ func testAccKubernetesClusterNodePool_modeUpdate(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_nodeLabels(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_nodeLabels(t)
-}
-
-func testAccKubernetesClusterNodePool_nodeLabels(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 	labels1 := map[string]string{"key": "value"}
@@ -521,11 +413,6 @@ func testAccKubernetesClusterNodePool_nodeLabels(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_nodePublicIP(t)
-}
-
-func testAccKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -541,11 +428,6 @@ func testAccKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_nodeTaints(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_nodeTaints(t)
-}
-
-func testAccKubernetesClusterNodePool_nodeTaints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -561,11 +443,6 @@ func testAccKubernetesClusterNodePool_nodeTaints(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_podSubnet(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_podSubnet(t)
-}
-
-func testAccKubernetesClusterNodePool_podSubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -581,11 +458,6 @@ func testAccKubernetesClusterNodePool_podSubnet(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_osDiskSizeGB(t)
-}
-
-func testAccKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -601,11 +473,6 @@ func testAccKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_proximityPlacementGroupId(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_proximityPlacementGroupId(t)
-}
-
-func testAccKubernetesClusterNodePool_proximityPlacementGroupId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -621,11 +488,6 @@ func testAccKubernetesClusterNodePool_proximityPlacementGroupId(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_osDiskType(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_osDiskType(t)
-}
-
-func testAccKubernetesClusterNodePool_osDiskType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -641,11 +503,6 @@ func testAccKubernetesClusterNodePool_osDiskType(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_requiresImport(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_requiresImport(t)
-}
-
-func testAccKubernetesClusterNodePool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -664,11 +521,6 @@ func testAccKubernetesClusterNodePool_requiresImport(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_spot(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_spot(t)
-}
-
-func testAccKubernetesClusterNodePool_spot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -684,11 +536,6 @@ func testAccKubernetesClusterNodePool_spot(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_upgradeSettings(t)
-}
-
-func testAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -723,11 +570,6 @@ func testAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_virtualNetworkAutomatic(t)
-}
-
-func testAccKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -743,11 +585,6 @@ func testAccKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_virtualNetworkManual(t)
-}
-
-func testAccKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -763,11 +600,6 @@ func testAccKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_windows(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_windows(t)
-}
-
-func testAccKubernetesClusterNodePool_windows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -784,11 +616,6 @@ func testAccKubernetesClusterNodePool_windows(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_windowsAndLinux(t)
-}
-
-func testAccKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -814,11 +641,6 @@ func testAccKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_zeroSize(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_zeroSize(t)
-}
-
-func testAccKubernetesClusterNodePool_zeroSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -834,11 +656,6 @@ func testAccKubernetesClusterNodePool_zeroSize(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_hostEncryption(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_hostEncryption(t)
-}
-
-func testAccKubernetesClusterNodePool_hostEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -854,11 +671,6 @@ func testAccKubernetesClusterNodePool_hostEncryption(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_maxSize(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_maxSize(t)
-}
-
-func testAccKubernetesClusterNodePool_maxSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -874,11 +686,6 @@ func testAccKubernetesClusterNodePool_maxSize(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_sameSize(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_sameSize(t)
-}
-
-func testAccKubernetesClusterNodePool_sameSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -894,11 +701,6 @@ func testAccKubernetesClusterNodePool_sameSize(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_ultraSSD(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_ultraSSD(t)
-}
-
-func testAccKubernetesClusterNodePool_ultraSSD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
@@ -921,17 +723,27 @@ func testAccKubernetesClusterNodePool_ultraSSD(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_osSku(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePool_osSku(t)
-}
-
-func testAccKubernetesClusterNodePool_osSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.osSku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_dedicatedHost(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dedicatedHost(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -954,6 +766,50 @@ func TestAccKubernetesClusterNodePool_turnOnEnableAutoScalingWithDefaultMaxMinCo
 		data.ImportStep(),
 		{
 			Config: r.nodePool(data, true, 0, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_scaleDownMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scaleDownMode(data, "Delete"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.scaleDownMode(data, "Deallocate"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_workloadRuntime(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.workloadRuntime(data, "OCIContainer"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.workloadRuntime(data, "WasmWasi"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1255,7 +1111,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -1277,7 +1133,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    load_balancer_sku = "Standard"
+    load_balancer_sku = "standard"
   }
 }
 
@@ -1286,10 +1142,81 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
-  availability_zones    = ["1"]
   vnet_subnet_id        = azurerm_subnet.test.id
+  zones                 = ["1"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterNodePoolResource) capacityReservationGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_capacity_reservation_group" "test" {
+  name                = "acctest-ccrg-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_capacity_reservation" "test" {
+  name                          = "acctest-ccr-%[1]d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+
+  sku {
+    name     = "Standard_D2s_v3"
+    capacity = 2
+  }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_capacity_reservation_group.test.id
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  role_definition_name = "Owner"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+  default_node_pool {
+    name                          = "default"
+    node_count                    = 1
+    vm_size                       = "Standard_D2s_v3"
+    capacity_reservation_group_id = azurerm_capacity_reservation.test.capacity_reservation_group_id
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  depends_on = [
+    azurerm_capacity_reservation.test,
+    azurerm_role_assignment.test
+  ]
+}
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                          = "internal"
+  kubernetes_cluster_id         = azurerm_kubernetes_cluster.test.id
+  vm_size                       = "Standard_D2s_v3"
+  node_count                    = 1
+  capacity_reservation_group_id = azurerm_capacity_reservation.test.capacity_reservation_group_id
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r KubernetesClusterNodePoolResource) manualScaleConfig(data acceptance.TestData) string {
@@ -1914,7 +1841,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  address_prefixes     = ["10.1.0.0/24"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -2101,7 +2028,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
   ultra_ssd_enabled     = %t
-  availability_zones    = ["1", "2", "3"]
+  zones                 = ["1", "2", "3"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, ultraSSDEnabled)
 }
@@ -2138,6 +2065,77 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func (KubernetesClusterNodePoolResource) dedicatedHost(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_dedicated_host_group" "test" {
+  name                        = "acctestDHG-compute-%[1]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  platform_fault_domain_count = 3
+  automatic_placement_enabled = true
+}
+
+resource "azurerm_dedicated_host" "test" {
+  name                    = "acctest-DH-%[1]d"
+  location                = azurerm_resource_group.test.location
+  dedicated_host_group_id = azurerm_dedicated_host_group.test.id
+  sku_name                = "DSv3-Type1"
+  platform_fault_domain   = 0
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_resource_group.test.id
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  role_definition_name = "Contributor"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  host_group_id         = azurerm_dedicated_host_group.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 func (r KubernetesClusterNodePoolResource) nodePool(data acceptance.TestData, enableAutoScaling bool, minCount, maxCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2155,4 +2153,68 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   max_count             = %d
 }
 `, r.templateConfig(data), enableAutoScaling, minCount, maxCount)
+}
+
+func (KubernetesClusterNodePoolResource) scaleDownMode(data acceptance.TestData, scaleDownMode string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D2s_v3"
+  scale_down_mode       = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, scaleDownMode)
+}
+
+func (KubernetesClusterNodePoolResource) workloadRuntime(data acceptance.TestData, workloadRuntime string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D2s_v3"
+  workload_runtime      = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, workloadRuntime)
 }

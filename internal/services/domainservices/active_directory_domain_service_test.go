@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -40,8 +39,7 @@ type ActiveDirectoryDomainServiceResource struct {
 	adminPassword string
 }
 
-type ActiveDirectoryDomainServiceReplicaSetResource struct {
-}
+type ActiveDirectoryDomainServiceReplicaSetResource struct{}
 
 // AADDS has a single test which also includes a step for the data source, because:
 // - There can only be a single domain service per tenant, or per subscription
@@ -318,9 +316,10 @@ resource "azurerm_active_directory_domain_service" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  domain_name           = "never.gonna.shut.you.down"
-  sku                   = "Enterprise"
-  filtered_sync_enabled = false
+  domain_name               = "never.gonna.shut.you.down"
+  sku                       = "Enterprise"
+  domain_configuration_type = "FullySynced"
+  filtered_sync_enabled     = false
 
   initial_replica_set {
     subnet_id = azurerm_subnet.aadds.id

@@ -1,74 +1,84 @@
 package consumption
 
 import (
-	"time"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
-	subscriptionParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func resourceArmConsumptionBudgetSubscription() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceArmConsumptionBudgetSubscriptionCreateUpdate,
-		Read:   resourceArmConsumptionBudgetSubscriptionRead,
-		Update: resourceArmConsumptionBudgetSubscriptionCreateUpdate,
-		Delete: resourceArmConsumptionBudgetSubscriptionDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ConsumptionBudgetSubscriptionID(id)
-			return err
-		}),
+type SubscriptionConsumptionBudget struct {
+	base consumptionBudgetBaseResource
+}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+var (
+	_ sdk.Resource                   = SubscriptionConsumptionBudget{}
+	_ sdk.ResourceWithCustomImporter = SubscriptionConsumptionBudget{}
+	_ sdk.ResourceWithStateMigration = SubscriptionConsumptionBudget{}
+)
+
+func (r SubscriptionConsumptionBudget) Arguments() map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
-
-		Schema: SchemaConsumptionBudgetSubscriptionResource(),
+		"subscription_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateSubscriptionID,
+		},
 	}
+	return r.base.arguments(schema)
 }
 
-func resourceArmConsumptionBudgetSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := subscriptionParse.NewSubscriptionId(d.Get("subscription_id").(string))
-	id := parse.NewConsumptionBudgetSubscriptionID(subscriptionId.SubscriptionID, d.Get("name").(string))
-
-	err := resourceArmConsumptionBudgetCreateUpdate(d, meta, consumptionBudgetSubscriptionName, subscriptionId.ID())
-	if err != nil {
-		return err
-	}
-
-	d.SetId(id.ID())
-
-	return resourceArmConsumptionBudgetSubscriptionRead(d, meta)
+func (r SubscriptionConsumptionBudget) Attributes() map[string]*pluginsdk.Schema {
+	return r.base.attributes()
 }
 
-func resourceArmConsumptionBudgetSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	consumptionBudgetId, err := parse.ConsumptionBudgetSubscriptionID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	subscriptionId := subscriptionParse.NewSubscriptionId(consumptionBudgetId.SubscriptionId)
-
-	err = resourceArmConsumptionBudgetRead(d, meta, subscriptionId.ID(), consumptionBudgetId.BudgetName)
-	if err != nil {
-		return err
-	}
-
-	d.Set("subscription_id", consumptionBudgetId.SubscriptionId)
-
+func (r SubscriptionConsumptionBudget) ModelObject() interface{} {
 	return nil
 }
 
-func resourceArmConsumptionBudgetSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	consumptionBudgetId, err := parse.ConsumptionBudgetSubscriptionID(d.Id())
-	if err != nil {
-		return err
+func (r SubscriptionConsumptionBudget) ResourceType() string {
+	return "azurerm_consumption_budget_subscription"
+}
+
+func (r SubscriptionConsumptionBudget) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return validate.ConsumptionBudgetSubscriptionID
+}
+
+func (r SubscriptionConsumptionBudget) Create() sdk.ResourceFunc {
+	return r.base.createFunc(r.ResourceType(), "subscription_id")
+}
+
+func (r SubscriptionConsumptionBudget) Read() sdk.ResourceFunc {
+	return r.base.readFunc("subscription_id")
+}
+
+func (r SubscriptionConsumptionBudget) Delete() sdk.ResourceFunc {
+	return r.base.deleteFunc()
+}
+
+func (r SubscriptionConsumptionBudget) Update() sdk.ResourceFunc {
+	return r.base.updateFunc()
+}
+
+func (r SubscriptionConsumptionBudget) CustomImporter() sdk.ResourceRunFunc {
+	return r.base.importerFunc("subscription")
+}
+
+func (r SubscriptionConsumptionBudget) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 2,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.SubscriptionConsumptionBudgetV0ToV1{},
+			1: migration.SubscriptionConsumptionBudgetV1ToV2{},
+		},
 	}
-
-	subscriptionId := subscriptionParse.NewSubscriptionId(consumptionBudgetId.SubscriptionId)
-
-	return resourceArmConsumptionBudgetDelete(d, meta, subscriptionId.ID())
 }

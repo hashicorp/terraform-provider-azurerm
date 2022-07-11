@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -257,7 +257,7 @@ resource "azurerm_policy_definition" "test" {
   policy_type         = "Custom"
   mode                = "All"
   display_name        = "acctestpol-%d"
-  management_group_id = azurerm_management_group.test.group_id
+  management_group_id = azurerm_management_group.test.id
 
   policy_rule = <<POLICY_RULE
 	{

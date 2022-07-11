@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BatchApplicationResource struct {
-}
+type BatchApplicationResource struct{}
 
 func TestAccBatchApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_application", "test")
@@ -50,6 +49,21 @@ func TestAccBatchApplication_update(t *testing.T) {
 				check.That(data.ResourceName).Key("display_name").HasValue(displayName),
 			),
 		},
+	})
+}
+
+func TestAccBatchApplication_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_application", "test")
+	r := BatchApplicationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -101,4 +115,42 @@ resource "azurerm_batch_application" "test" {
   %s
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, displayName)
+}
+
+func (BatchApplicationResource) complete(data acceptance.TestData, displayName string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "acctestba%[3]s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+  storage_account_id   = azurerm_storage_account.test.id
+}
+
+resource "azurerm_batch_application" "test" {
+  name                = "acctestbatchapp-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  allow_updates       = true
+  display_name        = "TestAccDisplayName"
+  %[4]s
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, displayName)
 }

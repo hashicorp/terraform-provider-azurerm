@@ -6,7 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -52,8 +55,6 @@ func resourceManagedDisk() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"zones": azure.SchemaSingleZone(),
-
 			"storage_account_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -81,13 +82,16 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 			"logical_sector_size": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.IntInSlice([]int{
 					512,
-					4096}),
+					4096,
+				}),
 				Computed: true,
 			},
 
@@ -112,9 +116,18 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"image_reference_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"gallery_image_reference_id"},
+			},
+
+			"gallery_image_reference_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.SharedImageVersionID,
+				ConflictsWith: []string{"image_reference_id"},
 			},
 
 			"os_type": {
@@ -123,7 +136,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.OperatingSystemTypesWindows),
 					string(compute.OperatingSystemTypesLinux),
-				}, true),
+				}, false),
 			},
 
 			"disk_size_gb": {
@@ -168,6 +181,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validate.DiskEncryptionSetID,
+				ConflictsWith:    []string{"secure_vm_disk_encryption_set_id"},
 			},
 
 			"encryption_settings": encryptionSettingsSchema(),
@@ -215,6 +229,25 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"secure_vm_disk_encryption_set_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  validate.DiskEncryptionSetID,
+				ConflictsWith: []string{"disk_encryption_set_id"},
+			},
+
+			"security_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.DiskSecurityTypesConfidentialVMVMGuestStateOnlyEncryptedWithPlatformKey),
+					string(compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithPlatformKey),
+					string(compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey),
+				}, false),
+			},
+
 			"hyper_v_generation": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -229,6 +262,8 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
+
+			"zone": commonschema.ZoneSingleOptionalForceNew(),
 
 			"tags": tags.Schema(),
 		},
@@ -255,8 +290,8 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_managed_disk", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_managed_disk", id.ID())
 		}
 	}
 
@@ -267,7 +302,6 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	maxShares := d.Get("max_shares").(int)
 
 	t := d.Get("tags").(map[string]interface{})
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 	skuName := compute.DiskStorageAccountTypes(storageAccountType)
 
 	props := &compute.DiskProperties{
@@ -348,13 +382,16 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.CreationData.SourceResourceID = utils.String(sourceResourceId)
 	}
 	if createOption == compute.DiskCreateOptionFromImage {
-		imageReferenceId := d.Get("image_reference_id").(string)
-		if imageReferenceId == "" {
-			return fmt.Errorf("`image_reference_id` must be specified when `create_option` is set to `Import`")
-		}
-
-		props.CreationData.ImageReference = &compute.ImageDiskReference{
-			ID: utils.String(imageReferenceId),
+		if imageReferenceId := d.Get("image_reference_id").(string); imageReferenceId != "" {
+			props.CreationData.ImageReference = &compute.ImageDiskReference{
+				ID: utils.String(imageReferenceId),
+			}
+		} else if galleryImageReferenceId := d.Get("gallery_image_reference_id").(string); galleryImageReferenceId != "" {
+			props.CreationData.GalleryImageReference = &compute.ImageDiskReference{
+				ID: utils.String(galleryImageReferenceId),
+			}
+		} else {
+			return fmt.Errorf("`image_reference_id` or `gallery_image_reference_id` must be specified when `create_option` is set to `FromImage`")
 		}
 	}
 
@@ -419,6 +456,36 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
+	securityType := d.Get("security_type").(string)
+	secureVMDiskEncryptionId := d.Get("secure_vm_disk_encryption_set_id")
+	if securityType != "" {
+		if d.Get("trusted_launch_enabled").(bool) {
+			return fmt.Errorf("`security_type` cannot be specified when `trusted_launch_enabled` is set to `true`")
+		}
+
+		switch createOption {
+		case compute.DiskCreateOptionFromImage:
+		case compute.DiskCreateOptionImport:
+		default:
+			return fmt.Errorf("`security_type` can only be specified when `create_option` is set to `FromImage` or `Import`")
+		}
+
+		if compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey == compute.DiskSecurityTypes(securityType) && secureVMDiskEncryptionId == "" {
+			return fmt.Errorf("`secure_vm_disk_encryption_set_id` must be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
+		}
+
+		props.SecurityProfile = &compute.DiskSecurityProfile{
+			SecurityType: compute.DiskSecurityTypes(securityType),
+		}
+	}
+
+	if secureVMDiskEncryptionId != "" {
+		if compute.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey != compute.DiskSecurityTypes(securityType) {
+			return fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
+		}
+		props.SecurityProfile.SecureVMDiskEncryptionSetID = utils.String(secureVMDiskEncryptionId.(string))
+	}
+
 	if d.Get("on_demand_bursting_enabled").(bool) {
 		switch storageAccountType {
 		case string(compute.StorageAccountTypesPremiumLRS):
@@ -439,14 +506,20 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	createDisk := compute.Disk{
-		Name:           &name,
-		Location:       &location,
-		DiskProperties: props,
+		Name:             &name,
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         &location,
+		DiskProperties:   props,
 		Sku: &compute.DiskSku{
 			Name: skuName,
 		},
-		Tags:  tags.Expand(t),
-		Zones: zones,
+		Tags: tags.Expand(t),
+	}
+
+	if zone, ok := d.GetOk("zone"); ok {
+		createDisk.Zones = &[]string{
+			zone.(string),
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, createDisk)
@@ -569,7 +642,6 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			v := d.Get("disk_mbps_read_only")
 			diskUpdate.DiskMBpsReadOnly = utils.Int64(int64(v.(int)))
 		}
-
 	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") || d.HasChange("disk_iops_read_only") || d.HasChange("disk_mbps_read_only") {
 		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only and disk_mbps_read_only are only available for UltraSSD disks")
 	}
@@ -661,15 +733,15 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		// check instanceView State
 		vmClient := meta.(*clients.Client).Compute.VMClient
 
-		locks.ByName(name, virtualMachineResourceName)
-		defer locks.UnlockByName(name, virtualMachineResourceName)
+		locks.ByName(name, VirtualMachineResourceName)
+		defer locks.UnlockByName(name, VirtualMachineResourceName)
 
 		instanceView, err := vmClient.InstanceView(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
 		if err != nil {
 			return fmt.Errorf("retrieving InstanceView for Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
 		}
 
-		shouldTurnBackOn := true
+		shouldTurnBackOn := virtualMachineShouldBeStarted(instanceView)
 		shouldDeallocate := true
 
 		if instanceView.Statuses != nil {
@@ -687,14 +759,16 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				state = strings.TrimPrefix(state, "powerstate/")
 				switch strings.ToLower(state) {
 				case "deallocated":
-				case "deallocating":
-					shouldTurnBackOn = false
+					// VM already deallocated, no shutdown and deallocation needed anymore
 					shouldShutDown = false
 					shouldDeallocate = false
-				case "stopping":
+				case "deallocating":
+					// VM is deallocating
+					// To make sure we do not start updating before this action has finished,
+					// only skip the shutdown and send another deallocation request if shouldDeallocate == true
+					shouldShutDown = false
 				case "stopped":
 					shouldShutDown = false
-					shouldTurnBackOn = false
 				}
 			}
 		}
@@ -740,7 +814,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("waiting for update of Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		if shouldTurnBackOn {
+		if shouldTurnBackOn && (shouldShutDown || shouldDeallocate) {
 			log.Printf("[DEBUG] Starting Linux Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
 			future, err := vmClient.Start(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
 			if err != nil {
@@ -790,11 +864,15 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	zone := ""
+	if resp.Zones != nil && len(*resp.Zones) > 0 {
+		z := *resp.Zones
+		zone = z[0]
 	}
+	d.Set("zone", zone)
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("storage_account_type", string(sku.Name))
@@ -807,11 +885,16 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				d.Set("logical_sector_size", creationData.LogicalSectorSize)
 			}
 
-			imageReferenceID := ""
-			if creationData.ImageReference != nil && creationData.ImageReference.ID != nil {
-				imageReferenceID = *creationData.ImageReference.ID
+			// imageReference is returned as well when galleryImageRefernece is used, only check imageReference when galleryImageReference is not returned
+			galleryImageReferenceId := ""
+			imageReferenceId := ""
+			if galleryImageReference := creationData.GalleryImageReference; galleryImageReference != nil && galleryImageReference.ID != nil {
+				galleryImageReferenceId = *galleryImageReference.ID
+			} else if imageReference := creationData.ImageReference; imageReference != nil && imageReference.ID != nil {
+				imageReferenceId = *imageReference.ID
 			}
-			d.Set("image_reference_id", imageReferenceID)
+			d.Set("gallery_image_reference_id", galleryImageReferenceId)
+			d.Set("image_reference_id", imageReferenceId)
 
 			d.Set("source_resource_id", creationData.SourceResourceID)
 			d.Set("source_uri", creationData.SourceURI)
@@ -846,12 +929,22 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 
 		trustedLaunchEnabled := false
+		securityType := ""
+		secureVMDiskEncryptionSetId := ""
 		if securityProfile := props.SecurityProfile; securityProfile != nil {
 			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
 				trustedLaunchEnabled = true
+			} else {
+				securityType = string(securityProfile.SecurityType)
+			}
+
+			if securityProfile.SecureVMDiskEncryptionSetID != nil {
+				secureVMDiskEncryptionSetId = *securityProfile.SecureVMDiskEncryptionSetID
 			}
 		}
 		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+		d.Set("security_type", securityType)
+		d.Set("secure_vm_disk_encryption_set_id", secureVMDiskEncryptionSetId)
 
 		onDemandBurstingEnabled := false
 		if props.BurstingEnabled != nil {

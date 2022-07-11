@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -15,9 +15,9 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 	var err error
 
 	if managementGroupName != "" {
-		policyDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupName)
+		policyDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupName, "", nil)
 	} else {
-		policyDefinitions, err = client.ListComplete(ctx)
+		policyDefinitions, err = client.ListComplete(ctx, "", nil)
 	}
 	if err != nil {
 		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: %+v", err)
@@ -79,9 +79,9 @@ func getPolicySetDefinitionByDisplayName(ctx context.Context, client *policy.Set
 	var err error
 
 	if managementGroupID != "" {
-		setDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupID)
+		setDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupID, "", nil)
 	} else {
-		setDefinitions, err = client.ListComplete(ctx)
+		setDefinitions, err = client.ListComplete(ctx, "", nil)
 	}
 	if err != nil {
 		return policy.SetDefinition{}, fmt.Errorf("loading Policy Set Definition List: %+v", err)

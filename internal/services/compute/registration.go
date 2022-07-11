@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -46,6 +47,8 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	resources := map[string]*pluginsdk.Resource{
 		"azurerm_availability_set":                       resourceAvailabilitySet(),
+		"azurerm_capacity_reservation":                   resourceCapacityReservation(),
+		"azurerm_capacity_reservation_group":             resourceCapacityReservationGroup(),
 		"azurerm_dedicated_host":                         resourceDedicatedHost(),
 		"azurerm_dedicated_host_group":                   resourceDedicatedHostGroup(),
 		"azurerm_disk_encryption_set":                    resourceDiskEncryptionSet(),
@@ -60,16 +63,26 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_snapshot":                               resourceSnapshot(),
 		"azurerm_virtual_machine_data_disk_attachment":   resourceVirtualMachineDataDiskAttachment(),
 		"azurerm_virtual_machine_extension":              resourceVirtualMachineExtension(),
-		"azurerm_virtual_machine_scale_set":              resourceVirtualMachineScaleSet(),
 		"azurerm_orchestrated_virtual_machine_scale_set": resourceOrchestratedVirtualMachineScaleSet(),
-		"azurerm_virtual_machine":                        resourceVirtualMachine(),
 		"azurerm_linux_virtual_machine":                  resourceLinuxVirtualMachine(),
 		"azurerm_linux_virtual_machine_scale_set":        resourceLinuxVirtualMachineScaleSet(),
 		"azurerm_virtual_machine_scale_set_extension":    resourceVirtualMachineScaleSetExtension(),
 		"azurerm_windows_virtual_machine":                resourceWindowsVirtualMachine(),
 		"azurerm_windows_virtual_machine_scale_set":      resourceWindowsVirtualMachineScaleSet(),
 		"azurerm_ssh_public_key":                         resourceSshPublicKey(),
+		"azurerm_managed_disk_sas_token":                 resourceManagedDiskSasToken(),
 	}
 
 	return resources
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		GalleryApplicationResource{},
+		GalleryApplicationVersionResource{},
+	}
 }

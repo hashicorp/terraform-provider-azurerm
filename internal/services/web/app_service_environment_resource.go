@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -47,143 +49,22 @@ func resourceAppServiceEnvironment() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.AppServiceEnvironmentName,
-			},
-
-			"subnet_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: networkValidate.SubnetID,
-			},
-
-			"cluster_setting": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"value": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
-
-			"internal_load_balancing_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(web.LoadBalancingModeNone),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(web.LoadBalancingModeNone),
-					string(web.LoadBalancingModePublishing),
-					string(web.LoadBalancingModeWeb),
-					string(web.LoadBalancingModeWebPublishing),
-					// (@jackofallops) breaking change in SDK - Enum for internal_load_balancing_mode changed from Web, Publishing to Web,Publishing
-					string(LoadBalancingModeWebPublishing),
-				}, false),
-				DiffSuppressFunc: loadBalancingModeDiffSuppress,
-			},
-
-			"front_end_scale_factor": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      15,
-				ValidateFunc: validation.IntBetween(5, 15),
-			},
-
-			"pricing_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "I1",
-				ValidateFunc: validation.StringInSlice([]string{
-					"I1",
-					"I2",
-					"I3",
-				}, false),
-			},
-
-			"allowed_user_ip_cidrs": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Computed:      true, // remove in 3.0
-				ConflictsWith: []string{"user_whitelisted_ip_ranges"},
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: helpersValidate.CIDR,
-				},
-			},
-
-			"user_whitelisted_ip_ranges": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Computed:      true, // remove in 3.0
-				ConflictsWith: []string{"allowed_user_ip_cidrs"},
-				Deprecated:    "this property has been renamed to `allowed_user_ip_cidrs` better reflect the expected ip range format",
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: helpersValidate.CIDR,
-				},
-			},
-
-			// TODO in 3.0 Make it "Required"
-			"resource_group_name": azure.SchemaResourceGroupNameOptionalComputed(),
-
-			"tags": tags.ForceNewSchema(),
-
-			// Computed
-
-			// VipInfo
-			"internal_ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"service_ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"outbound_ip_addresses": {
-				Type: pluginsdk.TypeList,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-				Computed: true,
-			},
-
-			"location": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-		},
+		Schema: resourceAppServiceEnvironmentSchema(),
 	}
 }
 
 func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
 	networksClient := meta.(*clients.Client).Network.VnetClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	internalLoadBalancingMode := d.Get("internal_load_balancing_mode").(string)
 	internalLoadBalancingMode = strings.ReplaceAll(internalLoadBalancingMode, " ", "")
 	t := d.Get("tags").(map[string]interface{})
-	userWhitelistedIPRangesRaw := d.Get("user_whitelisted_ip_ranges").(*pluginsdk.Set).List()
+
+	var userWhitelistedIPRangesRaw []interface{}
 	if v, ok := d.GetOk("allowed_user_ip_cidrs"); ok {
 		userWhitelistedIPRangesRaw = v.(*pluginsdk.Set).List()
 	}
@@ -203,6 +84,7 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 	if v, ok := d.GetOk("resource_group_name"); ok {
 		resourceGroup = v.(string)
 	}
+	id := parse.NewAppServiceEnvironmentID(subscriptionId, resourceGroup, d.Get("name").(string))
 
 	vnet, err := networksClient.Get(ctx, subnet.ResourceGroup, subnet.VirtualNetworkName, "")
 	if err != nil {
@@ -217,15 +99,15 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("determining Location from Virtual Network %q (Resource Group %q): `location` was nil", subnet.VirtualNetworkName, subnet.ResourceGroup)
 	}
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing App Service Environment %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_app_service_environment", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_app_service_environment", id.ID())
 	}
 
 	frontEndScaleFactor := d.Get("front_end_scale_factor").(int)
@@ -252,8 +134,13 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	// whilst this returns a future go-autorest has a max number of retries
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, envelope); err != nil {
-		return fmt.Errorf("creating App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, envelope)
+	if err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 	}
 
 	createWait := pluginsdk.StateChangeConf{
@@ -265,20 +152,15 @@ func resourceAppServiceEnvironmentCreate(d *pluginsdk.ResourceData, meta interfa
 		},
 		MinTimeout: 1 * time.Minute,
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
-		Refresh:    appServiceEnvironmentRefresh(ctx, client, resourceGroup, name),
+		Refresh:    appServiceEnvironmentRefresh(ctx, client, id.ResourceGroup, id.HostingEnvironmentName),
 	}
 
 	// as such we'll ignore it and use a custom poller instead
 	if _, err := createWait.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for the creation of App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceAppServiceEnvironmentRead(d, meta)
 }
@@ -314,9 +196,8 @@ func resourceAppServiceEnvironmentUpdate(d *pluginsdk.ResourceData, meta interfa
 		e.AppServiceEnvironment.MultiSize = utils.String(v)
 	}
 
-	if d.HasChanges("user_whitelisted_ip_ranges", "allowed_user_ip_cidrs") {
-		e.UserWhitelistedIPRanges = utils.ExpandStringSlice(d.Get("user_whitelisted_ip_ranges").(*pluginsdk.Set).List())
-		if v, ok := d.GetOk("user_whitelisted_ip_ranges"); ok {
+	if d.HasChanges("allowed_user_ip_cidrs") {
+		if v, ok := d.GetOk("allowed_user_ip_cidrs"); ok {
 			e.UserWhitelistedIPRanges = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
 		}
 	}
@@ -395,7 +276,6 @@ func resourceAppServiceEnvironmentRead(d *pluginsdk.ResourceData, meta interface
 			pricingTier = convertToIsolatedSKU(*props.MultiSize)
 		}
 		d.Set("pricing_tier", pricingTier)
-		d.Set("user_whitelisted_ip_ranges", props.UserWhitelistedIPRanges)
 		d.Set("allowed_user_ip_cidrs", props.UserWhitelistedIPRanges)
 		d.Set("cluster_setting", flattenClusterSettings(props.ClusterSettings))
 	}
@@ -428,7 +308,6 @@ func resourceAppServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta interfa
 
 	log.Printf("[DEBUG] Deleting App Service Environment %q (Resource Group %q)", id.HostingEnvironmentName, id.ResourceGroup)
 
-	// TODO: should this behaviour be added to the `features` block?
 	forceDeleteAllChildren := utils.Bool(false)
 	future, err := client.Delete(ctx, id.ResourceGroup, id.HostingEnvironmentName, forceDeleteAllChildren)
 	if err != nil {
@@ -448,7 +327,6 @@ func resourceAppServiceEnvironmentDelete(d *pluginsdk.ResourceData, meta interfa
 func appServiceEnvironmentRefresh(ctx context.Context, client *web.AppServiceEnvironmentsClient, resourceGroup string, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		read, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return "", "", err
 		}
@@ -533,4 +411,115 @@ func flattenClusterSettings(input *[]web.NameValuePair) interface{} {
 		})
 	}
 	return settings
+}
+
+func resourceAppServiceEnvironmentSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AppServiceEnvironmentName,
+		},
+
+		"subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: networkValidate.SubnetID,
+		},
+
+		"cluster_setting": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"value": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+				},
+			},
+		},
+
+		"internal_load_balancing_mode": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(web.LoadBalancingModeNone),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(web.LoadBalancingModeNone),
+				string(web.LoadBalancingModePublishing),
+				string(web.LoadBalancingModeWeb),
+				string(web.LoadBalancingModeWebPublishing),
+				// (@jackofallops) breaking change in SDK - Enum for internal_load_balancing_mode changed from Web, Publishing to Web,Publishing
+				string(LoadBalancingModeWebPublishing),
+			}, false),
+			DiffSuppressFunc: loadBalancingModeDiffSuppress,
+		},
+
+		"front_end_scale_factor": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      15,
+			ValidateFunc: validation.IntBetween(5, 15),
+		},
+
+		"pricing_tier": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "I1",
+			ValidateFunc: validation.StringInSlice([]string{
+				"I1",
+				"I2",
+				"I3",
+			}, false),
+		},
+
+		"allowed_user_ip_cidrs": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: helpersValidate.CIDR,
+			},
+		},
+
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"tags": tags.ForceNewSchema(),
+
+		// Computed
+
+		// VipInfo
+		"internal_ip_address": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"service_ip_address": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"outbound_ip_addresses": {
+			Type: pluginsdk.TypeList,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+			Computed: true,
+		},
+
+		"location": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }

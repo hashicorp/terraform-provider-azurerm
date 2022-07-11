@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppInsightsSmartDetectionRule struct {
-}
+type AppInsightsSmartDetectionRule struct{}
 
 func TestAccApplicationInsightsSmartDetectionRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_smart_detection_rule", "test")

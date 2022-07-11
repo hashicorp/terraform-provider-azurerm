@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MariaDbFirewallRuleResource struct {
-}
+type MariaDbFirewallRuleResource struct{}
 
 func TestAccMariaDbFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_firewall_rule", "test")
@@ -81,11 +80,10 @@ resource "azurerm_mariadb_server" "test" {
 
   sku_name = "GP_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb                   = 51200
+  geo_redundant_backup_enabled = false
+  backup_retention_days        = 7
+
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"

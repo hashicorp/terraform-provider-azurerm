@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = PricingId{}
+var _ resourceids.Id = PricingId{}
 
 func TestPricingIDFormatter(t *testing.T) {
 	actual := NewPricingID("12345678-1234-9876-4563-123456789012", "pricing1").ID()

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorAADDiagnosticSettingResource struct {
-}
+type MonitorAADDiagnosticSettingResource struct{}
 
 func TestAccMonitorAADDiagnosticSetting_eventhubDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
@@ -207,6 +206,21 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
     enabled  = false
     retention_policy {}
   }
+  log {
+    category = "NetworkAccessTrafficLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "RiskyServicePrincipals"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ServicePrincipalRiskEvents"
+    enabled  = false
+    retention_policy {}
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -304,6 +318,21 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
       days    = 1
     }
   }
+  log {
+    category = "NetworkAccessTrafficLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "RiskyServicePrincipals"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ServicePrincipalRiskEvents"
+    enabled  = false
+    retention_policy {}
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -320,6 +349,21 @@ resource "azurerm_monitor_aad_diagnostic_setting" "import" {
   log {
     category = "SignInLogs"
     enabled  = true
+    retention_policy {}
+  }
+  log {
+    category = "NetworkAccessTrafficLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "RiskyServicePrincipals"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ServicePrincipalRiskEvents"
+    enabled  = false
     retention_policy {}
   }
 }
@@ -411,6 +455,21 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
       days    = 1
     }
   }
+  log {
+    category = "NetworkAccessTrafficLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "RiskyServicePrincipals"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ServicePrincipalRiskEvents"
+    enabled  = false
+    retention_policy {}
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -500,6 +559,21 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
       enabled = true
       days    = 1
     }
+  }
+  log {
+    category = "NetworkAccessTrafficLogs"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "RiskyServicePrincipals"
+    enabled  = false
+    retention_policy {}
+  }
+  log {
+    category = "ServicePrincipalRiskEvents"
+    enabled  = false
+    retention_policy {}
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))

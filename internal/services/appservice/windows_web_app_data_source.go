@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
@@ -28,13 +28,13 @@ type WindowsWebAppDataSourceModel struct {
 	AuthSettings                  []helpers.AuthSettings      `tfschema:"auth_settings"`
 	Backup                        []helpers.Backup            `tfschema:"backup"`
 	ClientAffinityEnabled         bool                        `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled             bool                        `tfschema:"client_cert_enabled"`
-	ClientCertMode                string                      `tfschema:"client_cert_mode"`
+	ClientCertEnabled             bool                        `tfschema:"client_certificate_enabled"`
+	ClientCertMode                string                      `tfschema:"client_certificate_mode"`
 	Enabled                       bool                        `tfschema:"enabled"`
 	HttpsOnly                     bool                        `tfschema:"https_only"`
-	Identity                      []helpers.Identity          `tfschema:"identity"`
 	LogsConfig                    []helpers.LogsConfig        `tfschema:"logs"`
 	SiteConfig                    []helpers.SiteConfigWindows `tfschema:"site_config"`
+	StickySettings                []helpers.StickySettings    `tfschema:"sticky_settings"`
 	StorageAccounts               []helpers.StorageAccount    `tfschema:"storage_account"`
 	ConnectionStrings             []helpers.ConnectionString  `tfschema:"connection_string"`
 	CustomDomainVerificationId    string                      `tfschema:"custom_domain_verification_id"`
@@ -66,13 +66,13 @@ func (d WindowsWebAppDataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.WebAppName,
 		},
 
-		"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
 func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": location.SchemaComputed(),
+		"location": commonschema.LocationComputed(),
 
 		"service_plan_id": {
 			Type:     pluginsdk.TypeString,
@@ -96,12 +96,12 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"client_cert_enabled": {
+		"client_certificate_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 
-		"client_cert_mode": {
+		"client_certificate_mode": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -129,7 +129,7 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"identity": helpers.IdentitySchemaComputed(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 		"kind": {
 			Type:     pluginsdk.TypeString,
@@ -168,6 +168,8 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"site_config": helpers.SiteConfigSchemaWindowsComputed(),
 
+		"sticky_settings": helpers.StickySettingsComputedSchema(),
+
 		"storage_account": helpers.StorageAccountSchemaComputed(),
 
 		"tags": tags.SchemaDataSource(),
@@ -181,7 +183,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.AppService.WebAppsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var webApp WindowsWebAppModel
+			var webApp WindowsWebAppDataSourceModel
 			if err := metadata.Decode(&webApp); err != nil {
 				return err
 			}
@@ -231,6 +233,11 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			connectionStrings, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
+			}
+
+			stickySettings, err := client.ListSlotConfigurationNames(ctx, id.ResourceGroup, id.SiteName)
+			if err != nil {
+				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
 			}
 
 			siteCredentialsFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
@@ -284,8 +291,6 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 
 			webApp.Backup = helpers.FlattenBackupConfig(backup)
 
-			webApp.Identity = helpers.FlattenIdentity(existing.Identity)
-
 			webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
 
 			currentStack := ""
@@ -295,6 +300,8 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			}
 			webApp.SiteConfig = helpers.FlattenSiteConfigWindows(webAppSiteConfig.SiteConfig, currentStack, healthCheckCount)
 
+			webApp.StickySettings = helpers.FlattenStickySettings(stickySettings.SlotConfigNames)
+
 			webApp.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
 
 			webApp.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
@@ -303,7 +310,19 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			return metadata.Encode(&webApp)
+			if err := metadata.Encode(&webApp); err != nil {
+				return fmt.Errorf("encoding: %+v", err)
+			}
+
+			flattenedIdentity, err := flattenIdentity(existing.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			return nil
 		},
 	}
 }

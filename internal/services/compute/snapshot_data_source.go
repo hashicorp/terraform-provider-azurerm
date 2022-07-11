@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -25,7 +27,7 @@ func dataSourceSnapshot() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			// Computed
 			"os_type": {
@@ -103,27 +105,32 @@ func dataSourceSnapshot() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"trusted_launch_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func dataSourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.SnapshotsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewSnapshotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Snapshot %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("loading Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("loading %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	if props := resp.SnapshotProperties; props != nil {
 		d.Set("os_type", string(props.OsType))
@@ -136,6 +143,14 @@ func dataSourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 			return fmt.Errorf("setting `encryption_settings`: %+v", err)
 		}
+
+		trustedLaunchEnabled := false
+		if securityProfile := props.SecurityProfile; securityProfile != nil {
+			if securityProfile.SecurityType == compute.DiskSecurityTypesTrustedLaunch {
+				trustedLaunchEnabled = true
+			}
+		}
+		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
 	}
 
 	if data := resp.CreationData; data != nil {

@@ -12,9 +12,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var keyVaultsCache = map[string]keyVaultDetails{}
-var keysmith = &sync.RWMutex{}
-var lock = map[string]*sync.RWMutex{}
+var (
+	keyVaultsCache = map[string]keyVaultDetails{}
+	keysmith       = &sync.RWMutex{}
+	lock           = map[string]*sync.RWMutex{}
+)
 
 type keyVaultDetails struct {
 	keyVaultId       string

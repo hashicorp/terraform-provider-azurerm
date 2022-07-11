@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ProximityPlacementGroupResource struct {
-}
+type ProximityPlacementGroupResource struct{}
 
 func TestAccProximityPlacementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")

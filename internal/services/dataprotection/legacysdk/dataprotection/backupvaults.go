@@ -8,11 +8,12 @@ package dataprotection
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"net/http"
 )
 
 // BackupVaultsClient is the open API 2.0 Specs for Azure Data Protection service
@@ -127,9 +128,14 @@ func (client BackupVaultsClient) CreateOrUpdate(ctx context.Context, vaultName s
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "parameters.Properties.StorageSettings", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+		{
+			TargetValue: parameters,
+			Constraints: []validation.Constraint{{
+				Target: "parameters.Properties", Name: validation.Null, Rule: true,
+				Chain: []validation.Constraint{{Target: "parameters.Properties.StorageSettings", Name: validation.Null, Rule: true, Chain: nil}},
+			}},
+		},
+	}); err != nil {
 		return result, validation.NewError("dataprotection.BackupVaultsClient", "CreateOrUpdate", err.Error())
 	}
 

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type RedisFirewallRuleResource struct {
-}
+type RedisFirewallRuleResource struct{}
 
 func TestAccRedisFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_firewall_rule", "test")
@@ -118,8 +117,8 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    maxmemory_reserved = 2
-    maxmemory_delta    = 2
+    maxmemory_reserved = 642
+    maxmemory_delta    = 642
     maxmemory_policy   = "allkeys-lru"
   }
 }
@@ -183,8 +182,8 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    maxmemory_reserved = 2
-    maxmemory_delta    = 2
+    maxmemory_reserved = 642
+    maxmemory_delta    = 642
     maxmemory_policy   = "allkeys-lru"
   }
 }

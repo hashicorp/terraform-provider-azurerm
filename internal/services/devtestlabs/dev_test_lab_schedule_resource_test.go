@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DevTestLabScheduleResource struct {
-}
+type DevTestLabScheduleResource struct{}
 
 func TestAccDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")

@@ -6,22 +6,21 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2020-06-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/sdk/2020-06-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
-
-type appConfigurationIdentityType = identity.SystemAssignedUserAssigned
 
 func resourceAppConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -52,11 +51,9 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"identity": appConfigurationIdentityType{}.Schema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			// the API changed and now returns the rg in lowercase
-			// revert when https://github.com/Azure/azure-sdk-for-go/issues/6606 is fixed
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
@@ -169,7 +166,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -200,10 +197,10 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		Sku: configurationstores.Sku{
 			Name: d.Get("sku").(string),
 		},
-		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	identity, err := expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -232,11 +229,11 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Sku: &configurationstores.Sku{
 			Name: d.Get("sku").(string),
 		},
-		Tags: tagsHelper.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if d.HasChange("identity") {
-		identity, err := expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
+		identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -292,11 +289,15 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("secondary_read_key", accessKeys.secondaryReadKey)
 		d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
 
-		if err := d.Set("identity", flattenAppConfigurationIdentity(model.Identity)); err != nil {
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags))
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil
@@ -387,24 +388,4 @@ func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []interf
 			"secret":            secret,
 		},
 	}
-}
-
-func expandAppConfigurationIdentity(input []interface{}) (*identity.SystemUserAssignedIdentityMap, error) {
-	expanded, err := appConfigurationIdentityType{}.Expand(input)
-	if err != nil {
-		return nil, err
-	}
-
-	result := identity.SystemUserAssignedIdentityMap{}
-	result.FromExpandedConfig(*expanded)
-	return &result, nil
-}
-
-func flattenAppConfigurationIdentity(identity *identity.SystemUserAssignedIdentityMap) []interface{} {
-	if identity == nil {
-		return []interface{}{}
-	}
-
-	config := identity.ToExpandedConfig()
-	return appConfigurationIdentityType{}.Flatten(&config)
 }

@@ -2,7 +2,6 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/domainservices/mgmt/2020-01-01/aad"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

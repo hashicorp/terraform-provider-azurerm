@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -21,15 +23,19 @@ func dataSourceManagedDisk() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"create_option": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"disk_access_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -59,6 +65,11 @@ func dataSourceManagedDisk() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"network_access_policy": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"os_type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -84,37 +95,40 @@ func dataSourceManagedDisk() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.TagsDataSource(),
 
-			"zones": azure.SchemaZonesComputed(),
+			"zones": commonschema.ZonesMultipleComputed(),
 		},
 	}
 }
 
 func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-
-	resp, err := client.Get(ctx, resGroup, name)
+	id := parse.NewManagedDiskID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.DiskName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Managed Disk %q (Resource Group %q) was not found", name, resGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("[ERROR] Error making Read request on Azure Managed Disk %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("making Read request on %s: %s", id, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("name", id.DiskName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
+	d.Set("zones", zones.Flatten(resp.Zones))
+
+	storageAccountType := ""
 	if sku := resp.Sku; sku != nil {
-		d.Set("storage_account_type", string(sku.Name))
+		storageAccountType = string(sku.Name)
 	}
+	d.Set("storage_account_type", storageAccountType)
 
 	if props := resp.DiskProperties; props != nil {
 		if creationData := props.CreationData; creationData != nil {
@@ -131,6 +145,13 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("storage_account_id", creationData.StorageAccountID)
 		}
 
+		diskAccessId := ""
+		if props.DiskAccessID != nil {
+			diskAccessId = *props.DiskAccessID
+		}
+		d.Set("disk_access_id", diskAccessId)
+
+		d.Set("network_access_policy", string(props.NetworkAccessPolicy))
 		d.Set("disk_size_gb", props.DiskSizeGB)
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
@@ -142,8 +163,6 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 		d.Set("disk_encryption_set_id", diskEncryptionSetId)
 	}
-
-	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

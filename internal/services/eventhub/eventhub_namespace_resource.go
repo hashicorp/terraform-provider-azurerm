@@ -1,6 +1,7 @@
 package eventhub
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -9,18 +10,18 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	tagsHelper "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2018-01-01-preview/eventhubsclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2018-01-01-preview/networkrulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2017-04-01/authorizationrulesnamespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/eventhubsclusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2018-01-01-preview/networkrulesets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/sdk/2021-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -35,13 +36,11 @@ var (
 	eventHubNamespaceResourceName             = "azurerm_eventhub_namespace"
 )
 
-type eventhubNamespaceIdentityType = identity.SystemAssigned
-
 func resourceEventHubNamespace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventHubNamespaceCreateUpdate,
+		Create: resourceEventHubNamespaceCreate,
 		Read:   resourceEventHubNamespaceRead,
-		Update: resourceEventHubNamespaceCreateUpdate,
+		Update: resourceEventHubNamespaceUpdate,
 		Delete: resourceEventHubNamespaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -64,19 +63,18 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": commonschema.Location(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     pluginsdk.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.SkuNameBasic),
 					string(namespaces.SkuNameStandard),
 					string(namespaces.SkuNamePremium),
-				}, true),
+				}, false),
 			},
 
 			"capacity": {
@@ -105,7 +103,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				ValidateFunc: eventhubsclusters.ValidateClusterID,
 			},
 
-			"identity": eventhubNamespaceIdentityType{}.Schema(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"maximum_throughput_units": {
 				Type:         pluginsdk.TypeInt,
@@ -137,14 +135,16 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 						},
 
 						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
+						// Returned value of the `virtual_network_rule` array does not honor the input order,
+						// possibly a service design, thus changed to TypeSet
 						"virtual_network_rule": {
-							Type:       pluginsdk.TypeList,
+							Type:       pluginsdk.TypeSet,
 							Optional:   true,
 							MaxItems:   128,
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
+							Set:        resourceVnetRuleHash,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									// the API returns the subnet ID's resource group name in lowercase
 									// https://github.com/Azure/azure-sdk-for-go/issues/5855
 									"subnet_id": {
@@ -226,7 +226,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			oldSku, newSku := d.GetChange("sku")
@@ -247,7 +247,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -255,17 +255,15 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace creation.")
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
 
-		if existing.Model != nil {
-			return tf.ImportAsExistsError("azurerm_eventhub_namespace", id.ID())
-		}
+	if existing.Model != nil {
+		return tf.ImportAsExistsError("azurerm_eventhub_namespace", id.ID())
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -275,7 +273,7 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
 	zoneRedundant := d.Get("zone_redundant").(bool)
 
-	identity, err := expandEventHubIdentity(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -295,7 +293,87 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
 			ZoneRedundant:        utils.Bool(zoneRedundant),
 		},
-		Tags: tagsHelper.Expand(t),
+		Tags: tags.Expand(t),
+	}
+
+	if v := d.Get("dedicated_cluster_id").(string); v != "" {
+		parameters.Properties.ClusterArmId = utils.String(v)
+	}
+
+	if v, ok := d.GetOk("maximum_throughput_units"); ok {
+		parameters.Properties.MaximumThroughputUnits = utils.Int64(int64(v.(int)))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	ruleSets, hasRuleSets := d.GetOk("network_rulesets")
+	if hasRuleSets {
+		rulesets := networkrulesets.NetworkRuleSet{
+			Properties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
+		}
+
+		// cannot use network rulesets with the basic SKU
+		if parameters.Sku.Name != namespaces.SkuNameBasic {
+			ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
+			namespaceId := networkrulesets.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+			if _, err := ruleSetsClient.NamespacesCreateOrUpdateNetworkRuleSet(ctx, namespaceId, rulesets); err != nil {
+				return fmt.Errorf("setting network ruleset properties for %s: %+v", id, err)
+			}
+		} else if rulesets.Properties != nil {
+			props := rulesets.Properties
+			// so if the user has specified the non default rule sets throw a validation error
+			if *props.DefaultAction != networkrulesets.DefaultActionDeny ||
+				(props.IpRules != nil && len(*props.IpRules) > 0) ||
+				(props.VirtualNetworkRules != nil && len(*props.VirtualNetworkRules) > 0) {
+				return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
+			}
+		}
+	}
+
+	return resourceEventHubNamespaceRead(d, meta)
+}
+
+func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Eventhub.NamespacesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace update.")
+
+	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	sku := d.Get("sku").(string)
+	capacity := int32(d.Get("capacity").(int))
+	t := d.Get("tags").(map[string]interface{})
+	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
+	zoneRedundant := d.Get("zone_redundant").(bool)
+
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	parameters := namespaces.EHNamespace{
+		Location: &location,
+		Sku: &namespaces.Sku{
+			Name: namespaces.SkuName(sku),
+			Tier: func() *namespaces.SkuTier {
+				v := namespaces.SkuTier(sku)
+				return &v
+			}(),
+			Capacity: utils.Int64(int64(capacity)),
+		},
+		Identity: identity,
+		Properties: &namespaces.EHNamespaceProperties{
+			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
+			ZoneRedundant:        utils.Bool(zoneRedundant),
+		},
+		Tags: tags.Expand(t),
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
@@ -315,8 +393,8 @@ func resourceEventHubNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		parameters.Properties.MaximumThroughputUnits = utils.Int64(0)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if _, err := client.Update(ctx, id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -380,7 +458,12 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("capacity", sku.Capacity)
 		}
 
-		if err := d.Set("identity", flattenEventHubIdentity(model.Identity)); err != nil {
+		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if err := d.Set("identity", identity); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
@@ -391,8 +474,8 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
 		}
 
-		if err := tags.FlattenAndSet(d, tagsHelper.Flatten(model.Tags)); err != nil {
-			return fmt.Errorf("setting `tags`: %+v", err)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
 	}
 
@@ -503,10 +586,11 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 		ruleset.TrustedServiceAccessEnabled = utils.Bool(v.(bool))
 	}
 
-	if v, ok := block["virtual_network_rule"].([]interface{}); ok {
-		if len(v) > 0 {
+	if v, ok := block["virtual_network_rule"]; ok {
+		value := v.(*pluginsdk.Set).List()
+		if len(value) > 0 {
 			var rules []networkrulesets.NWRuleSetVirtualNetworkRules
-			for _, r := range v {
+			for _, r := range value {
 				rblock := r.(map[string]interface{})
 				rules = append(rules, networkrulesets.NWRuleSetVirtualNetworkRules{
 					Subnet: &networkrulesets.Subnet{
@@ -541,7 +625,7 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 	return &ruleset
 }
 
-func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGetNetworkRuleSetResponse) []interface{} {
+func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGetNetworkRuleSetOperationResponse) []interface{} {
 	if ruleset.Model == nil || ruleset.Model.Properties == nil {
 		return nil
 	}
@@ -594,22 +678,18 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 	}}
 }
 
-func expandEventHubIdentity(input []interface{}) (*identity.SystemUserAssignedIdentityMap, error) {
-	expanded, err := eventhubNamespaceIdentityType{}.Expand(input)
-	if err != nil {
-		return nil, err
+// The resource id of subnet_id that's being returned by API is always lower case &
+// the default caseDiff suppress func is not working in TypeSet
+func resourceVnetRuleHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		if v, ok := m["subnet_id"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
+		}
+		if v, ok := m["ignore_missing_virtual_network_service_endpoint"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
 	}
-
-	result := identity.SystemUserAssignedIdentityMap{}
-	result.FromExpandedConfig(*expanded)
-	return &result, nil
-}
-
-func flattenEventHubIdentity(input *identity.SystemUserAssignedIdentityMap) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	config := input.ToExpandedConfig()
-	return eventhubNamespaceIdentityType{}.Flatten(&config)
+	return pluginsdk.HashString(buf.String())
 }

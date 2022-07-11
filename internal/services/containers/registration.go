@@ -1,6 +1,7 @@
 package containers
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -22,6 +23,7 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_kubernetes_service_versions":  dataSourceKubernetesServiceVersions(),
+		"azurerm_container_group":              dataSourceContainerGroup(),
 		"azurerm_container_registry":           dataSourceContainerRegistry(),
 		"azurerm_container_registry_token":     dataSourceContainerRegistryToken(),
 		"azurerm_container_registry_scope_map": dataSourceContainerRegistryScopeMap(),
@@ -33,12 +35,24 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_container_group":              resourceContainerGroup(),
-		"azurerm_container_registry_webhook":   resourceContainerRegistryWebhook(),
-		"azurerm_container_registry":           resourceContainerRegistry(),
-		"azurerm_container_registry_token":     resourceContainerRegistryToken(),
-		"azurerm_container_registry_scope_map": resourceContainerRegistryScopeMap(),
-		"azurerm_kubernetes_cluster":           resourceKubernetesCluster(),
-		"azurerm_kubernetes_cluster_node_pool": resourceKubernetesClusterNodePool(),
+		"azurerm_container_group":               resourceContainerGroup(),
+		"azurerm_container_registry_agent_pool": resourceContainerRegistryAgentPool(),
+		"azurerm_container_registry_webhook":    resourceContainerRegistryWebhook(),
+		"azurerm_container_registry":            resourceContainerRegistry(),
+		"azurerm_container_registry_token":      resourceContainerRegistryToken(),
+		"azurerm_container_registry_scope_map":  resourceContainerRegistryScopeMap(),
+		"azurerm_kubernetes_cluster":            resourceKubernetesCluster(),
+		"azurerm_kubernetes_cluster_node_pool":  resourceKubernetesClusterNodePool(),
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		ContainerRegistryTaskResource{},
+		ContainerConnectedRegistryResource{},
 	}
 }

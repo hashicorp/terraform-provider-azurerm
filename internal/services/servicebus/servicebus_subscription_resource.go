@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,6 +24,11 @@ func resourceServiceBusSubscription() *pluginsdk.Resource {
 		Update: resourceServiceBusSubscriptionCreateUpdate,
 		Delete: resourceServiceBusSubscriptionDelete,
 
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ServiceBusSubscriptionV0ToV1{},
+		}),
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.SubscriptionID(id)
 			return err
@@ -36,108 +41,109 @@ func resourceServiceBusSubscription() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.SubscriptionName(),
-			},
+		Schema: resourceServicebusSubscriptionSchema(),
+	}
+}
 
-			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NamespaceName,
-			},
+func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.SubscriptionName(),
+		},
 
-			"topic_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.TopicName(),
-			},
+		//lintignore: S013
+		"topic_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.TopicID,
+		},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+		"auto_delete_on_idle": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
 
-			"auto_delete_on_idle": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
+		"default_message_ttl": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
 
-			"default_message_ttl": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
+		"lock_duration": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
 
-			"lock_duration": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
+		"dead_lettering_on_message_expiration": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
 
-			"dead_lettering_on_message_expiration": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
+		"dead_lettering_on_filter_evaluation_error": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
 
-			"dead_lettering_on_filter_evaluation_error": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
+		// TODO 4.0: change this from enable_* to *_enabled
+		"enable_batched_operations": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
 
-			"enable_batched_operations": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
+		"max_delivery_count": {
+			Type:     pluginsdk.TypeInt,
+			Required: true,
+		},
 
-			"max_delivery_count": {
-				Type:     pluginsdk.TypeInt,
-				Required: true,
-			},
+		"requires_session": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			// cannot be modified
+			ForceNew: true,
+		},
 
-			"requires_session": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				// cannot be modified
-				ForceNew: true,
-			},
+		"forward_to": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
 
-			"forward_to": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
+		"forward_dead_lettered_messages_to": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
 
-			"forward_dead_lettered_messages_to": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
-
-			"status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(servicebus.EntityStatusActive),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servicebus.EntityStatusActive),
-					string(servicebus.EntityStatusDisabled),
-					string(servicebus.EntityStatusReceiveDisabled),
-				}, false),
-			},
+		"status": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(servicebus.EntityStatusActive),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(servicebus.EntityStatusActive),
+				string(servicebus.EntityStatusDisabled),
+				string(servicebus.EntityStatusReceiveDisabled),
+			}, false),
 		},
 	}
 }
 
 func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for ServiceBus Subscription creation.")
 
-	resourceId := parse.NewSubscriptionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("topic_name").(string), d.Get("name").(string))
+	var resourceId parse.SubscriptionId
+	if topicIdLit := d.Get("topic_id").(string); topicIdLit != "" {
+		topicId, _ := parse.TopicID(topicIdLit)
+		resourceId = parse.NewSubscriptionID(topicId.SubscriptionId, topicId.ResourceGroup, topicId.NamespaceName, topicId.Name, d.Get("name").(string))
+	}
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.Name)
 		if err != nil {
@@ -210,9 +216,7 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.Set("name", id.Name)
-	d.Set("topic_name", id.TopicName)
-	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("topic_id", parse.NewTopicID(id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.TopicName).ID())
 
 	if props := resp.SBSubscriptionProperties; props != nil {
 		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)

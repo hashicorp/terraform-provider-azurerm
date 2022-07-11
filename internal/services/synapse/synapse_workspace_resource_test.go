@@ -112,7 +112,7 @@ func TestAccSynapseWorkspace_azdo(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.azdo(data),
+			Config: r.azureDevOps(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("azure_devops_repo.0.account_name").HasValue("myorg"),
@@ -132,7 +132,7 @@ func TestAccSynapseWorkspace_azdoTenant(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.azdoTenant(data),
+			Config: r.azureDevOpsTenant(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("azure_devops_repo.0.account_name").HasValue("myorg"),
@@ -210,6 +210,10 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -226,6 +230,10 @@ resource "azurerm_synapse_workspace" "import" {
   storage_data_lake_gen2_filesystem_id = azurerm_synapse_workspace.test.storage_data_lake_gen2_filesystem_id
   sql_administrator_login              = azurerm_synapse_workspace.test.sql_administrator_login
   sql_administrator_login_password     = azurerm_synapse_workspace.test.sql_administrator_login_password
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, config)
 }
@@ -242,7 +250,10 @@ resource "azurerm_purview_account" "test" {
   name                = "acctestacc%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
-  sku_name            = "Standard_1"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -275,6 +286,10 @@ resource "azurerm_synapse_workspace" "test" {
   purview_id                           = azurerm_purview_account.test.id
   compute_subnet_id                    = azurerm_subnet.test.id
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   tags = {
     ENV = "Test"
   }
@@ -302,6 +317,10 @@ resource "azurerm_synapse_workspace" "test" {
     login     = "AzureAD Admin"
     object_id = data.azurerm_client_config.current.object_id
     tenant_id = data.azurerm_client_config.current.tenant_id
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 
   tags = {
@@ -332,6 +351,10 @@ resource "azurerm_synapse_workspace" "test" {
     login     = "AzureAD Admin"
     object_id = data.azurerm_client_config.current.object_id
     tenant_id = data.azurerm_client_config.current.tenant_id
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 
   tags = {
@@ -369,6 +392,10 @@ resource "azurerm_synapse_workspace" "test" {
     tenant_id = data.azurerm_client_config.current.tenant_id
   }
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   tags = {
     ENV = "Test2"
   }
@@ -376,7 +403,7 @@ resource "azurerm_synapse_workspace" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r SynapseWorkspaceResource) azdo(data acceptance.TestData) string {
+func (r SynapseWorkspaceResource) azureDevOps(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -397,11 +424,15 @@ resource "azurerm_synapse_workspace" "test" {
     root_folder     = "/"
     last_commit_id  = "1592393b38543d51feb12714cbd39501d697610c"
   }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, template, data.RandomInteger)
 }
 
-func (r SynapseWorkspaceResource) azdoTenant(data acceptance.TestData) string {
+func (r SynapseWorkspaceResource) azureDevOpsTenant(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -423,6 +454,10 @@ resource "azurerm_synapse_workspace" "test" {
     branch_name     = "dev"
     root_folder     = "/"
     tenant_id       = data.azurerm_client_config.current.tenant_id
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 }
 `, template, data.RandomInteger)
@@ -449,6 +484,10 @@ resource "azurerm_synapse_workspace" "test" {
     root_folder     = "/"
     last_commit_id  = "1592393b38543d51feb12714cbd39501d697610c"
   }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -472,10 +511,10 @@ resource "azurerm_key_vault" "test" {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
     key_permissions = [
-      "create",
-      "get",
-      "delete",
-      "purge"
+      "Create",
+      "Get",
+      "Delete",
+      "Purge"
     ]
   }
 }
@@ -498,10 +537,14 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+
   customer_managed_key {
     key_versionless_id = azurerm_key_vault_key.test.versionless_id
   }
 
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -511,7 +554,8 @@ func (r SynapseWorkspaceResource) template(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = false
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
     }
   }
 }

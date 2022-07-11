@@ -11,6 +11,8 @@ description: |-
 
 Manages an App Service source control token.
 
+!> **NOTE:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_service_plan`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan) resource instead.
+
 ~> **NOTE:** Source Control Tokens are configured at the subscription level, not on each App Service - as such this can only be configured Subscription-wide
 
 ## Example Usage
@@ -46,5 +48,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 App Service Source Control Token's can be imported using the `type`, e.g.
 
 ```shell
-terraform import azurerm_app_service_source_control_token.example GitHub
+terraform import azurerm_app_service_source_control_token.example /providers/Microsoft.Web/sourceControls/GitHub
 ```

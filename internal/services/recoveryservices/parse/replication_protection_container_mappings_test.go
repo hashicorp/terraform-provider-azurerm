@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = ReplicationProtectionContainerMappingsId{}
+var _ resourceids.Id = ReplicationProtectionContainerMappingsId{}
 
 func TestReplicationProtectionContainerMappingsIDFormatter(t *testing.T) {
 	actual := NewReplicationProtectionContainerMappingsID("12345678-1234-9876-4563-123456789012", "group1", "vault1", "fabric1", "container1", "mapping1").ID()

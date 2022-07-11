@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -66,8 +66,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 					string(compute.CachingTypesNone),
 					string(compute.CachingTypesReadOnly),
 					string(compute.CachingTypesReadWrite),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, false),
 			},
 
 			"create_option": {
@@ -78,8 +77,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.DiskCreateOptionTypesAttach),
 					string(compute.DiskCreateOptionTypesEmpty),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, false),
 			},
 
 			"write_accelerator_enabled": {
@@ -101,8 +99,8 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("parsing Virtual Machine ID %q: %+v", parsedVirtualMachineId.ID(), err)
 	}
 
-	locks.ByName(parsedVirtualMachineId.Name, virtualMachineResourceName)
-	defer locks.UnlockByName(parsedVirtualMachineId.Name, virtualMachineResourceName)
+	locks.ByName(parsedVirtualMachineId.Name, VirtualMachineResourceName)
+	defer locks.UnlockByName(parsedVirtualMachineId.Name, VirtualMachineResourceName)
 
 	virtualMachine, err := client.Get(ctx, parsedVirtualMachineId.ResourceGroup, parsedVirtualMachineId.Name, "")
 	if err != nil {
@@ -255,8 +253,8 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	locks.ByName(id.VirtualMachineName, virtualMachineResourceName)
-	defer locks.UnlockByName(id.VirtualMachineName, virtualMachineResourceName)
+	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
+	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
 	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
 	if err != nil {
@@ -301,7 +299,7 @@ func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta inter
 
 	parsedId, err := parse.ManagedDiskID(id)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Managed Disk ID %q: %+v", parsedId.String(), err)
+		return nil, fmt.Errorf("parsing Managed Disk ID %q: %+v", id, err)
 	}
 
 	resp, err := client.Get(ctx, parsedId.ResourceGroup, parsedId.DiskName)

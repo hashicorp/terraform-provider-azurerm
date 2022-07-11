@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -77,7 +76,7 @@ func TestAccSynapseSpark_identity(t *testing.T) {
 			Config: r.identitySystemAssignedUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -93,7 +92,7 @@ func TestAccSynapseSpark_identity(t *testing.T) {
 			Config: r.identitySystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -102,9 +101,8 @@ func TestAccSynapseSpark_identity(t *testing.T) {
 }
 
 func (r SynapseSparkResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	computeClient := client.MachineLearning.MachineLearningComputeClient
+	computeClient := client.MachineLearning.ComputeClient
 	id, err := parse.ComputeID(state.ID)
-
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +226,7 @@ resource "azurerm_machine_learning_synapse_spark" "test" {
   synapse_spark_pool_id         = azurerm_synapse_spark_pool.test.id
 
   identity {
-    type = "SystemAssigned,UserAssigned"
+    type = "SystemAssigned, UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
@@ -301,6 +299,10 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_synapse_spark_pool" "test" {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
@@ -39,13 +39,13 @@ func (r ApiManagementNotificationRecipientUserResource) Arguments() map[string]*
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(apimanagement.AccountClosedPublisher),
-				string(apimanagement.BCC),
-				string(apimanagement.NewApplicationNotificationMessage),
-				string(apimanagement.NewIssuePublisherNotificationMessage),
-				string(apimanagement.PurchasePublisherNotificationMessage),
-				string(apimanagement.QuotaLimitApproachingPublisherNotificationMessage),
-				string(apimanagement.RequestPublisherNotificationMessage),
+				string(apimanagement.NotificationNameAccountClosedPublisher),
+				string(apimanagement.NotificationNameBCC),
+				string(apimanagement.NotificationNameNewApplicationNotificationMessage),
+				string(apimanagement.NotificationNameNewIssuePublisherNotificationMessage),
+				string(apimanagement.NotificationNamePurchasePublisherNotificationMessage),
+				string(apimanagement.NotificationNameQuotaLimitApproachingPublisherNotificationMessage),
+				string(apimanagement.NotificationNameRequestPublisherNotificationMessage),
 			}, false),
 		},
 

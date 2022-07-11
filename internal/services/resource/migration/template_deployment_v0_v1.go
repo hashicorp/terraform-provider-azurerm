@@ -6,15 +6,13 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var _ pluginsdk.StateUpgrade = TemplateDeploymentV0ToV1{}
 
-type TemplateDeploymentV0ToV1 struct {
-}
+type TemplateDeploymentV0ToV1 struct{}
 
 func (t TemplateDeploymentV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

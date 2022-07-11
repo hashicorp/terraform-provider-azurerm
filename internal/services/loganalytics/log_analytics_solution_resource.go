@@ -118,8 +118,8 @@ func resourceLogAnalyticsSolutionCreateUpdate(d *pluginsdk.ResourceData, meta in
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_solution", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_log_analytics_solution", id.ID())
 		}
 	}
 
@@ -186,7 +186,7 @@ func resourceLogAnalyticsSolutionRead(d *pluginsdk.ResourceData, meta interface{
 		val := *v
 		segments := strings.Split(*v, "(")
 		if len(segments) != 2 {
-			return fmt.Errorf("Expected %q to match 'Solution(WorkspaceName)'", val)
+			return fmt.Errorf("expected %q to match 'Solution(WorkspaceName)'", val)
 		}
 
 		solutionName := segments[0]

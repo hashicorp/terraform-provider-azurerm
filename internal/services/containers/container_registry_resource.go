@@ -4,24 +4,24 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2020-11-01-preview/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerregistry/mgmt/2021-08-01-preview/containerregistry"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
-	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	identityParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	identityValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -52,364 +52,82 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate2.ContainerRegistryName,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			"sku": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Default:          string(containerregistry.Classic),
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerregistry.Classic),
-					string(containerregistry.Basic),
-					string(containerregistry.Standard),
-					string(containerregistry.Premium),
-				}, true),
-			},
-
-			"admin_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-			// TODO 3.0 - Remove below property
-			"georeplication_locations": {
-				Type:          pluginsdk.TypeSet,
-				Optional:      true,
-				Deprecated:    "Deprecated in favour of `georeplications`",
-				Computed:      true,
-				ConflictsWith: []string{"georeplications"},
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-				Set: location.HashCode,
-			},
-
-			"georeplications": {
-				// Don't make this a TypeSet since TypeSet has bugs when there is a nested property using `StateFunc`.
-				// See: https://github.com/hashicorp/terraform-plugin-sdk/issues/160
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				Computed:      true, // TODO -- remove this when deprecation resolves
-				ConflictsWith: []string{"georeplication_locations"},
-				ConfigMode:    pluginsdk.SchemaConfigModeAttr, // TODO -- remove in 3.0, because this property is optional and computed, it has to be declared as empty array to remove existed values
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"location": location.SchemaWithoutForceNew(),
-
-						"zone_redundancy_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"regional_endpoint_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-
-						"tags": tags.Schema(),
-					},
-				},
-			},
-
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			// TODO 3.0 - Remove this property as all the Classic sku instances are now deprecated and out of support at the serice side.
-			"storage_account_id": {
-				Type:       pluginsdk.TypeString,
-				Optional:   true,
-				Computed:   true,
-				ForceNew:   true,
-				Deprecated: "this attribute is no longer recognized by the API and is not functional anymore, thus this property will be removed in v3.0",
-			},
-
-			"login_server": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"admin_username": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"admin_password": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"identity": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"type": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(containerregistry.ResourceIdentityTypeSystemAssigned),
-								string(containerregistry.ResourceIdentityTypeUserAssigned),
-								string(containerregistry.ResourceIdentityTypeSystemAssignedUserAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"identity_ids": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: identityValidate.UserAssignedIdentityID,
-							},
-						},
-					},
-				},
-			},
-
-			"encryption": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"identity_client_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsUUID,
-						},
-						"key_vault_key_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
-						},
-					},
-				},
-			},
-
-			"network_rule_set": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr, // make sure we can set this to an empty array for Premium -> Basic
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  containerregistry.DefaultActionAllow,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(containerregistry.DefaultActionAllow),
-								string(containerregistry.DefaultActionDeny),
-							}, false),
-						},
-
-						"ip_rule": {
-							Type:       pluginsdk.TypeSet,
-							Optional:   true,
-							ConfigMode: pluginsdk.SchemaConfigModeAttr,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"action": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(containerregistry.Allow),
-										}, false),
-									},
-									"ip_range": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validate.CIDR,
-									},
-								},
-							},
-						},
-
-						"virtual_network": {
-							Type:       pluginsdk.TypeSet,
-							Optional:   true,
-							ConfigMode: pluginsdk.SchemaConfigModeAttr,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"action": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(containerregistry.Allow),
-										}, false),
-									},
-									"subnet_id": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: azure.ValidateResourceID,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-
-			"quarantine_policy_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"retention_policy": {
-				Type:       pluginsdk.TypeList,
-				MaxItems:   1,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"days": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							Default:  7,
-						},
-
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-					},
-				},
-			},
-
-			"trust_policy": {
-				Type:       pluginsdk.TypeList,
-				MaxItems:   1,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-					},
-				},
-			},
-
-			"zone_redundancy_enabled": {
-				Type:     pluginsdk.TypeBool,
-				ForceNew: true,
-				Optional: true,
-				Default:  false,
-			},
-
-			"anonymous_pull_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"data_endpoint_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"network_rule_bypass_option": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerregistry.NetworkRuleBypassOptionsAzureServices),
-					string(containerregistry.NetworkRuleBypassOptionsNone),
-				}, false),
-				Default: string(containerregistry.NetworkRuleBypassOptionsAzureServices),
-			},
-
-			"tags": tags.Schema(),
-		},
+		Schema: resourceContainerRegistrySchema(),
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			sku := d.Get("sku").(string)
-			geoReplicationLocations := d.Get("georeplication_locations").(*pluginsdk.Set)
+
+			hasGeoReplications := false
 			geoReplications := d.Get("georeplications").([]interface{})
-			hasGeoReplicationsApplied := geoReplicationLocations.Len() > 0 || len(geoReplications) > 0
+			hasGeoReplicationsApplied := hasGeoReplications || len(geoReplications) > 0
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
-			if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+			if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 			}
 
+			// ensure location is different than any location of the geo-replication
+			var geoReplicationLocations []string
+			for _, v := range geoReplications {
+				v := v.(map[string]interface{})
+				geoReplicationLocations = append(geoReplicationLocations, azure.NormalizeLocation(v["location"]))
+			}
+			location := location.Normalize(d.Get("location").(string))
+			for _, loc := range geoReplicationLocations {
+				if loc == location {
+					return fmt.Errorf("The `georeplications` list cannot contain the location where the Container Registry exists.")
+				}
+			}
+
 			quarantinePolicyEnabled := d.Get("quarantine_policy_enabled").(bool)
-			if quarantinePolicyEnabled && !strings.EqualFold(sku, string(containerregistry.Premium)) {
-				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set quarantine_policy {}")
+			if quarantinePolicyEnabled && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
+				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset quarantine_policy_enabled")
 			}
 
 			retentionPolicyEnabled, ok := d.GetOk("retention_policy.0.enabled")
-			if ok && retentionPolicyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+			if ok && retentionPolicyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set retention_policy {}")
 			}
 
 			trustPolicyEnabled, ok := d.GetOk("trust_policy.0.enabled")
-			if ok && trustPolicyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+			if ok && trustPolicyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set trust_policy {}")
 			}
 
+			exportPolicyEnabled := d.Get("export_policy_enabled").(bool)
+			if !exportPolicyEnabled {
+				if !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
+					return fmt.Errorf("ACR export policy can only be disabled when using the Premium Sku. If you are downgrading from a Premium SKU please unset `export_policy_enabled` or set `export_policy_enabled = true`")
+				}
+				if d.Get("public_network_access_enabled").(bool) {
+					return fmt.Errorf("To disable export of artifacts, `public_network_access_enabled` must also be `false`")
+				}
+			}
+
 			encryptionEnabled, ok := d.GetOk("encryption.0.enabled")
-			if ok && encryptionEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+			if ok && encryptionEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("ACR encryption can only be applied when using the Premium Sku.")
 			}
 
 			// zone redundancy is only available for Premium Sku.
 			zoneRedundancyEnabled, ok := d.GetOk("zone_redundancy_enabled")
-			if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+			if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("ACR zone redundancy can only be applied when using the Premium Sku")
 			}
 			for _, loc := range geoReplications {
 				loc := loc.(map[string]interface{})
 				zoneRedundancyEnabled, ok := loc["zone_redundancy_enabled"]
-				if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+				if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 					return fmt.Errorf("ACR zone redundancy can only be applied when using the Premium Sku")
 				}
 			}
 
 			// anonymous pull is only available for Standard/Premium Sku.
-			if d.Get("anonymous_pull_enabled").(bool) && (!strings.EqualFold(sku, string(containerregistry.Standard)) && !strings.EqualFold(sku, string(containerregistry.Premium))) {
+			if d.Get("anonymous_pull_enabled").(bool) && (!strings.EqualFold(sku, string(containerregistry.SkuNameStandard)) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium))) {
 				return fmt.Errorf("`anonymous_pull_enabled` can only be applied when using the Standard/Premium Sku")
 			}
 
 			// data endpoint is only available for Premium Sku.
-			if d.Get("data_endpoint_enabled").(bool) && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+			if d.Get("data_endpoint_enabled").(bool) && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 				return fmt.Errorf("`data_endpoint_enabled` can only be applied when using the Premium Sku")
 			}
 
@@ -420,48 +138,47 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 
 func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.RegistriesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for  Container Registry creation.")
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewRegistryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Container Registry %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_container_registry", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_container_registry", id.ID())
 		}
 	}
 
 	availabilityRequest := containerregistry.RegistryNameCheckRequest{
-		Name: utils.String(name),
+		Name: utils.String(id.Name),
 		Type: utils.String("Microsoft.ContainerRegistry/registries"),
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
 	if err != nil {
-		return fmt.Errorf("checking if the name %q was available: %+v", name, err)
+		return fmt.Errorf("checking if the name %q was available: %+v", id.Name, err)
 	}
 
 	if !*available.NameAvailable {
-		return fmt.Errorf("The name %q used for the Container Registry needs to be globally unique and isn't available: %s", name, *available.Message)
+		return fmt.Errorf("the name %q used for the Container Registry needs to be globally unique and isn't available: %s", id.Name, *available.Message)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
-	geoReplicationLocations := d.Get("georeplication_locations").(*pluginsdk.Set)
 	geoReplications := d.Get("georeplications").([]interface{})
 
 	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
-	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
 	}
 
@@ -473,11 +190,15 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	trustPolicyRaw := d.Get("trust_policy").([]interface{})
 	trustPolicy := expandTrustPolicy(trustPolicyRaw)
 
+	exportPolicy := expandExportPolicy(d.Get("export_policy_enabled").(bool))
+
 	encryptionRaw := d.Get("encryption").([]interface{})
 	encryption := expandEncryption(encryptionRaw)
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity := expandIdentityProperties(identityRaw)
+	identity, err := expandRegistryIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 
 	publicNetworkAccess := containerregistry.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
@@ -504,6 +225,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 				QuarantinePolicy: quarantinePolicy,
 				RetentionPolicy:  retentionPolicy,
 				TrustPolicy:      trustPolicy,
+				ExportPolicy:     exportPolicy,
 			},
 			PublicNetworkAccess:      publicNetworkAccess,
 			ZoneRedundancy:           zoneRedundancy,
@@ -515,40 +237,27 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, parameters)
+	future, err := client.Create(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	// the ACR is being created so no previous geo-replication locations
 	var oldGeoReplicationLocations, newGeoReplicationLocations []containerregistry.Replication
-	if geoReplicationLocations != nil && geoReplicationLocations.Len() > 0 {
-		newGeoReplicationLocations = expandReplicationsFromLocations(geoReplicationLocations.List())
-	} else {
-		newGeoReplicationLocations = expandReplications(geoReplications)
-	}
+	newGeoReplicationLocations = expandReplications(geoReplications)
 	// geo replications have been specified
 	if len(newGeoReplicationLocations) > 0 {
-		err = applyGeoReplicationLocations(d, meta, resourceGroup, name, oldGeoReplicationLocations, newGeoReplicationLocations)
+		err = applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, oldGeoReplicationLocations, newGeoReplicationLocations)
 		if err != nil {
-			return fmt.Errorf("applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Container Registry %q (resource group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceContainerRegistryRead(d, meta)
 }
@@ -559,22 +268,19 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for  Container Registry update.")
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id, err := parse.RegistryID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	sku := d.Get("sku").(string)
 	skuChange := d.HasChange("sku")
-	isBasicSku := strings.EqualFold(sku, string(containerregistry.Basic))
-	isPremiumSku := strings.EqualFold(sku, string(containerregistry.Premium))
-	isStandardSku := strings.EqualFold(sku, string(containerregistry.Standard))
+	isBasicSku := strings.EqualFold(sku, string(containerregistry.SkuNameBasic))
+	isPremiumSku := strings.EqualFold(sku, string(containerregistry.SkuNamePremium))
+	isStandardSku := strings.EqualFold(sku, string(containerregistry.SkuNameStandard))
 
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
-
-	old, new := d.GetChange("georeplication_locations")
-	hasGeoReplicationLocationsChanges := d.HasChange("georeplication_locations")
-	oldGeoReplicationLocations := old.(*pluginsdk.Set)
-	newGeoReplicationLocations := new.(*pluginsdk.Set)
 
 	oldReplicationsRaw, newReplicationsRaw := d.GetChange("georeplications")
 	hasGeoReplicationsChanges := d.HasChange("georeplications")
@@ -583,8 +289,8 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// handle upgrade to Premium SKU first
 	if skuChange && isPremiumSku {
-		if err := applyContainerRegistrySku(d, meta, sku, resourceGroup, name); err != nil {
-			return fmt.Errorf("applying sku %q for Container Registry %q (Resource Group %q): %+v", sku, name, resourceGroup, err)
+		if err := applyContainerRegistrySku(d, meta, sku, id.ResourceGroup, id.Name); err != nil {
+			return fmt.Errorf("applying sku %q for %s: %+v", sku, id, err)
 		}
 	}
 
@@ -596,14 +302,17 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	quarantinePolicy := expandQuarantinePolicy(d.Get("quarantine_policy_enabled").(bool))
 	retentionPolicy := expandRetentionPolicy(d.Get("retention_policy").([]interface{}))
 	trustPolicy := expandTrustPolicy(d.Get("trust_policy").([]interface{}))
+	exportPolicy := expandExportPolicy(d.Get("export_policy_enabled").(bool))
 
 	publicNetworkAccess := containerregistry.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = containerregistry.PublicNetworkAccessDisabled
 	}
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity := expandIdentityProperties(identityRaw)
+	identity, err := expandRegistryIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 
 	encryptionRaw := d.Get("encryption").([]interface{})
 	encryption := expandEncryption(encryptionRaw)
@@ -616,6 +325,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 				QuarantinePolicy: quarantinePolicy,
 				RetentionPolicy:  retentionPolicy,
 				TrustPolicy:      trustPolicy,
+				ExportPolicy:     exportPolicy,
 			},
 			PublicNetworkAccess:      publicNetworkAccess,
 			Encryption:               encryption,
@@ -627,50 +337,46 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Tags:     tags.Expand(t),
 	}
 
+	var hasGeoReplicationLocationsChanges bool
+	var hasNewGeoReplicationLocations bool
+	oldGeoReplicationLocations := make([]interface{}, 0)
+	newGeoReplicationLocations := make([]interface{}, 0)
+
 	// geo replication is only supported by Premium Sku
-	hasGeoReplicationsApplied := newGeoReplicationLocations.Len() > 0 || len(newReplications) > 0
-	if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+	hasGeoReplicationsApplied := hasNewGeoReplicationLocations || len(newReplications) > 0
+	if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(containerregistry.SkuNamePremium)) {
 		return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 	}
 
 	if hasGeoReplicationsChanges {
-		err := applyGeoReplicationLocations(d, meta, resourceGroup, name, expandReplications(oldReplications), expandReplications(newReplications))
+		err := applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, expandReplications(oldReplications), expandReplications(newReplications))
 		if err != nil {
-			return fmt.Errorf("applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	} else if hasGeoReplicationLocationsChanges {
-		err := applyGeoReplicationLocations(d, meta, resourceGroup, name, expandReplicationsFromLocations(oldGeoReplicationLocations.List()), expandReplicationsFromLocations(newGeoReplicationLocations.List()))
+		err := applyGeoReplicationLocations(ctx, d, meta, id.ResourceGroup, id.Name, expandReplicationsFromLocations(oldGeoReplicationLocations), expandReplicationsFromLocations(newGeoReplicationLocations))
 		if err != nil {
-			return fmt.Errorf("applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	}
 
-	future, err := client.Update(ctx, resourceGroup, name, parameters)
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("updating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	// downgrade to Basic or Standard SKU
 	if skuChange && (isBasicSku || isStandardSku) {
-		if err := applyContainerRegistrySku(d, meta, sku, resourceGroup, name); err != nil {
-			return fmt.Errorf("applying sku %q for Container Registry %q (Resource Group %q): %+v", sku, name, resourceGroup, err)
+		if err := applyContainerRegistrySku(d, meta, sku, id.ResourceGroup, id.Name); err != nil {
+			return fmt.Errorf("applying sku %q for %s: %+v", sku, id, err)
 		}
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Container Registry %q (resource group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	return resourceContainerRegistryRead(d, meta)
 }
@@ -699,41 +405,151 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 	return nil
 }
 
-func applyGeoReplicationLocations(d *pluginsdk.ResourceData, meta interface{}, resourceGroup string, name string, oldGeoReplications []containerregistry.Replication, newGeoReplications []containerregistry.Replication) error {
+func applyGeoReplicationLocations(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}, resourceGroup string, name string, oldGeoReplications []containerregistry.Replication, newGeoReplications []containerregistry.Replication) error {
 	replicationClient := meta.(*clients.Client).Containers.ReplicationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing to apply geo-replications for  Container Registry.")
 
-	// delete previously deployed locations
+	oldReplications := map[string]containerregistry.Replication{}
 	for _, replication := range oldGeoReplications {
 		if replication.Location == nil {
 			continue
 		}
-		oldLocation := azure.NormalizeLocation(*replication.Location)
-
-		future, err := replicationClient.Delete(ctx, resourceGroup, name, oldLocation)
-		if err != nil {
-			return fmt.Errorf("deleting Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, oldLocation, err)
-		}
-		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
-			return fmt.Errorf("waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, oldLocation, err)
-		}
+		loc := azure.NormalizeLocation(*replication.Location)
+		oldReplications[loc] = replication
 	}
 
-	// create new geo-replication locations
+	newReplications := map[string]containerregistry.Replication{}
 	for _, replication := range newGeoReplications {
 		if replication.Location == nil {
 			continue
 		}
-		locationToCreate := azure.NormalizeLocation(*replication.Location)
-		future, err := replicationClient.Create(ctx, resourceGroup, name, locationToCreate, replication)
+		loc := azure.NormalizeLocation(*replication.Location)
+		newReplications[loc] = replication
+	}
+
+	// Delete replications that only appear in the old locations.
+	for loc := range oldReplications {
+		if _, ok := newReplications[loc]; ok {
+			continue
+		}
+		future, err := replicationClient.Delete(ctx, resourceGroup, name, loc)
 		if err != nil {
-			return fmt.Errorf("creating Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToCreate, err)
+			return fmt.Errorf("deleting Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+		}
+		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
+			return fmt.Errorf("waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+		}
+	}
+
+	// Create replications that only exists in the new locations.
+	for loc, repl := range newReplications {
+		if _, ok := oldReplications[loc]; ok {
+			continue
+		}
+		future, err := replicationClient.Create(ctx, resourceGroup, name, loc, repl)
+		if err != nil {
+			return fmt.Errorf("creating Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
-			return fmt.Errorf("waiting for creation of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToCreate, err)
+			return fmt.Errorf("waiting for creation of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+		}
+	}
+
+	// Update (potentially replace) replications that exists at both side.
+	for loc, newRepl := range newReplications {
+		oldRepl, ok := oldReplications[loc]
+		if !ok {
+			continue
+		}
+		// Compare old and new replication parameters to see whether it has updated.
+		// If there no update, then skip it. Otherwise, need to check whether the update
+		// can happen in place, or need a recreation.
+
+		var (
+			needUpdate  bool
+			needReplace bool
+		)
+		// Since the replications here are all derived from expand function, where we guaranteed
+		// each properties are non-nil. Whilst we are still doing nil check here in case.
+		if oprop, nprop := oldRepl.ReplicationProperties, newRepl.ReplicationProperties; oprop != nil && nprop != nil {
+			// zoneRedundency can't be updated in place
+			if oprop.ZoneRedundancy != nprop.ZoneRedundancy {
+				needUpdate = true
+				needReplace = true
+			}
+			if ov, nv := oprop.RegionEndpointEnabled, nprop.RegionEndpointEnabled; ov != nil && nv != nil && *ov != *nv {
+				needUpdate = true
+			}
+		}
+		otag, ntag := oldRepl.Tags, newRepl.Tags
+		if len(otag) != len(ntag) {
+			needUpdate = true
+		} else {
+			for k, ov := range otag {
+				nv, ok := ntag[k]
+				if !ok {
+					needUpdate = true
+					break
+				}
+				if ov != nil && nv != nil && *ov != *nv {
+					needUpdate = true
+					break
+				}
+			}
+		}
+
+		if !needUpdate {
+			continue
+		}
+
+		if needReplace {
+			future, err := replicationClient.Delete(ctx, resourceGroup, name, loc)
+			if err != nil {
+				return fmt.Errorf("deleting Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+			}
+			if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
+				return fmt.Errorf("waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+			}
+
+			// Following can be removed once https://github.com/Azure/azure-rest-api-specs/issues/18934 is resolved. Otherwise, the create right after delete will always fail.
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("context is missing a timeout")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{"InProgress"},
+				Target:  []string{"NotFound"},
+				Refresh: func() (interface{}, string, error) {
+					resp, err := replicationClient.Get(ctx, resourceGroup, name, loc)
+					if err != nil {
+						if utils.ResponseWasNotFound(resp.Response) {
+							return resp, "NotFound", nil
+						}
+
+						return nil, "Error", err
+					}
+
+					return resp, "InProgress", nil
+				},
+				ContinuousTargetOccurence: 5,
+				PollInterval:              5 * time.Second,
+				Timeout:                   time.Until(deadline),
+			}
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("additional waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+			}
+		}
+
+		future, err := replicationClient.Create(ctx, resourceGroup, name, loc, newRepl)
+		if err != nil {
+			return fmt.Errorf("creating/updating Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
+			return fmt.Errorf("waiting for creation/update of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, loc, err)
 		}
 	}
 
@@ -778,21 +594,20 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("setting `network_rule_set`: %+v", err)
 	}
 
-	identity, _ := flattenIdentityProperties(resp.Identity)
+	identity, _ := flattenRegistryIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if properties := resp.RegistryProperties; properties != nil {
-		if err := d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(properties.Policies)); err != nil {
-			return fmt.Errorf("setting `quarantine_policy`: %+v", err)
-		}
+		d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(properties.Policies))
 		if err := d.Set("retention_policy", flattenRetentionPolicy(properties.Policies)); err != nil {
 			return fmt.Errorf("setting `retention_policy`: %+v", err)
 		}
 		if err := d.Set("trust_policy", flattenTrustPolicy(properties.Policies)); err != nil {
 			return fmt.Errorf("setting `trust_policy`: %+v", err)
 		}
+		d.Set("export_policy_enabled", flattenExportPolicy(properties.Policies))
 		if err := d.Set("encryption", flattenEncryption(properties.Encryption)); err != nil {
 			return fmt.Errorf("setting `encryption`: %+v", err)
 		}
@@ -844,11 +659,12 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	d.Set("georeplication_locations", geoReplicationLocations)
-	d.Set("georeplications", geoReplications)
+	// The order of the georeplications returned from the list API is not consistent. We simply order it alphabetically to be consistent.
+	sort.Slice(geoReplications, func(i, j int) bool {
+		return geoReplications[i].(map[string]interface{})["location"].(string) < geoReplications[j].(map[string]interface{})["location"].(string)
+	})
 
-	// Deprecated as it is not returned by the API now.
-	d.Set("storage_account_id", "")
+	d.Set("georeplications", geoReplications)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -953,10 +769,22 @@ func expandTrustPolicy(p []interface{}) *containerregistry.TrustPolicy {
 		if enabled {
 			trustPolicy.Status = containerregistry.PolicyStatusEnabled
 		}
-		trustPolicy.Type = containerregistry.Notary
+		trustPolicy.Type = containerregistry.TrustPolicyTypeNotary
 	}
 
 	return &trustPolicy
+}
+
+func expandExportPolicy(enabled bool) *containerregistry.ExportPolicy {
+	exportPolicy := containerregistry.ExportPolicy{
+		Status: containerregistry.ExportPolicyStatusDisabled,
+	}
+
+	if enabled {
+		exportPolicy.Status = containerregistry.ExportPolicyStatusEnabled
+	}
+
+	return &exportPolicy
 }
 
 func expandReplicationsFromLocations(p []interface{}) []containerregistry.Replication {
@@ -997,22 +825,24 @@ func expandReplications(p []interface{}) []containerregistry.Replication {
 	return replications
 }
 
-func expandIdentityProperties(e []interface{}) *containerregistry.IdentityProperties {
-	identityProperties := containerregistry.IdentityProperties{}
-	identityProperties.Type = containerregistry.ResourceIdentityTypeNone
-	if len(e) > 0 {
-		v := e[0].(map[string]interface{})
-		identityPropertType := containerregistry.ResourceIdentityType(v["type"].(string))
-		identityProperties.Type = identityPropertType
-		if identityPropertType == containerregistry.ResourceIdentityTypeUserAssigned || identityPropertType == containerregistry.ResourceIdentityTypeSystemAssignedUserAssigned {
-			identityIds := make(map[string]*containerregistry.UserIdentityProperties)
-			for _, id := range v["identity_ids"].([]interface{}) {
-				identityIds[id.(string)] = &containerregistry.UserIdentityProperties{}
+func expandRegistryIdentity(input []interface{}) (*containerregistry.IdentityProperties, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	out := containerregistry.IdentityProperties{
+		Type: containerregistry.ResourceIdentityType(string(expanded.Type)),
+	}
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*containerregistry.UserIdentityProperties)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &containerregistry.UserIdentityProperties{
+				// intentionally empty
 			}
-			identityProperties.UserAssignedIdentities = identityIds
 		}
 	}
-	return &identityProperties
+	return &out, nil
 }
 
 func expandEncryption(e []interface{}) *containerregistry.EncryptionProperty {
@@ -1050,30 +880,29 @@ func flattenEncryption(encryptionProperty *containerregistry.EncryptionProperty)
 	return []interface{}{encryption}
 }
 
-func flattenIdentityProperties(identityProperties *containerregistry.IdentityProperties) ([]interface{}, error) {
-	if identityProperties == nil {
-		return make([]interface{}, 0), nil
-	}
-	identity := make(map[string]interface{})
-	identity["type"] = string(identityProperties.Type)
-	if identityProperties.UserAssignedIdentities != nil {
-		identityIds := make([]string, 0)
-		for key := range identityProperties.UserAssignedIdentities {
-			parsedId, err := identityParse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
-			}
-			identityIds = append(identityIds, parsedId.ID())
+func flattenRegistryIdentity(input *containerregistry.IdentityProperties) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
-		identity["identity_ids"] = identityIds
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
+			}
+		}
 	}
-	if identityProperties.PrincipalID != nil {
-		identity["principal_id"] = *identityProperties.PrincipalID
-	}
-	if identityProperties.TenantID != nil {
-		identity["tenant_id"] = *identityProperties.TenantID
-	}
-	return []interface{}{identity}, nil
+
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []interface{} {
@@ -1134,7 +963,7 @@ func flattenRetentionPolicy(p *containerregistry.Policies) []interface{} {
 	r := *p.RetentionPolicy
 	retentionPolicy := make(map[string]interface{})
 	retentionPolicy["days"] = r.Days
-	enabled := strings.EqualFold(string(r.Status), string(containerregistry.Enabled))
+	enabled := strings.EqualFold(string(r.Status), string(containerregistry.PolicyStatusEnabled))
 	retentionPolicy["enabled"] = utils.Bool(enabled)
 	return []interface{}{retentionPolicy}
 }
@@ -1146,7 +975,268 @@ func flattenTrustPolicy(p *containerregistry.Policies) []interface{} {
 
 	t := *p.TrustPolicy
 	trustPolicy := make(map[string]interface{})
-	enabled := strings.EqualFold(string(t.Status), string(containerregistry.Enabled))
+	enabled := strings.EqualFold(string(t.Status), string(containerregistry.PolicyStatusEnabled))
 	trustPolicy["enabled"] = utils.Bool(enabled)
 	return []interface{}{trustPolicy}
+}
+
+func flattenExportPolicy(p *containerregistry.Policies) bool {
+	if p == nil || p.ExportPolicy == nil {
+		return false
+	}
+
+	return p.ExportPolicy.Status == containerregistry.ExportPolicyStatusEnabled
+}
+
+func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: containerValidate.ContainerRegistryName,
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"location": azure.SchemaLocation(),
+
+		"sku": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(containerregistry.SkuNameBasic),
+				string(containerregistry.SkuNameStandard),
+				string(containerregistry.SkuNamePremium),
+			}, false),
+		},
+
+		"admin_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"georeplications": {
+			// Don't make this a TypeSet since TypeSet has bugs when there is a nested property using `StateFunc`.
+			// See: https://github.com/hashicorp/terraform-plugin-sdk/issues/160
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAuto,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"location": commonschema.LocationWithoutForceNew(),
+
+					"zone_redundancy_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"regional_endpoint_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
+					"tags": tags.Schema(),
+				},
+			},
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"login_server": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"admin_username": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"admin_password": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"encryption": {
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"identity_client_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+					"key_vault_key_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					},
+				},
+			},
+		},
+
+		"network_rule_set": {
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr, // make sure we can set this to an empty array for Premium -> Basic
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"default_action": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  containerregistry.DefaultActionAllow,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(containerregistry.DefaultActionAllow),
+							string(containerregistry.DefaultActionDeny),
+						}, false),
+					},
+
+					"ip_rule": {
+						Type:       pluginsdk.TypeSet,
+						Optional:   true,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"action": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(containerregistry.ActionAllow),
+									}, false),
+								},
+								"ip_range": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validate.CIDR,
+								},
+							},
+						},
+					},
+
+					"virtual_network": {
+						Type:       pluginsdk.TypeSet,
+						Optional:   true,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"action": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(containerregistry.ActionAllow),
+									}, false),
+								},
+								"subnet_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: azure.ValidateResourceID,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"quarantine_policy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"retention_policy": {
+			Type:       pluginsdk.TypeList,
+			MaxItems:   1,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"days": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						Default:  7,
+					},
+
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"trust_policy": {
+			Type:       pluginsdk.TypeList,
+			MaxItems:   1,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"export_policy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"zone_redundancy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			ForceNew: true,
+			Optional: true,
+			Default:  false,
+		},
+
+		"anonymous_pull_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"data_endpoint_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"network_rule_bypass_option": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(containerregistry.NetworkRuleBypassOptionsAzureServices),
+				string(containerregistry.NetworkRuleBypassOptionsNone),
+			}, false),
+			Default: string(containerregistry.NetworkRuleBypassOptionsAzureServices),
+		},
+
+		"tags": tags.Schema(),
+	}
 }

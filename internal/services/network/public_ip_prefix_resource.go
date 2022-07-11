@@ -5,15 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -49,24 +51,6 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"availability_zone": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				//Default:  "Zone-Redundant",
-				Computed: true,
-				ForceNew: true,
-				ConflictsWith: []string{
-					"zones",
-				},
-				ValidateFunc: validation.StringInSlice([]string{
-					"No-Zone",
-					"1",
-					"2",
-					"3",
-					"Zone-Redundant",
-				}, false),
-			},
-
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -86,37 +70,21 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			},
 
 			"ip_version": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Default:          string(network.IPVersionIPv4),
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(network.IPVersionIPv4),
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.IPVersionIPv4),
 					string(network.IPVersionIPv6),
-				}, true),
+				}, false),
 			},
+
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 			"ip_prefix": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
-			},
-
-			// TODO - 3.0 make Computed only
-			"zones": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ConflictsWith: []string{
-					"availability_zone",
-				},
-				Deprecated: "This property has been deprecated in favour of `availability_zone` due to a breaking behavioural change in Azure: https://azure.microsoft.com/en-us/updates/zone-behavior-change/",
-				MaxItems:   1,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
 			},
 
 			"tags": tags.Schema(),
@@ -152,26 +120,6 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	ipVersion := d.Get("ip_version").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	zones := &[]string{"1", "2"}
-	// TODO - Remove in 3.0
-	if deprecatedZonesRaw, ok := d.GetOk("zones"); ok {
-		deprecatedZones := azure.ExpandZones(deprecatedZonesRaw.([]interface{}))
-		if deprecatedZones != nil {
-			zones = deprecatedZones
-		}
-	}
-
-	if availabilityZones, ok := d.GetOk("availability_zone"); ok {
-		switch availabilityZones.(string) {
-		case "1", "2", "3":
-			zones = &[]string{availabilityZones.(string)}
-		case "Zone-Redundant":
-			zones = &[]string{"1", "2"}
-		case "No-Zone":
-			zones = &[]string{}
-		}
-	}
-
 	publicIpPrefix := network.PublicIPPrefix{
 		Location: &location,
 		Sku: &network.PublicIPPrefixSku{
@@ -181,8 +129,12 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			PrefixLength:           utils.Int32(int32(prefixLength)),
 			PublicIPAddressVersion: network.IPVersion(ipVersion),
 		},
-		Tags:  tags.Expand(t),
-		Zones: zones,
+		Tags: tags.Expand(t),
+	}
+
+	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		publicIpPrefix.Zones = &zones
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.PublicIPPrefixeName, publicIpPrefix)
@@ -221,27 +173,14 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", id.PublicIPPrefixeName)
 	d.Set("resource_group_name", id.ResourceGroup)
-
-	availabilityZones := "No-Zone"
-	zonesDeprecated := make([]string, 0)
-	if resp.Zones != nil {
-		if len(*resp.Zones) > 1 {
-			availabilityZones = "Zone-Redundant"
-		}
-		if len(*resp.Zones) == 1 {
-			zones := *resp.Zones
-			availabilityZones = zones[0]
-			zonesDeprecated = zones
-		}
-	}
-
-	d.Set("availability_zone", availabilityZones)
-	d.Set("zones", zonesDeprecated)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("zones", zones.Flatten(resp.Zones))
 
+	skuName := ""
 	if sku := resp.Sku; sku != nil {
-		d.Set("sku", string(sku.Name))
+		skuName = string(sku.Name)
 	}
+	d.Set("sku", skuName)
 
 	if props := resp.PublicIPPrefixPropertiesFormat; props != nil {
 		d.Set("prefix_length", props.PrefixLength)

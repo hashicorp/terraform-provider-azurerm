@@ -199,17 +199,12 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if body := inputs["body"]; body != nil {
-		// TODO: remove in 3.0, this is preserved for backward compatibility
-		if v, ok := body.(string); ok {
-			d.Set("body", v)
-		} else {
-			// if user edit workflow in portal, the body becomes json object
-			v, err := json.Marshal(body)
-			if err != nil {
-				return fmt.Errorf("serializing `body` for Action %q: %+v", id.Name, err)
-			}
-			d.Set("body", string(v))
+		// if user edit workflow in portal, the body becomes json object
+		v, err := json.Marshal(body)
+		if err != nil {
+			return fmt.Errorf("serializing `body` for Action %q: %+v", id.Name, err)
 		}
+		d.Set("body", string(v))
 	}
 
 	if headers := inputs["headers"]; headers != nil {

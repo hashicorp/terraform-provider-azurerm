@@ -5,14 +5,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
-	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -44,115 +44,7 @@ func resourceArmLoadBalancerRule() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: loadBalancerValidate.RuleName,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"loadbalancer_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: loadBalancerValidate.LoadBalancerID,
-			},
-
-			"frontend_ip_configuration_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"frontend_ip_configuration_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			// TODO 3.0 - Remove this property
-			"backend_address_pool_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				Deprecated:    "This property has been deprecated by `backend_address_pool_ids` and will be removed in the next major version of the provider",
-				ConflictsWith: []string{"backend_address_pool_ids"},
-			},
-
-			"backend_address_pool_ids": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Computed: true,
-				MinItems: 1,
-				MaxItems: 2, // Only Gateway SKU LB can have 2 backend address pools
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: loadBalancerValidate.LoadBalancerBackendAddressPoolID,
-				},
-				ConflictsWith: []string{"backend_address_pool_id"},
-			},
-
-			"protocol": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.TransportProtocolAll),
-					string(network.TransportProtocolTCP),
-					string(network.TransportProtocolUDP),
-				}, true),
-			},
-
-			"frontend_port": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ValidateFunc: validate.PortNumberOrZero,
-			},
-
-			"backend_port": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ValidateFunc: validate.PortNumberOrZero,
-			},
-
-			"probe_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"enable_floating_ip": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"enable_tcp_reset": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"disable_outbound_snat": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"idle_timeout_in_minutes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntBetween(4, 30),
-			},
-
-			"load_distribution": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-		},
+		Schema: resourceArmLoadBalancerRuleSchema(),
 	}
 }
 
@@ -206,7 +98,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, loadBalancer)
 	if err != nil {
-		return fmt.Errorf("updating Loadbalancer %q (rsource group %q) for Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.Name, err)
+		return fmt.Errorf("updating Loadbalancer %q (resource group %q) for Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -246,7 +138,6 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.Set("name", config.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := config.LoadBalancingRulePropertiesFormat; props != nil {
 		d.Set("disable_outbound_snat", props.DisableOutboundSnat)
@@ -280,9 +171,6 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 						backendAddressPoolIds = append(backendAddressPoolIds, *p.ID)
 					}
 				}
-				if len(backendAddressPoolIds) == 1 {
-					backendAddressPoolId = backendAddressPoolIds[0].(string)
-				}
 			}
 		} else {
 			if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {
@@ -290,7 +178,6 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 				backendAddressPoolIds = []interface{}{backendAddressPoolId}
 			}
 		}
-		d.Set("backend_address_pool_id", backendAddressPoolId)
 		d.Set("backend_address_pool_ids", backendAddressPoolIds)
 
 		frontendIPConfigName := ""
@@ -414,19 +301,7 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *network.LoadBa
 	if lb.Sku != nil && lb.Sku.Name == network.LoadBalancerSkuNameGateway {
 		isGateway = true
 	}
-	if v := d.Get("backend_address_pool_id").(string); v != "" {
-		if isGateway {
-			properties.BackendAddressPools = &[]network.SubResource{
-				{
-					ID: &v,
-				},
-			}
-		} else {
-			properties.BackendAddressPool = &network.SubResource{
-				ID: &v,
-			}
-		}
-	}
+
 	if l := d.Get("backend_address_pool_ids").([]interface{}); len(l) != 0 {
 		if isGateway {
 			var baps []network.SubResource
@@ -457,4 +332,105 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *network.LoadBa
 		Name:                              utils.String(d.Get("name").(string)),
 		LoadBalancingRulePropertiesFormat: &properties,
 	}, nil
+}
+
+func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: loadBalancerValidate.RuleName,
+		},
+
+		"loadbalancer_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: loadBalancerValidate.LoadBalancerID,
+		},
+
+		"frontend_ip_configuration_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"frontend_ip_configuration_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"backend_address_pool_ids": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MinItems: 1,
+			MaxItems: 2, // Only Gateway SKU LB can have 2 backend address pools
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: loadBalancerValidate.LoadBalancerBackendAddressPoolID,
+			},
+		},
+
+		"protocol": {
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.TransportProtocolAll),
+				string(network.TransportProtocolTCP),
+				string(network.TransportProtocolUDP),
+			}, false),
+		},
+
+		"frontend_port": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validate.PortNumberOrZero,
+		},
+
+		"backend_port": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validate.PortNumberOrZero,
+		},
+
+		"probe_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+
+		// TODO 4.0: change this from enable_* to *_enabled
+		"enable_floating_ip": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		// TODO 4.0: change this from enable_* to *_enabled
+		"enable_tcp_reset": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"disable_outbound_snat": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"idle_timeout_in_minutes": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(4, 30),
+		},
+
+		"load_distribution": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+	}
 }

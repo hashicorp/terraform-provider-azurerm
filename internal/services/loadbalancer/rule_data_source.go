@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
@@ -22,76 +21,7 @@ func dataSourceArmLoadBalancerRule() *pluginsdk.Resource {
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validate.RuleName,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-
-			"loadbalancer_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validate.LoadBalancerID,
-			},
-
-			"frontend_ip_configuration_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"frontend_port": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"backend_port": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"backend_address_pool_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"probe_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"enable_floating_ip": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			"enable_tcp_reset": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			"disable_outbound_snat": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			"idle_timeout_in_minutes": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"load_distribution": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-		},
+		Schema: dataSourceArmLoadBalancerSchema(),
 	}
 }
 
@@ -101,7 +31,6 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return err
@@ -121,17 +50,17 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel = timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resp, err := lbRuleClient.Get(ctx, resourceGroup, *loadBalancer.Name, name)
+	id := parse.NewLoadBalancingRuleID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, name)
+	resp, err := lbRuleClient.Get(ctx, id.ResourceGroup, *loadBalancer.Name, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Load Balancer Rule %q was not found in Load Balancer %q (Resource Group: %q)", name, loadBalancerId.Name, loadBalancerId.ResourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving Load Balancer %s (resource group %q) for Rule %q: %s", loadBalancerId.Name, loadBalancerId.ResourceGroup, name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID())
 	if props := resp.LoadBalancingRulePropertiesFormat; props != nil {
 		frontendIPConfigurationName, err := parse.LoadBalancerFrontendIpConfigurationID(*props.FrontendIPConfiguration.ID)
 		if err != nil {
@@ -177,4 +106,77 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func dataSourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.RuleName,
+		},
+
+		"loadbalancer_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.LoadBalancerID,
+		},
+
+		"frontend_ip_configuration_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"protocol": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"frontend_port": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"backend_port": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"backend_address_pool_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"probe_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		// TODO 4.0: change this from enable_* to *_enabled
+		"enable_floating_ip": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		// TODO 4.0: change this from enable_* to *_enabled
+		"enable_tcp_reset": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"disable_outbound_snat": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"idle_timeout_in_minutes": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"load_distribution": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }

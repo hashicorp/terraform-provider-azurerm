@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
-
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/capacitypools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceNetAppPool() *pluginsdk.Resource {
@@ -29,9 +29,9 @@ func dataSourceNetAppPool() *pluginsdk.Resource {
 				ValidateFunc: validate.PoolName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": commonschema.LocationComputed(),
 
 			"account_name": {
 				Type:         pluginsdk.TypeString,
@@ -58,10 +58,10 @@ func dataSourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error
 	defer cancel()
 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := parse.NewCapacityPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
+	id := capacitypools.NewCapacityPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+	resp, err := client.PoolsGet(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -69,17 +69,14 @@ func dataSourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.SetId(id.ID())
-	d.Set("name", id.Name)
-	d.Set("account_name", id.NetAppAccountName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	if poolProperties := resp.PoolProperties; poolProperties != nil {
-		d.Set("service_level", string(poolProperties.ServiceLevel))
-		if poolProperties.Size != nil {
-			d.Set("size_in_tb", *poolProperties.Size/1099511627776)
-		}
+	d.Set("name", id.PoolName)
+	d.Set("account_name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(&model.Location))
+		d.Set("service_level", string(model.Properties.ServiceLevel))
+		d.Set("size_in_tb", model.Properties.Size/1099511627776)
 	}
 
 	return nil

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ExpressRouteCircuitAuthorizationResource struct {
-}
+type ExpressRouteCircuitAuthorizationResource struct{}
 
 func testAccExpressRouteCircuitAuthorization_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_authorization", "test")

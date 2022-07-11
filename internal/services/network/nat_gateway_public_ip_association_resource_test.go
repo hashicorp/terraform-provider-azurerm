@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NatGatewayPublicAssociationResource struct {
-}
+type NatGatewayPublicAssociationResource struct{}
 
 func TestAccNatGatewayPublicIpAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")

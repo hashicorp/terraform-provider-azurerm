@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type EventGridDomainTopicDataSource struct {
-}
+type EventGridDomainTopicDataSource struct{}
 
 func TestAccEventGridDomainTopicDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventgrid_domain_topic", "test")

@@ -13,17 +13,28 @@ Manages a SQL Container within a Cosmos DB Account.
 ## Example Usage
 
 ```hcl
+data "azurerm_cosmosdb_account" "example" {
+  name                = "tfex-cosmosdb-account"
+  resource_group_name = "tfex-cosmosdb-account-rg"
+}
+
+resource "azurerm_cosmosdb_sql_database" "example" {
+  name                = "example-acsd"
+  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = data.azurerm_cosmosdb_account.example.name
+}
+
 resource "azurerm_cosmosdb_sql_container" "example" {
   name                  = "example-container"
-  resource_group_name   = azurerm_cosmosdb_account.example.resource_group_name
-  account_name          = azurerm_cosmosdb_account.example.name
+  resource_group_name   = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name          = data.azurerm_cosmosdb_account.example.name
   database_name         = azurerm_cosmosdb_sql_database.example.name
   partition_key_path    = "/definition/id"
   partition_key_version = 1
   throughput            = 400
 
   indexing_policy {
-    indexing_mode = "Consistent"
+    indexing_mode = "consistent"
 
     included_path {
       path = "/*"
@@ -72,7 +83,7 @@ The following arguments are supported:
 
 * `default_ttl` - (Optional) The default time to live of SQL container. If missing, items are not expired automatically. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 
-* `analytical_storage_ttl` - (Optional) The default time to live of Analytical Storage for this SQL container. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
+* `analytical_storage_ttl` - (Optional) The default time to live of Analytical Storage for this SQL container. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time. Changing this forces a new Cosmos DB SQL Container to be created when removing `analytical_storage_ttl` on an existing Cosmos DB SQL Container.
 
 * `conflict_resolution_policy` - (Optional)  A `conflict_resolution_policy` blocks as defined below.
 
@@ -80,7 +91,7 @@ The following arguments are supported:
 
 An `autoscale_settings` block supports the following:
 
-* `max_throughput` - (Optional) The maximum throughput of the SQL container (RU/s). Must be between `4,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
+* `max_throughput` - (Optional) The maximum throughput of the SQL container (RU/s). Must be between `1,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
 
 ---
 A `unique_key` block supports the following:

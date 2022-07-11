@@ -18,15 +18,15 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_private_dns_zone" "test" {
+resource "azurerm_private_dns_zone" "example" {
   name                = "contoso.com"
-  resource_group_name = azurerm_resource_group.test.name
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_private_dns_txt_record" "test" {
+resource "azurerm_private_dns_txt_record" "example" {
   name                = "test"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  resource_group_name = azurerm_resource_group.example.name
+  zone_name           = azurerm_private_dns_zone.example.name
   ttl                 = 300
 
   record {

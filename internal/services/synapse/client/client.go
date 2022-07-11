@@ -24,6 +24,7 @@ type Client struct {
 	SqlPoolTransparentDataEncryptionClient            *synapse.SQLPoolTransparentDataEncryptionsClient
 	SqlPoolVulnerabilityAssessmentsClient             *synapse.SQLPoolVulnerabilityAssessmentsClient
 	SQLPoolVulnerabilityAssessmentRuleBaselinesClient *synapse.SQLPoolVulnerabilityAssessmentRuleBaselinesClient
+	SQLPoolWorkloadClassifierClient                   *synapse.SQLPoolWorkloadClassifierClient
 	SQLPoolWorkloadGroupClient                        *synapse.SQLPoolWorkloadGroupClient
 	WorkspaceAadAdminsClient                          *synapse.WorkspaceAadAdminsClient
 	WorkspaceClient                                   *synapse.WorkspacesClient
@@ -71,6 +72,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	sqlPoolVulnerabilityAssessmentsClient := synapse.NewSQLPoolVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
+	sqlPoolWorkloadClassifierClient := synapse.NewSQLPoolWorkloadClassifierClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sqlPoolWorkloadClassifierClient.Client, o.ResourceManagerAuthorizer)
+
 	sqlPoolWorkloadGroupClient := synapse.NewSQLPoolWorkloadGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolWorkloadGroupClient.Client, o.ResourceManagerAuthorizer)
 
@@ -111,6 +115,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		SqlPoolTransparentDataEncryptionClient:            &sqlPoolTransparentDataEncryptionClient,
 		SqlPoolVulnerabilityAssessmentsClient:             &sqlPoolVulnerabilityAssessmentsClient,
 		SQLPoolVulnerabilityAssessmentRuleBaselinesClient: &sqlPoolVulnerabilityAssessmentRuleBaselinesClient,
+		SQLPoolWorkloadClassifierClient:                   &sqlPoolWorkloadClassifierClient,
 		SQLPoolWorkloadGroupClient:                        &sqlPoolWorkloadGroupClient,
 		WorkspaceAadAdminsClient:                          &workspaceAadAdminsClient,
 		WorkspaceClient:                                   &workspaceClient,

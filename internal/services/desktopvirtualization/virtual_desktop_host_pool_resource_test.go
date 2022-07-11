@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualDesktopHostPoolResource struct {
-}
+type VirtualDesktopHostPoolResource struct{}
 
 func TestAccVirtualDesktopHostPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
@@ -86,25 +85,22 @@ func TestAccVirtualDesktopHostPool_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_virtual_desktop_host_pool"),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func (VirtualDesktopHostPoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.HostPoolID(state.ID)
+	id, err := hostpool.ParseHostPoolID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DesktopVirtualization.HostPoolsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.DesktopVirtualization.HostPoolsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Virtual Desktop Host Pool %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.HostPoolProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (VirtualDesktopHostPoolResource) basic(data acceptance.TestData) string {
@@ -114,7 +110,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-vdesktop-%d"
+  name     = "acctestRG-vdesktophp-%d"
   location = "%s"
 }
 
@@ -136,7 +132,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-vdesktop-%d"
+  name     = "acctestRG-vdesktophp-%d"
   location = "%s"
 }
 
@@ -153,16 +149,6 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   maximum_sessions_allowed = 100
   preferred_app_group_type = "Desktop"
   custom_rdp_properties    = "audiocapturemode:i:1;audiomode:i:0;"
-
-  # Do not use timestamp() outside of testing due to https://github.com/hashicorp/terraform/issues/22461
-  registration_info {
-    expiration_date = timeadd(timestamp(), "48h")
-  }
-  lifecycle {
-    ignore_changes = [
-      registration_info[0].expiration_date,
-    ]
-  }
 
   tags = {
     Purpose = "Acceptance-Testing"

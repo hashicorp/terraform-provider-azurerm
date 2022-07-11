@@ -42,6 +42,7 @@ resource "azurerm_sentinel_watchlist" "example" {
   name                       = "example-watchlist"
   log_analytics_workspace_id = azurerm_log_analytics_solution.example.workspace_resource_id
   display_name               = "example-wl"
+  item_search_key            = "Key"
 }
 ```
 
@@ -54,6 +55,8 @@ The following arguments are supported:
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace where this Sentinel Watchlist resides in. Changing this forces a new Sentinel Watchlist to be created.
 
 * `display_name` - (Required) The display name of this Sentinel Watchlist. Changing this forces a new Sentinel Watchlist to be created.
+
+* `item_search_key` - (Required) The key used to optimize query performance when using Watchlist for joins with other data. Changing this forces a new Sentinel Watchlist to be created.
 
 ---
 
@@ -82,5 +85,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Sentinel Watchlists can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_sentinel_watchlist.example subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/watchlists/list1
+terraform import azurerm_sentinel_watchlist.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/watchlists/list1
 ```

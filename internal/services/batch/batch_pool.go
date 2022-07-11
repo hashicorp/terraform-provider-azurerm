@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2021-06-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -114,8 +114,6 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 		maxTaskRetryCount = *startTask.MaxTaskRetryCount
 	}
 
-	// TODO: Remove in 3.0
-	result["max_task_retry_count"] = maxTaskRetryCount
 	result["task_retry_maximum"] = maxTaskRetryCount
 
 	if startTask.UserIdentity != nil {
@@ -169,8 +167,7 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 			environment[*envSetting.Name] = *envSetting.Value
 		}
 	}
-	// TODO: Remove in 3.0
-	result["environment"] = environment
+
 	result["common_environment_properties"] = environment
 
 	result["resource_file"] = resourceFiles
@@ -425,10 +422,6 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 	startTaskCmdLine := startTaskValue["command_line"].(string)
 
 	maxTaskRetryCount := int32(1)
-	// TODO: Remove in 3.0
-	if v := startTaskValue["max_task_retry_count"].(int); v > 0 {
-		maxTaskRetryCount = int32(v)
-	}
 
 	if v := startTaskValue["task_retry_maximum"].(int); v > 0 {
 		maxTaskRetryCount = int32(v)
@@ -453,11 +446,12 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 				Scope:          batch.AutoUserScope(autoUserMap["scope"].(string)),
 			}
 		}
-	} else if userNameValue, ok := userIdentityValue["username"]; ok {
+	}
+	if userNameValue, ok := userIdentityValue["user_name"]; ok {
 		userName := userNameValue.(string)
-		userIdentity.UserName = &userName
-	} else {
-		return nil, fmt.Errorf("either auto_user or user_name should be specified for Batch pool start task")
+		if len(userName) != 0 {
+			userIdentity.UserName = &userName
+		}
 	}
 
 	resourceFileList := startTaskValue["resource_file"].([]interface{})
@@ -515,11 +509,6 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		ResourceFiles:     &resourceFiles,
 	}
 
-	// populate environment settings, if defined
-	// TODO: Remove in 3.0
-	if v := startTaskValue["environment"].(map[string]interface{}); len(v) > 0 {
-		startTask.EnvironmentSettings = expandCommonEnvironmentProperties(v)
-	}
 	if v := startTaskValue["common_environment_properties"].(map[string]interface{}); len(v) > 0 {
 		startTask.EnvironmentSettings = expandCommonEnvironmentProperties(v)
 	}

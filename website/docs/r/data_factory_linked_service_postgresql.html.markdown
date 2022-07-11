@@ -27,10 +27,9 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_linked_service_postgresql" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
-  connection_string   = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
+  name              = "example"
+  data_factory_id   = azurerm_data_factory.example.id
+  connection_string = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
 }
 ```
 
@@ -39,11 +38,9 @@ resource "azurerm_data_factory_linked_service_postgresql" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Data Factory Linked Service PostgreSQL. Changing this forces a new resource to be created. Must be unique within a data
-  factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+  factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service PostgreSQL. Changing this forces a new resource
-
-* `data_factory_name` - (Required) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `connection_string` - (Required) The connection string in which to authenticate with PostgreSQL.
 

@@ -13,13 +13,13 @@ Manages a Backup Instance Blob Storage.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_storage_account" "example" {
-  name                     = "example-storage-account"
+  name                     = "storageaccountname"
   resource_group_name      = azurerm_resource_group.example.name
   location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
@@ -28,15 +28,18 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_data_protection_backup_vault" "example" {
   name                = "example-backup-vault"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_role_assignment" "example" {
   scope                = azurerm_storage_account.example.id
-  role_definition_name = "Storage Account Backup Contributor Role"
+  role_definition_name = "Storage Account Backup Contributor"
   principal_id         = azurerm_data_protection_backup_vault.example.identity[0].principal_id
 }
 
@@ -49,7 +52,7 @@ resource "azurerm_data_protection_backup_policy_blob_storage" "example" {
 resource "azurerm_data_protection_backup_instance_blob_storage" "example" {
   name               = "example-backup-instance"
   vault_id           = azurerm_data_protection_backup_vault.example.id
-  location           = azurerm_resource_group.rg.location
+  location           = azurerm_resource_group.example.location
   storage_account_id = azurerm_storage_account.example.id
   backup_policy_id   = azurerm_data_protection_backup_policy_blob_storage.example.id
 

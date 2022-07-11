@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -31,8 +31,11 @@ func resourceIntegrationServiceEnvironment() *pluginsdk.Resource {
 		Read:   resourceIntegrationServiceEnvironmentRead,
 		Update: resourceIntegrationServiceEnvironmentCreateUpdate,
 		Delete: resourceIntegrationServiceEnvironmentDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.IntegrationServiceEnvironmentID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(5 * time.Hour),
@@ -137,24 +140,24 @@ func resourceIntegrationServiceEnvironment() *pluginsdk.Resource {
 
 func resourceIntegrationServiceEnvironmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Integration Service Environment creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewIntegrationServiceEnvironmentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing Integration Service Environment %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing %s: %s", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_integration_service_environment", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_integration_service_environment", id.ID())
 		}
 	}
 
@@ -165,11 +168,11 @@ func resourceIntegrationServiceEnvironmentCreateUpdate(d *pluginsdk.ResourceData
 
 	sku, err := expandIntegrationServiceEnvironmentSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("expanding `sku_name` for Integration Service Environment %q (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("expanding `sku_name` for %s: %v", id, err)
 	}
 
 	integrationServiceEnvironment := logic.IntegrationServiceEnvironment{
-		Name:     &name,
+		Name:     &id.Name,
 		Location: &location,
 		Properties: &logic.IntegrationServiceEnvironmentProperties{
 			NetworkConfiguration: &logic.NetworkConfiguration{
@@ -183,25 +186,16 @@ func resourceIntegrationServiceEnvironmentCreateUpdate(d *pluginsdk.ResourceData
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, integrationServiceEnvironment)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, integrationServiceEnvironment)
 	if err != nil {
-		return fmt.Errorf("creating/updating Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read Integration Service Environment %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceIntegrationServiceEnvironmentRead(d, meta)
 }

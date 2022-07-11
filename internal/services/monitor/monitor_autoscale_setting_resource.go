@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -142,8 +141,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 														string(insights.MetricStatisticTypeMax),
 														string(insights.MetricStatisticTypeMin),
 														string(insights.MetricStatisticTypeSum),
-													}, true),
-													DiffSuppressFunc: suppress.CaseDifference,
+													}, false),
 												},
 												"time_window": {
 													Type:         pluginsdk.TypeString,
@@ -160,8 +158,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 														string(insights.TimeAggregationTypeMinimum),
 														string(insights.TimeAggregationTypeTotal),
 														string(insights.TimeAggregationTypeLast),
-													}, true),
-													DiffSuppressFunc: suppress.CaseDifference,
+													}, false),
 												},
 												"operator": {
 													Type:     pluginsdk.TypeString,
@@ -173,8 +170,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 														string(insights.ComparisonOperationTypeLessThan),
 														string(insights.ComparisonOperationTypeLessThanOrEqual),
 														string(insights.ComparisonOperationTypeNotEquals),
-													}, true),
-													DiffSuppressFunc: suppress.CaseDifference,
+													}, false),
 												},
 												"threshold": {
 													Type:     pluginsdk.TypeFloat,
@@ -238,8 +234,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.ScaleDirectionDecrease),
 														string(insights.ScaleDirectionIncrease),
-													}, true),
-													DiffSuppressFunc: suppress.CaseDifference,
+													}, false),
 												},
 												"type": {
 													Type:     pluginsdk.TypeString,
@@ -249,8 +244,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 														string(insights.ScaleTypeExactCount),
 														string(insights.ScaleTypePercentChangeCount),
 														string(insights.ScaleTypeServiceAllowedNextValue),
-													}, true),
-													DiffSuppressFunc: suppress.CaseDifference,
+													}, false),
 												},
 												"value": {
 													Type:         pluginsdk.TypeInt,
@@ -318,8 +312,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 												"Friday",
 												"Saturday",
 												"Sunday",
-											}, true),
-											DiffSuppressFunc: suppress.CaseDifference,
+											}, false),
 										},
 									},
 									"hours": {
@@ -426,8 +419,8 @@ func resourceMonitorAutoScaleSettingCreateUpdate(d *pluginsdk.ResourceData, meta
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_monitor_autoscale_setting", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_monitor_autoscale_setting", id.ID())
 		}
 	}
 

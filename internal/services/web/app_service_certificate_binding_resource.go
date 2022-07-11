@@ -37,7 +37,6 @@ func resourceAppServiceCertificateBinding() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"hostname_binding_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,

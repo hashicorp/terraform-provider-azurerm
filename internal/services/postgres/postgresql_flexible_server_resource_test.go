@@ -14,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PostgresqlFlexibleServerResource struct {
-}
+type PostgresqlFlexibleServerResource struct{}
 
 func TestAccPostgresqlFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
@@ -25,7 +24,6 @@ func TestAccPostgresqlFlexibleServer_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cmk_enabled").IsEmpty(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 			),
@@ -212,7 +210,28 @@ func TestAccPostgresqlFlexibleServer_failover(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
-			Config: r.failover(data, "1", "2"),
+			Config: r.failoverRemoveHA(data, "2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.failover(data, "2", "1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_geoRedundantBackupEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoRedundantBackupEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -542,4 +561,49 @@ resource "azurerm_postgresql_flexible_server" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, primaryZone, standbyZone)
+}
+
+func (r PostgresqlFlexibleServerResource) failoverRemoveHA(data acceptance.TestData, primaryZone string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  version                = "12"
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  zone                   = "%s"
+  backup_retention_days  = 10
+  storage_mb             = 131072
+  sku_name               = "GP_Standard_D2s_v3"
+
+  maintenance_window {
+    day_of_week  = 0
+    start_hour   = 0
+    start_minute = 0
+  }
+}
+`, r.template(data), data.RandomInteger, primaryZone)
+}
+
+func (r PostgresqlFlexibleServerResource) geoRedundantBackupEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                         = "acctest-fs-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "adminTerraform"
+  administrator_password       = "QAZwsx123"
+  storage_mb                   = 32768
+  version                      = "12"
+  sku_name                     = "GP_Standard_D2s_v3"
+  zone                         = "2"
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = true
+}
+`, r.template(data), data.RandomInteger)
 }

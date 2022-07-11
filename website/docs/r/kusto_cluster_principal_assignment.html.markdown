@@ -15,15 +15,15 @@ Manages a Kusto Cluster Principal Assignment.
 ```hcl
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "KustoRG"
   location = "West Europe"
 }
 
 resource "azurerm_kusto_cluster" "example" {
-  name                = "KustoCluster"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  name                = "kustocluster"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name     = "Standard_D13_v2"
@@ -33,7 +33,7 @@ resource "azurerm_kusto_cluster" "example" {
 
 resource "azurerm_kusto_cluster_principal_assignment" "example" {
   name                = "KustoPrincipalAssignment"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.example.name
   cluster_name        = azurerm_kusto_cluster.example.name
 
   tenant_id      = data.azurerm_client_config.current.tenant_id
@@ -46,6 +46,8 @@ resource "azurerm_kusto_cluster_principal_assignment" "example" {
 ## Arguments Reference
 
 The following arguments are supported:
+
+* `name` - (Required) The name of the Kusto cluster principal assignment. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the resource. Changing this forces a new resource to be created.
 

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -50,7 +50,8 @@ func resourceApiManagementProduct() *pluginsdk.Resource {
 
 			"subscription_required": {
 				Type:     pluginsdk.TypeBool,
-				Required: true,
+				Optional: true,
+				Default:  true,
 			},
 
 			"published": {
@@ -107,13 +108,13 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta in
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_product", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_api_management_product", id.ID())
 		}
 	}
-	publishedVal := apimanagement.NotPublished
+	publishedVal := apimanagement.ProductStateNotPublished
 	if published {
-		publishedVal = apimanagement.Published
+		publishedVal = apimanagement.ProductStatePublished
 	}
 
 	properties := apimanagement.ProductContract{
@@ -173,7 +174,7 @@ func resourceApiManagementProductRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("approval_required", props.ApprovalRequired)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
-		d.Set("published", props.State == apimanagement.Published)
+		d.Set("published", props.State == apimanagement.ProductStatePublished)
 		d.Set("subscriptions_limit", props.SubscriptionsLimit)
 		d.Set("subscription_required", props.SubscriptionRequired)
 		d.Set("terms", props.Terms)

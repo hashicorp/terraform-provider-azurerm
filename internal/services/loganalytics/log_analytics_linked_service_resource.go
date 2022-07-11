@@ -15,10 +15,8 @@ import (
 	validateAuto "github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -41,143 +39,9 @@ func resourceLogAnalyticsLinkedService() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+		Schema: resourceLogAnalyticsLinkedServiceSchema(),
 
-			// TODO: Remove in 3.0
-			"workspace_name": {
-				Type:             pluginsdk.TypeString,
-				Computed:         true,
-				Optional:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.LogAnalyticsWorkspaceName,
-				ExactlyOneOf:     []string{"workspace_name", "workspace_id"},
-				Deprecated:       "This field has been deprecated in favour of `workspace_id` and will be removed in a future version of the provider",
-			},
-
-			"workspace_id": {
-				Type:             pluginsdk.TypeString,
-				Computed:         true,
-				Optional:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
-				ExactlyOneOf:     []string{"workspace_name", "workspace_id"},
-			},
-
-			// TODO: Remove in 3.0
-			"linked_service_name": {
-				Type:             pluginsdk.TypeString,
-				Computed:         true,
-				Optional:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringInSlice([]string{
-					"automation",
-					"cluster",
-				}, false),
-				Deprecated: "This field has been deprecated and will be removed in a future version of the provider",
-			},
-
-			// TODO: Remove in 3.0
-			"resource_id": {
-				Type:         pluginsdk.TypeString,
-				Computed:     true,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
-				ExactlyOneOf: []string{"read_access_id", "write_access_id", "resource_id"},
-				Deprecated:   "This field has been deprecated in favour of `read_access_id` and will be removed in a future version of the provider",
-			},
-
-			"read_access_id": {
-				Type:         pluginsdk.TypeString,
-				Computed:     true,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
-				ExactlyOneOf: []string{"read_access_id", "write_access_id", "resource_id"},
-			},
-
-			"write_access_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
-				ExactlyOneOf: []string{"read_access_id", "write_access_id", "resource_id"},
-			},
-
-			// Exported properties
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"tags": tags.Schema(),
-		},
-
-		// TODO: Remove in 3.0
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			if d.HasChange("linked_service_name") {
-				oldServiceName, newServiceName := d.GetChange("linked_service_name")
-
-				// This is an unneeded field, if it is removed you can safely ignore it
-				// as it's value can be(and is) derived via the 'read_access_id' field. It
-				// is only here for backwards compatibility to avoid a breaking change
-				if newServiceName.(string) != "" {
-					// Ignore change if it's in case only
-					if !strings.EqualFold(oldServiceName.(string), newServiceName.(string)) {
-						d.ForceNew("linked_service_name")
-					}
-				}
-			}
-
-			if d.HasChange("workspace_id") {
-				forceNew := true
-				_, newWorkspaceName := d.GetChange("workspace_name")
-				oldWorkspaceID, newWorkspaceID := d.GetChange("workspace_id")
-
-				// If the workspcae ID has been removed, only do a force new if the new workspace name
-				// and the old workspace ID points to different workspaces
-				if oldWorkspaceID.(string) != "" && newWorkspaceName.(string) != "" && newWorkspaceID.(string) == "" {
-					workspace, err := parse.LogAnalyticsWorkspaceID(oldWorkspaceID.(string))
-					if err == nil {
-						if workspace.WorkspaceName == newWorkspaceName.(string) {
-							forceNew = false
-						}
-					}
-				}
-
-				if forceNew {
-					d.ForceNew("workspace_id")
-				}
-			}
-
-			if d.HasChange("workspace_name") {
-				forceNew := true
-				oldWorkspaceName, newWorkspaceName := d.GetChange("workspace_name")
-				_, newWorkspaceID := d.GetChange("workspace_id")
-
-				// If the workspcae name has been removed, only do a force new if the new workspace ID
-				// and the old workspace name points to different workspaces
-				if oldWorkspaceName.(string) != "" && newWorkspaceID.(string) != "" && newWorkspaceName.(string) == "" {
-					workspace, err := parse.LogAnalyticsWorkspaceID(newWorkspaceID.(string))
-					if err == nil {
-						if workspace.WorkspaceName == oldWorkspaceName.(string) {
-							forceNew = false
-						}
-					}
-				}
-
-				if forceNew {
-					d.ForceNew("workspace_name")
-				}
-			}
-
-			// TODO: Remove in 3.0
-			if d.HasChange("resource_id") {
-				if resourceID := d.Get("resource_id").(string); resourceID != "" {
-					if _, err := validateAuto.AutomationAccountID(resourceID, "resource_id"); err != nil {
-						return fmt.Errorf("'resource_id' must be an Automation Account resource ID, got %q", resourceID)
-					}
-				}
-			}
-
 			if d.HasChange("read_access_id") {
 				if readAccessID := d.Get("read_access_id").(string); readAccessID != "" {
 					if _, err := validateAuto.AutomationAccountID(readAccessID, "read_acces_id"); err != nil {
@@ -207,46 +71,25 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Linked Services creation.")
 
-	// TODO: Remove in 3.0
-	var tmpSpace parse.LogAnalyticsWorkspaceId
 	var workspaceId string
-
 	resourceGroup := d.Get("resource_group_name").(string)
 	readAccess := d.Get("read_access_id").(string)
 	writeAccess := d.Get("write_access_id").(string)
-	linkedServiceName := d.Get("linked_service_name").(string)
-	t := d.Get("tags").(map[string]interface{})
-
-	if resourceId := d.Get("resource_id").(string); resourceId != "" {
-		readAccess = resourceId
-	}
-
-	if workspaceName := d.Get("workspace_name").(string); workspaceName != "" {
-		tmpSpace = parse.NewLogAnalyticsWorkspaceID(subscriptionId, resourceGroup, workspaceName)
-		workspaceId = tmpSpace.ID()
-	} else {
-		workspaceId = d.Get("workspace_id").(string)
-	}
+	workspaceId = d.Get("workspace_id").(string)
 
 	workspace, err := parse.LogAnalyticsWorkspaceID(workspaceId)
 	if err != nil {
-		return fmt.Errorf("Linked Service (Resource Group %q) unable to parse workspace id: %+v", resourceGroup, err)
+		return fmt.Errorf("linked service (Resource Group %q) unable to parse workspace id: %+v", resourceGroup, err)
 	}
 
 	id := parse.NewLogAnalyticsLinkedServiceID(subscriptionId, resourceGroup, workspace.WorkspaceName, LogAnalyticsLinkedServiceType(readAccess))
 
-	if linkedServiceName != "" {
-		if !strings.EqualFold(linkedServiceName, LogAnalyticsLinkedServiceType(readAccess)) {
-			return fmt.Errorf("Linked Service '%s/%s' (Resource Group %q): 'linked_service_name' %q does not match expected value of %q", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup, linkedServiceName, LogAnalyticsLinkedServiceType(readAccess))
-		}
-	}
-
 	if strings.EqualFold(id.LinkedServiceName, "Cluster") && writeAccess == "" {
-		return fmt.Errorf("Linked Service '%s/%s' (Resource Group %q): A linked Log Analytics Cluster requires the 'write_access_id' attribute to be set", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup)
+		return fmt.Errorf("linked service '%s/%s' (Resource Group %q): A linked Log Analytics Cluster requires the 'write_access_id' attribute to be set", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup)
 	}
 
 	if strings.EqualFold(id.LinkedServiceName, "Automation") && readAccess == "" {
-		return fmt.Errorf("Linked Service '%s/%s' (Resource Group %q): A linked Automation Account requires the 'read_access_id' attribute to be set", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup)
+		return fmt.Errorf("linked service '%s/%s' (Resource Group %q): A linked Automation Account requires the 'read_access_id' attribute to be set", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup)
 	}
 
 	if d.IsNewResource() {
@@ -257,14 +100,13 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_linked_service", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_log_analytics_linked_service", id.ID())
 		}
 	}
 
 	parameters := operationalinsights.LinkedService{
 		LinkedServiceProperties: &operationalinsights.LinkedServiceProperties{},
-		Tags:                    tags.Expand(t),
 	}
 
 	if id.LinkedServiceName == "Automation" {
@@ -318,16 +160,13 @@ func resourceLogAnalyticsLinkedServiceRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("workspace_id", workspace.ID())
-	d.Set("workspace_name", id.WorkspaceName)
-	d.Set("linked_service_name", id.LinkedServiceName)
 
 	if props := resp.LinkedServiceProperties; props != nil {
-		d.Set("resource_id", props.ResourceID)
 		d.Set("read_access_id", props.ResourceID)
 		d.Set("write_access_id", props.WriteAccessResourceID)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceLogAnalyticsLinkedServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -368,4 +207,37 @@ func LogAnalyticsLinkedServiceType(readAccessId string) string {
 	}
 
 	return "Cluster"
+}
+
+func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+
+		"workspace_id": {
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     azure.ValidateResourceID,
+		},
+
+		"read_access_id": {
+			Type:         pluginsdk.TypeString,
+			Computed:     true,
+			Optional:     true,
+			ValidateFunc: azure.ValidateResourceID,
+			ExactlyOneOf: []string{"read_access_id", "write_access_id"},
+		},
+
+		"write_access_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: azure.ValidateResourceID,
+			ExactlyOneOf: []string{"read_access_id", "write_access_id"},
+		},
+		// Exported properties
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }

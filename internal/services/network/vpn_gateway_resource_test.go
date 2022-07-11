@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VPNGatewayResource struct {
-}
+type VPNGatewayResource struct{}
 
 func TestAccVPNGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway", "test")
@@ -145,6 +144,28 @@ func TestAccVPNGateway_routingPreferenceInternet(t *testing.T) {
 	})
 }
 
+func TestAccVPNGateway_bgpRouteTranslationForNatEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway", "test")
+	r := VPNGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.bgpRouteTranslationForNatEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.bgpRouteTranslationForNatEnabled(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VPNGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VpnGatewayID(state.ID)
 	if err != nil {
@@ -158,6 +179,7 @@ func (t VPNGatewayResource) Exists(ctx context.Context, clients *clients.Client,
 
 	return utils.Bool(resp.ID != nil), nil
 }
+
 func (r VPNGatewayResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -271,6 +293,20 @@ resource "azurerm_vpn_gateway" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r VPNGatewayResource) bgpRouteTranslationForNatEnabled(data acceptance.TestData, bgpRouteTranslationForNatEnabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_vpn_gateway" "test" {
+  name                                  = "acctestVPNG-%d"
+  location                              = azurerm_resource_group.test.location
+  resource_group_name                   = azurerm_resource_group.test.name
+  virtual_hub_id                        = azurerm_virtual_hub.test.id
+  bgp_route_translation_for_nat_enabled = %t
+}
+`, r.template(data), data.RandomInteger, bgpRouteTranslationForNatEnabled)
 }
 
 func (VPNGatewayResource) template(data acceptance.TestData) string {

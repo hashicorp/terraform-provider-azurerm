@@ -1,3 +1,4 @@
+AAD B2C
 API Management
 Active Directory Domain Services
 Advisor
@@ -18,6 +19,8 @@ CDN
 Cognitive Services
 Communication
 Compute
+Confidential Ledger
+Connections
 Consumption
 Container
 CosmosDB (DocumentDB)
@@ -26,7 +29,6 @@ Custom Providers
 DNS
 Data Explorer
 Data Factory
-Data Lake
 Data Share
 DataProtection
 Database
@@ -35,8 +37,10 @@ Databox Edge
 Databricks
 Desktop Virtualization
 Dev Test
-DevSpace
 Digital Twins
+Disks
+Elastic
+Fluid Relay
 HDInsight
 Hardware Security Module
 Healthcare
@@ -45,6 +49,7 @@ IoT Hub
 Key Vault
 Lighthouse
 Load Balancer
+Load Test
 Log Analytics
 Logic App
 Logz
@@ -72,7 +77,6 @@ Security Center
 Sentinel
 Service Fabric
 Service Fabric Managed Clusters
-Service Fabric Mesh
 Spring Cloud
 Storage
 Stream Analytics
@@ -81,3 +85,4 @@ Template
 Time Series Insights
 VMware (AVS)
 Video Analyzer
+Web PubSub

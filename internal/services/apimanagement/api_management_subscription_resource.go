@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2020-12-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -28,8 +28,11 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 		Read:   resourceApiManagementSubscriptionRead,
 		Update: resourceApiManagementSubscriptionCreateUpdate,
 		Delete: resourceApiManagementSubscriptionDelete,
-		// TODO: replace this with an importer which validates the ID during import
-		Importer: pluginsdk.DefaultImporter(),
+
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := parse.SubscriptionID(id)
+			return err
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -84,14 +87,14 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 			"state": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(apimanagement.Submitted),
+				Default:  string(apimanagement.SubscriptionStateSubmitted),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.Active),
-					string(apimanagement.Cancelled),
-					string(apimanagement.Expired),
-					string(apimanagement.Rejected),
-					string(apimanagement.Submitted),
-					string(apimanagement.Suspended),
+					string(apimanagement.SubscriptionStateActive),
+					string(apimanagement.SubscriptionStateCancelled),
+					string(apimanagement.SubscriptionStateExpired),
+					string(apimanagement.SubscriptionStateRejected),
+					string(apimanagement.SubscriptionStateSubmitted),
+					string(apimanagement.SubscriptionStateSuspended),
 				}, false),
 			},
 
@@ -120,26 +123,26 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 
 func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
-	subscriptionId := d.Get("subscription_id").(string)
-	if subscriptionId == "" {
+	subName := d.Get("subscription_id").(string)
+	if subName == "" {
 		subId, err := uuid.NewV4()
 		if err != nil {
 			return err
 		}
 
-		subscriptionId = subId.String()
+		subName = subId.String()
 	}
+	id := parse.NewSubscriptionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), subName)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for present of existing Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 			}
 		}
 
@@ -187,7 +190,7 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 	sendEmail := utils.Bool(false)
 
 	err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, subscriptionId, params, sendEmail, "", apimanagement.DeveloperPortal); err != nil {
+		if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServiceName, id.Name, params, sendEmail, "", apimanagement.AppTypeDeveloperPortal); err != nil {
 			// APIM admins set limit on number of subscriptions to a product.  In order to be able to correctly enforce that limit service cannot let simultaneous creations
 			// to go through and first one wins/subsequent one gets 412 and that client/user can retry. This ensures that we have proper limits enforces as desired by APIM admin.
 			if v, ok := err.(autorest.DetailedError); ok && v.StatusCode == http.StatusPreconditionFailed {
@@ -198,15 +201,10 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("creating/updating Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
-	if err != nil {
-		return fmt.Errorf("retrieving Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementSubscriptionRead(d, meta)
 }

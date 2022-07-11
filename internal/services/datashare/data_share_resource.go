@@ -119,7 +119,7 @@ func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	resourceId := parse.NewShareID(subscriptionId, accountId.ResourceGroup, accountId.Name, name).ID()
+	resourceId := parse.NewShareID(subscriptionId, accountId.ResourceGroup, accountId.Name, name)
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, accountId.ResourceGroup, accountId.Name, name)
 		if err != nil {
@@ -127,8 +127,8 @@ func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("checking for present of existing DataShare %q (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_share", resourceId)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_data_share", resourceId.ID())
 		}
 	}
 
@@ -144,7 +144,7 @@ func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("creating Data Share %q (Account %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(resourceId.ID())
 
 	if d.HasChange("snapshot_schedule") {
 		// only one dependent sync setting is allowed in one data share

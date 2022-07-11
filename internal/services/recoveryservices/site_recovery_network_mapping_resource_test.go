@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type SiteRecoveryNetworkMappingResource struct {
-}
+type SiteRecoveryNetworkMappingResource struct{}
 
 func TestAccSiteRecoveryNetworkMapping_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_network_mapping", "test")

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -79,7 +78,7 @@ func TestAccComputeInstance_identity(t *testing.T) {
 			Config: r.identitySystemAssignedUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -95,7 +94,7 @@ func TestAccComputeInstance_identity(t *testing.T) {
 			Config: r.identitySystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
@@ -104,9 +103,8 @@ func TestAccComputeInstance_identity(t *testing.T) {
 }
 
 func (r ComputeInstanceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	computeClient := client.MachineLearning.MachineLearningComputeClient
+	computeClient := client.MachineLearning.ComputeClient
 	id, err := parse.ComputeID(state.ID)
-
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +274,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   identity {
-    type = "SystemAssigned,UserAssigned"
+    type = "SystemAssigned, UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]

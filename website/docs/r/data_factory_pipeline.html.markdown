@@ -25,9 +25,8 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_pipeline" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  name            = "example"
+  data_factory_id = azurerm_data_factory.example.id
 }
 ```
 
@@ -35,9 +34,8 @@ resource "azurerm_data_factory_pipeline" "example" {
 
 ```hcl
 resource "azurerm_data_factory_pipeline" "test" {
-  name                = "acctest%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
+  name            = "acctest%d"
+  data_factory_id = azurerm_data_factory.test.id
   variables = {
     "bob" = "item1"
   }
@@ -62,11 +60,9 @@ resource "azurerm_data_factory_pipeline" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Data Factory Pipeline. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory Pipeline. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Pipeline. Changing this forces a new resource
-
-* `data_factory_name` - (Required) The Data Factory name in which to associate the Pipeline with. Changing this forces a new resource.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `description` - (Optional) The description for the Data Factory Pipeline.
 

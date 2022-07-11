@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -25,14 +26,7 @@ func dataSourceFunctionAppHostKeys() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-
-			"master_key": {
-				Type:       pluginsdk.TypeString,
-				Computed:   true,
-				Sensitive:  true,
-				Deprecated: "This property has been renamed to `primary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
-			},
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"primary_key": {
 				Type:      pluginsdk.TypeString,
@@ -51,43 +45,50 @@ func dataSourceFunctionAppHostKeys() *pluginsdk.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"signalr_extension_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"durabletask_extension_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
 
 func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := parse.NewFunctionAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	functionSettings, err := client.Get(ctx, resourceGroup, name)
+	functionSettings, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(functionSettings.Response) {
-			return fmt.Errorf("Error: AzureRM Function App %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making Read request on AzureRM Function App %q: %+v", name, err)
+		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	if functionSettings.ID == nil {
-		return fmt.Errorf("cannot read ID for AzureRM Function App %q (Resource Group %q)", name, resourceGroup)
-	}
-	d.SetId(*functionSettings.ID)
+	d.SetId(id.ID())
 
-	//lintignore:R006
 	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		res, err := client.ListHostKeys(ctx, resourceGroup, name)
+		res, err := client.ListHostKeys(ctx, id.ResourceGroup, id.SiteName)
 		if err != nil {
 			if utils.ResponseWasNotFound(res.Response) {
-				return pluginsdk.NonRetryableError(fmt.Errorf("Error: AzureRM Function App %q (Resource Group %q) was not found", name, resourceGroup))
+				return pluginsdk.NonRetryableError(fmt.Errorf("%s was not found", id))
 			}
 
-			return pluginsdk.RetryableError(fmt.Errorf("making Read request on AzureRM Function App Hostkeys %q: %+v", name, err))
+			return pluginsdk.RetryableError(fmt.Errorf("making Read request on %s: %+v", id, err))
 		}
 
-		d.Set("master_key", res.MasterKey)
 		d.Set("primary_key", res.MasterKey)
 
 		defaultFunctionKey := ""
@@ -101,6 +102,18 @@ func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface
 			eventGridExtensionConfigKey = *v
 		}
 		d.Set("event_grid_extension_config_key", eventGridExtensionConfigKey)
+
+		signalrExtensionKey := ""
+		if v, ok := res.SystemKeys["signalr_extension"]; ok {
+			signalrExtensionKey = *v
+		}
+		d.Set("signalr_extension_key", signalrExtensionKey)
+
+		durableTaskExtensionKey := ""
+		if v, ok := res.SystemKeys["durabletask_extension"]; ok {
+			durableTaskExtensionKey = *v
+		}
+		d.Set("durabletask_extension_key", durableTaskExtensionKey)
 
 		return nil
 	})

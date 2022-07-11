@@ -10,8 +10,9 @@ description: |-
 
 Manages a SQL Azure Managed Instance.
 
-~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+-> **Note:** The `azurerm_sql_managed_instance` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_managed_instance`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_managed_instance) resource instead.
+
+~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](https://www.terraform.io/language/state/sensitive-data).
 
 ## Example Usage
 
@@ -151,7 +152,7 @@ resource "azurerm_subnet" "example" {
   name                 = "subnet-mi"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.0.0/24"
+  address_prefixes     = ["10.0.0.0/24"]
 
   delegation {
     name = "managedinstancedelegation"
@@ -217,7 +218,7 @@ The following arguments are supported:
 
 * `storage_size_in_gb` - (Required) Maximum storage space for your instance. It should be a multiple of 32GB.
 
-* `license_type` - (Required) What type of license the Managed Instance will use. Valid values include can be `PriceIncluded` or `BasePrice`.
+* `license_type` - (Required) What type of license the Managed Instance will use. Valid values include can be `LicenseIncluded` or `BasePrice`.
 
 * `administrator_login` - (Required) The administrator login name for the new server. Changing this forces a new resource to be created.
 
@@ -235,7 +236,7 @@ The following arguments are supported:
 
 * `timezone_id` - (Optional) The TimeZone ID that the SQL Managed Instance will be operating in. Default value is `UTC`. Changing this forces a new resource to be created.
 
-* `dns_zone_partner_id` - (Optional) The ID of the Managed Instance which will share the DNS zone. This is a prerequisite for creating a failover group, although creation of a failover group is not yet possible in `azurerm`. Setting this after creation forces a new resource to be created.
+* `dns_zone_partner_id` - (Optional) The ID of the Managed Instance which will share the DNS zone. This is a prerequisite for creating a `azurerm_managed_instance_failover_group`. Setting this after creation forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -247,13 +248,13 @@ The following arguments are supported:
 
 A `sku` block supports the following:
 
-* `name` - (Required) Sku of the managed instance. Values can be `GP_Gen4`, `GP_Gen5`, `BC_Gen4`, or `BC_Gen5`.
+* `name` - (Required) SKU of the managed instance. Values can be `GP_Gen4`, `GP_Gen5`, `BC_Gen4`, or `BC_Gen5`.
 
 ---
 
  An `identity` block supports the following:
 
- * `type` - (Required) The identity type of the SQL Managed Instance. Only possible values is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this SQL Managed Instance. The only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
@@ -262,6 +263,8 @@ The following attributes are exported:
 * `id` - The SQL Managed Instance ID.
 
 * `fqdn` - The fully qualified domain name of the Azure Managed SQL Instance
+
+* `identity` - An `identity` block as defined below.
 
 ---
 

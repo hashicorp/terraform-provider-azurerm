@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/sdk/2020-03-20/authorizations"
-
+	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2020-03-20/authorizations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VmwareExpressRouteAuthorizationResource struct {
-}
+type VmwareExpressRouteAuthorizationResource struct{}
 
 func TestAccVmwareExpressRouteAuthorization_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_express_route_authorization", "test")

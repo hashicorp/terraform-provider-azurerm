@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type KeyVaultDataSource struct {
-}
+type KeyVaultDataSource struct{}
 
 func TestAccDataSourceKeyVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault", "test")
@@ -68,23 +67,6 @@ func TestAccDataSourceKeyVault_networkAcls(t *testing.T) {
 				check.That(data.ResourceName).Key("access_policy.0.secret_permissions.0").HasValue("Set"),
 				check.That(data.ResourceName).Key("network_acls.#").HasValue("1"),
 				check.That(data.ResourceName).Key("network_acls.0.default_action").HasValue("Allow"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceKeyVault_softDelete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_key_vault", "test")
-	r := KeyVaultDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.enableSoftDelete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("sku_name").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},

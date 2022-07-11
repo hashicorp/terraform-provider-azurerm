@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiManagementApiDiagnosticResource struct {
-}
+type ApiManagementApiDiagnosticResource struct{}
 
 func TestAccApiManagementApiDiagnostic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_diagnostic", "test")
@@ -290,6 +289,10 @@ resource "azurerm_api_management_api_diagnostic" "test" {
     body_bytes     = 2
     headers_to_log = ["Content-Type"]
     data_masking {
+      headers {
+        mode  = "Mask"
+        value = "backend-Response-Header"
+      }
       query_params {
         mode  = "Mask"
         value = "backend-Resp-Test"
@@ -301,6 +304,10 @@ resource "azurerm_api_management_api_diagnostic" "test" {
     body_bytes     = 3
     headers_to_log = ["Accept"]
     data_masking {
+      query_params {
+        mode  = "Hide"
+        value = "frontend-Request-Test"
+      }
       headers {
         mode  = "Mask"
         value = "frontend-Request-Header"

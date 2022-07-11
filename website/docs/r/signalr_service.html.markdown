@@ -32,10 +32,9 @@ resource "azurerm_signalr_service" "example" {
     allowed_origins = ["http://www.example.com"]
   }
 
-  features {
-    flag  = "ServiceMode"
-    value = "Default"
-  }
+  connectivity_logs_enabled = true
+  messaging_logs_enabled    = true
+  service_mode              = "Default"
 
   upstream_endpoint {
     category_pattern = ["connections", "messages"]
@@ -60,7 +59,13 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as documented below.
 
-* `features` - (Optional) A `features` block as documented below.
+* `connectivity_logs_enabled`- (Optional) Specifies if Connectivity Logs are enabled or not. Defaults to `false`.
+
+* `messaging_logs_enabled`- (Optional) Specifies if Messaging Logs are enabled or not. Defaults to `false`.
+
+* `live_trace_enabled`- (Optional) Specifies if Live Trace is enabled or not. Defaults to `false`.
+
+* `service_mode`- (Optional) Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`. Defaults to `Default`.
 
 * `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
 
@@ -71,14 +76,6 @@ The following arguments are supported:
 A `cors` block supports the following:
 
 * `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
-
----
-
-A `features` block supports the following:
-
-* `flag` - (Required) The kind of Feature. Possible values are `EnableConnectivityLogs`, `EnableMessagingLogs`, and `ServiceMode`.
-
-* `value` - (Required) A value of a feature flag. Possible values are `Classic`, `Default` and `Serverless`.
 
 ---
 
@@ -96,7 +93,7 @@ An `upstream_endpoint` block supports the following:
 
 A `sku` block supports the following:
 
-* `name` - (Required) Specifies which tier to use. Valid values are `Free_F1` and `Standard_S1`.
+* `name` - (Required) Specifies which tier to use. Valid values are `Free_F1`, `Standard_S1` and `Premium_P1`.
 
 * `capacity` - (Required) Specifies the number of units associated with this SignalR service. Valid values are `1`, `2`, `5`, `10`, `20`, `50` and `100`.
 

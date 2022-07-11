@@ -5,11 +5,10 @@ import (
 	"log"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -226,50 +225,6 @@ func schemaAppServiceAuthSettings() *pluginsdk.Schema {
 	}
 }
 
-func schemaAppServiceIdentity() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"identity_ids": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MinItems: 1,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validate.UserAssignedIdentityID,
-					},
-				},
-
-				"type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(web.ManagedServiceIdentityTypeNone),
-						string(web.ManagedServiceIdentityTypeSystemAssigned),
-						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
-						string(web.ManagedServiceIdentityTypeUserAssigned),
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
-				},
-
-				"principal_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"tenant_id": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
 func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -304,8 +259,7 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 						"v4.0",
 						"v5.0",
 						"v6.0",
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, false),
 				},
 
 				"http2_enabled": {
@@ -337,8 +291,7 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 						"JAVA",
 						"JETTY",
 						"TOMCAT",
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, false),
 				},
 
 				"java_container_version": {
@@ -359,8 +312,7 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.ManagedPipelineModeClassic),
 						string(web.ManagedPipelineModeIntegrated),
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, false),
 				},
 
 				"php_version": {
@@ -397,13 +349,9 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"VS2012", // TODO for 3.0 - remove VS2012, VS2013, VS2015
-						"VS2013",
-						"VS2015",
 						"VS2017",
 						"VS2019",
-					}, true),
-					DiffSuppressFunc: suppress.CaseDifference,
+					}, false),
 				},
 
 				"scm_type": {
@@ -915,8 +863,7 @@ func schemaAppServiceIpRestriction() *pluginsdk.Schema {
 					ConfigMode: pluginsdk.SchemaConfigModeAttr,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-
-							// lintignore:S018
+							//lintignore:S018
 							"x_forwarded_host": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -926,7 +873,7 @@ func schemaAppServiceIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							// lintignore:S018
+							//lintignore:S018
 							"x_forwarded_for": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -937,7 +884,7 @@ func schemaAppServiceIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							// lintignore:S018
+							//lintignore:S018
 							"x_azure_fdid": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -948,7 +895,7 @@ func schemaAppServiceIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							// lintignore:S018
+							//lintignore:S018
 							"x_fd_health_probe": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
@@ -1011,8 +958,7 @@ func schemaAppServiceDataSourceIpRestriction() *pluginsdk.Schema {
 					ConfigMode: pluginsdk.SchemaConfigModeAttr,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-
-							// lintignore:S018
+							//lintignore:S018
 							"x_forwarded_host": {
 								Type:     pluginsdk.TypeSet,
 								Computed: true,
@@ -1021,7 +967,7 @@ func schemaAppServiceDataSourceIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							// lintignore:S018
+							//lintignore:S018
 							"x_forwarded_for": {
 								Type:     pluginsdk.TypeSet,
 								Computed: true,
@@ -1030,7 +976,7 @@ func schemaAppServiceDataSourceIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							// lintignore:S018
+							//lintignore:S018
 							"x_azure_fdid": {
 								Type:     pluginsdk.TypeSet,
 								Computed: true,
@@ -1039,7 +985,7 @@ func schemaAppServiceDataSourceIpRestriction() *pluginsdk.Schema {
 								},
 							},
 
-							// lintignore:S018
+							//lintignore:S018
 							"x_fd_health_probe": {
 								Type:     pluginsdk.TypeSet,
 								Computed: true,
@@ -1605,63 +1551,49 @@ func expandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 	return logs
 }
 
-func expandAppServiceIdentity(input []interface{}) *web.ManagedServiceIdentity {
-	if len(input) == 0 {
-		return nil
-	}
-	identity := input[0].(map[string]interface{})
-	identityType := web.ManagedServiceIdentityType(identity["type"].(string))
-
-	identityIds := make(map[string]*web.UserAssignedIdentity)
-	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds[id.(string)] = &web.UserAssignedIdentity{}
+func expandAppServiceIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
 	}
 
-	managedServiceIdentity := web.ManagedServiceIdentity{
-		Type: identityType,
+	out := web.ManagedServiceIdentity{
+		Type: web.ManagedServiceIdentityType(string(expanded.Type)),
 	}
-
-	if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned || managedServiceIdentity.Type == web.ManagedServiceIdentityTypeSystemAssignedUserAssigned {
-		managedServiceIdentity.UserAssignedIdentities = identityIds
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		out.UserAssignedIdentities = make(map[string]*web.UserAssignedIdentity)
+		for k := range expanded.IdentityIds {
+			out.UserAssignedIdentities[k] = &web.UserAssignedIdentity{
+				// intentionally empty
+			}
+		}
 	}
-
-	return &managedServiceIdentity
+	return &out, nil
 }
 
-func flattenAppServiceIdentity(identity *web.ManagedServiceIdentity) ([]interface{}, error) {
-	if identity == nil {
-		return make([]interface{}, 0), nil
-	}
+func flattenAppServiceIdentity(input *web.ManagedServiceIdentity) (*[]interface{}, error) {
+	var transform *identity.SystemAndUserAssignedMap
 
-	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
-	}
-
-	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
-	}
-
-	identityIds := make([]string, 0)
-	if identity.UserAssignedIdentities != nil {
-		for key := range identity.UserAssignedIdentities {
-			parsedId, err := parse.UserAssignedIdentityIDInsensitively(key)
-			if err != nil {
-				return nil, err
+	if input != nil {
+		transform = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(input.Type)),
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		if input.PrincipalID != nil {
+			transform.PrincipalId = *input.PrincipalID
+		}
+		if input.TenantID != nil {
+			transform.TenantId = *input.TenantID
+		}
+		for k, v := range input.UserAssignedIdentities {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientID,
+				PrincipalId: v.PrincipalID,
 			}
-			identityIds = append(identityIds, parsedId.ID())
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"identity_ids": identityIds,
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-			"type":         string(identity.Type),
-		},
-	}, nil
+	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {

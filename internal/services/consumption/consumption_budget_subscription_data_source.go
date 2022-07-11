@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
-	subscriptionParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -224,35 +223,27 @@ func resourceArmConsumptionBudgetSubscriptionDataSourceRead(d *pluginsdk.Resourc
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	subscriptionId, err := subscriptionParse.SubscriptionID(d.Get("subscription_id").(string))
-	if err != nil {
-		return err
-	}
+	id := parse.NewConsumptionBudgetId(d.Get("subscription_id").(string), d.Get("name").(string))
 
-	id := parse.NewConsumptionBudgetSubscriptionID(subscriptionId.SubscriptionID, d.Get("name").(string))
-	d.SetId(id.ID())
-
-	resp, err := client.Get(ctx, subscriptionId.ID(), id.BudgetName)
+	resp, err := client.Get(ctx, id.Scope, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.SetId(id.ID())
+	d.Set("name", id.Name)
+	d.Set("subscription_id", id.Scope)
 	if resp.Amount != nil {
 		amount, _ := resp.Amount.Float64()
 		d.Set("amount", amount)
 	}
 	d.Set("time_grain", string(resp.TimeGrain))
-	d.Set("time_period", FlattenConsumptionBudgetTimePeriod(resp.TimePeriod))
-	d.Set("notification", FlattenConsumptionBudgetNotifications(resp.Notifications))
-	d.Set("filter", FlattenConsumptionBudgetFilter(resp.Filter))
-
-	// The scope of a Subscription budget resource is the Subscription budget ID
-	d.Set("subscription_id", d.Get("subscription_id").(string))
+	d.Set("time_period", flattenConsumptionBudgetTimePeriod(resp.TimePeriod))
+	d.Set("notification", flattenConsumptionBudgetNotifications(resp.Notifications, id.Scope))
+	d.Set("filter", flattenConsumptionBudgetFilter(resp.Filter))
 
 	return nil
 }

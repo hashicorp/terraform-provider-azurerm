@@ -5,10 +5,10 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceid.Formatter = LogAnalyticsLinkedStorageAccountId{}
+var _ resourceids.Id = LogAnalyticsLinkedStorageAccountId{}
 
 func TestLogAnalyticsLinkedStorageAccountIDFormatter(t *testing.T) {
 	actual := NewLogAnalyticsLinkedStorageAccountID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "query").ID()

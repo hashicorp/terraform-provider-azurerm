@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -39,8 +41,10 @@ type ReadWriteEndpointFailurePolicyModel struct {
 	Mode         string `tfschema:"mode"`
 }
 
-var _ sdk.Resource = MsSqlFailoverGroupResource{}
-var _ sdk.ResourceWithUpdate = MsSqlFailoverGroupResource{}
+var (
+	_ sdk.Resource           = MsSqlFailoverGroupResource{}
+	_ sdk.ResourceWithUpdate = MsSqlFailoverGroupResource{}
+)
 
 type MsSqlFailoverGroupResource struct{}
 
@@ -84,7 +88,7 @@ func (r MsSqlFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: azure.ValidateResourceID,
 					},
 
-					"location": azure.SchemaLocationForDataSource(),
+					"location": commonschema.LocationComputed(),
 
 					"role": {
 						Type:     pluginsdk.TypeString,
@@ -193,7 +197,7 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if existing.ID != nil && *existing.ID != "" {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -381,26 +385,26 @@ func (r MsSqlFailoverGroupResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r MsSqlFailoverGroupResource) flattenPartnerServers(input *[]sql.PartnerInfo) (output []PartnerServerModel) {
+func (r MsSqlFailoverGroupResource) flattenPartnerServers(input *[]sql.PartnerInfo) []PartnerServerModel {
+	output := make([]PartnerServerModel, 0)
 	if input == nil {
-		return
+		return output
 	}
 
 	for _, partner := range *input {
 		model := PartnerServerModel{
-			Role: string(partner.ReplicationRole),
+			Location: location.NormalizeNilable(partner.Location),
+			Role:     string(partner.ReplicationRole),
 		}
 		if partner.ID != nil {
 			model.ID = *partner.ID
 		}
-		if partner.Location != nil {
-			model.Location = *partner.Location
-		}
 		output = append(output, model)
 	}
 
-	return
+	return output
 }
+
 func (r MsSqlFailoverGroupResource) expandPartnerServers(input []PartnerServerModel) *[]sql.PartnerInfo {
 	var partnerServers []sql.PartnerInfo
 	if input == nil {

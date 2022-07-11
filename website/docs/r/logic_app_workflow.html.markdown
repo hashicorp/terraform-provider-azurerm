@@ -37,13 +37,15 @@ The following arguments are supported:
 
 * `access_control` - (Optional) A `access_control` block as defined below.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `integration_service_environment_id` - (Optional) The ID of the Integration Service Environment to which this Logic App Workflow belongs.  Changing this forces a new Logic App Workflow to be created.
 
 * `logic_app_integration_account_id` - (Optional) The ID of the integration account linked by this Logic App Workflow.
 
-* `state` - (Optional) The state of the Logic App Workflow. Defaults to `true`.
+* `enabled` - (Optional) Is the Logic App Workflow enabled? Defaults to `true`.
 
-* `workflow_parameters` - (Optional) Specifies a map of Key-Value pairs of the Parameter Definitions to use for this Logic App Workflow. The key is the parameter name, and the value is a json encoded string of the parameter definition (see: https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-definition-language#parameters).
+* `workflow_parameters` - (Optional) Specifies a map of Key-Value pairs of the Parameter Definitions to use for this Logic App Workflow. The key is the parameter name, and the value is a JSON encoded string of the parameter definition (see: https://docs.microsoft.com/azure/logic-apps/logic-apps-workflow-definition-language#parameters).
   
 * `workflow_schema` - (Optional) Specifies the Schema to use for this Logic App Workflow. Defaults to `https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#`. Changing this forces a new resource to be created.
 
@@ -85,11 +87,39 @@ A `trigger` block supports the following:
 
 * `allowed_caller_ip_address_range` - (Required) A list of the allowed caller IP address ranges.
 
+* `open_authentication_policy` - (Optional) A `open_authentication_policy` block as defined below.
+
 ---
 
 A `workflow_management` block supports the following:
 
 * `allowed_caller_ip_address_range` - (Required) A list of the allowed caller IP address ranges.
+
+---
+
+A `open_authentication_policy` block supports the following:
+
+* `name` - (Required) The OAuth policy name for the Logic App Workflow.
+
+* `claim` - (Required) A `claim` block as defined below.
+
+---
+
+A `claim` block supports the following:
+
+* `name` - (Required) The name of the OAuth policy claim for the Logic App Workflow.
+
+* `value` - (Required) The value of the OAuth policy claim for the Logic App Workflow.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Logic App Workflow. Possible values are `SystemAssigned`, `UserAssigned`.
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Logic App Workflow.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned`
 
 ## Attributes Reference
 
@@ -99,13 +129,23 @@ The following attributes are exported:
 
 * `access_endpoint` - The Access Endpoint for the Logic App Workflow.
 
-* `connector_endpoint_ip_addresses` - The list of access endpoint ip addresses of connector.
+* `connector_endpoint_ip_addresses` - The list of access endpoint IP addresses of connector.
 
-* `connector_outbound_ip_addresses` - The list of outgoing ip addresses of connector.
+* `connector_outbound_ip_addresses` - The list of outgoing IP addresses of connector.
 
-* `workflow_endpoint_ip_addresses` - The list of access endpoint ip addresses of workflow.
+* `identity` - An `identity` block as defined below.
 
-* `workflow_outbound_ip_addresses` - The list of outgoing ip addresses of workflow.
+* `workflow_endpoint_ip_addresses` - The list of access endpoint IP addresses of workflow.
+
+* `workflow_outbound_ip_addresses` - The list of outgoing IP addresses of workflow.
+
+---
+
+The `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Logic App Workflow.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Logic App Workflow.
 
 ## Timeouts
 

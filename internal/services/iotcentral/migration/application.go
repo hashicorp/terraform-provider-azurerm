@@ -4,14 +4,13 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 var _ pluginsdk.StateUpgrade = ApplicationV0ToV1{}
 
-type ApplicationV0ToV1 struct {
-}
+type ApplicationV0ToV1 struct{}
 
 func (ApplicationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -69,7 +68,7 @@ func (ApplicationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (ApplicationV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		id, err := parse.ApplicationIDInsensitively(oldId)
+		id, err := apps.ParseIotAppIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}

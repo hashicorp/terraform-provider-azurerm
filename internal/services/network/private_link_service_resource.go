@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -60,6 +60,7 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 				Set: pluginsdk.HashString,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_proxy_protocol": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -73,6 +74,15 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 					ValidateFunc: validation.IsUUID,
 				},
 				Set: pluginsdk.HashString,
+			},
+
+			"fqdns": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 			},
 
 			// Required by the API you can't create the resource without at least
@@ -164,8 +174,8 @@ func resourcePrivateLinkServiceCreateUpdate(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_private_link_service", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_private_link_service", id.ID())
 		}
 	}
 
@@ -189,6 +199,7 @@ func resourcePrivateLinkServiceCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			},
 			IPConfigurations:                     expandPrivateLinkServiceIPConfiguration(primaryIpConfiguration),
 			LoadBalancerFrontendIPConfigurations: expandPrivateLinkServiceFrontendIPConfiguration(loadBalancerFrontendIpConfigurations),
+			Fqdns:                                utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -268,6 +279,10 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		if err := d.Set("visibility_subscription_ids", subscriptions); err != nil {
 			return fmt.Errorf("setting `visibility_subscription_ids`: %+v", err)
+		}
+
+		if err := d.Set("fqdns", utils.FlattenStringSlice(props.Fqdns)); err != nil {
+			return fmt.Errorf("setting `fqdns`: %+v", err)
 		}
 
 		if err := d.Set("nat_ip_configuration", flattenPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
@@ -441,6 +456,7 @@ func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *netw
 		return res, "Pending", nil
 	}
 }
+
 func validatePrivateLinkNatIpConfiguration(d *pluginsdk.ResourceDiff) error {
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)

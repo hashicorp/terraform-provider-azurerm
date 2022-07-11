@@ -12,7 +12,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
 var packagesUsingAlias = map[string]struct{}{
@@ -47,12 +47,12 @@ func run(servicePackagePath, name, id string, shouldRewrite bool) error {
 	}
 
 	parsersPath := path.Join(servicePackagePath, "/parse")
-	if err := os.Mkdir(parsersPath, 0755); err != nil && !os.IsExist(err) {
+	if err := os.Mkdir(parsersPath, 0o755); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("creating parse directory at %q: %+v", parsersPath, err)
 	}
 
 	validatorPath := path.Join(servicePackagePath, "/validate")
-	if err := os.Mkdir(validatorPath, 0755); err != nil && !os.IsExist(err) {
+	if err := os.Mkdir(validatorPath, 0o755); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("creating validate directory at %q: %+v", validatorPath, err)
 	}
 
@@ -203,11 +203,9 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 
 		// the RP shouldn't be transformed
 		if key == "providers" {
-			if features.ThreePointOh() {
-				r := regexp.MustCompile(`^Microsoft.[A-Z][A-Za-z]+$`)
-				if !r.MatchString(value) {
-					return nil, fmt.Errorf("the resource provider in the id must begin with upper case got: %s", value)
-				}
+			r := regexp.MustCompile(`^Microsoft.[A-Z][A-Za-z]+$`)
+			if !r.MatchString(value) {
+				return nil, fmt.Errorf("the resource provider in the id must begin with upper case got: %s", value)
 			}
 			continue
 		}
@@ -216,7 +214,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 			toCamelCase := func(input string) string {
 				// lazy but it works
 				out := make([]rune, 0)
-				for i, char := range strings.Title(input) {
+				for i, char := range azure.TitleCase(input) {
 					if i == 0 {
 						out = append(out, unicode.ToLower(char))
 						continue
@@ -229,7 +227,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 
 			rewritten := fmt.Sprintf("%sName", key)
 			segment := ResourceIdSegment{
-				FieldName:    strings.Title(rewritten),
+				FieldName:    azure.TitleCase(rewritten),
 				ArgumentName: toCamelCase(rewritten),
 				SegmentKey:   key,
 				SegmentValue: value,
@@ -270,7 +268,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				} else {
 					// remove {Thing}s and make that {Thing}Name
 					rewritten = fmt.Sprintf("%sName", key)
-					segment.FieldName = strings.Title(rewritten)
+					segment.FieldName = azure.TitleCase(rewritten)
 					segment.ArgumentName = toCamelCase(rewritten)
 				}
 			}
@@ -578,7 +576,7 @@ package parse%s
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceid"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	%s
 )
 
@@ -596,7 +594,7 @@ func (id ResourceIdGenerator) testCodeForFormatter() string {
 	argumentsStr := strings.Join(arguments, ", ")
 	if id.TestPackageSuffix == "" {
 		return fmt.Sprintf(`
-var _ resourceid.Formatter = %[1]sId{}
+var _ resourceids.Id = %[1]sId{}
 
 func Test%[1]sIDFormatter(t *testing.T) {
 	actual := New%[1]sID(%[2]s).ID()
@@ -1038,7 +1036,7 @@ func goFmtAndWriteToFile(filePath, fileContents string) error {
 		return err
 	}
 
-	if err := os.WriteFile(filePath, []byte(*fmt), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(*fmt), 0o644); err != nil {
 		return err
 	}
 

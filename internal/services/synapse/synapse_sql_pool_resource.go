@@ -179,7 +179,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
+	if !utils.ResponseWasNotFound(existing.Response) {
 		return tf.ImportAsExistsError("azurerm_synapse_sql_pool", id.ID())
 	}
 

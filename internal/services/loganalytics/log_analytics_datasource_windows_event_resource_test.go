@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsDataSourceWindowsEventResource struct {
-}
+type LogAnalyticsDataSourceWindowsEventResource struct{}
 
 func TestAccLogAnalyticsDataSourceWindowsEvent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
@@ -91,12 +90,12 @@ func TestAccLogAnalyticsDataSourceWindowsEvent_requiresImport(t *testing.T) {
 }
 
 func (t LogAnalyticsDataSourceWindowsEventResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogAnalyticsDataSourceID(state.ID)
+	id, err := parse.DataSourceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.LogAnalytics.DataSourcesClient.Get(ctx, id.ResourceGroup, id.Workspace, id.Name)
+	resp, err := clients.LogAnalytics.DataSourcesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("readingLog Analytics Data Source Windows Event (%s): %+v", id, err)
 	}
@@ -113,7 +112,7 @@ resource "azurerm_log_analytics_datasource_windows_event" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
   event_log_name      = "Application"
-  event_types         = ["error"]
+  event_types         = ["Error"]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -127,7 +126,7 @@ resource "azurerm_log_analytics_datasource_windows_event" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
   event_log_name      = "Application"
-  event_types         = ["InforMation", "warning", "Error"]
+  event_types         = ["Information", "Warning", "Error"]
 }
 `, r.template(data), data.RandomInteger)
 }

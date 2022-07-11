@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -133,12 +133,13 @@ func resourceVirtualHubRouteTableRouteCreateUpdate(d *pluginsdk.ResourceData, me
 		routes = append(routes, result)
 		routeTable.Routes = &routes
 	} else {
-		for _, r := range *routeTable.Routes {
-			if *r.Name == name {
-				r.DestinationType = utils.String(d.Get("destinations_type").(string))
-				r.Destinations = utils.ExpandStringSlice(d.Get("destinations").(*pluginsdk.Set).List())
-				r.NextHopType = utils.String(d.Get("next_hop_type").(string))
-				r.NextHop = utils.String(d.Get("next_hop").(string))
+		routes := *routeTable.Routes
+		for i := range routes {
+			if *routes[i].Name == name {
+				routes[i].DestinationType = utils.String(d.Get("destinations_type").(string))
+				routes[i].Destinations = utils.ExpandStringSlice(d.Get("destinations").(*pluginsdk.Set).List())
+				routes[i].NextHopType = utils.String(d.Get("next_hop_type").(string))
+				routes[i].NextHop = utils.String(d.Get("next_hop").(string))
 				break
 			}
 		}

@@ -2,9 +2,7 @@ package migration
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
@@ -26,28 +24,16 @@ func (ComponentUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/components/component1
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/components/component1
-		oldId, err := azure.ParseAzureResourceID(rawState["id"].(string))
+		oldIdRaw := rawState["id"].(string)
+		id, err := parse.ComponentIDInsensitively(oldIdRaw)
 		if err != nil {
 			return rawState, err
 		}
 
-		componentName := ""
-		for key, value := range oldId.Path {
-			if strings.EqualFold(key, "components") {
-				componentName = value
-				break
-			}
-		}
+		newId := id.ID()
 
-		if componentName == "" {
-			return rawState, fmt.Errorf("couldn't find the `components` segment in the old resource id %q", oldId)
-		}
-
-		newId := parse.NewComponentID(oldId.SubscriptionID, oldId.ResourceGroup, componentName)
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId.ID())
-
-		rawState["id"] = newId.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldIdRaw, newId)
+		rawState["id"] = newId
 
 		return rawState, nil
 	}

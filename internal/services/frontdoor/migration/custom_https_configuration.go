@@ -2,11 +2,8 @@ package migration
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -76,42 +73,16 @@ func (CustomHttpsConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (CustomHttpsConfigurationV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		// this was: fmt.Sprintf("%s/customHttpsConfiguration/%s", frontEndEndpointId, frontendEndpointName
+		// this was: fmt.Sprintf("%s/customHttpsConfiguration/%s", frontDoorId, frontendEndpointName
 		oldId := rawState["id"].(string)
-		oldParsedId, err := azure.ParseAzureResourceID(oldId)
+		id, err := parse.CustomHttpsConfigurationIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}
 
-		resourceGroup := oldParsedId.ResourceGroup
-		frontdoorName := ""
-		frontendEndpointName := ""
-		for key, value := range oldParsedId.Path {
-			if strings.EqualFold(key, "frontdoors") {
-				frontdoorName = value
-				continue
-			}
-
-			if strings.EqualFold(key, "frontendEndpoints") {
-				frontendEndpointName = value
-				continue
-			}
-		}
-
-		if frontdoorName == "" {
-			return rawState, fmt.Errorf("couldn't find the `frontdoors` segment in the old resource id %q", oldId)
-		}
-
-		if frontendEndpointName == "" {
-			return rawState, fmt.Errorf("couldn't find the `frontendEndpoints` segment in the old resource id %q", oldId)
-		}
-
-		newId := parse.NewFrontendEndpointID(oldParsedId.SubscriptionID, resourceGroup, frontdoorName, frontendEndpointName)
-		newIdStr := newId.ID()
-
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newIdStr)
-
-		rawState["id"] = newIdStr
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		rawState["id"] = newId
 
 		return rawState, nil
 	}

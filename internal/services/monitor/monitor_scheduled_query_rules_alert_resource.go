@@ -82,11 +82,8 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 							},
 						},
 						"custom_webhook_payload": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							// TODO remove `Computed: true` in 3.0. This is a breaking change where the Default used to be "{}"
-							// We'll keep Computed: true for users who expect the same functionality but will remove it in 3.0
-							Computed:     true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
 							ValidateFunc: validation.StringIsJSON,
 						},
 						"email_subject": {
@@ -255,8 +252,8 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_monitor_scheduled_query_rules_alert", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_monitor_scheduled_query_rules_alert", id.ID())
 		}
 	}
 

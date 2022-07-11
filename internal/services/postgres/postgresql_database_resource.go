@@ -69,55 +69,39 @@ func resourcePostgreSQLDatabase() *pluginsdk.Resource {
 
 func resourcePostgreSQLDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.DatabasesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Database creation.")
-
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	serverName := d.Get("server_name").(string)
-
-	charset := d.Get("charset").(string)
-	collation := d.Get("collation").(string)
-
-	existing, err := client.Get(ctx, resGroup, serverName, name)
+	id := parse.NewDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing PostgreSQL Database %s (resource group %s) ID", name, resGroup)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_postgresql_database", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_postgresql_database", id.ID())
 	}
 
 	properties := postgresql.Database{
 		DatabaseProperties: &postgresql.DatabaseProperties{
-			Charset:   utils.String(charset),
-			Collation: utils.String(collation),
+			Charset:   utils.String(d.Get("charset").(string)),
+			Collation: utils.String(d.Get("collation").(string)),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, serverName, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read PostgreSQL Database %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourcePostgreSQLDatabaseRead(d, meta)
 }
 
@@ -134,12 +118,12 @@ func resourcePostgreSQLDatabaseRead(d *pluginsdk.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] PostgreSQL Database %q was not found (Server %q / Resource Group %q)", id.Name, id.ServerName, id.ResourceGroup)
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving PostgreSQL Database %q (Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -166,11 +150,11 @@ func resourcePostgreSQLDatabaseDelete(d *pluginsdk.ResourceData, meta interface{
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-		return err
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

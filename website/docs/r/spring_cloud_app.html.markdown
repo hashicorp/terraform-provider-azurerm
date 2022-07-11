@@ -49,21 +49,42 @@ The following arguments are supported:
 
 * `service_name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created.
 
+* `addon_json` - (Optional) A JSON object that contains the addon configurations of the Spring Cloud Service.
+
+* `custom_persistent_disk` - (Optional) A `custom_persistent_disk` block as defined below.
+  
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `is_public` - (Optional) Does the Spring Cloud Application have public endpoint? Defaults to `false`.
 
-* `https_only` - (Optional) Is only https allowed? Defaults to `false`.
+* `https_only` - (Optional) Is only HTTPS allowed? Defaults to `false`.
 
 * `persistent_disk` - (Optional) An `persistent_disk` block as defined below.
 
 * `tls_enabled` - (Optional) Is End to End TLS Enabled? Defaults to `false`.
 
 ---
+An `custom_persistent_disk` block exports the following:
+
+* `storage_name` - (Required) The name of the Spring Cloud Storage.
+
+* `mount_path` - (Required) The mount path of the persistent disk.
+
+* `share_name` - (Required) The share name of the Azure File share.
+
+* `mount_options` - (Optional) These are the mount options for a persistent disk.
+
+* `read_only_enabled` - (Optional) Indicates whether the persistent disk is a readOnly one.
+
+---
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Spring Cloud Application. Possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Spring Cloud Application. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Spring Cloud Application.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 

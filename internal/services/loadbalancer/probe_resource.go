@@ -5,8 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -14,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -52,8 +50,6 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"loadbalancer_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -62,15 +58,14 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:             pluginsdk.TypeString,
-				Computed:         true,
-				Optional:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.ProbeProtocolHTTP),
 					string(network.ProbeProtocolHTTPS),
 					string(network.ProbeProtocolTCP),
-				}, true),
+				}, false),
 			},
 
 			"port": {
@@ -194,7 +189,6 @@ func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.Set("name", config.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := config.ProbePropertiesFormat; props != nil {
 		intervalInSeconds := 0

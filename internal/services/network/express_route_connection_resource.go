@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -62,6 +62,7 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_internet_security": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,

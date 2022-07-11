@@ -45,16 +45,19 @@ var (
 	}
 
 	China = Environment{
-		AzureADEndpoint:   AzureADChina,
-		MsGraph:           MsGraphChina,
-		AadGraph:          AadGraphChina,
-		ResourceManager:   ResourceManagerChina,
-		BatchManagement:   BatchManagementChina,
-		KeyVault:          KeyVaultChina,
-		OSSRDBMS:          OSSRDBMSChina,
-		ServiceBus:        ServiceBusChina,
-		ServiceManagement: ServiceManagementChina,
-		SQLDatabase:       SQLDatabaseChina,
+		AzureADEndpoint:     AzureADChina,
+		MsGraph:             MsGraphChina,
+		AadGraph:            AadGraphChina,
+		ResourceManager:     ResourceManagerChina,
+		BatchManagement:     BatchManagementChina,
+		KeyVault:            KeyVaultChina,
+		OperationalInsights: ApiUnavailable,
+		OSSRDBMS:            OSSRDBMSChina,
+		ServiceBus:          ServiceBusChina,
+		ServiceManagement:   ServiceManagementChina,
+		SQLDatabase:         SQLDatabaseChina,
+		Storage:             StoragePublic,
+		Synapse:             SynapsePublic,
 	}
 
 	USGovernmentL4 = Environment{
@@ -63,12 +66,15 @@ var (
 		AadGraph:            AadGraphUSGov,
 		ResourceManager:     ResourceManagerUSGov,
 		BatchManagement:     BatchManagementUSGov,
+		DataLake:            ApiUnavailable,
 		KeyVault:            KeyVaultUSGov,
 		OperationalInsights: OperationalInsightsUSGov,
 		OSSRDBMS:            OSSRDBMSUSGov,
 		ServiceBus:          ServiceBusUSGov,
 		ServiceManagement:   ServiceManagementUSGov,
 		SQLDatabase:         SQLDatabaseUSGov,
+		Storage:             StoragePublic,
+		Synapse:             ApiUnavailable,
 	}
 
 	USGovernmentL5 = Environment{
@@ -77,12 +83,15 @@ var (
 		AadGraph:            AadGraphUSGov,
 		ResourceManager:     ResourceManagerUSGov,
 		BatchManagement:     BatchManagementUSGov,
+		DataLake:            ApiUnavailable,
 		KeyVault:            KeyVaultUSGov,
 		OperationalInsights: OperationalInsightsUSGov,
 		OSSRDBMS:            OSSRDBMSUSGov,
 		ServiceBus:          ServiceBusUSGov,
 		ServiceManagement:   ServiceManagementUSGov,
 		SQLDatabase:         SQLDatabaseUSGov,
+		Storage:             StoragePublic,
+		Synapse:             ApiUnavailable,
 	}
 
 	Canary = Environment{

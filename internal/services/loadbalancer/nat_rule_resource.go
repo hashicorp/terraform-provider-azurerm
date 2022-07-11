@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -14,8 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/state"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -63,27 +61,26 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				StateFunc:        state.IgnoreCase,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     pluginsdk.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.TransportProtocolAll),
 					string(network.TransportProtocolTCP),
 					string(network.TransportProtocolUDP),
-				}, true),
+				}, false),
 			},
 
 			"frontend_port": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				ValidateFunc:  validate.PortNumberOrZero,
+				ConflictsWith: []string{"frontend_port_start", "frontend_port_end", "backend_address_pool_id"},
 			},
 
 			"backend_port": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validate.PortNumberOrZero,
 			},
 
 			"frontend_ip_configuration_name": {
@@ -92,15 +89,41 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_floating_ip": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
 			},
 
+			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_tcp_reset": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+			},
+
+			"backend_address_pool_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  azure.ValidateResourceID,
+				ConflictsWith: []string{"frontend_port"},
+				RequiredWith:  []string{"frontend_port_start", "frontend_port_end"},
+			},
+
+			"frontend_port_start": {
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				ValidateFunc:  validate.PortNumber,
+				RequiredWith:  []string{"backend_address_pool_id", "frontend_port_end"},
+				ConflictsWith: []string{"frontend_port"},
+			},
+
+			"frontend_port_end": {
+				Type:          pluginsdk.TypeInt,
+				Optional:      true,
+				ValidateFunc:  validate.PortNumber,
+				RequiredWith:  []string{"backend_address_pool_id", "frontend_port_start"},
+				ConflictsWith: []string{"frontend_port"},
 			},
 
 			"idle_timeout_in_minutes": {
@@ -243,11 +266,22 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("frontend_ip_configuration_name", frontendIPConfigName)
 		d.Set("frontend_ip_configuration_id", frontendIPConfigID)
 
+		if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {
+			d.Set("backend_address_pool_id", *props.BackendAddressPool.ID)
+		}
+
 		frontendPort := 0
 		if props.FrontendPort != nil {
 			frontendPort = int(*props.FrontendPort)
+			d.Set("frontend_port", frontendPort)
 		}
-		d.Set("frontend_port", frontendPort)
+
+		if props.FrontendPortRangeStart != nil {
+			d.Set("frontend_port_start", int(*props.FrontendPortRangeStart))
+		}
+		if props.FrontendPortRangeEnd != nil {
+			d.Set("frontend_port_end", int(*props.FrontendPortRangeEnd))
+		}
 
 		idleTimeoutInMinutes := 0
 		if props.IdleTimeoutInMinutes != nil {
@@ -307,9 +341,31 @@ func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interf
 func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *network.LoadBalancer, loadBalancerId parse.LoadBalancerId) (*network.InboundNatRule, error) {
 	properties := network.InboundNatRulePropertiesFormat{
 		Protocol:       network.TransportProtocol(d.Get("protocol").(string)),
-		FrontendPort:   utils.Int32(int32(d.Get("frontend_port").(int))),
 		BackendPort:    utils.Int32(int32(d.Get("backend_port").(int))),
 		EnableTCPReset: utils.Bool(d.Get("enable_tcp_reset").(bool)),
+	}
+
+	backendAddressPoolSet, frontendPort := false, false
+	if port := d.Get("frontend_port"); port != "" {
+		frontendPort = true
+	}
+	if _, ok := d.GetOk("backend_address_pool_id"); ok {
+		backendAddressPoolSet = true
+	}
+
+	if backendAddressPoolSet {
+		properties.FrontendPortRangeStart = utils.Int32(int32(d.Get("frontend_port_start").(int)))
+		properties.FrontendPortRangeEnd = utils.Int32(int32(d.Get("frontend_port_end").(int)))
+		properties.BackendAddressPool = &network.SubResource{
+			ID: utils.String(d.Get("backend_address_pool_id").(string)),
+		}
+	} else {
+		if frontendPort {
+			properties.FrontendPort = utils.Int32(int32(d.Get("frontend_port").(int)))
+		} else {
+			properties.FrontendPortRangeStart = utils.Int32(int32(d.Get("frontend_port_start").(int)))
+			properties.FrontendPortRangeEnd = utils.Int32(int32(d.Get("frontend_port_end").(int)))
+		}
 	}
 
 	if v, ok := d.GetOk("enable_floating_ip"); ok {

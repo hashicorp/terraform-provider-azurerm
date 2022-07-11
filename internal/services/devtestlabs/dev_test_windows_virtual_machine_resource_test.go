@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DevTestVirtualMachineResource struct {
-}
+type DevTestVirtualMachineResource struct{}
 
 func TestAccDevTestVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")

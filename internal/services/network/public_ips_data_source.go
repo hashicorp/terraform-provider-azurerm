@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-02-01/network"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -22,71 +22,61 @@ func dataSourcePublicIPs() *pluginsdk.Resource {
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+		Schema: dataSourcePublicIPSchema(),
+	}
+}
 
-			"name_prefix": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
+func dataSourcePublicIPSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			// TODO - Remove in 3.0.
-			"attached": {
-				Type:       pluginsdk.TypeBool,
-				Optional:   true,
-				Deprecated: "This property has been deprecated in favour of `attachment_status` to improve filtering",
-				ConflictsWith: []string{
-					"attachment_status",
-				},
-			},
+		"name_prefix": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
 
-			"attachment_status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Attached",
-					"Unattached",
-					"All", // TODO - Remove "All" in 3.0.
-				}, false),
-				ConflictsWith: []string{
-					"attached",
-				},
-			},
+		"attachment_status": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"Attached",
+				"Unattached",
+			}, false),
+		},
 
-			"allocation_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.IPAllocationMethodDynamic),
-					string(network.IPAllocationMethodStatic),
-				}, false),
-			},
+		"allocation_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(network.IPAllocationMethodDynamic),
+				string(network.IPAllocationMethodStatic),
+			}, false),
+		},
 
-			"public_ips": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"fqdn": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"domain_name_label": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"ip_address": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
+		"public_ips": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"fqdn": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"domain_name_label": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"ip_address": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 				},
 			},
@@ -122,13 +112,6 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			continue
 		}
 		if attachmentStatusOk && attachmentStatus.(string) == "Unattached" && nicIsAttached {
-			continue
-		}
-
-		// Deprecated for `attachment_status`, remove in 3.0
-		// Removal will also change behaviour for data sources without `attachment_status` set
-		attachedOnly := d.Get("attached").(bool)
-		if !attachmentStatusOk && attachedOnly != nicIsAttached {
 			continue
 		}
 

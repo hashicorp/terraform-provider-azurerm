@@ -135,19 +135,23 @@ The following arguments are supported:
 
 * `http_listener` - (Required) One or more `http_listener` blocks as defined below.
 
+* `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
+
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
 
 * `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
 
 * `sku` - (Required) A `sku` block as defined below.
 
-* `zones` - (Optional) A collection of availability zones to spread the Application Gateway over.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Application Gateway should be located. Changing this forces a new Application Gateway to be created.
 
 * `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
 
 * `ssl_profile` - (Optional) One or more `ssl_profile` blocks as defined below.
 
--> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).  They are also only supported for [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
+-> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).  They are also only supported for [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
 
 ---
 
@@ -158,6 +162,8 @@ The following arguments are supported:
 * `ssl_policy` - (Optional) a `ssl policy` block as defined below.
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+
+* `force_firewall_policy_association` - (Optional) Is the Firewall Policy associated with the Application Gateway?
 
 * `probe` - (Optional) One or more `probe` blocks as defined below.
 
@@ -193,7 +199,13 @@ A `trusted_root_certificate` block supports the following:
 
 * `name` - (Required) The Name of the Trusted Root Certificate to use.
 
-* `data` - (Required) The contents of the Trusted Root Certificate which should be used.
+* `data` - (Optional) The contents of the Trusted Root Certificate which should be used. Required if `key_vault_secret_id` is not set.
+
+* `key_vault_secret_id` - (Optional) The Secret ID of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for the Key Vault to use this feature. Required if `data` is not set.
+
+-> **NOTE:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
+
+-> **NOTE:** For TLS termination with Key Vault certificates to work properly existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
 
 ---
 
@@ -229,7 +241,7 @@ A `backend_http_settings` block supports the following:
 
 * `protocol`- (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
 
-* `request_timeout` - (Required) The request timeout in seconds, which must be between 1 and 86400 seconds.
+* `request_timeout` - (Required) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
 
 * `host_name` - (Optional) Host header to be sent to the backend servers. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
 
@@ -260,9 +272,11 @@ A `frontend_ip_configuration` block supports the following:
 
 * `private_ip_address` - (Optional) The Private IP Address to use for the Application Gateway.
 
-* `public_ip_address_id` - (Optional) The ID of a Public IP Address which the Application Gateway should use. The allocation method for the Public IP Address depends on the `sku` of this Application Gateway. Please refer to the [Azure documentation for public IP addresses](https://docs.microsoft.com/en-us/azure/virtual-network/public-ip-addresses#application-gateways) for details.
+* `public_ip_address_id` - (Optional) The ID of a Public IP Address which the Application Gateway should use. The allocation method for the Public IP Address depends on the `sku` of this Application Gateway. Please refer to the [Azure documentation for public IP addresses](https://docs.microsoft.com/azure/virtual-network/public-ip-addresses#application-gateways) for details.
 
 * `private_ip_address_allocation` - (Optional) The Allocation Method for the Private IP Address. Possible values are `Dynamic` and `Static`.
+
+* `private_link_configuration_name` - (Optional) The name of the private link configuration to use for this frontend IP configuration.
 
 ---
 
@@ -310,19 +324,46 @@ A `http_listener` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Optional) The Managed Service Identity Type of this Application Gateway. The only possible value is `UserAssigned`. Defaults to `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Application Gateway. Only possible value is `UserAssigned`.
+ 
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Application Gateway.
 
-* `identity_ids` - (Required) Specifies a list with a single user managed identity id to be assigned to the Application Gateway.
+---
+
+A `private_link_configuration` block supports the following:
+
+* `name` - (Required) The name of the private link configuration.
+
+* `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined below.
+
+-> **Please Note**: The `AllowApplicationGatewayPrivateLink` feature must be registered on the subscription before enabling private link
+```bash
+az feature register --name AllowApplicationGatewayPrivateLink --namespace Microsoft.Network
+```
+
+---
+
+An `ip_configuration` block supports the following:
+
+* `name` - (Required) The name of the IP configuration.
+
+* `subnet_id` - (Required) The ID of the subnet the private link configuration should connect to.
+
+* `private_ip_address_allocation` - (Required) The allocation method used for the Private IP Address. Possible values are `Dynamic` and `Static`.
+
+* `primary` - (Required) Is this the Primary IP Configuration?
+
+* `private_ip_address` - (Optional) The Static IP Address which should be used.
 
 ---
 
 A `match` block supports the following:
 
-* `body` - (Optional) A snippet from the Response Body which must be present in the Response..
+* `body` - (Required) A snippet from the Response Body which must be present in the Response.
 
-* `status_code` - (Optional) A list of allowed status codes for this Health Probe.
+* `status_code` - (Required) A list of allowed status codes for this Health Probe.
 
 ---
 
@@ -358,11 +399,11 @@ A `probe` block support the following:
 
 * `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
 
-* `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 - 20 seconds.
+* `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 to 20.
 
-* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from http settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
+* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from HTTP settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
 
-* `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend http settings. Defaults to `false`.
+* `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend HTTP settings. Defaults to `false`.
 
 * `match` - (Optional) A `match` block as defined above.
 
@@ -390,9 +431,9 @@ A `request_routing_rule` block supports the following:
 
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
-* `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
+* `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority. 
 
-~> **NOTE:** If you wish to use rule `priority`, you will have to specify rule-priority field values for all the existing request routing rules. Once the rule priority field is in use, any new routing rule that is created would also need to have a rule priority field value as part of its config.
+-> **NOTE:** `priority` is required when `sku.0.tier` is set to `*_v2`.
 
 ---
 
@@ -416,7 +457,7 @@ A `ssl_certificate` block supports the following:
 
 * `key_vault_secret_id` - (Optional) Secret Id of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for keyvault to use this feature. Required if `data` is not set.
 
--> **NOTE:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs).
+-> **NOTE:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
 
 -> **NOTE:** For TLS termination with Key Vault certificates to work properly existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
 
@@ -470,7 +511,7 @@ A `ssl_policy` block supports the following:
 When using a `policy_type` of `Predefined` the following fields are supported:
 
 * `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and
-are published here https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-ssl-policy-overview. Not compatible with `disabled_protocols`.
+are published here https://docs.microsoft.com/azure/application-gateway/application-gateway-ssl-policy-overview. Not compatible with `disabled_protocols`.
 
 When using a `policy_type` of `Custom` the following fields are supported:
 
@@ -490,7 +531,7 @@ A `waf_configuration` block supports the following:
 
 * `rule_set_type` - (Required) The Type of the Rule Set used for this Web Application Firewall. Currently, only `OWASP` is supported.
 
-* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `2.2.9`, `3.0`, and `3.1`.
+* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `2.2.9`, `3.0`, `3.1`,  and `3.2`.
 
 * `disabled_rule_group` - (Optional) one or more `disabled_rule_group` blocks as defined below.
 
@@ -580,7 +621,7 @@ A `rewrite_rule` block supports the following:
 
 A `condition` block supports the following:
 
-* `variable` - (Required) The [variable](https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers#server-variables) of the condition.
+* `variable` - (Required) The [variable](https://docs.microsoft.com/azure/application-gateway/rewrite-http-headers#server-variables) of the condition.
 
 * `pattern` - (Required) The pattern, either fixed string or regular expression, that evaluates the truthfulness of the condition.
 
@@ -614,7 +655,7 @@ A `url` block supports the following:
 
 ~> **Note:** One or both of `path` and `query_string` must be specified.
 
-* `reroute` - (Optional) Whether the URL path map should be reevaluated after this rewrite has been applied. [More info on rewrite configutation](https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url#rewrite-configuration)
+* `reroute` - (Optional) Whether the URL path map should be reevaluated after this rewrite has been applied. [More info on rewrite configutation](https://docs.microsoft.com/azure/application-gateway/rewrite-http-headers-url#rewrite-configuration)
 
 ## Attributes Reference
 
@@ -637,6 +678,10 @@ The following attributes are exported:
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
 
 * `http_listener` - A list of `http_listener` blocks as defined below.
+
+* `private_endpoint_connection` - A list of `private_endpoint_connection` blocks as defined below.
+
+* `private_link_configuration` - A list of `private_link_configuration` blocks as defined below.
 
 * `probe` - A `probe` block as defined below.
 
@@ -682,6 +727,8 @@ A `frontend_ip_configuration` block exports the following:
 
 * `id` - The ID of the Frontend IP Configuration.
 
+* `private_link_configuration_id` - The ID of the associated private link configuration.
+
 ---
 
 A `frontend_port` block exports the following:
@@ -721,6 +768,20 @@ A `path_rule` block exports the following:
 * `redirect_configuration_id` - The ID of the Redirect Configuration used in this Path Rule.
 
 * `rewrite_rule_set_id` - The ID of the Rewrite Rule Set used in this Path Rule.
+
+---
+
+A `private_endpoint_connection` block exports the following:
+
+* `name` - The name of the private endpoint connection.
+
+* `id` - The ID of the private endpoint connection.
+
+---
+
+A `private_link_configuration` block exports the following:
+
+* `id` - The ID of the private link configuration.
 
 ---
 

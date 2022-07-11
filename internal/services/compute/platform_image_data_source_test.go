@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type PlatformImageDataSource struct {
-}
+type PlatformImageDataSource struct{}
 
 func TestAccDataSourcePlatformImage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_platform_image", "test")

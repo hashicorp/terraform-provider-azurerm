@@ -27,10 +27,9 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_linked_service_snowflake" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
-  connection_string   = "jdbc:snowflake://account.region.snowflakecomputing.com/?user=user&db=db&warehouse=wh"
+  name              = "example"
+  data_factory_id   = azurerm_data_factory.example.id
+  connection_string = "jdbc:snowflake://account.region.snowflakecomputing.com/?user=user&db=db&warehouse=wh"
 }
 ```
 
@@ -59,16 +58,14 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "example" {
-  name                = "kvlink"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
-  key_vault_id        = azurerm_key_vault.example.id
+  name            = "kvlink"
+  data_factory_id = azurerm_data_factory.example.id
+  key_vault_id    = azurerm_key_vault.example.id
 }
 
 resource "azurerm_data_factory_linked_service_snowflake" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_name   = azurerm_data_factory.example.name
+  name            = "example"
+  data_factory_id = azurerm_data_factory.example.id
 
   connection_string = "jdbc:snowflake://account.region.snowflakecomputing.com/?user=user&db=db&warehouse=wh"
   key_vault_password {
@@ -83,11 +80,9 @@ resource "azurerm_data_factory_linked_service_snowflake" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data
-  factory. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+  factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service. Changing this forces a new resource
-
-* `data_factory_name` - (Required) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
 * `connection_string` - (Required) The connection string in which to authenticate with Snowflake.
 

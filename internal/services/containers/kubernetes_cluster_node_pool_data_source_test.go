@@ -8,19 +8,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type KubernetesClusterNodePoolDataSource struct {
-}
-
-var kubernetesNodePoolDataSourceTests = map[string]func(t *testing.T){
-	"basic": testAccKubernetesClusterNodePoolDataSource_basic,
-}
+type KubernetesClusterNodePoolDataSource struct{}
 
 func TestAccKubernetesClusterNodePoolDataSource_basic(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccKubernetesClusterNodePoolDataSource_basic(t)
-}
-
-func testAccKubernetesClusterNodePoolDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolDataSource{}
 

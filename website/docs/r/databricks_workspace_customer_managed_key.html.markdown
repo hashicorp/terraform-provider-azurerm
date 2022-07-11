@@ -74,20 +74,15 @@ resource "azurerm_key_vault_access_policy" "terraform" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "get",
-    "list",
-    "create",
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-    "delete",
-    "restore",
-    "recover",
-    "update",
-    "purge",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
+    "List",
+    "Decrypt",
+    "Sign"
   ]
 }
 
@@ -99,9 +94,15 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   object_id    = azurerm_databricks_workspace.example.storage_account_identity.0.principal_id
 
   key_permissions = [
-    "get",
-    "unwrapKey",
-    "wrapKey",
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
+    "List",
+    "Decrypt",
+    "Sign"
   ]
 }
 ```
@@ -121,7 +122,7 @@ The following arguments are supported:
 * `key_vault_key_id` - (Required) The ID of the Key Vault.
 
 
-#Attributes Reference
+## Attributes Reference
 
 The following attributes are exported:
 

@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type FirewallPolicyResource struct {
-}
+type FirewallPolicyResource struct{}
 
 func TestAccFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
@@ -194,7 +193,7 @@ func TestAccFirewallPolicy_insights(t *testing.T) {
 }
 
 func (FirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	var id, err = parse.FirewallPolicyID(state.ID)
+	id, err := parse.FirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +286,7 @@ resource "azurerm_firewall_policy" "test" {
     traffic_bypass {
       name              = "Name bypass traffic settings"
       description       = "Description bypass traffic settings"
-      protocol          = "Any"
+      protocol          = "ANY"
       destination_ports = ["*"]
       source_ip_groups = [
         azurerm_ip_group.test_source.id,
@@ -299,7 +298,7 @@ resource "azurerm_firewall_policy" "test" {
   }
   identity {
     type = "UserAssigned"
-    user_assigned_identity_ids = [
+    identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
   }
@@ -422,36 +421,36 @@ resource "azurerm_key_vault_access_policy" "test" {
   object_id      = azurerm_user_assigned_identity.test.principal_id
 
   key_permissions = [
-    "backup",
-    "create",
-    "delete",
-    "get",
-    "import",
-    "list",
-    "purge",
-    "recover",
-    "restore",
-    "update"
+    "Backup",
+    "Create",
+    "Delete",
+    "Get",
+    "Import",
+    "List",
+    "Purge",
+    "Recover",
+    "Restore",
+    "Update"
   ]
 
   certificate_permissions = [
-    "backup",
-    "create",
-    "get",
-    "list",
-    "import",
-    "purge",
-    "delete",
-    "recover",
+    "Backup",
+    "Create",
+    "Get",
+    "List",
+    "Import",
+    "Purge",
+    "Delete",
+    "Recover",
   ]
 
   secret_permissions = [
-    "get",
-    "list",
-    "set",
-    "purge",
-    "delete",
-    "recover"
+    "Get",
+    "List",
+    "Set",
+    "Purge",
+    "Delete",
+    "Recover"
   ]
 }
 
@@ -461,36 +460,36 @@ resource "azurerm_key_vault_access_policy" "test2" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "backup",
-    "create",
-    "delete",
-    "get",
-    "import",
-    "list",
-    "purge",
-    "recover",
-    "restore",
-    "update"
+    "Backup",
+    "Create",
+    "Delete",
+    "Get",
+    "Import",
+    "List",
+    "Purge",
+    "Recover",
+    "Restore",
+    "Update"
   ]
 
   certificate_permissions = [
-    "backup",
-    "create",
-    "get",
-    "list",
-    "import",
-    "purge",
-    "delete",
-    "recover",
+    "Backup",
+    "Create",
+    "Get",
+    "List",
+    "Import",
+    "Purge",
+    "Delete",
+    "Recover",
   ]
 
   secret_permissions = [
-    "get",
-    "list",
-    "set",
-    "purge",
-    "delete",
-    "recover"
+    "Get",
+    "List",
+    "Set",
+    "Purge",
+    "Delete",
+    "Recover"
   ]
 }
 

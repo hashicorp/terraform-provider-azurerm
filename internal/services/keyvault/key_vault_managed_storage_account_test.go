@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type KeyVaultManagedStorageAccountResource struct {
-}
+type KeyVaultManagedStorageAccountResource struct{}
 
 func TestAccKeyVaultManagedStorageAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_storage_account", "test")

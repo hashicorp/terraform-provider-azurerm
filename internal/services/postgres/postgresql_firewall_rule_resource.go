@@ -74,54 +74,39 @@ func resourcePostgreSQLFirewallRule() *pluginsdk.Resource {
 
 func resourcePostgreSQLFirewallRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.FirewallRulesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Firewall Rule creation.")
-
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	serverName := d.Get("server_name").(string)
-	startIPAddress := d.Get("start_ip_address").(string)
-	endIPAddress := d.Get("end_ip_address").(string)
-
-	existing, err := client.Get(ctx, resGroup, serverName, name)
+	id := parse.NewFirewallRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing PostgreSQL Firewall Rule %s (resource group %s) ID", name, resGroup)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_postgresql_firewall_rule", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_postgresql_firewall_rule", id.ID())
 	}
 
 	properties := postgresql.FirewallRule{
 		FirewallRuleProperties: &postgresql.FirewallRuleProperties{
-			StartIPAddress: utils.String(startIPAddress),
-			EndIPAddress:   utils.String(endIPAddress),
+			StartIPAddress: utils.String(d.Get("start_ip_address").(string)),
+			EndIPAddress:   utils.String(d.Get("end_ip_address").(string)),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, serverName, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read PostgreSQL Firewall Rule %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(id.ID())
 	return resourcePostgreSQLFirewallRuleRead(d, meta)
 }
 
@@ -138,12 +123,12 @@ func resourcePostgreSQLFirewallRuleRead(d *pluginsdk.ResourceData, meta interfac
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] PostgreSQL Firewall Rule %q was not found (Resource Group %q)", id.Name, id.ResourceGroup)
+			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving PostgreSQL Firewall Rule %q: %+v", id.Name, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -170,11 +155,11 @@ func resourcePostgreSQLFirewallRuleDelete(d *pluginsdk.ResourceData, meta interf
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-		return err
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

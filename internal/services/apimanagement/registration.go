@@ -7,6 +7,12 @@ import (
 
 type Registration struct{}
 
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/api-management"
+}
+
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "API Management"
@@ -44,6 +50,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_api_policy":                  resourceApiManagementApiPolicy(),
 		"azurerm_api_management_api_release":                 resourceApiManagementApiRelease(),
 		"azurerm_api_management_api_schema":                  resourceApiManagementApiSchema(),
+		"azurerm_api_management_api_tag":                     resourceApiManagementApiTag(),
 		"azurerm_api_management_api_version_set":             resourceApiManagementApiVersionSet(),
 		"azurerm_api_management_authorization_server":        resourceApiManagementAuthorizationServer(),
 		"azurerm_api_management_backend":                     resourceApiManagementBackend(),
@@ -69,7 +76,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_product_api":                 resourceApiManagementProductApi(),
 		"azurerm_api_management_product_group":               resourceApiManagementProductGroup(),
 		"azurerm_api_management_product_policy":              resourceApiManagementProductPolicy(),
-		"azurerm_api_management_property":                    resourceApiManagementProperty(),
 		"azurerm_api_management_redis_cache":                 resourceApiManagementRedisCache(),
 		"azurerm_api_management_subscription":                resourceApiManagementSubscription(),
 		"azurerm_api_management_tag":                         resourceApiManagementTag(),

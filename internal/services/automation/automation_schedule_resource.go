@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2020-01-13-preview/automation"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -60,16 +60,15 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 			},
 
 			"frequency": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     pluginsdk.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(automation.Day),
-					string(automation.Hour),
-					string(automation.Month),
-					string(automation.OneTime),
-					string(automation.Week),
-				}, true),
+					string(automation.ScheduleFrequencyDay),
+					string(automation.ScheduleFrequencyHour),
+					string(automation.ScheduleFrequencyMonth),
+					string(automation.ScheduleFrequencyOneTime),
+					string(automation.ScheduleFrequencyWeek),
+				}, false),
 			},
 
 			// ignored when frequency is `OneTime`
@@ -105,7 +104,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 			"timezone": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      "UTC", // TODO 3.0 Change the default to Etc/UTC
+				Default:      "Etc/UTC",
 				ValidateFunc: azvalidate.AzureTimeZoneString(),
 			},
 
@@ -115,14 +114,14 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(automation.Monday),
-						string(automation.Tuesday),
-						string(automation.Wednesday),
-						string(automation.Thursday),
-						string(automation.Friday),
-						string(automation.Saturday),
-						string(automation.Sunday),
-					}, true),
+						string(automation.ScheduleDayMonday),
+						string(automation.ScheduleDayTuesday),
+						string(automation.ScheduleDayWednesday),
+						string(automation.ScheduleDayThursday),
+						string(automation.ScheduleDayFriday),
+						string(automation.ScheduleDaySaturday),
+						string(automation.ScheduleDaySunday),
+					}, false),
 				},
 				Set:           set.HashStringIgnoreCase,
 				ConflictsWith: []string{"month_days", "monthly_occurrence"},
@@ -148,18 +147,17 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"day": {
-							Type:             pluginsdk.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:     pluginsdk.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(automation.Monday),
-								string(automation.Tuesday),
-								string(automation.Wednesday),
-								string(automation.Thursday),
-								string(automation.Friday),
-								string(automation.Saturday),
-								string(automation.Sunday),
-							}, true),
+								string(automation.ScheduleDayMonday),
+								string(automation.ScheduleDayTuesday),
+								string(automation.ScheduleDayWednesday),
+								string(automation.ScheduleDayThursday),
+								string(automation.ScheduleDayFriday),
+								string(automation.ScheduleDaySaturday),
+								string(automation.ScheduleDaySunday),
+							}, false),
 						},
 						"occurrence": {
 							Type:     pluginsdk.TypeInt,
@@ -219,8 +217,8 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_automation_schedule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_automation_schedule", id.ID())
 		}
 	}
 
@@ -256,7 +254,7 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	// only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
-	if properties.Frequency != automation.OneTime {
+	if properties.Frequency != automation.ScheduleFrequencyOneTime {
 		if v, ok := d.GetOk("interval"); ok {
 			properties.Interval = utils.Int32(int32(v.(int)))
 		} else {
@@ -265,7 +263,7 @@ func resourceAutomationScheduleCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	// only pay attention to the advanced schedule fields if frequency is either Week or Month
-	if properties.Frequency == automation.Week || properties.Frequency == automation.Month {
+	if properties.Frequency == automation.ScheduleFrequencyWeek || properties.Frequency == automation.ScheduleFrequencyMonth {
 		properties.AdvancedSchedule = expandArmAutomationScheduleAdvanced(d, d.Id() != "")
 	}
 

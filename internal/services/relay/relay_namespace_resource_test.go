@@ -6,8 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/sdk/2017-04-01/namespaces"
-
+	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2017-04-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,8 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type RelayNamespaceResource struct {
-}
+type RelayNamespaceResource struct{}
 
 func TestAccRelayNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")

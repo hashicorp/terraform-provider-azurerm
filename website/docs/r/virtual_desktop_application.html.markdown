@@ -6,7 +6,7 @@ description: |-
   Manages a Virtual Desktop Application.
 ---
 
-# virtual_desktop_application
+# azurerm_virtual_desktop_application
 
 Manages a Virtual Desktop Application.
 
@@ -38,6 +38,7 @@ resource "azurerm_virtual_desktop_host_pool" "personalautomatic" {
 
   type                             = "Personal"
   personal_desktop_assignment_type = "Automatic"
+  load_balancer_type               = "BreadthFirst"
 }
 
 resource "azurerm_virtual_desktop_application_group" "remoteapp" {
@@ -109,6 +110,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 Virtual Desktop Application can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_virtual_desktop_application.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DesktopVirtualization/applicationGroups/myapplicationgroup/applications/myapplication
 ```

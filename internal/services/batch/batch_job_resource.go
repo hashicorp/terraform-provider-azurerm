@@ -108,16 +108,14 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewJobID(poolId.SubscriptionId, poolId.ResourceGroup, poolId.BatchAccountName, poolId.Name, model.Name)
 
-			if metadata.ResourceData.IsNewResource() {
-				existing, err := r.getJob(ctx, client, id)
-				if err != nil {
-					if !utils.ResponseWasNotFound(existing.Response) {
-						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-					}
-				}
+			existing, err := r.getJob(ctx, client, id)
+			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
-					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
+			}
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			params := batchDataplane.JobAddParameter{
@@ -294,8 +292,8 @@ func (r BatchJobResource) expandEnvironmentSettings(input map[string]string) *[]
 	m := make([]batchDataplane.EnvironmentSetting, 0, len(input))
 	for k, v := range input {
 		m = append(m, batchDataplane.EnvironmentSetting{
-			Name:  &k,
-			Value: &v,
+			Name:  utils.String(k),
+			Value: utils.String(v),
 		})
 	}
 	return &m

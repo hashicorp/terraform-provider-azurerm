@@ -3,12 +3,12 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_hub_ip"
 description: |-
-  Manages a Virtual Hub IP.
+  Manages a Virtual Hub IP. This resource is also known as a Route Server.
 ---
 
 # azurerm_virtual_hub_ip
 
-Manages a Virtual Hub IP.
+Manages a Virtual Hub IP. This resource is also known as a Route Server.
 
 ~> **NOTE** Virtual Hub IP only supports Standard Virtual Hub without Virtual Wan.
 
@@ -31,7 +31,8 @@ resource "azurerm_public_ip" "example" {
   name                = "example-pip"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -45,7 +46,7 @@ resource "azurerm_subnet" "example" {
   name                 = "RouteServerSubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.5.1.0/24"
+  address_prefixes     = ["10.5.1.0/24"]
 }
 
 resource "azurerm_virtual_hub_ip" "example" {
@@ -64,7 +65,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Virtual Hub IP. Changing this forces a new resource to be created.
 
-* `virtual_hub_id` - (Required) The ID of the Virtual Hub within which this ip configuration should be created. Changing this forces a new resource to be created.
+* `virtual_hub_id` - (Required) The ID of the Virtual Hub within which this IP configuration should be created. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet that the IP will reside. Changing this forces a new resource to be created.
 
@@ -72,7 +73,7 @@ The following arguments are supported:
 
 * `private_ip_allocation_method` - (Optional) The private IP address allocation method. Possible values are `Static` and `Dynamic` is allowed. Defaults to `Dynamic`.
 
-* `public_ip_address_id` - (Optional) The ID of the Public IP Address.
+* `public_ip_address_id` - (Optional) The ID of the Public IP Address. This option is required since September 1st 2021. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
