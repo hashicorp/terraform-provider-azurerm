@@ -8,6 +8,7 @@ FEATURES:
  
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20220711.1122120` of `github.com/hashicorp/go-azure-sdk` [GH-17587]
 * dependencies: updating to `v2.18.0` of `github.com/hashicorp/terraform-plugin-sdk` [GH-17141]
 * databricks: refactoring to use `hashicorp/go-azure-sdk` [GH-17475]
 * policyremediation: updated to use version `2021-10-01` [GH-17298]
