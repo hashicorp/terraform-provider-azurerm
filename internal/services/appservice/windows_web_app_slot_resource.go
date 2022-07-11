@@ -460,7 +460,10 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				SiteCredentials:             helpers.FlattenSiteCredentials(siteCredentials),
 				StorageAccounts:             helpers.FlattenStorageAccounts(storageAccounts),
 				Tags:                        tags.ToTypedObject(webApp.Tags),
-				VirtualNetworkSubnetID:      utils.NormalizeNilableString(webApp.VirtualNetworkSubnetID),
+			}
+
+			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+				state.VirtualNetworkSubnetID = subnetId
 			}
 
 			var healthCheckCount *int
