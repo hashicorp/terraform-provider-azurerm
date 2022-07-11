@@ -128,6 +128,24 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"allowed_fqdn_list": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"allowed_ip_range_list": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			"trusted_external_tenants": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
@@ -354,6 +372,14 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		clusterProperties.VirtualNetworkConfiguration = vnet
 	}
 
+	if v, ok := d.GetOk("allowed_fqdn_list"); ok {
+		clusterProperties.AllowedFqdnList, _ = expandKustoListString(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("allowed_fqdn_list"); ok {
+		clusterProperties.AllowedIPRangeList, _ = expandKustoListString(v.([]interface{}))
+	}
+
 	expandedIdentity, err := expandClusterIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -471,6 +497,8 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if props := resp.ClusterProperties; props != nil {
+		d.Set("allowed_fqdn_list", props.AllowedFqdnList)
+		d.Set("allowed_ip_range_list", props.AllowedIPRangeList)
 		d.Set("double_encryption_enabled", props.EnableDoubleEncryption)
 		d.Set("trusted_external_tenants", flattenTrustedExternalTenants(props.TrustedExternalTenants))
 		d.Set("auto_stop_enabled", props.EnableAutoStop)
@@ -547,6 +575,20 @@ func flattenOptimizedAutoScale(optimizedAutoScale *kusto.OptimizedAutoscale) []i
 			"minimum_instances": minInstances,
 		},
 	}
+}
+
+func expandKustoListString(input []interface{}) (*[]string, error) {
+	if input == nil || len(input) == 0 {
+		return nil, fmt.Errorf("list of string is empty")
+	}
+
+	result := make([]string, 0)
+
+	for _, v := range input {
+		result = append(result, v.(string))
+	}
+
+	return &result, nil
 }
 
 func expandKustoClusterSku(input []interface{}) (*kusto.AzureSku, error) {

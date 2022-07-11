@@ -402,6 +402,8 @@ resource "azurerm_kusto_cluster" "test" {
   name                          = "acctestkc%s"
   location                      = azurerm_resource_group.test.location
   resource_group_name           = azurerm_resource_group.test.name
+  allowed_fqdn_list             = []
+  allowed_ip_range_list         = ["0.0.0.0/0"]
   public_network_access_enabled = false
   public_ip_type                = "DualStack"
   sku {
