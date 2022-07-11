@@ -44,11 +44,11 @@ func (w ResourceManagerStorageTableWrapper) Exists(ctx context.Context, resource
 }
 
 func (w ResourceManagerStorageTableWrapper) GetACLs(ctx context.Context, resourceGroup string, accountName string, tableName string) (*[]tables.SignedIdentifier, error) {
-	// TODO @magodo: support ACLs once API is available
+	// TODO: Implement this once the following issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/17007
 	return nil, errors.New("Storage Table management plane API doesn't support ACLs now")
 }
 
 func (w ResourceManagerStorageTableWrapper) UpdateACLs(ctx context.Context, resourceGroup string, accountName string, tableName string, acls []tables.SignedIdentifier) error {
-	// TODO @magodo: support ACLs once API is available
+	// TODO: Implement this once the following issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/17007
 	return errors.New("Storage Table management plane API doesn't support ACLs now")
 }

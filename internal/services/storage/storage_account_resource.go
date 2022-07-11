@@ -1195,7 +1195,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		// Currently, only the data plane API of queues fully support the exported properties of the `queue_properties`.
-		// TODO @magodo: once the mgmt plane API catches up, switch following client to the mgmt plane.
+		// TODO: Switch following client to the mgmt plane once the following issue got resolved: https://github.com/Azure/azure-rest-api-specs/issues/17006
 		queuesDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("building Queues Client: %s", err)
@@ -1596,7 +1596,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		// Currently, only the data plane API of queues fully support the exported properties of the `queue_properties`.
-		// TODO @magodo: once the mgmt plane API catches up, switch following client to the mgmt plane.
+		// TODO: Switch following client to the mgmt plane once the following issue got resolved: https://github.com/Azure/azure-rest-api-specs/issues/17006
 		queuesDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("building Queues Client: %s", err)
@@ -1914,7 +1914,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if resp.Sku.Tier == storage.SkuTierStandard {
 		if resp.Kind == storage.KindStorage || resp.Kind == storage.KindStorageV2 {
 			// Currently, only the data plane API of queues fully support the exported properties of the `queue_properties`.
-			// TODO @magodo: once the mgmt plane API catches up, switch following client to the mgmt plane.
+			// TODO: Switch following client to the mgmt plane once the following issue got resolved: https://github.com/Azure/azure-rest-api-specs/issues/17006
 			queuesDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *account)
 			if err != nil {
 				return fmt.Errorf("building Queues Client: %s", err)

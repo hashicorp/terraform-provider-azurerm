@@ -124,7 +124,7 @@ func (w ResourceManagerStorageShareWrapper) UpdateQuota(ctx context.Context, res
 func (w ResourceManagerStorageShareWrapper) UpdateTier(ctx context.Context, resourceGroup string, accountName string, shareName string, tier shares.AccessTier) error {
 	rmInput := storage.FileShare{
 		FileShareProperties: &storage.FileShareProperties{
-			AccessTier: storage.ShareAccessTier(tier),
+			AccessTier: w.mapToTier(tier),
 		},
 	}
 	_, err := w.client.Update(ctx, resourceGroup, accountName, shareName, rmInput)
@@ -196,4 +196,19 @@ func (w ResourceManagerStorageShareWrapper) mapFromACLs(input []shares.SignedIde
 		})
 	}
 	return &output, nil
+}
+
+func (w ResourceManagerStorageShareWrapper) mapToTier(input shares.AccessTier) storage.ShareAccessTier {
+	switch input {
+	case shares.CoolAccessTier:
+		return storage.ShareAccessTierCool
+	case shares.HotAccessTier:
+		return storage.ShareAccessTierHot
+	case shares.PremiumAccessTier:
+		return storage.ShareAccessTierPremium
+	case shares.TransactionOptimizedAccessTier:
+		return storage.ShareAccessTierTransactionOptimized
+	default:
+		return ""
+	}
 }

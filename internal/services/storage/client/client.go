@@ -336,7 +336,8 @@ func (client Client) TableEntityClient(ctx context.Context, account accountDetai
 }
 
 func (client Client) TablesClient(ctx context.Context, account accountDetails) (shim.StorageTableWrapper, error) {
-	// TODO: once mgmt API got ACL support, we can uncomment below
+	// TODO: Once mgmt API got ACL support, continue implementing the table mgmt wrapper and uncomment below. Issue: https://github.com/Azure/azure-rest-api-specs/issues/17007
+
 	// if client.useResourceManager {
 	//	tableClient := storage.NewTableClient(client.SubscriptionId)
 	//	tableClient.Client.Authorizer = client.resourceManagerAuthorizer
