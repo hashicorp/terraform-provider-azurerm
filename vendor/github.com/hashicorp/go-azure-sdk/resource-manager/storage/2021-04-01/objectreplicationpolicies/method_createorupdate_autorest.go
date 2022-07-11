@@ -8,13 +8,16 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-type CreateOrUpdateResponse struct {
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type CreateOrUpdateOperationResponse struct {
 	HttpResponse *http.Response
 	Model        *ObjectReplicationPolicy
 }
 
 // CreateOrUpdate ...
-func (c ObjectReplicationPoliciesClient) CreateOrUpdate(ctx context.Context, id ObjectReplicationPoliciesId, input ObjectReplicationPolicy) (result CreateOrUpdateResponse, err error) {
+func (c ObjectReplicationPoliciesClient) CreateOrUpdate(ctx context.Context, id ObjectReplicationPoliciesId, input ObjectReplicationPolicy) (result CreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "objectreplicationpolicies.ObjectReplicationPoliciesClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -54,7 +57,7 @@ func (c ObjectReplicationPoliciesClient) preparerForCreateOrUpdate(ctx context.C
 
 // responderForCreateOrUpdate handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (c ObjectReplicationPoliciesClient) responderForCreateOrUpdate(resp *http.Response) (result CreateOrUpdateResponse, err error) {
+func (c ObjectReplicationPoliciesClient) responderForCreateOrUpdate(resp *http.Response) (result CreateOrUpdateOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
