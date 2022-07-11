@@ -3,7 +3,9 @@
 FEATURES:
 
 * **New Resource**: `azurerm_application_insights_workbook_template` [GH-17433]
-
+* **New Resource**: `gallery_application` [GH-17394]
+* **New Resource**: `gallery_application_version` [GH-17394]
+ 
 ENHANCEMENTS:
 
 * terraform-plugin-sdk: updated to use version `v2.18.0` increasing the size of gRPC messages upto 256MB [GH-17141]
