@@ -200,7 +200,7 @@ github.com/hashicorp/go-azure-helpers/storage
 ## explicit; go 1.18
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants
 github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers
-github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2020-06-01/configurationstores
+github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2022-05-01/configurationstores
 github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/applicationinsights
 github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attestationproviders
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2020-10-01/clusters
