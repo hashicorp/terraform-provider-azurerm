@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/20
 ```go
 client := confidentialledger.NewConfidentialLedgerClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -33,11 +30,8 @@ payload := confidentialledger.ConfidentialLedger{
 	// ...
 }
 
-future, err := client.LedgerCreate(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.LedgerCreateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -48,11 +42,8 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := confidentialledger.NewLedgerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ledgerValue")
-future, err := client.LedgerDelete(ctx, id)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.LedgerDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
@@ -63,6 +54,7 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := confidentialledger.NewLedgerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ledgerValue")
+
 read, err := client.LedgerGet(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +70,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := confidentialledger.NewResourceGroupID()
+
 // alternatively `client.LedgerListByResourceGroup(ctx, id, confidentialledger.DefaultLedgerListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.LedgerListByResourceGroupComplete(ctx, id, confidentialledger.DefaultLedgerListByResourceGroupOperationOptions())
 if err != nil {
@@ -94,6 +87,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := confidentialledger.NewSubscriptionID()
+
 // alternatively `client.LedgerListBySubscription(ctx, id, confidentialledger.DefaultLedgerListBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.LedgerListBySubscriptionComplete(ctx, id, confidentialledger.DefaultLedgerListBySubscriptionOperationOptions())
 if err != nil {
@@ -115,11 +109,8 @@ payload := confidentialledger.ConfidentialLedger{
 	// ...
 }
 
-future, err := client.LedgerUpdate(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.LedgerUpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```

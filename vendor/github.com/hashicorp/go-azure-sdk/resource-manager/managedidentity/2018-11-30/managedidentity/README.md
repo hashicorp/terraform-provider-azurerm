@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2018-
 ```go
 client := managedidentity.NewManagedIdentityClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -28,6 +25,7 @@ if err != nil {
 ```go
 ctx := context.TODO()
 id := managedidentity.NewScopeID()
+
 read, err := client.SystemAssignedIdentitiesGetByScope(ctx, id)
 if err != nil {
 	// handle the error
@@ -48,6 +46,7 @@ payload := managedidentity.Identity{
 	// ...
 }
 
+
 read, err := client.UserAssignedIdentitiesCreateOrUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
@@ -63,6 +62,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := managedidentity.NewUserAssignedIdentityID()
+
 read, err := client.UserAssignedIdentitiesDelete(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +78,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := managedidentity.NewUserAssignedIdentityID()
+
 read, err := client.UserAssignedIdentitiesGet(ctx, id)
 if err != nil {
 	// handle the error
@@ -93,6 +94,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := managedidentity.NewResourceGroupID()
+
 // alternatively `client.UserAssignedIdentitiesListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.UserAssignedIdentitiesListByResourceGroupComplete(ctx, id)
 if err != nil {
@@ -109,6 +111,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := managedidentity.NewSubscriptionID()
+
 // alternatively `client.UserAssignedIdentitiesListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.UserAssignedIdentitiesListBySubscriptionComplete(ctx, id)
 if err != nil {
@@ -129,6 +132,7 @@ id := managedidentity.NewUserAssignedIdentityID()
 payload := managedidentity.IdentityUpdate{
 	// ...
 }
+
 
 read, err := client.UserAssignedIdentitiesUpdate(ctx, id, payload)
 if err != nil {

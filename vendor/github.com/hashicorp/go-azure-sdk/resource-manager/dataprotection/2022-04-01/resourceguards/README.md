@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-0
 ```go
 client := resourceguards.NewResourceGuardsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -28,6 +25,7 @@ if err != nil {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewResourceGuardID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceGuardsValue")
+
 read, err := client.Delete(ctx, id)
 if err != nil {
 	// handle the error
@@ -43,6 +41,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewResourceGuardID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceGuardsValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -58,6 +57,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewResourceGuardID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceGuardsValue")
+
 // alternatively `client.GetBackupSecurityPINRequestsObjects(ctx, id)` can be used to do batched pagination
 items, err := client.GetBackupSecurityPINRequestsObjectsComplete(ctx, id)
 if err != nil {
@@ -74,6 +74,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewGetBackupSecurityPINRequestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceGuardsValue", "requestValue")
+
 read, err := client.GetDefaultBackupSecurityPINRequestsObject(ctx, id)
 if err != nil {
 	// handle the error
@@ -89,6 +90,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewDeleteProtectedItemRequestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceGuardsValue", "requestValue")
+
 read, err := client.GetDefaultDeleteProtectedItemRequestsObject(ctx, id)
 if err != nil {
 	// handle the error
@@ -104,6 +106,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewDeleteResourceGuardProxyRequestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceGuardsValue", "requestValue")
+
 read, err := client.GetDefaultDeleteResourceGuardProxyRequestsObject(ctx, id)
 if err != nil {
 	// handle the error
@@ -119,6 +122,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewDisableSoftDeleteRequestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceGuardsValue", "requestValue")
+
 read, err := client.GetDefaultDisableSoftDeleteRequestsObject(ctx, id)
 if err != nil {
 	// handle the error
@@ -134,6 +138,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewUpdateProtectedItemRequestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceGuardsValue", "requestValue")
+
 read, err := client.GetDefaultUpdateProtectedItemRequestsObject(ctx, id)
 if err != nil {
 	// handle the error
@@ -149,6 +154,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewUpdateProtectionPolicyRequestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceGuardsValue", "requestValue")
+
 read, err := client.GetDefaultUpdateProtectionPolicyRequestsObject(ctx, id)
 if err != nil {
 	// handle the error
@@ -164,6 +170,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewResourceGuardID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceGuardsValue")
+
 // alternatively `client.GetDeleteProtectedItemRequestsObjects(ctx, id)` can be used to do batched pagination
 items, err := client.GetDeleteProtectedItemRequestsObjectsComplete(ctx, id)
 if err != nil {
@@ -180,6 +187,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewResourceGuardID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceGuardsValue")
+
 // alternatively `client.GetDeleteResourceGuardProxyRequestsObjects(ctx, id)` can be used to do batched pagination
 items, err := client.GetDeleteResourceGuardProxyRequestsObjectsComplete(ctx, id)
 if err != nil {
@@ -196,6 +204,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewResourceGuardID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceGuardsValue")
+
 // alternatively `client.GetDisableSoftDeleteRequestsObjects(ctx, id)` can be used to do batched pagination
 items, err := client.GetDisableSoftDeleteRequestsObjectsComplete(ctx, id)
 if err != nil {
@@ -212,6 +221,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewResourceGroupID()
+
 // alternatively `client.GetResourcesInResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.GetResourcesInResourceGroupComplete(ctx, id)
 if err != nil {
@@ -228,6 +238,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewSubscriptionID()
+
 // alternatively `client.GetResourcesInSubscription(ctx, id)` can be used to do batched pagination
 items, err := client.GetResourcesInSubscriptionComplete(ctx, id)
 if err != nil {
@@ -244,6 +255,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewResourceGuardID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceGuardsValue")
+
 // alternatively `client.GetUpdateProtectedItemRequestsObjects(ctx, id)` can be used to do batched pagination
 items, err := client.GetUpdateProtectedItemRequestsObjectsComplete(ctx, id)
 if err != nil {
@@ -260,6 +272,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := resourceguards.NewResourceGuardID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceGuardsValue")
+
 // alternatively `client.GetUpdateProtectionPolicyRequestsObjects(ctx, id)` can be used to do batched pagination
 items, err := client.GetUpdateProtectionPolicyRequestsObjectsComplete(ctx, id)
 if err != nil {
@@ -281,6 +294,7 @@ payload := resourceguards.PatchResourceRequestInput{
 	// ...
 }
 
+
 read, err := client.Patch(ctx, id, payload)
 if err != nil {
 	// handle the error
@@ -300,6 +314,7 @@ id := resourceguards.NewResourceGuardID("12345678-1234-9876-4563-123456789012", 
 payload := resourceguards.ResourceGuardResource{
 	// ...
 }
+
 
 read, err := client.Put(ctx, id, payload)
 if err != nil {

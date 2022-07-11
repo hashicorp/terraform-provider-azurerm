@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01
 ```go
 client := privatezones.NewPrivateZonesClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -33,11 +30,8 @@ payload := privatezones.PrivateZone{
 	// ...
 }
 
-future, err := client.CreateOrUpdate(ctx, id, payload, privatezones.DefaultCreateOrUpdateOperationOptions())
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.CreateOrUpdateThenPoll(ctx, id, payload, privatezones.DefaultCreateOrUpdateOperationOptions()); err != nil {
 	// handle the error
 }
 ```
@@ -48,11 +42,8 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := privatezones.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue")
-future, err := client.Delete(ctx, id, privatezones.DefaultDeleteOperationOptions())
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.DeleteThenPoll(ctx, id, privatezones.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
 }
 ```
@@ -63,6 +54,7 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := privatezones.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateZoneValue")
+
 read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
@@ -78,6 +70,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := privatezones.NewSubscriptionID()
+
 // alternatively `client.List(ctx, id, privatezones.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, privatezones.DefaultListOperationOptions())
 if err != nil {
@@ -94,6 +87,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := privatezones.NewResourceGroupID()
+
 // alternatively `client.ListByResourceGroup(ctx, id, privatezones.DefaultListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id, privatezones.DefaultListByResourceGroupOperationOptions())
 if err != nil {
@@ -115,11 +109,8 @@ payload := privatezones.PrivateZone{
 	// ...
 }
 
-future, err := client.Update(ctx, id, payload, privatezones.DefaultUpdateOperationOptions())
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.UpdateThenPoll(ctx, id, payload, privatezones.DefaultUpdateOperationOptions()); err != nil {
 	// handle the error
 }
 ```

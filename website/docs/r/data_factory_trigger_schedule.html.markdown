@@ -121,5 +121,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Data Factory Schedule Trigger can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory_schedule_trigger.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/triggers/example
+terraform import azurerm_data_factory_trigger_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/triggers/example
 ```
