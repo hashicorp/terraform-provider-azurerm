@@ -241,7 +241,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 							string(containerservice.ScaleDownModeDeallocate),
 							string(containerservice.ScaleDownModeDelete),
 						}, false),
-          },
+					},
 
 					"host_group_id": {
 						Type:         pluginsdk.TypeString,
