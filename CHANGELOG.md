@@ -1,31 +1,58 @@
-## 3.13.0 (Unreleased)
+## 3.14.0 (Unreleased)
 
 FEATURES:
 
-* **New Data Source**: `azurerm_public_maintenance_configurations` [GH-16810]
-* **New Resource**: `azurerm_logz_sub_account` [GH-16581]
+* **New Resource**: `azurerm_application_insights_workbook_template` [GH-17433]
 
 ENHANCEMENTS:
 
-* azurestackhci: refactoring to use `hashicorp/go-azure-sdk` [GH-17469]
-* containerinstance: refactoring to use `hashicorp/go-azure-sdk` [GH-17499]
-* eventhub: refactoring to use `hashicorp/go-azure-sdk` [GH-17445]
-* hardwaresecuritymodules: refactoring to use `hashicorp/go-azure-sdk` [GH-17470]
-* netapp: refactoring to use `hashicorp/go-azure-sdk` [GH-17465]
-* privatedns: refactoring to use `hashicorp/go-azure-sdk` [GH-17436]
-* Data Source: `azurerm_container_registry` - add support for the `data_endpoint_enabled` property [GH-17466]
-* `azurerm_hdinsight_kafka_cluster` -support for the `network` block [GH-17259]
-* `azurerm_key_vault_certificate` - will now correctly recover certificates on import [GH-17415]
-* `azurerm_kubernetes_clusterl`- support for the `capacity_reservation_group_id` property [GH-17395]
-* `azurerm_kubernetes_node_pool`- support for the `capacity_reservation_group_id` property [GH-17395]
-* `azurerm_linux_virtual_machine` - support for the `capacity_reservation_group_id` property [GH-17236]
-* `azurerm_spring_cloud_deployment` - support for the `addon_json` property [GH-16984]
-* `azurerm_synapse_integration_runtime_azure` - the `location` property now supports `Auto Resolve` [GH-17111]
-* `azurerm_windows_virtual_machine` - support for the `capacity_reservation_group_id` property [GH-17236]
+* terraform-plugin-sdk: updated to use version `v2.18.0` increasing the size of gRPC messages upto 256MB [GH-17141]
+* policyremediation: updated to use version `2021-10-01` [GH-17298]
+* `azurerm_kusto_cluster` - support for the `public_ip_address` property [GH-17520]
+* `azurerm_kusto_script` - support for the `script_content` property [GH-17522]
+* `azurerm_kubernetes_cluster` - support for the `host_group_id` property [GH-17496]
+* `azurerm_kubernetes_cluster_node_pool` - support for the `host_group_id` property [GH-17496]
+* `azurerm_linux_virtual_machine_scale_set` - support for `capacity_reservation_group_id` property [GH-17530]
+* `azurerm_windows_virtual_machine_scale_set` - support for `capacity_reservation_group_id` property [GH-17530]
 
 BUG FIXES:
 
-* `azurerm_application_gateway` -  `request_routing_rule.x.priority` is optional [GH-17380]
+* `azurerm_linux_function_app` - set the `default_hostname` properly on read [GH-17498]
+* `azurerm_linux_function_app_slot` - set the `default_hostname` properly on read [GH-17498]
+* `azurerm_windows_function_app` - set the `default_hostname` properly on read [GH-17498]
+* `azurerm_windows_function_app` - correctly create function apps when custom handlers are used [GH-17498]
+* `azurerm_windows_function_app_slot` - set the `default_hostname` properly on read [GH-17498]
+* `azurerm_windows_function_app_slot` - correctly create function apps when custom handlers are used [GH-17498]
+
+## 3.13.0 (July 08, 2022)
+
+FEATURES:
+
+* **New Data Source**: `azurerm_public_maintenance_configurations` ([#16810](https://github.com/hashicorp/terraform-provider-azurerm/issues/16810))
+* **New Resource**: `azurerm_fluid_relay_server` ([#17238](https://github.com/hashicorp/terraform-provider-azurerm/issues/17238))
+* **New Resource**: `azurerm_logz_sub_account` ([#16581](https://github.com/hashicorp/terraform-provider-azurerm/issues/16581))
+
+ENHANCEMENTS:
+
+* azurestackhci: refactoring to use `hashicorp/go-azure-sdk` ([#17469](https://github.com/hashicorp/terraform-provider-azurerm/issues/17469))
+* containerinstance: refactoring to use `hashicorp/go-azure-sdk` ([#17499](https://github.com/hashicorp/terraform-provider-azurerm/issues/17499))
+* eventhub: refactoring to use `hashicorp/go-azure-sdk` ([#17445](https://github.com/hashicorp/terraform-provider-azurerm/issues/17445))
+* hardwaresecuritymodules: refactoring to use `hashicorp/go-azure-sdk` ([#17470](https://github.com/hashicorp/terraform-provider-azurerm/issues/17470))
+* netapp: refactoring to use `hashicorp/go-azure-sdk` ([#17465](https://github.com/hashicorp/terraform-provider-azurerm/issues/17465))
+* privatedns: refactoring to use `hashicorp/go-azure-sdk` ([#17436](https://github.com/hashicorp/terraform-provider-azurerm/issues/17436))
+* Data Source: `azurerm_container_registry` - add support for the `data_endpoint_enabled` property ([#17466](https://github.com/hashicorp/terraform-provider-azurerm/issues/17466))
+* `azurerm_hdinsight_kafka_cluster` -support for the `network` block ([#17259](https://github.com/hashicorp/terraform-provider-azurerm/issues/17259))
+* `azurerm_key_vault_certificate` - will now correctly recover certificates on import ([#17415](https://github.com/hashicorp/terraform-provider-azurerm/issues/17415))
+* `azurerm_kubernetes_clusterl`- support for the `capacity_reservation_group_id` property ([#17395](https://github.com/hashicorp/terraform-provider-azurerm/issues/17395))
+* `azurerm_kubernetes_node_pool`- support for the `capacity_reservation_group_id` property ([#17395](https://github.com/hashicorp/terraform-provider-azurerm/issues/17395))
+* `azurerm_linux_virtual_machine` - support for the `capacity_reservation_group_id` property ([#17236](https://github.com/hashicorp/terraform-provider-azurerm/issues/17236))
+* `azurerm_spring_cloud_deployment` - support for the `addon_json` property ([#16984](https://github.com/hashicorp/terraform-provider-azurerm/issues/16984))
+* `azurerm_synapse_integration_runtime_azure` - the `location` property now supports `Auto Resolve` ([#17111](https://github.com/hashicorp/terraform-provider-azurerm/issues/17111))
+* `azurerm_windows_virtual_machine` - support for the `capacity_reservation_group_id` property ([#17236](https://github.com/hashicorp/terraform-provider-azurerm/issues/17236))
+
+BUG FIXES:
+
+* `azurerm_application_gateway` -  the `request_routing_rule.x.priority` property is now optional ([#17380](https://github.com/hashicorp/terraform-provider-azurerm/issues/17380))
 
 ## 3.12.0 (June 30, 2022)
 

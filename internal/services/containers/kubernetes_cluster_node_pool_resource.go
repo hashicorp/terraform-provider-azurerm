@@ -81,6 +81,13 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"host_group_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: computeValidate.HostGroupID,
+			},
+
 			// Optional
 			"capacity_reservation_group_id": {
 				Type:         pluginsdk.TypeString,
@@ -481,6 +488,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.VnetSubnetID = utils.String(vnetSubnetID)
 	}
 
+	if hostGroupID := d.Get("host_group_id").(string); hostGroupID != "" {
+		profile.HostGroupID = utils.String(hostGroupID)
+	}
+
 	if capacityReservationGroupId := d.Get("capacity_reservation_group_id").(string); capacityReservationGroupId != "" {
 		profile.CapacityReservationGroupID = utils.String(capacityReservationGroupId)
 	}
@@ -868,6 +879,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
 		d.Set("vm_size", props.VMSize)
+		d.Set("host_group_id", props.HostGroupID)
 		d.Set("capacity_reservation_group_id", props.CapacityReservationGroupID)
 
 		if err := d.Set("upgrade_settings", flattenUpgradeSettings(props.UpgradeSettings)); err != nil {

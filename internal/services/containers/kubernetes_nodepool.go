@@ -241,6 +241,13 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 							string(containerservice.ScaleDownModeDeallocate),
 							string(containerservice.ScaleDownModeDelete),
 						}, false),
+          },
+
+					"host_group_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: computeValidate.HostGroupID,
 					},
 
 					"upgrade_settings": upgradeSettingsSchema(),
@@ -749,6 +756,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 		profile.VnetSubnetID = utils.String(vnetSubnetID)
 	}
 
+	if hostGroupID := raw["host_group_id"].(string); hostGroupID != "" {
+		profile.HostGroupID = utils.String(hostGroupID)
+	}
+
 	if orchestratorVersion := raw["orchestrator_version"].(string); orchestratorVersion != "" {
 		profile.OrchestratorVersion = utils.String(orchestratorVersion)
 	}
@@ -1107,6 +1118,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		vnetSubnetId = *agentPool.VnetSubnetID
 	}
 
+	hostGroupID := ""
+	if agentPool.HostGroupID != nil {
+		hostGroupID = *agentPool.HostGroupID
+	}
+
 	orchestratorVersion := ""
 	if agentPool.OrchestratorVersion != nil {
 		orchestratorVersion = *agentPool.OrchestratorVersion
@@ -1147,6 +1163,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		"enable_node_public_ip":         enableNodePublicIP,
 		"enable_host_encryption":        enableHostEncryption,
 		"fips_enabled":                  enableFIPS,
+		"host_group_id":                 hostGroupID,
 		"kubelet_disk_type":             string(agentPool.KubeletDiskType),
 		"max_count":                     maxCount,
 		"max_pods":                      maxPods,
