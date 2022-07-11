@@ -1,13 +1,38 @@
 ## 3.14.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_application_insights_workbook_template` [GH-17433]
+* **New Resource**: `azurerm_gallery_application` [GH-17394]
+* **New Resource**: `azurerm_gallery_application_version` [GH-17394]
+ 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20220711.1122120` of `github.com/hashicorp/go-azure-sdk` [GH-17587]
+* dependencies: updating to `v2.18.0` of `github.com/hashicorp/terraform-plugin-sdk` [GH-17141]
+* appconfiguration: updating to use API Version `2022-05-01` [GH-17467]
+* databricks: refactoring to use `hashicorp/go-azure-sdk` [GH-17475]
+* policyremediation: updated to use version `2021-10-01` [GH-17298]
+* storage: refactoring `objectreplicationpolicy` to use `hashicorp/go-azure-sdk` [GH-17471]
+* `azurerm_container_group` - support for the `http_headers` property [GH-17519]
 * `azurerm_kusto_cluster` - support for the `public_ip_address` property [GH-17520]
 * `azurerm_kusto_script` - support for the `script_content` property [GH-17522]
-
+* `azurerm_kusto_iothub_data_connection` - support for the `database_routing_type` property [GH-17526]
+* `azurerm_kusto_eventhub_data_connection` - support for the `database_routing_type` property [GH-17525]
+* `azurerm_kubernetes_cluster` - support for the `host_group_id` property [GH-17496]
+* `azurerm_kubernetes_cluster_node_pool` - support for the `host_group_id` property [GH-17496]
+* `azurerm_linux_virtual_machine_scale_set` - support for `capacity_reservation_group_id` property [GH-17530]
+* `azurerm_shared_image` - support for the `end_of_life_date` `disk_types_not_allowed`, `max_recommended_vcpu_count`, `max_recommended_vcpu_count`, `max_recommended_memory_in_gb`, `min_recommended_memory_in_gb` [GH-17300]
+* `azurerm_windows_virtual_machine_scale_set` - support for `capacity_reservation_group_id` property [GH-17530]
+ 
 BUG FIXES:
 
-* `azurerm_{linux|windows}_function_app[_slot]` - set the `default_hostname` property to state on read [GH-17498]
+* `azurerm_linux_function_app` - set the `default_hostname` properly on read [GH-17498]
+* `azurerm_linux_function_app_slot` - set the `default_hostname` properly on read [GH-17498]
+* `azurerm_windows_function_app` - set the `default_hostname` properly on read [GH-17498]
+* `azurerm_windows_function_app` - correctly create function apps when custom handlers are used [GH-17498]
+* `azurerm_windows_function_app_slot` - set the `default_hostname` properly on read [GH-17498]
+* `azurerm_windows_function_app_slot` - correctly create function apps when custom handlers are used [GH-17498]
 
 ## 3.13.0 (July 08, 2022)
 

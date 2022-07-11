@@ -128,6 +128,10 @@ A `agent_pool_profile` block exports the following:
 
 * `enable_node_public_ip` - If the Public IPs for the nodes in this Agent Pool are enabled.
 
+* `host_group_id` - The ID of a Dedicated Host Group that this Node Pool should be run on. Changing this forces a new resource to be created.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/DedicatedHostGroupPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/use-azure-dedicated-hosts#register-the-dedicatedhostgrouppreview-preview-feature) for more information.
+
 * `min_count` - Minimum number of nodes for auto-scaling
 
 * `max_count` - Maximum number of nodes for auto-scaling
