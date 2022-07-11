@@ -9,14 +9,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2021-10-01/netapp"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -37,7 +38,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AccountID(id)
+			_, err := netappaccounts.ParseNetAppAccountID(id)
 			return err
 		}),
 
@@ -102,7 +103,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -113,36 +114,29 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := netappaccounts.NewNetAppAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName)
+		existing, err := client.AccountsGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_netapp_account", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	activeDirectories := d.Get("active_directory").([]interface{})
-
-	accountParameters := netapp.Account{
-		Location: utils.String(location),
-		AccountProperties: &netapp.AccountProperties{
-			ActiveDirectories: expandNetAppActiveDirectories(activeDirectories),
+	accountParameters := netappaccounts.NetAppAccount{
+		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Properties: &netappaccounts.AccountProperties{
+			ActiveDirectories: expandNetAppActiveDirectories(d.Get("active_directory").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, accountParameters, id.ResourceGroup, id.NetAppAccountName)
-	if err != nil {
+	if err := client.AccountsCreateOrUpdateThenPoll(ctx, id, accountParameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
 	// Wait for account to complete create
@@ -159,21 +153,21 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AccountID(d.Id())
+	id, err := netappaccounts.ParseNetAppAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	shouldUpdate := false
-	update := netapp.AccountPatch{
-		AccountProperties: &netapp.AccountProperties{},
+	update := netappaccounts.NetAppAccountPatch{
+		Properties: &netappaccounts.AccountProperties{},
 	}
 
 	if d.HasChange("active_directory") {
 		shouldUpdate = true
 		activeDirectoriesRaw := d.Get("active_directory").([]interface{})
 		activeDirectories := expandNetAppActiveDirectories(activeDirectoriesRaw)
-		update.AccountProperties.ActiveDirectories = activeDirectories
+		update.Properties.ActiveDirectories = activeDirectories
 	}
 
 	if d.HasChange("tags") {
@@ -183,16 +177,12 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if shouldUpdate {
-		future, err := client.Update(ctx, update, id.ResourceGroup, id.NetAppAccountName)
-		if err != nil {
-			return fmt.Errorf("updating Account %q: %+v", id.NetAppAccountName, err)
-		}
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for the update of %s: %+v", id, err)
+		if err = client.AccountsUpdateThenPoll(ctx, *id, update); err != nil {
+			return fmt.Errorf("updating %s: %+v", id.ID(), err)
 		}
 
 		// Wait for account to complete update
-		if err := waitForAccountCreateOrUpdate(ctx, client, *id); err != nil {
+		if err = waitForAccountCreateOrUpdate(ctx, client, *id); err != nil {
 			return err
 		}
 	}
@@ -205,14 +195,14 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AccountID(d.Id())
+	id, err := netappaccounts.ParseNetAppAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName)
+	resp, err := client.AccountsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -220,14 +210,16 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.NetAppAccountName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if model := resp.Model; model != nil {
+		d.Set("location", azure.NormalizeLocation(model.Location))
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceNetAppAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -235,30 +227,26 @@ func resourceNetAppAccountDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AccountID(d.Id())
+	id, err := netappaccounts.ParseNetAppAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName)
-	if err != nil {
+	if err := client.AccountsDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandNetAppActiveDirectories(input []interface{}) *[]netapp.ActiveDirectory {
-	results := make([]netapp.ActiveDirectory, 0)
+func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.ActiveDirectory {
+	results := make([]netappaccounts.ActiveDirectory, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		dns := strings.Join(*utils.ExpandStringSlice(v["dns_servers"].([]interface{})), ",")
 
-		result := netapp.ActiveDirectory{
-			DNS:                utils.String(dns),
+		result := netappaccounts.ActiveDirectory{
+			Dns:                utils.String(dns),
 			Domain:             utils.String(v["domain"].(string)),
 			OrganizationalUnit: utils.String(v["organizational_unit"].(string)),
 			Password:           utils.String(v["password"].(string)),
@@ -271,7 +259,7 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netapp.ActiveDirector
 	return &results
 }
 
-func waitForAccountCreateOrUpdate(ctx context.Context, client *netapp.AccountsClient, id parse.AccountId) error {
+func waitForAccountCreateOrUpdate(ctx context.Context, client *netappaccounts.NetAppAccountsClient, id netappaccounts.NetAppAccountId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("context had no deadline")
@@ -293,15 +281,15 @@ func waitForAccountCreateOrUpdate(ctx context.Context, client *netapp.AccountsCl
 	return nil
 }
 
-func netappAccountStateRefreshFunc(ctx context.Context, client *netapp.AccountsClient, id parse.AccountId) pluginsdk.StateRefreshFunc {
+func netappAccountStateRefreshFunc(ctx context.Context, client *netappaccounts.NetAppAccountsClient, id netappaccounts.NetAppAccountId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName)
+		res, err := client.AccountsGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(res.Response) {
-				return nil, "", fmt.Errorf("retrieving NetApp Account %q (Resource Group %q): %s", id.NetAppAccountName, id.ResourceGroup, err)
+			if !response.WasNotFound(res.HttpResponse) {
+				return nil, "", fmt.Errorf("retrieving %s: %s", id.ID(), err)
 			}
 		}
 
-		return res, strconv.Itoa(res.StatusCode), nil
+		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
 	}
 }

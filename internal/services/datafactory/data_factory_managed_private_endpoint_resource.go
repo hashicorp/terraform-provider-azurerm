@@ -69,6 +69,7 @@ func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
 			"fqdns": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
