@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v2.18.0` of `github.com/hashicorp/terraform-plugin-sdk` [GH-17141]
 * databricks: refactoring to use `hashicorp/go-azure-sdk` [GH-17475]
 * policyremediation: updated to use version `2021-10-01` [GH-17298]
+* storage: refactoring `objectreplicationpolicy` to use `hashicorp/go-azure-sdk` [GH-17471]
 * `azurerm_container_group` - support for the `http_headers` property [GH-17519]
 * `azurerm_kusto_cluster` - support for the `public_ip_address` property [GH-17520]
 * `azurerm_kusto_script` - support for the `script_content` property [GH-17522]
