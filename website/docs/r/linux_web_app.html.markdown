@@ -87,9 +87,9 @@ The following arguments are supported:
 
 * `sticky_settings` - A `sticky_settings` block as defined below.
 
-* `virtual_network_subnet_id` - (Optional) The subnet id which the web app will be vNet Integrated with. Changing this forces a new Linux Function App to be created.
+* `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration). Changing this forces a new Linux Web App to be created.
 
-~> **NOTE on virtual network integration:** Terraform currently provides virtual network integration both a standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html), and allows for virtual network integration to be defined in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simutaneously.
+~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simutaneously.
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permisions)
 

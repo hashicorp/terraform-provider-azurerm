@@ -1112,6 +1112,9 @@ func TestAccLinuxWebApp_vNetIntegration(t *testing.T) {
 			Config: r.vNetIntegrationWebApp_withSubnetId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+        check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test").Key("id"),
+				),
 			),
 		},
 		data.ImportStep(),
@@ -1134,6 +1137,9 @@ func TestAccLinuxWebApp_vNetIntegrationUpdate(t *testing.T) {
 			Config: r.vNetIntegrationWebApp_withSubnetId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+        check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test").Key("id"),
+				),
 			),
 		},
 		data.ImportStep(),
