@@ -6,14 +6,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -85,7 +86,7 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 				ValidateFunc: validate.ApplicationTemplateName,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -139,7 +140,7 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			Name: apps.AppSku(d.Get("sku").(string)),
 		},
 		Location: d.Get("location").(string),
-		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, app); err != nil {
@@ -168,7 +169,7 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	subdomain := d.Get("sub_domain").(string)
 	template := d.Get("template").(string)
 	appPatch := apps.AppPatch{
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &apps.AppProperties{
 			DisplayName: &displayName,
 			Subdomain:   &subdomain,
@@ -216,7 +217,7 @@ func resourceIotCentralAppRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("template", props.Template)
 		}
 
-		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}

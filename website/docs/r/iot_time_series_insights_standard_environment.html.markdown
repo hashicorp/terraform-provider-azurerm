@@ -66,5 +66,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Azure IoT Time Series Insights Standard Environment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iot_time_series_environment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.TimeSeriesInsights/environments/example
+terraform import azurerm_iot_time_series_insights_standard_environment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.TimeSeriesInsights/environments/example
 ```

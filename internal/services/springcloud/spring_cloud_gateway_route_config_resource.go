@@ -108,7 +108,7 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 						"uri": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"classification_tags": {

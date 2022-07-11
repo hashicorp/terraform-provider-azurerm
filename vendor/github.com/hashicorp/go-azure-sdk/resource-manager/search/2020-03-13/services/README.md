@@ -17,9 +17,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/search/2020-03-13/ser
 ```go
 client := services.NewServicesClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-if err != nil {
-	// handle the error
-}
 ```
 
 
@@ -32,6 +29,7 @@ id := services.NewSubscriptionID()
 payload := services.CheckNameAvailabilityInput{
 	// ...
 }
+
 
 read, err := client.CheckNameAvailability(ctx, id, payload, services.DefaultCheckNameAvailabilityOperationOptions())
 if err != nil {
@@ -53,11 +51,8 @@ payload := services.SearchService{
 	// ...
 }
 
-future, err := client.CreateOrUpdate(ctx, id, payload, services.DefaultCreateOrUpdateOperationOptions())
-if err != nil {
-	// handle the error
-}
-if err := future.Poller.PollUntilDone(); err != nil {
+
+if err := client.CreateOrUpdateThenPoll(ctx, id, payload, services.DefaultCreateOrUpdateOperationOptions()); err != nil {
 	// handle the error
 }
 ```
@@ -68,6 +63,7 @@ if err := future.Poller.PollUntilDone(); err != nil {
 ```go
 ctx := context.TODO()
 id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceValue")
+
 read, err := client.Delete(ctx, id, services.DefaultDeleteOperationOptions())
 if err != nil {
 	// handle the error
@@ -83,6 +79,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceValue")
+
 read, err := client.Get(ctx, id, services.DefaultGetOperationOptions())
 if err != nil {
 	// handle the error
@@ -98,6 +95,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := services.NewResourceGroupID()
+
 // alternatively `client.ListByResourceGroup(ctx, id, services.DefaultListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id, services.DefaultListByResourceGroupOperationOptions())
 if err != nil {
@@ -114,6 +112,7 @@ for _, item := range items {
 ```go
 ctx := context.TODO()
 id := services.NewSubscriptionID()
+
 // alternatively `client.ListBySubscription(ctx, id, services.DefaultListBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id, services.DefaultListBySubscriptionOperationOptions())
 if err != nil {
@@ -134,6 +133,7 @@ id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "examp
 payload := services.SearchService{
 	// ...
 }
+
 
 read, err := client.Update(ctx, id, payload, services.DefaultUpdateOperationOptions())
 if err != nil {

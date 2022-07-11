@@ -10,8 +10,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -23,9 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/sdk/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -279,7 +278,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								"kubelet_identity.0.object_id",
 								"identity.0.identity_ids",
 							},
-							ValidateFunc: msivalidate.UserAssignedIdentityID,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 					},
 				},
@@ -2013,7 +2012,7 @@ func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservic
 
 		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(*resourceid)
+			parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*resourceid)
 			if err != nil {
 				return nil, err
 			}
@@ -2904,7 +2903,9 @@ func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservi
 
 	httpProxyConfig.HTTPProxy = utils.String(config["http_proxy"].(string))
 	httpProxyConfig.HTTPSProxy = utils.String(config["https_proxy"].(string))
-	httpProxyConfig.TrustedCa = utils.String(config["trusted_ca"].(string))
+	if value := config["trusted_ca"].(string); len(value) != 0 {
+		httpProxyConfig.TrustedCa = utils.String(value)
+	}
 
 	noProxyRaw := config["no_proxy"].(*pluginsdk.Set).List()
 	httpProxyConfig.NoProxy = utils.ExpandStringSlice(noProxyRaw)
