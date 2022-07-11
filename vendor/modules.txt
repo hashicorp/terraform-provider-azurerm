@@ -1,5 +1,3 @@
-# cloud.google.com/go/storage v1.16.0
-## explicit; go 1.11
 # github.com/Azure/azure-sdk-for-go v65.0.0+incompatible
 ## explicit
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
