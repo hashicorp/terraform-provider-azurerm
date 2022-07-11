@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,7 +19,7 @@ type LogzTagRuleResource struct{}
 func TestAccLogzTagRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
-	email := uuid.New().String()
+	email := "71212724-7a73-48c3-9399-de59313d4905@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, email),
@@ -35,7 +34,7 @@ func TestAccLogzTagRule_basic(t *testing.T) {
 func TestAccLogzTagRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
-	email := uuid.New().String()
+	email := "b993f18e-9094-4a38-9e80-a0530ebbc6e2@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, email),
@@ -53,7 +52,7 @@ func TestAccLogzTagRule_requiresImport(t *testing.T) {
 func TestAccLogzTagRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
-	email := uuid.New().String()
+	email := "9121e724-355c-4b74-9d73-ff118ce7241e@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, email),
@@ -68,7 +67,7 @@ func TestAccLogzTagRule_complete(t *testing.T) {
 func TestAccLogzTagRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logz_tag_rule", "test")
 	r := LogzTagRuleResource{}
-	email := uuid.New().String()
+	email := "41a35aed-12d8-46f3-a2a7-9f89404d7989@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, email),
@@ -121,7 +120,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_logz_monitor" "test" {
-  name                = "%s"
+  name                = "acctest-lm-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   plan {
@@ -132,13 +131,13 @@ resource "azurerm_logz_monitor" "test" {
   }
 
   user {
-    email        = "%s@example.com"
+    email        = "%s"
     first_name   = "first"
     last_name    = "last"
     phone_number = "123456"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, getLogzInstanceName(data.RandomInteger), getEffectiveDate(), email)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, getEffectiveDate(), email)
 }
 
 func (r LogzTagRuleResource) basic(data acceptance.TestData, email string) string {

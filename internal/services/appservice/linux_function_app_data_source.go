@@ -295,16 +295,18 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := LinuxFunctionAppDataSourceModel{
-				Name:                 id.SiteName,
-				ResourceGroup:        id.ResourceGroup,
-				ServicePlanId:        utils.NormalizeNilableString(props.ServerFarmID),
-				Location:             location.NormalizeNilable(functionApp.Location),
-				Enabled:              utils.NormaliseNilableBool(functionApp.Enabled),
-				ClientCertMode:       string(functionApp.ClientCertMode),
-				DailyMemoryTimeQuota: int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
-				StickySettings:       helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
-				Tags:                 tags.ToTypedObject(functionApp.Tags),
-				Kind:                 utils.NormalizeNilableString(functionApp.Kind),
+				Name:                       id.SiteName,
+				ResourceGroup:              id.ResourceGroup,
+				ServicePlanId:              utils.NormalizeNilableString(props.ServerFarmID),
+				Location:                   location.NormalizeNilable(functionApp.Location),
+				Enabled:                    utils.NormaliseNilableBool(functionApp.Enabled),
+				ClientCertMode:             string(functionApp.ClientCertMode),
+				DailyMemoryTimeQuota:       int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
+				StickySettings:             helpers.FlattenStickySettings(stickySettings.SlotConfigNames),
+				Tags:                       tags.ToTypedObject(functionApp.Tags),
+				Kind:                       utils.NormalizeNilableString(functionApp.Kind),
+				CustomDomainVerificationId: utils.NormalizeNilableString(props.CustomDomainVerificationID),
+				DefaultHostname:            utils.NormalizeNilableString(functionApp.DefaultHostName),
 			}
 
 			configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)

@@ -656,6 +656,11 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			currentStack := ""
+			stateConfig := state.SiteConfig[0]
+			if len(stateConfig.ApplicationStack) == 1 {
+				currentStack = stateConfig.ApplicationStack[0].CurrentStack
+			}
+
 			if metadata.ResourceData.HasChange("site_config") || servicePlanChange {
 				siteConfig, stack, err := helpers.ExpandSiteConfigWindows(state.SiteConfig, existing.SiteConfig, metadata, servicePlan)
 				if err != nil {
