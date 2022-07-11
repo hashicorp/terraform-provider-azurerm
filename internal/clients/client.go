@@ -48,6 +48,7 @@ import (
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
 	firewall "github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/client"
+	fluidrelay "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/client"
 	frontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/client"
 	hdinsight "github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/client"
@@ -159,6 +160,7 @@ type Client struct {
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
 	Firewall              *firewall.Client
+	FluidRelay            *fluidrelay.Client
 	Frontdoor             *frontdoor.Client
 	HPCCache              *hpccache.Client
 	HSM                   *hsm.Client
@@ -272,6 +274,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)
 	client.Firewall = firewall.NewClient(o)
+	client.FluidRelay = fluidrelay.NewClient(o)
 	client.Frontdoor = frontdoor.NewClient(o)
 	client.HPCCache = hpccache.NewClient(o)
 	client.HSM = hsm.NewClient(o)
