@@ -262,6 +262,7 @@ func TestAccPostgresqlFlexibleServer_newVersionOneFour(t *testing.T) {
 			Config: r.newVersionOneFour(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version").HasValue("14"),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
