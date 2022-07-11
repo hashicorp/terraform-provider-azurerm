@@ -3,7 +3,6 @@ package storage_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -86,9 +85,6 @@ func TestAccStorageQueue_metaData(t *testing.T) {
 }
 
 func TestAccStorageQueue_resourceManagerBasic(t *testing.T) {
-	// The storage "use_resource_manager" feature is only available in 3.0
-	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 	r := StorageQueueResource{useResourceManager: true}
 
@@ -104,9 +100,6 @@ func TestAccStorageQueue_resourceManagerBasic(t *testing.T) {
 }
 
 func TestAccStorageQueue_resourceManagerMetaData(t *testing.T) {
-	// The storage "use_resource_manager" feature is only available in 3.0
-	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 	r := StorageQueueResource{useResourceManager: true}
 
@@ -129,9 +122,6 @@ func TestAccStorageQueue_resourceManagerMetaData(t *testing.T) {
 }
 
 func TestAccStorageQueue_dataPlaneThenResourceManagerMetaData(t *testing.T) {
-	// The storage "use_resource_manager" feature is only available in 3.0
-	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 	r := StorageQueueResource{}
 
@@ -157,9 +147,6 @@ func TestAccStorageQueue_dataPlaneThenResourceManagerMetaData(t *testing.T) {
 }
 
 func TestAccStorageQueue_resourceManagerThenDataPlaneMetaData(t *testing.T) {
-	// The storage "use_resource_manager" feature is only available in 3.0
-	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 	r := StorageQueueResource{useResourceManager: true}
 

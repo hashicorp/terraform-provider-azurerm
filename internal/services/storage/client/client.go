@@ -21,7 +21,7 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/directories"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/files"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares")
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
 )
 
 type Client struct {
@@ -31,7 +31,6 @@ type Client struct {
 	ManagementPoliciesClient    *storage.ManagementPoliciesClient
 	BlobInventoryPoliciesClient *storage.BlobInventoryPoliciesClient
 	CloudEndpointsClient        *storagesync.CloudEndpointsClient
-	DisksPoolsClient            *storagepool.DiskPoolsClient
 	EncryptionScopesClient      *storage.EncryptionScopesClient
 	Environment                 az.Environment
 	ObjectReplicationClient     *objectreplicationpolicies.ObjectReplicationPoliciesClient
@@ -75,9 +74,6 @@ func NewClient(options *common.ClientOptions) *Client {
 	encryptionScopesClient := storage.NewEncryptionScopesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&encryptionScopesClient.Client, options.ResourceManagerAuthorizer)
 
-	disksPoolsClient := storagepool.NewDiskPoolsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&disksPoolsClient.Client, options.ResourceManagerAuthorizer)
-
 	objectReplicationPolicyClient := objectreplicationpolicies.NewObjectReplicationPoliciesClientWithBaseURI(options.ResourceManagerEndpoint)
 	options.ConfigureClient(&objectReplicationPolicyClient.Client, options.ResourceManagerAuthorizer)
 
@@ -108,7 +104,6 @@ func NewClient(options *common.ClientOptions) *Client {
 		ManagementPoliciesClient:    &managementPoliciesClient,
 		BlobInventoryPoliciesClient: &blobInventoryPoliciesClient,
 		CloudEndpointsClient:        &cloudEndpointsClient,
-		DisksPoolsClient:            &disksPoolsClient,
 		EncryptionScopesClient:      &encryptionScopesClient,
 		Environment:                 options.Environment,
 		ObjectReplicationClient:     &objectReplicationPolicyClient,

@@ -3,7 +3,6 @@ package storage_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -187,9 +186,6 @@ func TestAccStorageContainer_web(t *testing.T) {
 }
 
 func TestAccStorageContainer_resourceManagerBasic(t *testing.T) {
-	// The storage "use_resource_manager" feature is only available in 3.0
-	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{useResourceManager: true}
 
@@ -205,9 +201,6 @@ func TestAccStorageContainer_resourceManagerBasic(t *testing.T) {
 }
 
 func TestAccStorageContainer_resourceManagerUpdate(t *testing.T) {
-	// The storage "use_resource_manager" feature is only available in 3.0
-	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{useResourceManager: true}
 
@@ -232,9 +225,6 @@ func TestAccStorageContainer_resourceManagerUpdate(t *testing.T) {
 }
 
 func TestAccStorageContainer_resourceManagerMetaData(t *testing.T) {
-	// The storage "use_resource_manager" feature is only available in 3.0
-	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{useResourceManager: true}
 
@@ -269,9 +259,6 @@ func TestAccStorageContainer_resourceManagerRoot(t *testing.T) {
 	// Once that issue is fixed, we can enable this test case.
 	t.Skip()
 
-	// The storage "use_resource_manager" feature is only available in 3.0
-	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{useResourceManager: true}
 
@@ -288,9 +275,6 @@ func TestAccStorageContainer_resourceManagerRoot(t *testing.T) {
 }
 
 func TestAccStorageContainer_resourceManagerWeb(t *testing.T) {
-	// The storage "use_resource_manager" feature is only available in 3.0
-	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{useResourceManager: true}
 
@@ -307,9 +291,6 @@ func TestAccStorageContainer_resourceManagerWeb(t *testing.T) {
 }
 
 func TestAccStorageContainer_dataPlaneThenResourceManager(t *testing.T) {
-	// The storage "use_resource_manager" feature is only available in 3.0
-	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{}
 
@@ -335,9 +316,6 @@ func TestAccStorageContainer_dataPlaneThenResourceManager(t *testing.T) {
 }
 
 func TestAccStorageContainer_resourceManagerThenDataPlane(t *testing.T) {
-	// The storage "use_resource_manager" feature is only available in 3.0
-	os.Setenv("ARM_THREEPOINTZERO_BETA_RESOURCES", "true")
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{useResourceManager: true}
 
