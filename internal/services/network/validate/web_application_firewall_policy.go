@@ -16,7 +16,7 @@ var ValidateWebApplicationFirewallPolicyRuleGroupName = validation.StringInSlice
 	"crs_42_tight_security",
 	"crs_45_trojans",
 	"General",
-	"KNOWN-CVES",
+	"Known-CVEs",
 	"REQUEST-911-METHOD-ENFORCEMENT",
 	"REQUEST-913-SCANNER-DETECTION",
 	"REQUEST-920-PROTOCOL-ENFORCEMENT",

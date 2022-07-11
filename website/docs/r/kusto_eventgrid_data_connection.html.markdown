@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_kusto_cluster" "example" {
-  name                = "example-kusto-cluster"
+  name                = "examplekustocluster"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku {
@@ -45,14 +45,14 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "GRS"
 }
 
-resource "azurerm_eventhub_namespace" "test" {
+resource "azurerm_eventhub_namespace" "example" {
   name                = "eventhubnamespace-example"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 }
 
-resource "azurerm_eventhub" "test" {
+resource "azurerm_eventhub" "example" {
   name                = "eventhub-example"
   namespace_name      = azurerm_eventhub_namespace.example.name
   resource_group_name = azurerm_resource_group.example.name

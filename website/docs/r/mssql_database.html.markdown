@@ -51,18 +51,9 @@ resource "azurerm_mssql_database" "test" {
   sku_name       = "S0"
   zone_redundant = true
 
-  extended_auditing_policy {
-    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
-    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
-    storage_account_access_key_is_secondary = true
-    retention_in_days                       = 6
-  }
-
-
   tags = {
     foo = "bar"
   }
-
 }
 ```
 

@@ -53,6 +53,8 @@ The following attributes are exported:
 
 * `load_balancing_rules` - A list of the Load Balancing Rules associated with this Backend Address Pool.
 
+* `inbound_nat_rules` - A list of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool.
+
 * `outbound_rules` - A list of the Load Balancing Outbound Rules associated with this Backend Address Pool.
 
 ---
@@ -64,6 +66,18 @@ A `backend_address` block exports the following:
 * `virtual_network_id` - The ID of the Virtual Network where the Backend Address of the Load Balancer exists.
 
 * `ip_address` - The Static IP address for this Load Balancer within the Virtual Network.
+
+* `inbound_nat_rule_port_mapping` - A list of `inbound_nat_rule_port_mapping` block as defined below.
+
+---
+
+A `inbound_nat_rule_port_mapping` block exports the following:
+
+* `inbound_nat_rule_name` - The name of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.
+
+* `frontend_port` - The Frontend Port of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.
+
+* `backend_port` - The Backend Port of the Load Balancing Inbound NAT Rules associated with this Backend Address Pool Address.
 
 ## Timeouts
 

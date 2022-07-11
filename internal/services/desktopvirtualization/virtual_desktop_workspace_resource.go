@@ -6,14 +6,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -70,7 +71,7 @@ func resourceArmDesktopVirtualizationWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 512),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -102,7 +103,7 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *pluginsdk.Resource
 
 	payload := workspace.Workspace{
 		Location: &location,
-		Tags:     expandTags(t),
+		Tags:     tags.Expand(t),
 		Properties: &workspace.WorkspaceProperties{
 			Description:  utils.String(d.Get("description").(string)),
 			FriendlyName: utils.String(d.Get("friendly_name").(string)),
@@ -150,7 +151,7 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *pluginsdk.ResourceData, me
 			d.Set("friendly_name", props.FriendlyName)
 		}
 
-		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}
