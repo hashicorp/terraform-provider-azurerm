@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* terraform-plugin-sdk: updated to use version `v2.18.0` increasing the size of gRPC messages upto 256MB [GH-17141]
 * policyremediation: updated to use version `2021-10-01` [GH-17298]
 * `azurerm_kusto_cluster` - support for the `public_ip_address` property [GH-17520]
 * `azurerm_kusto_script` - support for the `script_content` property [GH-17522]
