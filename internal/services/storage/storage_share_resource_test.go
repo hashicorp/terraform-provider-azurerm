@@ -718,12 +718,13 @@ resource "azurerm_storage_share" "test" {
 
 func (r StorageShareResource) largeQuota(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-features {
-  storage {
-    use_resource_manager = %t
+provider "azurerm" {
+  features {
+    storage {
+      use_resource_manager = %t
+    }
   }
 }
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storageshare-%d"
   location = "%s"
