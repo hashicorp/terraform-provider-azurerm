@@ -254,6 +254,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"restrict_outbound_network_access": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Default:  string(kusto.ClusterNetworkAccessFlagDisabled),
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						string(kusto.ClusterNetworkAccessFlagEnabled),
