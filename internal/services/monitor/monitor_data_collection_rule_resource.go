@@ -49,7 +49,7 @@ type Destination struct {
 
 type Extension struct {
 	ExtensionName     string   `tfschema:"extension_name"`
-	ExtensionSettings string   `tfschema:"extension_setting"`
+	ExtensionSettings string   `tfschema:"extension_json"`
 	InputDataSources  []string `tfschema:"input_data_sources"`
 	Name              string   `tfschema:"name"`
 	Streams           []string `tfschema:"streams"`
@@ -205,7 +205,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 											false),
 									},
 								},
-								"extension_setting": {
+								"extension_json": {
 									Type:             pluginsdk.TypeString,
 									Optional:         true,
 									ValidateFunc:     validation.StringIsJSON,

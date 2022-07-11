@@ -74,7 +74,7 @@ resource "azurerm_monitor_data_collection_rule" "example" {
       streams            = ["Microsoft-WindowsEvent"]
       input_data_sources = ["test-datasource-wineventlog"]
       extension_name     = "test-extension-name"
-      extension_setting = jsonencode({
+      extension_json = jsonencode({
         a = 1
         b = "hello"
       })
@@ -159,7 +159,7 @@ A `extension` block supports the following:
 
 * `streams` - (Required) Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values are `Microsoft-Event`, `Microsoft-InsightsMetrics`, `Microsoft-Perf`, `Microsoft-Syslog`,and `Microsoft-WindowsEvent`.
 
-* `extension_setting` - (Optional) A JSON String which specifies the extension setting.
+* `extension_json` - (Optional) A JSON String which specifies the extension setting.
 
 * `input_data_sources` - (Optional) Specifies a list of data sources this extension needs data from. An item should be a name of a supported data source which produces only one stream. Supported data sources type: `performance_counter`, `windows_event_log`,and `syslog`.
 

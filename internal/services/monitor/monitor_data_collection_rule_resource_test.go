@@ -285,7 +285,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       streams            = ["Microsoft-WindowsEvent"]
       input_data_sources = ["test-datasource-wineventlog"]
       extension_name     = "test-extension-name"
-      extension_setting = jsonencode({
+      extension_json = jsonencode({
         a = 1
         b = "hello"
       })
@@ -298,6 +298,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     ENV2 = "test2"
   }
 }
+
 
 `, r.template(data), data.RandomInteger)
 }
