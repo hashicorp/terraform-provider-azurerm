@@ -578,7 +578,6 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				Tags:                        tags.ToTypedObject(functionApp.Tags),
 				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
-				VirtualNetworkSubnetID:      utils.NormalizeNilableString(functionApp.VirtualNetworkSubnetID),
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
 			}
@@ -608,6 +607,10 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
+
+			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+				state.VirtualNetworkSubnetID = subnetId
+			}
 
 			if err := metadata.Encode(&state); err != nil {
 				return fmt.Errorf("encoding: %+v", err)
