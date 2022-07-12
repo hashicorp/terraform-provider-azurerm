@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * policyremediation: updated to use version `2021-10-01` [GH-17298]
 * storage: refactoring `objectreplicationpolicy` to use `hashicorp/go-azure-sdk` [GH-17471]
 * Data Source: `azurerm_availability_set` - updating to use `hashicorp/go-azure-sdk` [GH-17608]
+* Data Source: `azurerm_ssh_public_key` - refactoring to use `hashicorp/go-azure-sdk` [GH-17609]
 * `azurerm_availability_set` - updating to use `hashicorp/go-azure-sdk` [GH-17608]
 * `azurerm_container_group` - support for the `http_headers` property [GH-17519]
 * `azurerm_dashboard` - refactoring to use `hashicorp/go-azure-sdk` [GH-17598]
@@ -28,6 +29,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster_node_pool` - support for the `host_group_id` property [GH-17496]
 * `azurerm_linux_virtual_machine_scale_set` - support for `capacity_reservation_group_id` property [GH-17530]
 * `azurerm_shared_image` - support for the `end_of_life_date` `disk_types_not_allowed`, `max_recommended_vcpu_count`, `max_recommended_vcpu_count`, `max_recommended_memory_in_gb`, `min_recommended_memory_in_gb` [GH-17300]
+* `azurerm_ssh_public_key` - refactoring to use `hashicorp/go-azure-sdk` [GH-17609]
 * `azurerm_windows_virtual_machine_scale_set` - support for `capacity_reservation_group_id` property [GH-17530]
  
 BUG FIXES:
