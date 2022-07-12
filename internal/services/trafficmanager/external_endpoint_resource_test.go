@@ -164,7 +164,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_traffic_manager_profile" "test1" {
+resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%[1]d"
   resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Priority"
@@ -184,7 +184,7 @@ resource "azurerm_traffic_manager_profile" "test1" {
 resource "azurerm_traffic_manager_external_endpoint" "test" {
   name       = "acctestend-azure%[1]d"
   target     = "www.example.com"
-  profile_id = azurerm_traffic_manager_profile.test1.id
+  profile_id = azurerm_traffic_manager_profile.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
