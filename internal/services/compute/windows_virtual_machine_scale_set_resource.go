@@ -173,9 +173,6 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		RollingUpgradePolicy:     rollingUpgradePolicy,
 	}
 
-	// NOTE: Hardware Profile is currently only supported in Uniform
-	hardwareProfile := &compute.VirtualMachineScaleSetHardwareProfile{}
-
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
 		Priority: priority,
 		OsProfile: &compute.VirtualMachineScaleSetOSProfile{
@@ -195,7 +192,12 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 			OsDisk:         osDisk,
 			DataDisks:      dataDisks,
 		},
-		HardwareProfile: hardwareProfile,
+	}
+
+	// NOTE: Hardware Profile is currently only supported in Uniform
+	hardwareProfileRaw := d.Get("hardware_profile").([]interface{})
+	if hardwareProfile := ExpandVirtualMachineScaleSetHardwareProfile(hardwareProfileRaw); hardwareProfile != nil {
+		virtualMachineProfile.HardwareProfile = hardwareProfile
 	}
 
 	hasHealthExtension := false
@@ -976,6 +978,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 			}
 		}
 
+		d.Set("hardware_profile", FlattenVirtualMachineScaleSetHardwareProfile(profile.HardwareProfile))
 		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 		d.Set("vtpm_enabled", vtpmEnabled)
 		d.Set("secure_boot_enabled", secureBootEnabled)

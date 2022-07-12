@@ -23,20 +23,77 @@ func VirtualMachineScaleSetHardwareProfileSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"virtual_cpus_available": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Default:  1,
-					ForceNew: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ForceNew:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
 				},
 
 				// NOTE: If vCPUs per core is set to 1 hyper-threading is disabled
 				"virtual_cpus_per_core": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Default:  1,
-					ForceNew: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ForceNew:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
 				},
 			},
+		},
+	}
+}
+
+func ExpandVirtualMachineScaleSetHardwareProfile(input []interface{}) *compute.VirtualMachineScaleSetHardwareProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	vCPUsAvailable := input[0].(map[string]interface{})["virtual_cpus_available"].(int32)
+	vCPUsPerCore := input[0].(map[string]interface{})["virtual_cpus_per_core"].(int32)
+
+	if vCPUsAvailable > 0 || vCPUsPerCore > 0 {
+		hardwareProfile := &compute.VirtualMachineScaleSetHardwareProfile{
+			VMSizeProperties: &compute.VMSizeProperties{},
+		}
+
+		if vCPUsAvailable > 0 {
+			hardwareProfile.VMSizeProperties.VCPUsAvailable = utils.Int32(vCPUsAvailable)
+		}
+
+		if vCPUsPerCore > 0 {
+			hardwareProfile.VMSizeProperties.VCPUsPerCore = utils.Int32(vCPUsPerCore)
+		}
+
+		return hardwareProfile
+	}
+
+	return nil
+}
+
+func FlattenVirtualMachineScaleSetHardwareProfile(input *compute.VirtualMachineScaleSetHardwareProfile) []interface{} {
+	if input == nil || input.VMSizeProperties == nil {
+		return []interface{}{
+			map[string]interface{}{
+				"virtual_cpus_available": 0,
+				"virtual_cpus_per_core":  0,
+			},
+		}
+	}
+
+	vCPUsAvailable := 0
+	if input.VMSizeProperties.VCPUsAvailable != nil {
+		vCPUsAvailable = int(*input.VMSizeProperties.VCPUsAvailable)
+	}
+
+	vCPUsPerCore := 0
+	if input.VMSizeProperties.VCPUsPerCore != nil {
+		vCPUsPerCore = int(*input.VMSizeProperties.VCPUsPerCore)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"virtual_cpus_available": vCPUsAvailable,
+			"virtual_cpus_per_core":  vCPUsPerCore,
 		},
 	}
 }
@@ -1381,6 +1438,10 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"cross_zone_upgrade_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
 				"max_batch_instance_percent": {
 					Type:     pluginsdk.TypeInt,
 					Required: true,
@@ -1398,6 +1459,10 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: azValidate.ISO8601Duration,
 				},
+				"prioritize_unhealthy_instances_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
 			},
 		},
 	}
@@ -1411,16 +1476,23 @@ func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}) *comp
 	raw := input[0].(map[string]interface{})
 
 	return &compute.RollingUpgradePolicy{
+		EnableCrossZoneUpgrade:              utils.Bool(raw["cross_zone_upgrade_enabled"].(bool)),
 		MaxBatchInstancePercent:             utils.Int32(int32(raw["max_batch_instance_percent"].(int))),
 		MaxUnhealthyInstancePercent:         utils.Int32(int32(raw["max_unhealthy_instance_percent"].(int))),
 		MaxUnhealthyUpgradedInstancePercent: utils.Int32(int32(raw["max_unhealthy_upgraded_instance_percent"].(int))),
 		PauseTimeBetweenBatches:             utils.String(raw["pause_time_between_batches"].(string)),
+		PrioritizeUnhealthyInstances:        utils.Bool(raw["prioritize_unhealthy_instances_enabled"].(bool)),
 	}
 }
 
 func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpgradePolicy) []interface{} {
 	if input == nil {
 		return []interface{}{}
+	}
+
+	enableCrossZoneUpgrade := false
+	if input.EnableCrossZoneUpgrade != nil {
+		enableCrossZoneUpgrade = *input.EnableCrossZoneUpgrade
 	}
 
 	maxBatchInstancePercent := 0
@@ -1443,12 +1515,19 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpg
 		pauseTimeBetweenBatches = *input.PauseTimeBetweenBatches
 	}
 
+	prioritizeUnhealthyInstances := false
+	if input.PrioritizeUnhealthyInstances != nil {
+		prioritizeUnhealthyInstances = *input.PrioritizeUnhealthyInstances
+	}
+
 	return []interface{}{
 		map[string]interface{}{
+			"cross_zone_upgrade_enabled":              enableCrossZoneUpgrade,
 			"max_batch_instance_percent":              maxBatchInstancePercent,
 			"max_unhealthy_instance_percent":          maxUnhealthyInstancePercent,
 			"max_unhealthy_upgraded_instance_percent": maxUnhealthyUpgradedInstancePercent,
 			"pause_time_between_batches":              pauseTimeBetweenBatches,
+			"prioritize_unhealthy_instances_enabled":  prioritizeUnhealthyInstances,
 		},
 	}
 }

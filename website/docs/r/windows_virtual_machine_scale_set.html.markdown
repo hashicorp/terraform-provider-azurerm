@@ -338,13 +338,13 @@ A `extension` block supports the following:
 
 A `hardware_profile` block supports the following:
 
-* `virtual_cpus_available` - (Optional) Specifies the number of virtual CPUs available for the VM.
+* `virtual_cpus_available` - (Optional) Specifies the number of virtual CPUs available for the VM. Possible values are between `0` and `100`. Default is `0`. Changing this forces a new resource to be created.
 
--> **NOTE:** When `virtual_cpus_available` is not defined the default behavior is to set it to the value of `virtual_cpus_available` for the configured VM size.
+-> **NOTE:** When `virtual_cpus_available` is set to `0` the Virtual Machine Scale Set will use the default number of vCPUs available for the VM size in the deployed region.
 
-* `virtual_cpus_per_core` - (Optional) Specifies the virtual CPUs to physical CPU core ratio.
+* `virtual_cpus_per_core` - (Optional) Specifies the virtual CPUs to physical CPU core ratio. Possible values are between `0` and `100`. Default is `0`. Changing this forces a new resource to be created.
 
--> **NOTE:** When `virtual_cpus_per_core` is not defined the default behavior is set to the value of `virtual_cpus_per_core` for the configured VM size. Setting `virtual_cpus_per_core` to `1` means that hyper-threading will be `disabled`.
+-> **NOTE:** When `virtual_cpus_per_core` field is set to `0` the Virtual Machine Scale Set will use the default number of vCPUsPerCore available for the VM Size in the deployed region. Setting `virtual_cpus_per_core` to `1` means that hyper-threading will be `disabled`.
 
 ---
 
@@ -480,6 +480,8 @@ A `public_ip_address` block supports the following:
 
 A `rolling_upgrade_policy` block supports the following:
 
+* `cross_zone_upgrade_enabled` - (Optional) Should the Virtual Machine Scale Set ignore the Azure Zone boundaries when constructing upgrade batches? Possible values are `true` or `false`. Defaults to `false`.
+
 * `max_batch_instance_percent` - (Required) The maximum percent of total virtual machine instances that will be upgraded simultaneously by the rolling upgrade in one batch. As this is a maximum, unhealthy instances in previous or future batches can cause the percentage of instances in a batch to decrease to ensure higher reliability.
 
 * `max_unhealthy_instance_percent` - (Required) The maximum percentage of the total virtual machine instances in the scale set that can be simultaneously unhealthy, either as a result of being upgraded, or by being found in an unhealthy state by the virtual machine health checks before the rolling upgrade aborts. This constraint will be checked prior to starting any batch.
@@ -487,6 +489,8 @@ A `rolling_upgrade_policy` block supports the following:
 * `max_unhealthy_upgraded_instance_percent` - (Required) The maximum percentage of upgraded virtual machine instances that can be found to be in an unhealthy state. This check will happen after each batch is upgraded. If this percentage is ever exceeded, the rolling update aborts.
 
 * `pause_time_between_batches` - (Required) The wait time between completing the update for all virtual machines in one batch and starting the next batch. The time duration should be specified in ISO 8601 format.
+
+* `prioritize_unhealthy_instances_enabled` - (Optional) Upgrade all unhealthy instances in a scale set before any healthy instances. Possible values are `true` or `false`. Defaults to `false`.
 
 ---
 
