@@ -1477,14 +1477,51 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 
 				httpGetScheme := containerinstance.Scheme(scheme)
 				probe.HttpGet = &containerinstance.ContainerHttpGet{
-					Path:   pointer.FromString(path),
-					Port:   int64(port),
-					Scheme: &httpGetScheme,
+					Path:        pointer.FromString(path),
+					Port:        int64(port),
+					Scheme:      &httpGetScheme,
+					HttpHeaders: expandContainerProbeHttpHeaders(x["http_headers"].(map[string]interface{})),
 				}
 			}
 		}
 	}
 	return &probe
+}
+
+func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containerinstance.HttpHeader {
+	if len(input) == 0 {
+		return nil
+	}
+
+	headers := []containerinstance.HttpHeader{}
+	for k, v := range input {
+		header := containerinstance.HttpHeader{
+			Name:  pointer.FromString(k),
+			Value: pointer.FromString(v.(string)),
+		}
+		headers = append(headers, header)
+	}
+	return &headers
+}
+
+func flattenContainerProbeHttpHeaders(input *[]containerinstance.HttpHeader) map[string]interface{} {
+	if input == nil {
+		return nil
+	}
+
+	output := map[string]interface{}{}
+	for _, header := range *input {
+		name := ""
+		if header.Name != nil {
+			name = *header.Name
+		}
+		value := ""
+		if header.Value != nil {
+			value = *header.Value
+		}
+		output[name] = value
+	}
+	return output
 }
 
 func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
@@ -1786,6 +1823,7 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 		}
 		httpGet["port"] = get.Port
 		httpGet["scheme"] = get.Scheme
+		httpGet["http_headers"] = flattenContainerProbeHttpHeaders(get.HttpHeaders)
 		httpGets = append(httpGets, httpGet)
 	}
 	output["http_get"] = httpGets
