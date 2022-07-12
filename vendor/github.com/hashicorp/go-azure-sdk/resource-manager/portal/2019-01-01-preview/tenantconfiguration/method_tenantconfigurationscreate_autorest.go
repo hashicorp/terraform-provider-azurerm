@@ -17,8 +17,8 @@ type TenantConfigurationsCreateOperationResponse struct {
 }
 
 // TenantConfigurationsCreate ...
-func (c TenantConfigurationClient) TenantConfigurationsCreate(ctx context.Context, id ConfigurationId, input Configuration) (result TenantConfigurationsCreateOperationResponse, err error) {
-	req, err := c.preparerForTenantConfigurationsCreate(ctx, id, input)
+func (c TenantConfigurationClient) TenantConfigurationsCreate(ctx context.Context, input Configuration) (result TenantConfigurationsCreateOperationResponse, err error) {
+	req, err := c.preparerForTenantConfigurationsCreate(ctx, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "tenantconfiguration.TenantConfigurationClient", "TenantConfigurationsCreate", nil, "Failure preparing request")
 		return
@@ -40,7 +40,7 @@ func (c TenantConfigurationClient) TenantConfigurationsCreate(ctx context.Contex
 }
 
 // preparerForTenantConfigurationsCreate prepares the TenantConfigurationsCreate request.
-func (c TenantConfigurationClient) preparerForTenantConfigurationsCreate(ctx context.Context, id ConfigurationId, input Configuration) (*http.Request, error) {
+func (c TenantConfigurationClient) preparerForTenantConfigurationsCreate(ctx context.Context, input Configuration) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}
@@ -49,7 +49,7 @@ func (c TenantConfigurationClient) preparerForTenantConfigurationsCreate(ctx con
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(id.ID()),
+		autorest.WithPath("/providers/Microsoft.Portal/tenantConfigurations/default"),
 		autorest.WithJSON(input),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
