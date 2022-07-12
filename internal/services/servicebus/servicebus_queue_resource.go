@@ -193,6 +193,19 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
 	enableBatchedOperations := d.Get("enable_batched_operations").(bool)
 	enableExpress := d.Get("enable_express").(bool)
+	isPartitioningEnabled := false
+	if d.HasChange("enable_partitioning") {
+		existingQueue, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existingQueue.Response) {
+				return fmt.Errorf("retrieving ServiceBus Namespace Queue %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+			}
+		}
+
+		if existingQueue.ID != nil && existingQueue.EnablePartitioning != nil && *existingQueue.EnablePartitioning {
+			isPartitioningEnabled = true
+		}
+	}
 	enablePartitioning := d.Get("enable_partitioning").(bool)
 	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
 	maxSizeInMegabytes := int32(d.Get("max_size_in_megabytes").(int))
@@ -264,6 +277,10 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	// Premium SKU.
 	if namespace.Sku.Name == servicebus.SkuNamePremium && d.Get("enable_express").(bool) {
 		return fmt.Errorf("ServiceBus Queue %q does not support Express Entities in Premium SKU and must be disabled", resourceId.Name)
+	}
+
+	if namespace.Sku.Name == servicebus.SkuNamePremium && d.Get("enable_partitioning").(bool) && !isPartitioningEnabled {
+		return fmt.Errorf("Partitioning Entities is not supported in Premium SKU and must be disabled")
 	}
 
 	// output of `max_message_size_in_kilobytes` is also set in non-Premium namespaces, with a value of 256
