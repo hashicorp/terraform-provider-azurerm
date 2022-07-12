@@ -368,6 +368,12 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
+	if v, ok := d.GetOk("host_group_id"); ok {
+		props.VirtualMachineScaleSetProperties.HostGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
+	}
+
 	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		props.Zones = &zones
@@ -799,6 +805,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.Set("do_not_run_extensions_on_overprovisioned_machines", props.DoNotRunExtensionsOnOverprovisionedVMs)
+	d.Set("host_group_id", props.HostGroup.ID)
 	d.Set("overprovision", props.Overprovision)
 	proximityPlacementGroupId := ""
 	if props.ProximityPlacementGroup != nil && props.ProximityPlacementGroup.ID != nil {
@@ -1164,6 +1171,13 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: azure.ValidateResourceID,
+		},
+
+		"host_group_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.HostGroupID,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
