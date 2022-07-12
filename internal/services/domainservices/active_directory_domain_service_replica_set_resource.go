@@ -5,8 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/domainservices/mgmt/2020-01-01/aad"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2020-01-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -88,82 +89,90 @@ func resourceActiveDirectoryDomainServiceReplicaSetCreate(d *pluginsdk.ResourceD
 		return fmt.Errorf("parsing ID for Domain Service Replica Set")
 	}
 
+	idsdk := domainservices.NewDomainServiceID(domainServiceId.SubscriptionId, domainServiceId.ResourceGroup, domainServiceId.Name)
+
 	locks.ByName(domainServiceId.Name, DomainServiceResourceName)
 	defer locks.UnlockByName(domainServiceId.Name, DomainServiceResourceName)
 
-	domainService, err := client.Get(ctx, domainServiceId.ResourceGroup, domainServiceId.Name)
+	domainService, err := client.Get(ctx, idsdk)
 	if err != nil {
-		if utils.ResponseWasNotFound(domainService.Response) {
+		if response.WasNotFound(domainService.HttpResponse) {
 			return fmt.Errorf("could not find %s: %s", domainServiceId, err)
 		}
 		return fmt.Errorf("reading %s: %s", domainServiceId, err)
 	}
 
-	if domainService.DomainServiceProperties.ReplicaSets == nil || len(*domainService.DomainServiceProperties.ReplicaSets) == 0 {
-		return fmt.Errorf("reading %s: returned with missing replica set information, expected at least 1 replica set: %s", domainServiceId, err)
+	model := domainService.Model
+	if model == nil {
+		return fmt.Errorf("reading %s: returned with null model", domainServiceId)
+	}
+
+	if model.Properties == nil || model.Properties.ReplicaSets == nil || len(*model.Properties.ReplicaSets) == 0 {
+		return fmt.Errorf("reading %s: returned with missing replica set information, expected at least 1 replica set", domainServiceId)
 	}
 
 	subnetId := d.Get("subnet_id").(string)
-	replicaSets := *domainService.DomainServiceProperties.ReplicaSets
+	replicaSets := *model.Properties.ReplicaSets
 
 	for _, r := range replicaSets {
-		if r.ReplicaSetID == nil {
+		if r.ReplicaSetId == nil {
 			return fmt.Errorf("reading %s: a replica set was returned with a missing ReplicaSetID", domainServiceId)
 		}
-		if r.SubnetID == nil {
+		if r.SubnetId == nil {
 			return fmt.Errorf("reading %s: a replica set was returned with a missing SubnetID", domainServiceId)
 		}
 
 		// We assume that two replica sets cannot coexist in the same subnet
-		if strings.EqualFold(subnetId, *r.SubnetID) {
+		if strings.EqualFold(subnetId, *r.SubnetId) {
 			// Generate an ID here since we only know it once we know the ReplicaSetID
-			id := parse.NewDomainServiceReplicaSetID(domainServiceId.SubscriptionId, domainServiceId.ResourceGroup, domainServiceId.Name, *r.ReplicaSetID)
+			id := parse.NewDomainServiceReplicaSetID(domainServiceId.SubscriptionId, domainServiceId.ResourceGroup, domainServiceId.Name, *r.ReplicaSetId)
 			return tf.ImportAsExistsError("azurerm_active_directory_domain_service_replica_set", id.ID())
 		}
 	}
 
 	loc := location.Normalize(d.Get("location").(string))
-	replicaSets = append(replicaSets, aad.ReplicaSet{
+	replicaSets = append(replicaSets, domainservices.ReplicaSet{
 		Location: utils.String(loc),
-		SubnetID: utils.String(subnetId),
+		SubnetId: utils.String(subnetId),
 	})
 
-	domainService.DomainServiceProperties.ReplicaSets = &replicaSets
+	model.Properties.ReplicaSets = &replicaSets
 
-	future, err := client.CreateOrUpdate(ctx, domainServiceId.ResourceGroup, domainServiceId.Name, domainService)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, idsdk, *model); err != nil {
 		return fmt.Errorf("creating/updating Replica Sets for %s: %+v", domainServiceId, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for Replica Sets for %s: %+v", domainServiceId, err)
 	}
 
 	// We need to retrieve the domain service again to find out the new replica set ID
-	domainService, err = client.Get(ctx, domainServiceId.ResourceGroup, domainServiceId.Name)
+	domainService, err = client.Get(ctx, idsdk)
 	if err != nil {
-		if utils.ResponseWasNotFound(domainService.Response) {
+		if response.WasNotFound(domainService.HttpResponse) {
 			return fmt.Errorf("could not find %s: %s", domainServiceId, err)
 		}
 		return fmt.Errorf("reading %s: %s", domainServiceId, err)
 	}
 
-	if domainService.DomainServiceProperties.ReplicaSets == nil || len(*domainService.DomainServiceProperties.ReplicaSets) == 0 {
-		return fmt.Errorf("reading %s: returned with missing replica set information, expected at least 1 replica set: %s", domainServiceId, err)
+	model = domainService.Model
+	if model == nil {
+		return fmt.Errorf("reading %s: returned with null model", domainServiceId)
+	}
+
+	if model.Properties == nil || model.Properties.ReplicaSets == nil || len(*model.Properties.ReplicaSets) == 0 {
+		return fmt.Errorf("reading %s: returned with missing replica set information, expected at least 1 replica set", domainServiceId)
 	}
 
 	var id parse.DomainServiceReplicaSetId
 	// Assuming that two replica sets cannot coexist in the same subnet, we identify our new replica set by its SubnetID
-	for _, r := range *domainService.DomainServiceProperties.ReplicaSets {
-		if r.ReplicaSetID == nil {
+	for _, r := range *model.Properties.ReplicaSets {
+		if r.ReplicaSetId == nil {
 			return fmt.Errorf("reading %s: a replica set was returned with a missing ReplicaSetID", domainServiceId)
 		}
-		if r.SubnetID == nil {
+		if r.SubnetId == nil {
 			return fmt.Errorf("reading %s: a replica set was returned with a missing SubnetID", domainServiceId)
 		}
 
-		if strings.EqualFold(subnetId, *r.SubnetID) {
+		if strings.EqualFold(subnetId, *r.SubnetId) {
 			// We found it!
-			id = parse.NewDomainServiceReplicaSetID(domainServiceId.SubscriptionId, domainServiceId.ResourceGroup, domainServiceId.Name, *r.ReplicaSetID)
+			id = parse.NewDomainServiceReplicaSetID(domainServiceId.SubscriptionId, domainServiceId.ResourceGroup, domainServiceId.Name, *r.ReplicaSetId)
 		}
 	}
 
@@ -201,17 +210,24 @@ func resourceActiveDirectoryDomainServiceReplicaSetRead(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	domainService, err := client.Get(ctx, id.ResourceGroup, id.DomainServiceName)
+	idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName)
+
+	domainService, err := client.Get(ctx, idsdk)
 	if err != nil {
-		if utils.ResponseWasNotFound(domainService.Response) {
+		if response.WasNotFound(domainService.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return err
 	}
 
-	if domainService.DomainServiceProperties.ReplicaSets == nil || len(*domainService.DomainServiceProperties.ReplicaSets) == 0 {
-		return fmt.Errorf("reading %s: domain service returned with missing replica set information, expected at least 1 replica set: %s", id, err)
+	model := domainService.Model
+	if model == nil {
+		return fmt.Errorf("reading %s: returned with null model", id)
+	}
+
+	if model.Properties == nil || model.Properties.ReplicaSets == nil || len(*model.Properties.ReplicaSets) == 0 {
+		return fmt.Errorf("reading %s: returned with missing replica set information, expected at least 1 replica set", id)
 	}
 
 	var (
@@ -222,20 +238,20 @@ func resourceActiveDirectoryDomainServiceReplicaSetRead(d *pluginsdk.ResourceDat
 		subnetId                    string
 	)
 
-	replicaSets := *domainService.DomainServiceProperties.ReplicaSets
+	replicaSets := *model.Properties.ReplicaSets
 
 	for _, r := range replicaSets {
-		if r.ReplicaSetID == nil {
+		if r.ReplicaSetId == nil {
 			return fmt.Errorf("reading %s: a replica set was returned with a missing ReplicaSetID", id)
 		}
 
 		// ReplicaSetName in the ID struct is really the replica set ID
-		if *r.ReplicaSetID == id.ReplicaSetName {
-			if r.DomainControllerIPAddress != nil {
-				domainControllerIpAddresses = *r.DomainControllerIPAddress
+		if *r.ReplicaSetId == id.ReplicaSetName {
+			if r.DomainControllerIpAddress != nil {
+				domainControllerIpAddresses = *r.DomainControllerIpAddress
 			}
-			if r.ExternalAccessIPAddress != nil {
-				externalAccessIpAddress = *r.ExternalAccessIPAddress
+			if r.ExternalAccessIpAddress != nil {
+				externalAccessIpAddress = *r.ExternalAccessIpAddress
 			}
 			if r.Location != nil {
 				loc = location.NormalizeNilable(r.Location)
@@ -243,8 +259,8 @@ func resourceActiveDirectoryDomainServiceReplicaSetRead(d *pluginsdk.ResourceDat
 			if r.ServiceStatus != nil {
 				serviceStatus = *r.ServiceStatus
 			}
-			if r.SubnetID != nil {
-				subnetId = *r.SubnetID
+			if r.SubnetId != nil {
+				subnetId = *r.SubnetId
 			}
 		}
 	}
@@ -268,27 +284,34 @@ func resourceActiveDirectoryDomainServiceReplicaSetDelete(d *pluginsdk.ResourceD
 		return err
 	}
 
-	domainService, err := client.Get(ctx, id.ResourceGroup, id.DomainServiceName)
+	idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName)
+
+	domainService, err := client.Get(ctx, idsdk)
 	if err != nil {
-		if utils.ResponseWasNotFound(domainService.Response) {
+		if response.WasNotFound(domainService.HttpResponse) {
 			return fmt.Errorf("deleting %s: domain service was not found: %s", id, err)
 		}
 		return err
 	}
 
-	if domainService.DomainServiceProperties.ReplicaSets == nil || len(*domainService.DomainServiceProperties.ReplicaSets) == 0 {
-		return fmt.Errorf("deleting %s: domain service returned with missing replica set information, expected at least 1 replica set: %s", id, err)
+	model := domainService.Model
+	if model == nil {
+		return fmt.Errorf("reading %s: returned with null model", id)
 	}
 
-	replicaSets := *domainService.DomainServiceProperties.ReplicaSets
+	if model.Properties == nil || model.Properties.ReplicaSets == nil || len(*model.Properties.ReplicaSets) == 0 {
+		return fmt.Errorf("reading %s: returned with missing replica set information, expected at least 1 replica set", id)
+	}
 
-	newReplicaSets := make([]aad.ReplicaSet, 0)
+	replicaSets := *model.Properties.ReplicaSets
+
+	newReplicaSets := make([]domainservices.ReplicaSet, 0)
 	for _, r := range replicaSets {
-		if r.ReplicaSetID == nil {
+		if r.ReplicaSetId == nil {
 			return fmt.Errorf("deleting %s: a replica set was returned with a missing ReplicaSetID", id)
 		}
 
-		if *r.ReplicaSetID == id.ReplicaSetName {
+		if *r.ReplicaSetId == id.ReplicaSetName {
 			continue
 		}
 
@@ -299,14 +322,10 @@ func resourceActiveDirectoryDomainServiceReplicaSetDelete(d *pluginsdk.ResourceD
 		return fmt.Errorf("deleting %s: could not determine which replica set to remove", id)
 	}
 
-	domainService.DomainServiceProperties.ReplicaSets = &newReplicaSets
+	model.Properties.ReplicaSets = &newReplicaSets
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.DomainServiceName, domainService)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, idsdk, *model); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	// Wait for all replica sets to become available with two domain controllers each before proceeding
