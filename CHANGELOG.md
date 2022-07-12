@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * policyremediation: updated to use version `2021-10-01` [GH-17298]
 * storage: refactoring `objectreplicationpolicy` to use `hashicorp/go-azure-sdk` [GH-17471]
 * `azurerm_container_group` - support for the `http_headers` property [GH-17519]
+* `azurerm_dashboard` - refactoring to use `hashicorp/go-azure-sdk` [GH-17598]
 * `azurerm_kusto_cluster` - support for the `public_ip_address` property [GH-17520]
 * `azurerm_kusto_script` - support for the `script_content` property [GH-17522]
 * `azurerm_kusto_iothub_data_connection` - support for the `database_routing_type` property [GH-17526]
