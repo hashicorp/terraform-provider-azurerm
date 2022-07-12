@@ -128,7 +128,7 @@ The following arguments are supported:
 
 * `secondary_peer_address_prefix` - (Optional) A `/30` subnet for the secondary link. Required when config for IPv4.
 
-* `ipv4_enabled` - (Optional) A boolean value indicating whether the IPv4 peering is enabled. Required when config for IPv4.
+* `ipv4_enabled` - (Optional) A boolean value indicating whether the IPv4 peering is enabled. Defaults to `true`.
 
 * `shared_key` - (Optional) The shared key. Can be a maximum of 25 characters.
 
@@ -158,7 +158,7 @@ A `ipv6` block contains:
 
 * `secondary_peer_address_prefix` - (Required) A subnet for the secondary link.
  
-* `ipv6_enabled` - (Required) A boolean value indicating whether the IPv6 peering is enabled.
+* `ipv6_enabled` - (Optional) A boolean value indicating whether the IPv6 peering is enabled. Defaults to `true`.
 
 * `microsoft_peering` - (Optional) A `microsoft_peering` block as defined below.  
 

@@ -61,7 +61,6 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 				Optional: true,
 				RequiredWith: []string{
 					"secondary_peer_address_prefix",
-					"ipv4_enabled",
 				},
 			},
 
@@ -70,17 +69,13 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 				Optional: true,
 				RequiredWith: []string{
 					"primary_peer_address_prefix",
-					"ipv4_enabled",
 				},
 			},
 
 			"ipv4_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				RequiredWith: []string{
-					"primary_peer_address_prefix",
-					"secondary_peer_address_prefix",
-				},
+				Default:  true,
 			},
 
 			"vlan_id": {
@@ -178,7 +173,8 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 
 						"ipv6_enabled": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
+							Default:  true,
 						},
 
 						"route_filter_id": {
@@ -264,12 +260,11 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 		},
 	}
 
-	ipv4Enabled := d.GetRawConfig().AsValueMap()["ipv4_enabled"]
-	if !ipv4Enabled.IsNull() {
+	ipv4Enabled := d.Get("ipv4_enabled").(bool)
+	if ipv4Enabled {
+		parameters.ExpressRouteCircuitPeeringPropertiesFormat.State = network.ExpressRoutePeeringStateEnabled
+	} else {
 		parameters.ExpressRouteCircuitPeeringPropertiesFormat.State = network.ExpressRoutePeeringStateDisabled
-		if ipv4Enabled.True() {
-			parameters.ExpressRouteCircuitPeeringPropertiesFormat.State = network.ExpressRoutePeeringStateEnabled
-		}
 	}
 
 	if !strings.EqualFold(primaryPeerAddressPrefix, "") {
@@ -286,8 +281,8 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 			return fmt.Errorf("`microsoft_peering_config` must be specified when config for Ipv4 and `peering_type` is set to `MicrosoftPeering`")
 		}
 
-		if len(peerings) != 0 && (primaryPeerAddressPrefix == "" || secondaryPeerAddressPrefix == "" || ipv4Enabled.IsNull()) {
-			return fmt.Errorf("`primary_peer_address_prefix, secondary_peer_address_prefix, ipv4_enabled` must be specified when config for Ipv4")
+		if len(peerings) != 0 && (primaryPeerAddressPrefix == "" || secondaryPeerAddressPrefix == "") {
+			return fmt.Errorf("`primary_peer_address_prefix, secondary_peer_address_prefix` must be specified when config for Ipv4")
 		}
 
 		peeringConfig := expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
