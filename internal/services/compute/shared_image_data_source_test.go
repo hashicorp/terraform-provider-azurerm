@@ -60,7 +60,7 @@ data "azurerm_shared_image" "test" {
   gallery_name        = azurerm_shared_image.test.gallery_name
   resource_group_name = azurerm_shared_image.test.resource_group_name
 }
-`, SharedImageResource{}.basic(data, hyperVGen))
+`, SharedImageResource{}.basicWithHyperVGen(data, hyperVGen))
 }
 
 func (SharedImageDataSource) complete(data acceptance.TestData, hyperVGen string) string {
@@ -72,5 +72,5 @@ data "azurerm_shared_image" "test" {
   gallery_name        = azurerm_shared_image.test.gallery_name
   resource_group_name = azurerm_shared_image.test.resource_group_name
 }
-`, SharedImageResource{}.complete(data, hyperVGen))
+`, SharedImageResource{}.completeWithHyperVGen(data, hyperVGen))
 }
