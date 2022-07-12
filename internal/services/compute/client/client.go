@@ -3,11 +3,12 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	AvailabilitySetsClient           *compute.AvailabilitySetsClient
+	AvailabilitySetsClient           *availabilitysets.AvailabilitySetsClient
 	CapacityReservationsClient       *compute.CapacityReservationsClient
 	CapacityReservationGroupsClient  *compute.CapacityReservationGroupsClient
 	DedicatedHostsClient             *compute.DedicatedHostsClient
@@ -37,7 +38,7 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	availabilitySetsClient := availabilitysets.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&availabilitySetsClient.Client, o.ResourceManagerAuthorizer)
 
 	capacityReservationsClient := compute.NewCapacityReservationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
