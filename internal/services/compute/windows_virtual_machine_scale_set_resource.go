@@ -343,6 +343,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	scaleInPolicy := d.Get("scale_in_policy").(string)
+	scaleInPolicyForceDeletion := d.Get("scale_in_policy_force_deletion_enabled").(bool)
 	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 	automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
@@ -372,7 +373,8 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 			// in both VMSS and Orchestrated VMSS...
 			OrchestrationMode: compute.OrchestrationModeUniform,
 			ScaleInPolicy: &compute.ScaleInPolicy{
-				Rules: &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
+				Rules:         &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
+				ForceDeletion: utils.Bool(scaleInPolicyForceDeletion),
 			},
 		},
 	}
@@ -638,11 +640,20 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.DoNotRunExtensionsOnOverprovisionedVMs = utils.Bool(v)
 	}
 
-	if d.HasChange("scale_in_policy") {
-		scaleInPolicy := d.Get("scale_in_policy").(string)
-		updateProps.ScaleInPolicy = &compute.ScaleInPolicy{
-			Rules: &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
+	if d.HasChange("scale_in_policy") || d.HasChange("scale_in_policy_force_deletion_enabled") {
+		updateScaleInPolicy := &compute.ScaleInPolicy{}
+
+		if d.HasChange("scale_in_policy") {
+			scaleInPolicy := d.Get("scale_in_policy").(string)
+			updateScaleInPolicy.Rules = &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)}
 		}
+
+		if d.HasChange("scale_in_policy_force_deletion_enabled") {
+			forceDeletion := d.Get("scale_in_policy_force_deletion_enabled").(bool)
+			updateScaleInPolicy.ForceDeletion = utils.Bool(forceDeletion)
+		}
+
+		updateProps.ScaleInPolicy = updateScaleInPolicy
 	}
 
 	if !features.FourPointOhBeta() {
@@ -854,12 +865,17 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	rule := string(compute.VirtualMachineScaleSetScaleInRulesDefault)
+	var forceDeletion bool
 	if props.ScaleInPolicy != nil {
 		if rules := props.ScaleInPolicy.Rules; rules != nil && len(*rules) > 0 {
 			rule = string((*rules)[0])
 		}
+		if props.ScaleInPolicy.ForceDeletion != nil {
+			forceDeletion = *props.ScaleInPolicy.ForceDeletion
+		}
 	}
 	d.Set("scale_in_policy", rule)
+	d.Set("scale_in_policy_force_deletion_enabled", forceDeletion)
 
 	if profile := props.VirtualMachineProfile; profile != nil {
 		if err := d.Set("boot_diagnostics", flattenBootDiagnostics(profile.DiagnosticsProfile)); err != nil {
@@ -1361,6 +1377,12 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 				string(compute.VirtualMachineScaleSetScaleInRulesNewestVM),
 				string(compute.VirtualMachineScaleSetScaleInRulesOldestVM),
 			}, false),
+		},
+
+		"scale_in_policy_force_deletion_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"termination_notification": VirtualMachineScaleSetTerminationNotificationSchema(),
