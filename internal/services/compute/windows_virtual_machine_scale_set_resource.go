@@ -209,7 +209,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 				ID: utils.String(v.(string)),
 			},
 		}
-  }
+	}
 
 	hasHealthExtension := false
 	if vmExtensionsRaw, ok := d.GetOk("extension"); ok {

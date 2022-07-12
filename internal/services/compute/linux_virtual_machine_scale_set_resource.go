@@ -208,7 +208,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 				ID: utils.String(v.(string)),
 			},
 		}
-  }
+	}
 
 	hasHealthExtension := false
 	if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
