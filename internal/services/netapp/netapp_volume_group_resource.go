@@ -2,47 +2,57 @@ package netapp
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumes"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetappVolumeGroupResource struct{}
+type NetAppVolumeGroupResource struct{}
 
-type NetappVolumeGroupModel struct {
+type NetAppVolumeGroupModel struct {
+	Name                  string                    `tfschema:"name"`
+	ResourceGroupName     string                    `tfschema:"resource_group_name"`
+	Location              string                    `tfschema:"location"`
+	AccountName           string                    `tfschema:"account_name"`
+	GroupDescription      string                    `tfschema:"group_description"`
+	ApplicationType       string                    `tfschema:"application_type"`
+	ApplicationIdentifier string                    `tfschema:"application_identifier"`
+	DeploymentSpecId      string                    `tfschema:"deployment_spec_id"`
+	Tags                  map[string]string         `tfschema:"tags"`
+	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
 }
 
-var _ sdk.ResourceWithUpdate = NetappVolumeGroupResource{}
+var _ sdk.Resource = NetAppVolumeGroupResource{}
 
-func (r NetappVolumeGroupResource) ModelObject() interface{} {
-	return &NetappVolumeGroupModel{}
+func (r NetAppVolumeGroupResource) ModelObject() interface{} {
+	return &NetAppVolumeGroupModel{}
 }
 
-func (r NetappVolumeGroupResource) ResourceType() string {
+func (r NetAppVolumeGroupResource) ResourceType() string {
 	return "azurerm_netapp_volume_group"
 }
 
-func (r NetappVolumeGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	panic("Implement me") // TODO - Add Validation func return here
+func (r NetAppVolumeGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return volumegroups.ValidateVolumeGroupID
 }
 
-func (r NetappVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
+func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: netAppValidate.VolumeGroupName,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
 		"resource_group_name": azure.SchemaResourceGroupName(),
@@ -67,7 +77,7 @@ func (r NetappVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(netapp.ApplicationTypeSAPHANA),
+				string(volumegroups.ApplicationTypeSAPNegativeHANA),
 			}, false),
 		},
 
@@ -92,243 +102,7 @@ func (r NetappVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			MinItems: 5,
 			MaxItems: 5,
 			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: netAppValidate.VolumeName,
-					},
-
-					"volume_path": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: netAppValidate.VolumePath,
-					},
-
-					"service_level": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(volumes.ServiceLevelPremium),
-							string(volumes.ServiceLevelStandard),
-							string(volumes.ServiceLevelUltra),
-						}, false),
-					},
-
-					"subnet_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-
-					"create_from_snapshot_resource_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ForceNew:     true,
-						ValidateFunc: snapshots.ValidateSnapshotID,
-					},
-
-					"network_features": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(volumes.NetworkFeaturesBasic),
-							string(volumes.NetworkFeaturesStandard),
-						}, false),
-					},
-
-					"protocols": {
-						Type:     pluginsdk.TypeSet,
-						ForceNew: true,
-						Optional: true,
-						Computed: true,
-						MaxItems: 2,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								"NFSv3",
-								"NFSv4.1",
-								"CIFS",
-							}, false),
-						},
-					},
-
-					"security_style": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Computed: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"Unix", // Using hardcoded values instead of SDK enum since no matter what case is passed,
-							"Ntfs", // ANF changes casing to Pascal case in the backend. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
-						}, false),
-					},
-
-					"storage_quota_in_gb": {
-						Type:         pluginsdk.TypeInt,
-						Required:     true,
-						ValidateFunc: validation.IntBetween(100, 102400),
-					},
-
-					"throughput_in_mibps": {
-						Type:     pluginsdk.TypeFloat,
-						Optional: true,
-						Computed: true,
-					},
-
-					"capacity_pool_id": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						Computed:         true,
-						ForceNew:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
-						ValidateFunc:     azure.ValidateResourceID,
-					},
-
-					"proximity_placement_group_id": {
-						Type:             pluginsdk.TypeString,
-						Required:         true,
-						ForceNew:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
-						ValidateFunc:     azure.ValidateResourceID,
-					},
-
-					"volume_spec_name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-					},
-
-					"export_policy_rule": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 5,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"rule_index": {
-									Type:         pluginsdk.TypeInt,
-									Required:     true,
-									ValidateFunc: validation.IntBetween(1, 5),
-								},
-
-								"allowed_clients": {
-									Type:     pluginsdk.TypeSet,
-									Required: true,
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validate.CIDR,
-									},
-								},
-
-								"protocols_enabled": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									Computed: true,
-									MaxItems: 1,
-									MinItems: 1,
-									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice([]string{
-											"NFSv3",
-											"NFSv4.1",
-											"CIFS",
-										}, false),
-									},
-								},
-
-								"unix_read_only": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-								},
-
-								"unix_read_write": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-								},
-
-								"root_access_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-								},
-							},
-						},
-					},
-
-					"tags": commonschema.Tags(),
-
-					"mount_ip_addresses": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-
-					"snapshot_directory_visible": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Computed: true,
-					},
-
-					"data_protection_replication": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						ForceNew: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"endpoint_type": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "dst",
-									ValidateFunc: validation.StringInSlice([]string{
-										"dst",
-									}, false),
-								},
-
-								"remote_volume_location": azure.SchemaLocation(),
-
-								"remote_volume_resource_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: azure.ValidateResourceID,
-								},
-
-								"replication_frequency": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										"10minutes",
-										"daily",
-										"hourly",
-									}, false),
-								},
-							},
-						},
-					},
-
-					"data_protection_snapshot_policy": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"snapshot_policy_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: azure.ValidateResourceID,
-								},
-							},
-						},
-					},
-				},
+				Schema: netAppVolumeGroupVolumeSchema(),
 			},
 		},
 
@@ -344,51 +118,204 @@ func (r NetappVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r NetappVolumeGroupResource) Attributes() map[string]*pluginsdk.Schema {
+func (r NetAppVolumeGroupResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		/*
 			TODO - This section is for `Computed: true` only items, i.e. useful values that are returned by the
 			datasource that can be used as outputs or passed programmatically to other resources or data sources.
+
+			TODO (pmarques) - use this for first level attributes when Volume resource gets migrated to tfschema
 		*/
 	}
 }
 
-func (r NetappVolumeGroupResource) Create() sdk.ResourceFunc {
+func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// TODO - Create Func
-			// TODO - Don't forget to set the ID! e.g. metadata.SetID(id)
+			client := metadata.Client.NetApp.VolumeGroupClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			var model NetAppVolumeGroupModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id := volumegroups.NewVolumeGroupID(subscriptionId, model.ResourceGroupName, model.AccountName, model.Name)
+
+			metadata.Logger.Infof("Import check for %s", id)
+			existing, err := client.VolumeGroupsGet(ctx, id)
+			if err != nil && existing.HttpResponse.StatusCode != http.StatusNotFound {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+
+			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
+			applicationType := volumegroups.ApplicationType(model.ApplicationType)
+
+			volumeList := make([]volumegroups.VolumeGroupVolumeProperties, 0)
+			for _, item := range model.Volumes {
+				name := item.Name
+				volumePath := item.VolumePath
+				serviceLevel := volumegroups.ServiceLevel(item.ServiceLevel)
+				subnetID := item.SubnetId
+				capacityPoolID := item.CapacityPoolId
+
+				networkFeatures := volumegroups.NetworkFeatures(item.NetworkFeatures)
+				if networkFeatures == "" {
+					networkFeatures = volumegroups.NetworkFeaturesBasic
+				}
+
+				protocols := item.Protocols
+				if len(protocols) == 0 {
+					protocols = append(protocols, "NFSv3")
+				}
+
+				// Handling security style property
+				securityStyle := volumegroups.SecurityStyle(item.SecurityStyle)
+				if strings.EqualFold(string(securityStyle), "unix") && len(protocols) == 1 && strings.EqualFold(protocols[0], "cifs") {
+					return fmt.Errorf("unix security style cannot be used in a CIFS enabled volume for %s", id)
+
+				}
+				if strings.EqualFold(string(securityStyle), "ntfs") && len(protocols) == 1 && (strings.EqualFold(protocols[0], "nfsv3") || strings.EqualFold(protocols[0], "nfsv4.1")) {
+					return fmt.Errorf("ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for %s", id)
+				}
+
+				storageQuotaInGB := int64(item.StorageQuotaInGB * 1073741824)
+				exportPolicyRule := expandNetAppVolumeGroupExportPolicyRule(convertSliceToInterface(item.ExportPolicy))
+				dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(convertSliceToInterface(item.DataProtectionReplication))
+				dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(convertSliceToInterface(item.DataProtectionSnapshotPolicy))
+
+				volumeType := ""
+				if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) == "dst" {
+					volumeType = "DataProtection"
+				}
+
+				// Validating that snapshot policies are not being created in a data protection volume
+				if dataProtectionSnapshotPolicy != nil && volumeType != "" {
+					return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume for %s", id)
+				}
+
+				snapshotDirectoryVisible, err := strconv.ParseBool(item.SnapshotDirectoryVisible)
+				if err != nil {
+					return fmt.Errorf("could not convert SnapshotDirectoryVisible string to bool: %+v", err)
+				}
+
+				volumeProperties := &volumegroups.VolumeGroupVolumeProperties{
+					Name: utils.String(name),
+					Properties: volumegroups.VolumeProperties{
+						CapacityPoolResourceId: utils.String(capacityPoolID),
+						CreationToken:          volumePath,
+						ServiceLevel:           &serviceLevel,
+						SubnetId:               subnetID,
+						NetworkFeatures:        &networkFeatures,
+						ProtocolTypes:          &protocols,
+						SecurityStyle:          &securityStyle,
+						UsageThreshold:         storageQuotaInGB,
+						ExportPolicy:           exportPolicyRule,
+						VolumeType:             utils.String(volumeType),
+						DataProtection: &volumegroups.VolumePropertiesDataProtection{
+							Replication: dataProtectionReplication.Replication,
+							Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
+						},
+						SnapshotDirectoryVisible: &snapshotDirectoryVisible,
+					},
+					Tags: &item.Tags,
+				}
+
+				if _, ok := metadata.ResourceData.GetOk("throughput_in_mibps"); ok {
+					volumeProperties.Properties.ThroughputMibps = utils.Float(float64(item.ThroughputInMibps))
+				}
+
+				volumeProperties.Properties.ProximityPlacementGroup = utils.String(item.ProximityPlacementGroupId)
+				volumeProperties.Properties.VolumeSpecName = utils.String(item.VolumeSpecName)
+
+				volumeList = append(volumeList, *volumeProperties)
+			}
+
+			parameters := volumegroups.VolumeGroupDetails{
+				Location: utils.String(location.Normalize(model.Location)),
+				Properties: &volumegroups.VolumeGroupProperties{
+					GroupMetaData: &volumegroups.VolumeGroupMetaData{
+						GroupDescription:      utils.String(model.GroupDescription),
+						ApplicationType:       &applicationType,
+						ApplicationIdentifier: utils.String(model.ApplicationIdentifier),
+						DeploymentSpecId:      utils.String(model.DeploymentSpecId),
+					},
+					Volumes: &volumeList,
+				},
+				Tags: &model.Tags,
+			}
+
+			err = client.VolumeGroupsCreateThenPoll(ctx, id, parameters)
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			// // Waiting for volume be completely provisioned
+			// if err := waitForVolumeCreateOrUpdate(ctx, client, id); err != nil {
+			// 	return err
+			// }
+
+			metadata.SetID(id)
+
 			return nil
 		},
 	}
 }
 
-func (r NetappVolumeGroupResource) Read() sdk.ResourceFunc {
+func (r NetAppVolumeGroupResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// TODO - Read Func
+
+			client := metadata.Client.NetApp.VolumeGroupClient
+
+			id, err := volumegroups.ParseVolumeGroupID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			metadata.Logger.Infof("Decoding state for %s", id)
+			var state NetAppVolumeGroupModel
+			if err := metadata.Decode(&state); err != nil {
+				return err
+			}
+
+			existing, err := client.VolumeGroupsGet(ctx, *id)
+			if err != nil {
+				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %v", id, err)
+			}
+
+			model := NetAppVolumeGroupModel{
+				Name:              id.VolumeGroupName,
+				AccountName:       id.AccountName,
+				Location:          location.NormalizeNilable(existing.Model.Location),
+				ResourceGroupName: id.ResourceGroupName,
+				Tags:              *existing.Model.Tags,
+			}
+
+			if props := existing.Model.Properties; props != nil {
+				model.GroupDescription = *props.GroupMetaData.GroupDescription
+				model.ApplicationIdentifier = *props.GroupMetaData.ApplicationIdentifier
+				model.DeploymentSpecId = *props.GroupMetaData.DeploymentSpecId
+			}
+
 			return nil
 		},
 	}
 }
 
-func (r NetappVolumeGroupResource) Delete() sdk.ResourceFunc {
+func (r NetAppVolumeGroupResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			// TODO - Delete Func
-			return nil
-		},
-	}
-}
-
-func (r NetappVolumeGroupResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// TODO - Update Func
 			return nil
 		},
 	}

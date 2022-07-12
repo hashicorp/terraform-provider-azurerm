@@ -130,6 +130,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		loadbalancer.Registration{},
 		loadtest.Registration{},
 		mssql.Registration{},
+		netapp.Registration{},
 		policy.Registration{},
 		resource.Registration{},
 		sentinel.Registration{},

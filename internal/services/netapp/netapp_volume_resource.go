@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshots"
@@ -17,11 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -44,238 +40,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			return err
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: netAppValidate.VolumeName,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
-
-			"account_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: netAppValidate.AccountName,
-			},
-
-			"pool_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: netAppValidate.PoolName,
-			},
-
-			"volume_path": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: netAppValidate.VolumePath,
-			},
-
-			"service_level": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(volumes.ServiceLevelPremium),
-					string(volumes.ServiceLevelStandard),
-					string(volumes.ServiceLevelUltra),
-				}, false),
-			},
-
-			"subnet_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
-			"create_from_snapshot_resource_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: snapshots.ValidateSnapshotID,
-			},
-
-			"network_features": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(volumes.NetworkFeaturesBasic),
-					string(volumes.NetworkFeaturesStandard),
-				}, false),
-			},
-
-			"protocols": {
-				Type:     pluginsdk.TypeSet,
-				ForceNew: true,
-				Optional: true,
-				Computed: true,
-				MaxItems: 2,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						"NFSv3",
-						"NFSv4.1",
-						"CIFS",
-					}, false),
-				},
-			},
-
-			"security_style": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Unix", // Using hardcoded values instead of SDK enum since no matter what case is passed,
-					"Ntfs", // ANF changes casing to Pascal case in the backend. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
-				}, false),
-			},
-
-			"storage_quota_in_gb": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntBetween(100, 102400),
-			},
-
-			"throughput_in_mibps": {
-				Type:     pluginsdk.TypeFloat,
-				Optional: true,
-				Computed: true,
-			},
-
-			"export_policy_rule": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 5,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"rule_index": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 5),
-						},
-
-						"allowed_clients": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.CIDR,
-							},
-						},
-
-						"protocols_enabled": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
-							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									"NFSv3",
-									"NFSv4.1",
-									"CIFS",
-								}, false),
-							},
-						},
-
-						"unix_read_only": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-
-						"unix_read_write": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-
-						"root_access_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-					},
-				},
-			},
-
-			"tags": commonschema.Tags(),
-
-			"mount_ip_addresses": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"snapshot_directory_visible": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-
-			"data_protection_replication": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				ForceNew: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"endpoint_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  "dst",
-							ValidateFunc: validation.StringInSlice([]string{
-								"dst",
-							}, false),
-						},
-
-						"remote_volume_location": azure.SchemaLocation(),
-
-						"remote_volume_resource_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-
-						"replication_frequency": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"10minutes",
-								"daily",
-								"hourly",
-							}, false),
-						},
-					},
-				},
-			},
-
-			"data_protection_snapshot_policy": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"snapshot_policy_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
-			},
-		},
+		Schema: netAppVolumeSchema(),
 	}
 }
 
@@ -805,7 +570,7 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 		// Possible Mirror States to be used as desiredStates:
 		// mirrored, broken or uninitialized
 		if !utils.SliceContainsValue(validStates, strings.ToLower(desiredState)) {
-			return nil, "", fmt.Errorf("Invalid desired mirror state was passed to check mirror replication state (%s), possible values: (%+v)", desiredState, volumesreplication.PossibleValuesForMirrorState())
+			return nil, "", fmt.Errorf("invalid desired mirror state was passed to check mirror replication state (%s), possible values: (%+v)", desiredState, volumesreplication.PossibleValuesForMirrorState())
 		}
 
 		res, err := client.VolumesReplicationStatus(ctx, id)

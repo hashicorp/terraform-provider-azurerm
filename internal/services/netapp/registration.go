@@ -7,19 +7,22 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/netapp"
 }
 
 func (r Registration) Name() string {
-	return "NetApp"
+	return "netapp"
 }
 
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"NetApp",
+		"netapp",
 	}
 }
 
@@ -40,5 +43,17 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_netapp_volume":          resourceNetAppVolume(),
 		"azurerm_netapp_snapshot":        resourceNetAppSnapshot(),
 		"azurerm_netapp_snapshot_policy": resourceNetAppSnapshotPolicy(),
+	}
+}
+
+// DataSources returns the typed DataSources supported by this service
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+// Resources returns the typed Resources supported by this service
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		NetAppVolumeGroupResource{},
 	}
 }

@@ -522,7 +522,7 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
   protocols                        = ["NFSv3"]
   storage_quota_in_gb              = 200
   create_from_snapshot_resource_id = azurerm_netapp_snapshot.test.id
-  throughput_in_mibps              = 3.2
+  throughput_in_mibps              = 3.125
 
   export_policy_rule {
     rule_index        = 1
