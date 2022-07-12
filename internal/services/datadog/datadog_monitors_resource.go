@@ -166,6 +166,7 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Datadog.MonitorsClient
@@ -237,6 +238,7 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	d.Set("name", id.MonitorName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
@@ -254,15 +256,15 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("resource_category", props.LiftrResourceCategory)
 		d.Set("marketplace_subscription_status", props.MarketplaceSubscriptionStatus)
 	}
-	skuName := ""
+
+	skuName := d.Get("sku").(string)
 	if resp.Sku.Name != nil {
-		skuName = *resp.Sku.Name
-		// Below check is present to distinguish between resources billed by Microsoft and Datadog.
-		if skuName == "Datadog_Billed_Orgs_Monthly" {
-			skuName = "Linked"
+		if skuName == "Linked" {
+			*resp.Sku.Name = "Linked"
 		}
 	}
-	d.Set("sku_name", skuName)
+	d.Set("sku_name", resp.Sku.Name)
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
