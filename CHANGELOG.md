@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v2.18.0` of `github.com/hashicorp/terraform-plugin-sdk` [GH-17141]
 * appconfiguration: updating to use API Version `2022-05-01` [GH-17467]
 * databricks: refactoring to use `hashicorp/go-azure-sdk` [GH-17475]
+* lighthouse: refactoring to use `hashicorp/go-azure-sdk` [GH-17590]
 * policyremediation: updated to use version `2021-10-01` [GH-17298]
 * storage: refactoring `objectreplicationpolicy` to use `hashicorp/go-azure-sdk` [GH-17471]
 * `azurerm_container_group` - support for the `http_headers` property [GH-17519]
