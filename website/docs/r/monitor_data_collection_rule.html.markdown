@@ -24,6 +24,18 @@ resource "azurerm_log_analytics_workspace" "example" {
   location            = azurerm_resource_group.example.location
 }
 
+resource "azurerm_log_analytics_solution" "example" {
+  solution_name         = "WindowsEventForwarding"
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
+  workspace_resource_id = azurerm_log_analytics_workspace.example.id
+  workspace_name        = azurerm_log_analytics_workspace.example.name
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/WindowsEventForwarding"
+  }
+}
+
 resource "azurerm_monitor_data_collection_rule" "example" {
   name                = "example-rule"
   resource_group_name = azurerm_resource_group.example.name
@@ -86,6 +98,9 @@ resource "azurerm_monitor_data_collection_rule" "example" {
   tags = {
     foo = "bar"
   }
+  depend_on = [
+    azurerm_log_analytics_solution.example
+  ]
 }
 ```
 
@@ -192,6 +207,8 @@ A `syslog` block supports the following:
 * `log_levels` - (Required) Specifies a list of log levels. Use a wildcard `*` to collect logs for all log levels. Possible values are `Debug`,  `Info`, `Notice`, `Warning`, `Error`, `Critical`, `Alert`, `Emergency`,and `*`.
 
 * `name` - (Required) The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
+
+-> **Note:** Syslog data source has only one possible streams value which is "Microsoft-Syslog".
 
 ---
 
