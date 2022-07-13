@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -45,7 +44,7 @@ func resourcePostgresqlFlexibleServerDatabase() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FlexibleServerID,
+				ValidateFunc: databases.ValidateFlexibleServerID,
 			},
 
 			"charset": {
@@ -129,7 +128,7 @@ func resourcePostgresqlFlexibleServerDatabaseRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	d.Set("name", id.DatabaseName)
-	d.Set("server_id", parse.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.ServerName).ID())
+	d.Set("server_id", databases.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.ServerName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

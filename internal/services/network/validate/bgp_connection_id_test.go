@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestConfigurationID(t *testing.T) {
+func TestBgpConnectionID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -41,44 +41,44 @@ func TestConfigurationID(t *testing.T) {
 		},
 
 		{
-			// missing ServerName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/",
+			// missing VirtualHubName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
 			Valid: false,
 		},
 
 		{
-			// missing value for ServerName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/",
+			// missing value for VirtualHubName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualHubs/",
 			Valid: false,
 		},
 
 		{
 			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/server1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualHubs/virtualHub1/",
 			Valid: false,
 		},
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/server1/configurations/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualHubs/virtualHub1/bgpConnections/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/server1/configurations/configuration1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualHubs/virtualHub1/bgpConnections/connection1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.DBFORPOSTGRESQL/SERVERS/SERVER1/CONFIGURATIONS/CONFIGURATION1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/VIRTUALHUBS/VIRTUALHUB1/BGPCONNECTIONS/CONNECTION1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := ConfigurationID(tc.Input, "test")
+		_, errors := BgpConnectionID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

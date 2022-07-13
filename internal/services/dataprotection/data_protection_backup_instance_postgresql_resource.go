@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	postgresValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -63,7 +62,7 @@ func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: postgresValidate.DatabaseID,
+				ValidateFunc: databases.ValidateDatabaseID,
 			},
 
 			"backup_policy_id": {

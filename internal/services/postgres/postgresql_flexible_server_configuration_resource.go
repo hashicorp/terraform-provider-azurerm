@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -47,7 +46,7 @@ func resourcePostgresqlFlexibleServerConfiguration() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FlexibleServerID,
+				ValidateFunc: configurations.ValidateFlexibleServerID,
 			},
 
 			"value": {

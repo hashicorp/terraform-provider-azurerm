@@ -171,7 +171,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			"creation_source_server_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ServerID,
+				ValidateFunc: servers.ValidateServerID,
 			},
 
 			"identity": commonschema.SystemAssignedIdentityOptional(),

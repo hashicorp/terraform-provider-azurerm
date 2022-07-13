@@ -14,8 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -46,7 +44,7 @@ func resourcePostgreSQLServerKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServerID,
+				ValidateFunc: serverkeys.ValidateServerID,
 			},
 
 			"key_vault_key_id": {
@@ -109,7 +107,7 @@ func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta int
 		if resp.Model != nil && len(*resp.Model) >= 1 {
 			keys := *resp.Model
 			if rawId := keys[0].Id; rawId != nil && *rawId != "" {
-				id, err := parse.ServerKeyID(*rawId)
+				id, err := serverkeys.ParseKeyID(*rawId)
 				if err != nil {
 					return fmt.Errorf("parsing existing Server Key ID %q: %+v", *rawId, err)
 				}
@@ -156,7 +154,7 @@ func resourcePostgreSQLServerKeyRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("server_id", parse.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName).ID())
+	d.Set("server_id", serverkeys.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName).ID())
 	if resp.Model != nil && resp.Model.Properties != nil {
 		d.Set("key_vault_key_id", resp.Model.Properties.Uri)
 	}

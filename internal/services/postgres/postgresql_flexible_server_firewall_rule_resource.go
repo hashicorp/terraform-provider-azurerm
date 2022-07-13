@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -47,7 +46,7 @@ func resourcePostgresqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FlexibleServerID,
+				ValidateFunc: firewallrules.ValidateFlexibleServerID,
 			},
 
 			"end_ip_address": {
@@ -126,7 +125,7 @@ func resourcePostgresqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData,
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 	d.Set("name", id.FirewallRuleName)
-	d.Set("server_id", parse.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.ServerName).ID())
+	d.Set("server_id", firewallrules.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.ServerName).ID())
 
 	if model := resp.Model; model != nil {
 		d.Set("end_ip_address", model.Properties.EndIpAddress)

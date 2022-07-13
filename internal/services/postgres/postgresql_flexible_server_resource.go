@@ -144,7 +144,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FlexibleServerID,
+				ValidateFunc: servers.ValidateFlexibleServerID,
 			},
 
 			"maintenance_window": {

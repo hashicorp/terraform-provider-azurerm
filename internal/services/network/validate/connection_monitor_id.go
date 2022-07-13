@@ -5,17 +5,17 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 )
 
-func ServerID(input interface{}, key string) (warnings []string, errors []error) {
+func ConnectionMonitorID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := parse.ServerID(v); err != nil {
+	if _, err := parse.ConnectionMonitorID(v); err != nil {
 		errors = append(errors, err)
 	}
 

@@ -5,17 +5,17 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 )
 
-func VirtualNetworkRuleID(input interface{}, key string) (warnings []string, errors []error) {
+func AuthenticationCertificateID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := parse.VirtualNetworkRuleID(v); err != nil {
+	if _, err := parse.AuthenticationCertificateID(v); err != nil {
 		errors = append(errors, err)
 	}
 
