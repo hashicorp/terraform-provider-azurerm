@@ -1385,6 +1385,8 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Default:  false,
 		},
 
+		"spot_restore": VirtualMachineScaleSetSpotRestorePolicySchema(),
+
 		"termination_notification": VirtualMachineScaleSetTerminationNotificationSchema(),
 
 		"zones": commonschema.ZonesMultipleOptionalForceNew(),

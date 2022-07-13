@@ -376,6 +376,11 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
+	spotRestoreRaw := d.Get("spot_restore").([]interface{})
+	if spotRestorePolicy := ExpandVirtualMachineScaleSetSpotRestorePolicy(spotRestoreRaw); spotRestorePolicy != nil {
+		props.SpotRestorePolicy = spotRestorePolicy
+	}
+
 	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		props.Zones = &zones
@@ -840,6 +845,10 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 	}
 	d.Set("scale_in_policy", rule)
 	d.Set("scale_in_policy_force_deletion_enabled", forceDeletion)
+
+	if props.SpotRestorePolicy != nil {
+		d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
+	}
 
 	if profile := props.VirtualMachineProfile; profile != nil {
 		if err := d.Set("boot_diagnostics", flattenBootDiagnostics(profile.DiagnosticsProfile)); err != nil {
@@ -1327,6 +1336,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  false,
 		},
+
+		"spot_restore": VirtualMachineScaleSetSpotRestorePolicySchema(),
 
 		"termination_notification": VirtualMachineScaleSetTerminationNotificationSchema(),
 

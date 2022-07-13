@@ -275,6 +275,69 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 	}
 }
 
+func VirtualMachineScaleSetSpotRestorePolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+					ForceNew: true,
+				},
+
+				"timeout": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      "PT1H30M",
+					ForceNew:     true,
+					ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
+				},
+			},
+		},
+	}
+}
+
+func ExpandVirtualMachineScaleSetSpotRestorePolicy(input []interface{}) *compute.SpotRestorePolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	enabled := input[0].(map[string]interface{})["enabled"].(bool)
+	timeout := input[0].(map[string]interface{})["timeout"].(string)
+
+	return &compute.SpotRestorePolicy{
+		Enabled:        utils.Bool(enabled),
+		RestoreTimeout: utils.String(timeout),
+	}
+}
+
+func FlattenVirtualMachineScaleSetSpotRestorePolicy(input *compute.SpotRestorePolicy) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	var enabled bool
+	if input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+
+	var restore string
+	if input.RestoreTimeout != nil {
+		restore = *input.RestoreTimeout
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": enabled,
+			"timeout": restore,
+		},
+	}
+}
+
 func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,

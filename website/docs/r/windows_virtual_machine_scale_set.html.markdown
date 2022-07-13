@@ -166,7 +166,7 @@ The following arguments are supported:
 
 * `overprovision` - (Optional) Should Azure over-provision Virtual Machines in this Scale Set? This means that multiple Virtual Machines will be provisioned and Azure will keep the instances which become available first - which improves provisioning success rates and improves deployment time. You're not billed for these over-provisioned VM's and they don't count towards the Subscription Quota. Defaults to `true`.
 
-* `plan` - (Optional) A `plan` block as documented below.
+* `plan` - (Optional) A `plan` block as defined below.
 
 -> **NOTE:** When using an image from Azure Marketplace a `plan` must be specified.
 
@@ -199,6 +199,8 @@ The following arguments are supported:
 * `source_image_reference` - (Optional) A `source_image_reference` block as defined below.
 
 -> **NOTE:** One of either `source_image_id` or `source_image_reference` must be set.
+
+* `spot_restore` - (Optional) A `spot_restore` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine Scale Set.
 
@@ -542,7 +544,7 @@ A `winrm_listener` block supports the following:
 
 ---
 
-`source_image_reference` supports the following:
+A `source_image_reference` block supports the following:
 
 * `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
 
@@ -551,6 +553,16 @@ A `winrm_listener` block supports the following:
 * `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
 
 * `version` - (Optional) Specifies the version of the image used to create the virtual machines.
+
+---
+
+A `spot_restore` block supports the following:
+
+* `enabled` - (Optional) Should the Spot-Try-Restore feature be enabled? The Spot-Try-Restore feature will attempt to automatically restore the evicted Spot Virtual Machine Scale Set VM instances opportunistically based on capacity availability and pricing constraints. Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `timeout` - (Optional) The length of time that the Virtual Machine Scale Set should attempt to restore the Spot VM instances which have been evicted. The time duration should be between `15` minutes and `120` minutes (inclusive). The time duration should be specified in the ISO 8601 format. Defaults to `90` minutes (e.g. `PT1H30M`). Changing this forces a new resource to be created.
+
+---
 
 ## Attributes Reference
 
