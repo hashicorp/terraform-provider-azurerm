@@ -114,7 +114,7 @@ The following arguments are supported:
 
 ---
 
-* `certificate_name_check_enabled` - (Optional) Specifies whether certificate name checks are enabled for this origin. Defaults to `false`.
+* `certificate_name_check_enabled` - (Required) Specifies whether certificate name checks are enabled for this origin.
 
 * `health_probes_enabled` - (Optional) Specifies whether health probes enabled against origins defined under the origin group? Defaults to `true`. 
 
@@ -132,7 +132,7 @@ The following arguments are supported:
 
 * `private_link` - (Optional) A `private_link` block as defined below.
 
--> **Note:** Private Link requires that the CDN FrontDoor Profile this Origin is hosted within is using the SKU `Premium_AzureFrontDoor` - and that the `certificate_name_check_enabled` field above is set to `true`.
+-> **Note:** Private Link requires that the CDN FrontDoor Profile this Origin is hosted within is using the SKU `Premium_AzureFrontDoor` and that the `certificate_name_check_enabled` field is set to `true`.
 
 * `weight` - (Optional) The weight of the origin in a given origin group for load balancing. Must be between `1` and `1000`. Defaults to `500`.
 

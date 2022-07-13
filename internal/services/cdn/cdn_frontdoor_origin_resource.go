@@ -62,10 +62,9 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// Optional
 			"certificate_name_check_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Optional: true,
+				Required: true,
 				// TODO: should this default to `true`?
 			},
 
