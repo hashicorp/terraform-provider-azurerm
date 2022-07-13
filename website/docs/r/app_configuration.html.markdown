@@ -38,6 +38,10 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free` and `standard`.
 
+   `public_network_access` - (Optional) The Public Network Access setting of the App Configuration. Possible values are `Enabled` and `Disabled`.  
+
+~> **NOTE:** If `public_network_access` is not specified, the App Configuration will be created as  `Automatic`. However, once a different value is defined, can not be set again as automatic.  
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 ~> **NOTE:** Azure does not allow a downgrade from `standard` to `free`.
@@ -66,6 +70,8 @@ The following attributes are exported:
 * `primary_read_key` - A `primary_read_key` block as defined below containing the primary read access key.
 
 * `primary_write_key` - A `primary_write_key` block as defined below containing the primary write access key.
+
+* `public_network_access` - The Public Network Access setting of this App Configuration.
 
 * `secondary_read_key` - A `secondary_read_key` block as defined below containing the secondary read access key.
 
