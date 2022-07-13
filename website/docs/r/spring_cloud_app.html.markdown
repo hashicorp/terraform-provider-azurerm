@@ -61,6 +61,8 @@ The following arguments are supported:
 
 * `persistent_disk` - (Optional) An `persistent_disk` block as defined below.
 
+* `public_endpoint_enabled` - (Optional) Should the App in vnet injection instance exposes endpoint which could be accessed from Internet?
+
 * `tls_enabled` - (Optional) Is End to End TLS Enabled? Defaults to `false`.
 
 ---

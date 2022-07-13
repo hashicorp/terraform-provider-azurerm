@@ -178,6 +178,9 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
     uri                    = "https://www.test.com"
     classification_tags    = ["tag1", "tag2"]
   }
+  open_api {
+    uri = "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/examples/v3.0/petstore.json"
+  }
 }
 `, template, data.RandomInteger)
 }
