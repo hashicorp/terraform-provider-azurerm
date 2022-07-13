@@ -14,7 +14,7 @@ import (
 	"net/http"
 )
 
-// BuildpackBindingClient is the REST API for Azure Spring Cloud
+// BuildpackBindingClient is the REST API for Azure Spring Apps
 type BuildpackBindingClient struct {
 	BaseClient
 }
@@ -77,7 +77,7 @@ func (client BuildpackBindingClient) CreateOrUpdatePreparer(ctx context.Context,
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -165,7 +165,7 @@ func (client BuildpackBindingClient) DeletePreparer(ctx context.Context, resourc
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -257,7 +257,7 @@ func (client BuildpackBindingClient) GetPreparer(ctx context.Context, resourceGr
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -343,7 +343,7 @@ func (client BuildpackBindingClient) ListPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -18,7 +18,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-03-01-preview/appplatform"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2022-05-01-preview/appplatform"
 
 // ActiveDeploymentCollection object that includes an array of Deployment resource name and set them as
 // active.
@@ -873,6 +873,8 @@ type AppResourceProperties struct {
 	EnableEndToEndTLS *bool `json:"enableEndToEndTLS,omitempty"`
 	// LoadedCertificates - Collection of loaded certificates
 	LoadedCertificates *[]LoadedCertificate `json:"loadedCertificates,omitempty"`
+	// VnetAddons - Additional App settings in vnet injection instance
+	VnetAddons *AppVNetAddons `json:"vnetAddons,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AppResourceProperties.
@@ -904,6 +906,9 @@ func (arp AppResourceProperties) MarshalJSON() ([]byte, error) {
 	}
 	if arp.LoadedCertificates != nil {
 		objectMap["loadedCertificates"] = arp.LoadedCertificates
+	}
+	if arp.VnetAddons != nil {
+		objectMap["vnetAddons"] = arp.VnetAddons
 	}
 	return json.Marshal(objectMap)
 }
@@ -1070,6 +1075,23 @@ func (future *AppsUpdateFuture) result(client AppsClient) (ar AppResource, err e
 		}
 	}
 	return
+}
+
+// AppVNetAddons additional App settings in vnet injection instance
+type AppVNetAddons struct {
+	// PublicEndpoint - Indicates whether the App in vnet injection instance exposes endpoint which could be accessed from internet.
+	PublicEndpoint *bool `json:"publicEndpoint,omitempty"`
+	// PublicEndpointURL - READ-ONLY; URL of the App in vnet injection instance which could be accessed from internet
+	PublicEndpointURL *string `json:"publicEndpointUrl,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AppVNetAddons.
+func (avna AppVNetAddons) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if avna.PublicEndpoint != nil {
+		objectMap["publicEndpoint"] = avna.PublicEndpoint
+	}
+	return json.Marshal(objectMap)
 }
 
 // AvailableOperations available operations of the service
@@ -2374,6 +2396,8 @@ type BuildProperties struct {
 	Env map[string]*string `json:"env"`
 	// TriggeredBuildResult -  The build result triggered by this build
 	TriggeredBuildResult *TriggeredBuildResult `json:"triggeredBuildResult,omitempty"`
+	// ResourceRequests - The customized build resource for this build
+	ResourceRequests *BuildResourceRequests `json:"resourceRequests,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for BuildProperties.
@@ -2394,7 +2418,20 @@ func (bp BuildProperties) MarshalJSON() ([]byte, error) {
 	if bp.TriggeredBuildResult != nil {
 		objectMap["triggeredBuildResult"] = bp.TriggeredBuildResult
 	}
+	if bp.ResourceRequests != nil {
+		objectMap["resourceRequests"] = bp.ResourceRequests
+	}
 	return json.Marshal(objectMap)
+}
+
+// BuildResourceRequests resource request payload of Build Resource.
+type BuildResourceRequests struct {
+	// CPU - Optional Cpu allocated to the build resource. 1 core can be represented by 1 or 1000m.
+	// The default value is 1, this should not exceed build service agent pool cpu size.
+	CPU *string `json:"cpu,omitempty"`
+	// Memory - Optional Memory allocated to the build resource. 1 GB can be represented by 1Gi or 1024Mi.
+	// The default value is 2Gi, this should not exceed build service agent pool memory size.
+	Memory *string `json:"memory,omitempty"`
 }
 
 // BuildResult build result resource payload
@@ -3293,6 +3330,8 @@ type CertificateProperties struct {
 	SubjectName *string `json:"subjectName,omitempty"`
 	// DNSNames - READ-ONLY; The domain list of certificate.
 	DNSNames *[]string `json:"dnsNames,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the Certificate. Possible values include: 'CertificateResourceProvisioningStateCreating', 'CertificateResourceProvisioningStateUpdating', 'CertificateResourceProvisioningStateSucceeded', 'CertificateResourceProvisioningStateFailed', 'CertificateResourceProvisioningStateDeleting'
+	ProvisioningState CertificateResourceProvisioningState `json:"provisioningState,omitempty"`
 	// Type - Possible values include: 'TypeBasicCertificatePropertiesTypeCertificateProperties', 'TypeBasicCertificatePropertiesTypeKeyVaultCertificate', 'TypeBasicCertificatePropertiesTypeContentCertificate'
 	Type TypeBasicCertificateProperties `json:"type,omitempty"`
 }
@@ -3716,6 +3755,8 @@ type ClusterResourceProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// NetworkProfile - Network profile of the Service
 	NetworkProfile *NetworkProfile `json:"networkProfile,omitempty"`
+	// VnetAddons - Additional Service settings in vnet injection instance
+	VnetAddons *ServiceVNetAddons `json:"vnetAddons,omitempty"`
 	// Version - READ-ONLY; Version of the Service
 	Version *int32 `json:"version,omitempty"`
 	// ServiceID - READ-ONLY; ServiceInstanceEntity GUID which uniquely identifies a created resource
@@ -3725,6 +3766,8 @@ type ClusterResourceProperties struct {
 	ZoneRedundant *bool      `json:"zoneRedundant,omitempty"`
 	// Fqdn - READ-ONLY; Fully qualified dns name of the service instance
 	Fqdn *string `json:"fqdn,omitempty"`
+	// MarketplaceResource - Purchasing 3rd party product of the Service resource.
+	MarketplaceResource *MarketplaceResource `json:"marketplaceResource,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ClusterResourceProperties.
@@ -3733,8 +3776,14 @@ func (crp ClusterResourceProperties) MarshalJSON() ([]byte, error) {
 	if crp.NetworkProfile != nil {
 		objectMap["networkProfile"] = crp.NetworkProfile
 	}
+	if crp.VnetAddons != nil {
+		objectMap["vnetAddons"] = crp.VnetAddons
+	}
 	if crp.ZoneRedundant != nil {
 		objectMap["zoneRedundant"] = crp.ZoneRedundant
+	}
+	if crp.MarketplaceResource != nil {
+		objectMap["marketplaceResource"] = crp.MarketplaceResource
 	}
 	return json.Marshal(objectMap)
 }
@@ -4402,6 +4451,8 @@ type ContentCertificateProperties struct {
 	SubjectName *string `json:"subjectName,omitempty"`
 	// DNSNames - READ-ONLY; The domain list of certificate.
 	DNSNames *[]string `json:"dnsNames,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the Certificate. Possible values include: 'CertificateResourceProvisioningStateCreating', 'CertificateResourceProvisioningStateUpdating', 'CertificateResourceProvisioningStateSucceeded', 'CertificateResourceProvisioningStateFailed', 'CertificateResourceProvisioningStateDeleting'
+	ProvisioningState CertificateResourceProvisioningState `json:"provisioningState,omitempty"`
 	// Type - Possible values include: 'TypeBasicCertificatePropertiesTypeCertificateProperties', 'TypeBasicCertificatePropertiesTypeKeyVaultCertificate', 'TypeBasicCertificatePropertiesTypeContentCertificate'
 	Type TypeBasicCertificateProperties `json:"type,omitempty"`
 }
@@ -4533,6 +4584,8 @@ type CustomDomainProperties struct {
 	AppName *string `json:"appName,omitempty"`
 	// CertName - The bound certificate name of domain.
 	CertName *string `json:"certName,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the Domain. Possible values include: 'CustomDomainResourceProvisioningStateCreating', 'CustomDomainResourceProvisioningStateUpdating', 'CustomDomainResourceProvisioningStateSucceeded', 'CustomDomainResourceProvisioningStateFailed', 'CustomDomainResourceProvisioningStateDeleting'
+	ProvisioningState CustomDomainResourceProvisioningState `json:"provisioningState,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for CustomDomainProperties.
@@ -4965,7 +5018,7 @@ func (cpdp CustomPersistentDiskProperties) AsBasicCustomPersistentDiskProperties
 type CustomPersistentDiskResource struct {
 	// CustomPersistentDiskProperties - Properties of the custom persistent disk resource payload.
 	CustomPersistentDiskProperties BasicCustomPersistentDiskProperties `json:"customPersistentDiskProperties,omitempty"`
-	// StorageID - The resource id of Azure Spring Cloud Storage resource.
+	// StorageID - The resource id of Azure Spring Apps Storage resource.
 	StorageID *string `json:"storageId,omitempty"`
 }
 
@@ -5399,8 +5452,16 @@ type DeploymentSettings struct {
 	// EnvironmentVariables - Collection of environment variables
 	EnvironmentVariables map[string]*string `json:"environmentVariables"`
 	// AddonConfigs - Collection of addons
-	AddonConfigs           map[string]map[string]interface{} `json:"addonConfigs"`
-	ContainerProbeSettings *ContainerProbeSettings           `json:"containerProbeSettings,omitempty"`
+	AddonConfigs map[string]map[string]interface{} `json:"addonConfigs"`
+	// LivenessProbe - Periodic probe of App Instance liveness. App Instance will be restarted if the probe fails. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
+	LivenessProbe *Probe `json:"livenessProbe,omitempty"`
+	// ReadinessProbe - Periodic probe of App Instance service readiness. App Instance will be removed from service endpoints if the probe fails. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
+	ReadinessProbe *Probe `json:"readinessProbe,omitempty"`
+	// StartupProbe - StartupProbe indicates that the App Instance has successfully initialized. If specified, no other probes are executed until this completes successfully. If this probe fails, the Pod will be restarted, just as if the livenessProbe failed. This can be used to provide different probe parameters at the beginning of a App Instance's lifecycle, when it might take a long time to load data or warm a cache, than during steady-state operation. This cannot be updated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
+	StartupProbe *Probe `json:"startupProbe,omitempty"`
+	// TerminationGracePeriodSeconds - Optional duration in seconds the App Instance needs to terminate gracefully. May be decreased in delete request. Value must be non-negative integer. The value zero indicates stop immediately via the kill signal (no opportunity to shut down). If this value is nil, the default grace period will be used instead. The grace period is the duration in seconds after the processes running in the App Instance are sent a termination signal and the time when the processes are forcibly halted with a kill signal. Set this value longer than the expected cleanup time for your process. Defaults to 90 seconds.
+	TerminationGracePeriodSeconds *int32                  `json:"terminationGracePeriodSeconds,omitempty"`
+	ContainerProbeSettings        *ContainerProbeSettings `json:"containerProbeSettings,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for DeploymentSettings.
@@ -5414,6 +5475,18 @@ func (ds DeploymentSettings) MarshalJSON() ([]byte, error) {
 	}
 	if ds.AddonConfigs != nil {
 		objectMap["addonConfigs"] = ds.AddonConfigs
+	}
+	if ds.LivenessProbe != nil {
+		objectMap["livenessProbe"] = ds.LivenessProbe
+	}
+	if ds.ReadinessProbe != nil {
+		objectMap["readinessProbe"] = ds.ReadinessProbe
+	}
+	if ds.StartupProbe != nil {
+		objectMap["startupProbe"] = ds.StartupProbe
+	}
+	if ds.TerminationGracePeriodSeconds != nil {
+		objectMap["terminationGracePeriodSeconds"] = ds.TerminationGracePeriodSeconds
 	}
 	if ds.ContainerProbeSettings != nil {
 		objectMap["containerProbeSettings"] = ds.ContainerProbeSettings
@@ -5702,6 +5775,52 @@ type Error struct {
 	Code *string `json:"code,omitempty"`
 	// Message - The message of error.
 	Message *string `json:"message,omitempty"`
+}
+
+// ExecAction execAction describes a "run in container" action.
+type ExecAction struct {
+	// Command - Command is the command line to execute inside the container, the working directory for the command is root ('/') in the container's filesystem. The command is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.
+	Command *[]string `json:"command,omitempty"`
+	// Type - Possible values include: 'TypeBasicProbeActionTypeProbeAction', 'TypeBasicProbeActionTypeHTTPGetAction', 'TypeBasicProbeActionTypeExecAction', 'TypeBasicProbeActionTypeTCPSocketAction'
+	Type TypeBasicProbeAction `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ExecAction.
+func (ea ExecAction) MarshalJSON() ([]byte, error) {
+	ea.Type = TypeBasicProbeActionTypeExecAction
+	objectMap := make(map[string]interface{})
+	if ea.Command != nil {
+		objectMap["command"] = ea.Command
+	}
+	if ea.Type != "" {
+		objectMap["type"] = ea.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsHTTPGetAction is the BasicProbeAction implementation for ExecAction.
+func (ea ExecAction) AsHTTPGetAction() (*HTTPGetAction, bool) {
+	return nil, false
+}
+
+// AsExecAction is the BasicProbeAction implementation for ExecAction.
+func (ea ExecAction) AsExecAction() (*ExecAction, bool) {
+	return &ea, true
+}
+
+// AsTCPSocketAction is the BasicProbeAction implementation for ExecAction.
+func (ea ExecAction) AsTCPSocketAction() (*TCPSocketAction, bool) {
+	return nil, false
+}
+
+// AsProbeAction is the BasicProbeAction implementation for ExecAction.
+func (ea ExecAction) AsProbeAction() (*ProbeAction, bool) {
+	return nil, false
+}
+
+// AsBasicProbeAction is the BasicProbeAction implementation for ExecAction.
+func (ea ExecAction) AsBasicProbeAction() (BasicProbeAction, bool) {
+	return &ea, true
 }
 
 // GatewayAPIMetadataProperties API metadata property for Spring Cloud Gateway
@@ -6320,12 +6439,19 @@ type GatewayResourceRequests struct {
 	Memory *string `json:"memory,omitempty"`
 }
 
+// GatewayRouteConfigOpenAPIProperties openAPI properties of Spring Cloud Gateway route config.
+type GatewayRouteConfigOpenAPIProperties struct {
+	// URI - The URI of OpenAPI specification.
+	URI *string `json:"uri,omitempty"`
+}
+
 // GatewayRouteConfigProperties API route config of the Spring Cloud Gateway
 type GatewayRouteConfigProperties struct {
 	// ProvisioningState - READ-ONLY; State of the Spring Cloud Gateway route config. Possible values include: 'GatewayProvisioningStateCreating', 'GatewayProvisioningStateUpdating', 'GatewayProvisioningStateSucceeded', 'GatewayProvisioningStateFailed', 'GatewayProvisioningStateDeleting'
 	ProvisioningState GatewayProvisioningState `json:"provisioningState,omitempty"`
-	// AppResourceID - The resource Id of the Azure Spring Cloud app, required unless route defines `uri`.
-	AppResourceID *string `json:"appResourceId,omitempty"`
+	// AppResourceID - The resource Id of the Azure Spring Apps app, required unless route defines `uri`.
+	AppResourceID *string                              `json:"appResourceId,omitempty"`
+	OpenAPI       *GatewayRouteConfigOpenAPIProperties `json:"openApi,omitempty"`
 	// Routes - Array of API routes, each route contains properties such as `title`, `uri`, `ssoEnabled`, `predicates`, `filters`.
 	Routes *[]GatewayAPIRoute `json:"routes,omitempty"`
 }
@@ -6335,6 +6461,9 @@ func (grcp GatewayRouteConfigProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if grcp.AppResourceID != nil {
 		objectMap["appResourceId"] = grcp.AppResourceID
+	}
+	if grcp.OpenAPI != nil {
+		objectMap["openApi"] = grcp.OpenAPI
 	}
 	if grcp.Routes != nil {
 		objectMap["routes"] = grcp.Routes
@@ -6715,12 +6844,72 @@ type GitPatternRepository struct {
 	StrictHostKeyChecking *bool `json:"strictHostKeyChecking,omitempty"`
 }
 
+// HTTPGetAction hTTPGetAction describes an action based on HTTP Get requests.
+type HTTPGetAction struct {
+	// Path - Path to access on the HTTP server.
+	Path *string `json:"path,omitempty"`
+	// Scheme - Scheme to use for connecting to the host. Defaults to HTTP.
+	// Possible enum values:
+	//  - `"HTTP"` means that the scheme used will be http://
+	//  - `"HTTPS"` means that the scheme used will be https://. Possible values include: 'HTTPSchemeTypeHTTP', 'HTTPSchemeTypeHTTPS'
+	Scheme HTTPSchemeType `json:"scheme,omitempty"`
+	// Type - Possible values include: 'TypeBasicProbeActionTypeProbeAction', 'TypeBasicProbeActionTypeHTTPGetAction', 'TypeBasicProbeActionTypeExecAction', 'TypeBasicProbeActionTypeTCPSocketAction'
+	Type TypeBasicProbeAction `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for HTTPGetAction.
+func (hga HTTPGetAction) MarshalJSON() ([]byte, error) {
+	hga.Type = TypeBasicProbeActionTypeHTTPGetAction
+	objectMap := make(map[string]interface{})
+	if hga.Path != nil {
+		objectMap["path"] = hga.Path
+	}
+	if hga.Scheme != "" {
+		objectMap["scheme"] = hga.Scheme
+	}
+	if hga.Type != "" {
+		objectMap["type"] = hga.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsHTTPGetAction is the BasicProbeAction implementation for HTTPGetAction.
+func (hga HTTPGetAction) AsHTTPGetAction() (*HTTPGetAction, bool) {
+	return &hga, true
+}
+
+// AsExecAction is the BasicProbeAction implementation for HTTPGetAction.
+func (hga HTTPGetAction) AsExecAction() (*ExecAction, bool) {
+	return nil, false
+}
+
+// AsTCPSocketAction is the BasicProbeAction implementation for HTTPGetAction.
+func (hga HTTPGetAction) AsTCPSocketAction() (*TCPSocketAction, bool) {
+	return nil, false
+}
+
+// AsProbeAction is the BasicProbeAction implementation for HTTPGetAction.
+func (hga HTTPGetAction) AsProbeAction() (*ProbeAction, bool) {
+	return nil, false
+}
+
+// AsBasicProbeAction is the BasicProbeAction implementation for HTTPGetAction.
+func (hga HTTPGetAction) AsBasicProbeAction() (BasicProbeAction, bool) {
+	return &hga, true
+}
+
 // ImageRegistryCredential credential of the image registry
 type ImageRegistryCredential struct {
 	// Username - The username of the image registry credential
 	Username *string `json:"username,omitempty"`
 	// Password - The password of the image registry credential
 	Password *string `json:"password,omitempty"`
+}
+
+// IngressConfig ingress configuration payload for Azure Spring Apps resource.
+type IngressConfig struct {
+	// ReadTimeoutInSeconds - Ingress read time out in seconds.
+	ReadTimeoutInSeconds *int32 `json:"readTimeoutInSeconds,omitempty"`
 }
 
 // JarUploadedUserSourceInfo uploaded Jar binary for a deployment
@@ -6828,6 +7017,8 @@ type KeyVaultCertificateProperties struct {
 	SubjectName *string `json:"subjectName,omitempty"`
 	// DNSNames - READ-ONLY; The domain list of certificate.
 	DNSNames *[]string `json:"dnsNames,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the Certificate. Possible values include: 'CertificateResourceProvisioningStateCreating', 'CertificateResourceProvisioningStateUpdating', 'CertificateResourceProvisioningStateSucceeded', 'CertificateResourceProvisioningStateFailed', 'CertificateResourceProvisioningStateDeleting'
+	ProvisioningState CertificateResourceProvisioningState `json:"provisioningState,omitempty"`
 	// Type - Possible values include: 'TypeBasicCertificatePropertiesTypeCertificateProperties', 'TypeBasicCertificatePropertiesTypeKeyVaultCertificate', 'TypeBasicCertificatePropertiesTypeContentCertificate'
 	Type TypeBasicCertificateProperties `json:"type,omitempty"`
 }
@@ -6927,6 +7118,16 @@ func (mip ManagedIdentityProperties) MarshalJSON() ([]byte, error) {
 		objectMap["userAssignedIdentities"] = mip.UserAssignedIdentities
 	}
 	return json.Marshal(objectMap)
+}
+
+// MarketplaceResource purchasing 3rd Party product for one Azure Spring Apps instance
+type MarketplaceResource struct {
+	// Plan - The plan id of the 3rd Party Artifact that is being procured.
+	Plan *string `json:"plan,omitempty"`
+	// Publisher - The publisher id of the 3rd Party Artifact that is being bought.
+	Publisher *string `json:"publisher,omitempty"`
+	// Product - The 3rd Party artifact that is being procured.
+	Product *string `json:"product,omitempty"`
 }
 
 // MetricDimension specifications of the Dimension of metrics
@@ -7216,20 +7417,22 @@ func (nczuusi NetCoreZipUploadedUserSourceInfo) AsBasicUserSourceInfo() (BasicUs
 
 // NetworkProfile service network profile payload
 type NetworkProfile struct {
-	// ServiceRuntimeSubnetID - Fully qualified resource Id of the subnet to host Azure Spring Cloud Service Runtime
+	// ServiceRuntimeSubnetID - Fully qualified resource Id of the subnet to host Azure Spring Apps Service Runtime
 	ServiceRuntimeSubnetID *string `json:"serviceRuntimeSubnetId,omitempty"`
-	// AppSubnetID - Fully qualified resource Id of the subnet to host Azure Spring Cloud Apps
+	// AppSubnetID - Fully qualified resource Id of the subnet to host customer apps in Azure Spring Apps
 	AppSubnetID *string `json:"appSubnetId,omitempty"`
-	// ServiceCidr - Azure Spring Cloud service reserved CIDR
+	// ServiceCidr - Azure Spring Apps service reserved CIDR
 	ServiceCidr *string `json:"serviceCidr,omitempty"`
-	// ServiceRuntimeNetworkResourceGroup - Name of the resource group containing network resources of Azure Spring Cloud Service Runtime
+	// ServiceRuntimeNetworkResourceGroup - Name of the resource group containing network resources of Azure Spring Apps Service Runtime
 	ServiceRuntimeNetworkResourceGroup *string `json:"serviceRuntimeNetworkResourceGroup,omitempty"`
-	// AppNetworkResourceGroup - Name of the resource group containing network resources of Azure Spring Cloud Apps
+	// AppNetworkResourceGroup - Name of the resource group containing network resources for customer apps in Azure Spring Apps
 	AppNetworkResourceGroup *string `json:"appNetworkResourceGroup,omitempty"`
-	// OutboundIPs - READ-ONLY; Desired outbound IP resources for Azure Spring Cloud instance.
+	// OutboundIPs - READ-ONLY; Desired outbound IP resources for Azure Spring Apps resource.
 	OutboundIPs *NetworkProfileOutboundIPs `json:"outboundIPs,omitempty"`
-	// RequiredTraffics - READ-ONLY; Required inbound or outbound traffics for Azure Spring Cloud instance.
+	// RequiredTraffics - READ-ONLY; Required inbound or outbound traffics for Azure Spring Apps resource.
 	RequiredTraffics *[]RequiredTraffic `json:"requiredTraffics,omitempty"`
+	// IngressConfig - Ingress configuration payload for Azure Spring Apps resource.
+	IngressConfig *IngressConfig `json:"ingressConfig,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for NetworkProfile.
@@ -7250,10 +7453,13 @@ func (np NetworkProfile) MarshalJSON() ([]byte, error) {
 	if np.AppNetworkResourceGroup != nil {
 		objectMap["appNetworkResourceGroup"] = np.AppNetworkResourceGroup
 	}
+	if np.IngressConfig != nil {
+		objectMap["ingressConfig"] = np.IngressConfig
+	}
 	return json.Marshal(objectMap)
 }
 
-// NetworkProfileOutboundIPs desired outbound IP resources for Azure Spring Cloud instance.
+// NetworkProfileOutboundIPs desired outbound IP resources for Azure Spring Apps resource.
 type NetworkProfileOutboundIPs struct {
 	// PublicIPs - READ-ONLY; A list of public IP addresses.
 	PublicIPs *[]string `json:"publicIPs,omitempty"`
@@ -7342,6 +7548,196 @@ func (pd PersistentDisk) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// Probe probe describes a health check to be performed against an App Instance to determine whether it is
+// alive or ready to receive traffic.
+type Probe struct {
+	// ProbeAction - The action of the probe.
+	ProbeAction BasicProbeAction `json:"probeAction,omitempty"`
+	// DisableProbe - Indicate whether the probe is disabled.
+	DisableProbe *bool `json:"disableProbe,omitempty"`
+	// InitialDelaySeconds - Number of seconds after the App Instance has started before probes are initiated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
+	InitialDelaySeconds *int32 `json:"initialDelaySeconds,omitempty"`
+	// PeriodSeconds - How often (in seconds) to perform the probe. Minimum value is 1.
+	PeriodSeconds *int32 `json:"periodSeconds,omitempty"`
+	// TimeoutSeconds - Number of seconds after which the probe times out. Minimum value is 1.
+	TimeoutSeconds *int32 `json:"timeoutSeconds,omitempty"`
+	// FailureThreshold - Minimum consecutive failures for the probe to be considered failed after having succeeded. Minimum value is 1.
+	FailureThreshold *int32 `json:"failureThreshold,omitempty"`
+	// SuccessThreshold - Minimum consecutive successes for the probe to be considered successful after having failed. Must be 1 for liveness and startup. Minimum value is 1.
+	SuccessThreshold *int32 `json:"successThreshold,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for Probe struct.
+func (p *Probe) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "probeAction":
+			if v != nil {
+				probeAction, err := unmarshalBasicProbeAction(*v)
+				if err != nil {
+					return err
+				}
+				p.ProbeAction = probeAction
+			}
+		case "disableProbe":
+			if v != nil {
+				var disableProbe bool
+				err = json.Unmarshal(*v, &disableProbe)
+				if err != nil {
+					return err
+				}
+				p.DisableProbe = &disableProbe
+			}
+		case "initialDelaySeconds":
+			if v != nil {
+				var initialDelaySeconds int32
+				err = json.Unmarshal(*v, &initialDelaySeconds)
+				if err != nil {
+					return err
+				}
+				p.InitialDelaySeconds = &initialDelaySeconds
+			}
+		case "periodSeconds":
+			if v != nil {
+				var periodSeconds int32
+				err = json.Unmarshal(*v, &periodSeconds)
+				if err != nil {
+					return err
+				}
+				p.PeriodSeconds = &periodSeconds
+			}
+		case "timeoutSeconds":
+			if v != nil {
+				var timeoutSeconds int32
+				err = json.Unmarshal(*v, &timeoutSeconds)
+				if err != nil {
+					return err
+				}
+				p.TimeoutSeconds = &timeoutSeconds
+			}
+		case "failureThreshold":
+			if v != nil {
+				var failureThreshold int32
+				err = json.Unmarshal(*v, &failureThreshold)
+				if err != nil {
+					return err
+				}
+				p.FailureThreshold = &failureThreshold
+			}
+		case "successThreshold":
+			if v != nil {
+				var successThreshold int32
+				err = json.Unmarshal(*v, &successThreshold)
+				if err != nil {
+					return err
+				}
+				p.SuccessThreshold = &successThreshold
+			}
+		}
+	}
+
+	return nil
+}
+
+// BasicProbeAction the action of the probe.
+type BasicProbeAction interface {
+	AsHTTPGetAction() (*HTTPGetAction, bool)
+	AsExecAction() (*ExecAction, bool)
+	AsTCPSocketAction() (*TCPSocketAction, bool)
+	AsProbeAction() (*ProbeAction, bool)
+}
+
+// ProbeAction the action of the probe.
+type ProbeAction struct {
+	// Type - Possible values include: 'TypeBasicProbeActionTypeProbeAction', 'TypeBasicProbeActionTypeHTTPGetAction', 'TypeBasicProbeActionTypeExecAction', 'TypeBasicProbeActionTypeTCPSocketAction'
+	Type TypeBasicProbeAction `json:"type,omitempty"`
+}
+
+func unmarshalBasicProbeAction(body []byte) (BasicProbeAction, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["type"] {
+	case string(TypeBasicProbeActionTypeHTTPGetAction):
+		var hga HTTPGetAction
+		err := json.Unmarshal(body, &hga)
+		return hga, err
+	case string(TypeBasicProbeActionTypeExecAction):
+		var ea ExecAction
+		err := json.Unmarshal(body, &ea)
+		return ea, err
+	case string(TypeBasicProbeActionTypeTCPSocketAction):
+		var tsa TCPSocketAction
+		err := json.Unmarshal(body, &tsa)
+		return tsa, err
+	default:
+		var pa ProbeAction
+		err := json.Unmarshal(body, &pa)
+		return pa, err
+	}
+}
+func unmarshalBasicProbeActionArray(body []byte) ([]BasicProbeAction, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	paArray := make([]BasicProbeAction, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		pa, err := unmarshalBasicProbeAction(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		paArray[index] = pa
+	}
+	return paArray, nil
+}
+
+// MarshalJSON is the custom marshaler for ProbeAction.
+func (pa ProbeAction) MarshalJSON() ([]byte, error) {
+	pa.Type = TypeBasicProbeActionTypeProbeAction
+	objectMap := make(map[string]interface{})
+	if pa.Type != "" {
+		objectMap["type"] = pa.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsHTTPGetAction is the BasicProbeAction implementation for ProbeAction.
+func (pa ProbeAction) AsHTTPGetAction() (*HTTPGetAction, bool) {
+	return nil, false
+}
+
+// AsExecAction is the BasicProbeAction implementation for ProbeAction.
+func (pa ProbeAction) AsExecAction() (*ExecAction, bool) {
+	return nil, false
+}
+
+// AsTCPSocketAction is the BasicProbeAction implementation for ProbeAction.
+func (pa ProbeAction) AsTCPSocketAction() (*TCPSocketAction, bool) {
+	return nil, false
+}
+
+// AsProbeAction is the BasicProbeAction implementation for ProbeAction.
+func (pa ProbeAction) AsProbeAction() (*ProbeAction, bool) {
+	return &pa, true
+}
+
+// AsBasicProbeAction is the BasicProbeAction implementation for ProbeAction.
+func (pa ProbeAction) AsBasicProbeAction() (BasicProbeAction, bool) {
+	return &pa, true
+}
+
 // ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
 // required location and tags.
 type ProxyResource struct {
@@ -7369,7 +7765,7 @@ type RegenerateTestKeyRequestPayload struct {
 	KeyType TestKeyType `json:"keyType,omitempty"`
 }
 
-// RequiredTraffic required inbound or outbound traffic for Azure Spring Cloud instance.
+// RequiredTraffic required inbound or outbound traffic for Azure Spring Apps resource.
 type RequiredTraffic struct {
 	// Protocol - READ-ONLY; The protocol of required traffic
 	Protocol *string `json:"protocol,omitempty"`
@@ -7417,7 +7813,7 @@ type ResourceRequests struct {
 	Memory *string `json:"memory,omitempty"`
 }
 
-// ResourceSku describes an available Azure Spring Cloud SKU.
+// ResourceSku describes an available Azure Spring Apps SKU.
 type ResourceSku struct {
 	// ResourceType - Gets the type of resource the SKU applies to.
 	ResourceType *string `json:"resourceType,omitempty"`
@@ -7444,7 +7840,7 @@ type ResourceSkuCapabilities struct {
 	Value *string `json:"value,omitempty"`
 }
 
-// ResourceSkuCollection object that includes an array of Azure Spring Cloud SKU and a possible link for
+// ResourceSkuCollection object that includes an array of Azure Spring Apps SKU and a possible link for
 // next set
 type ResourceSkuCollection struct {
 	autorest.Response `json:"-"`
@@ -8376,7 +8772,13 @@ func (future *ServicesUpdateFuture) result(client ServicesClient) (sr ServiceRes
 	return
 }
 
-// Sku sku of Azure Spring Cloud
+// ServiceVNetAddons additional Service settings in vnet injection instance
+type ServiceVNetAddons struct {
+	// LogStreamPublicEndpoint - Indicates whether the log stream in vnet injection instance could be accessed from internet.
+	LogStreamPublicEndpoint *bool `json:"logStreamPublicEndpoint,omitempty"`
+}
+
+// Sku sku of Azure Spring Apps
 type Sku struct {
 	// Name - Name of the Sku
 	Name *string `json:"name,omitempty"`
@@ -9048,6 +9450,47 @@ type SystemData struct {
 	LastModifiedByType LastModifiedByType `json:"lastModifiedByType,omitempty"`
 	// LastModifiedAt - The timestamp of resource modification (UTC).
 	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
+}
+
+// TCPSocketAction tCPSocketAction describes an action based on opening a socket
+type TCPSocketAction struct {
+	// Type - Possible values include: 'TypeBasicProbeActionTypeProbeAction', 'TypeBasicProbeActionTypeHTTPGetAction', 'TypeBasicProbeActionTypeExecAction', 'TypeBasicProbeActionTypeTCPSocketAction'
+	Type TypeBasicProbeAction `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TCPSocketAction.
+func (tsa TCPSocketAction) MarshalJSON() ([]byte, error) {
+	tsa.Type = TypeBasicProbeActionTypeTCPSocketAction
+	objectMap := make(map[string]interface{})
+	if tsa.Type != "" {
+		objectMap["type"] = tsa.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsHTTPGetAction is the BasicProbeAction implementation for TCPSocketAction.
+func (tsa TCPSocketAction) AsHTTPGetAction() (*HTTPGetAction, bool) {
+	return nil, false
+}
+
+// AsExecAction is the BasicProbeAction implementation for TCPSocketAction.
+func (tsa TCPSocketAction) AsExecAction() (*ExecAction, bool) {
+	return nil, false
+}
+
+// AsTCPSocketAction is the BasicProbeAction implementation for TCPSocketAction.
+func (tsa TCPSocketAction) AsTCPSocketAction() (*TCPSocketAction, bool) {
+	return &tsa, true
+}
+
+// AsProbeAction is the BasicProbeAction implementation for TCPSocketAction.
+func (tsa TCPSocketAction) AsProbeAction() (*ProbeAction, bool) {
+	return nil, false
+}
+
+// AsBasicProbeAction is the BasicProbeAction implementation for TCPSocketAction.
+func (tsa TCPSocketAction) AsBasicProbeAction() (BasicProbeAction, bool) {
+	return &tsa, true
 }
 
 // TemporaryDisk temporary disk payload

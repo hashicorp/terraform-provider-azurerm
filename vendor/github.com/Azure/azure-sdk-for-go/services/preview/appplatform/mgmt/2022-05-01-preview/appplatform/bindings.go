@@ -14,33 +14,33 @@ import (
 	"net/http"
 )
 
-// CustomDomainsClient is the REST API for Azure Spring Cloud
-type CustomDomainsClient struct {
+// BindingsClient is the REST API for Azure Spring Apps
+type BindingsClient struct {
 	BaseClient
 }
 
-// NewCustomDomainsClient creates an instance of the CustomDomainsClient client.
-func NewCustomDomainsClient(subscriptionID string) CustomDomainsClient {
-	return NewCustomDomainsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewBindingsClient creates an instance of the BindingsClient client.
+func NewBindingsClient(subscriptionID string) BindingsClient {
+	return NewBindingsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCustomDomainsClientWithBaseURI creates an instance of the CustomDomainsClient client using a custom endpoint.
-// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewCustomDomainsClientWithBaseURI(baseURI string, subscriptionID string) CustomDomainsClient {
-	return CustomDomainsClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewBindingsClientWithBaseURI creates an instance of the BindingsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+func NewBindingsClientWithBaseURI(baseURI string, subscriptionID string) BindingsClient {
+	return BindingsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create or update custom domain of one lifecycle application.
+// CreateOrUpdate create a new Binding or update an exiting Binding.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
 // appName - the name of the App resource.
-// domainName - the name of the custom domain resource.
-// domainResource - parameters for the create or update operation
-func (client CustomDomainsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string, domainResource CustomDomainResource) (result CustomDomainsCreateOrUpdateFuture, err error) {
+// bindingName - the name of the Binding resource.
+// bindingResource - parameters for the create or update operation
+func (client BindingsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serviceName string, appName string, bindingName string, bindingResource BindingResource) (result BindingsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainsClient.CreateOrUpdate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/BindingsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -49,15 +49,15 @@ func (client CustomDomainsClient) CreateOrUpdate(ctx context.Context, resourceGr
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serviceName, appName, domainName, domainResource)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serviceName, appName, bindingName, bindingResource)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -65,16 +65,16 @@ func (client CustomDomainsClient) CreateOrUpdate(ctx context.Context, resourceGr
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client CustomDomainsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string, domainResource CustomDomainResource) (*http.Request, error) {
+func (client BindingsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, bindingName string, bindingResource BindingResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"appName":           autorest.Encode("path", appName),
-		"domainName":        autorest.Encode("path", domainName),
+		"bindingName":       autorest.Encode("path", bindingName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -83,15 +83,15 @@ func (client CustomDomainsClient) CreateOrUpdatePreparer(ctx context.Context, re
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/domains/{domainName}", pathParameters),
-		autorest.WithJSON(domainResource),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/bindings/{bindingName}", pathParameters),
+		autorest.WithJSON(bindingResource),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client CustomDomainsClient) CreateOrUpdateSender(req *http.Request) (future CustomDomainsCreateOrUpdateFuture, err error) {
+func (client BindingsClient) CreateOrUpdateSender(req *http.Request) (future BindingsCreateOrUpdateFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -107,7 +107,7 @@ func (client CustomDomainsClient) CreateOrUpdateSender(req *http.Request) (futur
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client CustomDomainsClient) CreateOrUpdateResponder(resp *http.Response) (result CustomDomainResource, err error) {
+func (client BindingsClient) CreateOrUpdateResponder(resp *http.Response) (result BindingResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
@@ -117,16 +117,16 @@ func (client CustomDomainsClient) CreateOrUpdateResponder(resp *http.Response) (
 	return
 }
 
-// Delete delete the custom domain of one lifecycle application.
+// Delete operation to delete a Binding.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
 // appName - the name of the App resource.
-// domainName - the name of the custom domain resource.
-func (client CustomDomainsClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string) (result CustomDomainsDeleteFuture, err error) {
+// bindingName - the name of the Binding resource.
+func (client BindingsClient) Delete(ctx context.Context, resourceGroupName string, serviceName string, appName string, bindingName string) (result BindingsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainsClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/BindingsClient.Delete")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -135,15 +135,15 @@ func (client CustomDomainsClient) Delete(ctx context.Context, resourceGroupName 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.DeletePreparer(ctx, resourceGroupName, serviceName, appName, domainName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, serviceName, appName, bindingName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -151,16 +151,16 @@ func (client CustomDomainsClient) Delete(ctx context.Context, resourceGroupName 
 }
 
 // DeletePreparer prepares the Delete request.
-func (client CustomDomainsClient) DeletePreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string) (*http.Request, error) {
+func (client BindingsClient) DeletePreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, bindingName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"appName":           autorest.Encode("path", appName),
-		"domainName":        autorest.Encode("path", domainName),
+		"bindingName":       autorest.Encode("path", bindingName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -168,14 +168,14 @@ func (client CustomDomainsClient) DeletePreparer(ctx context.Context, resourceGr
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/domains/{domainName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/bindings/{bindingName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client CustomDomainsClient) DeleteSender(req *http.Request) (future CustomDomainsDeleteFuture, err error) {
+func (client BindingsClient) DeleteSender(req *http.Request) (future BindingsDeleteFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -191,7 +191,7 @@ func (client CustomDomainsClient) DeleteSender(req *http.Request) (future Custom
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client CustomDomainsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client BindingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
@@ -200,16 +200,16 @@ func (client CustomDomainsClient) DeleteResponder(resp *http.Response) (result a
 	return
 }
 
-// Get get the custom domain of one lifecycle application.
+// Get get a Binding and its properties.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
 // appName - the name of the App resource.
-// domainName - the name of the custom domain resource.
-func (client CustomDomainsClient) Get(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string) (result CustomDomainResource, err error) {
+// bindingName - the name of the Binding resource.
+func (client BindingsClient) Get(ctx context.Context, resourceGroupName string, serviceName string, appName string, bindingName string) (result BindingResource, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/BindingsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -218,22 +218,22 @@ func (client CustomDomainsClient) Get(ctx context.Context, resourceGroupName str
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, resourceGroupName, serviceName, appName, domainName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, serviceName, appName, bindingName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Get", resp, "Failure responding to request")
 		return
 	}
 
@@ -241,16 +241,16 @@ func (client CustomDomainsClient) Get(ctx context.Context, resourceGroupName str
 }
 
 // GetPreparer prepares the Get request.
-func (client CustomDomainsClient) GetPreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string) (*http.Request, error) {
+func (client BindingsClient) GetPreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, bindingName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"appName":           autorest.Encode("path", appName),
-		"domainName":        autorest.Encode("path", domainName),
+		"bindingName":       autorest.Encode("path", bindingName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -258,20 +258,20 @@ func (client CustomDomainsClient) GetPreparer(ctx context.Context, resourceGroup
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/domains/{domainName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/bindings/{bindingName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client CustomDomainsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client BindingsClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client CustomDomainsClient) GetResponder(resp *http.Response) (result CustomDomainResource, err error) {
+func (client BindingsClient) GetResponder(resp *http.Response) (result BindingResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -281,19 +281,19 @@ func (client CustomDomainsClient) GetResponder(resp *http.Response) (result Cust
 	return
 }
 
-// List list the custom domains of one lifecycle application.
+// List handles requests to list all resources in an App.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
 // appName - the name of the App resource.
-func (client CustomDomainsClient) List(ctx context.Context, resourceGroupName string, serviceName string, appName string) (result CustomDomainResourceCollectionPage, err error) {
+func (client BindingsClient) List(ctx context.Context, resourceGroupName string, serviceName string, appName string) (result BindingResourceCollectionPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/BindingsClient.List")
 		defer func() {
 			sc := -1
-			if result.cdrc.Response.Response != nil {
-				sc = result.cdrc.Response.Response.StatusCode
+			if result.brc.Response.Response != nil {
+				sc = result.brc.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -301,23 +301,23 @@ func (client CustomDomainsClient) List(ctx context.Context, resourceGroupName st
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, resourceGroupName, serviceName, appName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.cdrc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "List", resp, "Failure sending request")
+		result.brc.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.cdrc, err = client.ListResponder(resp)
+	result.brc, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "List", resp, "Failure responding to request")
 		return
 	}
-	if result.cdrc.hasNextLink() && result.cdrc.IsEmpty() {
+	if result.brc.hasNextLink() && result.brc.IsEmpty() {
 		err = result.NextWithContext(ctx)
 		return
 	}
@@ -326,7 +326,7 @@ func (client CustomDomainsClient) List(ctx context.Context, resourceGroupName st
 }
 
 // ListPreparer prepares the List request.
-func (client CustomDomainsClient) ListPreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string) (*http.Request, error) {
+func (client BindingsClient) ListPreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"appName":           autorest.Encode("path", appName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -334,7 +334,7 @@ func (client CustomDomainsClient) ListPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -342,20 +342,20 @@ func (client CustomDomainsClient) ListPreparer(ctx context.Context, resourceGrou
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/domains", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/bindings", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client CustomDomainsClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client BindingsClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client CustomDomainsClient) ListResponder(resp *http.Response) (result CustomDomainResourceCollection, err error) {
+func (client BindingsClient) ListResponder(resp *http.Response) (result BindingResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -366,10 +366,10 @@ func (client CustomDomainsClient) ListResponder(resp *http.Response) (result Cus
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client CustomDomainsClient) listNextResults(ctx context.Context, lastResults CustomDomainResourceCollection) (result CustomDomainResourceCollection, err error) {
-	req, err := lastResults.customDomainResourceCollectionPreparer(ctx)
+func (client BindingsClient) listNextResults(ctx context.Context, lastResults BindingResourceCollection) (result BindingResourceCollection, err error) {
+	req, err := lastResults.bindingResourceCollectionPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "appplatform.BindingsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -377,19 +377,19 @@ func (client CustomDomainsClient) listNextResults(ctx context.Context, lastResul
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "appplatform.BindingsClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client CustomDomainsClient) ListComplete(ctx context.Context, resourceGroupName string, serviceName string, appName string) (result CustomDomainResourceCollectionIterator, err error) {
+func (client BindingsClient) ListComplete(ctx context.Context, resourceGroupName string, serviceName string, appName string) (result BindingResourceCollectionIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/BindingsClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -402,17 +402,17 @@ func (client CustomDomainsClient) ListComplete(ctx context.Context, resourceGrou
 	return
 }
 
-// Update update custom domain of one lifecycle application.
+// Update operation to update an exiting Binding.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serviceName - the name of the Service resource.
 // appName - the name of the App resource.
-// domainName - the name of the custom domain resource.
-// domainResource - parameters for the create or update operation
-func (client CustomDomainsClient) Update(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string, domainResource CustomDomainResource) (result CustomDomainsUpdateFuture, err error) {
+// bindingName - the name of the Binding resource.
+// bindingResource - parameters for the update operation
+func (client BindingsClient) Update(ctx context.Context, resourceGroupName string, serviceName string, appName string, bindingName string, bindingResource BindingResource) (result BindingsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainsClient.Update")
+		ctx = tracing.StartSpan(ctx, fqdn+"/BindingsClient.Update")
 		defer func() {
 			sc := -1
 			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
@@ -421,15 +421,15 @@ func (client CustomDomainsClient) Update(ctx context.Context, resourceGroupName 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, serviceName, appName, domainName, domainResource)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, serviceName, appName, bindingName, bindingResource)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Update", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.UpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Update", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "Update", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -437,16 +437,16 @@ func (client CustomDomainsClient) Update(ctx context.Context, resourceGroupName 
 }
 
 // UpdatePreparer prepares the Update request.
-func (client CustomDomainsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, domainName string, domainResource CustomDomainResource) (*http.Request, error) {
+func (client BindingsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, serviceName string, appName string, bindingName string, bindingResource BindingResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"appName":           autorest.Encode("path", appName),
-		"domainName":        autorest.Encode("path", domainName),
+		"bindingName":       autorest.Encode("path", bindingName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serviceName":       autorest.Encode("path", serviceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2022-03-01-preview"
+	const APIVersion = "2022-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -455,15 +455,15 @@ func (client CustomDomainsClient) UpdatePreparer(ctx context.Context, resourceGr
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/domains/{domainName}", pathParameters),
-		autorest.WithJSON(domainResource),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.AppPlatform/Spring/{serviceName}/apps/{appName}/bindings/{bindingName}", pathParameters),
+		autorest.WithJSON(bindingResource),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client CustomDomainsClient) UpdateSender(req *http.Request) (future CustomDomainsUpdateFuture, err error) {
+func (client BindingsClient) UpdateSender(req *http.Request) (future BindingsUpdateFuture, err error) {
 	var resp *http.Response
 	future.FutureAPI = &azure.Future{}
 	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
@@ -479,7 +479,7 @@ func (client CustomDomainsClient) UpdateSender(req *http.Request) (future Custom
 
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client CustomDomainsClient) UpdateResponder(resp *http.Response) (result CustomDomainResource, err error) {
+func (client BindingsClient) UpdateResponder(resp *http.Response) (result BindingResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),

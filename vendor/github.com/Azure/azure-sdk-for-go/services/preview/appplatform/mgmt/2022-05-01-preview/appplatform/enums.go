@@ -189,6 +189,27 @@ func PossibleBuildServiceProvisioningStateValues() []BuildServiceProvisioningSta
 	return []BuildServiceProvisioningState{BuildServiceProvisioningStateCreating, BuildServiceProvisioningStateDeleting, BuildServiceProvisioningStateFailed, BuildServiceProvisioningStateSucceeded, BuildServiceProvisioningStateUpdating}
 }
 
+// CertificateResourceProvisioningState enumerates the values for certificate resource provisioning state.
+type CertificateResourceProvisioningState string
+
+const (
+	// CertificateResourceProvisioningStateCreating ...
+	CertificateResourceProvisioningStateCreating CertificateResourceProvisioningState = "Creating"
+	// CertificateResourceProvisioningStateDeleting ...
+	CertificateResourceProvisioningStateDeleting CertificateResourceProvisioningState = "Deleting"
+	// CertificateResourceProvisioningStateFailed ...
+	CertificateResourceProvisioningStateFailed CertificateResourceProvisioningState = "Failed"
+	// CertificateResourceProvisioningStateSucceeded ...
+	CertificateResourceProvisioningStateSucceeded CertificateResourceProvisioningState = "Succeeded"
+	// CertificateResourceProvisioningStateUpdating ...
+	CertificateResourceProvisioningStateUpdating CertificateResourceProvisioningState = "Updating"
+)
+
+// PossibleCertificateResourceProvisioningStateValues returns an array of possible values for the CertificateResourceProvisioningState const type.
+func PossibleCertificateResourceProvisioningStateValues() []CertificateResourceProvisioningState {
+	return []CertificateResourceProvisioningState{CertificateResourceProvisioningStateCreating, CertificateResourceProvisioningStateDeleting, CertificateResourceProvisioningStateFailed, CertificateResourceProvisioningStateSucceeded, CertificateResourceProvisioningStateUpdating}
+}
+
 // ConfigServerState enumerates the values for config server state.
 type ConfigServerState string
 
@@ -250,6 +271,27 @@ func PossibleCreatedByTypeValues() []CreatedByType {
 	return []CreatedByType{CreatedByTypeApplication, CreatedByTypeKey, CreatedByTypeManagedIdentity, CreatedByTypeUser}
 }
 
+// CustomDomainResourceProvisioningState enumerates the values for custom domain resource provisioning state.
+type CustomDomainResourceProvisioningState string
+
+const (
+	// CustomDomainResourceProvisioningStateCreating ...
+	CustomDomainResourceProvisioningStateCreating CustomDomainResourceProvisioningState = "Creating"
+	// CustomDomainResourceProvisioningStateDeleting ...
+	CustomDomainResourceProvisioningStateDeleting CustomDomainResourceProvisioningState = "Deleting"
+	// CustomDomainResourceProvisioningStateFailed ...
+	CustomDomainResourceProvisioningStateFailed CustomDomainResourceProvisioningState = "Failed"
+	// CustomDomainResourceProvisioningStateSucceeded ...
+	CustomDomainResourceProvisioningStateSucceeded CustomDomainResourceProvisioningState = "Succeeded"
+	// CustomDomainResourceProvisioningStateUpdating ...
+	CustomDomainResourceProvisioningStateUpdating CustomDomainResourceProvisioningState = "Updating"
+)
+
+// PossibleCustomDomainResourceProvisioningStateValues returns an array of possible values for the CustomDomainResourceProvisioningState const type.
+func PossibleCustomDomainResourceProvisioningStateValues() []CustomDomainResourceProvisioningState {
+	return []CustomDomainResourceProvisioningState{CustomDomainResourceProvisioningStateCreating, CustomDomainResourceProvisioningStateDeleting, CustomDomainResourceProvisioningStateFailed, CustomDomainResourceProvisioningStateSucceeded, CustomDomainResourceProvisioningStateUpdating}
+}
+
 // DeploymentResourceProvisioningState enumerates the values for deployment resource provisioning state.
 type DeploymentResourceProvisioningState string
 
@@ -303,6 +345,21 @@ const (
 // PossibleGatewayProvisioningStateValues returns an array of possible values for the GatewayProvisioningState const type.
 func PossibleGatewayProvisioningStateValues() []GatewayProvisioningState {
 	return []GatewayProvisioningState{GatewayProvisioningStateCreating, GatewayProvisioningStateDeleting, GatewayProvisioningStateFailed, GatewayProvisioningStateSucceeded, GatewayProvisioningStateUpdating}
+}
+
+// HTTPSchemeType enumerates the values for http scheme type.
+type HTTPSchemeType string
+
+const (
+	// HTTPSchemeTypeHTTP ...
+	HTTPSchemeTypeHTTP HTTPSchemeType = "HTTP"
+	// HTTPSchemeTypeHTTPS ...
+	HTTPSchemeTypeHTTPS HTTPSchemeType = "HTTPS"
+)
+
+// PossibleHTTPSchemeTypeValues returns an array of possible values for the HTTPSchemeType const type.
+func PossibleHTTPSchemeTypeValues() []HTTPSchemeType {
+	return []HTTPSchemeType{HTTPSchemeTypeHTTP, HTTPSchemeTypeHTTPS}
 }
 
 // KPackBuildStageProvisioningState enumerates the values for k pack build stage provisioning state.
@@ -606,6 +663,25 @@ const (
 // PossibleTypeBasicCertificatePropertiesValues returns an array of possible values for the TypeBasicCertificateProperties const type.
 func PossibleTypeBasicCertificatePropertiesValues() []TypeBasicCertificateProperties {
 	return []TypeBasicCertificateProperties{TypeBasicCertificatePropertiesTypeCertificateProperties, TypeBasicCertificatePropertiesTypeContentCertificate, TypeBasicCertificatePropertiesTypeKeyVaultCertificate}
+}
+
+// TypeBasicProbeAction enumerates the values for type basic probe action.
+type TypeBasicProbeAction string
+
+const (
+	// TypeBasicProbeActionTypeExecAction ...
+	TypeBasicProbeActionTypeExecAction TypeBasicProbeAction = "ExecAction"
+	// TypeBasicProbeActionTypeHTTPGetAction ...
+	TypeBasicProbeActionTypeHTTPGetAction TypeBasicProbeAction = "HTTPGetAction"
+	// TypeBasicProbeActionTypeProbeAction ...
+	TypeBasicProbeActionTypeProbeAction TypeBasicProbeAction = "ProbeAction"
+	// TypeBasicProbeActionTypeTCPSocketAction ...
+	TypeBasicProbeActionTypeTCPSocketAction TypeBasicProbeAction = "TCPSocketAction"
+)
+
+// PossibleTypeBasicProbeActionValues returns an array of possible values for the TypeBasicProbeAction const type.
+func PossibleTypeBasicProbeActionValues() []TypeBasicProbeAction {
+	return []TypeBasicProbeAction{TypeBasicProbeActionTypeExecAction, TypeBasicProbeActionTypeHTTPGetAction, TypeBasicProbeActionTypeProbeAction, TypeBasicProbeActionTypeTCPSocketAction}
 }
 
 // TypeBasicUserSourceInfo enumerates the values for type basic user source info.
