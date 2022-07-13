@@ -132,6 +132,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 						string(shares.CoolAccessTier),
 						string(shares.TransactionOptimizedAccessTier),
 					}, false),
+				Default: string(shares.TransactionOptimizedAccessTier),
 			},
 		},
 	}
