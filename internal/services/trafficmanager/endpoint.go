@@ -1,7 +1,7 @@
 package trafficmanager
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/sdk/2018-08-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 

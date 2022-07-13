@@ -40,14 +40,6 @@ resource "azurerm_log_analytics_solution" "example" {
 
 resource "azurerm_sentinel_data_connector_aws_s3" "example" {
   name                       = "example"
-  log_analytics_workspace_id = "TODO"
-  aws_role_arn               = "TODO"
-  destination_table          = "TODO"
-  sqs_urls                   = ["example"]
-}
-
-resource "azurerm_sentinel_data_connector_aws_s3" "example" {
-  name                       = "example"
   log_analytics_workspace_id = azurerm_log_analytics_solution.example.workspace_resource_id
   aws_role_arn               = "arn:aws:iam::000000000000:role/role1"
   destination_table          = "AWSGuardDuty"

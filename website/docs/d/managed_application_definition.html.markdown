@@ -18,8 +18,8 @@ provider "azurerm" {
 }
 
 data "azurerm_managed_application_definition" "example" {
-  name                = "example-managedappdef"
-  resource_group_name = "example-resources"
+  name                = "examplemanagedappdef"
+  resource_group_name = "exampleresources"
 }
 
 output "id" {

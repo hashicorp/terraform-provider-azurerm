@@ -89,6 +89,28 @@ func TestAccVpnSite_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccVpnSite_o365Policy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_site", "test")
+	r := VPNSiteResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.o365Policy(data, true, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.o365Policy(data, false, false, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VPNSiteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.VpnSiteID(state.ID)
 	if err != nil {
@@ -172,6 +194,33 @@ resource "azurerm_vpn_site" "import" {
   }
 }
 `, r.basic(data), data.RandomInteger)
+}
+
+func (r VPNSiteResource) o365Policy(data acceptance.TestData, allowCategoryEnabled, defaultCategoryEnabled, optimizeCategoryEnabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_vpn_site" "test" {
+  name                = "acctest-VpnSite-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_cidrs       = ["10.0.0.0/24"]
+
+  o365_policy {
+    traffic_category {
+      allow_endpoint_enabled    = %t
+      default_endpoint_enabled  = %t
+      optimize_endpoint_enabled = %t
+    }
+  }
+
+  link {
+    name       = "link1"
+    ip_address = "10.0.0.1"
+  }
+}
+`, r.template(data), data.RandomInteger, allowCategoryEnabled, defaultCategoryEnabled, optimizeCategoryEnabled)
 }
 
 func (VPNSiteResource) template(data acceptance.TestData) string {

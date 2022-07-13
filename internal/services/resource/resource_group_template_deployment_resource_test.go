@@ -369,7 +369,7 @@ resource "azurerm_resource_group_template_deployment" "test" {
   resource_group_name = azurerm_resource_group.test.name
   deployment_mode     = %q
   tags = {
-    Hello = "World"
+    hello = "world"
   }
 
   template_content = <<TEMPLATE

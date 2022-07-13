@@ -14,8 +14,8 @@ Manages a CosmosDB (formally DocumentDB) Account.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = var.resource_group_name
-  location = var.resource_group_location
+  name     = "example-resource-group"
+  location = "West Europe"
 }
 
 resource "random_integer" "ri" {
@@ -55,12 +55,12 @@ resource "azurerm_cosmosdb_account" "db" {
   }
 
   geo_location {
-    location          = var.failover_location
+    location          = "eastus"
     failover_priority = 1
   }
 
   geo_location {
-    location          = azurerm_resource_group.example.location
+    location          = "eastus"
     failover_priority = 0
   }
 }

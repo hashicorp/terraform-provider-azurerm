@@ -46,6 +46,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `eviction_policy` - The eviction policy used for Virtual Machines in the Virtual Machine Scale Set, when `priority` is set to `Spot`.
 
+* `host_group_id` - The ID of a Dedicated Host Group that this Node Pool should be run on. Changing this forces a new resource to be created.
+
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/DedicatedHostGroupPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/use-azure-dedicated-hosts#register-the-dedicatedhostgrouppreview-preview-feature) for more information.
+
 * `max_count` - The maximum number of Nodes allowed when auto-scaling is enabled.
 
 * `max_pods` - The maximum number of Pods allowed on each Node in this Node Pool.

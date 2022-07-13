@@ -42,9 +42,15 @@ resource "azurerm_data_factory_linked_custom_service" "example" {
   type                 = "AzureBlobStorage"
   type_properties_json = <<JSON
 {
-  "connectionString":"${azurerm_storage_account.test.primary_connection_string}"
+  "connectionString":"${azurerm_storage_account.example.primary_connection_string}"
 }
 JSON
+}
+
+resource "azurerm_storage_container" "example" {
+  name                  = "content"
+  storage_account_name  = azurerm_storage_account.example.name
+  container_access_type = "private"
 }
 
 resource "azurerm_data_factory_custom_dataset" "example" {
@@ -53,7 +59,7 @@ resource "azurerm_data_factory_custom_dataset" "example" {
   type            = "Json"
 
   linked_service {
-    name = azurerm_data_factory_linked_custom_service.test.name
+    name = azurerm_data_factory_linked_custom_service.example.name
     parameters = {
       key1 = "value1"
     }
@@ -62,7 +68,7 @@ resource "azurerm_data_factory_custom_dataset" "example" {
   type_properties_json = <<JSON
 {
   "location": {
-    "container":"${azurerm_storage_container.test.name}",
+    "container":"${azurerm_storage_container.example.name}",
     "fileName":"foo.txt",
     "folderPath": "foo/bar/",
     "type":"AzureBlobStorageLocation"

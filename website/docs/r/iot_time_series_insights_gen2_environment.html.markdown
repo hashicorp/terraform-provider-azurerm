@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `storage` - (Required) A `storage` block as defined below.
 
-* `id_properties` - (Required) A list of property ids for the Azure IoT Time Series Insights Gen2 Environment
+* `id_properties` - (Required) A list of property ids for the Azure IoT Time Series Insights Gen2 Environment. Changing this forces a new resource to be created. 
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
