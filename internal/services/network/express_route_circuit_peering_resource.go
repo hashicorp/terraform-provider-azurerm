@@ -207,7 +207,7 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"gateway_manage_etag": {
+			"gateway_manager_etag": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -256,7 +256,7 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 			AzureASN:           utils.Int32(int32(azureASN)),
 			PeerASN:            utils.Int64(int64(peerASN)),
 			VlanID:             utils.Int32(int32(vlanId)),
-			GatewayManagerEtag: utils.String(d.Get("gateway_manage_etag").(string)),
+			GatewayManagerEtag: utils.String(d.Get("gateway_manager_etag").(string)),
 		},
 	}
 
@@ -353,7 +353,7 @@ func resourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("primary_peer_address_prefix", props.PrimaryPeerAddressPrefix)
 		d.Set("secondary_peer_address_prefix", props.SecondaryPeerAddressPrefix)
 		d.Set("vlan_id", props.VlanID)
-		d.Set("gateway_manage_etag", props.GatewayManagerEtag)
+		d.Set("gateway_manager_etag", props.GatewayManagerEtag)
 		d.Set("ipv4_enabled", props.State == network.ExpressRoutePeeringStateEnabled)
 
 		routeFilterId := ""
