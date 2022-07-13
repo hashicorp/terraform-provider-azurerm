@@ -259,6 +259,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverk
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/firewallrules
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/powerbidedicated/2021-01-01/capacities
 github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones

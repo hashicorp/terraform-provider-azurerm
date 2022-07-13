@@ -5,7 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2021-06-01/postgresqlflexibleservers"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/parse"
@@ -22,7 +23,7 @@ func resourcePostgresqlFlexibleServerDatabase() *pluginsdk.Resource {
 		Read:   resourcePostgresqlFlexibleServerDatabaseRead,
 		Delete: resourcePostgresqlFlexibleServerDatabaseDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FlexibleServerDatabaseID(id)
+			_, err := databases.ParseDatabaseID(id)
 			return err
 		}),
 
@@ -73,40 +74,34 @@ func resourcePostgresqlFlexibleServerDatabaseCreate(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	serverId, err := parse.FlexibleServerID(d.Get("server_id").(string))
+	serverId, err := databases.ParseFlexibleServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFlexibleServerDatabaseID(subscriptionId, serverId.ResourceGroup, serverId.Name, name)
+	id := databases.NewDatabaseID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_postgresql_flexible_server_database", id.ID())
 		}
 	}
 
-	properties := postgresqlflexibleservers.Database{
-		DatabaseProperties: &postgresqlflexibleservers.DatabaseProperties{
+	properties := databases.Database{
+		Properties: &databases.DatabaseProperties{
 			Charset:   utils.String(d.Get("charset").(string)),
 			Collation: utils.String(d.Get("collation").(string)),
 		},
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.FlexibleServerName, id.DatabaseName, properties)
-	if err != nil {
+	if err = client.CreateThenPoll(ctx, id, properties); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -119,14 +114,14 @@ func resourcePostgresqlFlexibleServerDatabaseRead(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FlexibleServerDatabaseID(d.Id())
+	id, err := databases.ParseDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FlexibleServerName, id.DatabaseName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -134,11 +129,13 @@ func resourcePostgresqlFlexibleServerDatabaseRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	d.Set("name", id.DatabaseName)
-	d.Set("server_id", parse.NewFlexibleServerID(subscriptionId, id.ResourceGroup, id.FlexibleServerName).ID())
+	d.Set("server_id", parse.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.ServerName).ID())
 
-	if props := resp.DatabaseProperties; props != nil {
-		d.Set("charset", props.Charset)
-		d.Set("collation", props.Collation)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("charset", props.Charset)
+			d.Set("collation", props.Collation)
+		}
 	}
 
 	return nil
@@ -149,18 +146,13 @@ func resourcePostgresqlFlexibleServerDatabaseDelete(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FlexibleServerDatabaseID(d.Id())
+	id, err := databases.ParseDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.FlexibleServerName, id.DatabaseName)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deleting of %s: %+v", *id, err)
 	}
 
 	return nil
