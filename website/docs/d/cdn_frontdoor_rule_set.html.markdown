@@ -14,9 +14,8 @@ Gets information about an existing CDN FrontDoor Rule Set.
 
 ```hcl
 data "azurerm_cdn_frontdoor_rule_set" "example" {
-  name                = "existing-rule-set"
-  profile_name        = "existing-profile"
-  resource_group_name = "existing-resources"
+  name                     = "existing-rule-set"
+  cdn_frontdoor_profile_id = "existing-profile"
 }
 ```
 
@@ -24,12 +23,9 @@ data "azurerm_cdn_frontdoor_rule_set" "example" {
 
 The following arguments are supported:
 
-
 * `name` - (Required) Specifies the name of the CDN FrontDoor Rule Set to retrieve.
 
-* `profile_name` - (Required) Specifies the name of the CDN FrontDoor Profile where this CDN FrontDoor Rule Set exists.
-
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the CDN FrontDoor Profile exists.
+* `cdn_frontdoor_profile_id` - (Required) Specifies the ID of the CDN FrontDoor Profile within which this CDN FrontDoor Rule Set exists.
 
 ## Attributes Reference
 
@@ -37,7 +33,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the CDN FrontDoor Rule Set.
 
-* `cdn_frontdoor_profile_id` - The ID of the CDN FrontDoor Profile within which this CDN FrontDoor Rule Set exists.
+* `profile_name` - The name of the CDN FrontDoor Profile where this CDN FrontDoor Rule Set exists.
+
+* `resource_group_name` - The name of the Resource Group where the CDN FrontDoor Profile exists.
 
 ## Timeouts
 

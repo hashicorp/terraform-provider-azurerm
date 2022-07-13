@@ -31,7 +31,6 @@ func (CdnFrontDoorRuleSetDataSource) basic(data acceptance.TestData) string {
 data "azurerm_cdn_frontdoor_rule_set" "test" {
   name                     = azurerm_cdn_frontdoor_rule_set.test.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_rule_set.test.cdn_frontdoor_profile_id
-  resource_group_name      = azurerm_cdn_frontdoor_rule_set.test.resource_group_name
 }
 `, CdnFrontDoorRuleSetResource{}.complete(data))
 }
