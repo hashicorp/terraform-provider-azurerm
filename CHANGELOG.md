@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.37.0` of `github.com/hashicorp/go-azure-helpers` [GH-17588]
 * dependencies: updating to `v2.18.0` of `github.com/hashicorp/terraform-plugin-sdk` [GH-17141]
 * appconfiguration: updating to use API Version `2022-05-01` [GH-17467]
+* spring: updating to use API Version `2022-05-01-preview` [GH-17467]
 * databricks: refactoring to use `hashicorp/go-azure-sdk` [GH-17475]
 * lighthouse: refactoring to use `hashicorp/go-azure-sdk` [GH-17590]
 * policyremediation: updated to use version `2021-10-01` [GH-17298]
