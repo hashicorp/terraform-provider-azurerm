@@ -577,7 +577,16 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 									string(compute.DiffDiskOptionsLocal),
 								}, false),
 							},
-						},
+							"placement": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ForceNew: true,
+								Default:  string(compute.DiffDiskPlacementCacheDisk),
+								ValidateFunc: validation.StringInSlice([]string{
+									string(compute.DiffDiskPlacementCacheDisk),
+									string(compute.DiffDiskPlacementResourceDisk),
+								}, false),
+							}},
 					},
 				},
 
@@ -1235,7 +1244,8 @@ func ExpandOrchestratedVirtualMachineScaleSetOSDisk(input []interface{}, osType 
 	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]interface{}); len(diffDiskSettingsRaw) > 0 {
 		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]interface{})
 		disk.DiffDiskSettings = &compute.DiffDiskSettings{
-			Option: compute.DiffDiskOptions(diffDiskRaw["option"].(string)),
+			Option:    compute.DiffDiskOptions(diffDiskRaw["option"].(string)),
+			Placement: compute.DiffDiskPlacement(diffDiskRaw["placement"].(string)),
 		}
 	}
 
@@ -1792,7 +1802,8 @@ func FlattenOrchestratedVirtualMachineScaleSetOSDisk(input *compute.VirtualMachi
 	diffDiskSettings := make([]interface{}, 0)
 	if input.DiffDiskSettings != nil {
 		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
-			"option": string(input.DiffDiskSettings.Option),
+			"option":    string(input.DiffDiskSettings.Option),
+			"placement": string(input.DiffDiskSettings.Placement),
 		})
 	}
 

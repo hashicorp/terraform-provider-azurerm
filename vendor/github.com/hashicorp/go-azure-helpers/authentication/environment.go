@@ -114,10 +114,16 @@ func AzureEnvironmentByNameFromEndpoint(ctx context.Context, endpoint string, en
 	// while the array contains values
 	for _, env := range environments {
 		if strings.EqualFold(env.Name, environmentName) {
+			// if resourceManager endpoint is empty, assume it's the provided endpoint
+			if env.ResourceManager == "" {
+				env.ResourceManager = fmt.Sprintf("https://%s/", endpoint)
+			}
+
 			aEnv, err := buildAzureEnvironment(env)
 			if err != nil {
 				return nil, err
 			}
+
 			return aEnv, nil
 		}
 	}
