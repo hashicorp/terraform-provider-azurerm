@@ -131,6 +131,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		loadtest.Registration{},
 		mssql.Registration{},
 		policy.Registration{},
+		recoveryservices.Registration{},
 		resource.Registration{},
 		sentinel.Registration{},
 		servicefabricmanaged.Registration{},
