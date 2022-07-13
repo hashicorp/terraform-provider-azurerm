@@ -52,7 +52,7 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DedicatedHostGroupID,
+				ValidateFunc: dedicatedhostgroups.ValidateHostGroupID,
 			},
 
 			"location": commonschema.Location(),
