@@ -144,6 +144,10 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
+									"identity_reference": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
 									"user_name": {
 										Type:     pluginsdk.TypeString,
 										Computed: true,

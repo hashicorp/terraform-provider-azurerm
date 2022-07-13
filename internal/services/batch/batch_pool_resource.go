@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
+	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -159,15 +160,22 @@ func resourceBatchPool() *pluginsdk.Resource {
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
+									"user_assigned_identity_id": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: msivalidate.UserAssignedIdentityID,
+										Description:  "The User Assigned Identity to use for Container Registry access.",
+									},
 									"user_name": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"password": {
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										Optional:     true,
 										ForceNew:     true,
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
