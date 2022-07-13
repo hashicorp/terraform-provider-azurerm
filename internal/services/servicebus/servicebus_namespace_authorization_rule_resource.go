@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -55,7 +54,7 @@ func resourceServiceBusNamespaceAuthorizationRuleSchema() map[string]*pluginsdk.
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.NamespaceID,
+			ValidateFunc: namespaces.ValidateNamespaceID,
 		},
 	})
 }
@@ -126,7 +125,7 @@ func resourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData,
 	}
 
 	d.Set("name", id.AuthorizationRuleName)
-	d.Set("namespace_id", parse.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName).ID())
+	d.Set("namespace_id", namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

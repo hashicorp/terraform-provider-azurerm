@@ -55,7 +55,7 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ForceNew:         true,
-			ValidateFunc:     validate.SubscriptionID,
+			ValidateFunc:     subscriptions.ValidateSubscriptions2ID,
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
