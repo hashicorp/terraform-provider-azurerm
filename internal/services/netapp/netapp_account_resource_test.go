@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -85,7 +85,7 @@ func testAccNetAppAccount_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("active_directory.#").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 			),
 		},
@@ -103,7 +103,7 @@ func testAccNetAppAccount_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("active_directory.#").HasValue("0"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		{
@@ -111,7 +111,7 @@ func testAccNetAppAccount_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("active_directory.#").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 			),
 		},
@@ -120,17 +120,17 @@ func testAccNetAppAccount_update(t *testing.T) {
 }
 
 func (t NetAppAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AccountID(state.ID)
+	id, err := netappaccounts.ParseNetAppAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.NetApp.AccountClient.Get(ctx, id.ResourceGroup, id.NetAppAccountName)
+	resp, err := clients.NetApp.AccountClient.AccountsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Netapp Account (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (NetAppAccountResource) basicConfig(data acceptance.TestData) string {
@@ -142,12 +142,22 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
   location = "%s"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true",
+    "SkipNRMSNSG"      = "true"
+  }
 }
 
 resource "azurerm_netapp_account" "test" {
   name                = "acctest-NetAppAccount-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -160,6 +170,10 @@ resource "azurerm_netapp_account" "import" {
   name                = azurerm_netapp_account.test.name
   location            = azurerm_netapp_account.test.location
   resource_group_name = azurerm_netapp_account.test.resource_group_name
+
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+  }
 }
 `, r.basicConfig(data))
 }
@@ -173,6 +187,12 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
   location = "%s"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true",
+    "SkipNRMSNSG"      = "true"
+  }
 }
 
 resource "azurerm_netapp_account" "test" {
@@ -190,7 +210,8 @@ resource "azurerm_netapp_account" "test" {
   }
 
   tags = {
-    "FoO" = "BaR"
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "FoO"           = "BaR"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

@@ -47,7 +47,8 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "example" {
   property_columns          = ["col1", "col2"]
 
   serialization {
-    format = "Avro"
+    type   = "Csv"
+    format = "Array"
   }
 }
 ```

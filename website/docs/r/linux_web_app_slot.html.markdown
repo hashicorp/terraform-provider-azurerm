@@ -88,7 +88,13 @@ The following arguments are supported:
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
-* `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Windows Web App.
+* `virtual_network_subnet_id` - (Optional) The subnet id which the web app will be vNet Integrated with. Changing this forces a new Linux Function App to be created.
+
+~> **NOTE on virtual network integration:** Terraform currently provides virtual network integration both a standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html), and allows for virtual network integration to be defined in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simutaneously.
+
+~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions). 
+
+* `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Web App.
 
 ~> **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`. Refer to the [Azure docs](https://docs.microsoft.com/en-us/azure/app-service/deploy-run-package) for further details.
 
@@ -468,6 +474,8 @@ A `site_config` block supports the following:
 
 * `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker. Defaults to `true`.
 
+* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
+
 * `websockets` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Linux App Service Slot.
@@ -594,5 +602,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Linux Web Apps can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_linux_web_app.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1
+terraform import azurerm_linux_web_app_slot.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1
 ```

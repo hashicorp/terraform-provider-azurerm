@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_service_plan" "test" {
+resource "azurerm_service_plan" "example" {
   name                = "example-plan"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -43,14 +43,31 @@ resource "azurerm_relay_hybrid_connection" "example" {
   relay_namespace_name = azurerm_relay_namespace.example.name
 }
 
+resource "azurerm_storage_account" "example" {
+  name                     = "storageaccountname"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_windows_web_app" "example" {
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  service_plan_id     = azurerm_service_plan.example.id
+
+  site_config {}
+}
+
 resource "azurerm_windows_function_app" "example" {
   name                = "example-function-app"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  service_plan_id     = azurerm_service_plan.example.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
 
   site_config {}
 }

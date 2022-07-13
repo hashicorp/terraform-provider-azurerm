@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -46,6 +47,8 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	resources := map[string]*pluginsdk.Resource{
 		"azurerm_availability_set":                       resourceAvailabilitySet(),
+		"azurerm_capacity_reservation":                   resourceCapacityReservation(),
+		"azurerm_capacity_reservation_group":             resourceCapacityReservationGroup(),
 		"azurerm_dedicated_host":                         resourceDedicatedHost(),
 		"azurerm_dedicated_host_group":                   resourceDedicatedHostGroup(),
 		"azurerm_disk_encryption_set":                    resourceDiskEncryptionSet(),
@@ -71,4 +74,15 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	}
 
 	return resources
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		GalleryApplicationResource{},
+		GalleryApplicationVersionResource{},
+	}
 }

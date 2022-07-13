@@ -77,6 +77,7 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 

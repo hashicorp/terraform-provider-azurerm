@@ -38,6 +38,8 @@ The following arguments are supported:
 
 * `runbook_name` - (Required) The name of a Runbook to link to a Schedule. It needs to be in the same Automation Account as the Schedule and Job Schedule. Changing this forces a new resource to be created.
 
+* `schedule_name` - (Required) The name of the Schedule. Changing this forces a new resource to be created.
+
 * `parameters` -  (Optional) A map of key/value pairs corresponding to the arguments that can be passed to the Runbook. Changing this forces a new resource to be created.
 
 -> **NOTE:** The parameter keys/names must strictly be in lowercase, even if this is not the case in the runbook. This is due to a limitation in Azure Automation where the parameter names are normalized. The values specified don't have this limitation.
