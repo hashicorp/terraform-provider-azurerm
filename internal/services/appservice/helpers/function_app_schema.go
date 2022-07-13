@@ -1683,6 +1683,10 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.VnetRouteAllEnabled = utils.Bool(linuxSiteConfig.VnetRouteAllEnabled)
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
+		expanded.MinimumElasticInstanceCount = utils.Int32(int32(linuxSiteConfig.ElasticInstanceMinimum))
+	}
+
 	expanded.AppSettings = &appSettings
 
 	return expanded, nil
@@ -1913,6 +1917,10 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 
 	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
 		expanded.VnetRouteAllEnabled = utils.Bool(windowsSiteConfig.VnetRouteAllEnabled)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
+		expanded.MinimumElasticInstanceCount = utils.Int32(int32(windowsSiteConfig.ElasticInstanceMinimum))
 	}
 
 	expanded.AppSettings = &appSettings

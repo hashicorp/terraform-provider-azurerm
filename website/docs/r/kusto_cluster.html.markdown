@@ -56,6 +56,8 @@ The following arguments are supported:
 
 * `streaming_ingestion_enabled` - (Optional) Specifies if the streaming ingest is enabled.
 
+* `public_ip_type` - (Optional) Indicates what public IP type to create - IPv4 (default), or DualStack (both IPv4 and IPv6).
+
 * `public_network_access_enabled` - (Optional) Is the public network access enabled? Defaults to `true`.
 
 * `purge_enabled` - (Optional) Specifies if the purge operations are enabled.
