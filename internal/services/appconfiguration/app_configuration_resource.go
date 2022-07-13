@@ -199,16 +199,26 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		return tf.ImportAsExistsError("azurerm_app_configuration", resourceId.ID())
 	}
 
-	publicNetworkAccessValue, nil := parsePublicNetworkAccess(d.Get("public_network_access").(string))
-
 	parameters := configurationstores.ConfigurationStore{
 		Location: azure.NormalizeLocation(d.Get("location").(string)),
-		Properties: &configurationstores.ConfigurationStoreProperties{
-			PublicNetworkAccess: publicNetworkAccessValue},
 		Sku: configurationstores.Sku{
 			Name: d.Get("sku").(string),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
+
+	if publicNetworkAccessNotEmpty {
+
+		publicNetworkAccess, err := parsePublicNetworkAccess(publicNetworkAccessValue.(string))
+		if err != nil {
+			return fmt.Errorf("unable to parse public_network_access: %+v", err)
+		}
+		properties := &configurationstores.ConfigurationStoreProperties{
+			PublicNetworkAccess: publicNetworkAccess,
+		}
+		parameters.Properties = properties
 	}
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -225,20 +235,6 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceAppConfigurationRead(d, meta)
 }
 
-func parsePublicNetworkAccess(input string) (*configurationstores.PublicNetworkAccess, error) {
-	vals := map[string]configurationstores.PublicNetworkAccess{
-		"disabled": configurationstores.PublicNetworkAccessDisabled,
-		"enabled":  configurationstores.PublicNetworkAccessEnabled,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := configurationstores.PublicNetworkAccess(input)
-	return &out, nil
-}
-
 func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -250,14 +246,23 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	publicNetworkAccessValue, nil := parsePublicNetworkAccess(d.Get("public_network_access").(string))
 	parameters := configurationstores.ConfigurationStoreUpdateParameters{
-		Properties: &configurationstores.ConfigurationStorePropertiesUpdateParameters{
-			PublicNetworkAccess: publicNetworkAccessValue},
 		Sku: &configurationstores.Sku{
 			Name: d.Get("sku").(string),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
+	if publicNetworkAccessNotEmpty {
+		publicNetworkAccess, err := parsePublicNetworkAccess(publicNetworkAccessValue.(string))
+		if err != nil {
+			return fmt.Errorf("unable to parse public_network_access: %+v", err)
+		}
+		properties := &configurationstores.ConfigurationStorePropertiesUpdateParameters{
+			PublicNetworkAccess: publicNetworkAccess,
+		}
+		parameters.Properties = properties
 	}
 
 	if d.HasChange("identity") {
@@ -417,4 +422,18 @@ func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []interf
 			"secret":            secret,
 		},
 	}
+}
+
+func parsePublicNetworkAccess(input string) (*configurationstores.PublicNetworkAccess, error) {
+	vals := map[string]configurationstores.PublicNetworkAccess{
+		"disabled": configurationstores.PublicNetworkAccessDisabled,
+		"enabled":  configurationstores.PublicNetworkAccessEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := configurationstores.PublicNetworkAccess(input)
+	return &out, nil
 }
