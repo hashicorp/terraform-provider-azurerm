@@ -38,6 +38,7 @@ ENHANCEMENTS:
  
 BUG FIXES:
 
+* `azurerm_dev_test_lab_schedule` - deleting the schedule during deletion [GH-17614]
 * `azurerm_linux_function_app` - set the `default_hostname` properly on read [GH-17498]
 * `azurerm_linux_function_app_slot` - set the `default_hostname` properly on read [GH-17498]
 * `azurerm_windows_function_app` - set the `default_hostname` properly on read [GH-17498]
