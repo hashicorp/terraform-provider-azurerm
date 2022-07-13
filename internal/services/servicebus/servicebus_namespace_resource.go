@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	legacyIdentity "github.com/hashicorp/terraform-provider-azurerm/internal/identity"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
@@ -202,8 +201,6 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	//identity, err := expandServiceBusNamespaceIdentity(d.Get("identity").([]interface{}))
-	//identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	identity, err := expandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -271,7 +268,6 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 		d.Set("tags", flattenTags(model.Tags))
 
-		//identity, err := flattenServiceBusNamespaceIdentity(model.Identity)
 		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
@@ -338,30 +334,6 @@ func resourceServiceBusNamespaceDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandServiceBusNamespaceIdentity(input []interface{}) (*identity.SystemAndUserAssignedMap, error) {
-	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	intermediate := legacyIdentity.ExpandedConfig{
-		Type: legacyIdentity.Type(string(expanded.Type)),
-	}
-
-	if len(expanded.IdentityIds) > 0 {
-		intermediate.UserAssignedIdentityIds = make([]string, 0)
-		for id := range expanded.IdentityIds {
-			intermediate.UserAssignedIdentityIds = append(intermediate.UserAssignedIdentityIds, id)
-			// intentionally empty
-		}
-	}
-
-	out := identity.SystemAndUserAssignedMap{}
-	//out.FromExpandedConfig(intermediate)
-
-	return &out, nil
-}
-
 func expandServiceBusNamespaceEncryption(input []interface{}) *namespaces.Encryption {
 	if len(input) == 0 || input[0] == nil {
 		return nil
@@ -383,29 +355,6 @@ func expandServiceBusNamespaceEncryption(input []interface{}) *namespaces.Encryp
 		KeySource:                       &keySource,
 		RequireInfrastructureEncryption: utils.Bool(v["infrastructure_encryption_enabled"].(bool)),
 	}
-}
-
-func flattenServiceBusNamespaceIdentity(input *identity.SystemAndUserAssignedMap) (*[]interface{}, error) {
-	var transformed *identity.SystemAndUserAssignedMap
-	if input != nil {
-		transformed = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-			PrincipalId: input.PrincipalId,
-			TenantId:    input.TenantId,
-		}
-
-		if input.IdentityIds != nil {
-			for k, v := range input.IdentityIds {
-				transformed.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-					ClientId:    v.ClientId,
-					PrincipalId: v.PrincipalId,
-				}
-			}
-		}
-	}
-
-	return identity.FlattenSystemAndUserAssignedMap(transformed)
 }
 
 func flattenServiceBusNamespaceEncryption(encryption *namespaces.Encryption) ([]interface{}, error) {
