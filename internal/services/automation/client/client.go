@@ -18,6 +18,7 @@ type Client struct {
 	DscNodeConfigurationClient  *automation.DscNodeConfigurationClient
 	JobScheduleClient           *automation.JobScheduleClient
 	ModuleClient                *automation.ModuleClient
+	PrivateEndpointClient       *automation.PrivateEndpointConnectionsClient
 	RunbookClient               *automation.RunbookClient
 	RunbookDraftClient          *automation.RunbookDraftClient
 	RunBookWgClient             *hybridrunbookworkergroup.HybridRunbookWorkerGroupClient
@@ -57,6 +58,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	moduleClient := automation.NewModuleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&moduleClient.Client, o.ResourceManagerAuthorizer)
 
+	privateEndpointClient := automation.NewPrivateEndpointConnectionsClient(o.SubscriptionId)
+	o.ConfigureClient(&privateEndpointClient.Client, o.ResourceManagerAuthorizer)
+
 	runbookClient := automation.NewRunbookClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&runbookClient.Client, o.ResourceManagerAuthorizer)
 
@@ -86,6 +90,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DscNodeConfigurationClient:  &dscNodeConfigurationClient,
 		JobScheduleClient:           &jobScheduleClient,
 		ModuleClient:                &moduleClient,
+		PrivateEndpointClient:       &privateEndpointClient,
 		RunbookClient:               &runbookClient,
 		RunbookDraftClient:          &runbookDraftClient,
 		RunBookWgClient:             &runbookWgClient,
