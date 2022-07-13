@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
+
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2021-07-01/machinelearningservices"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -50,9 +52,10 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			"location": azure.SchemaLocation(),
 
 			"vm_size": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"vm_priority": {
