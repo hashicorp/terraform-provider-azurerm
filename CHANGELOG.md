@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * databricks: refactoring to use `hashicorp/go-azure-sdk` [GH-17475]
 * lighthouse: refactoring to use `hashicorp/go-azure-sdk` [GH-17590]
 * policyremediation: updated to use version `2021-10-01` [GH-17298]
+* signalr: refactoring to use `hashicorp/go-azure-sdk` [GH-17463]
 * storage: refactoring `objectreplicationpolicy` to use `hashicorp/go-azure-sdk` [GH-17471]
 * Data Source: `azurerm_availability_set` - updating to use `hashicorp/go-azure-sdk` [GH-17608]
 * Data Source: `azurerm_ssh_public_key` - refactoring to use `hashicorp/go-azure-sdk` [GH-17609]
