@@ -189,7 +189,7 @@ func postgreSQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, cli
 
 		if model := resp.Model; model != nil {
 			if props := model.Properties; props != nil && props.State != nil {
-				log.Printf("[DEBUG] Retrieving %s returned Status %s", id, props.State)
+				log.Printf("[DEBUG] Retrieving %s returned Status %s", id, string(*props.State))
 				return resp, string(*props.State), nil
 			}
 		}

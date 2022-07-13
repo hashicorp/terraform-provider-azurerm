@@ -92,15 +92,11 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.ServerVersionOneOne),
-					string(servers.ServerVersionOneTwo),
-					string(servers.ServerVersionOneThree),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForServerVersion(), false),
 			},
 
 			"zone": commonschema.ZoneSingleOptional(),
