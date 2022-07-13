@@ -5,6 +5,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -13,7 +14,7 @@ type Client struct {
 	AvailabilitySetsClient           *availabilitysets.AvailabilitySetsClient
 	CapacityReservationsClient       *compute.CapacityReservationsClient
 	CapacityReservationGroupsClient  *compute.CapacityReservationGroupsClient
-	DedicatedHostsClient             *compute.DedicatedHostsClient
+	DedicatedHostsClient             *dedicatedhosts.DedicatedHostsClient
 	DedicatedHostGroupsClient        *dedicatedhostgroups.DedicatedHostGroupsClient
 	DisksClient                      *compute.DisksClient
 	DiskAccessClient                 *compute.DiskAccessesClient
@@ -49,7 +50,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	capacityReservationGroupsClient := compute.NewCapacityReservationGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&capacityReservationGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	dedicatedHostsClient := compute.NewDedicatedHostsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	dedicatedHostsClient := dedicatedhosts.NewDedicatedHostsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&dedicatedHostsClient.Client, o.ResourceManagerAuthorizer)
 
 	dedicatedHostGroupsClient := dedicatedhostgroups.NewDedicatedHostGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
