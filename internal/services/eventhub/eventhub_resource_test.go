@@ -3,6 +3,7 @@ package eventhub_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"testing"
 
@@ -282,12 +283,9 @@ func TestAccEventHub_captureDescriptionWithDataLake(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.captureDescriptionWithDataLake(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+			Config:      r.captureDescriptionWithDataLake(data, true),
+			ExpectError: regexp.MustCompile("Failed to access provided Data Lake path. Please ensure the path exists and assigned with required access permissions"),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -560,7 +558,7 @@ resource "azurerm_eventhub" "test" {
     destination {
       name                  = "EventHubArchive.AzureDataLake"
       archive_name_format   = "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}"
-      datalake_account_name = "exampledl"
+      datalake_account_name = "exampledatalakeaccount"
       datalake_folder_path  = "/examplefolder"
     }
   }
