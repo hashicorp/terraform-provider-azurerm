@@ -123,6 +123,13 @@ func (md MD) Append(k string, vals ...string) {
 	md[k] = append(md[k], vals...)
 }
 
+// Delete removes the values for a given key k which is converted to lowercase
+// before removing it from md.
+func (md MD) Delete(k string) {
+	k = strings.ToLower(k)
+	delete(md, k)
+}
+
 // Join joins any number of mds into a single MD.
 //
 // The order of values for each key is determined by the order in which the mds
@@ -181,7 +188,9 @@ func FromIncomingContext(ctx context.Context) (MD, bool) {
 		// map, and there's no guarantee that the MD attached to the context is
 		// created using our helper functions.
 		key := strings.ToLower(k)
-		out[key] = v
+		s := make([]string, len(v))
+		copy(s, v)
+		out[key] = s
 	}
 	return out, true
 }
@@ -219,7 +228,9 @@ func FromOutgoingContext(ctx context.Context) (MD, bool) {
 		// map, and there's no guarantee that the MD attached to the context is
 		// created using our helper functions.
 		key := strings.ToLower(k)
-		out[key] = v
+		s := make([]string, len(v))
+		copy(s, v)
+		out[key] = s
 	}
 	for _, added := range raw.added {
 		if len(added)%2 == 1 {

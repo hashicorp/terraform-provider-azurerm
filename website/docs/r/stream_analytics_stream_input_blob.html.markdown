@@ -13,8 +13,9 @@ Manages a Stream Analytics Stream Input Blob.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 data "azurerm_stream_analytics_job" "example" {

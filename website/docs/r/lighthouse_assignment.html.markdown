@@ -9,14 +9,16 @@ description: |-
 
 # azurerm_lighthouse_assignment
 
-Manages a [Lighthouse](https://docs.microsoft.com/en-us/azure/lighthouse) Assignment to a subscription, or to a resource group.
+Manages a [Lighthouse](https://docs.microsoft.com/azure/lighthouse) Assignment to a subscription, or to a resource group.
 
 ## Example Usage
 
 ```hcl
+data "azurerm_subscription" "primary" {
+}
 
 resource "azurerm_lighthouse_assignment" "example" {
-  scope                    = "/subscription/00000000-0000-0000-0000-000000000000"
+  scope                    = data.azurerm_subscription.primary.id
   lighthouse_definition_id = "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.ManagedServices/registrationDefinitions/00000000-0000-0000-0000-000000000000"
 }
 ```

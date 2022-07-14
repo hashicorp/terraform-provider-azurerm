@@ -25,7 +25,8 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_maintenance_configuration": dataSourceMaintenanceConfiguration(),
+		"azurerm_maintenance_configuration":         dataSourceMaintenanceConfiguration(),
+		"azurerm_public_maintenance_configurations": dataSourcePublicMaintenanceConfigurations(),
 	}
 }
 

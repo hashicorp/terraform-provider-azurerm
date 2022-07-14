@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Optional) Specifies the Log Analytics Workspace ID to which the security data will be sent.
 
-* `log_unmasked_ips_enabled` - (Optional) Should ip addressed be unmasked in the log? Defaults to `false`.
+* `log_unmasked_ips_enabled` - (Optional) Should IP addressed be unmasked in the log? Defaults to `false`.
 
 * `recommendations_enabled` - (Optional) A `recommendations_enabled` block of options to enable or disable as defined below.
 

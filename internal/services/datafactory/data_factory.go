@@ -465,7 +465,7 @@ func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureB
 	result := make(map[string]interface{})
 
 	if input.Container != nil {
-		container, dynamicContainerEnabled := flattenDataFactoryExpressionResultType(input.FolderPath)
+		container, dynamicContainerEnabled := flattenDataFactoryExpressionResultType(input.Container)
 		result["container"] = container
 		result["dynamic_container_enabled"] = dynamicContainerEnabled
 	}

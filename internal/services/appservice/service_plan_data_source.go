@@ -131,6 +131,7 @@ func (r ServicePlanDataSource) Read() sdk.ResourceFunc {
 			}
 
 			servicePlan.Location = location.NormalizeNilable(existing.Location)
+			servicePlan.Kind = utils.NormalizeNilableString(existing.Kind)
 
 			if sku := existing.Sku; sku != nil {
 				if sku.Name != nil {
@@ -142,6 +143,7 @@ func (r ServicePlanDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if props := existing.AppServicePlanProperties; props != nil {
+				servicePlan.OSType = OSTypeWindows
 				if props.HyperV != nil && *props.HyperV {
 					servicePlan.OSType = OSTypeWindowsContainer
 				}

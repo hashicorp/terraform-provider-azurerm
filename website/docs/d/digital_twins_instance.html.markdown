@@ -41,7 +41,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Digital Twins instance.
 
-* `host_name` - The Api endpoint to work with this Digital Twins instance.
+* `host_name` - The API endpoint to work with this Digital Twins instance.
 
 * `location` - The Azure Region where the Digital Twins instance exists.
 

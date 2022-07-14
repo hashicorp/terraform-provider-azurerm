@@ -1,9 +1,9 @@
-variable "location" {
-  description = "The Azure Region in which all resources in this example should be provisioned"
-  default     = "Central US"
+variable "prefix" {
+  type        = string
+  description = "The prefix used for all resources in this example"
 }
 
-variable "storageaccount" {
-  description = "Name of the storage account"
-  default     = "functionappstorage"
+variable "location" {
+  type        = string
+  description = "The Azure location where all resources in this example should be created"
 }

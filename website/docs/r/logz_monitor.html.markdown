@@ -23,10 +23,10 @@ resource "azurerm_logz_monitor" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   plan {
-    billing_cycle  = "Monthly"
+    billing_cycle  = "MONTHLY"
     effective_date = "2022-06-06T00:00:00Z"
     plan_id        = "100gb14days"
-    usage_type     = "Committed"
+    usage_type     = "COMMITTED"
   }
 
   user {
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `enterprise_app_id` - (Optional) The ID of the Enterprise App. Changing this forces a new logz Monitor to be created.
 
-~> **NOTE** Please follow [Set up Logz.io single sign-on](https://docs.microsoft.com/en-us/azure/partner-solutions/logzio/setup-sso) to create the ID of the Enterprise App.
+~> **NOTE** Please follow [Set up Logz.io single sign-on](https://docs.microsoft.com/azure/partner-solutions/logzio/setup-sso) to create the ID of the Enterprise App.
 
 * `enabled` - (Optional) Whether the resource monitoring is enabled?
 

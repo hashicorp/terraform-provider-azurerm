@@ -9,22 +9,20 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2021-06-01-preview/servicebus"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -78,13 +76,11 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servicebus.SkuNameBasic),
 					string(servicebus.SkuNameStandard),
 					string(servicebus.SkuNamePremium),
-				}, !features.ThreePointOhBeta()),
-				DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+				}, false),
 			},
 
 			"capacity": {
@@ -109,7 +105,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 						"identity_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: msiValidate.UserAssignedIdentityID,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 
 						"infrastructure_encryption_enabled": {
@@ -164,6 +160,14 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			oldCustomerManagedKey, newCustomerManagedKey := diff.GetChange("customer_managed_key")
 			if len(oldCustomerManagedKey.([]interface{})) != 0 && len(newCustomerManagedKey.([]interface{})) == 0 {
 				diff.ForceNew("customer_managed_key")
+			}
+
+			oldSku, newSku := diff.GetChange("sku")
+			if diff.HasChange("sku") {
+				if strings.EqualFold(newSku.(string), string(servicebus.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(servicebus.SkuNamePremium)) {
+					log.Printf("[DEBUG] cannot migrate a namespace from or to Premium SKU")
+					diff.ForceNew("sku")
+				}
 			}
 			return nil
 		}),

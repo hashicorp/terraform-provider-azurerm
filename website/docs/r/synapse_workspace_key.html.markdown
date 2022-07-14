@@ -54,7 +54,7 @@ resource "azurerm_key_vault_access_policy" "deployer" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "create", "get", "delete", "purge"
+    "Create", "Get", "Delete", "Purge"
   ]
 }
 
@@ -82,6 +82,10 @@ resource "azurerm_synapse_workspace" "example" {
   customer_managed_key {
     key_versionless_id = azurerm_key_vault_key.example.versionless_id
     key_name           = "enckey"
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 
   tags = {

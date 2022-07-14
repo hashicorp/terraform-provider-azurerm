@@ -8,24 +8,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-01-02-preview/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/preview/containerservice/mgmt/2022-03-02-preview/containerservice"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2018-09-01/privatezones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	msiparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/parse"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
-	privateDnsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
+	logAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -253,13 +252,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							RequiredWith: []string{
 								"kubelet_identity.0.object_id",
 								"kubelet_identity.0.user_assigned_identity_id",
-								func() string {
-									if !features.ThreePointOhBeta() {
-										return "identity.0.user_assigned_identity_id"
-									}
-
-									return "identity.0.identity_ids"
-								}(),
+								"identity.0.identity_ids",
 							},
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -271,13 +264,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							RequiredWith: []string{
 								"kubelet_identity.0.client_id",
 								"kubelet_identity.0.user_assigned_identity_id",
-								func() string {
-									if !features.ThreePointOhBeta() {
-										return "identity.0.user_assigned_identity_id"
-									}
-
-									return "identity.0.identity_ids"
-								}(),
+								"identity.0.identity_ids",
 							},
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -289,15 +276,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							RequiredWith: []string{
 								"kubelet_identity.0.client_id",
 								"kubelet_identity.0.object_id",
-								func() string {
-									if !features.ThreePointOhBeta() {
-										return "identity.0.user_assigned_identity_id"
-									}
-
-									return "identity.0.identity_ids"
-								}(),
+								"identity.0.identity_ids",
 							},
-							ValidateFunc: msivalidate.UserAssignedIdentityID,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 					},
 				},
@@ -406,6 +387,21 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"microsoft_defender": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"log_analytics_workspace_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
+						},
+					},
+				},
+			},
+
 			"network_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -421,6 +417,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.NetworkPluginAzure),
 								string(containerservice.NetworkPluginKubenet),
+								string(containerservice.NetworkPluginNone),
 							}, false),
 						},
 
@@ -482,15 +479,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"load_balancer_sku": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							Default:          string(containerservice.LoadBalancerSkuStandard),
-							ForceNew:         true,
-							DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(containerservice.LoadBalancerSkuStandard),
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.LoadBalancerSkuBasic),
 								string(containerservice.LoadBalancerSkuStandard),
-							}, !features.ThreePointOhBeta()),
+							}, false),
 						},
 
 						"outbound_type": {
@@ -646,13 +642,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Computed: !features.ThreePointOhBeta(),
-				ConflictsWith: func() []string {
-					if !features.ThreePointOhBeta() {
-						return []string{"private_link_enabled"}
-					}
-					return []string{}
-				}(),
 			},
 
 			"private_cluster_public_fqdn_enabled": {
@@ -661,13 +650,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"run_command_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"private_dns_zone_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true, // a Private Cluster is `System` by default even if unspecified
 				ForceNew: true,
 				ValidateFunc: validation.Any(
-					privateDnsValidate.PrivateDnsZoneID,
+					privatezones.ValidatePrivateDnsZoneID,
 					validation.StringInSlice([]string{
 						"System",
 						"None",
@@ -682,35 +677,17 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"role_based_access_control_enabled": func() *schema.Schema {
-				if !features.ThreePointOhBeta() {
-					return &schema.Schema{
-						Type:          pluginsdk.TypeBool,
-						Optional:      true,
-						Computed:      true,
-						ForceNew:      true,
-						ConflictsWith: []string{"role_based_access_control"},
-					}
-				}
-				return &schema.Schema{
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-					ForceNew: true,
-				}
-			}(),
+			"role_based_access_control_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
+			},
 
 			"azure_active_directory_role_based_access_control": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Computed: !features.ThreePointOhBeta(),
-				ConflictsWith: func() []string {
-					if !features.ThreePointOhBeta() {
-						return []string{"role_based_access_control"}
-					}
-					return []string{}
-				}(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"client_app_id": {
@@ -1004,119 +981,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		resource.Schema[k] = v
 	}
 
-	if !features.ThreePointOhBeta() {
-		resource.Schema["private_link_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			ForceNew:      true,
-			Computed:      true,
-			ConflictsWith: []string{"private_cluster_enabled"},
-			Deprecated:    "`private_link_enabled` is deprecated in favour of `private_cluster_enabled` and will be removed in version 3.0 of the AzureRM Provider",
-		}
-
-		resource.Schema["role_based_access_control"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			Computed:      true,
-			MaxItems:      1,
-			ConflictsWith: []string{"role_based_access_control_enabled", "azure_active_directory_role_based_access_control"},
-			Deprecated:    "`role_based_access_control` is deprecated in favour of the properties `role_based_access_control_enabled` and `azure_active_directory_role_based_access_control` and will be removed in version 3.0 of the AzureRM provider",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-						ForceNew: true,
-					},
-					"azure_active_directory": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"client_app_id": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validation.IsUUID,
-									AtLeastOneOf: []string{
-										"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
-										"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
-										"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
-									},
-								},
-
-								"server_app_id": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validation.IsUUID,
-									AtLeastOneOf: []string{
-										"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
-										"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
-										"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
-									},
-								},
-
-								"server_app_secret": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									Sensitive:    true,
-									ValidateFunc: validation.StringIsNotEmpty,
-									AtLeastOneOf: []string{
-										"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
-										"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
-										"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
-									},
-								},
-
-								"tenant_id": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Computed: true,
-									// OrEmpty since this can be sourced from the client config if it's not specified
-									ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
-									AtLeastOneOf: []string{
-										"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
-										"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
-										"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
-									},
-								},
-
-								"managed": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									AtLeastOneOf: []string{
-										"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
-										"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
-										"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
-									},
-								},
-
-								"azure_rbac_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-								},
-
-								"admin_group_object_ids": {
-									Type:       pluginsdk.TypeSet,
-									Optional:   true,
-									ConfigMode: pluginsdk.SchemaConfigModeAttr,
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validation.IsUUID,
-									},
-									AtLeastOneOf: []string{
-										"role_based_access_control.0.azure_active_directory.0.client_app_id", "role_based_access_control.0.azure_active_directory.0.server_app_id",
-										"role_based_access_control.0.azure_active_directory.0.server_app_secret", "role_based_access_control.0.azure_active_directory.0.tenant_id",
-										"role_based_access_control.0.azure_active_directory.0.managed", "role_based_access_control.0.azure_active_directory.0.admin_group_object_ids",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-	}
 	return resource
 }
 
@@ -1160,22 +1024,21 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("expanding `default_node_pool`: %+v", err)
 	}
 
+	// the AKS API will create the default node pool with the same version as the control plane regardless of what is
+	// supplied by the user which will result in a diff in some cases, so if versions have been supplied check that they
+	// are identical
+	agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
+	if nodePoolVersion := agentProfile.ManagedClusterAgentPoolProfileProperties.OrchestratorVersion; nodePoolVersion != nil {
+		if kubernetesVersion != "" && kubernetesVersion != *nodePoolVersion {
+			return fmt.Errorf("version mismatch between the control plane running %s and default node pool running %s, they must use the same kubernetes versions", kubernetesVersion, *nodePoolVersion)
+		}
+	}
+
 	var addonProfiles *map[string]*containerservice.ManagedClusterAddonProfile
 	addOns := collectKubernetesAddons(d)
 	addonProfiles, err = expandKubernetesAddOns(d, addOns, env)
 	if err != nil {
 		return err
-	}
-
-	if !features.ThreePointOhBeta() {
-		// nolint staticcheck
-		if v, ok := d.GetOkExists("addon_profile"); ok {
-			addonProfilesRaw := v.([]interface{})
-			addonProfiles, err = expandKubernetesAddOnProfiles(addonProfilesRaw, env)
-			if err != nil {
-				return err
-			}
-		}
 	}
 
 	networkProfileRaw := d.Get("network_profile").([]interface{})
@@ -1184,24 +1047,11 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	rbacEnabled := true
 	var azureADProfile *containerservice.ManagedClusterAADProfile
-	if v, ok := d.GetOk("role_based_access_control_enabled"); ok {
-		rbacEnabled = v.(bool)
-	}
 	if v, ok := d.GetOk("azure_active_directory_role_based_access_control"); ok {
 		azureADProfile, err = expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(v.([]interface{}), tenantId)
 		if err != nil {
 			return err
-		}
-	}
-
-	if !features.ThreePointOhBeta() {
-		if v, ok := d.GetOk("role_based_access_control"); ok {
-			rbacEnabled, azureADProfile, err = expandKubernetesClusterRoleBasedAccessControl(v.([]interface{}), tenantId)
-			if err != nil {
-				return err
-			}
 		}
 	}
 
@@ -1214,11 +1064,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
 
 	enablePrivateCluster := false
-	if !features.ThreePointOhBeta() {
-		if v, ok := d.GetOk("private_link_enabled"); ok {
-			enablePrivateCluster = v.(bool)
-		}
-	}
 	if v, ok := d.GetOk("private_cluster_enabled"); ok {
 		enablePrivateCluster = v.(bool)
 	}
@@ -1231,12 +1076,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		EnablePrivateCluster:           &enablePrivateCluster,
 		AuthorizedIPRanges:             apiServerAuthorizedIPRanges,
 		EnablePrivateClusterPublicFQDN: utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool)),
+		DisableRunCommand:              utils.Bool(!d.Get("run_command_enabled").(bool)),
 	}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
 
 	if d.Get("enable_pod_security_policy").(bool) {
-		return fmt.Errorf("The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+		return fmt.Errorf("the AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
 	}
 
 	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
@@ -1257,6 +1103,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkAccess = containerservice.PublicNetworkAccessDisabled
 	}
 
+	microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
+	microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
+
 	parameters := containerservice.ManagedCluster{
 		Name:     utils.String(id.ManagedClusterName),
 		Location: utils.String(location),
@@ -1271,7 +1120,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			AgentPoolProfiles:      agentProfiles,
 			AutoScalerProfile:      autoScalerProfile,
 			DNSPrefix:              utils.String(dnsPrefix),
-			EnableRBAC:             utils.Bool(rbacEnabled),
+			EnableRBAC:             utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
 			KubernetesVersion:      utils.String(kubernetesVersion),
 			LinuxProfile:           linuxProfile,
 			WindowsProfile:         windowsProfile,
@@ -1281,6 +1130,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			DisableLocalAccounts:   utils.Bool(d.Get("local_account_disabled").(bool)),
 			HTTPProxyConfig:        httpProxyConfig,
 			OidcIssuerProfile:      oidcIssuerProfile,
+			SecurityProfile:        microsoftDefender,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1440,48 +1290,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	updateCluster := false
 
 	// RBAC profile updates need to be handled atomically before any call to createUpdate as a diff there will create a PropertyChangeNotAllowed error
-	if !features.ThreePointOhBeta() {
-		if d.HasChange("role_based_access_control") {
-			props := existing.ManagedClusterProperties
-			// check if we can determine current EnableRBAC state - don't do anything destructive if we can't be sure
-			if props.EnableRBAC == nil {
-				return fmt.Errorf("updating %s: RBAC Enabled was nil", *id)
-			}
-			rbacRaw := d.Get("role_based_access_control").([]interface{})
-			tenantId := meta.(*clients.Client).Account.TenantId
-			rbacEnabled, azureADProfile, err := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
-			if err != nil {
-				return err
-			}
-
-			// changing rbacEnabled must still force cluster recreation
-			if *props.EnableRBAC == rbacEnabled {
-				props.AadProfile = azureADProfile
-				props.EnableRBAC = utils.Bool(rbacEnabled)
-
-				// Reset AAD profile is only possible if not managed
-				if props.AadProfile != nil && (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
-					log.Printf("[DEBUG] Updating the RBAC AAD profile")
-					future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.ManagedClusterName, *props.AadProfile)
-					if err != nil {
-						return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile for %s: %+v", *id, err)
-					}
-
-					if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-						return fmt.Errorf("waiting for update of RBAC AAD profile of %s: %+v", *id, err)
-					}
-				}
-			} else {
-				updateCluster = true
-			}
-
-			if props.AadProfile != nil && props.AadProfile.Managed != nil && *props.AadProfile.Managed {
-				existing.ManagedClusterProperties.AadProfile = azureADProfile
-				updateCluster = true
-			}
-		}
-	}
-
 	if d.HasChange("role_based_access_control_enabled") {
 		props := existing.ManagedClusterProperties
 		// check if we can determine current EnableRBAC state - don't do anything destructive if we can't be sure
@@ -1536,28 +1344,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.AddonProfiles = *addonProfiles
 	}
 
-	if !features.ThreePointOhBeta() {
-		if d.HasChange("addon_profile") {
-			updateCluster = true
-			addOnProfilesRaw := d.Get("addon_profile").([]interface{})
-			addonProfiles, err := expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
-			if err != nil {
-				return err
-			}
-			existing.ManagedClusterProperties.AddonProfiles = *addonProfiles
-		}
-	}
-
 	if d.HasChange("api_server_authorized_ip_ranges") {
 		updateCluster = true
 		apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*pluginsdk.Set).List()
 
 		enablePrivateCluster := false
-		if !features.ThreePointOhBeta() {
-			if v, ok := d.GetOk("private_link_enabled"); ok {
-				enablePrivateCluster = v.(bool)
-			}
-		}
 		if v, ok := d.GetOk("private_cluster_enabled"); ok {
 			enablePrivateCluster = v.(bool)
 		}
@@ -1573,6 +1364,14 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("private_cluster_public_fqdn_enabled") {
 		updateCluster = true
 		existing.ManagedClusterProperties.APIServerAccessProfile.EnablePrivateClusterPublicFQDN = utils.Bool(d.Get("private_cluster_public_fqdn_enabled").(bool))
+	}
+
+	if d.HasChange("run_command_enabled") {
+		updateCluster = true
+		if existing.ManagedClusterProperties.APIServerAccessProfile == nil {
+			existing.ManagedClusterProperties.APIServerAccessProfile = &containerservice.ManagedClusterAPIServerAccessProfile{}
+		}
+		existing.ManagedClusterProperties.APIServerAccessProfile.DisableRunCommand = utils.Bool(!d.Get("run_command_enabled").(bool))
 	}
 
 	if d.HasChange("auto_scaler_profile") {
@@ -1772,7 +1571,20 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.OidcIssuerProfile = oidcIssuerProfile
 	}
 
+	if d.HasChanges("microsoft_defender") {
+		updateCluster = true
+		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
+		microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
+		existing.ManagedClusterProperties.SecurityProfile = microsoftDefender
+	}
+
 	if updateCluster {
+		// If Defender was explicitly disabled in a prior update then we should strip security profile from the request
+		// body to prevent errors in cases where Defender is disabled for the entire subscription
+		if !d.HasChanges("microsoft_defender") && len(d.Get("microsoft_defender").([]interface{})) == 0 {
+			existing.ManagedClusterProperties.SecurityProfile = nil
+		}
+
 		log.Printf("[DEBUG] Updating %s..", *id)
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedClusterName, existing)
 		if err != nil {
@@ -1825,7 +1637,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		// if a users specified a version - confirm that version is supported on the cluster
 		if nodePoolVersion := agentProfile.ManagedClusterAgentPoolProfileProperties.OrchestratorVersion; nodePoolVersion != nil {
-			if err := validateNodePoolSupportsVersion(ctx, containersClient, defaultNodePoolId, *nodePoolVersion); err != nil {
+			existingNodePool, err := nodePoolsClient.Get(ctx, defaultNodePoolId.ResourceGroup, defaultNodePoolId.ManagedClusterName, defaultNodePoolId.AgentPoolName)
+			if err != nil {
+				return fmt.Errorf("retrieving Default Node Pool %s: %+v", defaultNodePoolId, err)
+			}
+			currentNodePoolVersion := ""
+			if v := existingNodePool.OrchestratorVersion; v != nil {
+				currentNodePoolVersion = *v
+			}
+
+			if err := validateNodePoolSupportsVersion(ctx, containersClient, currentNodePoolVersion, defaultNodePoolId, *nodePoolVersion); err != nil {
 				return err
 			}
 		}
@@ -1901,12 +1722,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("private_fqdn", props.PrivateFQDN)
 		d.Set("portal_fqdn", props.AzurePortalFQDN)
 		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
-		// CurrentKubernetesVersion contains the actual version the Managed Cluster is running after upgrading
-		// KubernetesVersion now seems to contain the initial version the cluster was created with
 		d.Set("kubernetes_version", props.KubernetesVersion)
-		if v := props.CurrentKubernetesVersion; v != nil {
-			d.Set("kubernetes_version", v)
-		}
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 		d.Set("local_account_disabled", props.DisableLocalAccounts)
@@ -1924,11 +1740,13 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
 			}
 
-			if !features.ThreePointOhBeta() {
-				d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
-			}
 			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
 			d.Set("private_cluster_public_fqdn_enabled", accessProfile.EnablePrivateClusterPublicFQDN)
+			runCommandEnabled := true
+			if accessProfile.DisableRunCommand != nil {
+				runCommandEnabled = !*accessProfile.DisableRunCommand
+			}
+			d.Set("run_command_enabled", runCommandEnabled)
 			switch {
 			case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
 				d.Set("private_dns_zone_id", "System")
@@ -1948,13 +1766,6 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("ingress_application_gateway", addOns["ingress_application_gateway"])
 		d.Set("open_service_mesh_enabled", addOns["open_service_mesh_enabled"].(bool))
 		d.Set("key_vault_secrets_provider", addOns["key_vault_secrets_provider"])
-
-		if !features.ThreePointOhBeta() {
-			addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
-			if err := d.Set("addon_profile", addonProfiles); err != nil {
-				return fmt.Errorf("setting `addon_profile`: %+v", err)
-			}
-		}
 
 		autoScalerProfile, err := flattenKubernetesClusterAutoScalerProfile(props.AutoScalerProfile)
 		if err != nil {
@@ -1988,13 +1799,6 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 		networkProfile := flattenKubernetesClusterNetworkProfile(props.NetworkProfile)
 		if err := d.Set("network_profile", networkProfile); err != nil {
 			return fmt.Errorf("setting `network_profile`: %+v", err)
-		}
-
-		if !features.ThreePointOhBeta() {
-			roleBasedAccessControl := flattenKubernetesClusterRoleBasedAccessControl(props, d)
-			if err := d.Set("role_based_access_control", roleBasedAccessControl); err != nil {
-				return fmt.Errorf("setting `role_based_access_control`: %+v", err)
-			}
 		}
 
 		rbacEnabled := true
@@ -2036,6 +1840,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		d.Set("oidc_issuer_enabled", oidcIssuerEnabled)
 		d.Set("oidc_issuer_url", oidcIssuerUrl)
+
+		microsoftDefender := flattenKubernetesClusterMicrosoftDefender(props.SecurityProfile)
+		if err := d.Set("microsoft_defender", microsoftDefender); err != nil {
+			return fmt.Errorf("setting `microsoft_defender`: %+v", err)
+		}
 
 		// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 		if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
@@ -2096,7 +1905,9 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName)
+	ignorePodDisruptionBudget := true
+
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ManagedClusterName, &ignorePodDisruptionBudget)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -2201,7 +2012,7 @@ func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservic
 
 		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
-			parsedId, err := msiparse.UserAssignedIdentityIDInsensitively(*resourceid)
+			parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*resourceid)
 			if err != nil {
 				return nil, err
 			}
@@ -2594,71 +2405,6 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 	}
 }
 
-func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, providerTenantId string) (bool, *containerservice.ManagedClusterAADProfile, error) {
-	if len(input) == 0 {
-		return false, nil, nil
-	}
-
-	val := input[0].(map[string]interface{})
-
-	rbacEnabled := val["enabled"].(bool)
-	azureADsRaw := val["azure_active_directory"].([]interface{})
-
-	var aad *containerservice.ManagedClusterAADProfile
-
-	if len(azureADsRaw) > 0 {
-		azureAdRaw := azureADsRaw[0].(map[string]interface{})
-
-		clientAppId := azureAdRaw["client_app_id"].(string)
-		serverAppId := azureAdRaw["server_app_id"].(string)
-		serverAppSecret := azureAdRaw["server_app_secret"].(string)
-		tenantId := azureAdRaw["tenant_id"].(string)
-		managed := azureAdRaw["managed"].(bool)
-		azureRbacEnabled := azureAdRaw["azure_rbac_enabled"].(bool)
-		adminGroupObjectIdsRaw := azureAdRaw["admin_group_object_ids"].(*pluginsdk.Set).List()
-		adminGroupObjectIds := utils.ExpandStringSlice(adminGroupObjectIdsRaw)
-
-		if tenantId == "" {
-			tenantId = providerTenantId
-		}
-
-		if managed {
-			aad = &containerservice.ManagedClusterAADProfile{
-				TenantID:            utils.String(tenantId),
-				Managed:             utils.Bool(managed),
-				AdminGroupObjectIDs: adminGroupObjectIds,
-				EnableAzureRBAC:     utils.Bool(azureRbacEnabled),
-			}
-
-			if clientAppId != "" || serverAppId != "" || serverAppSecret != "" {
-				return false, nil, fmt.Errorf("Can't specify client_app_id or server_app_id or server_app_secret when using managed aad rbac (managed = true)")
-			}
-		} else {
-			aad = &containerservice.ManagedClusterAADProfile{
-				ClientAppID:     utils.String(clientAppId),
-				ServerAppID:     utils.String(serverAppId),
-				ServerAppSecret: utils.String(serverAppSecret),
-				TenantID:        utils.String(tenantId),
-				Managed:         utils.Bool(managed),
-			}
-
-			if len(*adminGroupObjectIds) > 0 {
-				return false, nil, fmt.Errorf("Can't specify admin_group_object_ids when using managed aad rbac (managed = false)")
-			}
-
-			if clientAppId == "" || serverAppId == "" || serverAppSecret == "" {
-				return false, nil, fmt.Errorf("You must specify client_app_id and server_app_id and server_app_secret when using managed aad rbac (managed = false)")
-			}
-
-			if azureRbacEnabled {
-				return false, nil, fmt.Errorf("You must enable Managed AAD before Azure RBAC can be enabled")
-			}
-		}
-	}
-
-	return rbacEnabled, aad, nil
-}
-
 func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []interface{}, providerTenantId string) (*containerservice.ManagedClusterAADProfile, error) {
 	if len(input) == 0 {
 		return nil, nil
@@ -2735,77 +2481,6 @@ func expandKubernetesClusterManagedClusterIdentity(input []interface{}) (*contai
 		}
 	}
 	return &out, nil
-}
-
-func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.ManagedClusterProperties, d *pluginsdk.ResourceData) []interface{} {
-	rbacEnabled := false
-	if input.EnableRBAC != nil {
-		rbacEnabled = *input.EnableRBAC
-	}
-
-	results := make([]interface{}, 0)
-	if profile := input.AadProfile; profile != nil {
-		adminGroupObjectIds := utils.FlattenStringSlice(profile.AdminGroupObjectIDs)
-
-		clientAppId := ""
-		if profile.ClientAppID != nil {
-			clientAppId = *profile.ClientAppID
-		}
-
-		managed := false
-		if profile.Managed != nil {
-			managed = *profile.Managed
-		}
-
-		azureRbacEnabled := false
-		if profile.EnableAzureRBAC != nil {
-			azureRbacEnabled = *profile.EnableAzureRBAC
-		}
-
-		serverAppId := ""
-		if profile.ServerAppID != nil {
-			serverAppId = *profile.ServerAppID
-		}
-
-		serverAppSecret := ""
-		// since input.ServerAppSecret isn't returned we're pulling this out of the existing state (which won't work for Imports)
-		// role_based_access_control.0.azure_active_directory.0.server_app_secret
-		if existing, ok := d.GetOk("role_based_access_control"); ok {
-			rbacRawVals := existing.([]interface{})
-			if len(rbacRawVals) > 0 {
-				rbacRawVal := rbacRawVals[0].(map[string]interface{})
-				if azureADVals, ok := rbacRawVal["azure_active_directory"].([]interface{}); ok && len(azureADVals) > 0 {
-					azureADVal := azureADVals[0].(map[string]interface{})
-					v := azureADVal["server_app_secret"]
-					if v != nil {
-						serverAppSecret = v.(string)
-					}
-				}
-			}
-		}
-
-		tenantId := ""
-		if profile.TenantID != nil {
-			tenantId = *profile.TenantID
-		}
-
-		results = append(results, map[string]interface{}{
-			"admin_group_object_ids": pluginsdk.NewSet(pluginsdk.HashString, adminGroupObjectIds),
-			"client_app_id":          clientAppId,
-			"managed":                managed,
-			"server_app_id":          serverAppId,
-			"server_app_secret":      serverAppSecret,
-			"tenant_id":              tenantId,
-			"azure_rbac_enabled":     azureRbacEnabled,
-		})
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":                rbacEnabled,
-			"azure_active_directory": results,
-		},
-	}
 }
 
 func flattenKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input *containerservice.ManagedClusterProperties, d *pluginsdk.ResourceData) []interface{} {
@@ -3228,7 +2903,9 @@ func expandKubernetesClusterHttpProxyConfig(input []interface{}) *containerservi
 
 	httpProxyConfig.HTTPProxy = utils.String(config["http_proxy"].(string))
 	httpProxyConfig.HTTPSProxy = utils.String(config["https_proxy"].(string))
-	httpProxyConfig.TrustedCa = utils.String(config["trusted_ca"].(string))
+	if value := config["trusted_ca"].(string); len(value) != 0 {
+		httpProxyConfig.TrustedCa = utils.String(value)
+	}
 
 	noProxyRaw := config["no_proxy"].(*pluginsdk.Set).List()
 	httpProxyConfig.NoProxy = utils.ExpandStringSlice(noProxyRaw)
@@ -3277,4 +2954,41 @@ func flattenKubernetesClusterHttpProxyConfig(props *containerservice.ManagedClus
 		"no_proxy":    noProxyList,
 		"trusted_ca":  trustedCa,
 	})
+}
+
+func expandKubernetesClusterMicrosoftDefender(d *pluginsdk.ResourceData, input []interface{}) *containerservice.ManagedClusterSecurityProfile {
+	if (len(input) == 0 || input[0] == nil) && d.HasChange("microsoft_defender") {
+		return &containerservice.ManagedClusterSecurityProfile{
+			AzureDefender: &containerservice.ManagedClusterSecurityProfileAzureDefender{
+				Enabled: utils.Bool(false),
+			},
+		}
+	} else if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+	return &containerservice.ManagedClusterSecurityProfile{
+		AzureDefender: &containerservice.ManagedClusterSecurityProfileAzureDefender{
+			Enabled:                         utils.Bool(true),
+			LogAnalyticsWorkspaceResourceID: utils.String(config["log_analytics_workspace_id"].(string)),
+		},
+	}
+}
+
+func flattenKubernetesClusterMicrosoftDefender(input *containerservice.ManagedClusterSecurityProfile) []interface{} {
+	if input == nil || input.AzureDefender == nil || (input.AzureDefender.Enabled != nil && !*input.AzureDefender.Enabled) {
+		return []interface{}{}
+	}
+
+	logAnalyticsWorkspace := ""
+	if v := input.AzureDefender.LogAnalyticsWorkspaceResourceID; v != nil {
+		logAnalyticsWorkspace = *v
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"log_analytics_workspace_id": logAnalyticsWorkspace,
+		},
+	}
 }

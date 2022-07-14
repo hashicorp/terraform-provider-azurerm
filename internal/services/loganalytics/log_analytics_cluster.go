@@ -38,7 +38,7 @@ func logAnalyticsClusterRefresh(ctx context.Context, meta interface{}, resourceG
 
 		if resp.ClusterProperties != nil {
 			if resp.ClusterProperties.ProvisioningState != operationalinsights.Updating && resp.ClusterProperties.ProvisioningState != operationalinsights.Succeeded {
-				return nil, "nil", fmt.Errorf("Log Analytics Cluster %q (Resource Group %q) unexpected Provisioning State encountered: %q", clusterName, resourceGroup, string(resp.ClusterProperties.ProvisioningState))
+				return nil, "nil", fmt.Errorf("log analytics Cluster %q (Resource Group %q) unexpected Provisioning State encountered: %q", clusterName, resourceGroup, string(resp.ClusterProperties.ProvisioningState))
 			}
 
 			return resp, string(resp.ClusterProperties.ProvisioningState), nil

@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type PortalDashboardDataSource struct{}
@@ -42,34 +41,54 @@ func TestAccDataSourcePortalDashboard_complete(t *testing.T) {
 	})
 }
 
+func TestAccDataSourcePortalDashboard_displayName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_portal_dashboard", "test")
+	r := PortalDashboardDataSource{}
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.displayName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("display_name").HasValue("Test Display Name"),
+			),
+		},
+	})
+}
+
 func (PortalDashboardDataSource) basic(data acceptance.TestData) string {
-	resourceName := "azurerm_portal_dashboard"
-	if !features.ThreePointOhBeta() {
-		resourceName = "azurerm_dashboard"
-	}
 	return fmt.Sprintf(`
 
 %s
 
 data "azurerm_portal_dashboard" "test" {
-  name                = %s.test.name
+  name                = azurerm_portal_dashboard.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, PortalDashboardResource{}.basic(data), resourceName)
+`, PortalDashboardResource{}.basic(data))
 }
 
 func (PortalDashboardDataSource) complete(data acceptance.TestData) string {
-	resourceName := "azurerm_portal_dashboard"
-	if !features.ThreePointOhBeta() {
-		resourceName = "azurerm_dashboard"
-	}
 	return fmt.Sprintf(`
 
 %s
 
 data "azurerm_portal_dashboard" "test" {
-  name                = %s.test.name
+  name                = azurerm_portal_dashboard.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, PortalDashboardResource{}.complete(data), resourceName)
+`, PortalDashboardResource{}.complete(data))
+}
+
+func (PortalDashboardDataSource) displayName(data acceptance.TestData) string {
+	resourceName := "azurerm_portal_dashboard"
+	return fmt.Sprintf(`
+
+%s
+
+data "azurerm_portal_dashboard" "test" {
+  display_name        = "Test Display Name"
+  resource_group_name = azurerm_resource_group.test.name
+
+  depends_on = ["%s.test"]
+}
+`, PortalDashboardResource{}.hiddenTitle(data), resourceName)
 }

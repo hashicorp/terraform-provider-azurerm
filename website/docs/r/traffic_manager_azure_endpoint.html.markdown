@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_public_ip" "example" {
   name                = "example-public-ip"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
   domain_name_label   = "example-public-ip"
 }
@@ -38,7 +38,7 @@ resource "azurerm_traffic_manager_profile" "example" {
   }
 
   monitor_config {
-    protocol                     = "http"
+    protocol                     = "HTTP"
     port                         = 80
     path                         = "/"
     interval_in_seconds          = 30
@@ -55,7 +55,7 @@ resource "azurerm_traffic_manager_azure_endpoint" "example" {
   name               = "example-endpoint"
   profile_id         = azurerm_traffic_manager_profile.example.id
   weight             = 100
-  target_resource_id = azurerm_public_ip.test.id
+  target_resource_id = azurerm_public_ip.example.id
 }
 ```
 
@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the endpoint enabled? Defaults to `true`.
 
-* `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/en-us/rest/api/trafficmanager/geographichierarchies/getdefault).
+* `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/rest/api/trafficmanager/geographichierarchies/getdefault).
 
 * `priority` - (Optional) Specifies the priority of this Endpoint, this must be
   specified for Profiles using the `Priority` traffic routing method. Supports
@@ -92,7 +92,7 @@ A `custom_header` block supports the following:
 
 * `name` - (Required) The name of the custom header.
 
-* `value` - (Required) The value of custom header. Applicable for Http and Https protocol.
+* `value` - (Required) The value of custom header. Applicable for HTTP and HTTPS protocol.
 
 ---
 

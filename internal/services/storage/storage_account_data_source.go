@@ -38,6 +38,8 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
 			"account_kind": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -88,6 +90,11 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 			},
 
 			"is_hns_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"nfsv3_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -334,6 +341,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("min_tls_version", string(props.MinimumTLSVersion))
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
+		d.Set("nfsv3_enabled", props.EnableNfsV3)
 		d.Set("allow_nested_items_to_be_public", props.AllowBlobPublicAccess)
 
 		if customDomain := props.CustomDomain; customDomain != nil {
@@ -411,6 +419,14 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		storageAccountKeys := *accessKeys
 		d.Set("primary_access_key", storageAccountKeys[0].Value)
 		d.Set("secondary_access_key", storageAccountKeys[1].Value)
+	}
+
+	identity, err := flattenAzureRmStorageAccountIdentity(resp.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

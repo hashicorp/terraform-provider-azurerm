@@ -17,7 +17,9 @@ func (r Registration) AssociatedGitHubLabel() string {
 type Registration struct{}
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		AssignmentDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
@@ -57,6 +59,10 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_policy_set_definition":                           resourceArmPolicySetDefinition(),
 		"azurerm_management_group_policy_remediation":             resourceArmManagementGroupPolicyRemediation(),
 		"azurerm_resource_policy_remediation":                     resourceArmResourcePolicyRemediation(),
+		"azurerm_management_group_policy_exemption":               resourceArmManagementGroupPolicyExemption(),
+		"azurerm_resource_policy_exemption":                       resourceArmResourcePolicyExemption(),
+		"azurerm_resource_group_policy_exemption":                 resourceArmResourceGroupPolicyExemption(),
+		"azurerm_subscription_policy_exemption":                   resourceArmSubscriptionPolicyExemption(),
 		"azurerm_resource_group_policy_remediation":               resourceArmResourceGroupPolicyRemediation(),
 		"azurerm_subscription_policy_remediation":                 resourceArmSubscriptionPolicyRemediation(),
 		"azurerm_policy_virtual_machine_configuration_assignment": resourcePolicyVirtualMachineConfigurationAssignment(),

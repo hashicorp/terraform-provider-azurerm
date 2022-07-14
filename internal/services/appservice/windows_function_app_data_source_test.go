@@ -19,6 +19,7 @@ func TestAccWindowsFunctionAppDataSource_complete(t *testing.T) {
 			Config: d.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("default_hostname").HasValue(fmt.Sprintf("acctest-wfa-%d.azurewebsites.net", data.RandomInteger)),
 			),
 		},
 	})

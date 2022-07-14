@@ -88,6 +88,7 @@ resource "azurerm_sentinel_watchlist" "test" {
   name                       = "accTestWL-%d"
   log_analytics_workspace_id = azurerm_log_analytics_solution.sentinel.workspace_resource_id
   display_name               = "test"
+  item_search_key            = "Key"
 }
 `, template, data.RandomInteger)
 }
@@ -104,6 +105,7 @@ resource "azurerm_sentinel_watchlist" "test" {
   description                = "description"
   labels                     = ["label1", "laebl2"]
   default_duration           = "P2DT3H"
+  item_search_key            = "Key"
 }
 `, template, data.RandomInteger)
 }
@@ -117,6 +119,7 @@ resource "azurerm_sentinel_watchlist" "import" {
   name                       = azurerm_sentinel_watchlist.test.name
   log_analytics_workspace_id = azurerm_sentinel_watchlist.test.log_analytics_workspace_id
   display_name               = azurerm_sentinel_watchlist.test.display_name
+  item_search_key            = azurerm_sentinel_watchlist.test.item_search_key
 }
 `, template)
 }

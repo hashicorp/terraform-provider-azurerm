@@ -48,13 +48,19 @@ output "job_id" {
 
 * `location` - The Azure location where the Stream Analytics Job exists.
 
-* `identity` - (Optional) An `identity` block as defined below.
+* `identity` - An `identity` block as defined below.
+
+* `last_output_time` - The time at which the Stream Analytics job last produced an output.
 
 * `output_error_policy` - The policy which should be applied to events which arrive at the output and cannot be written to the external storage due to being malformed (such as missing column values, column values of wrong type or size). 
 
-* `streaming_units` - The number of streaming units that the streaming job uses.
+* `start_mode` - The starting mode set for this Stream Analytics Job.
 
-* `transformation_query` - The query that will be run in the streaming job, [written in Stream Analytics Query Language (SAQL)](https://msdn.microsoft.com/library/azure/dn834998).
+* `start_time` - The time at which this Stream Analytics Job was scheduled to start.
+
+* `streaming_units` - The number of streaming units that this Stream Analytics Job uses.
+
+* `transformation_query` - The query that will be run in this Stream Analytics Job, [written in Stream Analytics Query Language (SAQL)](https://msdn.microsoft.com/library/azure/dn834998).
 
 ---
 
