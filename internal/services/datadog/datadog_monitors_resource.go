@@ -257,13 +257,9 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("marketplace_subscription_status", props.MarketplaceSubscriptionStatus)
 	}
 
-	skuName := d.Get("sku").(string)
 	if resp.Sku.Name != nil {
-		if skuName == "Linked" {
-			*resp.Sku.Name = "Linked"
-		}
+		d.Set("sku_name", d.Get("Sku_name"))
 	}
-	d.Set("sku_name", resp.Sku.Name)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -280,6 +276,10 @@ func resourceDatadogMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	body := datadog.MonitorResourceUpdateParameters{
 		Properties: &datadog.MonitorUpdateProperties{},
+		Sku:        &datadog.ResourceSku{},
+	}
+	if d.HasChange("sku_name") {
+		body.Sku.Name = utils.String(d.Get("sku_name").(string))
 	}
 	if d.HasChange("monitoring_enabled") {
 		monitoringStatus := datadog.MonitoringStatusDisabled
