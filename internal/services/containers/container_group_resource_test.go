@@ -740,6 +740,10 @@ resource "azurerm_container_group" "test" {
         path   = "/"
         port   = 443
         scheme = "Http"
+        http_headers = {
+          h1 = "v1"
+          h2 = "v2"
+        }
       }
     }
   }
@@ -1764,6 +1768,10 @@ resource "azurerm_container_group" "test" {
         path   = "/"
         port   = 443
         scheme = "Http"
+        http_headers = {
+          h1 = "v1"
+          h2 = "v2"
+        }
       }
 
       initial_delay_seconds = 1
@@ -1910,6 +1918,10 @@ resource "azurerm_container_group" "test" {
         path   = "/"
         port   = 443
         scheme = "Http"
+        http_headers = {
+          h1 = "v1"
+          h2 = "v2"
+        }
       }
 
       initial_delay_seconds = 1
