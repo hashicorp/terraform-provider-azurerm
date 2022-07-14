@@ -344,7 +344,7 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
-					"identity_reference": {
+					"identity_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},

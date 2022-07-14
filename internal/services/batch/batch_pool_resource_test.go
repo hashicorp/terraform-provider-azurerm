@@ -394,13 +394,13 @@ func TestAccBatchPool_validateResourceFileHttpURLWithoutFilePath(t *testing.T) {
 	})
 }
 
-func TestAccBatchPool_validateResourceFileWithIdentityReference(t *testing.T) {
+func TestAccBatchPool_validateResourceFileWithIdentityId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.validateResourceFileWithIdentityReference(data),
+			Config: r.validateResourceFileWithIdentityId(data),
 			Check:  acceptance.ComposeTestCheckFunc(check.That(data.ResourceName).ExistsInAzure(r)),
 		},
 	})
@@ -1211,7 +1211,7 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func (BatchPoolResource) validateResourceFileWithIdentityReference(data acceptance.TestData) string {
+func (BatchPoolResource) validateResourceFileWithIdentityId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1270,7 +1270,7 @@ resource "azurerm_batch_pool" "test" {
     resource_file {
       http_url  = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/main/README.md"
       file_path = "README.md"
-      identity_reference = azurerm_user_assigned_identity.test.id
+      identity_id = azurerm_user_assigned_identity.test.id
     }
   }
 }
