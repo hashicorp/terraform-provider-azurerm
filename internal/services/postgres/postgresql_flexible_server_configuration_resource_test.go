@@ -90,12 +90,14 @@ func TestAccFlexibleServerConfiguration_updateApplicationName(t *testing.T) {
 
 func (r PostgresqlFlexibleServerConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := configurations.ParseConfigurationID(state.ID)
+		id, err := configurations.ParseFlexibleServerID(state.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := clients.Postgres.FlexibleServersConfigurationsClient.Get(ctx, *id)
+		configurationId := configurations.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, configurationName)
+
+		resp, err := clients.Postgres.FlexibleServersConfigurationsClient.Get(ctx, configurationId)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("%s does not exist", id)

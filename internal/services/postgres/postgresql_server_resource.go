@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/go-autorest/autorest/date"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -441,8 +443,10 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		props = &servers.ServerPropertiesForRestore{
-			SourceServerId:           source,
-			RestorePointInTime:       time.String(),
+			SourceServerId: source,
+			RestorePointInTime: &date.Time{
+				Time: time,
+			},
 			InfrastructureEncryption: &infraEncrypt,
 			MinimalTlsVersion:        &tlsMin,
 			SslEnforcement:           &ssl,

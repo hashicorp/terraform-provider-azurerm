@@ -96,12 +96,14 @@ func TestAccPostgreSQLConfiguration_multiplePostgreSQLConfigurations(t *testing.
 
 func (r PostgreSQLConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := configurations.ParseConfigurationID(state.Attributes["id"])
+		id, err := configurations.ParseServerID(state.Attributes["id"])
 		if err != nil {
 			return err
 		}
 
-		resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, *id)
+		configurationId := configurations.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, configurationName)
+
+		resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, configurationId)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("%s does not exist", id)

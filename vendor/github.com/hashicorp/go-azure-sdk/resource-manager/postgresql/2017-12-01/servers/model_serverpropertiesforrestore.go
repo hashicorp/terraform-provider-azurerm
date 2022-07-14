@@ -3,6 +3,8 @@ package servers
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/Azure/go-autorest/autorest/date"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -11,7 +13,7 @@ import (
 var _ ServerPropertiesForCreate = ServerPropertiesForRestore{}
 
 type ServerPropertiesForRestore struct {
-	RestorePointInTime string `json:"restorePointInTime"`
+	RestorePointInTime *date.Time `json:"restorePointInTime"`
 	SourceServerId     string `json:"sourceServerId"`
 
 	// Fields inherited from ServerPropertiesForCreate
