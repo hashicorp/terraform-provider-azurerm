@@ -72,7 +72,7 @@ provider "azurerm" {
 }
 ```
 
-## Arguments
+## Arguments Reference
 
 The `features` block supports the following:
 
@@ -106,7 +106,7 @@ The `api_management` block supports the following:
 
 The `application_insights` block supports the following:
 
-* `disable_generated_rule` - (Optional) Should the `azurerm_application_insights` resources disable the Azure generated Alert Rule and Action Group during the create step? Defaults to `false`.
+* `disable_generated_rule` - (Optional) Should the `azurerm_application_insights` resources disable the Azure generated Alert Rule during the create step? Defaults to `false`.
 
 ---
 
@@ -127,6 +127,8 @@ The `key_vault` block supports the following:
 * `purge_soft_deleted_keys_on_destroy` - (Optional) Should the `azurerm_key_vault_key` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 * `purge_soft_deleted_secrets_on_destroy` - (Optional) Should the `azurerm_key_vault_secret` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+* `purge_soft_deleted_hardware_security_modules_on_destroy` - (Optional) Should the `azurerm_key_vault_managed_hardware_security_module` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 * `recover_soft_deleted_certificates` - (Optional) Should the `azurerm_key_vault_certificate` resource recover a Soft-Deleted Certificate? Defaults to `true`.
 

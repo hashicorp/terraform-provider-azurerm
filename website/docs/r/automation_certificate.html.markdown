@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Certificate is created. Changing this forces a new resource to be created.
 
-* `base64` - (Required) Base64 encoded value of the certificate.
+* `base64` - (Required) Base64 encoded value of the certificate. Changing this forces a new resource to be created.
 
 * `description` -  (Optional) The description of this Automation Certificate.
 

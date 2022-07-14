@@ -3,6 +3,7 @@ package streamanalytics_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -63,6 +64,42 @@ func TestAccStreamAnalyticsOutputTable_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccStreamAnalyticsOutputTable_columnsToRemove(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_table", "test")
+	r := StreamAnalyticsOutputTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_key"),
+		{
+			Config: r.columnsToRemove(data, "column1", "column2", "column3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_key"),
+		{
+			Config: r.columnsToRemove(data, "column2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_key"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_key"),
 	})
 }
 
@@ -131,6 +168,31 @@ resource "azurerm_stream_analytics_output_table" "test" {
   batch_size                = 50
 }
 `, template, data.RandomString, data.RandomInteger)
+}
+
+func (r StreamAnalyticsOutputTableResource) columnsToRemove(data acceptance.TestData, columns ...string) string {
+	columnsToRemove := make([]string, len(columns))
+	for idx, columnToRemove := range columns {
+		columnsToRemove[idx] = fmt.Sprintf(`"%s"`, columnToRemove)
+	}
+
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_output_table" "test" {
+  name                      = "acctestoutput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  storage_account_name      = azurerm_storage_account.test.name
+  storage_account_key       = azurerm_storage_account.test.primary_access_key
+  table                     = "foobar"
+  partition_key             = "foo"
+  row_key                   = "bar"
+  batch_size                = 100
+  columns_to_remove         = [%s]
+}
+`, template, data.RandomInteger, strings.Join(columnsToRemove, ","))
 }
 
 func (r StreamAnalyticsOutputTableResource) requiresImport(data acceptance.TestData) string {

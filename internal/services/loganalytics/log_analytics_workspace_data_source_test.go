@@ -10,6 +10,7 @@ import (
 
 type LogAnalyticsWorkspaceDataSource struct{}
 
+// NOTE: The RP lowercases the sku return value which is why the tests fail
 func TestAccDataSourceLogAnalyticsWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_log_analytics_workspace", "test")
 	r := LogAnalyticsWorkspaceDataSource{}

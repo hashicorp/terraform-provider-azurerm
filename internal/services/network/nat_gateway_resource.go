@@ -5,14 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -49,7 +48,7 @@ func resourceNatGateway() *pluginsdk.Resource {
 }
 
 func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -86,33 +85,6 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		out["zones"] = azure.SchemaZones()
-		out["public_ip_address_ids"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-			Deprecated: "Inline Public IP Address ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_association` resource. This field will be removed in the next major version of the Azure Provider.",
-		}
-
-		out["public_ip_prefix_ids"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-			Deprecated: "Inline Public IP Prefix ID Associations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_prefix_association` resource. This field will be removed in the next major version of the Azure Provider.",
-		}
-	}
-
-	return out
 }
 
 func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -151,20 +123,10 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		},
 		Tags: tags.Expand(t),
 	}
-	if features.ThreePointOhBeta() {
-		zones := zones.Expand(d.Get("zones").(*schema.Set).List())
-		if len(zones) > 0 {
-			parameters.Zones = &zones
-		}
-	} else {
-		parameters.Zones = utils.ExpandStringSlice(d.Get("zones").([]interface{}))
-	}
 
-	if !features.ThreePointOhBeta() {
-		publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*pluginsdk.Set).List()
-		publicIpAddressIds := d.Get("public_ip_address_ids").(*pluginsdk.Set).List()
-		parameters.NatGatewayPropertiesFormat.PublicIPAddresses = expandNetworkSubResourceID(publicIpAddressIds)
-		parameters.NatGatewayPropertiesFormat.PublicIPPrefixes = expandNetworkSubResourceID(publicIpPrefixIds)
+	zones := zones.Expand(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		parameters.Zones = &zones
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
@@ -231,17 +193,6 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	if !features.ThreePointOhBeta() {
-		if d.HasChange("public_ip_address_ids") {
-			publicIpAddressIds := d.Get("public_ip_address_ids").(*pluginsdk.Set).List()
-			parameters.NatGatewayPropertiesFormat.PublicIPAddresses = expandNetworkSubResourceID(publicIpAddressIds)
-		}
-		if d.HasChange("public_ip_prefix_ids") {
-			publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*pluginsdk.Set).List()
-			parameters.NatGatewayPropertiesFormat.PublicIPPrefixes = expandNetworkSubResourceID(publicIpPrefixIds)
-		}
-	}
-
 	if d.HasChange("tags") {
 		t := d.Get("tags").(map[string]interface{})
 		parameters.Tags = tags.Expand(t)
@@ -292,15 +243,6 @@ func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if props := resp.NatGatewayPropertiesFormat; props != nil {
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 		d.Set("resource_guid", props.ResourceGUID)
-
-		if !features.ThreePointOhBeta() {
-			if err := d.Set("public_ip_address_ids", flattenNetworkSubResourceID(props.PublicIPAddresses)); err != nil {
-				return fmt.Errorf("setting `public_ip_address_ids`: %+v", err)
-			}
-			if err := d.Set("public_ip_prefix_ids", flattenNetworkSubResourceID(props.PublicIPPrefixes)); err != nil {
-				return fmt.Errorf("setting `public_ip_prefix_ids`: %+v", err)
-			}
-		}
 	}
 
 	d.Set("zones", zones.Flatten(resp.Zones))

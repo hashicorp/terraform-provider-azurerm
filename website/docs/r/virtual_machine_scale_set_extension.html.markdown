@@ -15,8 +15,31 @@ Manages an Extension for a Virtual Machine Scale Set.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example"
+  location = "West Europe"
+}
+
 resource "azurerm_linux_virtual_machine_scale_set" "example" {
-  #...
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "Standard_F2"
+  admin_username      = "adminuser"
+  instances           = 1
+
+  network_interface {
+    name = "example"
+
+    ip_configuration {
+      name = "internal"
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
 }
 
 resource "azurerm_virtual_machine_scale_set_extension" "example" {

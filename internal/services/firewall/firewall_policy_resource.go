@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -14,14 +14,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	logAnalytiscValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -260,7 +258,7 @@ func expandFirewallPolicyDNSSetting(input []interface{}) *network.DNSSettings {
 
 	raw := input[0].(map[string]interface{})
 	output := &network.DNSSettings{
-		Servers:     utils.ExpandStringSlice(raw["servers"].(*pluginsdk.Set).List()),
+		Servers:     utils.ExpandStringSlice(raw["servers"].([]interface{})),
 		EnableProxy: utils.Bool(raw["proxy_enabled"].(bool)),
 	}
 
@@ -412,14 +410,11 @@ func flattenFirewallPolicyDNSSetting(input *network.DNSSettings) []interface{} {
 		proxyEnabled = *input.EnableProxy
 	}
 
-	out := map[string]interface{}{
-		"servers":       utils.FlattenStringSlice(input.Servers),
-		"proxy_enabled": proxyEnabled,
-	}
-	if !features.ThreePointOhBeta() {
-		out["network_rule_fqdn_enabled"] = false
-	}
-	return []interface{}{out}
+	return []interface{}{
+		map[string]interface{}{
+			"servers":       utils.FlattenStringSlice(input.Servers),
+			"proxy_enabled": proxyEnabled,
+		}}
 }
 
 func flattenFirewallPolicyIntrusionDetection(input *network.FirewallPolicyIntrusionDetection) []interface{} {
@@ -602,7 +597,7 @@ func flattenFirewallPolicyLogAnalyticsResources(input *network.FirewallPolicyLog
 }
 
 func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -620,6 +615,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(network.FirewallPolicySkuTierPremium),
 				string(network.FirewallPolicySkuTierStandard),
+				string(network.FirewallPolicySkuTierBasic),
 			}, false),
 		},
 
@@ -639,7 +635,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"servers": {
-						Type:     pluginsdk.TypeSet,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
@@ -752,8 +748,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 										string(network.FirewallPolicyIntrusionDetectionProtocolANY),
 										string(network.FirewallPolicyIntrusionDetectionProtocolTCP),
 										string(network.FirewallPolicyIntrusionDetectionProtocolUDP),
-									}, !features.ThreePointOhBeta()),
-									DiffSuppressFunc: suppress.CaseDifferenceV2Only,
+									}, false),
 								},
 								"source_addresses": {
 									Type:     pluginsdk.TypeSet,
@@ -895,16 +890,4 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 		"tags": tags.SchemaEnforceLowerCaseKeys(),
 	}
-
-	if !features.ThreePointOhBeta() {
-		s := schema["dns"].Elem.(*pluginsdk.Resource)
-		s.Schema["network_rule_fqdn_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This property has been deprecated as the service team has removed it from all API versions and is no longer supported by Azure. It will be removed in v3.0 of the provider.",
-		}
-	}
-
-	return schema
 }

@@ -7,14 +7,13 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2021-07-02/devices"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
-	msivalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -46,7 +45,7 @@ func resourceIotHubEndpointServiceBusTopic() *pluginsdk.Resource {
 }
 
 func resourceIothubEndpointServicebusTopicSchema() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -59,17 +58,9 @@ func resourceIothubEndpointServicebusTopicSchema() map[string]*pluginsdk.Schema 
 		//lintignore: S013
 		"iothub_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     features.ThreePointOhBeta(),
-			Optional:     !features.ThreePointOhBeta(),
+			Required:     true,
 			ForceNew:     true,
-			Computed:     !features.ThreePointOhBeta(),
 			ValidateFunc: iothubValidate.IotHubID,
-			ConflictsWith: func() []string {
-				if !features.ThreePointOhBeta() {
-					return []string{"iothub_name"}
-				}
-				return []string{}
-			}(),
 		},
 
 		"authentication_type": {
@@ -85,7 +76,7 @@ func resourceIothubEndpointServicebusTopicSchema() map[string]*pluginsdk.Schema 
 		"identity_id": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			ValidateFunc:  msivalidate.UserAssignedIdentityID,
+			ValidateFunc:  commonids.ValidateUserAssignedIdentityID,
 			ConflictsWith: []string{"connection_string"},
 		},
 
@@ -120,18 +111,6 @@ func resourceIothubEndpointServicebusTopicSchema() map[string]*pluginsdk.Schema 
 			ExactlyOneOf:  []string{"endpoint_uri", "connection_string"},
 		},
 	}
-	if !features.ThreePointOhBeta() {
-		out["iothub_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			Computed:      true,
-			ValidateFunc:  iothubValidate.IoTHubName,
-			Deprecated:    "Deprecated in favour of `iothub_id`",
-			ConflictsWith: []string{"iothub_id"},
-		}
-	}
-	return out
 }
 
 func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -142,20 +121,13 @@ func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
 	endpointRG := d.Get("resource_group_name").(string)
-	iotHubRG := endpointRG
 
-	var iotHubName string
-	if !features.ThreePointOhBeta() {
-		iotHubName = d.Get("iothub_name").(string)
+	iotHubId, err := parse.IotHubID(d.Get("iothub_id").(string))
+	if err != nil {
+		return err
 	}
-	if iotHubName == "" {
-		id, err := parse.IotHubID(d.Get("iothub_id").(string))
-		if err != nil {
-			return err
-		}
-		iotHubName = id.Name
-		iotHubRG = id.ResourceGroup
-	}
+	iotHubName := iotHubId.Name
+	iotHubRG := iotHubId.ResourceGroup
 
 	id := parse.NewEndpointServiceBusTopicID(subscriptionId, iotHubRG, iotHubName, d.Get("name").(string))
 
@@ -268,9 +240,6 @@ func resourceIotHubEndpointServiceBusTopicRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	d.Set("name", id.EndpointName)
-	if !features.ThreePointOhBeta() {
-		d.Set("iothub_name", id.IotHubName)
-	}
 
 	iotHubId := parse.NewIotHubID(id.SubscriptionId, id.ResourceGroup, id.IotHubName)
 	d.Set("iothub_id", iotHubId.ID())

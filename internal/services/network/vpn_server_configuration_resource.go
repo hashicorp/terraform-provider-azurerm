@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -280,7 +280,7 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 
 						"server_root_certificate": {
 							Type:     pluginsdk.TypeSet,
-							Required: true,
+							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"name": {
@@ -772,7 +772,7 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 }
 
 func flattenVpnServerConfigurationRadius(input *network.VpnServerConfigurationProperties) []interface{} {
-	if input == nil || (input.RadiusServerAddress == nil && input.RadiusServers == nil) || input.RadiusServerRootCertificates == nil || len(*input.RadiusServerRootCertificates) == 0 {
+	if input == nil || (input.RadiusServerAddress == nil && (input.RadiusServers == nil || len(*input.RadiusServers) == 0)) {
 		return []interface{}{}
 	}
 

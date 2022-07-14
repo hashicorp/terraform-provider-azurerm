@@ -25,9 +25,8 @@ resource "azurerm_data_factory" "example" {
 }
 
 resource "azurerm_data_factory_pipeline" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  data_factory_id     = azurerm_data_factory.example.id
+  name            = "example"
+  data_factory_id = azurerm_data_factory.example.id
 }
 
 resource "azurerm_eventgrid_topic" "example" {

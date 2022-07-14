@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"os"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -91,6 +93,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 
 					"purge_soft_deleted_secrets_on_destroy": {
 						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be permanently deleted (e.g purged), when destroyed",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+
+					"purge_soft_deleted_hardware_security_modules_on_destroy": {
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module` resources will be permanently deleted (e.g purged), when destroyed",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -229,7 +238,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"prevent_deletion_if_contains_resources": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  true,
+						Default:  os.Getenv("TF_ACC") == "",
 					},
 				},
 			},
@@ -317,6 +326,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := keyVaultRaw["purge_soft_deleted_secrets_on_destroy"]; ok {
 				featuresMap.KeyVault.PurgeSoftDeletedSecretsOnDestroy = v.(bool)
+			}
+			if v, ok := keyVaultRaw["purge_soft_deleted_hardware_security_modules_on_destroy"]; ok {
+				featuresMap.KeyVault.PurgeSoftDeletedHSMsOnDestroy = v.(bool)
 			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_certificates"]; ok {
 				featuresMap.KeyVault.RecoverSoftDeletedCerts = v.(bool)

@@ -27,7 +27,6 @@ resource "azurerm_logic_app_integration_account" "example" {
 
 resource "azurerm_logic_app_integration_account_session" "example" {
   name                     = "example-ias"
-  location                 = azurerm_resource_group.example.location
   resource_group_name      = azurerm_resource_group.example.name
   integration_account_name = azurerm_logic_app_integration_account.example.name
 

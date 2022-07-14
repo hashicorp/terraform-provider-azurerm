@@ -103,6 +103,16 @@ func dataSourceKeyVaultKey() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"resource_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"resource_versionless_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -209,6 +219,9 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("version", parsedId.Version)
+
+	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, parsedId.Name, parsedId.Version).ID())
+	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroup, keyVaultId.Name, parsedId.Name).ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

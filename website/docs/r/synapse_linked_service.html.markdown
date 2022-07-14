@@ -40,6 +40,10 @@ resource "azurerm_synapse_workspace" "example" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
   managed_virtual_network_enabled      = true
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_synapse_firewall_rule" "example" {
@@ -55,7 +59,7 @@ resource "azurerm_synapse_linked_service" "example" {
   type                 = "AzureBlobStorage"
   type_properties_json = <<JSON
 {
-  "connectionString": "${azurerm_storage_account.test.primary_connection_string}"
+  "connectionString": "${azurerm_storage_account.example.primary_connection_string}"
 }
 JSON
 
@@ -75,7 +79,7 @@ The following arguments are supported:
 
 * `synapse_workspace_id` - (Required) The Synapse Workspace ID in which to associate the Linked Service with. Changing this forces a new Synapse Linked Service to be created.
 
-* `type` - (Required) The type of data stores that will be connected to Synapse. For full list of supported data stores, please refer to [Azure Synapse connector](https://docs.microsoft.com/en-us/azure/data-factory/connector-overview). Changing this forces a new Synapse Linked Service to be created.
+* `type` - (Required) The type of data stores that will be connected to Synapse. For full list of supported data stores, please refer to [Azure Synapse connector](https://docs.microsoft.com/azure/data-factory/connector-overview). Changing this forces a new Synapse Linked Service to be created.
 
 * `type_properties_json` - (Required) A JSON object that contains the properties of the Synapse Linked Service.
 

@@ -3,12 +3,12 @@ subcategory: "VMware (AVS)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_vmware_private_cloud"
 description: |-
-  Manages a Vmware Private Cloud.
+  Manages a VMware Private Cloud.
 ---
 
 # azurerm_vmware_private_cloud
 
-Manages a Vmware Private Cloud.
+Manages a VMware Private Cloud.
 
 ## Example Usage
 
@@ -46,27 +46,27 @@ resource "azurerm_vmware_private_cloud" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Vmware Private Cloud. Changing this forces a new Vmware Private Cloud to be created.
+* `name` - (Required) The name which should be used for this VMware Private Cloud. Changing this forces a new VMware Private Cloud to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Vmware Private Cloud should exist. Changing this forces a new Vmware Private Cloud to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the VMware Private Cloud should exist. Changing this forces a new VMware Private Cloud to be created.
 
-* `location` - (Required) The Azure Region where the Vmware Private Cloud should exist. Changing this forces a new Vmware Private Cloud to be created.
+* `location` - (Required) The Azure Region where the VMware Private Cloud should exist. Changing this forces a new VMware Private Cloud to be created.
 
 * `management_cluster` - (Required) A `management_cluster` block as defined below.
 ~> **NOTE :** `internet_connection_enabled` and `management_cluster.0.size` cannot be updated at the same time.
 
-* `network_subnet_cidr` - (Required) The subnet which should be unique across virtual network in your subscription as well as on-premise. Changing this forces a new Vmware Private Cloud to be created.
+* `network_subnet_cidr` - (Required) The subnet which should be unique across virtual network in your subscription as well as on-premise. Changing this forces a new VMware Private Cloud to be created.
 
-* `sku_name` - (Required) The Name of the SKU used for this Private Cloud. Possible values are `av20`, `av36` and `av36t`. Changing this forces a new Vmware Private Cloud to be created.
+* `sku_name` - (Required) The Name of the SKU used for this Private Cloud. Possible values are `av20`, `av36` and `av36t`. Changing this forces a new VMware Private Cloud to be created.
 
 * `internet_connection_enabled` - (Optional) Is the Private Cluster connected to the internet? This field can not updated with `management_cluster.0.size` together.
 ~> **NOTE :** `internet_connection_enabled` and `management_cluster.0.size` cannot be updated at the same time.
 
-* `nsxt_password` - (Optional) The password of the NSX-T Manager. Changing this forces a new Vmware Private Cloud to be created.
+* `nsxt_password` - (Optional) The password of the NSX-T Manager. Changing this forces a new VMware Private Cloud to be created.
 
-* `vcenter_password` - (Optional) The password of the vCenter admin. Changing this forces a new Vmware Private Cloud to be created.
+* `vcenter_password` - (Optional) The password of the vCenter admin. Changing this forces a new VMware Private Cloud to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Vmware Private Cloud.
+* `tags` - (Optional) A mapping of tags which should be assigned to the VMware Private Cloud.
 
 ---
 
@@ -78,7 +78,7 @@ A `management_cluster` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Vmware Private Cloud.
+* `id` - The ID of the VMware Private Cloud.
 
 * `circuit` - A `circuit` block as defined below.
 
@@ -122,14 +122,14 @@ A `management_cluster` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 10 hours) Used when creating the Vmware Private Cloud.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Vmware Private Cloud.
-* `update` - (Defaults to 10 hours) Used when updating the Vmware Private Cloud.
-* `delete` - (Defaults to 10 hours) Used when deleting the Vmware Private Cloud.
+* `create` - (Defaults to 10 hours) Used when creating the VMware Private Cloud.
+* `read` - (Defaults to 5 minutes) Used when retrieving the VMware Private Cloud.
+* `update` - (Defaults to 10 hours) Used when updating the VMware Private Cloud.
+* `delete` - (Defaults to 10 hours) Used when deleting the VMware Private Cloud.
 
 ## Import
 
-Vmware Private Clouds can be imported using the `resource id`, e.g.
+VMware Private Clouds can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_vmware_private_cloud.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AVS/PrivateClouds/privateCloud1

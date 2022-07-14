@@ -38,15 +38,15 @@ The following attributes are exported:
 
 * `location` - The Azure location where the Azure Firewall exists.
 
-* `sku_name` - The sku name of the Azure Firewall.
+* `sku_name` - The SKU name of the Azure Firewall.
 
-* `sku_tier` - The sku tier of the Azure Firewall.
+* `sku_tier` - The SKU tier of the Azure Firewall.
 
 * `firewall_policy_id` - The ID of the Firewall Policy applied to the Azure Firewall.
 
 * `ip_configuration` - A `ip_configuration` block as defined below.
 
-* `dns_servers` - The list of DNS servers that the Azure Firewall will direct DNS traffic to the for name resolution.
+* `dns_servers` - The list of DNS servers that the Azure Firewall will direct DNS traffic to for name resolution.
 
 * `management_ip_configuration` - A `management_ip_configuration` block as defined below, which allows force-tunnelling of traffic to be performed by the firewall.
 

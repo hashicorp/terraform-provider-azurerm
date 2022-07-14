@@ -212,6 +212,7 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 		SnowflakeDatasetTypeProperties: &snowflakeDatasetProperties,
 		LinkedServiceName:              linkedService,
 		Description:                    &description,
+		Schema:                         make([]interface{}, 0),
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
@@ -225,17 +226,11 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 		snowflakeTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
 	}
 
-	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		snowflakeTableset.Annotations = &annotations
-	}
+	annotations := d.Get("annotations").([]interface{})
+	snowflakeTableset.Annotations = &annotations
 
 	if v, ok := d.GetOk("additional_properties"); ok {
 		snowflakeTableset.AdditionalProperties = v.(map[string]interface{})
-	}
-
-	if v, ok := d.GetOk("structure_column"); ok {
-		snowflakeTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
@@ -328,11 +323,6 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 		if folder.Name != nil {
 			d.Set("folder", folder.Name)
 		}
-	}
-
-	structureColumns := flattenDataFactoryStructureColumns(snowflakeTable.Structure)
-	if err := d.Set("structure_column", structureColumns); err != nil {
-		return fmt.Errorf("setting `structure_column`: %+v", err)
 	}
 
 	schemaColumns := flattenDataFactorySnowflakeSchemaColumns(snowflakeTable.Schema)

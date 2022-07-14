@@ -12,14 +12,16 @@ Manages a Virtual Desktop Scaling Plan.
 
 ## Disclaimers
 
--> **Note** Scaling Plans are currently in preview and are only supported in a limited number of regions. Both the Scaling Plan and any referenced Host Pools must be deployed in a supported region. [Autoscale (preview) for Azure Virtual Desktop host pools](https://docs.microsoft.com/en-us/azure/virtual-desktop/autoscale-scaling-plan).
+-> **Note** Scaling Plans are currently in preview and are only supported in a limited number of regions. Both the Scaling Plan and any referenced Host Pools must be deployed in a supported region. [Autoscale (preview) for Azure Virtual Desktop host pools](https://docs.microsoft.com/azure/virtual-desktop/autoscale-scaling-plan).
 
--> **Note** Scaling Plans require specific permissions to be granted to the Windows Virtual Desktop application before a 'host_pool' can be configured. [Required Permissions for Scaling Plans](https://docs.microsoft.com/en-us/azure/virtual-desktop/autoscale-scaling-plan#create-a-custom-rbac-role).
+-> **Note** Scaling Plans require specific permissions to be granted to the Windows Virtual Desktop application before a 'host_pool' can be configured. [Required Permissions for Scaling Plans](https://docs.microsoft.com/azure/virtual-desktop/autoscale-scaling-plan#create-a-custom-rbac-role).
 
 ## Example Usage
 
 ```hcl
 
+resource "random_uuid" "example" {
+}
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -58,7 +60,7 @@ resource "azurerm_role_assignment" "example" {
   name                             = random_uuid.example.result
   scope                            = azurerm_resource_group.example.id
   role_definition_id               = azurerm_role_definition.example.role_definition_resource_id
-  principal_id                     = data.azuread_service_principal.example.application_id
+  principal_id                     = data.azuread_service_principal.example.id
   skip_service_principal_aad_check = true
 }
 resource "azurerm_virtual_desktop_host_pool" "example" {

@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -189,6 +189,12 @@ func resourceDataFactory() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"purview_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: account.ValidateAccountID,
+			},
+
 			"customer_managed_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -247,6 +253,12 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if purviewId, ok := d.GetOk("purview_id"); ok {
+		dataFactory.FactoryProperties.PurviewConfiguration = &datafactory.PurviewConfiguration{
+			PurviewResourceID: utils.String(purviewId.(string)),
+		}
 	}
 
 	if keyVaultKeyID, ok := d.GetOk("customer_managed_key_id"); ok {
@@ -390,6 +402,10 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	// This variable isn't returned from the API if it hasn't been passed in first but we know the default is `true`
 	if resp.PublicNetworkAccess != "" {
 		d.Set("public_network_enabled", resp.PublicNetworkAccess == datafactory.PublicNetworkAccessEnabled)
+	}
+
+	if resp.PurviewConfiguration != nil {
+		d.Set("purview_id", resp.PurviewConfiguration.PurviewResourceID)
 	}
 
 	managedVirtualNetworkEnabled := false
@@ -608,7 +624,7 @@ func flattenDataFactoryGlobalParameters(input map[string]*datafactory.GlobalPara
 	result := make([]interface{}, 0)
 	for name, item := range input {
 		var valueResult string
-		typeResult := strings.Title(string(item.Type))
+		typeResult := azure.TitleCase(string(item.Type))
 
 		if (typeResult == "Array" || typeResult == "Object") && reflect.TypeOf(item.Value).Name() != "string" {
 			j, _ := json.Marshal(item.Value)

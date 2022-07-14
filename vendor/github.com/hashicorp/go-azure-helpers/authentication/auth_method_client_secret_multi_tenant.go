@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/hashicorp/go-multierror"
+	authWrapper "github.com/manicminer/hamilton-autorest/auth"
 	"github.com/manicminer/hamilton/auth"
 	"github.com/manicminer/hamilton/environments"
 )
@@ -77,12 +78,7 @@ func (a servicePrincipalClientSecretMultiTenantAuth) getMSALToken(ctx context.Co
 		TokenVersion:       auth.TokenVersion2,
 	}
 
-	authorizer := conf.TokenSource(ctx, auth.ClientCredentialsSecretType)
-	if authTyped, ok := authorizer.(autorest.Authorizer); ok {
-		return authTyped, nil
-	}
-
-	return nil, fmt.Errorf("returned auth.Authorizer does not implement autorest.Authorizer")
+	return &authWrapper.Authorizer{Authorizer: conf.TokenSource(ctx, auth.ClientCredentialsSecretType)}, nil
 }
 
 func (a servicePrincipalClientSecretMultiTenantAuth) populateConfig(c *Config) error {
