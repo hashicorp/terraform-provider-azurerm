@@ -32,7 +32,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&volumeClient.Client, o.ResourceManagerAuthorizer)
 
 	volumeGroupClient := volumegroups.NewVolumeGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&volumeClient.Client, o.ResourceManagerAuthorizer)
+	o.ConfigureClient(&volumeGroupClient.Client, o.ResourceManagerAuthorizer)
 
 	volumeReplicationClient := volumesreplication.NewVolumesReplicationClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&volumeReplicationClient.Client, o.ResourceManagerAuthorizer)

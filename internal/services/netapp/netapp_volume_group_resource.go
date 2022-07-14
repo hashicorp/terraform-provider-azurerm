@@ -4,11 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -29,7 +28,7 @@ type NetAppVolumeGroupModel struct {
 	ApplicationType       string                    `tfschema:"application_type"`
 	ApplicationIdentifier string                    `tfschema:"application_identifier"`
 	DeploymentSpecId      string                    `tfschema:"deployment_spec_id"`
-	Tags                  map[string]string         `tfschema:"tags"`
+	Tags                  map[string]interface{}    `tfschema:"tags"`
 	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
 }
 
@@ -115,6 +114,8 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
+		//"tags": commonschema.Tags(),
 	}
 }
 
@@ -155,84 +156,9 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 
 			applicationType := volumegroups.ApplicationType(model.ApplicationType)
 
-			volumeList := make([]volumegroups.VolumeGroupVolumeProperties, 0)
-			for _, item := range model.Volumes {
-				name := item.Name
-				volumePath := item.VolumePath
-				serviceLevel := volumegroups.ServiceLevel(item.ServiceLevel)
-				subnetID := item.SubnetId
-				capacityPoolID := item.CapacityPoolId
-
-				networkFeatures := volumegroups.NetworkFeatures(item.NetworkFeatures)
-				if networkFeatures == "" {
-					networkFeatures = volumegroups.NetworkFeaturesBasic
-				}
-
-				protocols := item.Protocols
-				if len(protocols) == 0 {
-					protocols = append(protocols, "NFSv3")
-				}
-
-				// Handling security style property
-				securityStyle := volumegroups.SecurityStyle(item.SecurityStyle)
-				if strings.EqualFold(string(securityStyle), "unix") && len(protocols) == 1 && strings.EqualFold(protocols[0], "cifs") {
-					return fmt.Errorf("unix security style cannot be used in a CIFS enabled volume for %s", id)
-
-				}
-				if strings.EqualFold(string(securityStyle), "ntfs") && len(protocols) == 1 && (strings.EqualFold(protocols[0], "nfsv3") || strings.EqualFold(protocols[0], "nfsv4.1")) {
-					return fmt.Errorf("ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for %s", id)
-				}
-
-				storageQuotaInGB := int64(item.StorageQuotaInGB * 1073741824)
-				exportPolicyRule := expandNetAppVolumeGroupExportPolicyRule(convertSliceToInterface(item.ExportPolicy))
-				dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(convertSliceToInterface(item.DataProtectionReplication))
-				dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(convertSliceToInterface(item.DataProtectionSnapshotPolicy))
-
-				volumeType := ""
-				if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) == "dst" {
-					volumeType = "DataProtection"
-				}
-
-				// Validating that snapshot policies are not being created in a data protection volume
-				if dataProtectionSnapshotPolicy != nil && volumeType != "" {
-					return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume for %s", id)
-				}
-
-				snapshotDirectoryVisible, err := strconv.ParseBool(item.SnapshotDirectoryVisible)
-				if err != nil {
-					return fmt.Errorf("could not convert SnapshotDirectoryVisible string to bool: %+v", err)
-				}
-
-				volumeProperties := &volumegroups.VolumeGroupVolumeProperties{
-					Name: utils.String(name),
-					Properties: volumegroups.VolumeProperties{
-						CapacityPoolResourceId: utils.String(capacityPoolID),
-						CreationToken:          volumePath,
-						ServiceLevel:           &serviceLevel,
-						SubnetId:               subnetID,
-						NetworkFeatures:        &networkFeatures,
-						ProtocolTypes:          &protocols,
-						SecurityStyle:          &securityStyle,
-						UsageThreshold:         storageQuotaInGB,
-						ExportPolicy:           exportPolicyRule,
-						VolumeType:             utils.String(volumeType),
-						DataProtection: &volumegroups.VolumePropertiesDataProtection{
-							Replication: dataProtectionReplication.Replication,
-							Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
-						},
-						SnapshotDirectoryVisible: &snapshotDirectoryVisible,
-					},
-					Tags: &item.Tags,
-				}
-
-				if _, ok := metadata.ResourceData.GetOk("throughput_in_mibps"); ok {
-					volumeProperties.Properties.ThroughputMibps = utils.Float(float64(item.ThroughputInMibps))
-				}
-
-				volumeProperties.Properties.ProximityPlacementGroup = utils.String(item.ProximityPlacementGroupId)
-				volumeProperties.Properties.VolumeSpecName = utils.String(item.VolumeSpecName)
-
-				volumeList = append(volumeList, *volumeProperties)
+			volumeList, err := expandNetAppVolumeGroupVolumes(model.Volumes, id)
+			if err != nil {
+				return err
 			}
 
 			parameters := volumegroups.VolumeGroupDetails{
@@ -244,9 +170,9 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 						ApplicationIdentifier: utils.String(model.ApplicationIdentifier),
 						DeploymentSpecId:      utils.String(model.DeploymentSpecId),
 					},
-					Volumes: &volumeList,
+					Volumes: volumeList,
 				},
-				Tags: &model.Tags,
+				Tags: tags.Expand(model.Tags),
 			}
 
 			err = client.VolumeGroupsCreateThenPoll(ctx, id, parameters)
@@ -254,6 +180,7 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			// TODO: Check if this is necessary for volume groups
 			// // Waiting for volume be completely provisioned
 			// if err := waitForVolumeCreateOrUpdate(ctx, client, id); err != nil {
 			// 	return err
@@ -297,16 +224,23 @@ func (r NetAppVolumeGroupResource) Read() sdk.ResourceFunc {
 				AccountName:       id.AccountName,
 				Location:          location.NormalizeNilable(existing.Model.Location),
 				ResourceGroupName: id.ResourceGroupName,
-				Tags:              *existing.Model.Tags,
+				Tags:              tags.Flatten(existing.Model.Tags),
 			}
 
 			if props := existing.Model.Properties; props != nil {
-				model.GroupDescription = *props.GroupMetaData.GroupDescription
-				model.ApplicationIdentifier = *props.GroupMetaData.ApplicationIdentifier
-				model.DeploymentSpecId = *props.GroupMetaData.DeploymentSpecId
+				model.GroupDescription = utils.NormalizeNilableString(props.GroupMetaData.GroupDescription)
+				model.ApplicationIdentifier = utils.NormalizeNilableString(props.GroupMetaData.ApplicationIdentifier)
+				model.DeploymentSpecId = utils.NormalizeNilableString(props.GroupMetaData.DeploymentSpecId)
+
+				volumes, err := flattenNetAppVolumeGroupVolumes(props.Volumes)
+				if err != nil {
+					return fmt.Errorf("setting `volume`: %+v", err)
+				}
+
+				model.Volumes = volumes
 			}
 
-			return nil
+			return metadata.Encode(&model)
 		},
 	}
 }

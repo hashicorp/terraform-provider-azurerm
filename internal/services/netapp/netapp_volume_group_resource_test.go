@@ -90,6 +90,7 @@ resource "azurerm_netapp_volume_group" "test" {
     }
   
     tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -120,6 +121,7 @@ resource "azurerm_netapp_volume_group" "test" {
     }
   
     tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -150,6 +152,7 @@ resource "azurerm_netapp_volume_group" "test" {
     }
   
     tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -180,6 +183,7 @@ resource "azurerm_netapp_volume_group" "test" {
     }
   
     tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -210,12 +214,9 @@ resource "azurerm_netapp_volume_group" "test" {
     }
   
     tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
       "SkipASMAzSecPack" = "true"
     }
-  }
-
-  tags = {
-    "SkipASMAzSecPack" = "true"
   }
 
   depends_on = [
@@ -247,7 +248,9 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 
   tags = {
-    "SkipASMAzSecPack" = "true"
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true",
+    "SkipNRMSNSG"      = "true"
   }
 }
 
@@ -257,7 +260,7 @@ resource "azurerm_network_security_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    environment        = "Production",
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -269,6 +272,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.6.0.0/16"]
 
   tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -305,6 +309,11 @@ resource "azurerm_proximity_placement_group" "test" {
   name                = "acctest-PPG-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
 }
 
 resource "azurerm_availability_set" "test" {
@@ -313,6 +322,11 @@ resource "azurerm_availability_set" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+  
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
 }
 
 resource "azurerm_network_interface" "test" {
@@ -324,6 +338,11 @@ resource "azurerm_network_interface" "test" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.test1.id
     private_ip_address_allocation = "Dynamic"
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
   }
 }
 
@@ -354,7 +373,10 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 
   tags = {
-      "Owner" = "pmarques"
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
+    "CreatedOnDate"                                                            = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack"                                                         = "true",
+    "Owner"                                                                    = "pmarques"
   }
 }
 
@@ -369,6 +391,7 @@ resource "azurerm_netapp_account" "test" {
   ]
 
   tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -383,6 +406,7 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Manual"
 
   tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
   }
 }

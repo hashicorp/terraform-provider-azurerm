@@ -1,6 +1,7 @@
 package netapp
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -148,46 +149,55 @@ func netAppVolumeCommonSchema() map[string]*pluginsdk.Schema {
 					"unix_read_only": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Computed: true,
 					},
 
 					"unix_read_write": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Computed: true,
 					},
 
 					"root_access_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Computed: true,
 					},
 
 					"kerberos5_read_only": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Computed: true,
 					},
 
 					"kerberos5_read_write": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Computed: true,
 					},
 
 					"kerberos5i_read_only": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Computed: true,
 					},
 
 					"kerberos5i_read_write": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Computed: true,
 					},
 
 					"kerberos5p_read_only": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Computed: true,
 					},
 
 					"kerberos5p_read_write": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+						Computed: true,
 					},
 				},
 			},
@@ -336,11 +346,11 @@ type NetAppVolumeGroupVolume struct {
 	NetworkFeatures              string                         `tfschema:"network_features"`
 	Protocols                    []string                       `tfschema:"protocols"`
 	SecurityStyle                string                         `tfschema:"security_style"`
-	StorageQuotaInGB             int                            `tfschema:"storage_quota_in_gb"`
-	ThroughputInMibps            float32                        `tfschema:"throughput_in_mibps"`
+	StorageQuotaInGB             int64                          `tfschema:"storage_quota_in_gb"`
+	ThroughputInMibps            float64                        `tfschema:"throughput_in_mibps"`
 	Tags                         map[string]string              `tfschema:"tags"`
 	MountIpAddresses             []string                       `tfschema:"mount_ip_addresses"`
-	SnapshotDirectoryVisible     string                         `tfschema:"snapshot_directory_visible"`
+	SnapshotDirectoryVisible     bool                           `tfschema:"snapshot_directory_visible"`
 	CapacityPoolId               string                         `tfschema:"capacity_pool_id"`
 	ProximityPlacementGroupId    string                         `tfschema:"proximity_placement_group_id"`
 	VolumeSpecName               string                         `tfschema:"volume_spec_name"`
@@ -351,7 +361,7 @@ type NetAppVolumeGroupVolume struct {
 
 type ExportPolicyRule struct {
 	RuleIndex           int      `tfschema:"rule_index"`
-	AllowedClients      string   `tfschema:"allowed_clients"`
+	AllowedClients      []string `tfschema:"allowed_clients"`
 	ProtocolsEnabled    []string `tfschema:"protocols_enabled"`
 	UnixReadOnly        bool     `tfschema:"unix_read_only"`
 	UnixReadWrite       bool     `tfschema:"unix_read_write"`
@@ -375,94 +385,52 @@ type DataProtectionSnapshotPolicy struct {
 	DataProtectionSnapshotPolicy string `tfschema:"data_protection_snapshot_policy"`
 }
 
-func convertExportPolicyToInterface(exportPolicyList []ExportPolicyRule) []interface{} {
-	items := make([]interface{}, len(exportPolicyList))
-	for i, v := range exportPolicyList {
-		items[i] = v
-	}
+func expandNetAppVolumeGroupExportPolicyRule(input []ExportPolicyRule) *volumegroups.VolumePropertiesExportPolicy {
 
-	return items
-}
-
-type SupportedObjects interface {
-	ExportPolicyRule | DataProtectionReplication | DataProtectionSnapshotPolicy
-}
-
-func convertSliceToInterface[T SupportedObjects](slice []T) []interface{} {
-
-	items := make([]interface{}, len(slice))
-	for i, v := range slice {
-		items[i] = v
-	}
-
-	return items
-}
-
-func expandNetAppVolumeGroupExportPolicyRule(input []interface{}) *volumegroups.VolumePropertiesExportPolicy {
-
-	if len(input) == 0 || input[0] == nil {
+	if len(input) == 0 || input == nil {
 		return &volumegroups.VolumePropertiesExportPolicy{}
 	}
 
 	results := make([]volumegroups.ExportPolicyRule, 0)
 
 	for _, item := range input {
-		if item != nil {
-			v := item.(map[string]interface{})
-			ruleIndex := int32(v["rule_index"].(int))
-			allowedClients := strings.Join(*utils.ExpandStringSlice(v["allowed_clients"].(*pluginsdk.Set).List()), ",")
+		cifsEnabled := false
+		nfsv3Enabled := false
+		nfsv41Enabled := false
 
-			cifsEnabled := false
-			nfsv3Enabled := false
-			nfsv41Enabled := false
-
-			if vpe := v["protocols_enabled"]; vpe != nil {
-				protocolsEnabled := vpe.([]interface{})
-				if len(protocolsEnabled) != 0 {
-					for _, protocol := range protocolsEnabled {
-						if protocol != nil {
-							switch strings.ToLower(protocol.(string)) {
-							case "cifs":
-								cifsEnabled = true
-							case "nfsv3":
-								nfsv3Enabled = true
-							case "nfsv4.1":
-								nfsv41Enabled = true
-							}
-						}
+		if len(item.ProtocolsEnabled) != 0 {
+			for _, protocol := range item.ProtocolsEnabled {
+				if protocol != "" {
+					switch strings.ToLower(protocol) {
+					case "cifs":
+						cifsEnabled = true
+					case "nfsv3":
+						nfsv3Enabled = true
+					case "nfsv4.1":
+						nfsv41Enabled = true
 					}
 				}
 			}
-
-			unixReadOnly := v["unix_read_only"].(bool)
-			unixReadWrite := v["unix_read_write"].(bool)
-			rootAccessEnabled := v["root_access_enabled"].(bool)
-			kerberos5ReadOnly := v["kerberos5_read_only"].(bool)
-			kerberos5ReadWrite := v["kerberos5_read_write"].(bool)
-			kerberos5iReadOnly := v["kerberos5i_read_only"].(bool)
-			kerberos5iReadWrite := v["kerberos5i_read_write"].(bool)
-			kerberos5pReadOnly := v["kerberos5p_read_only"].(bool)
-			kerberos5pReadWrite := v["kerberos5p_read_write"].(bool)
-
-			result := volumegroups.ExportPolicyRule{
-				AllowedClients:      utils.String(allowedClients),
-				Cifs:                utils.Bool(cifsEnabled),
-				Nfsv3:               utils.Bool(nfsv3Enabled),
-				Nfsv41:              utils.Bool(nfsv41Enabled),
-				RuleIndex:           utils.Int64(int64(ruleIndex)),
-				UnixReadOnly:        utils.Bool(unixReadOnly),
-				UnixReadWrite:       utils.Bool(unixReadWrite),
-				HasRootAccess:       utils.Bool(rootAccessEnabled),
-				Kerberos5ReadOnly:   utils.Bool(kerberos5ReadOnly),
-				Kerberos5ReadWrite:  utils.Bool(kerberos5ReadWrite),
-				Kerberos5iReadOnly:  utils.Bool(kerberos5iReadOnly),
-				Kerberos5iReadWrite: utils.Bool(kerberos5iReadWrite),
-				Kerberos5pReadOnly:  utils.Bool(kerberos5pReadOnly),
-				Kerberos5pReadWrite: utils.Bool(kerberos5pReadWrite),
-			}
-
-			results = append(results, result)
 		}
+
+		result := volumegroups.ExportPolicyRule{
+			AllowedClients:      utils.String(strings.Join(item.AllowedClients, ",")),
+			Cifs:                utils.Bool(cifsEnabled),
+			Nfsv3:               utils.Bool(nfsv3Enabled),
+			Nfsv41:              utils.Bool(nfsv41Enabled),
+			RuleIndex:           utils.Int64(int64(item.RuleIndex)),
+			UnixReadOnly:        utils.Bool(item.UnixReadOnly),
+			UnixReadWrite:       utils.Bool(item.UnixReadWrite),
+			HasRootAccess:       utils.Bool(item.RootAccessEnabled),
+			Kerberos5ReadOnly:   utils.Bool(item.Kerberos5ReadOnly),
+			Kerberos5ReadWrite:  utils.Bool(item.Kerberos5ReadWrite),
+			Kerberos5iReadOnly:  utils.Bool(item.Kerberos5iReadOnly),
+			Kerberos5iReadWrite: utils.Bool(item.Kerberos5iReadWrite),
+			Kerberos5pReadOnly:  utils.Bool(item.Kerberos5pReadOnly),
+			Kerberos5pReadWrite: utils.Bool(item.Kerberos5ReadWrite),
+		}
+
+		results = append(results, result)
 	}
 
 	return &volumegroups.VolumePropertiesExportPolicy{
@@ -470,49 +438,262 @@ func expandNetAppVolumeGroupExportPolicyRule(input []interface{}) *volumegroups.
 	}
 }
 
-func expandNetAppVolumeGroupDataProtectionReplication(input []interface{}) *volumegroups.VolumePropertiesDataProtection {
-	if len(input) == 0 || input[0] == nil {
+func expandNetAppVolumeGroupDataProtectionReplication(input []DataProtectionReplication) *volumegroups.VolumePropertiesDataProtection {
+	if len(input) == 0 || input == nil {
 		return &volumegroups.VolumePropertiesDataProtection{}
 	}
 
 	replicationObject := volumegroups.ReplicationObject{}
 
-	replicationRaw := input[0].(map[string]interface{})
+	endpointType := volumegroups.EndpointType(input[0].EndpointType)
+	replicationObject.EndpointType = &endpointType
 
-	if v, ok := replicationRaw["endpoint_type"]; ok {
-		endpointType := volumegroups.EndpointType(v.(string))
-		replicationObject.EndpointType = &endpointType
-	}
-	if v, ok := replicationRaw["remote_volume_location"]; ok {
-		replicationObject.RemoteVolumeRegion = utils.String(v.(string))
-	}
-	if v, ok := replicationRaw["remote_volume_resource_id"]; ok {
-		replicationObject.RemoteVolumeResourceId = v.(string)
-	}
-	if v, ok := replicationRaw["replication_frequency"]; ok {
-		replicationSchedule := volumegroups.ReplicationSchedule(translateTFSchedule(v.(string)))
-		replicationObject.ReplicationSchedule = &replicationSchedule
-	}
+	replicationObject.RemoteVolumeRegion = &input[0].RemoteVolumeLocation
+	replicationObject.RemoteVolumeResourceId = input[0].RemoteVolumeResourceId
+
+	replicationSchedule := volumegroups.ReplicationSchedule(translateTFSchedule(input[0].ReplicationFrequency))
+	replicationObject.ReplicationSchedule = &replicationSchedule
 
 	return &volumegroups.VolumePropertiesDataProtection{
 		Replication: &replicationObject,
 	}
 }
 
-func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []interface{}) *volumegroups.VolumePropertiesDataProtection {
-	if len(input) == 0 || input[0] == nil {
+func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []DataProtectionSnapshotPolicy) *volumegroups.VolumePropertiesDataProtection {
+	if len(input) == 0 || input == nil {
 		return &volumegroups.VolumePropertiesDataProtection{}
 	}
 
 	snapshotObject := volumegroups.VolumeSnapshotProperties{}
-
-	snapshotRaw := input[0].(map[string]interface{})
-
-	if v, ok := snapshotRaw["snapshot_policy_id"]; ok {
-		snapshotObject.SnapshotPolicyId = utils.String(v.(string))
-	}
+	snapshotObject.SnapshotPolicyId = &input[0].DataProtectionSnapshotPolicy
 
 	return &volumegroups.VolumePropertiesDataProtection{
 		Snapshot: &snapshotObject,
 	}
+}
+
+func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegroups.VolumeGroupId) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
+
+	if len(input) == 0 || input == nil {
+		return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("received empty NetAppVolumeGroupVolume slice")
+	}
+
+	results := make([]volumegroups.VolumeGroupVolumeProperties, 0)
+
+	for _, item := range input {
+		name := item.Name
+		volumePath := item.VolumePath
+		serviceLevel := volumegroups.ServiceLevel(item.ServiceLevel)
+		subnetID := item.SubnetId
+		capacityPoolID := item.CapacityPoolId
+
+		networkFeatures := volumegroups.NetworkFeatures(item.NetworkFeatures)
+		if networkFeatures == "" {
+			networkFeatures = volumegroups.NetworkFeaturesBasic
+		}
+
+		protocols := item.Protocols
+		if len(protocols) == 0 {
+			protocols = append(protocols, "NFSv3")
+		}
+
+		// Handling security style property
+		securityStyle := volumegroups.SecurityStyle(item.SecurityStyle)
+		if strings.EqualFold(string(securityStyle), "unix") && len(protocols) == 1 && strings.EqualFold(protocols[0], "cifs") {
+			return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("unix security style cannot be used in a CIFS enabled volume for %s", id)
+
+		}
+		if strings.EqualFold(string(securityStyle), "ntfs") && len(protocols) == 1 && (strings.EqualFold(protocols[0], "nfsv3") || strings.EqualFold(protocols[0], "nfsv4.1")) {
+			return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for %s", id)
+		}
+
+		storageQuotaInGB := int64(item.StorageQuotaInGB * 1073741824)
+		exportPolicyRule := expandNetAppVolumeGroupExportPolicyRule(item.ExportPolicy)
+		dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication)
+		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
+
+		volumeType := ""
+		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) == "dst" {
+			volumeType = "DataProtection"
+		}
+
+		// Validating that snapshot policies are not being created in a data protection volume
+		if dataProtectionSnapshotPolicy != nil && volumeType != "" {
+			return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("snapshot policy cannot be enabled on a data protection volume for %s", id)
+		}
+
+		volumeProperties := &volumegroups.VolumeGroupVolumeProperties{
+			Name: utils.String(name),
+			Properties: volumegroups.VolumeProperties{
+				CapacityPoolResourceId:  utils.String(capacityPoolID),
+				CreationToken:           volumePath,
+				ServiceLevel:            &serviceLevel,
+				SubnetId:                subnetID,
+				NetworkFeatures:         &networkFeatures,
+				ProtocolTypes:           &protocols,
+				SecurityStyle:           &securityStyle,
+				UsageThreshold:          storageQuotaInGB,
+				ExportPolicy:            exportPolicyRule,
+				VolumeType:              utils.String(volumeType),
+				ThroughputMibps:         utils.Float(float64(item.ThroughputInMibps)),
+				ProximityPlacementGroup: utils.String(item.ProximityPlacementGroupId),
+				VolumeSpecName:          utils.String(item.VolumeSpecName),
+				DataProtection: &volumegroups.VolumePropertiesDataProtection{
+					Replication: dataProtectionReplication.Replication,
+					Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
+				},
+				SnapshotDirectoryVisible: &item.SnapshotDirectoryVisible,
+			},
+			Tags: &item.Tags,
+		}
+
+		results = append(results, *volumeProperties)
+	}
+
+	return &results, nil
+}
+
+func flattenNetAppVolumeGroupVolumes(input *[]volumegroups.VolumeGroupVolumeProperties) ([]NetAppVolumeGroupVolume, error) {
+	results := make([]NetAppVolumeGroupVolume, 0)
+
+	if len(*input) == 0 || input == nil {
+		return results, fmt.Errorf("received empty volumegroups.VolumeGroupVolumeProperties slice")
+	}
+
+	for _, item := range *input {
+		props := item.Properties
+
+		volumeGroupVolume := NetAppVolumeGroupVolume{}
+
+		volumeGroupVolume.VolumePath = props.CreationToken
+		volumeGroupVolume.ServiceLevel = string(*props.ServiceLevel)
+		volumeGroupVolume.SubnetId = props.SubnetId
+		volumeGroupVolume.NetworkFeatures = getNetworkFeaturesString(props.NetworkFeatures)
+		volumeGroupVolume.Protocols = *props.ProtocolTypes
+		volumeGroupVolume.SecurityStyle = string(*props.SecurityStyle)
+		volumeGroupVolume.SnapshotDirectoryVisible = *props.SnapshotDirectoryVisible
+		volumeGroupVolume.ThroughputInMibps = float64(*props.ThroughputMibps)
+
+		if int64(props.UsageThreshold) > 0 {
+			usageThreshold := int64(props.UsageThreshold) / 1073741824
+			volumeGroupVolume.StorageQuotaInGB = usageThreshold
+		}
+
+		if props.ExportPolicy != nil && len(*props.ExportPolicy.Rules) > 0 {
+			volumeGroupVolume.ExportPolicy = flattenNetAppVolumeGroupVolumesExportPolicies(props.ExportPolicy.Rules)
+		}
+
+		if props.MountTargets != nil && len(*props.MountTargets) > 0 {
+			volumeGroupVolume.MountIpAddresses = flattenNetAppVolumeGroupVolumesMountIpAddresses(props.MountTargets)
+		}
+
+		if props.DataProtection != nil && props.DataProtection.Replication != nil {
+			volumeGroupVolume.DataProtectionReplication = flattenNetAppVolumeGroupVolumesDPReplication(props.DataProtection.Replication)
+		}
+
+		if props.DataProtection != nil && props.DataProtection.Snapshot != nil {
+			volumeGroupVolume.DataProtectionSnapshotPolicy = flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(props.DataProtection.Snapshot)
+		}
+
+		results = append(results, volumeGroupVolume)
+	}
+
+	return results, nil
+}
+
+func flattenNetAppVolumeGroupVolumesExportPolicies(input *[]volumegroups.ExportPolicyRule) []ExportPolicyRule {
+	results := make([]ExportPolicyRule, 0)
+
+	if len(*input) == 0 || input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		rule := ExportPolicyRule{}
+
+		rule.RuleIndex = int(*item.RuleIndex)
+		rule.AllowedClients = strings.Split(*item.AllowedClients, ",")
+
+		protocolsEnabled := []string{}
+		if *item.Cifs {
+			protocolsEnabled = append(protocolsEnabled, "CIFS")
+		}
+		if *item.Nfsv3 {
+			protocolsEnabled = append(protocolsEnabled, "NFSv3")
+		}
+		if *item.Nfsv41 {
+			protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
+		}
+		rule.ProtocolsEnabled = protocolsEnabled
+
+		rule.UnixReadOnly = *item.UnixReadOnly
+		rule.UnixReadWrite = *item.UnixReadWrite
+		rule.Kerberos5ReadOnly = *item.Kerberos5ReadOnly
+		rule.Kerberos5ReadWrite = *item.Kerberos5ReadWrite
+		rule.Kerberos5iReadOnly = *item.Kerberos5iReadOnly
+		rule.Kerberos5iReadWrite = *item.Kerberos5iReadWrite
+		rule.Kerberos5pReadOnly = *item.Kerberos5pReadOnly
+		rule.Kerberos5pReadWrite = *item.Kerberos5pReadWrite
+
+		rule.RootAccessEnabled = *item.HasRootAccess
+
+		results = append(results, rule)
+	}
+
+	return results
+}
+
+func flattenNetAppVolumeGroupVolumesMountIpAddresses(input *[]volumegroups.MountTargetProperties) []string {
+	results := make([]string, 0)
+
+	if len(*input) == 0 || input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		if item.IpAddress != nil {
+			results = append(results, *item.IpAddress)
+		}
+	}
+
+	return results
+}
+
+func flattenNetAppVolumeGroupVolumesDPReplication(input *volumegroups.ReplicationObject) []DataProtectionReplication {
+	if input == nil {
+		return []DataProtectionReplication{}
+	}
+
+	if strings.ToLower(string(*input.EndpointType)) == "" || strings.ToLower(string(*input.EndpointType)) != "dst" {
+		return []DataProtectionReplication{}
+	}
+
+	return []DataProtectionReplication{
+		{
+			EndpointType:           string(*input.EndpointType),
+			RemoteVolumeLocation:   *input.RemoteVolumeRegion,
+			RemoteVolumeResourceId: input.RemoteVolumeResourceId,
+			ReplicationFrequency:   string(*input.ReplicationSchedule),
+		},
+	}
+}
+
+func flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(input *volumegroups.VolumeSnapshotProperties) []DataProtectionSnapshotPolicy {
+	if input == nil {
+		return []DataProtectionSnapshotPolicy{}
+	}
+
+	return []DataProtectionSnapshotPolicy{
+		{
+			DataProtectionSnapshotPolicy: *input.SnapshotPolicyId,
+		},
+	}
+}
+
+func getNetworkFeaturesString(input *volumegroups.NetworkFeatures) string {
+	if input == nil {
+		return string(volumegroups.NetworkFeaturesBasic)
+	}
+
+	return string(*input)
 }
