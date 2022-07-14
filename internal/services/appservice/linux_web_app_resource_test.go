@@ -1141,7 +1141,8 @@ func TestAccLinuxWebApp_vNetIntegrationUpdate(t *testing.T) {
 					check.That("azurerm_subnet.test1").Key("id"),
 				),
 			),
-		},		data.ImportStep(),
+		},
+		data.ImportStep(),
 		{
 			Config: r.vNetIntegrationWebApp_subnet2(data),
 			Check: acceptance.ComposeTestCheckFunc(

@@ -135,8 +135,8 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"virtual_network_subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
 			ValidateFunc: networkValidate.SubnetID,
 		},
 
