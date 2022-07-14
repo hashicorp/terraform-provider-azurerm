@@ -24,6 +24,7 @@ type Client struct {
 	NamespacesClient                       *namespaces.NamespacesClient
 	NamespaceAuthorizationRulesClient      *authorizationrulesnamespaces.AuthorizationRulesNamespacesClient
 	NetworkRuleSetsClient                  *networkrulesets.NetworkRuleSetsClient
+	SchemaRegistryClient                   *schemaregistry.SchemaRegistryClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -54,6 +55,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	networkRuleSetsClient := networkrulesets.NewNetworkRuleSetsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&networkRuleSetsClient.Client, o.ResourceManagerAuthorizer)
 
+	schemaRegistryClient := schemaregistry.NewSchemaRegistryClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&schemaRegistryClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ClusterClient:                          &clustersClient,
 		ConsumerGroupClient:                    &consumerGroupsClient,
@@ -64,5 +68,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		NamespacesClient:                       &namespacesClient,
 		NamespaceAuthorizationRulesClient:      &namespaceAuthorizationRulesClient,
 		NetworkRuleSetsClient:                  &networkRuleSetsClient,
+		SchemaRegistryClient:                   &schemaRegistryClient,
 	}
 }

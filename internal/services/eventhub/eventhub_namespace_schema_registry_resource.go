@@ -2,6 +2,9 @@ package eventhub
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/schemaregistry"
@@ -11,15 +14,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"log"
-	"time"
 )
 
 func resourceEventHubNamespaceSchemaRegistry() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceEventHubNamespaceSchemaRegistryCreateUpdate,
 		Read:   resourceEventHubNamespaceSchemaRegistryRead,
-		Update: resourceEventHubNamespaceSchemaRegistryCreateUpdate,
+		// Update: resourceEventHubNamespaceSchemaRegistryCreateUpdate,
 		Delete: resourceEventHubNamespaceSchemaRegistryDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -30,7 +31,7 @@ func resourceEventHubNamespaceSchemaRegistry() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			// Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -70,19 +71,20 @@ func resourceEventHubNamespaceSchemaRegistry() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"schema_group_property": {
-				Type:     pluginsdk.TypeMap,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
+			// todo: add the group property once the sdk gets clarified.
+			// "schema_group_property": {
+			// 	Type:     pluginsdk.TypeMap,
+			// 	Optional: true,
+			// 	Elem: &pluginsdk.Schema{
+			// 		Type: pluginsdk.TypeString,
+			// 	},
+			// },
 		},
 	}
 }
 
 func resourceEventHubNamespaceSchemaRegistryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Eventhub.NamespaceSchemaGroupClient
+	client := meta.(*clients.Client).Eventhub.SchemaRegistryClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -93,7 +95,7 @@ func resourceEventHubNamespaceSchemaRegistryCreateUpdate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("parsing eventhub namespace %s error: %+v", namespaceId.ID(), err)
 	}
 
-	id := schemaregistry.NewSchemagroupID(subscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
+	id := schemaregistry.NewSchemaGroupID(subscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -118,19 +120,19 @@ func resourceEventHubNamespaceSchemaRegistryCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	// todo: confirm the SDK property type, current type doesn't accept the null as a valid value
-	//if d.HasChange("schema_group_property") {
-	//	oldList, newList := d.GetChange("schema_group_property")
-	//	for k, v := range oldList.(map[string]interface{}) {
-	//		if
-	//	}
-	//}
-	if value, ok := d.GetOk("schema_group_property"); ok {
-		result := make(map[string]string)
-		for k, v := range value.(map[string]interface{}) {
-			result[k] = v.(string)
-			parameters.Properties.GroupProperties = &result
-		}
-	}
+	// if d.HasChange("schema_group_property") {
+	// 	oldList, newList := d.GetChange("schema_group_property")
+	// 	for k, v := range oldList.(map[string]interface{}) {
+	// 		if
+	// 	}
+	// }
+	// if value, ok := d.GetOk("schema_group_property"); ok {
+	// 	result := make(map[string]string)
+	// 	for k, v := range value.(map[string]interface{}) {
+	// 		result[k] = v.(string)
+	// 		parameters.Properties.GroupProperties = &result
+	// 	}
+	// }
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -141,11 +143,11 @@ func resourceEventHubNamespaceSchemaRegistryCreateUpdate(d *pluginsdk.ResourceDa
 }
 
 func resourceEventHubNamespaceSchemaRegistryRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Eventhub.NamespaceSchemaGroupClient
+	client := meta.(*clients.Client).Eventhub.SchemaRegistryClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := schemaregistry.ParseSchemagroupIDInsensitively(d.Id())
+	id, err := schemaregistry.ParseSchemaGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -172,13 +174,15 @@ func resourceEventHubNamespaceSchemaRegistryRead(d *pluginsdk.ResourceData, meta
 			if props.SchemaType != nil {
 				d.Set("schema_type", string(*props.SchemaType))
 			}
-			if props.GroupProperties != nil {
-				properties := make(map[string]string)
-				for k, v := range *props.GroupProperties {
-					properties[k] = v
-				}
-				d.Set("schema_group_property", properties)
-			}
+
+			// todo: add the group property once the sdk gets clarified
+			// if props.GroupProperties != nil {
+			// 	properties := make(map[string]string)
+			// 	for k, v := range *props.GroupProperties {
+			// 		properties[k] = v
+			// 	}
+			// 	d.Set("schema_group_property", properties)
+			// }
 		}
 	}
 
@@ -186,11 +190,11 @@ func resourceEventHubNamespaceSchemaRegistryRead(d *pluginsdk.ResourceData, meta
 }
 
 func resourceEventHubNamespaceSchemaRegistryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Eventhub.NamespaceSchemaGroupClient
+	client := meta.(*clients.Client).Eventhub.SchemaRegistryClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := schemaregistry.ParseSchemagroupIDInsensitively(d.Id())
+	id, err := schemaregistry.ParseSchemaGroupID(d.Id())
 	if err != nil {
 		return err
 	}
