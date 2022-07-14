@@ -2,13 +2,14 @@ package batch
 
 import (
 	"fmt"
+	"log"
+	"strconv"
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2022-01-01/batch"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"log"
-	"strconv"
-	"strings"
 )
 
 // flattenBatchPoolAutoScaleSettings flattens the auto scale settings for a Batch pool
