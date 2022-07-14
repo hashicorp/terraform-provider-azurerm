@@ -37,8 +37,6 @@ The following arguments are supported:
 
 * `namespace_id` - (Required) The ID of the EventHub Namespace. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which the Schema Group's Namespace exists. Changing this forces a new resource to be created.
-
 * `schema_compatibility_type` - (Required) The compatibility of this schema group. Possible values are `None`, `Backward`, `Forward`. Changing this forces a new resource to be created.
 
 * `schema_type` - (Required) The Type of this schema group. Possible values are `Avro`, `Unknown`. Changing this forces a new resource to be created.

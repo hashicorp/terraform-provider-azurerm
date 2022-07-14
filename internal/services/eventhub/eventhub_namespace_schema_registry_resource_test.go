@@ -3,7 +3,6 @@ package eventhub_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/schemaregistry"
@@ -11,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type EventHubNamespaceSchemaRegistryResource struct{}
@@ -62,10 +62,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub_namespace_schema_group" "test" {
-    name = "acctestsg-%d"
-    namespace_id = azurerm_eventhub_namespace.test.id
-    schema_compatibility_type = "Forward"
-    schema_type = "Avro"
+  name                      = "acctestsg-%d"
+  namespace_id              = azurerm_eventhub_namespace.test.id
+  schema_compatibility_type = "Forward"
+  schema_type               = "Avro"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
