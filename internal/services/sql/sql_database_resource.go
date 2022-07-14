@@ -185,18 +185,20 @@ func resourceSqlDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("waiting for create/update of %s: %+v", id, err)
 	}
 
-	if _, ok := d.GetOk("import"); ok {
-		if createMode != sql.CreateModeDefault {
-			return fmt.Errorf("import can only be used when create_mode is Default")
-		}
-		importParameters := expandAzureRmSqlDatabaseImport(d)
-		importFuture, err := client.CreateImportOperation(ctx, id.ResourceGroup, id.ServerName, id.Name, importParameters)
-		if err != nil {
-			return err
-		}
+	if d.HasChange("import") {
+		if _, ok := d.GetOk("import"); ok {
+			if createMode != sql.CreateModeDefault {
+				return fmt.Errorf("import can only be used when create_mode is Default")
+			}
+			importParameters := expandAzureRmSqlDatabaseImport(d)
+			importFuture, err := client.CreateImportOperation(ctx, id.ResourceGroup, id.ServerName, id.Name, importParameters)
+			if err != nil {
+				return err
+			}
 
-		if err = importFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return err
+			if err = importFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return err
+			}
 		}
 	}
 
