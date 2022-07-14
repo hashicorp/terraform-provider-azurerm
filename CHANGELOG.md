@@ -33,6 +33,7 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine_scale_set` - support for the `placement` property for os disks [GH-17013]
 * `azurerm_orchestrated_virtual_machine_scale_set` - support for the `placement` property for os disks [GH-17013]
 * `azurerm_shared_image` - support for the `end_of_life_date` `disk_types_not_allowed`, `max_recommended_vcpu_count`, `max_recommended_vcpu_count`, `max_recommended_memory_in_gb`, `min_recommended_memory_in_gb` [GH-17300]
+* `azurerm_signalr_service` - Add support for `live_trace` [GH-17629]
 * `azurerm_ssh_public_key` - refactoring to use `hashicorp/go-azure-sdk` [GH-17609]
 * `azurerm_windows_virtual_machine_scale_set` - support for `capacity_reservation_group_id` property [GH-17530]
 * `azurerm_windows_virtual_machine_scale_set` - support for the `placement` property for os disks [GH-17013]
