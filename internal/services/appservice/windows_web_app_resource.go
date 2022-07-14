@@ -155,8 +155,8 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": tags.Schema(),
 
 		"virtual_network_subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
 			ValidateFunc: networkValidate.SubnetID,
 		},
 	}
