@@ -27,6 +27,7 @@ ENHANCEMENTS:
 * `azurerm_kusto_script` - support for the `script_content` property [GH-17522]
 * `azurerm_kusto_iothub_data_connection` - support for the `database_routing_type` property [GH-17526]
 * `azurerm_kusto_eventhub_data_connection` - support for the `database_routing_type` property [GH-17525]
+* `azurerm_kusto_eventgrid_data_connection` - support for the `database_routing_type`, `eventgrid_resource_id`, and `managed_identity_resource_id` properties [GH-17524]
 * `azurerm_kubernetes_cluster` - support for the `host_group_id` property [GH-17496]
 * `azurerm_kubernetes_cluster_node_pool` - support for the `host_group_id` property [GH-17496]
 * `azurerm_linux_virtual_machine_scale_set` - support for `capacity_reservation_group_id` property [GH-17530]
