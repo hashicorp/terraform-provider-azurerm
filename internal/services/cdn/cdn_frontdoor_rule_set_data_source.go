@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -27,18 +28,15 @@ func dataSourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
 				ValidateFunc: validate.FrontDoorRuleSetName,
 			},
 
-			"cdn_frontdoor_profile_id": {
+			"profile_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.FrontDoorProfileID,
+				ValidateFunc: validate.FrontDoorName,
 			},
 
-			"resource_group_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"profile_name": {
+			"cdn_frontdoor_profile_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -52,12 +50,7 @@ func dataSourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
-	if err != nil {
-		return err
-	}
-
-	id := parse.NewFrontDoorRuleSetID(subscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
+	id := parse.NewFrontDoorRuleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -70,7 +63,7 @@ func dataSourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("name", id.RuleSetName)
 	d.Set("profile_name", id.ProfileName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("cdn_frontdoor_profile_id", profileId.ID())
+	d.Set("cdn_frontdoor_profile_id", parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	return nil
 }

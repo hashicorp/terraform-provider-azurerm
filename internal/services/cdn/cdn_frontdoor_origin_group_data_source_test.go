@@ -18,7 +18,7 @@ func TestAccCdnFrontDoorOriginGroupDataSource_basic(t *testing.T) {
 		{
 			Config: d.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("cdn_frontdoor_profile_id").MatchesOtherKey(check.That("azurerm_cdn_frontdoor_origin_group.test").Key("id")),
+				check.That(data.ResourceName).Key("cdn_frontdoor_profile_id").MatchesOtherKey(check.That("azurerm_cdn_frontdoor_profile.test").Key("id")),
 			),
 		},
 	})
@@ -28,8 +28,9 @@ func (CdnFrontDoorOriginGroupDataSource) basic(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_cdn_frontdoor_profile" "test" {
-  name                = azurerm_cdn_frontdoor_profile.test.name
+data "azurerm_cdn_frontdoor_origin_group" "test" {
+  name                = azurerm_cdn_frontdoor_origin_group.test.name
+  profile_name        = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
 `, CdnFrontDoorOriginGroupResource{}.complete(data))

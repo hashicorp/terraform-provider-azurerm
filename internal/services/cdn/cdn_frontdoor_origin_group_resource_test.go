@@ -204,8 +204,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctest-cdnfdprofile--%d"
+  name                = "acctest-cdnfdprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard_AzureFrontDoor"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -29,8 +29,9 @@ func (CdnFrontDoorRuleSetDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_cdn_frontdoor_rule_set" "test" {
-  name                     = azurerm_cdn_frontdoor_rule_set.test.name
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_rule_set.test.cdn_frontdoor_profile_id
+  name                = azurerm_cdn_frontdoor_rule_set.test.name
+  profile_name        = azurerm_cdn_frontdoor_profile.test.name
+  resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
 `, CdnFrontDoorRuleSetResource{}.complete(data))
 }
