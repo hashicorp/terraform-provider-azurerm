@@ -433,6 +433,28 @@ func TestAccSignalRService_withTags(t *testing.T) {
 	})
 }
 
+func TestAccSignalRService_liveTrace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.liveTrace(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.liveTraceUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SignalRServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := signalr.ParseSignalRID(state.ID)
 	if err != nil {
@@ -734,6 +756,67 @@ resource "azurerm_signalr_service" "test" {
   }
   tags = {
     ENV = "test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r SignalRServiceResource) liveTrace(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  live_trace {
+    enabled                   = true
+    messaging_logs_enabled    = false
+    connectivity_logs_enabled = true
+  }
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r SignalRServiceResource) liveTraceUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  live_trace {
+    enabled                   = false
+    messaging_logs_enabled    = true
+    connectivity_logs_enabled = false
+    http_request_logs_enabled = false
+  }
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
