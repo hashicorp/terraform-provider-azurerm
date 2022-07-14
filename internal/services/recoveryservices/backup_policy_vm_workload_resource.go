@@ -17,14 +17,19 @@ import (
 )
 
 type BackupProtectionPolicyVMWorkloadModel struct {
-	Name              string     `tfschema:"name"`
-	ResourceGroupName string     `tfschema:"resource_group_name"`
-	RecoveryVaultName string     `tfschema:"recovery_vault_name"`
-	Settings          []Settings `tfschema:"settings"`
-	WorkloadType      string     `tfschema:"workload_type"`
+	Name               string             `tfschema:"name"`
+	ResourceGroupName  string             `tfschema:"resource_group_name"`
+	RecoveryVaultName  string             `tfschema:"recovery_vault_name"`
+	ProtectionPolicies []ProtectionPolicy `tfschema:"protection_policy"`
+	Settings           []Setting          `tfschema:"setting"`
+	WorkloadType       string             `tfschema:"workload_type"`
 }
 
-type Settings struct {
+type ProtectionPolicy struct {
+	PolicyType string `tfschema:"policy_type"`
+}
+
+type Setting struct {
 	CompressionEnabled    *bool   `tfschema:"compression_enabled"`
 	SqlCompressionEnabled *bool   `tfschema:"sql_compression_enabled"`
 	TimeZone              *string `tfschema:"time_zone"`
@@ -64,17 +69,26 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 			ValidateFunc: validate.RecoveryServicesVaultName,
 		},
 
-		"workload_type": {
-			Type:     pluginsdk.TypeString,
+		"protection_policy": {
+			Type:     pluginsdk.TypeList,
 			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(backup.WorkloadTypeSQLDataBase),
-				string(backup.WorkloadTypeSAPHanaDatabase),
-			}, false),
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"policy_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(backup.PolicyTypeDifferential),
+							string(backup.PolicyTypeFull),
+							string(backup.PolicyTypeIncremental),
+							string(backup.PolicyTypeLog),
+						}, false),
+					},
+				},
+			},
 		},
 
-		"settings": {
+		"setting": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
@@ -99,6 +113,16 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 					},
 				},
 			},
+		},
+
+		"workload_type": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(backup.WorkloadTypeSQLDataBase),
+				string(backup.WorkloadTypeSAPHanaDatabase),
+			}, false),
 		},
 	}
 }
@@ -135,6 +159,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Create() sdk.ResourceFunc {
 				Properties: &backup.AzureVMWorkloadProtectionPolicy{
 					BackupManagementType: backup.ManagementTypeBasicProtectionPolicyBackupManagementTypeAzureWorkload,
 					Settings:             expandBackupProtectionPolicyVMWorkloadSettings(model.Settings),
+					SubProtectionPolicy:  expandBackupProtectionPolicyVMWorkloadProtectionPolicies(model.ProtectionPolicies),
 					WorkLoadType:         backup.WorkloadType(model.WorkloadType),
 				},
 			}
@@ -173,8 +198,12 @@ func (r BackupProtectionPolicyVMWorkloadResource) Update() sdk.ResourceFunc {
 			if props := existing.Properties; props != nil {
 				vmWorkload, _ := props.AsAzureVMWorkloadProtectionPolicy()
 
-				if metadata.ResourceData.HasChange("settings") {
+				if metadata.ResourceData.HasChange("setting") {
 					vmWorkload.Settings = expandBackupProtectionPolicyVMWorkloadSettings(model.Settings)
+				}
+
+				if metadata.ResourceData.HasChange("protection_policy") {
+					vmWorkload.SubProtectionPolicy = expandBackupProtectionPolicyVMWorkloadProtectionPolicies(model.ProtectionPolicies)
 				}
 			}
 
@@ -217,6 +246,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Read() sdk.ResourceFunc {
 				vmWorkload, _ := props.AsAzureVMWorkloadProtectionPolicy()
 				state.WorkloadType = string(vmWorkload.WorkLoadType)
 				state.Settings = flattenBackupProtectionPolicyVMWorkloadSettings(vmWorkload.Settings)
+				state.ProtectionPolicies = flattenBackupProtectionPolicyVMWorkloadProtectionPolicies(vmWorkload.SubProtectionPolicy)
 			}
 
 			return metadata.Encode(&state)
@@ -249,7 +279,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandBackupProtectionPolicyVMWorkloadSettings(input []Settings) *backup.Settings {
+func expandBackupProtectionPolicyVMWorkloadSettings(input []Setting) *backup.Settings {
 	if len(input) == 0 {
 		return &backup.Settings{}
 	}
@@ -272,18 +302,54 @@ func expandBackupProtectionPolicyVMWorkloadSettings(input []Settings) *backup.Se
 	return result
 }
 
-func flattenBackupProtectionPolicyVMWorkloadSettings(input *backup.Settings) []Settings {
+func flattenBackupProtectionPolicyVMWorkloadSettings(input *backup.Settings) []Setting {
 	if input == nil {
-		return make([]Settings, 0)
+		return make([]Setting, 0)
 	}
 
-	result := make([]Settings, 0)
+	result := make([]Setting, 0)
 
-	result = append(result, Settings{
+	result = append(result, Setting{
 		CompressionEnabled:    input.IsCompression,
 		SqlCompressionEnabled: input.Issqlcompression,
 		TimeZone:              input.TimeZone,
 	})
 
 	return result
+}
+
+func expandBackupProtectionPolicyVMWorkloadProtectionPolicies(input []ProtectionPolicy) *[]backup.SubProtectionPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	results := make([]backup.SubProtectionPolicy, 0)
+
+	for _, item := range input {
+		results = append(results, backup.SubProtectionPolicy{
+			PolicyType: backup.PolicyType(item.PolicyType),
+		})
+	}
+
+	return &results
+}
+
+func flattenBackupProtectionPolicyVMWorkloadProtectionPolicies(input *[]backup.SubProtectionPolicy) []ProtectionPolicy {
+	results := make([]ProtectionPolicy, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var policyType backup.PolicyType
+		if item.PolicyType != "" {
+			policyType = item.PolicyType
+		}
+
+		results = append(results, ProtectionPolicy{
+			PolicyType: string(policyType),
+		})
+	}
+
+	return results
 }
