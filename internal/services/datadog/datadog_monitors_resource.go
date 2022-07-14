@@ -112,8 +112,9 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				DiffSuppressFunc: SkuNameDiffSuppress,
 			},
 
 			"user": {
@@ -257,9 +258,7 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("marketplace_subscription_status", props.MarketplaceSubscriptionStatus)
 	}
 
-	if resp.Sku.Name != nil {
-		d.Set("sku_name", d.Get("Sku_name"))
-	}
+	d.Set("sku_name", *resp.Sku.Name)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -317,6 +316,18 @@ func resourceDatadogMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 	return nil
+}
+
+func SkuNameDiffSuppress(_, old, new string, _ *pluginsdk.ResourceData) bool {
+
+	if old == "Linked" && new == "Linked" {
+		return true
+	}
+	if new == "Linked" {
+		return true
+	}
+
+	return false
 }
 
 func expandMonitorIdentityProperties(input []interface{}) *datadog.IdentityProperties {
