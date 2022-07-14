@@ -42,6 +42,7 @@ ENHANCEMENTS:
  
 BUG FIXES:
 
+* `azurerm_api_management` - correct set the API Management Cipher `TLS_RSA_WITH_3DES_EDE_CBC_SHA` [GH-17554]
 * `azurerm_dev_test_lab_schedule` - deleting the schedule during deletion [GH-17614]
 * `azurerm_linux_function_app` - set the `default_hostname` properly on read [GH-17498]
 * `azurerm_linux_function_app_slot` - set the `default_hostname` properly on read [GH-17498]
