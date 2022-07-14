@@ -116,7 +116,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ForceNew: true,
 					},
 
-					"message_of_day": {
+					"message_of_the_day": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -717,7 +717,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 		profile.MaxPods = utils.Int32(maxPods)
 	}
 
-	if v := raw["message_of_day"].(string); v != "" {
+	if v := raw["message_of_the_day"].(string); v != "" {
 		messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
 		profile.MessageOfTheDay = &messageOfTheDayEncoded
 	}
@@ -744,8 +744,8 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]containerservice.Manag
 	}
 
 	profile.ScaleDownMode = containerservice.ScaleDownModeDelete
-	if scaleOfMode := raw["scale_down_mode"].(string); scaleOfMode != "" {
-		profile.ScaleDownMode = containerservice.ScaleDownMode(scaleOfMode)
+	if scaleDownMode := raw["scale_down_mode"].(string); scaleDownMode != "" {
+		profile.ScaleDownMode = containerservice.ScaleDownMode(scaleDownMode)
 	}
 
 	if ultraSSDEnabled, ok := raw["ultra_ssd_enabled"]; ok {
@@ -1167,7 +1167,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		"kubelet_disk_type":             string(agentPool.KubeletDiskType),
 		"max_count":                     maxCount,
 		"max_pods":                      maxPods,
-		"message_of_day":                messageOfTheDay,
+		"message_of_the_day":            messageOfTheDay,
 		"min_count":                     minCount,
 		"name":                          name,
 		"node_count":                    count,

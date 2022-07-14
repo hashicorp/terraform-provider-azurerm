@@ -156,7 +156,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"message_of_day": {
+			"message_of_the_day": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -462,7 +462,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NodeTaints = nodeTaints
 	}
 
-	if v := d.Get("message_of_day").(string); v != "" {
+	if v := d.Get("message_of_the_day").(string); v != "" {
+		if profile.OsType == containerservice.OSTypeWindows {
+			return fmt.Errorf("`message_of_the_day` cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script)")
+		}
 		messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
 		profile.MessageOfTheDay = &messageOfTheDayEncoded
 	}
@@ -609,13 +612,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("max_count") || d.Get("enable_auto_scaling").(bool) {
 		props.MaxCount = utils.Int32(int32(d.Get("max_count").(int)))
-	}
-
-	if d.HasChange("message_of_day") {
-		if v := d.Get("message_of_day").(string); v != "" {
-			messageOfTheDayEncoded := base64.StdEncoding.EncodeToString([]byte(v))
-			props.MessageOfTheDay = &messageOfTheDayEncoded
-		}
 	}
 
 	if d.HasChange("mode") {
@@ -806,11 +802,11 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		if props.MessageOfTheDay != nil {
 			messageOfTheDayDecoded, err := base64.StdEncoding.DecodeString(*props.MessageOfTheDay)
 			if err != nil {
-				return fmt.Errorf("setting `message_of_day`: %+v", err)
+				return fmt.Errorf("setting `message_of_the_day`: %+v", err)
 			}
 			messageOfTheDay = string(messageOfTheDayDecoded)
 		}
-		d.Set("message_of_day", messageOfTheDay)
+		d.Set("message_of_the_day", messageOfTheDay)
 
 		maxPods := 0
 		if props.MaxPods != nil {
