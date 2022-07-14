@@ -16,6 +16,7 @@ type Client struct {
 	DscNodeConfigurationClient  *automation.DscNodeConfigurationClient
 	JobScheduleClient           *automation.JobScheduleClient
 	ModuleClient                *automation.ModuleClient
+	Python2PackageClient        *automation.Python2PackageClient
 	RunbookClient               *automation.RunbookClient
 	RunbookDraftClient          *automation.RunbookDraftClient
 	ScheduleClient              *automation.ScheduleClient
@@ -54,6 +55,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	moduleClient := automation.NewModuleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&moduleClient.Client, o.ResourceManagerAuthorizer)
 
+	py2pkgClient := automation.NewPython2PackageClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&py2pkgClient.Client, o.ResourceManagerAuthorizer)
+
 	runbookClient := automation.NewRunbookClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&runbookClient.Client, o.ResourceManagerAuthorizer)
 
@@ -80,6 +84,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DscNodeConfigurationClient:  &dscNodeConfigurationClient,
 		JobScheduleClient:           &jobScheduleClient,
 		ModuleClient:                &moduleClient,
+		Python2PackageClient:        &py2pkgClient,
 		RunbookClient:               &runbookClient,
 		RunbookDraftClient:          &runbookDraftClient,
 		ScheduleClient:              &scheduleClient,
