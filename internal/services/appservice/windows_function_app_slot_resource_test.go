@@ -901,7 +901,8 @@ func TestAccWindowsFunctionAppSlot_vNetIntegrationUpdate(t *testing.T) {
 					check.That("azurerm_subnet.test1").Key("id"),
 				),
 			),
-		},		data.ImportStep(),
+		},
+		data.ImportStep(),
 		{
 			Config: r.vNetIntegration_subnet2(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
