@@ -266,16 +266,18 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	app := appplatform.AppResource{
 		Identity: identity,
 		Properties: &appplatform.AppResourceProperties{
-			AddonConfigs: addonConfig,
-			VnetAddons: &appplatform.AppVNetAddons{
-				PublicEndpoint: utils.Bool(d.Get("public_endpoint_enabled").(bool)),
-			},
+			AddonConfigs:          addonConfig,
 			EnableEndToEndTLS:     utils.Bool(d.Get("tls_enabled").(bool)),
 			Public:                utils.Bool(d.Get("is_public").(bool)),
 			HTTPSOnly:             utils.Bool(d.Get("https_only").(bool)),
 			PersistentDisk:        expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
 			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), *id),
 		},
+	}
+	if enabled := d.Get("public_endpoint_enabled").(bool); enabled {
+		app.Properties.VnetAddons = &appplatform.AppVNetAddons{
+			PublicEndpoint: utils.Bool(enabled),
+		}
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
 	if err != nil {
