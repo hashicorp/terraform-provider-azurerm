@@ -616,7 +616,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			state.HttpsOnly = utils.NormaliseNilableBool(functionAppSlot.HTTPSOnly)
 			state.ClientCertEnabled = utils.NormaliseNilableBool(functionAppSlot.ClientCertEnabled)
 
-			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
+			if subnetId := utils.NormalizeNilableString(functionAppSlot.VirtualNetworkSubnetID); subnetId != "" {
 				state.VirtualNetworkSubnetID = subnetId
 			}
 
