@@ -2236,7 +2236,6 @@ resource "azurerm_subnet" "test2" {
 resource "azurerm_linux_web_app_slot" "test" {
   name                      = "acctestWAS-%[2]d"
   app_service_id            = azurerm_linux_web_app.test.id
-  virtual_network_subnet_id = azurerm_subnet.test.id
 
   site_config {}
 }
