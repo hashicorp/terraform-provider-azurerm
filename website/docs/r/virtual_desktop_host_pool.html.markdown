@@ -31,10 +31,12 @@ resource "azurerm_virtual_desktop_host_pool" "example" {
   type                            = "Pooled"
   maximum_sessions_allowed        = 50
   load_balancer_type              = "DepthFirst"
-  scheduled_agent_updates_enabled = true
-  agent_updates_schedule {
-    day_of_week = "Sunday"
-    hour_of_day = 3
+  scheduled_agent_updates {
+    enabled = true
+    schedule {
+      day_of_week = "Saturday"
+      hour_of_day = 2
+    }
   }
 
 }
@@ -82,21 +84,26 @@ The following arguments are supported:
 * `preferred_app_group_type` - (Optional) Option to specify the preferred Application Group type for the Virtual Desktop Host Pool.
     Valid options are `None`, `Desktop` or `RailApplications`. Default is `None`.
 
-* `scheduled_agent_updates_enabled` - (Optional) Enables or disables scheduled updates of the AVD agent components (RDAgent, Geneva Monitoring agent, and side-by-side stack) on session hosts. If this is enabled then up to two `agent_updates_schedule` blocks must be defined. Default is `false`.
-
-~> **NOTE:** if `scheduled_agent_updates_enabled` is set to `true` then at least one and a maximum of two `agent_updates_schedule` blocks must be provided.
-
-* `scheduled_agent_updates_timezone` - (Optional) Specifies the time zone in which the agent update schedule will apply, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). If `scheduled_agent_updates_use_session_host_timezone` is enabled then it will override this setting. Default is `UTC`
-
-* `scheduled_agent_updates_use_session_host_timezone` - (Optional) Specifies whether scheduled agent updates should be applied based on the timezone of the affected session host. If configured then this setting overrides `scheduled_agent_updates_timezone`. Default is `false`.
-
-* `agent_updates_schedule` - (Optional) An `agent_updates_schedule` block as defined below. A maximum of two blocks can be added. 
+* `scheduled_agent_updates` - (Optional) A `scheduled_agent_updates` block as defined below. This enables control of when Agent Updates will be applied to Session Hosts.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-An `agent_updates_schedule` block supports the following:
+A `scheduled_agent_updates` block supports the following:
+
+* `enabled` - (Optional) Enables or disables scheduled updates of the AVD agent components (RDAgent, Geneva Monitoring agent, and side-by-side stack) on session hosts. If this is enabled then up to two `schedule` blocks must be defined. Default is `false`.
+
+~> **NOTE:** if `enabled` is set to `true` then at least one and a maximum of two `schedule` blocks must be provided.
+
+* `timezone` - (Optional) Specifies the time zone in which the agent update schedule will apply, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). If `use_session_host_timezone` is enabled then it will override this setting. Default is `UTC`
+* `use_session_host_timezone` - (Optional) Specifies whether scheduled agent updates should be applied based on the timezone of the affected session host. If configured then this setting overrides `timezone`. Default is `false`.
+* `schedule` - (Optional) A `schedule` block as defined below. A maximum of two blocks can be added. 
+
+---
+---
+
+A `schedule` block supports the following:
 
 * `day_of_week` - (Required) The day of the week on which agent updates should be performed. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`
 * `hour_of_day` - (Required) The hour of day the update window should start. The update is a 2 hour period following the hour provided. The value should be provided as a number between 0 and 23, with 0 being midnight and 23 being 11pm. A leading zero should not be used.
