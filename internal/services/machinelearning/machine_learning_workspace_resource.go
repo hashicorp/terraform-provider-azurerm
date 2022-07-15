@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	appInsightsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -36,9 +35,9 @@ const (
 
 func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceMachineLearningWorkspaceCreate,
+		Create: resourceMachineLearningWorkspaceCreateOrUpdate,
 		Read:   resourceMachineLearningWorkspaceRead,
-		Update: resourceMachineLearningWorkspaceUpdate,
+		Update: resourceMachineLearningWorkspaceCreateOrUpdate,
 		Delete: resourceMachineLearningWorkspaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -110,15 +109,19 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			},
 
 			"public_access_behind_virtual_network_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-				ConflictsWith: func() []string {
-					if !features.FourPointOhBeta() {
-						return []string{"public_network_access_enabled"}
-					}
-					return []string{}
-				}(),
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				ForceNew:      true,
+				Deprecated:    "`public_access_behind_virtual_network_enabled` will be removed in favour of not supported by API since v2021-10-01.",
+				ConflictsWith: []string{"public_network_access_enabled"},
+			},
+
+			"public_network_access_enabled": {
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"public_access_behind_virtual_network_enabled"},
 			},
 
 			"image_build_compute_name": {
@@ -176,6 +179,12 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{string(Basic)}, false),
 			},
 
+			"v1_legacy_mode": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"discovery_url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -185,38 +194,26 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		// For the time being we should just deprecate and remove this property since it's broken in the API - it doesn't
-		// actually set the property and also isn't returned by the API. Once https://github.com/Azure/azure-rest-api-specs/issues/18340
-		// is fixed we can reassess how to deal with this field.
-		resource.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			Deprecated:    "`public_network_access_enabled` will be removed in favour of the property `public_access_behind_virtual_network_enabled` in version 4.0 of the AzureRM Provider.",
-			ConflictsWith: []string{"public_access_behind_virtual_network_enabled"},
-		}
-	}
-
 	return resource
 }
 
-func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MachineLearning.WorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := workspaces.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_machine_learning_workspace", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_machine_learning_workspace", id.ID())
+		}
 	}
 
 	expandedIdentity, err := expandMachineLearningWorkspaceIdentity(d.Get("identity").([]interface{}))
@@ -227,12 +224,8 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 	expandedEncryption := expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{}))
 
 	networkAccessBehindVnetEnabled := false
-	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
-			networkAccessBehindVnetEnabled = v.(bool)
-		}
-	}
-	if v, ok := d.GetOkExists("public_access_behind_virtual_network_enabled"); ok {
+
+	if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
 		networkAccessBehindVnetEnabled = v.(bool)
 	}
 
@@ -244,8 +237,10 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 			Name: d.Get("sku_name").(string),
 			Tier: utils.ToPtr(workspaces.SkuTier(d.Get("sku_name").(string))),
 		},
+
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
+			V1LegacyMode:                    utils.ToPtr(d.Get("v1_legacy_mode").(bool)),
 			Encryption:                      expandedEncryption,
 			StorageAccount:                  utils.String(d.Get("storage_account_id").(string)),
 			ApplicationInsights:             utils.String(d.Get("application_insights_id").(string)),
@@ -280,7 +275,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 
 	future, err := client.CreateOrUpdate(ctx, id, workspace)
 	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if err = future.Poller.PollUntilDone(); err != nil {
@@ -334,19 +329,15 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("discovery_url", props.DiscoveryUrl)
 		d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
 		d.Set("public_access_behind_virtual_network_enabled", props.AllowPublicAccessWhenBehindVnet)
-
-		if !features.FourPointOhBeta() {
-			d.Set("public_network_access_enabled", props.AllowPublicAccessWhenBehindVnet)
-			//TODO props.PublicNetworkAccess
-			//d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
-		}
-
+		d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
+		d.Set("v1_legacy_mode", props.V1LegacyMode)
 	}
 
 	flattenedIdentity, err := flattenMachineLearningWorkspaceIdentity(resp.Model.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
+
 	if err := d.Set("identity", flattenedIdentity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
@@ -360,63 +351,6 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)
-}
-
-func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MachineLearning.WorkspacesClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := workspaces.ParseWorkspaceID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	update := workspaces.WorkspaceUpdateParameters{
-		Properties: &workspaces.WorkspacePropertiesUpdateParameters{},
-	}
-
-	if d.HasChange("sku_name") {
-		skuName := d.Get("sku_name").(string)
-		update.Sku = &workspaces.Sku{
-			Name: skuName,
-			Tier: utils.ToPtr(workspaces.SkuTier(skuName)),
-		}
-	}
-
-	if d.HasChange("description") {
-		update.Properties.Description = utils.String(d.Get("description").(string))
-	}
-
-	if d.HasChange("friendly_name") {
-		update.Properties.FriendlyName = utils.String(d.Get("friendly_name").(string))
-	}
-
-	if d.HasChange("tags") {
-		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-	}
-
-	if d.HasChange("identity") {
-		identity, err := expandMachineLearningWorkspaceIdentity(d.Get("identity").([]interface{}))
-		if err != nil {
-			return err
-		}
-		update.Identity = identity
-	}
-
-	if d.HasChange("primary_user_assigned_identity") {
-		update.Properties.PrimaryUserAssignedIdentity = utils.String(d.Get("primary_user_assigned_identity").(string))
-	}
-
-	future, err := client.Update(ctx, *id, update)
-	if err != nil {
-		return fmt.Errorf("updating Machine Learning Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
-	}
-	if err := future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting for updating of %s: %+v", id, err)
-	}
-
-	return resourceMachineLearningWorkspaceRead(d, meta)
 }
 
 func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -450,10 +384,6 @@ func expandMachineLearningWorkspaceIdentity(input []interface{}) (*identity.Lega
 	out := identity.LegacySystemAndUserAssignedMap{
 		Type: expanded.Type,
 	}
-	// api uses `SystemAssigned,UserAssigned` (no space), so convert it from the normalized value
-	if expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.Type = identity.TypeSystemAssignedUserAssigned
-	}
 	if len(expanded.IdentityIds) > 0 {
 		out.IdentityIds = map[string]identity.UserAssignedIdentityDetails{}
 		for k := range expanded.IdentityIds {
@@ -475,7 +405,7 @@ func flattenMachineLearningWorkspaceIdentity(input *identity.LegacySystemAndUser
 		}
 
 		// api uses `SystemAssigned,UserAssigned` (no space), so normalize it back
-		if input.Type == identity.TypeSystemAssignedUserAssigned {
+		if input.Type == "SystemAssigned,UserAssigned" {
 			transform.Type = identity.TypeSystemAssignedUserAssigned
 		}
 

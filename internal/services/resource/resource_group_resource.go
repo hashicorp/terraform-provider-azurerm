@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"sort"
@@ -140,6 +141,12 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 			for results.NotDone() {
 				val := results.Value()
 				if val.ID != nil {
+					js, _ := json.Marshal(val)
+					log.Printf(" resource group delete DDDDDDDD %s, id: %s , provisionState: %s, kind: %s]]]]]", js,
+						*val.ID,
+						*val.ProvisioningState,
+						*val.Name)
+
 					nestedResourceIds = append(nestedResourceIds, *val.ID)
 				}
 

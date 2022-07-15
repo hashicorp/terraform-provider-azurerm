@@ -376,6 +376,8 @@ The following arguments are supported:
 
 * `primary_user_assigned_identity` - (Optional) The user assigned identity id that represents the workspace identity.
 
+* `v1_legacy_mode` - (Optional) Enable V1 API features, enabling `v1_legacy_mode` may prevent you from using features provided by the v2 API. Defaults to `false`.
+
 * `sku_name` - (Optional) SKU/edition of the Machine Learning Workspace, possible values are `Basic`. Defaults to `Basic`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

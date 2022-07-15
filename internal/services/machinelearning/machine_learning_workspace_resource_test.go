@@ -190,7 +190,7 @@ func TestAccMachineLearningWorkspace_identityUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.systemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
@@ -272,7 +272,7 @@ resource "azurerm_machine_learning_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomIntOfLength(16))
+`, template, data.RandomInteger)
 }
 
 func (r WorkspaceResource) basicUpdated(data acceptance.TestData) string {
@@ -347,6 +347,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   high_business_impact          = true
   public_network_access_enabled = true
   image_build_compute_name      = "terraformCompute"
+  v1_legacy_mode                = false
 
   identity {
     type = "SystemAssigned"
@@ -455,18 +456,18 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
-  name                                         = "acctest-MLW-%[2]d"
-  location                                     = azurerm_resource_group.test.location
-  resource_group_name                          = azurerm_resource_group.test.name
-  friendly_name                                = "test-workspace-updated"
-  description                                  = "Test machine learning workspace update"
-  application_insights_id                      = azurerm_application_insights.test.id
-  key_vault_id                                 = azurerm_key_vault.test.id
-  storage_account_id                           = azurerm_storage_account.test.id
-  container_registry_id                        = azurerm_container_registry.test.id
-  sku_name                                     = "Basic"
-  high_business_impact                         = true
-  image_build_compute_name                     = "terraformCompute"
+  name                     = "acctest-MLW-%[2]d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  friendly_name            = "test-workspace-updated"
+  description              = "Test machine learning workspace update"
+  application_insights_id  = azurerm_application_insights.test.id
+  key_vault_id             = azurerm_key_vault.test.id
+  storage_account_id       = azurerm_storage_account.test.id
+  container_registry_id    = azurerm_container_registry.test.id
+  sku_name                 = "Basic"
+  high_business_impact     = true
+  image_build_compute_name = "terraformCompute"
 
   identity {
     type = "SystemAssigned"
@@ -624,6 +625,31 @@ resource "azurerm_machine_learning_workspace" "test" {
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r WorkspaceResource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctest-MLW-%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  identity {
+    type = "SystemAssigned"
   }
 }
 `, r.template(data), data.RandomInteger)

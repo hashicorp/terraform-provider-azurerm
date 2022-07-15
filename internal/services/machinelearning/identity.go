@@ -17,7 +17,7 @@ func expandIdentity(input []interface{}) (*identity.LegacySystemAndUserAssignedM
 
 	// work around the Swagger defining `SystemAssigned,UserAssigned` rather than `SystemAssigned, UserAssigned`
 	if expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.Type = identity.TypeSystemAssignedUserAssigned
+		out.Type = "SystemAssigned,UserAssigned"
 	}
 
 	// 'Failed to perform resource identity operation. Status: 'BadRequest'. Response:
@@ -46,7 +46,7 @@ func flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) (*[]interfa
 		}
 
 		// work around the Swagger defining `SystemAssigned,UserAssigned` rather than `SystemAssigned, UserAssigned`
-		if input.Type == identity.TypeSystemAssignedUserAssigned {
+		if input.Type == "SystemAssigned,UserAssigned" {
 			config.Type = identity.TypeSystemAssignedUserAssigned
 		}
 
