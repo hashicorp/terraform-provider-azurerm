@@ -2913,14 +2913,16 @@ provider "azurerm" {
   features {}
 }
 %s
+
 resource "azurerm_virtual_network" "test" {
   name                = "vnet-%d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-resource "azurerm_subnet" "test" {
-  name                 = "subnet"
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
@@ -2932,6 +2934,21 @@ resource "azurerm_subnet" "test" {
     }
   }
 }
+
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
 resource "azurerm_windows_function_app" "test" {
   name                       = "acctest-WFA-%d"
   location                   = azurerm_resource_group.test.location
@@ -2941,6 +2958,7 @@ resource "azurerm_windows_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   site_config {}
 }
+
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
@@ -2956,6 +2974,7 @@ resource "azurerm_virtual_network" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_subnet" "test1" {
   name                 = "subnet1"
   resource_group_name  = azurerm_resource_group.test.name
@@ -2969,6 +2988,7 @@ resource "azurerm_subnet" "test1" {
     }
   }
 }
+
 resource "azurerm_subnet" "test2" {
   name                 = "subnet2"
   resource_group_name  = azurerm_resource_group.test.name
@@ -2982,6 +3002,7 @@ resource "azurerm_subnet" "test2" {
     }
   }
 }
+
 resource "azurerm_windows_function_app" "test" {
   name                       = "acctest-WFA-%d"
   location                   = azurerm_resource_group.test.location
@@ -2992,6 +3013,7 @@ resource "azurerm_windows_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   site_config {}
 }
+
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
@@ -3007,6 +3029,7 @@ resource "azurerm_virtual_network" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_subnet" "test1" {
   name                 = "subnet1"
   resource_group_name  = azurerm_resource_group.test.name
@@ -3020,6 +3043,7 @@ resource "azurerm_subnet" "test1" {
     }
   }
 }
+
 resource "azurerm_subnet" "test2" {
   name                 = "subnet2"
   resource_group_name  = azurerm_resource_group.test.name
@@ -3033,6 +3057,7 @@ resource "azurerm_subnet" "test2" {
     }
   }
 }
+
 resource "azurerm_windows_function_app" "test" {
   name                       = "acctest-WFA-%d"
   location                   = azurerm_resource_group.test.location
@@ -3043,5 +3068,6 @@ resource "azurerm_windows_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   site_config {}
 }
+
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
