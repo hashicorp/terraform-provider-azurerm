@@ -53,6 +53,10 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = true
     }
 
+    storage_account {
+      do_not_access_data_plane = true
+    }
+    
     template_deployment {
       delete_nested_items_during_deletion = true
     }
@@ -87,6 +91,8 @@ The `features` block supports the following:
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
 
 * `resource_group` - (Optional) A `resource_group` block as defined below.
+
+* `storage_account` - (Optional) A `storage_account` block as defined below.
 
 * `template_deployment` - (Optional) A `template_deployment` block as defined below.
 
@@ -153,6 +159,14 @@ The `resource_group` block supports the following:
 * `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `false`.
 
 -> **Note:** This will be defaulted to `true` in the next major version of the Azure Provider (3.0).
+
+---
+
+The `storage_account` block supports the following:
+
+* `do_not_access_data_plane` - (Optional) By default the `storage_account` also accesses the data-plane next to the control-plane to fetch
+  details from the Storage Account. This could raise issues when the deployment is initiated from behind a corporate firewall.
+  Set `do_not_access_data_plane` to `true` to circumvent this. Defaults to `false`.
 
 ---
 

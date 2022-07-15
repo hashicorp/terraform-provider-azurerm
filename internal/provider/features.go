@@ -165,6 +165,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
+		"storage_account": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"do_not_access_data_plane": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
 		"template_deployment": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -351,6 +366,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			logAnalyticsWorkspaceRaw := items[0].(map[string]interface{})
 			if v, ok := logAnalyticsWorkspaceRaw["permanently_delete_on_destroy"]; ok {
 				featuresMap.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["storage_account"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			templateRaw := items[0].(map[string]interface{})
+			if v, ok := templateRaw["do_not_access_data_plane"]; ok {
+				featuresMap.StorageAccount.DoNotAccessDataPlane = v.(bool)
 			}
 		}
 	}

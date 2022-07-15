@@ -934,6 +934,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	keyVaultClient := meta.(*clients.Client).KeyVault
 	resourceClient := meta.(*clients.Client).Resource
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	doNotAccessDataPlane := meta.(*clients.Client).Features.StorageAccount.DoNotAccessDataPlane
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1156,7 +1157,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("populating cache for %s: %+v", id, err)
 	}
 
-	if val, ok := d.GetOk("blob_properties"); ok {
+	if val, ok := d.GetOk("blob_properties"); ok && !doNotAccessDataPlane {
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.KindFileStorage) {
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
@@ -1183,7 +1184,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if val, ok := d.GetOk("queue_properties"); ok {
+	if val, ok := d.GetOk("queue_properties"); ok && !doNotAccessDataPlane {
 		storageClient := meta.(*clients.Client).Storage
 		account, err := storageClient.FindAccount(ctx, id.Name)
 		if err != nil {
@@ -1208,7 +1209,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if val, ok := d.GetOk("share_properties"); ok {
+	if val, ok := d.GetOk("share_properties"); ok && !doNotAccessDataPlane {
 		// BlobStorage does not support file share settings
 		// FileStorage Premium is supported
 		if accountKind == string(storage.KindFileStorage) || accountKind != string(storage.KindBlobStorage) && accountKind != string(storage.KindBlockBlobStorage) && accountTier != string(storage.SkuTierPremium) {
@@ -1222,7 +1223,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if val, ok := d.GetOk("static_website"); ok {
+	if val, ok := d.GetOk("static_website"); ok && !doNotAccessDataPlane {
 		// static website only supported on StorageV2 and BlockBlobStorage
 		if accountKind != string(storage.KindStorageV2) && accountKind != string(storage.KindBlockBlobStorage) {
 			return fmt.Errorf("`static_website` is only supported for StorageV2 and BlockBlobStorage.")
@@ -1258,6 +1259,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	client := meta.(*clients.Client).Storage.AccountsClient
 	keyVaultClient := meta.(*clients.Client).KeyVault
 	resourceClient := meta.(*clients.Client).Resource
+	doNotAccessDataPlane := meta.(*clients.Client).Features.StorageAccount.DoNotAccessDataPlane
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1551,7 +1553,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("blob_properties") {
+	if d.HasChange("blob_properties") && !doNotAccessDataPlane {
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.KindFileStorage) {
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
@@ -1581,7 +1583,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("queue_properties") {
+	if d.HasChange("queue_properties") && !doNotAccessDataPlane {
 		storageClient := meta.(*clients.Client).Storage
 		account, err := storageClient.FindAccount(ctx, id.Name)
 		if err != nil {
@@ -1606,7 +1608,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("share_properties") {
+	if d.HasChange("share_properties") && !doNotAccessDataPlane {
 		// BlobStorage, BlockBlobStorage does not support file share settings
 		// FileStorage Premium is supported
 		if accountKind == string(storage.KindFileStorage) || accountKind != string(storage.KindBlobStorage) && accountKind != string(storage.KindBlockBlobStorage) && accountTier != string(storage.SkuTierPremium) {
@@ -1620,7 +1622,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("static_website") {
+	if d.HasChange("static_website") && !doNotAccessDataPlane {
 		// static website only supported on StorageV2 and BlockBlobStorage
 		if accountKind != string(storage.KindStorageV2) && accountKind != string(storage.KindBlockBlobStorage) {
 			return fmt.Errorf("`static_website` is only supported for StorageV2 and BlockBlobStorage.")
@@ -1653,6 +1655,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
+	doNotAccessDataPlane := meta.(*clients.Client).Features.StorageAccount.DoNotAccessDataPlane
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1868,91 +1871,92 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.Name)
 	}
 
-	blobClient := storageClient.BlobServicesClient
+	if !doNotAccessDataPlane {
+		blobClient := storageClient.BlobServicesClient
 
-	// FileStorage does not support blob settings
-	if resp.Kind != storage.KindFileStorage {
-		blobProps, err := blobClient.GetServiceProperties(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(blobProps.Response) {
-				return fmt.Errorf("reading blob properties for AzureRM Storage Account %q: %+v", id.Name, err)
-			}
-		}
-
-		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
-			return fmt.Errorf("setting `blob_properties `for AzureRM Storage Account %q: %+v", id.Name, err)
-		}
-	}
-
-	fileServiceClient := storageClient.FileServicesClient
-
-	// FileStorage does not support blob kind, FileStorage Premium is supported
-	if resp.Kind == storage.KindFileStorage || resp.Kind != storage.KindBlobStorage && resp.Kind != storage.KindBlockBlobStorage && resp.Sku != nil && resp.Sku.Tier != storage.SkuTierPremium {
-		shareProps, err := fileServiceClient.GetServiceProperties(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(shareProps.Response) {
-				return fmt.Errorf("reading share properties for AzureRM Storage Account %q: %+v", id.Name, err)
-			}
-		}
-
-		if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
-			return fmt.Errorf("setting `share_properties `for AzureRM Storage Account %q: %+v", id.Name, err)
-		}
-	}
-
-	// queue is only available for certain tier and kind (as specified below)
-	if resp.Sku == nil {
-		return fmt.Errorf("retrieving %s: `sku` was nil", *id)
-	}
-
-	if resp.Sku.Tier == storage.SkuTierStandard {
-		if resp.Kind == storage.KindStorage || resp.Kind == storage.KindStorageV2 {
-			queueClient, err := storageClient.QueuesClient(ctx, *account)
+		// FileStorage does not support blob settings
+		if resp.Kind != storage.KindFileStorage {
+			blobProps, err := blobClient.GetServiceProperties(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				return fmt.Errorf("building Queues Client: %s", err)
+				if !utils.ResponseWasNotFound(blobProps.Response) {
+					return fmt.Errorf("reading blob properties for AzureRM Storage Account %q: %+v", id.Name, err)
+				}
 			}
 
-			queueProps, err := queueClient.GetServiceProperties(ctx, account.ResourceGroup, id.Name)
+			if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
+				return fmt.Errorf("setting `blob_properties `for AzureRM Storage Account %q: %+v", id.Name, err)
+			}
+		}
+
+		fileServiceClient := storageClient.FileServicesClient
+
+		// FileStorage does not support blob kind, FileStorage Premium is supported
+		if resp.Kind == storage.KindFileStorage || resp.Kind != storage.KindBlobStorage && resp.Kind != storage.KindBlockBlobStorage && resp.Sku != nil && resp.Sku.Tier != storage.SkuTierPremium {
+			shareProps, err := fileServiceClient.GetServiceProperties(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				return fmt.Errorf("reading queue properties for AzureRM Storage Account %q: %+v", id.Name, err)
+				if !utils.ResponseWasNotFound(shareProps.Response) {
+					return fmt.Errorf("reading share properties for AzureRM Storage Account %q: %+v", id.Name, err)
+				}
 			}
 
-			if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
-				return fmt.Errorf("setting `queue_properties`: %+v", err)
-			}
-		}
-	}
-
-	var staticWebsite []interface{}
-
-	// static website only supported on StorageV2 and BlockBlobStorage
-	if resp.Kind == storage.KindStorageV2 || resp.Kind == storage.KindBlockBlobStorage {
-		storageClient := meta.(*clients.Client).Storage
-
-		account, err := storageClient.FindAccount(ctx, id.Name)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
-		}
-
-		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
-		}
-
-		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.Name)
-		if err != nil {
-			if staticWebsiteProps.Response.Response != nil && !utils.ResponseWasNotFound(staticWebsiteProps.Response) {
-				return fmt.Errorf("reading static website for AzureRM Storage Account %q: %+v", id.Name, err)
+			if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
+				return fmt.Errorf("setting `share_properties `for AzureRM Storage Account %q: %+v", id.Name, err)
 			}
 		}
 
-		staticWebsite = flattenStaticWebsiteProperties(staticWebsiteProps)
-	}
+		// queue is only available for certain tier and kind (as specified below)
+		if resp.Sku == nil {
+			return fmt.Errorf("retrieving %s: `sku` was nil", *id)
+		}
 
-	if err := d.Set("static_website", staticWebsite); err != nil {
-		return fmt.Errorf("setting `static_website `for AzureRM Storage Account %q: %+v", id.Name, err)
-	}
+		if resp.Sku.Tier == storage.SkuTierStandard {
+			if resp.Kind == storage.KindStorage || resp.Kind == storage.KindStorageV2 {
+				queueClient, err := storageClient.QueuesClient(ctx, *account)
+				if err != nil {
+					return fmt.Errorf("building Queues Client: %s", err)
+				}
 
+				queueProps, err := queueClient.GetServiceProperties(ctx, account.ResourceGroup, id.Name)
+				if err != nil {
+					return fmt.Errorf("reading queue properties for AzureRM Storage Account %q: %+v", id.Name, err)
+				}
+
+				if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
+					return fmt.Errorf("setting `queue_properties`: %+v", err)
+				}
+			}
+		}
+
+		var staticWebsite []interface{}
+
+		// static website only supported on StorageV2 and BlockBlobStorage
+		if resp.Kind == storage.KindStorageV2 || resp.Kind == storage.KindBlockBlobStorage {
+			storageClient := meta.(*clients.Client).Storage
+
+			account, err := storageClient.FindAccount(ctx, id.Name)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q: %s", id.Name, err)
+			}
+
+			accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+			if err != nil {
+				return fmt.Errorf("building Accounts Data Plane Client: %s", err)
+			}
+
+			staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.Name)
+			if err != nil {
+				if staticWebsiteProps.Response.Response != nil && !utils.ResponseWasNotFound(staticWebsiteProps.Response) {
+					return fmt.Errorf("reading static website for AzureRM Storage Account %q: %+v", id.Name, err)
+				}
+			}
+
+			staticWebsite = flattenStaticWebsiteProperties(staticWebsiteProps)
+		}
+
+		if err := d.Set("static_website", staticWebsite); err != nil {
+			return fmt.Errorf("setting `static_website `for AzureRM Storage Account %q: %+v", id.Name, err)
+		}
+	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 

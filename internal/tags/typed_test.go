@@ -67,7 +67,7 @@ func TestToTypedObject(t *testing.T) {
 
 		actual := ToTypedObject(v.Input)
 		if !reflect.DeepEqual(actual, v.Expected) {
-			t.Fatalf("Expected %+v but got %+v", actual, v.Expected)
+			t.Fatalf("Expected %+v but got %+v", v.Expected, actual)
 		}
 	}
 }

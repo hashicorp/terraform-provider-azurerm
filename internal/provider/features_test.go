@@ -42,6 +42,9 @@ func TestExpandFeatures(t *testing.T) {
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: true,
 				},
+				StorageAccount: features.StorageAccountFeatures{
+					DoNotAccessDataPlane: false,
+				},
 				TemplateDeployment: features.TemplateDeploymentFeatures{
 					DeleteNestedItemsDuringDeletion: true,
 				},
@@ -108,6 +111,11 @@ func TestExpandFeatures(t *testing.T) {
 							"prevent_deletion_if_contains_resources": true,
 						},
 					},
+					"storage_account": []interface{}{
+						map[string]interface{}{
+							"do_not_access_data_plane": true,
+						},
+					},
 					"template_deployment": []interface{}{
 						map[string]interface{}{
 							"delete_nested_items_during_deletion": true,
@@ -156,6 +164,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: true,
+				},
+				StorageAccount: features.StorageAccountFeatures{
+					DoNotAccessDataPlane: true,
 				},
 				TemplateDeployment: features.TemplateDeploymentFeatures{
 					DeleteNestedItemsDuringDeletion: true,
@@ -220,6 +231,11 @@ func TestExpandFeatures(t *testing.T) {
 							"prevent_deletion_if_contains_resources": false,
 						},
 					},
+					"storage_account": []interface{}{
+						map[string]interface{}{
+							"do_not_access_data_plane": false,
+						},
+					},
 					"template_deployment": []interface{}{
 						map[string]interface{}{
 							"delete_nested_items_during_deletion": false,
@@ -269,6 +285,9 @@ func TestExpandFeatures(t *testing.T) {
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: false,
 				},
+				StorageAccount: features.StorageAccountFeatures{
+					DoNotAccessDataPlane: false,
+				},
 				TemplateDeployment: features.TemplateDeploymentFeatures{
 					DeleteNestedItemsDuringDeletion: false,
 				},
@@ -290,7 +309,7 @@ func TestExpandFeatures(t *testing.T) {
 		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result, testCase.Expected) {
-			t.Fatalf("Expected %+v but got %+v", result, testCase.Expected)
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected, result)
 		}
 	}
 }
@@ -360,7 +379,7 @@ func TestExpandFeaturesApiManagement(t *testing.T) {
 		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.ApiManagement, testCase.Expected.ApiManagement) {
-			t.Fatalf("Expected %+v but got %+v", result.ApiManagement, testCase.Expected.ApiManagement)
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.ApiManagement, result.ApiManagement)
 		}
 	}
 }
@@ -425,7 +444,7 @@ func TestExpandFeaturesApplicationInsights(t *testing.T) {
 		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.ApplicationInsights, testCase.Expected.ApplicationInsights) {
-			t.Fatalf("Expected %+v but got %+v", result.ApplicationInsights, testCase.Expected.ApplicationInsights)
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.ApplicationInsights, result.ApplicationInsights)
 		}
 	}
 }
@@ -490,7 +509,7 @@ func TestExpandFeaturesCognitiveServices(t *testing.T) {
 		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.CognitiveAccount, testCase.Expected.CognitiveAccount) {
-			t.Fatalf("Expected %+v but got %+v", result.CognitiveAccount, testCase.Expected.CognitiveAccount)
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.CognitiveAccount, result.CognitiveAccount)
 		}
 	}
 }
@@ -595,7 +614,72 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.KeyVault, testCase.Expected.KeyVault) {
-			t.Fatalf("Expected %+v but got %+v", result.KeyVault, testCase.Expected.KeyVault)
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.KeyVault, result.KeyVault)
+		}
+	}
+}
+
+func TestExpandFeaturesStorageAccount(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"storage_account": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				StorageAccount: features.StorageAccountFeatures{
+					DoNotAccessDataPlane: false,
+				},
+			},
+		},
+		{
+			Name: "Delete Nested Items During Deletion Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"storage_account": []interface{}{
+						map[string]interface{}{
+							"do_not_access_data_plane": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				StorageAccount: features.StorageAccountFeatures{
+					DoNotAccessDataPlane: true,
+				},
+			},
+		},
+		{
+			Name: "Delete Nested Items During Deletion Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"storage_account": []interface{}{
+						map[string]interface{}{
+							"do_not_access_data_plane": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				StorageAccount: features.StorageAccountFeatures{
+					DoNotAccessDataPlane: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.StorageAccount, testCase.Expected.StorageAccount) {
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.StorageAccount, result.StorageAccount)
 		}
 	}
 }
@@ -660,7 +744,7 @@ func TestExpandFeaturesTemplateDeployment(t *testing.T) {
 		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.TemplateDeployment, testCase.Expected.TemplateDeployment) {
-			t.Fatalf("Expected %+v but got %+v", result.TemplateDeployment, testCase.Expected.TemplateDeployment)
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.TemplateDeployment, result.TemplateDeployment)
 		}
 	}
 }
@@ -778,7 +862,7 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.VirtualMachine, testCase.Expected.VirtualMachine) {
-			t.Fatalf("Expected %+v but got %+v", result.VirtualMachine, testCase.Expected.VirtualMachine)
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.VirtualMachine, result.VirtualMachine)
 		}
 	}
 }
@@ -956,7 +1040,7 @@ func TestExpandFeaturesLogAnalyticsWorkspace(t *testing.T) {
 		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.LogAnalyticsWorkspace, testCase.Expected.LogAnalyticsWorkspace) {
-			t.Fatalf("Expected %+v but got %+v", result.LogAnalyticsWorkspace, testCase.Expected.LogAnalyticsWorkspace)
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.LogAnalyticsWorkspace, result.LogAnalyticsWorkspace)
 		}
 	}
 }
@@ -1021,7 +1105,7 @@ func TestExpandFeaturesResourceGroup(t *testing.T) {
 		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.ResourceGroup, testCase.Expected.ResourceGroup) {
-			t.Fatalf("Expected %+v but got %+v", result.ResourceGroup, testCase.Expected.ResourceGroup)
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.ResourceGroup, result.ResourceGroup)
 		}
 	}
 }
