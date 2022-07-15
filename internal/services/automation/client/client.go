@@ -24,6 +24,7 @@ type Client struct {
 	RunBookWgClient             *hybridrunbookworkergroup.HybridRunbookWorkerGroupClient
 	RunbookWorkerClient         *hybridrunbookworker.HybridRunbookWorkerClient
 	ScheduleClient              *automation.ScheduleClient
+	SourceControlClient         *automation.SourceControlClient
 	VariableClient              *automation.VariableClient
 	WebhookClient               *automation.WebhookClient
 }
@@ -71,6 +72,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	runbookWorkerClient := hybridrunbookworker.NewHybridRunbookWorkerClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&runbookWorkerClient.Client, o.ResourceManagerAuthorizer)
 
+	sourceCtlClient := automation.NewSourceControlClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sourceCtlClient.Client, o.ResourceManagerAuthorizer)
+
 	scheduleClient := automation.NewScheduleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&scheduleClient.Client, o.ResourceManagerAuthorizer)
 
@@ -96,6 +100,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		RunBookWgClient:             &runbookWgClient,
 		RunbookWorkerClient:         &runbookWorkerClient,
 		ScheduleClient:              &scheduleClient,
+		SourceControlClient:         &sourceCtlClient,
 		VariableClient:              &variableClient,
 		WebhookClient:               &webhookClient,
 	}
