@@ -3,11 +3,13 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-11-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	AvailabilitySetsClient           *compute.AvailabilitySetsClient
+	AvailabilitySetsClient           *availabilitysets.AvailabilitySetsClient
 	CapacityReservationsClient       *compute.CapacityReservationsClient
 	CapacityReservationGroupsClient  *compute.CapacityReservationGroupsClient
 	DedicatedHostsClient             *compute.DedicatedHostsClient
@@ -20,9 +22,10 @@ type Client struct {
 	GalleryApplicationVersionsClient *compute.GalleryApplicationVersionsClient
 	GalleryImagesClient              *compute.GalleryImagesClient
 	GalleryImageVersionsClient       *compute.GalleryImageVersionsClient
-	ProximityPlacementGroupsClient   *compute.ProximityPlacementGroupsClient
-	MarketplaceAgreementsClient      *marketplaceordering.MarketplaceAgreementsClient
 	ImagesClient                     *compute.ImagesClient
+	MarketplaceAgreementsClient      *marketplaceordering.MarketplaceAgreementsClient
+	ProximityPlacementGroupsClient   *compute.ProximityPlacementGroupsClient
+	SSHPublicKeysClient              *sshpublickeys.SshPublicKeysClient
 	SnapshotsClient                  *compute.SnapshotsClient
 	UsageClient                      *compute.UsageClient
 	VMExtensionImageClient           *compute.VirtualMachineExtensionImagesClient
@@ -33,11 +36,10 @@ type Client struct {
 	VMScaleSetVMsClient              *compute.VirtualMachineScaleSetVMsClient
 	VMClient                         *compute.VirtualMachinesClient
 	VMImageClient                    *compute.VirtualMachineImagesClient
-	SSHPublicKeysClient              *compute.SSHPublicKeysClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	availabilitySetsClient := availabilitysets.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&availabilitySetsClient.Client, o.ResourceManagerAuthorizer)
 
 	capacityReservationsClient := compute.NewCapacityReservationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -88,6 +90,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	snapshotsClient := compute.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&snapshotsClient.Client, o.ResourceManagerAuthorizer)
 
+	sshPublicKeysClient := sshpublickeys.NewSshPublicKeysClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&sshPublicKeysClient.Client, o.ResourceManagerAuthorizer)
+
 	usageClient := compute.NewUsageClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&usageClient.Client, o.ResourceManagerAuthorizer)
 
@@ -115,9 +120,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	vmClient := compute.NewVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmClient.Client, o.ResourceManagerAuthorizer)
 
-	sshPublicKeysClient := compute.NewSSHPublicKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&sshPublicKeysClient.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
 		AvailabilitySetsClient:           &availabilitySetsClient,
 		CapacityReservationsClient:       &capacityReservationsClient,
@@ -135,6 +137,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ImagesClient:                     &imagesClient,
 		MarketplaceAgreementsClient:      &marketplaceAgreementsClient,
 		ProximityPlacementGroupsClient:   &proximityPlacementGroupsClient,
+		SSHPublicKeysClient:              &sshPublicKeysClient,
 		SnapshotsClient:                  &snapshotsClient,
 		UsageClient:                      &usageClient,
 		VMExtensionImageClient:           &vmExtensionImageClient,
@@ -145,6 +148,5 @@ func NewClient(o *common.ClientOptions) *Client {
 		VMScaleSetVMsClient:              &vmScaleSetVMsClient,
 		VMClient:                         &vmClient,
 		VMImageClient:                    &vmImageClient,
-		SSHPublicKeysClient:              &sshPublicKeysClient,
 	}
 }
