@@ -196,7 +196,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/resourceproviders
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk v0.20220701.1073833
+# github.com/hashicorp/go-azure-sdk v0.20220708.1064156
 ## explicit; go 1.18
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants
 github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers
@@ -240,6 +240,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/capacitypoo
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/netappaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshotpolicy
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/snapshots
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumegroups
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumes
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2021-10-01/volumesreplication
 github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/namespaces

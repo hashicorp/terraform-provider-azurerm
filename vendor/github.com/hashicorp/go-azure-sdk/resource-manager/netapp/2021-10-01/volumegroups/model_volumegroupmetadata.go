@@ -1,0 +1,13 @@
+package volumegroups
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type VolumeGroupMetaData struct {
+	ApplicationIdentifier *string                   `json:"applicationIdentifier,omitempty"`
+	ApplicationType       *ApplicationType          `json:"applicationType,omitempty"`
+	DeploymentSpecId      *string                   `json:"deploymentSpecId,omitempty"`
+	GlobalPlacementRules  *[]PlacementKeyValuePairs `json:"globalPlacementRules,omitempty"`
+	GroupDescription      *string                   `json:"groupDescription,omitempty"`
+	VolumesCount          *int64                    `json:"volumesCount,omitempty"`
+}
