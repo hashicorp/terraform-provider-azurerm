@@ -12,7 +12,7 @@ require (
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/google/go-cmp v0.5.8
 	github.com/google/uuid v1.1.2
-	github.com/hashicorp/go-azure-helpers v0.37.0
+	github.com/hashicorp/go-azure-helpers v0.38.0
 	github.com/hashicorp/go-azure-sdk v0.20220715.1112616
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
@@ -25,14 +25,14 @@ require (
 	github.com/sergi/go-diff v1.2.0
 	github.com/shopspring/decimal v1.2.0
 	github.com/tombuildsstuff/giovanni v0.20.0
-	golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167
+	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
-	github.com/Azure/go-autorest/autorest/adal v0.9.18 // indirect
+	github.com/Azure/go-autorest/autorest/adal v0.9.20 // indirect
 	github.com/Azure/go-autorest/autorest/azure/cli v0.4.5 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
@@ -41,7 +41,7 @@ require (
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
-	github.com/golang-jwt/jwt/v4 v4.4.1 // indirect
+	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-checkpoint v0.5.0 // indirect
