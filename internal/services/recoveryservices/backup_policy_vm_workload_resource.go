@@ -40,9 +40,9 @@ type ProtectionPolicy struct {
 }
 
 type Backup struct {
-	Frequency          string         `tfschema:"frequency"`
-	Time               string         `tfschema:"time"`
+	Frequency          *string        `tfschema:"frequency"`
 	FrequencyInMinutes *int32         `tfschema:"frequency_in_minutes"`
+	Time               string         `tfschema:"time"`
 	Weekdays           *pluginsdk.Set `tfschema:"weekdays"`
 }
 
@@ -71,8 +71,8 @@ type MonthDay struct {
 type RetentionYearly struct {
 	Count      int32          `tfschema:"count"`
 	FormatType string         `tfschema:"format_type"`
-	MonthDays  []MonthDay     `tfschema:"month_day"`
 	Months     *pluginsdk.Set `tfschema:"months"`
+	MonthDays  []MonthDay     `tfschema:"month_day"`
 	Weeks      *pluginsdk.Set `tfschema:"weeks"`
 	Weekdays   *pluginsdk.Set `tfschema:"weekdays"`
 }
@@ -145,20 +145,11 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 							Schema: map[string]*pluginsdk.Schema{
 								"frequency": {
 									Type:     pluginsdk.TypeString,
-									Required: true,
+									Optional: true,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(backup.ScheduleRunTypeDaily),
 										string(backup.ScheduleRunTypeWeekly),
 									}, false),
-								},
-
-								"time": { // applies to all backup schedules & retention times (they all must be the same)
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringMatch(
-										regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
-										"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
-									),
 								},
 
 								"frequency_in_minutes": {
@@ -176,7 +167,16 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 									}),
 								},
 
-								"weekdays": { // only for weekly
+								"time": { // applies to all backup schedules & retention times (they all must be the same)
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringMatch(
+										regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
+										"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
+									),
+								},
+
+								"weekdays": {
 									Type:     pluginsdk.TypeSet,
 									Optional: true,
 									Set:      set.HashStringIgnoreCase,
@@ -207,14 +207,14 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 
 					"retention_weekly": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Optional: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"count": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validation.IntBetween(7, 9999),
+									ValidateFunc: validation.IntBetween(1, 5163),
 								},
 
 								"weekdays": {
@@ -240,7 +240,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 								"count": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validation.IntBetween(7, 9999),
+									ValidateFunc: validation.IntBetween(1, 1188),
 								},
 
 								"format_type": {
@@ -274,7 +274,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 
 								"weeks": {
 									Type:     pluginsdk.TypeSet,
-									Required: true,
+									Optional: true,
 									Set:      set.HashStringIgnoreCase,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
@@ -290,7 +290,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 
 								"weekdays": {
 									Type:     pluginsdk.TypeSet,
-									Required: true,
+									Optional: true,
 									Set:      set.HashStringIgnoreCase,
 									Elem: &pluginsdk.Schema{
 										Type:             pluginsdk.TypeString,
@@ -311,7 +311,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 								"count": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validation.IntBetween(1, 9999),
+									ValidateFunc: validation.IntBetween(1, 99),
 								},
 
 								"format_type": {
@@ -321,6 +321,17 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 										string(backup.RetentionScheduleFormatDaily),
 										string(backup.RetentionScheduleFormatWeekly),
 									}, false),
+								},
+
+								"months": {
+									Type:     pluginsdk.TypeSet,
+									Required: true,
+									Set:      set.HashStringIgnoreCase,
+									Elem: &pluginsdk.Schema{
+										Type:             pluginsdk.TypeString,
+										DiffSuppressFunc: suppress.CaseDifference,
+										ValidateFunc:     validation.IsMonth(true),
+									},
 								},
 
 								"month_day": {
@@ -343,20 +354,9 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 									},
 								},
 
-								"months": {
-									Type:     pluginsdk.TypeSet,
-									Required: true,
-									Set:      set.HashStringIgnoreCase,
-									Elem: &pluginsdk.Schema{
-										Type:             pluginsdk.TypeString,
-										DiffSuppressFunc: suppress.CaseDifference,
-										ValidateFunc:     validation.IsMonth(true),
-									},
-								},
-
 								"weeks": {
 									Type:     pluginsdk.TypeSet,
-									Required: true,
+									Optional: true,
 									Set:      set.HashStringIgnoreCase,
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
@@ -372,7 +372,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 
 								"weekdays": {
 									Type:     pluginsdk.TypeSet,
-									Required: true,
+									Optional: true,
 									Set:      set.HashStringIgnoreCase,
 									Elem: &pluginsdk.Schema{
 										Type:             pluginsdk.TypeString,
@@ -386,8 +386,8 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 
 					"simple_retention": {
 						Type:     pluginsdk.TypeList,
-						MaxItems: 1,
 						Optional: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"count": {
@@ -408,6 +408,12 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"time_zone": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
 					"compression_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -418,12 +424,6 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
-					},
-
-					"time_zone": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
@@ -711,11 +711,16 @@ func expandBackupProtectionPolicyVMWorkloadSchedulePolicy(input ProtectionPolicy
 	} else {
 		schedule := backup.SimpleSchedulePolicy{
 			SchedulePolicyType: backup.SchedulePolicyTypeSimpleSchedulePolicy,
-			ScheduleRunTimes:   &times,
 		}
 
 		backupBlock := input.Backup[0]
-		schedule.ScheduleRunFrequency = backup.ScheduleRunType(backupBlock.Frequency)
+		if backupBlock.Frequency != nil {
+			schedule.ScheduleRunFrequency = backup.ScheduleRunType(*backupBlock.Frequency)
+		}
+
+		if times != nil {
+			schedule.ScheduleRunTimes = &times
+		}
 
 		if v := backupBlock.Weekdays; v != nil {
 			days := make([]backup.DayOfWeek, 0)
@@ -748,7 +753,7 @@ func flattenBackupProtectionPolicyVMWorkloadSchedulePolicy(input backup.BasicSch
 	} else {
 		simpleSchedulePolicy, _ := input.AsSimpleSchedulePolicy()
 
-		backupBlock.Frequency = string(simpleSchedulePolicy.ScheduleRunFrequency)
+		backupBlock.Frequency = utils.String(string(simpleSchedulePolicy.ScheduleRunFrequency))
 
 		if times := simpleSchedulePolicy.ScheduleRunTimes; times != nil && len(*times) > 0 {
 			backupBlock.Time = (*times)[0].Format("15:04")
@@ -1000,6 +1005,10 @@ func flattenBackupProtectionPolicyVMWorkloadSimpleRetention(input backup.BasicRe
 }
 
 func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(monthdays []MonthDay) *backup.DailyRetentionFormat {
+	if monthdays == nil {
+		return nil
+	}
+
 	daily := backup.DailyRetentionFormat{}
 
 	if v := monthdays; v != nil {
@@ -1017,6 +1026,10 @@ func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(monthdays []Mont
 }
 
 func expandBackupProtectionPolicyVMWorkloadRetentionWeeklyFormat(weekdays, weeks *pluginsdk.Set) *backup.WeeklyRetentionFormat {
+	if weekdays == nil || weeks == nil {
+		return nil
+	}
+
 	weekly := backup.WeeklyRetentionFormat{}
 
 	if v := weekdays; v != nil {
