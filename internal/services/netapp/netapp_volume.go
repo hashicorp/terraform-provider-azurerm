@@ -561,9 +561,11 @@ func flattenNetAppVolumeGroupVolumes(input *[]volumegroups.VolumeGroupVolumeProp
 	}
 
 	for _, item := range *input {
-		props := item.Properties
-
 		volumeGroupVolume := NetAppVolumeGroupVolume{}
+
+		volumeGroupVolume.Name = *item.Name
+
+		props := item.Properties
 
 		volumeGroupVolume.VolumePath = props.CreationToken
 		volumeGroupVolume.ServiceLevel = string(*props.ServiceLevel)
