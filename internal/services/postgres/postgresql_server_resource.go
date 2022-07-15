@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -435,7 +433,6 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		if !ok || v.(string) == "" {
 			return fmt.Errorf("restore_point_in_time must be set when create_mode is PointInTimeRestore")
 		}
-		time, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 
 		// d.GetOk cannot identify whether user sets the property that is bool type and has default value. So it has to identify it using `d.GetRawConfig()`
 		if v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
@@ -443,10 +440,8 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		props = &servers.ServerPropertiesForRestore{
-			SourceServerId: source,
-			RestorePointInTime: &date.Time{
-				Time: time,
-			},
+			SourceServerId:           source,
+			RestorePointInTime:       v.(string),
 			InfrastructureEncryption: &infraEncrypt,
 			MinimalTlsVersion:        &tlsMin,
 			SslEnforcement:           &ssl,
