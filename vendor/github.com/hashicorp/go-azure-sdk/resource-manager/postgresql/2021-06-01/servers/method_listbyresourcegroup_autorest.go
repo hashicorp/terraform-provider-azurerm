@@ -114,7 +114,7 @@ func (c ServersClient) preparerForListByResourceGroup(ctx context.Context, id co
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.DBForPostgreSql/flexibleServers", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.DBForPostgreSQL/flexibleServers", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

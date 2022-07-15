@@ -105,7 +105,7 @@ func ValidateDatabaseID(input interface{}, key string) (warnings []string, error
 
 // ID returns the formatted Database ID
 func (id DatabaseId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBForPostgreSql/servers/%s/databases/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBForPostgreSQL/servers/%s/databases/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ServerName, id.DatabaseName)
 }
 
@@ -117,7 +117,7 @@ func (id DatabaseId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
 		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
-		resourceids.ResourceProviderSegment("staticMicrosoftDBForPostgreSql", "Microsoft.DBForPostgreSql", "Microsoft.DBForPostgreSql"),
+		resourceids.ResourceProviderSegment("staticMicrosoftDBForPostgreSQL", "Microsoft.DBForPostgreSQL", "Microsoft.DBForPostgreSQL"),
 		resourceids.StaticSegment("staticServers", "servers", "servers"),
 		resourceids.UserSpecifiedSegment("serverName", "serverValue"),
 		resourceids.StaticSegment("staticDatabases", "databases", "databases"),

@@ -51,7 +51,7 @@ func (c ServersClient) preparerForList(ctx context.Context, id commonids.Subscri
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsGet(),
 		autorest.WithBaseURL(c.baseUri),
-		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.DBForPostgreSql/servers", id.ID())),
+		autorest.WithPath(fmt.Sprintf("%s/providers/Microsoft.DBForPostgreSQL/servers", id.ID())),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

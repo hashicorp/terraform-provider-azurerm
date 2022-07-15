@@ -95,7 +95,7 @@ func ValidateFlexibleServerID(input interface{}, key string) (warnings []string,
 
 // ID returns the formatted Flexible Server ID
 func (id FlexibleServerId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBForPostgreSql/flexibleServers/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBForPostgreSQL/flexibleServers/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ServerName)
 }
 
@@ -107,7 +107,7 @@ func (id FlexibleServerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
 		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
-		resourceids.ResourceProviderSegment("staticMicrosoftDBForPostgreSql", "Microsoft.DBForPostgreSql", "Microsoft.DBForPostgreSql"),
+		resourceids.ResourceProviderSegment("staticMicrosoftDBForPostgreSQL", "Microsoft.DBForPostgreSQL", "Microsoft.DBForPostgreSQL"),
 		resourceids.StaticSegment("staticFlexibleServers", "flexibleServers", "flexibleServers"),
 		resourceids.UserSpecifiedSegment("serverName", "serverValue"),
 	}

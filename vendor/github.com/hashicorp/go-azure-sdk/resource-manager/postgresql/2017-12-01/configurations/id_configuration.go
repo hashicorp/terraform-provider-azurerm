@@ -105,7 +105,7 @@ func ValidateConfigurationID(input interface{}, key string) (warnings []string, 
 
 // ID returns the formatted Configuration ID
 func (id ConfigurationId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBForPostgreSql/servers/%s/configurations/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBForPostgreSQL/servers/%s/configurations/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ServerName, id.ConfigurationName)
 }
 
@@ -117,7 +117,7 @@ func (id ConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
 		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
-		resourceids.ResourceProviderSegment("staticMicrosoftDBForPostgreSql", "Microsoft.DBForPostgreSql", "Microsoft.DBForPostgreSql"),
+		resourceids.ResourceProviderSegment("staticMicrosoftDBForPostgreSQL", "Microsoft.DBForPostgreSQL", "Microsoft.DBForPostgreSQL"),
 		resourceids.StaticSegment("staticServers", "servers", "servers"),
 		resourceids.UserSpecifiedSegment("serverName", "serverValue"),
 		resourceids.StaticSegment("staticConfigurations", "configurations", "configurations"),

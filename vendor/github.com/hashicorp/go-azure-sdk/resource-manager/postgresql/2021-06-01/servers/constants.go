@@ -237,6 +237,7 @@ func parseServerState(input string) (*ServerState, error) {
 type ServerVersion string
 
 const (
+	ServerVersionOneFour  ServerVersion = "14"
 	ServerVersionOneOne   ServerVersion = "11"
 	ServerVersionOneThree ServerVersion = "13"
 	ServerVersionOneTwo   ServerVersion = "12"
@@ -244,6 +245,7 @@ const (
 
 func PossibleValuesForServerVersion() []string {
 	return []string{
+		string(ServerVersionOneFour),
 		string(ServerVersionOneOne),
 		string(ServerVersionOneThree),
 		string(ServerVersionOneTwo),
@@ -252,6 +254,7 @@ func PossibleValuesForServerVersion() []string {
 
 func parseServerVersion(input string) (*ServerVersion, error) {
 	vals := map[string]ServerVersion{
+		"14": ServerVersionOneFour,
 		"11": ServerVersionOneOne,
 		"13": ServerVersionOneThree,
 		"12": ServerVersionOneTwo,
