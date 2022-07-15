@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -194,17 +194,17 @@ func TestAccLighthouseDefinition_plan(t *testing.T) {
 }
 
 func (LighthouseDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LighthouseDefinitionID(state.ID)
+	id, err := registrationdefinitions.ParseScopedRegistrationDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Lighthouse.DefinitionsClient.Get(ctx, id.Scope, id.LighthouseDefinitionID)
+	resp, err := clients.Lighthouse.DefinitionsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Lighthouse Definition %q (Scope: %q) does not exist", id.LighthouseDefinitionID, id.Scope)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (LighthouseDefinitionResource) basic(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
