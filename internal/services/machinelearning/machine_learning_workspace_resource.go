@@ -18,7 +18,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
-	msiValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/msi/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -96,7 +95,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"primary_user_assigned_identity": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: msiValidate.UserAssignedIdentityID,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			},
 
 			"container_registry_id": {
@@ -153,9 +152,10 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 						},
 						"user_assigned_identity_id": {
-							Type:             pluginsdk.TypeString,
-							Optional:         true,
-							ValidateFunc:     msiValidate.UserAssignedIdentityID,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+							// TODO: remove this
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},

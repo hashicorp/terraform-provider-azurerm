@@ -23,6 +23,21 @@ func TestAccWindowsVirtualMachineScaleSet_scalingAutoScale(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_scalingCapacityReservationGroupId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scalingCapacityReservationGroupId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachineScaleSet_scalingInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
@@ -312,6 +327,68 @@ resource "azurerm_monitor_autoscale_setting" "test" {
   }
 }
 `, r.template(data))
+}
+
+func (r WindowsVirtualMachineScaleSetResource) scalingCapacityReservationGroupId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_capacity_reservation_group" "test" {
+  name                = "acctest-ccrg-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_capacity_reservation" "test" {
+  name                          = "acctest-ccr-%[2]d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+  sku {
+    name     = "Standard_F2"
+    capacity = 1
+  }
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  single_placement_group        = false
+  platform_fault_domain_count   = 3
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  depends_on = [
+    azurerm_capacity_reservation.test,
+  ]
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) scalingInstanceCount(data acceptance.TestData, instanceCount int) string {

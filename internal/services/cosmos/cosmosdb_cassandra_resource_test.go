@@ -16,8 +16,8 @@ func TestAccCassandraSequential(t *testing.T) {
 			"requiresImport": testAccCassandraCluster_requiresImport,
 		},
 		"dataCenter": {
-			"basic":          testAccCassandraDatacenter_basic,
-			"requiresImport": testAccCassandraDatacenter_update,
+			"basic":  testAccCassandraDatacenter_basic,
+			"update": testAccCassandraDatacenter_update,
 		},
 	})
 }

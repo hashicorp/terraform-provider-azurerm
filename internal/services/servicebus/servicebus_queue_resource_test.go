@@ -3,6 +3,7 @@ package servicebus_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -120,6 +121,17 @@ func TestAccServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccServiceBusQueue_enablePartitioningForPremiumError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.enablePartitioningForPremiumError(data),
+			ExpectError: regexp.MustCompile("Partitioning Entities is not supported in Premium SKU and must be disabled"),
+		},
 	})
 }
 
@@ -429,6 +441,33 @@ resource "azurerm_servicebus_queue" "test" {
   enable_express      = false
 
   max_message_size_in_kilobytes = 102400
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (ServiceBusQueueResource) enablePartitioningForPremiumError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  capacity            = 1
+}
+
+resource "azurerm_servicebus_queue" "test" {
+  name                = "acctestservicebusqueue-%d"
+  namespace_id        = azurerm_servicebus_namespace.test.id
+  enable_partitioning = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

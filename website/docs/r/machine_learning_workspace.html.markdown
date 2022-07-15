@@ -212,21 +212,21 @@ resource "azurerm_key_vault_access_policy" "example-identity" {
 
   // default set by service
   key_permissions = [
-    "wrapKey",
-    "unwrapKey",
-    "get",
-    "recover",
+    "WrapKey",
+    "UnwrapKey",
+    "Get",
+    "Recover",
   ]
 
 
   secret_permissions = [
-    "get",
-    "list",
-    "set",
-    "delete",
-    "recover",
-    "backup",
-    "restore"
+    "Get",
+    "List",
+    "Set",
+    "Delete",
+    "Recover",
+    "Backup",
+    "Restore"
   ]
 }
 

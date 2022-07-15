@@ -25,7 +25,7 @@ func (c WorkspacesClient) Update(ctx context.Context, id WorkspaceId, input Work
 		err = autorest.NewErrorWithError(err, "workspaces.WorkspacesClient", "Update", nil, "Failure preparing request")
 		return
 	}
-	
+
 	result, err = c.senderForUpdate(ctx, req)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "workspaces.WorkspacesClient", "Update", result.HttpResponse, "Failure sending request")
@@ -73,6 +73,7 @@ func (c WorkspacesClient) senderForUpdate(ctx context.Context, req *http.Request
 	if err != nil {
 		return
 	}
-	future.Poller, err = polling.NewLongRunningPollerFromResponse(ctx, resp, c.Client)
+
+	future.Poller, err = polling.NewPollerFromResponse(ctx, resp, c.Client, req.Method)
 	return
 }

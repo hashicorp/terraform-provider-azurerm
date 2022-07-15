@@ -401,7 +401,14 @@ func (r ImageResource) setupUnmanagedDisks(data acceptance.TestData, storageType
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults       = false
+      purge_soft_delete_on_destroy          = false
+      purge_soft_deleted_keys_on_destroy    = false
+      purge_soft_deleted_secrets_on_destroy = false
+    }
+  }
 }
 
 %s

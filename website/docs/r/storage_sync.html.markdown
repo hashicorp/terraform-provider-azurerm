@@ -18,10 +18,11 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_storage_sync" "test" {
+resource "azurerm_storage_sync" "example" {
   name                = "example-storage-sync"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
   tags = {
     foo = "bar"
   }
