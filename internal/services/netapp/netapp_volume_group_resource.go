@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -28,7 +27,6 @@ type NetAppVolumeGroupModel struct {
 	ApplicationType       string                    `tfschema:"application_type"`
 	ApplicationIdentifier string                    `tfschema:"application_identifier"`
 	DeploymentSpecId      string                    `tfschema:"deployment_spec_id"`
-	Tags                  map[string]interface{}    `tfschema:"tags"`
 	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
 }
 
@@ -104,18 +102,6 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 				Schema: netAppVolumeGroupVolumeSchema(),
 			},
 		},
-
-		// Can't use tags.Schema since there is no patch available
-		"tags": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			ForceNew: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
-		//"tags": commonschema.Tags(),
 	}
 }
 
@@ -172,7 +158,6 @@ func (r NetAppVolumeGroupResource) Create() sdk.ResourceFunc {
 					},
 					Volumes: volumeList,
 				},
-				Tags: tags.Expand(model.Tags),
 			}
 
 			err = client.VolumeGroupsCreateThenPoll(ctx, id, parameters)
@@ -224,7 +209,6 @@ func (r NetAppVolumeGroupResource) Read() sdk.ResourceFunc {
 				AccountName:       id.AccountName,
 				Location:          location.NormalizeNilable(existing.Model.Location),
 				ResourceGroupName: id.ResourceGroupName,
-				Tags:              tags.Flatten(existing.Model.Tags),
 			}
 
 			if props := existing.Model.Properties; props != nil {
