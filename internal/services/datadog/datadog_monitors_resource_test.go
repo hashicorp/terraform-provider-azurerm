@@ -182,8 +182,8 @@ resource "azurerm_datadog_monitor" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "WEST US 2"
   datadog_organization {
-    api_key         = %s
-    application_key = %s
+    api_key         = %q
+    application_key = %q
   }
   user {
     name  = "Test Datadog"
@@ -210,10 +210,10 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_datadog_monitor" "test" {
   name                = "acctest-datadog-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "WEST US 2""
+  location            = "WEST US 2"
   datadog_organization {
-    api_key         = %s
-    application_key = %s
+    api_key         = %q
+    application_key = %q
   }
   user {
     name  = "Test Datadog"
@@ -239,8 +239,8 @@ resource "azurerm_datadog_monitor" "import" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_datadog_monitor.test.location
   datadog_organization {
-    api_key         = %s
-    application_key = %s
+    api_key         = %q
+    application_key = %q
   }
   user {
     name  = "Test Datadog"
@@ -262,8 +262,8 @@ resource "azurerm_datadog_monitor" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   datadog_organization {
-    api_key           = %s
-    application_key   = %s
+    api_key           = %q
+    application_key   = %q
     enterprise_app_id = ""
     linking_auth_code = ""
     linking_client_id = ""

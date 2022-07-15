@@ -275,10 +275,9 @@ func resourceDatadogMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	body := datadog.MonitorResourceUpdateParameters{
 		Properties: &datadog.MonitorUpdateProperties{},
-		Sku:        &datadog.ResourceSku{},
 	}
 	if d.HasChange("sku_name") {
-		body.Sku.Name = utils.String(d.Get("sku_name").(string))
+		body.Sku = &datadog.ResourceSku{Name: utils.String(d.Get("sku_name").(string))}
 	}
 	if d.HasChange("monitoring_enabled") {
 		monitoringStatus := datadog.MonitoringStatusDisabled
@@ -291,8 +290,12 @@ func resourceDatadogMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		body.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.MonitorName, &body); err != nil {
+	future, err := client.Update(ctx, id.ResourceGroup, id.MonitorName, &body)
+	if err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for updating of %s: %+v", id, err)
 	}
 	return resourceDatadogMonitorRead(d, meta)
 }
@@ -319,15 +322,17 @@ func resourceDatadogMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func SkuNameDiffSuppress(_, old, new string, _ *pluginsdk.ResourceData) bool {
-
-	if old == "Linked" && new == "Linked" {
-		return true
+	// During creating, accepts any sku name.
+	if old == "" {
+		return false
 	}
+	// Sku name of the datadog monitor has two kinds:
+	// - Concrete sku: E.g. "payg_v2_Monthly". These will be returned unchanged by API.
+	// - Linked sku:  The value is named "Linked". This will be accepted and changed by the API, which will then return you the linked concrete sku.
 	if new == "Linked" {
 		return true
 	}
-
-	return false
+	return old == new
 }
 
 func expandMonitorIdentityProperties(input []interface{}) *datadog.IdentityProperties {
