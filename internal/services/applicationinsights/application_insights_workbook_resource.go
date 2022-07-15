@@ -24,7 +24,7 @@ type ApplicationInsightsWorkbookModel struct {
 	Description        string            `tfschema:"description"`
 	DisplayName        string            `tfschema:"display_name"`
 	Location           string            `tfschema:"location"`
-	SerializedData     string            `tfschema:"serialized_data"`
+	DataJson           string            `tfschema:"data_json"`
 	SourceId           string            `tfschema:"source_id"`
 	StorageContainerId string            `tfschema:"storage_container_id"`
 	Tags               map[string]string `tfschema:"tags"`
@@ -68,7 +68,7 @@ func (r ApplicationInsightsWorkbookResource) Arguments() map[string]*pluginsdk.S
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"serialized_data": {
+		"data_json": {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
 			ValidateFunc:     validation.StringIsJSON,
@@ -156,7 +156,7 @@ func (r ApplicationInsightsWorkbookResource) Create() sdk.ResourceFunc {
 				Properties: &applicationinsights.WorkbookProperties{
 					Category:       model.Category,
 					DisplayName:    model.DisplayName,
-					SerializedData: model.SerializedData,
+					SerializedData: model.DataJson,
 					SourceId:       &model.SourceId,
 				},
 
@@ -219,8 +219,8 @@ func (r ApplicationInsightsWorkbookResource) Update() sdk.ResourceFunc {
 				properties.Properties.DisplayName = model.DisplayName
 			}
 
-			if metadata.ResourceData.HasChange("serialized_data") {
-				properties.Properties.SerializedData = model.SerializedData
+			if metadata.ResourceData.HasChange("data_json") {
+				properties.Properties.SerializedData = model.DataJson
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -285,7 +285,7 @@ func (r ApplicationInsightsWorkbookResource) Read() sdk.ResourceFunc {
 
 				state.DisplayName = properties.DisplayName
 
-				state.SerializedData = properties.SerializedData
+				state.DataJson = properties.SerializedData
 
 				if properties.SourceId != nil {
 					state.SourceId = *properties.SourceId

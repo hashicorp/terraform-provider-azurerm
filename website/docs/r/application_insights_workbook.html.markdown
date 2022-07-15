@@ -23,7 +23,7 @@ resource "azurerm_application_insights_workbook" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   display_name        = "workbook1"
-  serialized_data = jsonencode({
+  data_json = jsonencode({
     "version" = "Notebook/1.0",
     "items" = [
       {
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `display_name` - (Required) Specifies the user-defined name (display name) of the workbook.
 
-* `serialized_data` - (Required) Configuration of this particular workbook. Configuration data is a string containing valid JSON.
+* `data_json` - (Required) Configuration of this particular workbook. Configuration data is a string containing valid JSON.
 
 * `source_id` - (Optional) Resource ID for a source resource. It should not contain any uppercase letters. Defaults to `azure monitor`.
 

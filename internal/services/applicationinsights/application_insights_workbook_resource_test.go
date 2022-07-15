@@ -131,7 +131,7 @@ resource "azurerm_application_insights_workbook" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   display_name        = "acctest-amw-%d"
-  serialized_data = jsonencode({
+  data_json = jsonencode({
     "version" = "Notebook/1.0",
     "items" = [
       {
@@ -161,7 +161,7 @@ resource "azurerm_application_insights_workbook" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   display_name        = "acctest-amw-%d"
-  serialized_data = jsonencode({
+  data_json = jsonencode({
     "version" = "Notebook/1.0",
     "items" = [
       {
@@ -196,7 +196,7 @@ resource "azurerm_application_insights_workbook" "import" {
   category            = azurerm_application_insights_workbook.test.category
   display_name        = azurerm_application_insights_workbook.test.display_name
   source_id           = azurerm_application_insights_workbook.test.source_id
-  serialized_data     = azurerm_application_insights_workbook.test.serialized_data
+  data_json           = azurerm_application_insights_workbook.test.data_json
 }
 `, config)
 }
@@ -249,7 +249,7 @@ resource "azurerm_application_insights_workbook" "test" {
     ]
   }
 
-  serialized_data = jsonencode({
+  data_json = jsonencode({
     "version" = "Notebook/1.0",
     "items" = [
       {
@@ -324,7 +324,7 @@ resource "azurerm_application_insights_workbook" "test" {
     ]
   }
 
-  serialized_data = jsonencode({
+  data_json = jsonencode({
     "version" = "Notebook/1.0",
     "items" = [
       {
