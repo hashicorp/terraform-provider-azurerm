@@ -563,7 +563,7 @@ func flattenNetAppVolumeGroupVolumes(input *[]volumegroups.VolumeGroupVolumeProp
 	for _, item := range *input {
 		volumeGroupVolume := NetAppVolumeGroupVolume{}
 
-		volumeGroupVolume.Name = *item.Name
+		volumeGroupVolume.Name = getResourceNameString(item.Name)
 
 		props := item.Properties
 
@@ -698,4 +698,13 @@ func getNetworkFeaturesString(input *volumegroups.NetworkFeatures) string {
 	}
 
 	return string(*input)
+}
+
+func getResourceNameString(input *string) string {
+	segments := len(strings.Split(*input, "/"))
+	if segments == 0 {
+		return ""
+	}
+
+	return strings.Split(*input, "/")[segments-1]
 }
