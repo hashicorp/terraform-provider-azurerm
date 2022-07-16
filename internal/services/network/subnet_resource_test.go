@@ -216,62 +216,70 @@ func TestAccSubnet_privateLinkServiceNetworkPoliciesEnabled(t *testing.T) {
 
 // TODO 4.0: Remove test
 func TestAccSubnet_enforcePrivateLinkEndpointNetworkPolicies(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-	r := SubnetResource{}
+	if !features.FourPointOhBeta() {
+		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+		r := SubnetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.enforcePrivateLinkEndpointNetworkPolicies(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.enforcePrivateLinkEndpointNetworkPolicies(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.enforcePrivateLinkEndpointNetworkPolicies(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.enforcePrivateLinkEndpointNetworkPolicies(data, true),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.enforcePrivateLinkEndpointNetworkPolicies(data, false),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.enforcePrivateLinkEndpointNetworkPolicies(data, true),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+		})
+	} else {
+		t.Skip("@WodansSon: skipping due to deprecation of the 'enforce_private_link_endpoint_network_policies' field in 4.0")
+	}
 }
 
 // TODO 4.0: Remove test
 func TestAccSubnet_enforcePrivateLinkServiceNetworkPolicies(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-	r := SubnetResource{}
+	if !features.FourPointOhBeta() {
+		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+		r := SubnetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.enforcePrivateLinkServiceNetworkPolicies(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.enforcePrivateLinkServiceNetworkPolicies(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.enforcePrivateLinkServiceNetworkPolicies(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.enforcePrivateLinkServiceNetworkPolicies(data, true),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.enforcePrivateLinkServiceNetworkPolicies(data, false),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.enforcePrivateLinkServiceNetworkPolicies(data, true),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+		})
+	} else {
+		t.Skip("@WodansSon: skipping due to deprecation of the 'enforce_private_link_service_network_policies' field in 4.0")
+	}
 }
 
 func TestAccSubnet_serviceEndpoints(t *testing.T) {
