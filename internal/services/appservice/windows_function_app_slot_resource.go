@@ -719,6 +719,19 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				existing.Tags = tags.FromTypedObject(state.Tags)
 			}
 
+			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
+				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
+				if subnetId == "" {
+					if _, err := client.DeleteSwiftVirtualNetworkSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
+						return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
+					}
+					var empty *string
+					existing.SiteProperties.VirtualNetworkSubnetID = empty
+				} else {
+					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+				}
+			}
+
 			storageString := state.StorageAccountName
 			if !state.StorageUsesMSI {
 				if state.StorageKeyVaultSecretID != "" {
@@ -811,19 +824,6 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				appServiceLogs := helpers.ExpandFunctionAppAppServiceLogs(state.SiteConfig[0].AppServiceLogs)
 				if _, err := client.UpdateDiagnosticLogsConfigSlot(ctx, id.ResourceGroup, id.SiteName, appServiceLogs, id.SlotName); err != nil {
 					return fmt.Errorf("updating App Service Log Settings for %s: %+v", id, err)
-				}
-			}
-
-			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
-				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
-				if subnetId == "" {
-					if _, err := client.DeleteSwiftVirtualNetworkSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
-						return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
-					}
-					var empty *string
-					existing.SiteProperties.VirtualNetworkSubnetID = empty
-				} else {
-					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(state.VirtualNetworkSubnetID)
 				}
 			}
 
