@@ -3,6 +3,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -29,6 +30,18 @@ func TestAccWindowsWebApp_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccWindowsWebApp_freeSkuAlwaysOnShouldFail(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.windowsFreeSku(data),
+			ExpectError: regexp.MustCompile("always_on cannot be set to true when using Free, F1, D1 Sku"),
+		},
 	})
 }
 
@@ -1078,6 +1091,25 @@ resource "azurerm_windows_web_app" "test" {
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) windowsFreeSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, r.windowsFreeSkuTemplate(data), data.RandomInteger)
 }
 
 func (r WindowsWebAppResource) withBackup(data acceptance.TestData) string {
@@ -2688,6 +2720,25 @@ resource "azurerm_service_plan" "test" {
   resource_group_name = azurerm_resource_group.test.name
   os_type             = "Windows"
   sku_name            = "S1"
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WindowsWebAppResource) windowsFreeSkuTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "F1"
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
