@@ -156,27 +156,27 @@ func TestAccSubnet_delegation(t *testing.T) {
 	})
 }
 
-func TestAccSubnet_privateLinkEndpointNetworkPoliciesEnabled(t *testing.T) {
+func TestAccSubnet_privateEndpointNetworkPoliciesEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.privateLinkEndpointNetworkPoliciesEnabled(data, true),
+			Config: r.privateEndpointNetworkPoliciesEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.privateLinkEndpointNetworkPoliciesEnabled(data, false),
+			Config: r.privateEndpointNetworkPoliciesEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.privateLinkEndpointNetworkPoliciesEnabled(data, true),
+			Config: r.privateEndpointNetworkPoliciesEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -279,6 +279,63 @@ func TestAccSubnet_enforcePrivateLinkServiceNetworkPolicies(t *testing.T) {
 		})
 	} else {
 		t.Skip("@WodansSon: skipping due to deprecation of the 'enforce_private_link_service_network_policies' field in 4.0")
+	}
+}
+
+// TODO 4.0: Remove test
+func TestAccSubnet_PrivateLinkPoliciesToggleWithDeprecatedFields(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+		r := SubnetResource{}
+
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.enforcePrivateLinkEndpointNetworkPolicies(data, true),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("true"),
+					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("false"),
+					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.privateEndpointNetworkPoliciesEnabled(data, true),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
+					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
+					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.enforcePrivateLinkServiceNetworkPolicies(data, true),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
+					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("true"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
+					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.privateLinkServiceNetworkPoliciesEnabled(data, true),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
+					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
+					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+				),
+			},
+			data.ImportStep(),
+		})
+	} else {
+		t.Skip("@WodansSon: skipping due to deprecation of the 'enforce_private_link_endpoint_network_policies' and 'enforce_private_link_service_network_policies' fields in 4.0")
 	}
 }
 
@@ -586,7 +643,7 @@ resource "azurerm_subnet" "test" {
 `, r.template(data))
 }
 
-func (r SubnetResource) privateLinkEndpointNetworkPoliciesEnabled(data acceptance.TestData, enabled bool) string {
+func (r SubnetResource) privateEndpointNetworkPoliciesEnabled(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
