@@ -524,18 +524,18 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			functionAppSlot, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			functionApp, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
-				if utils.ResponseWasNotFound(functionAppSlot.Response) {
+				if utils.ResponseWasNotFound(functionApp.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading Windows %s: %+v", id, err)
 			}
 
-			if functionAppSlot.SiteProperties == nil {
+			if functionApp.SiteProperties == nil {
 				return fmt.Errorf("reading properties of Windows %s", id)
 			}
-			props := *functionAppSlot.SiteProperties
+			props := *functionApp.SiteProperties
 
 			appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 			if err != nil {
@@ -580,11 +580,11 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			state := WindowsFunctionAppSlotModel{
 				Name:                        id.SlotName,
 				FunctionAppID:               parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
-				Enabled:                     utils.NormaliseNilableBool(functionAppSlot.Enabled),
-				ClientCertMode:              string(functionAppSlot.ClientCertMode),
+				Enabled:                     utils.NormaliseNilableBool(functionApp.Enabled),
+				ClientCertMode:              string(functionApp.ClientCertMode),
 				DailyMemoryTimeQuota:        int(utils.NormaliseNilableInt32(props.DailyMemoryTimeQuota)),
-				Tags:                        tags.ToTypedObject(functionAppSlot.Tags),
-				Kind:                        utils.NormalizeNilableString(functionAppSlot.Kind),
+				Tags:                        tags.ToTypedObject(functionApp.Tags),
+				Kind:                        utils.NormalizeNilableString(functionApp.Kind),
 				KeyVaultReferenceIdentityID: utils.NormalizeNilableString(props.KeyVaultReferenceIdentity),
 				CustomDomainVerificationId:  utils.NormalizeNilableString(props.CustomDomainVerificationID),
 				DefaultHostname:             utils.NormalizeNilableString(props.DefaultHostName),
@@ -613,8 +613,8 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
 
-			state.HttpsOnly = utils.NormaliseNilableBool(functionAppSlot.HTTPSOnly)
-			state.ClientCertEnabled = utils.NormaliseNilableBool(functionAppSlot.ClientCertEnabled)
+			state.HttpsOnly = utils.NormaliseNilableBool(functionApp.HTTPSOnly)
+			state.ClientCertEnabled = utils.NormaliseNilableBool(functionApp.ClientCertEnabled)
 
 			if subnetId := utils.NormalizeNilableString(props.VirtualNetworkSubnetID); subnetId != "" {
 				state.VirtualNetworkSubnetID = subnetId
@@ -624,7 +624,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("encoding: %+v", err)
 			}
 
-			flattenedIdentity, err := flattenIdentity(functionAppSlot.Identity)
+			flattenedIdentity, err := flattenIdentity(functionApp.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
@@ -684,6 +684,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
 			sendContentSettings := !helpers.PlanIsAppPlan(planSKU)
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
