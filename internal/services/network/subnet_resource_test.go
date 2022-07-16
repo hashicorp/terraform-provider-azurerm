@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -360,24 +361,40 @@ func TestAccSubnet_updateAddressPrefix(t *testing.T) {
 	})
 }
 
-// TODO 4.0: Remove test case and add a test for the new fields
-func TestAccSubnet_enforcePrivateLinkEndpointNetworkPoliciesValidateDefaultValue(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-	r := SubnetResource{}
+func TestAccSubnet_privateLinkEndpointNetworkPoliciesValidateDefaultValues(t *testing.T) {
+	if features.FourPointOhBeta() {
+		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+		r := SubnetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.enforcePrivateLinkEndpointNetworkPoliciesDefaults(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
-				check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
-				check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-	})
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.privateLinkEndpointNetworkPoliciesDefaults(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("false"),
+					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+				),
+			},
+			data.ImportStep(),
+		})
+	} else {
+		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+		r := SubnetResource{}
+
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.privateLinkEndpointNetworkPoliciesDefaults(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
+					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
+					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+				),
+			},
+			data.ImportStep(),
+		})
+	}
 }
 
 func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -623,8 +640,7 @@ resource "azurerm_subnet" "test" {
 `, r.template(data), enabled)
 }
 
-// TODO 4.0: Remove test and add a configuration for the new fields
-func (r SubnetResource) enforcePrivateLinkEndpointNetworkPoliciesDefaults(data acceptance.TestData) string {
+func (r SubnetResource) privateLinkEndpointNetworkPoliciesDefaults(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
