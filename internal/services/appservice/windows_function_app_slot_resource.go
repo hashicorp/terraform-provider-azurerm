@@ -823,7 +823,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					var empty *string
 					existing.SiteProperties.VirtualNetworkSubnetID = empty
 				} else {
-					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+					existing.SiteProperties.VirtualNetworkSubnetID = utils.String(state.VirtualNetworkSubnetID)
 				}
 			}
 
