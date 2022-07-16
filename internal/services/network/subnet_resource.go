@@ -268,7 +268,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if enforcePrivateEndpointNetworkPoliciesRaw.(bool) || privateEndpointNetworkPoliciesRaw.(bool) {
 			if enforcePrivateEndpointNetworkPoliciesRaw.(bool) {
 				privateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandEnforceSubnetPrivateLinkNetworkPolicy(enforcePrivateEndpointNetworkPoliciesRaw.(bool)))
-			} else {
+			} else if privateEndpointNetworkPoliciesRaw.(bool) {
 				privateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetPrivateLinkNetworkPolicy(privateEndpointNetworkPoliciesRaw.(bool)))
 			}
 		}
@@ -276,7 +276,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if enforcePrivateLinkServiceNetworkPoliciesRaw.(bool) || privateLinkServiceNetworkPoliciesRaw.(bool) {
 			if enforcePrivateLinkServiceNetworkPoliciesRaw.(bool) {
 				privateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandEnforceSubnetPrivateLinkNetworkPolicy(enforcePrivateLinkServiceNetworkPoliciesRaw.(bool)))
-			} else {
+			} else if privateLinkServiceNetworkPoliciesRaw.(bool) {
 				privateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetPrivateLinkNetworkPolicy(privateLinkServiceNetworkPoliciesRaw.(bool)))
 			}
 		}
