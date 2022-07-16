@@ -274,8 +274,8 @@ resource "azurerm_datadog_monitor" "test" {
   }
   sku_name = "Linked"
   user {
-    name  = "Test Datadog"
-    email = "abc@xyz.com"
+    name         = "Test Datadog"
+    email        = "abc@xyz.com"
     phone_number = ""
   }
   monitoring_enabled = true
