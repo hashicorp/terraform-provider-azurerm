@@ -2,6 +2,8 @@ package kusto
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2022-02-01/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"time"
 )
 
 func resourceKustoClusterManagedPrivateEndpoint() *pluginsdk.Resource {
@@ -59,7 +60,7 @@ func resourceKustoClusterManagedPrivateEndpoint() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"group_id": {
+			"c": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -76,7 +77,6 @@ func resourceKustoClusterManagedPrivateEndpoint() *pluginsdk.Resource {
 			"request_message": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
