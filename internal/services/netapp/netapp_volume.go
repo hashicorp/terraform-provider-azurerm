@@ -553,7 +553,7 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume, id volumegr
 	return &results, nil
 }
 
-func flattenNetAppVolumeGroupVolumes(input *[]volumegroups.VolumeGroupVolumeProperties) ([]NetAppVolumeGroupVolume, error) {
+func flattenNetAppVolumeGroupVolumes(input *[]volumegroups.VolumeGroupVolumeProperties, state []NetAppVolumeGroupVolume) ([]NetAppVolumeGroupVolume, error) {
 	results := make([]NetAppVolumeGroupVolume, 0)
 
 	if len(*input) == 0 || input == nil {
@@ -561,15 +561,23 @@ func flattenNetAppVolumeGroupVolumes(input *[]volumegroups.VolumeGroupVolumeProp
 	}
 
 	for _, item := range *input {
-		volumeGroupVolume := NetAppVolumeGroupVolume{}
+		volumeName := getResourceNameString(item.Name)
+		stateVolumeIndex := getVolumeIndexbyName(state, volumeName)
 
-		volumeGroupVolume.Name = getResourceNameString(item.Name)
+		volumeGroupVolume := NetAppVolumeGroupVolume{}
 
 		props := item.Properties
 
+		volumeGroupVolume.Name = volumeName
 		volumeGroupVolume.VolumePath = props.CreationToken
 		volumeGroupVolume.ServiceLevel = string(*props.ServiceLevel)
-		volumeGroupVolume.SubnetId = props.SubnetId
+
+		subnetId := state[stateVolumeIndex].SubnetId
+		volumeGroupVolume.SubnetId = subnetId
+
+		capacityPoolId := state[stateVolumeIndex].CapacityPoolId
+		volumeGroupVolume.CapacityPoolId = capacityPoolId
+
 		volumeGroupVolume.NetworkFeatures = getNetworkFeaturesString(props.NetworkFeatures)
 		volumeGroupVolume.Protocols = *props.ProtocolTypes
 		volumeGroupVolume.SecurityStyle = string(*props.SecurityStyle)
@@ -707,4 +715,14 @@ func getResourceNameString(input *string) string {
 	}
 
 	return strings.Split(*input, "/")[segments-1]
+}
+
+func getVolumeIndexbyName(input []NetAppVolumeGroupVolume, volumeName string) int {
+	for i, item := range input {
+		if item.Name == volumeName {
+			return i
+		}
+	}
+
+	return -1
 }

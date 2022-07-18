@@ -215,8 +215,10 @@ func (r NetAppVolumeGroupResource) Read() sdk.ResourceFunc {
 				model.GroupDescription = utils.NormalizeNilableString(props.GroupMetaData.GroupDescription)
 				model.ApplicationIdentifier = utils.NormalizeNilableString(props.GroupMetaData.ApplicationIdentifier)
 				model.DeploymentSpecId = utils.NormalizeNilableString(props.GroupMetaData.DeploymentSpecId)
+				model.ApplicationType = string(*props.GroupMetaData.ApplicationType)
+				model.DeploymentSpecId = state.DeploymentSpecId
 
-				volumes, err := flattenNetAppVolumeGroupVolumes(props.Volumes)
+				volumes, err := flattenNetAppVolumeGroupVolumes(props.Volumes, state.Volumes)
 				if err != nil {
 					return fmt.Errorf("setting `volume`: %+v", err)
 				}
