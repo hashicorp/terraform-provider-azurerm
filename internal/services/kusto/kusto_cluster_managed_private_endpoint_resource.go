@@ -115,7 +115,7 @@ func resourceKustoClusterManagedPrivateEndpointCreateUpdate(d *schema.ResourceDa
 	}
 
 	if v, ok := d.GetOk("request_message"); ok {
-		managedPrivateEndpoint.PrivateLinkResourceRegion = utils.String(v.(string))
+		managedPrivateEndpoint.RequestMessage = utils.String(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.ManagedPrivateEndpointName, managedPrivateEndpoint)
