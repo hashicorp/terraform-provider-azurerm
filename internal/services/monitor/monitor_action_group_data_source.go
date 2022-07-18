@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	eventHubValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -322,20 +322,20 @@ func dataSourceMonitorActionGroup() *pluginsdk.Resource {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true,
-						ValidateFunc: eventHubValidation.EventhubID,
+						ValidateFunc: eventhubs.ValidateEventhubID,
 						Deprecated:   "This property is deprecated and will be removed in version 4.0 of the provider, please use 'event_hub_name' and 'event_hub_namespace' instead.",
 					},
 					"event_hub_name": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true,
-						ValidateFunc: eventHubValidation.ValidateEventHubName(),
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"event_hub_namespace": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true,
-						ValidateFunc: eventHubValidation.ValidateEventHubNamespaceName(),
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"tenant_id": {
 						Type:         pluginsdk.TypeString,
@@ -370,12 +370,12 @@ func dataSourceMonitorActionGroup() *pluginsdk.Resource {
 					"event_hub_name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: eventHubValidation.ValidateEventHubName(),
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"event_hub_namespace": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: eventHubValidation.ValidateEventHubNamespaceName(),
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"tenant_id": {
 						Type:         pluginsdk.TypeString,

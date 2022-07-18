@@ -74,6 +74,12 @@ The following arguments are supported:
 
 * `endpoint` - (Optional) The Azure Bot Service endpoint.
 
+* `microsoft_app_msi_id` - (Optional) The ID of the Microsoft App Managed Identity for this Azure Bot Service. Changing this forces a new resource to be created.
+
+* `microsoft_app_tenant_id` - (Optional) The Tenant ID of the Microsoft App for this Azure Bot Service. Changing this forces a new resource to be created.
+
+* `microsoft_app_type` - (Optional) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
+
 * `luis_app_ids` - (Optional) A list of LUIS App IDs to associate with this Azure Bot Service.
 
 * `luis_key` - (Optional) The LUIS key to associate with this Azure Bot Service.

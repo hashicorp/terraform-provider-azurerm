@@ -7,12 +7,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-09-01-preview/insights"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2017-04-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	eventHubParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/parse"
-	eventHubValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
@@ -393,20 +392,20 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true,
-						ValidateFunc: eventHubValidation.EventhubID,
+						ValidateFunc: eventhubs.ValidateEventhubID,
 						Deprecated:   "This property is deprecated and will be removed in version 4.0 of the provider, please use 'event_hub_name' and 'event_hub_namespace' instead.",
 					},
 					"event_hub_name": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true,
-						ValidateFunc: eventHubValidation.ValidateEventHubName(),
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"event_hub_namespace": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true,
-						ValidateFunc: eventHubValidation.ValidateEventHubNamespaceName(),
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"tenant_id": {
 						Type:         pluginsdk.TypeString,
@@ -441,12 +440,12 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 					"event_hub_name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: eventHubValidation.ValidateEventHubName(),
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"event_hub_namespace": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: eventHubValidation.ValidateEventHubNamespaceName(),
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"tenant_id": {
 						Type:         pluginsdk.TypeString,
@@ -803,11 +802,11 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId st
 		eventHubNameSpace, eventHubName, subId := val["event_hub_namespace"].(string), val["event_hub_name"].(string), val["subscription_id"].(string)
 		if !features.FourPointOhBeta() {
 			if eventHubNameSpace == "" && eventHubName == "" && subId == "" && val["event_hub_id"].(string) != "" {
-				eventHubId, err := eventHubParser.EventhubID(*utils.String(val["event_hub_id"].(string)))
+				eventHubId, err := eventhubs.ParseEventhubID(*utils.String(val["event_hub_id"].(string)))
 				if err != nil {
 					return nil, err
 				}
-				eventHubNameSpace, eventHubName, subId = eventHubId.NamespaceName, eventHubId.Name, eventHubId.SubscriptionId
+				eventHubNameSpace, eventHubName, subId = eventHubId.NamespaceName, eventHubId.EventHubName, eventHubId.SubscriptionId
 			} else if val["event_hub_id"].(string) != "" || eventHubNameSpace == "" || eventHubName == "" {
 				return nil, fmt.Errorf("in event_hub_receiver, exactly one of event_hub_id or (event_hub_namespace, event_hub_name) must be set")
 			}
@@ -1104,7 +1103,7 @@ func flattenMonitorActionGroupEventHubReceiver(resourceGroup string, receivers *
 				eventHubName := *receiver.EventHubName
 				subscriptionId := *receiver.SubscriptionID
 				if !features.FourPointOhBeta() {
-					val["event_hub_id"] = eventHubParser.NewEventhubID(subscriptionId, resourceGroup, eventHubNamespace, eventHubName).ID()
+					val["event_hub_id"] = eventhubs.NewEventhubID(subscriptionId, resourceGroup, eventHubNamespace, eventHubName).ID()
 				}
 				val["subscription_id"], val["event_hub_namespace"], val["event_hub_name"] = subscriptionId, eventHubNamespace, eventHubName
 			}

@@ -19,7 +19,7 @@ data "azurerm_storage_account" "example" {
 }
 
 data "azurerm_storage_management_policy" "example" {
-  storage_account_id = azurerm_storage_account.example.id
+  storage_account_id = data.azurerm_storage_account.example.id
 }
 ```
 
@@ -50,6 +50,7 @@ The following arguments are supported:
 * `prefix_match` - An array of strings for prefixes to be matched.
 * `blob_types` - An array of predefined values. Valid options are `blockBlob` and `appendBlob`.
 * `match_blob_index_tag` - A `match_blob_index_tag` block as defined below. The block defines the blob index tag based filtering for blob objects.
+
 ---
 
 `actions` supports the following:
@@ -63,8 +64,11 @@ The following arguments are supported:
 `base_blob` supports the following:
 
 * `tier_to_cool_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cool storage. Supports blob currently at Hot tier.
+* `tier_to_cool_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to cool storage. Supports blob currently at Hot tier.
 * `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage. Supports blob currently at Hot or Cool tier.
+* `tier_to_archive_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to archive storage. Supports blob currently at Hot or Cool tier.
 * `delete_after_days_since_modification_greater_than` - The age in days after last modification to delete the blob.
+* `delete_after_days_since_last_access_time_greater_than` - The age in days after last access time to delete the blob.
 
 ---
 

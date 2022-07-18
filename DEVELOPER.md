@@ -3,6 +3,10 @@
 * [Terraform (Core)](https://www.terraform.io/downloads.html) - version 1.x (0.12.x and above are compatible however 1.x is recommended)
 * [Go](https://golang.org/doc/install) version 1.18.x (to build the provider plugin)
 
+## Contributor Guides
+
+A Collection of guides geared towards contributors can be found in the [`/contributing`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/contributing) directory of this repository.
+
 ### On Windows
 
 If you're on Windows you'll also need:

@@ -28,7 +28,7 @@ resource "azurerm_recovery_services_vault" "example" {
 resource "azurerm_backup_policy_file_share" "policy" {
   name                = "tfex-recovery-vault-policy"
   resource_group_name = azurerm_resource_group.example.name
-  recovery_vault_name = azurerm_recovery_services_vault.vault.name
+  recovery_vault_name = azurerm_recovery_services_vault.example.name
 
   timezone = "UTC"
 
