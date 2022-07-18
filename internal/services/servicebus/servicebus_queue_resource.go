@@ -190,6 +190,24 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	id := queues.NewQueueID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 
+	isPartitioningEnabled := false
+	if d.HasChange("enable_partitioning") {
+		existingQueue, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existingQueue.HttpResponse) {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+		}
+
+		if model := existingQueue.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if model.Id != nil && props.EnablePartitioning != nil && *props.EnablePartitioning {
+					isPartitioningEnabled = true
+				}
+			}
+		}
+	}
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -259,6 +277,10 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	// Premium SKU.
 	if sku == namespaces.SkuNamePremium && d.Get("enable_express").(bool) {
 		return fmt.Errorf("%s does not support Express Entities in Premium SKU and must be disabled", id)
+	}
+
+	if sku == namespaces.SkuNamePremium && d.Get("enable_partitioning").(bool) && !isPartitioningEnabled {
+		return fmt.Errorf("partitioning Entities is not supported in Premium SKU and must be disabled")
 	}
 
 	// output of `max_message_size_in_kilobytes` is also set in non-Premium namespaces, with a value of 256
