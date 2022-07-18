@@ -2,8 +2,8 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20220715.1071215` of `github.com/hashicorp/go-azure-sdk` [GH-17645]
 * servicebus: refactoring to use `hashicorp/go-azure-sdk` [GH-17628]
-
 
 ## 3.14.0 (July 14, 2022)
 
