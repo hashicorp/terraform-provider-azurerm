@@ -658,6 +658,24 @@ func expandBackupProtectionPolicyVMWorkloadProtectionPolicies(input []Protection
 		}
 		times := append(make([]date.Time, 0), date.Time{Time: dateOfDay})
 
+		switch *item.Backup[0].Frequency {
+		case string(backup.ScheduleRunTypeDaily):
+			if item.RetentionDaily == nil {
+				return nil, fmt.Errorf("`retention_daily` must be set when `backup.0.frequency` is `Daily`")
+			}
+
+			if item.Backup[0].Weekdays != nil {
+				return nil, fmt.Errorf("`backup.0.weekdays` should be not set when `backup.0.frequency` is `Daily`")
+			}
+		case string(backup.ScheduleRunTypeWeekly):
+			if item.RetentionDaily != nil {
+				return nil, fmt.Errorf("`retention_daily` must be not set when `backup.0.frequency` is `Weekly`")
+			}
+			if item.RetentionWeekly == nil {
+				return nil, fmt.Errorf("`retention_weekly` must be set when `backup.0.frequency` is `Weekly`")
+			}
+		}
+
 		results = append(results, backup.SubProtectionPolicy{
 			PolicyType:      backup.PolicyType(item.PolicyType),
 			RetentionPolicy: expandBackupProtectionPolicyVMWorkloadRetentionPolicy(item, times),
