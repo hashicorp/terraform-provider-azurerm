@@ -115,8 +115,6 @@ The following arguments are supported:
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the Node Pool should exist. Changing this forces a new resource to be created.
 
--> **NOTE:** This requires that the Preview Feature `Microsoft.ContainerService/PodSubnetPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-azure-cni#register-the-podsubnetpreview-preview-feature) for more information.
-
 * `os_sku` - (Optional) OsSKU to be used to specify Linux OSType. Not applicable to Windows OSType. Possible values include: `Ubuntu`, `CBLMariner`. Defaults to `Ubuntu`. Changing this forces a new resource to be created.
 
 * `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
