@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 	"time"
@@ -338,8 +339,10 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			appSettings := helpers.ExpandAppSettingsForUpdate(webApp.AppSettings)
-			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-				appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
+			if !features.FourPointOhBeta() {
+				if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+					appSettings.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = utils.String(strconv.Itoa(webApp.SiteConfig[0].HealthCheckEvictionTime))
+				}
 			}
 
 			if appSettings.Properties != nil {
@@ -507,7 +510,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings, metadata)
 
 			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
@@ -676,8 +679,10 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if metadata.ResourceData.HasChange("app_settings") {
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(state.AppSettings)
-				if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-					appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURE"] = utils.String(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
+				if !features.FourPointOh() {
+					if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+						appSettingsUpdate.Properties["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = utils.String(strconv.Itoa(state.SiteConfig[0].HealthCheckEvictionTime))
+					}
 				}
 				if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, *appSettingsUpdate); err != nil {
 					return fmt.Errorf("updating App Settings for Linux %s: %+v", id, err)

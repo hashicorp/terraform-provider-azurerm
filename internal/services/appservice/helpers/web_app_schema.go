@@ -3785,8 +3785,8 @@ func ExpandAppSettingsForCreate(settings map[string]string) *[]web.NameValuePair
 	return nil
 }
 
-func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
-	maxPingFailures := "WEBSITE_HEALTHCHECK_MAXPINGFAILURE"
+func FlattenAppSettings(input web.StringDictionary, d sdk.ResourceMetaData) (map[string]string, *int) {
+	maxPingFailures := "WEBSITE_HEALTHCHECK_MAXPINGFAILURES"
 	unmanagedSettings := []string{
 		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
 		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
@@ -3801,6 +3801,12 @@ func FlattenAppSettings(input web.StringDictionary) (map[string]string, *int) {
 	if v, ok := appSettings[maxPingFailures]; ok {
 		h, _ := strconv.Atoi(v)
 		healthCheckCount = &h
+	}
+
+	if userInputAppSetting := d.ResourceData.Get("app_settings").(map[string]interface{}); userInputAppSetting != nil {
+		if _, ok := userInputAppSetting[maxPingFailures]; ok {
+			unmanagedSettings = unmanagedSettings[:len(unmanagedSettings)-1]
+		}
 	}
 
 	// Remove the settings the service adds for legacy reasons.

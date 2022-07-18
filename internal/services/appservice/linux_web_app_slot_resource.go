@@ -455,7 +455,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			var healthCheckCount *int
-			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings)
+			state.AppSettings, healthCheckCount = helpers.FlattenAppSettings(appSettings, metadata)
 
 			if v := props.OutboundIPAddresses; v != nil {
 				state.OutboundIPAddresses = *v
