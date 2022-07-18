@@ -1,3 +1,10 @@
+## 3.14.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* servicebus: refactoring to use `hashicorp/go-azure-sdk` [GH-17628]
+
+
 ## 3.14.0 (July 14, 2022)
 
 FEATURES:
