@@ -131,7 +131,7 @@ func TestAccServiceBusQueue_enablePartitioningForPremiumError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.enablePartitioningForPremiumError(data),
-			ExpectError: regexp.MustCompile("Partitioning Entities is not supported in Premium SKU and must be disabled"),
+			ExpectError: regexp.MustCompile("partitioning Entities is not supported in Premium SKU and must be disabled"),
 		},
 	})
 }
