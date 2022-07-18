@@ -115,7 +115,7 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"disk_encryption_properties": SchemaHDInsightsDiskEncryptionProperties(),
+			"disk_encryption": SchemaHDInsightsDiskEncryptionProperties(),
 
 			"roles": {
 				Type:     pluginsdk.TypeList,
@@ -275,8 +275,11 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption_properties"); ok {
-		params.Properties.DiskEncryptionProperties = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
+		params.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		if err != nil {
+			return err
+		}
 	}
 
 	if v, ok := d.GetOk("security_profile"); ok {
@@ -420,8 +423,12 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if props.DiskEncryptionProperties != nil {
-			if err := d.Set("disk_encryption_properties", FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)); err != nil {
-				return fmt.Errorf("flattening `disk_encryption_properties`: %+v", err)
+			diskEncryptionProps, err := FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
+				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
 			}
 		}
 

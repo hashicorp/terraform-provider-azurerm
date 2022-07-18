@@ -1488,8 +1488,8 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     interactive_hive = "3.1"
   }
 
-  disk_encryption_properties {
-    encryption_at_host = true
+  disk_encryption {
+    encryption_at_host_enabled = true
   }
 
   gateway {

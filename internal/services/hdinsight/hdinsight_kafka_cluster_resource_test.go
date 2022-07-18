@@ -1392,8 +1392,8 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     is_default           = true
   }
 
-  disk_encryption_properties {
-    encryption_at_host = true
+  disk_encryption {
+    encryption_at_host_enabled = true
   }
 
   roles {

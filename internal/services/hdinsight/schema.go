@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -658,85 +660,89 @@ func SchemaHDInsightsDiskEncryptionProperties() *pluginsdk.Schema {
 					}, false),
 				},
 
-				"encryption_at_host": {
+				"encryption_at_host_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},
 
-				"key_name": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"key_version": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"msi_resource_id": {
+				"key_vault_managed_identity_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 				},
 
-				"vault_uri": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+				"key_vault_key_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: keyVault.NestedItemId,
 				},
 			},
 		},
 	}
 }
 
-func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) *hdinsight.DiskEncryptionProperties {
+func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*hdinsight.DiskEncryptionProperties, error) {
 	v := input[0].(map[string]interface{})
 
 	encryptionAlgorithm := v["encryption_algorithm"].(string)
-	encryptionAtHost := v["encryption_at_host"].(bool)
-	keyName := v["key_name"].(string)
-	keyVersion := v["key_version"].(string)
-	msiResourceId := v["msi_resource_id"].(string)
-	vaultUri := v["vault_uri"].(string)
+	encryptionAtHost := v["encryption_at_host_enabled"].(bool)
+	keyVaultManagedIdentityId := v["key_vault_managed_identity_id"].(string)
 
-	return &hdinsight.DiskEncryptionProperties{
+	diskEncryptionProps := &hdinsight.DiskEncryptionProperties{
 		EncryptionAlgorithm: hdinsight.JSONWebKeyEncryptionAlgorithm(encryptionAlgorithm),
 		EncryptionAtHost:    &encryptionAtHost,
-		KeyName:             &keyName,
-		KeyVersion:          &keyVersion,
-		MsiResourceID:       &msiResourceId,
-		VaultURI:            &vaultUri,
+		MsiResourceID:       &keyVaultManagedIdentityId,
 	}
+
+	if id, ok := v["key_vault_key_id"]; ok && id.(string) != "" {
+		keyVaultKeyId, err := parse.ParseNestedItemID(id.(string))
+		if err != nil {
+			return nil, err
+		}
+		diskEncryptionProps.KeyName = &keyVaultKeyId.Name
+		diskEncryptionProps.KeyVersion = &keyVaultKeyId.Version
+		diskEncryptionProps.VaultURI = &keyVaultKeyId.KeyVaultBaseUrl
+	}
+
+	return diskEncryptionProps, nil
 }
 
-func FlattenHDInsightsDiskEncryptionProperties(input hdinsight.DiskEncryptionProperties) []interface{} {
+func FlattenHDInsightsDiskEncryptionProperties(input hdinsight.DiskEncryptionProperties) ([]interface{}, error) {
 	var encryptionAlgorithm string
 	var encryptionAtHost bool
 	var keyName string
 	var keyVersion string
 	var msiResourceId string
-	var vaultUri string
+	var keyVaultKeyId string
 
 	if input.EncryptionAtHost != nil {
 		encryptionAtHost = *input.EncryptionAtHost
 	}
 	encryptionAlgorithm = string(input.EncryptionAlgorithm)
-	keyName = *input.KeyName
-	keyVersion = *input.KeyVersion
+	if input.KeyName != nil {
+		keyName = *input.KeyName
+	}
+	if input.KeyVersion != nil {
+		keyVersion = *input.KeyVersion
+	}
 	msiResourceId = *input.MsiResourceID
-	vaultUri = *input.VaultURI
+
+	if keyName != "" || keyVersion != "" {
+		keyVaultKeyIdRaw, err := parse.NewNestedItemID(*input.VaultURI, "keys", keyName, keyVersion)
+		if err != nil {
+			return nil, err
+		}
+		keyVaultKeyId = keyVaultKeyIdRaw.ID()
+	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"encryption_algorithm": encryptionAlgorithm,
-			"encryption_at_host":   encryptionAtHost,
-			"key_name":             keyName,
-			"key_version":          keyVersion,
-			"msi_resource_id":      msiResourceId,
-			"vault_uri":            vaultUri,
+			"encryption_algorithm":          encryptionAlgorithm,
+			"encryption_at_host_enabled":    encryptionAtHost,
+			"key_vault_key_id":              keyVaultKeyId,
+			"key_vault_managed_identity_id": msiResourceId,
 		},
-	}
+	}, nil
 }
 
 // ExpandHDInsightsStorageAccounts returns an array of StorageAccount structs, as well as a ClusterIdentity

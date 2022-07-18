@@ -1679,8 +1679,8 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
-  disk_encryption_properties {
-    encryption_at_host = true
+  disk_encryption {
+    encryption_at_host_enabled = true
   }
   storage_account {
     storage_container_id = azurerm_storage_container.test.id
