@@ -60,7 +60,7 @@ func resourceKustoClusterManagedPrivateEndpoint() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"c": {
+			"group_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
