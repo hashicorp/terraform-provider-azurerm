@@ -46,9 +46,9 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
-* `allowed_fqdn_list` - (Optional) List of allowed FQDNs(Fully Qualified Domain Name) for egress from Cluster.
+* `allowed_fqdns` - (Optional) List of allowed FQDNs(Fully Qualified Domain Name) for egress from Cluster.
 
-* `allowed_ip_range_list` - (Optional) The list of ips in the format of CIDR allowed to connect to the cluster.
+* `allowed_ip_ranges` - (Optional) The list of ips in the format of CIDR allowed to connect to the cluster.
 
 * `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Is the public network access enabled? Defaults to `true`.
 
-* `restrict_outbound_network_access` - (Optional) Whether to restrict outbound network access. Value is optional but if passed in, must be "Enabled" or "Disabled".
+* `outbound_network_access_restricted` - (Optional) Whether to restrict outbound network access. Value is optional but if passed in, must be `true` or `false`, default is `false`.
 
 * `purge_enabled` - (Optional) Specifies if the purge operations are enabled.
 

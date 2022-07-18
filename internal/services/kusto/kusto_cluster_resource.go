@@ -128,7 +128,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"allowed_fqdn_list": {
+			"allowed_fqdns": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
@@ -137,7 +137,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"allowed_ip_range_list": {
+			"allowed_ip_ranges": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
@@ -251,15 +251,10 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"restrict_outbound_network_access": {
-				Type:     pluginsdk.TypeString,
+			"outbound_network_access_restricted": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  string(kusto.ClusterNetworkAccessFlagDisabled),
-				ValidateFunc: validation.StringInSlice(
-					[]string{
-						string(kusto.ClusterNetworkAccessFlagEnabled),
-						string(kusto.ClusterNetworkAccessFlagDisabled),
-					}, false),
+				Default:  false,
 			},
 
 			"double_encryption_enabled": {
@@ -383,16 +378,19 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		clusterProperties.VirtualNetworkConfiguration = vnet
 	}
 
-	if v, ok := d.GetOk("allowed_fqdn_list"); ok {
+	if v, ok := d.GetOk("allowed_fqdns"); ok {
 		clusterProperties.AllowedFqdnList, _ = expandKustoListString(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("allowed_ip_range_list"); ok {
+	if v, ok := d.GetOk("allowed_ip_ranges"); ok {
 		clusterProperties.AllowedIPRangeList, _ = expandKustoListString(v.([]interface{}))
 	}
 
-	if v, ok := d.GetOk("restrict_outbound_network_access"); ok {
-		clusterProperties.RestrictOutboundNetworkAccess = kusto.ClusterNetworkAccessFlag(v.(string))
+	clusterProperties.RestrictOutboundNetworkAccess = kusto.ClusterNetworkAccessFlagDisabled
+	if v, ok := d.GetOk("outbound_network_access_restricted"); ok {
+		if v.(bool) {
+			clusterProperties.RestrictOutboundNetworkAccess = kusto.ClusterNetworkAccessFlagEnabled
+		}
 	}
 
 	expandedIdentity, err := expandClusterIdentity(d.Get("identity").([]interface{}))
@@ -512,8 +510,8 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if props := resp.ClusterProperties; props != nil {
-		d.Set("allowed_fqdn_list", props.AllowedFqdnList)
-		d.Set("allowed_ip_range_list", props.AllowedIPRangeList)
+		d.Set("allowed_fqdns", props.AllowedFqdnList)
+		d.Set("allowed_ip_ranges", props.AllowedIPRangeList)
 		d.Set("double_encryption_enabled", props.EnableDoubleEncryption)
 		d.Set("trusted_external_tenants", flattenTrustedExternalTenants(props.TrustedExternalTenants))
 		d.Set("auto_stop_enabled", props.EnableAutoStop)
@@ -526,7 +524,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("data_ingestion_uri", props.DataIngestionURI)
 		d.Set("engine", props.EngineType)
 		d.Set("public_ip_type", props.PublicIPType)
-		d.Set("restrict_outbound_network_access", props.RestrictOutboundNetworkAccess)
+		d.Set("outbound_network_access_restricted", props.RestrictOutboundNetworkAccess == kusto.ClusterNetworkAccessFlagEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
