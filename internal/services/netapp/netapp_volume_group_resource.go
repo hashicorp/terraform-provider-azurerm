@@ -97,7 +97,7 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"volume": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Required: true,
 			ForceNew: true,
 			MinItems: 5,
