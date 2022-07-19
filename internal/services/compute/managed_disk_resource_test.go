@@ -2131,10 +2131,12 @@ func (ManagedDiskResource) storageAccountType(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestd-%d"
   location             = azurerm_resource_group.test.location
@@ -2142,6 +2144,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type = "PremiumV2_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
+
   tags = {
     environment = "acctest"
     cost-center = "ops"
