@@ -40,8 +40,6 @@ output "subnet_id" {
 * `service_endpoints` - A list of Service Endpoints within this subnet.
 * `private_endpoint_network_policies_enabled` - Enable or Disable network policies for the private endpoint on the subnet.
 * `private_link_service_network_policies_enabled` - Enable or Disable network policies for the private link service on the subnet.
-* `enforce_private_link_endpoint_network_policies` - (Deprecated) Enable or Disable network policies for the private link endpoint on the subnet.
-* `enforce_private_link_service_network_policies` - (Deprecated) Enable or Disable network policies for the private link service on the subnet.
 
 ## Timeouts
 
