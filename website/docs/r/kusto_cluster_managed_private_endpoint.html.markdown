@@ -3,7 +3,7 @@ subcategory: "Data Explorer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kusto_cluster_managed_private_endpoint"
 description: |-
-Manages a Managed Private Endpoint for a Kusto Cluster.
+  Manages a Managed Private Endpoint for a Kusto Cluster.
 ---
 
 # azurerm_kusto_cluster_managed_private_endpoint
