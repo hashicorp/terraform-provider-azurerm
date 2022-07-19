@@ -381,7 +381,6 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		Tags:     tags.Expand(t),
 	}
 
-
 	if d.HasChange("storage_account_id") {
 		if v, ok := d.GetOk("storage_account_id"); ok {
 			parameters.AccountUpdateProperties.AutoStorage = &batch.AutoStorageBaseProperties{
