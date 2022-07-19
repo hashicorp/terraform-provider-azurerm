@@ -261,26 +261,26 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		privateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPoliciesEnabled
 
 		// Legacy Values
-		enforcePrivateEndpointNetworkPoliciesRaw := d.Get("enforce_private_link_endpoint_network_policies")
-		enforcePrivateLinkServiceNetworkPoliciesRaw := d.Get("enforce_private_link_service_network_policies")
+		enforcePrivateEndpointNetworkPoliciesRaw := d.Get("enforce_private_link_endpoint_network_policies").(bool)
+		enforcePrivateLinkServiceNetworkPoliciesRaw := d.Get("enforce_private_link_service_network_policies").(bool)
 
 		// New Values
-		privateEndpointNetworkPoliciesRaw := d.Get("private_endpoint_network_policies_enabled")
-		privateLinkServiceNetworkPoliciesRaw := d.Get("private_link_service_network_policies_enabled")
+		privateEndpointNetworkPoliciesRaw := d.Get("private_endpoint_network_policies_enabled").(bool)
+		privateLinkServiceNetworkPoliciesRaw := d.Get("private_link_service_network_policies_enabled").(bool)
 
-		if enforcePrivateEndpointNetworkPoliciesRaw.(bool) || privateEndpointNetworkPoliciesRaw.(bool) {
-			if enforcePrivateEndpointNetworkPoliciesRaw.(bool) {
-				privateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateEndpointNetworkPoliciesRaw.(bool)))
-			} else if privateEndpointNetworkPoliciesRaw.(bool) {
-				privateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw.(bool)))
+		if enforcePrivateEndpointNetworkPoliciesRaw || privateEndpointNetworkPoliciesRaw {
+			if enforcePrivateEndpointNetworkPoliciesRaw {
+				privateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateEndpointNetworkPoliciesRaw))
+			} else if privateEndpointNetworkPoliciesRaw {
+				privateEndpointNetworkPolicies = network.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw))
 			}
 		}
 
-		if enforcePrivateLinkServiceNetworkPoliciesRaw.(bool) || privateLinkServiceNetworkPoliciesRaw.(bool) {
-			if enforcePrivateLinkServiceNetworkPoliciesRaw.(bool) {
-				privateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateLinkServiceNetworkPoliciesRaw.(bool)))
-			} else if privateLinkServiceNetworkPoliciesRaw.(bool) {
-				privateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetNetworkPolicy(privateLinkServiceNetworkPoliciesRaw.(bool)))
+		if enforcePrivateLinkServiceNetworkPoliciesRaw || privateLinkServiceNetworkPoliciesRaw {
+			if enforcePrivateLinkServiceNetworkPoliciesRaw {
+				privateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateLinkServiceNetworkPoliciesRaw))
+			} else if privateLinkServiceNetworkPoliciesRaw {
+				privateLinkServiceNetworkPolicies = network.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetNetworkPolicy(privateLinkServiceNetworkPoliciesRaw))
 			}
 		}
 	}
