@@ -571,18 +571,17 @@ func flattenNetAppVolumeGroupVolumes(input *[]volumegroups.VolumeGroupVolumeProp
 		volumeGroupVolume.Name = volumeName
 		volumeGroupVolume.VolumePath = props.CreationToken
 		volumeGroupVolume.ServiceLevel = string(*props.ServiceLevel)
-
-		subnetId := state[stateVolumeIndex].SubnetId
-		volumeGroupVolume.SubnetId = subnetId
-
-		capacityPoolId := state[stateVolumeIndex].CapacityPoolId
-		volumeGroupVolume.CapacityPoolId = capacityPoolId
-
+		volumeGroupVolume.SubnetId = utils.NormalizeNilableString(&state[stateVolumeIndex].SubnetId)
+		volumeGroupVolume.CapacityPoolId = utils.NormalizeNilableString(&state[stateVolumeIndex].CapacityPoolId)
 		volumeGroupVolume.NetworkFeatures = getNetworkFeaturesString(props.NetworkFeatures)
 		volumeGroupVolume.Protocols = *props.ProtocolTypes
 		volumeGroupVolume.SecurityStyle = string(*props.SecurityStyle)
 		volumeGroupVolume.SnapshotDirectoryVisible = *props.SnapshotDirectoryVisible
 		volumeGroupVolume.ThroughputInMibps = float64(*props.ThroughputMibps)
+		volumeGroupVolume.CreateFromSnapshotResourceId = utils.NormalizeNilableString(&state[stateVolumeIndex].CreateFromSnapshotResourceId)
+		volumeGroupVolume.Tags = *item.Tags
+		volumeGroupVolume.ProximityPlacementGroupId = utils.NormalizeNilableString(props.ProximityPlacementGroup)
+		volumeGroupVolume.VolumeSpecName = string(*props.VolumeSpecName)
 
 		if int64(props.UsageThreshold) > 0 {
 			usageThreshold := int64(props.UsageThreshold) / 1073741824

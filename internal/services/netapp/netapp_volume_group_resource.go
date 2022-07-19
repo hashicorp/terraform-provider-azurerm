@@ -6,12 +6,16 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-01-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -99,7 +103,282 @@ func (r NetAppVolumeGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			MinItems: 5,
 			MaxItems: 5,
 			Elem: &pluginsdk.Resource{
-				Schema: netAppVolumeGroupVolumeSchema(),
+				//Schema: netAppVolumeGroupVolumeSchema(),
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: netAppValidate.VolumeName,
+					},
+
+					"capacity_pool_id": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						Computed:         true,
+						ForceNew:         true,
+						DiffSuppressFunc: suppress.CaseDifference,
+						ValidateFunc:     azure.ValidateResourceID,
+					},
+
+					"proximity_placement_group_id": {
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						ForceNew:         true,
+						DiffSuppressFunc: suppress.CaseDifference,
+						ValidateFunc:     azure.ValidateResourceID,
+					},
+
+					"volume_spec_name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+
+					"volume_path": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: netAppValidate.VolumePath,
+					},
+
+					"service_level": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(volumegroups.ServiceLevelPremium),
+							string(volumegroups.ServiceLevelStandard),
+							string(volumegroups.ServiceLevelUltra),
+						}, false),
+					},
+
+					"subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+
+					"create_from_snapshot_resource_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ForceNew:     true,
+						ValidateFunc: snapshots.ValidateSnapshotID,
+					},
+
+					"network_features": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(volumegroups.NetworkFeaturesBasic),
+							string(volumegroups.NetworkFeaturesStandard),
+						}, false),
+					},
+
+					"protocols": {
+						Type:     pluginsdk.TypeSet,
+						ForceNew: true,
+						Optional: true,
+						Computed: true,
+						MaxItems: 2,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								"NFSv3",
+								"NFSv4.1",
+								"CIFS",
+							}, false),
+						},
+					},
+
+					"security_style": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						Computed: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"Unix", // Using hardcoded values instead of SDK enum since no matter what case is passed,
+							"Ntfs", // ANF changes casing to Pascal case in the backend. Please refer to https://github.com/Azure/azure-sdk-for-go/issues/14684
+						}, false),
+					},
+
+					"storage_quota_in_gb": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(100, 102400),
+					},
+
+					"throughput_in_mibps": {
+						Type:     pluginsdk.TypeFloat,
+						Optional: true,
+						Computed: true,
+					},
+
+					"export_policy_rule": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 5,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"rule_index": {
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntBetween(1, 5),
+								},
+
+								"allowed_clients": {
+									Type:     pluginsdk.TypeSet,
+									Required: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validate.CIDR,
+									},
+								},
+
+								"protocols_enabled": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Computed: true,
+									MaxItems: 1,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+										ValidateFunc: validation.StringInSlice([]string{
+											"NFSv3",
+											"NFSv4.1",
+											"CIFS",
+										}, false),
+									},
+								},
+
+								"unix_read_only": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Computed: true,
+								},
+
+								"unix_read_write": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Computed: true,
+								},
+
+								"root_access_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Computed: true,
+								},
+
+								"kerberos5_read_only": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Computed: true,
+								},
+
+								"kerberos5_read_write": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Computed: true,
+								},
+
+								"kerberos5i_read_only": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Computed: true,
+								},
+
+								"kerberos5i_read_write": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Computed: true,
+								},
+
+								"kerberos5p_read_only": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Computed: true,
+								},
+
+								"kerberos5p_read_write": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Computed: true,
+								},
+							},
+						},
+					},
+
+					"tags": commonschema.Tags(),
+
+					"mount_ip_addresses": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"snapshot_directory_visible": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Computed: true,
+					},
+
+					"data_protection_replication": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						ForceNew: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"endpoint_type": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									Default:  "dst",
+									ValidateFunc: validation.StringInSlice([]string{
+										"dst",
+									}, false),
+								},
+
+								"remote_volume_location": azure.SchemaLocation(),
+
+								"remote_volume_resource_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: azure.ValidateResourceID,
+								},
+
+								"replication_frequency": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										"10minutes",
+										"daily",
+										"hourly",
+									}, false),
+								},
+							},
+						},
+					},
+
+					"data_protection_snapshot_policy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"snapshot_policy_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: azure.ValidateResourceID,
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
