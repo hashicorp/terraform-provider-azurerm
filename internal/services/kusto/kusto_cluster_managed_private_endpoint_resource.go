@@ -142,6 +142,13 @@ func resourceKustoClusterManagedPrivateEndpointRead(d *schema.ResourceData, meta
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.ManagedPrivateEndpointName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
 
 	d.Set("name", id.ManagedPrivateEndpointName)
 	d.Set("cluster_name", id.ClusterName)
